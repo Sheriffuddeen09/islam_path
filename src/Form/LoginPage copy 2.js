@@ -6,7 +6,7 @@ import success from "./image/path_islam.png";
 import dua from "./image/dua.png";
 import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
-import axios from "axios";
+import api from "../Api/axios";
 import logos from './image/favicon.png'
 import TextSlider from "./TextSlider";
 
@@ -30,6 +30,7 @@ const texts = [
     }
   ]
 
+
 export default function LoginPage() {
 
  const [steps, setSteps] = useState(1);
@@ -51,136 +52,145 @@ export default function LoginPage() {
   const clearError = (field) => {
     setErrors(prev =>({...prev, [field]: ''}))
   }
-
-
-
-  const handleLoginNext = async () => {
-  const newErrors = {};
-
-  if (!loginEmail) newErrors.email = "Email is required";
-  if (!loginPassword) newErrors.loginPassword = "Password is required";
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  setLoading(true);
-  setErrors({});
-
-  try {
-    // STEP 1: Check email + password before OTP
-    const check = await axios.post("http://127.0.0.1:8000/api/login-check", {
-      email: loginEmail,
-      password: loginPassword,
-    });
-
-    // STEP 2: Send OTP
-    await axios.post("http://127.0.0.1:8000/api/login-otp", {
-      email: loginEmail,
-    });
-
-    // STEP 3: Move to OTP screen
-    setSteps(2);
-  } catch (err) {
-    let msg = "Something went wrong";
-
-    if (err.response) {
-      const serverMsg = err.response.data.message || "";
-
-      // Handle database/server connection errors
-      if (
-        serverMsg.includes("SQLSTATE") ||
-        serverMsg.toLowerCase().includes("connection") ||
-        serverMsg.toLowerCase().includes("refused")
-      ) {
-        msg = "Server down, please try later";
-      } else {
-        // Use backend message for other cases
-        msg = serverMsg || msg;
-      }
-    } else if (err.request) {
-      // No response from server at all
-      msg = "Server not reachable, please try later";
-    }
-
-    setErrors({ email: msg });
-  } finally {
-    setLoading(false);
-  }
+  
+  const getCsrf = async () => {
+  await api.get("/sanctum/csrf-cookie");
 };
 
 
-const resendOtp = async () => {
-  try {
-    const response = await axios.post("http://127.0.0.1:8000/api/login-otp", { email: loginEmail });
+// const handleLoginNext = async () => { 
+//   const newErrors = {};
 
-    // Start cooldown (e.g., 30 seconds)
-    setResendTimer(30);
-    const interval = setInterval(() => {
-      setResendTimer(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+//   if (!loginEmail) newErrors.email = "Email is required";
+//   if (!loginPassword) newErrors.loginPassword = "Password is required";
 
-  } catch (err) {
-    setErrors({ errors: "Failed to send OTP. Try again." });
-  }
-};
+//   if (Object.keys(newErrors).length > 0) {
+//     setErrors(newErrors);
+//     return;
+//   }
 
-  const verifyOtpLogin = async () => {
+//   setLoading(true);
+//   setErrors({});
 
-    setLoading(true)
-    const otp = otpBoxes.join('')
-    
-      if (otp.length !== 6){
-        setErrors({ otp: "Enter full 6-digit code" });
-      setLoading(false);
-      return;
-    }
+//   try {
+//     // STEP 0: GET CSRF COOKIE FIRST
+//     await getCsrf();
 
-    try{
+//     // STEP 1: Check email + password before OTP
+//     const check = await api.post("/api/login-check", {
+//       email: loginEmail,
+//       password: loginPassword,
+//     });
 
-    await axios.post('http://127.0.0.1:8000/api/login-verify', {
-      email: loginEmail,
-      otp
-    })
+//     // STEP 2: Send OTP
+//     await api.post("/api/login-otp", {
+//       email: loginEmail,
+//     },  { withCredentials: true });
 
-    const loginRes = await axios.post('http://127.0.0.1:8000/api/login', {
-      email: loginEmail,
-      password: loginPassword,
-      remember
-    })
-    localStorage.setItem("token", loginRes.data.token)
-    window.location.href = "/dashboard";
-    } catch (err) {
-      setErrors({ otp: "Invalid OTP. Try again" });
-    } finally {
-      setLoading(false);
-    }   
-  }
+//     // STEP 3: Switch to OTP screen
+//     setSteps(2);
 
-  const handleOtpChange = (value, index) => {
-    if (!/^\d*$/.test(value)) return;
+//   } catch (err) {
+//     let msg = "Something went wrong";
 
-    const updated = [...otpBoxes];
-    updated[index] = value;
-    setOtpBoxes(updated);
+//     if (err.response) {
+//       const serverMsg = err.response.data.message || "";
 
-    if (value && index < 5) {
-      inputsRef.current[index + 1].focus();
-    }
-  };
+//       if (
+//         serverMsg.includes("SQLSTATE") ||
+//         serverMsg.toLowerCase().includes("connection") ||
+//         serverMsg.toLowerCase().includes("refused")
+//       ) {
+//         msg = "Server down, please try later";
+//       } else {
+//         msg = serverMsg || msg;
+//       }
+//     } else if (err.request) {
+//       msg = "Server not reachable, please try later";
+//     }
 
-  const handleOtpKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !otpBoxes[index] && index > 0) {
-      inputsRef.current[index - 1].focus();
-    }
-  };
+//     setErrors({ email: msg });
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+// const resendOtp = async () => {
+//   try {
+//     await api.post("/api/login-otp", { email: loginEmail },  { withCredentials: true });
+
+//     setResendTimer(30);
+//     const interval = setInterval(() => {
+//       setResendTimer(prev => {
+//         if (prev <= 1) {
+//           clearInterval(interval);
+//           return 0;
+//         }
+//         return prev - 1;
+//       });
+//     }, 1000);
+
+//   } catch (err) {
+//     setErrors({ errors: "Failed to send OTP. Try again." });
+//   }
+// };
+
+// const verifyOtpLogin = async () => {
+//   setLoading(true);
+//   const otp = otpBoxes.join('');
+
+//   if (otp.length !== 6){
+//     setErrors({ otp: "Enter full 6-digit code" });
+//     setLoading(false);
+//     return;
+//   }
+
+//   try {
+//     // STEP 0: Get CSRF
+//     await getCsrf();
+
+//     // STEP 1: Verify OTP
+//     await api.post('/api/login-verify', {
+//       email: loginEmail,
+//       otp
+//     }, { withCredentials: true });
+
+//     // STEP 2: Login via email/password
+//     await api.post('/login', {
+//       email: loginEmail,
+//       password: loginPassword
+//     }, { withCredentials: true });
+
+//     // ✅ No token storage needed
+//     window.location.href = "/dashboard";
+
+//   } catch (err) {
+//     setErrors({ otp: "Invalid OTP. Try again" });
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+
+  
+//   const handleOtpChange = (value, index) => {
+//     if (!/^\d*$/.test(value)) return;
+
+//     const updated = [...otpBoxes];
+//     updated[index] = value;
+//     setOtpBoxes(updated);
+
+//     if (value && index < 5) {
+//       inputsRef.current[index + 1].focus();
+//     }
+//   };
+
+//   const handleOtpKeyDown = (e, index) => {
+//     if (e.key === "Backspace" && !otpBoxes[index] && index > 0) {
+//       inputsRef.current[index - 1].focus();
+//     }
+//   };
+
 
 
 

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import axios from "axios";
+import api from "../Api/axios";
 import Navbar from "../layout/Header";
 import { useNavigate } from "react-router-dom";
 
@@ -47,8 +47,8 @@ export default function TeacherOnboarding() {
     if (cv) form.append("cv", cv);
 
     try {
-    const res = await axios.post(
-      "http://localhost:8000/api/admin/teacher/save",
+    const res = await api.post(
+      "/api/admin/teacher/save",
       form,
       { headers: { "Content-Type": "multipart/form-data" } }
     );

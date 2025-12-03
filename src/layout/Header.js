@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
-import { CreativeCommons, Database, Globe, LayoutDashboard, LibraryIcon, MessageCircle, Search, User, User2, User2Icon } from "lucide-react";
-import axios from 'axios';
+import { CreativeCommons, Globe, LayoutDashboard, LibraryIcon, MessageCircle, Search, User, User2, User2Icon } from "lucide-react";
+import useAuthCheck from './UserAuthCheck';
 
 function Navbar() {
 
@@ -10,26 +10,30 @@ function Navbar() {
       const [browse, setBrowse] = useState(false)
       const [members, setMember] = useState(false)
       const [content, setContent] = useState(false)
-      const [user, setUser] = useState(null);
       const homepage = useLocation().pathname
-      const [isLoggedin, setIsLoggedin] = useState(false);
+      
+    const { isLoggedin, loading } = useAuthCheck();
 
-      const handleSignOut = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+    if (loading) return <div>Loading...</div>;
 
-        setUser(null); // update UI
-      };
-
-     useEffect(() => {
-  const token = localStorage.getItem("token");
-
-  if (!token || token === "undefined" || token === "null") {
-    setIsLoggedin(false);
-  } else {
-    setIsLoggedin(true);
-  }
-}, []);
+    const check = (
+      <div>
+        {isLoggedin ? <Link
+              to="/dashboard"
+              className="bg-gray-800 w-28 font-bold text-white px-5 py-2 text-sm rounded-full flex items-center gap-2 hover:bg-gray-900"
+            >
+              <LayoutDashboard />
+              Dashboard
+            </Link>
+           : <Link
+              to="/login"
+              className="bg-green-700 w-28 text-white px-5 py-2 text-sm font-bold rounded-full flex justify-center items-center gap-2 hover:bg-green-800"
+            >
+              <User2 className='w-4 h-4'/>
+              Login
+            </Link>}
+      </div>
+    );
 
 
    
@@ -128,23 +132,7 @@ function Navbar() {
             </div>
             <div className="md:block hidden">
 
-            {isLoggedin ? (
-            <Link
-              to="/dashboard"
-              className="bg-gray-800 w-28 font-bold text-white px-5 py-2 text-sm rounded-full flex items-center gap-2 hover:bg-gray-900"
-            >
-              <LayoutDashboard />
-              Dashboard
-            </Link>
-          )  : (
-            <Link
-              to="/login"
-              className="bg-green-700 w-28 text-white px-5 py-2 text-sm font-bold rounded-full flex justify-center items-center gap-2 hover:bg-green-800"
-            >
-              <User2 className='w-4 h-4'/>
-              Login
-            </Link>
-          )}
+          {check}
 
       </div>
 
@@ -273,21 +261,7 @@ function Navbar() {
   <div className="flex justify-start">
 
     {/* USER IS LOGGED IN */}
-     {isLoggedin ? (
-            <Link
-              to="/dashboard"
-              className="bg-gray-800 w-28 font-bold text-white px-5 py-2 text-sm rounded-full flex items-center gap-2 hover:bg-gray-900"
-            >
-              Dashboard
-            </Link>
-          )  : (
-            <Link
-              to="/login"
-              className="bg-green-700 w-32 text-white px-5 py-2 text-sm rounded-full flex justify-center items-center gap-2 hover:bg-green-800"
-            >
-              Login
-            </Link>
-          )}
+     {check}
   </div>
 </div>
 

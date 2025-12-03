@@ -1,13 +1,15 @@
-import { useRef, useState } from "react";
-import axios from "axios";
+import { useRef, useState, useEffect } from "react";
+import api from "../Api/axios";
 import { Home, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import dua_success from "./image/dua_success.png";
 import success from "./image/path_islam.png";
 import dua from "./image/dua.png";
 import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
 import TextSlider from "./TextSlider";
+import Notification from "./Notification";
+
 
 
 const texts = [
@@ -63,6 +65,34 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
+  const navigate = useNavigate()
+
+  const [notify, setNotify] = useState({ message: "", type: "" });
+
+const showNotification = (msg) => {
+  setNotify({ message: msg, type: "error" });
+
+  // Clear after 5 seconds
+  setTimeout(() => {
+    setNotify({ message: "", type: "" });
+  }, 5000);
+};
+
+useEffect(() => {
+  const msg = sessionStorage.getItem("notify_message");
+
+  if (msg) {
+    setNotify({ message: msg, type: "error" });
+
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+
+    sessionStorage.removeItem("notify_message");
+  }
+}, []);
+
   const validateError = () => {
     const newErrors = {};
 
@@ -82,10 +112,9 @@ export default function RegisterPage() {
 
   setLoading(true);
   setErrors({});
-
   try {
     // Example API call to check something before next step
-    const res = await axios.post("http://127.0.0.1:8000/api/check", {
+    const res = await api.post("/api/check", {
       firstName,
       lastName,
       dob,
@@ -93,9 +122,12 @@ export default function RegisterPage() {
     });
 
     // If API responds without error, move to next step
-    setSteps(2);
+  setSteps(2);
 
   } catch (err) {
+    console.log("FULL ERROR:", err);
+    console.log("SERVER RESPONSE:", err.response?.data);
+
     let msg = "Something went wrong";
 
     if (err.response) {
@@ -112,13 +144,12 @@ export default function RegisterPage() {
         msg = serverMsg || msg;
       }
     } else if (err.request) {
-      // No response from server at all
       msg = "Server not reachable, please try later";
     }
 
-    // Show the error and prevent advancing
     setErrors({ general: msg });
-  } finally {
+}
+ finally {
     setLoading(false);
   }
 };
@@ -126,7 +157,7 @@ export default function RegisterPage() {
 const autoSentOtp = async () =>{
 
   try{
-    const response = await axios.post("http://127.0.0.1:8000/api/send-otp", {email})
+    const response = await api.post("/api/send-otp", {email})
     setOtpSent(true)
   }
   catch(err){
@@ -180,6 +211,7 @@ const autoSentOtp = async () =>{
 
 const handleContactNext = async () => {
   const newErrors = {};
+  setLoading(true);
 
   if (!email) newErrors.email = "Email is required";
   if (!countryCode) newErrors.countryCode = "Country code is required";
@@ -192,8 +224,8 @@ const handleContactNext = async () => {
   }
 
   try {
-    // 🔥 Step 1: Check email
-    const emailCheck = await axios.post("http://127.0.0.1:8000/api/check-email", {
+    
+    const emailCheck = await api.post("/api/check-email", {
       email
     });
 
@@ -203,7 +235,7 @@ const handleContactNext = async () => {
     }
 
     // 🔥 Step 2: Check phone
-    const phoneCheck = await axios.post("http://127.0.0.1:8000/api/check-phone", {
+    const phoneCheck = await api.post("/api/check-phone", {
       phone: phonenumber
     });
 
@@ -229,6 +261,9 @@ const handleContactNext = async () => {
       setErrors({ phonenumber: err.response.data.errors.phone[0] });
     }
   }
+  finally{
+    setLoading(false);
+  }
 };
 
   
@@ -242,7 +277,7 @@ const handleContactNext = async () => {
 
     try {
     setLoading(true)
-      await axios.post('http://127.0.0.1:8000/api/verify-otp', {email, otp})
+      await api.post('/api/verify-otp', {email, otp})
       setSteps(5);
     }
     catch(err){
@@ -258,7 +293,7 @@ const handleContactNext = async () => {
 // Function to handle sending OTP and starting cooldown
 const resendOtp = async () => {
   try {
-    const response = await axios.post("http://127.0.0.1:8000/api/send-otp", { email });
+    const response = await api.post("/api/send-otp", { email });
     setOtpSent(true);
 
     // Start cooldown (e.g., 30 seconds)
@@ -304,50 +339,52 @@ const clearError = (field) =>{
 
 }
 
-const handleRegister = async () =>{
-
-  setLoading(true)
+const handleRegister = async () => {
+  setLoading(true);
 
   const payload = {
-  first_name: firstName,
-  last_name: lastName,
-  dob,
-  gender,
-  phone: phonenumber,
-  phone_country_code: countryCode,
-  location,
-  location_country_code: locationCountryCode,
-  email,
-  password,
-  password_confirmation: passwordConfirm,
-  privacy,
-  role   // ⬅⬅ ADD THIS
-};
+    first_name: firstName,
+    last_name: lastName,
+    dob,
+    gender,
+    phone: phonenumber,
+    phone_country_code: countryCode,
+    location,
+    location_country_code: locationCountryCode,
+    email,
+    password,
+    password_confirmation: passwordConfirm,
+    privacy,
+    role
+  };
 
-    try{
+  try {
+    const res = await api.post("/api/register", payload);
 
+    // Redirect silently on success (no notification)
+    navigate(res.data.redirect);
 
-        const res = await axios.post('http://127.0.0.1:8000/api/register', payload)
-        if (res.data.user && res.data.user.role) {
-        const role = res.data.user.role;
-        if (role === "student") {
-          window.location.href = "/dashboard";
-        } else if (role === "admin") {
-          window.location.href = "/terms-form";
-        }
+  } catch (err) {
+    // Laravel validation errors
+    if (err.response?.status === 422) {
+      const validationErrors = err.response.data.errors;
+      for (let field in validationErrors) {
+        showNotification(validationErrors[field][0]);
+        break; // show only first validation error
       }
-
-
     }
-    catch(err){
-
+    // Laravel error message
+    else if (err.response?.data?.message) {
+      showNotification(err.response.data.message);
     }
-    finally{
-    setLoading(false)
+    // fallback error
+    else {
+      showNotification("Something went wrong. Try again.");
     }
-    
-    }
-
+  } finally {
+    setLoading(false);
+  }
+};
 
     return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -418,7 +455,7 @@ const handleRegister = async () =>{
   <div className=" text lg:hidden block pb-3 mt-5 -md:mb-60 md:translate-y-28 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
           <TextSlider texts={texts} />
         </div>
-    <div className="flex flex-1 flex-col lg:flex-row mb-10 justify-around items-center sm:p-6 gap-10">
+    <div className="flex flex-1 mt-4 flex-col lg:flex-row mb-10 justify-around items-center sm:p-6 gap-10">
         {/* Left Section - Form */}
        
          <div className="lg:w-5/12 md:w-[600px] w-80 mx-auto p-6 border border-1 border-blue-200 shadow-2xl rounded-lg">
@@ -541,7 +578,7 @@ const handleRegister = async () =>{
           }
           {steps === 2 && (
   <>
-   <button
+   {/* <button
           className="px-4 py-2  text-black rounded opacity-60 "
           onClick={prevButton}
         >
@@ -549,7 +586,7 @@ const handleRegister = async () =>{
   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
 </svg>
 
-        </button>
+        </button> */}
     <h2 className="text-2xl font-bold text-center text-black">Choose Account Type</h2>
 
     <p className="text-center text-sm text-gray-700 mt-2">
@@ -628,15 +665,7 @@ const handleRegister = async () =>{
    {/* ------------------------ STEP 3 ------------------------ */}
       {steps === 3 && (
         <>
-        <button
-          className="px-4 py-2  text-black rounded opacity-60 "
-          onClick={prevButton}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
-</svg>
-
-        </button>
+  
           <h2 className="text-2xl font-bold text-center text-black mb-7">What's your contact info?</h2>
 
           <div className="mt-6 space-y-4">
@@ -706,12 +735,31 @@ const handleRegister = async () =>{
 
             <button
               onClick={handleContactNext}
-              disabled={loading}
              className="px-4 py-2 bg-blue-700 mt-8 text-white rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
         >
-              {loading ? "Processing..." : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          
+              {loading ?  <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg> : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-</svg>}
+</svg>  }
             </button>
           </div>
         </>
@@ -955,6 +1003,13 @@ const handleRegister = async () =>{
     "Register"
   )}
         </button>
+
+        <Notification
+  message={notify.message}
+  type={notify.type}
+  onClose={() => setNotify({ message: "", type: "" })}
+/>
+
       </div>
     </div>
   </>

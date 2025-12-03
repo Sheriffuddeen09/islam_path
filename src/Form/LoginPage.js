@@ -1,14 +1,16 @@
 import {Home, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import dua_success from "./image/dua_success.png";
 import success from "./image/path_islam.png";
 import dua from "./image/dua.png";
 import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
-import axios from "axios";
+import api from "../Api/axios";
 import logos from './image/favicon.png'
 import TextSlider from "./TextSlider";
+import Notification from "./Notification";
+
 
 
 const texts = [
@@ -30,173 +32,89 @@ const texts = [
     }
   ]
 
-  axios.defaults.withCredentials = true;
-
-axios.defaults.baseURL = "http://127.0.0.1:8000";
 
 export default function LoginPage() {
 
- const [steps, setSteps] = useState(1);
  const [menuOpen, setMenuOpen] = useState(false);
 
   // Login fields
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
-  // OTP
-  const [otpBoxes, setOtpBoxes] = useState(["", "", "", "", "", ""]);
-  const inputsRef = useRef([]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const navigate = useNavigate()
 
-  const clearError = (field) => {
-    setErrors(prev =>({...prev, [field]: ''}))
-  }
-  
-  const getCsrf = async () => {
-  await axios.get("/sanctum/csrf-cookie");
+  const [notify, setNotify] = useState({ message: "", type: "" });
+
+const showNotification = (msg) => {
+  setNotify({ message: msg, type: "error" });
+
+  // Clear after 5 seconds
+  setTimeout(() => {
+    setNotify({ message: "", type: "" });
+  }, 5000);
 };
 
+// Clear error for a field
+const clearError = (field) => {
+  setErrors(prev => ({ ...prev, [field]: '' }));
+}
 
-const handleLoginNext = async () => { 
-  const newErrors = {};
+const loginUser = async () => { 
+  setLoading(true);
 
-  if (!loginEmail) newErrors.email = "Email is required";
-  if (!loginPassword) newErrors.loginPassword = "Password is required";
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
+  // Local validation
+  if (!email) {
+    showNotification("Email is required");
     return;
   }
-
-  setLoading(true);
-  setErrors({});
-
-  try {
-    // STEP 0: GET CSRF COOKIE FIRST
-    await getCsrf();
-
-    // STEP 1: Check email + password before OTP
-    const check = await axios.post("/api/login-check", {
-      email: loginEmail,
-      password: loginPassword,
-    });
-
-    // STEP 2: Send OTP
-    await axios.post("/api/login-otp", {
-      email: loginEmail,
-    });
-
-    // STEP 3: Switch to OTP screen
-    setSteps(2);
-
-  } catch (err) {
-    let msg = "Something went wrong";
-
-    if (err.response) {
-      const serverMsg = err.response.data.message || "";
-
-      if (
-        serverMsg.includes("SQLSTATE") ||
-        serverMsg.toLowerCase().includes("connection") ||
-        serverMsg.toLowerCase().includes("refused")
-      ) {
-        msg = "Server down, please try later";
-      } else {
-        msg = serverMsg || msg;
-      }
-    } else if (err.request) {
-      msg = "Server not reachable, please try later";
-    }
-
-    setErrors({ email: msg });
-  } finally {
-    setLoading(false);
+  if (!email.includes("@")) {
+    showNotification("Enter a valid email address");
+    return;
   }
-};
-
-const resendOtp = async () => {
-  try {
-    await axios.post("/api/login-otp", { email: loginEmail });
-
-    setResendTimer(30);
-    const interval = setInterval(() => {
-      setResendTimer(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-  } catch (err) {
-    setErrors({ errors: "Failed to send OTP. Try again." });
+  if (!password) {
+    showNotification("Password is required");
+    return;
   }
-};
-
-const verifyOtpLogin = async () => {
-
-  setLoading(true);
-  const otp = otpBoxes.join('');
-
-  if (otp.length !== 6){
-    setErrors({ otp: "Enter full 6-digit code" });
-    setLoading(false);
+  if (password.length < 6) {
+    showNotification("Password must be at least 6 characters");
     return;
   }
 
   try {
-    // STEP 0: ALWAYS GET CSRF BEFORE LOGIN
-    await getCsrf();
+    await api.get("/sanctum/csrf-cookie");
+    const res = await api.post("/api/login", { email, password, remember_me: remember });
 
-    // STEP 1: Verify OTP
-    await axios.post('/api/login-verify', {
-      email: loginEmail,
-      otp
-    });
-
-    // STEP 2: Login using Sanctum
-    const loginRes = await axios.post('/api/login', {
-      email: loginEmail,
-      password: loginPassword,
-      remember
-    });
-
-    localStorage.setItem("token", loginRes.data.token);
-
-    window.location.href = "/dashboard";
+    localStorage.setItem("token", res.data.token);
+    
+    // No success notification, just redirect
+    navigate("/dashboard");
 
   } catch (err) {
-    setErrors({ otp: "Invalid OTP. Try again" });
+    const res = err.response;
+
+    // Validation error from backend
+    if (res?.status === 422 && res.data?.errors) {
+      const firstError = Object.values(res.data.errors)[0][0];
+      showNotification(firstError);
+      return;
+    }
+
+    // Server error
+    if (res?.status === 500 && res.data?.message) {
+      showNotification(res.data.message);
+      return;
+    }
+
+    // Unknown error
+    showNotification("Something went wrong. Please try again.");
   } finally {
     setLoading(false);
   }
 };
-
-
-  
-  const handleOtpChange = (value, index) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const updated = [...otpBoxes];
-    updated[index] = value;
-    setOtpBoxes(updated);
-
-    if (value && index < 5) {
-      inputsRef.current[index + 1].focus();
-    }
-  };
-
-  const handleOtpKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !otpBoxes[index] && index > 0) {
-      inputsRef.current[index - 1].focus();
-    }
-  };
-
 
 
   return (
@@ -269,9 +187,7 @@ const verifyOtpLogin = async () => {
 <div className="flex flex-1 flex-col justify-center items-center p-6">
         <div className="lg:w-full md:w-[600px] w-80 p-6 border border-blue-200 shadow-xl rounded-lg">
 
-          {/* STEP 1 — Email + Password */}
-          {steps === 1 && (
-            <>
+         
               <h2 className="text-2xl font-bold text-center text-black mb-6">
                 
               </h2>
@@ -284,9 +200,9 @@ const verifyOtpLogin = async () => {
                 <input
                   type="email"
                   className="w-full border bg-white outline-0 focus:bg-white border-blue-200 text-black px-4 py-3 rounded"
-                  value={loginEmail}
+                  value={email}
                   onChange={(e) => {
-                    setLoginEmail(e.target.value);
+                    setEmail(e.target.value);
                     clearError("email");
                   }}
                 />
@@ -301,9 +217,9 @@ const verifyOtpLogin = async () => {
                 <input
                   className="w-full border bg-white outline-0 border-blue-200 text-black px-4 py-3 rounded"
                   type={showPassword ? "text" : "password"}
-                  value={loginPassword}
+                  value={password}
                   onChange={(e) => {
-                    setLoginPassword(e.target.value);
+                    setPassword(e.target.value);
                     clearError("password");}}
                 />
                 <button
@@ -343,7 +259,7 @@ const verifyOtpLogin = async () => {
 
               {/* NEXT */}
               <button
-                onClick={handleLoginNext}
+                onClick={loginUser}
                 className="w-full bg-blue-700 text-white py-3 mx-auto rounded hover:bg-blue-800 hover:scale-105"
               >
                  {loading ? (
@@ -383,90 +299,14 @@ const verifyOtpLogin = async () => {
                 Create Account
               </Link>
             </p>
-            </>
-          )}
+            <Notification
+  message={notify.message}
+  type={notify.type}
+  onClose={() => setNotify({ message: "", type: "" })}
+/>
 
-          {/* STEP 2 — OTP Verification */}
-          {steps === 2 && (
-            <>
-              <button
-                className="px-4 py-2 text-black rounded opacity-60"
-                onClick={() => setSteps(1)}
-              >
-                ← Back
-              </button>
-
-              <h2 className="text-2xl font-bold text-black text-center">
-                Verify your login
-              </h2>
-              <p className="text-gray-600 mt-2 text-center">
-                Enter the 6-digit code sent to your email
-              </p>
-
-              <div className="mt-6 flex gap-3 mx-auto justify-center">
-                {otpBoxes.map((val, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => (inputsRef.current[i] = el)}
-                    value={val}
-                    maxLength={1}
-                    onChange={(e) =>
-                      handleOtpChange(e.target.value, i)
-                    }
-                    onKeyDown={(e) => handleOtpKeyDown(e, i)}
-                    className="w-10 h-10 text-center text-black border border-blue-500 shadow-2xl rounded text-xl"
-                  />
-                ))}
-              </div>
-                <div className="mt-4 text-center">
-              <button style={{
-                backgroundColor: 'transparent',
-              }}
-                className={`px-4 py-2 rounded mx-auto ${resendTimer > 0 ? 'bg-transparent hover:bg-transparent text-gray-400 cursor-not-allowed' : 'bg-transparent text-blue-600 font-bold hover:bg-blue-700'}`}
-                onClick={resendOtp}
-                disabled={resendTimer > 0}
-              >
-                {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
-              </button>
-            </div>
-
-              {errors.otp && (
-                <p className="text-red-600 sm:translate-x-8 translate-x-2 text-xs mt-2">{errors.otp}</p>
-              )}
-
-              <button
-                className="mt-6 px-4 py-2 bg-blue-700 float-right text-white rounded hover:bg-blue-800 hover:scale-105"
-                onClick={verifyOtpLogin}
-              >
-                 {loading ? (
-    <svg
-      className="animate-spin h-5 w-5 text-white mx-auto"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  ) : ( "Verify OTP")
-  }
-              </button>
-            </>
-          )}
-        </div>
-        
-      </div>
+    </div>
+    </div>
 
         {/* Right Section - Image */}
         <div className="flex-1 hidden bg-blue-500 rounded-tl-2xl shadow-2xl rounded-bl-2xl lg:flex">

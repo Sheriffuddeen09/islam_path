@@ -14,8 +14,8 @@ useEffect(() => {
 const fetchData = async () => {
 try {
 const [arabicRes, usersRes] = await Promise.all([
-axios.get("http://localhost:8000/api/teachers"),
-axios.get("http://localhost:8000/api/teachers/users"),
+axios.get(" /api/teachers"),
+axios.get(" /api/teachers/users"),
 ]);
 
 setArabicTeachers(arabicRes.data);
@@ -78,7 +78,7 @@ Get Your Arabic Teachers </h2>
       >
         {/* Teacher Logo */}
         <img
-          src={t.logo ? `http://localhost:8000/storage/${t.logo}` : "/default-avatar.png"}
+          src={t.logo ? ` /storage/${t.logo}` : "/default-avatar.png"}
           alt="Logo"
           className="w-24 h-24 object-cover rounded-full mb-3 mx-auto"
         />
@@ -126,7 +126,7 @@ Get Your Arabic Teachers </h2>
           <div>
             {t.cv ? (
               <a
-                href={`http://localhost:8000/storage/${t.cv}`}
+                href={` /storage/${t.cv}`}
                 target="_blank"
                 className="bg-blue-600 text-white w-28 font-bold text-sm p-2 rounded-lg mt-auto text-center hover:bg-blue-700 cursor-pointer"
               >

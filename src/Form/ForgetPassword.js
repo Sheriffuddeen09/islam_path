@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../Api/axios";
 import dua_success from "./image/dua_success.png";
 import success from "./image/path_islam.png";
 import dua from "./image/dua.png";
@@ -61,8 +61,8 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:8000/api/forgot-password",
+      const res = await api.post(
+        "/api/forgot-password",
         { email }
       );
 
@@ -88,8 +88,8 @@ export default function ForgotPassword() {
 
 //   const resendLink = async () => {
 //    try {
-//       const res = await axios.post(
-//         "http://localhost:8000/api/forgot-password",
+//       const res = await api.post(
+//         " /api/forgot-password",
 //         { email }
 //       );
 

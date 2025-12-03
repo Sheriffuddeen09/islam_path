@@ -1,40 +1,30 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-axios.defaults.baseURL = "http://127.0.0.1:8000";
-axios.defaults.withCredentials = true; // send cookies automatically
+import api from "../Api/axios";
 
 export default function AdminChoice() {
   const [selected, setSelected] = useState("");
+  const [choice, setChoice] = useState("");   // ✅ backend value
   const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ useEffect for side-effects
+  // =============================
+  //      CHECK LOGIN STATUS
+  // =============================
   useEffect(() => {
     const checkLogin = async () => {
       try {
-        // 1️⃣ Fetch CSRF cookie
-        await axios.get("/sanctum/csrf-cookie");
-        console.log("CSRF cookie fetched successfully");
+        await api.get("/sanctum/csrf-cookie");
 
-        // 2️⃣ Get logged-in user
-        const res = await axios.get("/api/user");
-        console.log("User info:", res.data);
-
-        const statusRes = await axios.get("/api/user-status");
-        console.log("User status:", statusRes.data);
+        const res = await api.get("/api/user");
+        const statusRes = await api.get("/api/user-status");
 
         if (res.data) {
-          console.log("✅ User is logged in");
-          setCurrentUser(res.data); // update state so component renders correctly
-        } else {
-          console.log("❌ User is not logged in");
+          setCurrentUser(res.data);
         }
       } catch (err) {
-        console.error("Error checking login:", err.response?.data || err);
-        navigate("/login"); // optional redirect
+        navigate("/login");
       }
     };
 
@@ -68,6 +58,25 @@ export default function AdminChoice() {
     },
   ];
 
+  // =============================
+  //       SUBMIT CHOICE
+  // =============================
+  const handleSubmit = async () => {
+    if (!choice) return;
+
+    setIsLoading(true);
+    try {
+      const res = await api.post("/api/admin/choose-choice", { choice });
+
+      navigate(res.data.redirect);
+    } catch (err) {
+      console.log("Error submitting choice:", err.response?.data || err);
+      alert("Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -90,7 +99,10 @@ export default function AdminChoice() {
           {options.map((opt) => (
             <div
               key={opt.id}
-              onClick={() => setSelected(opt.id)}
+              onClick={() => {
+                setSelected(opt.id);
+                setChoice(opt.id);
+              }}
               className={`p-6 rounded-xl border cursor-pointer transition-all duration-300 ${
                 selected === opt.id
                   ? "shadow-2xl scale-105 border-purple-500"
@@ -103,7 +115,9 @@ export default function AdminChoice() {
                 >
                   {opt.emoji}
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{opt.title}</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  {opt.title}
+                </h2>
                 <p className="text-gray-600 text-sm leading-relaxed">
                   {opt.id === "sell" &&
                     "Create premium courses and earn income while teaching others."}
@@ -119,9 +133,10 @@ export default function AdminChoice() {
 
         <div className="text-center mt-10">
           <button
-            disabled={!selected || isLoading}
+            onClick={handleSubmit}   // ✅ Save choice
+            disabled={!choice || isLoading}
             className={`px-8 py-3 rounded-full font-semibold text-lg shadow-md transition-all ${
-              selected
+              choice
                 ? "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"
                 : "bg-gray-300 text-gray-600 cursor-not-allowed"
             }`}

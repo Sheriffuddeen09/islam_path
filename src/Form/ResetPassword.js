@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../Api/axios";
 import { useNavigate } from "react-router-dom";
 import TextSlider from "./TextSlider";
 import Navbar from "../layout/Header";
@@ -48,7 +48,7 @@ export default function ResetPassword() {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:8000/api/reset-password", {
+      const res = await api.post("/api/reset-password", {
         token,
         email,
         password,

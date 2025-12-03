@@ -4,7 +4,6 @@ import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
 import HomePage from './pages/Home'
 import NotFound from "./layout/Notfound";
-import BuyPage from "./pages/BuyPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
@@ -14,7 +13,7 @@ import TeacherOnboarding from "./Form/TeacherOnboarding";
 import AdminChoice from "./Form/AdminChoice";
 import GetMentor from "./pages/GetMentor";
 import CheckLogin from "./Form/CheckLogin";
-import DashboardLayout from "./Form/Dashboard";
+import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 
    
 function App() {
@@ -68,7 +67,7 @@ function App() {
       } />
 
       <Route path="/dashboard" element={
-          <DashboardLayout />
+          <TeacherDashboardLayout />
       } />
 
        <Route path="*" element={<NotFound />} />
