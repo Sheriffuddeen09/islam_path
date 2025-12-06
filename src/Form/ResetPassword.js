@@ -40,7 +40,44 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [msg, setMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
   const navigate = useNavigate();
+
+  const handlePasswordChange = (value) => {
+  setPassword(value);
+
+  // Password strength rules
+  if (value.length < 8) {
+    setPasswordError("Password must be at least 8 characters");
+  } else {
+    setPasswordError("");
+  }
+
+  // Check if confirm password already typed
+  if (confirm && value !== confirm) {
+    setConfirmError("Passwords do not match");
+  } else {
+    setConfirmError("");
+  }
+};
+
+const handleConfirmChange = (value) => {
+  setConfirm(value);
+
+  if (value !== password) {
+    setConfirmError("Passwords do not match");
+  } else {
+    setConfirmError("");
+  }
+};
+
+const isDisabled =
+  !password ||
+  !confirm ||
+  passwordError ||
+  confirmError;
+
 
   const handleReset = async (e) => {
 
@@ -79,17 +116,18 @@ export default function ResetPassword() {
       <h2 className="text-xl font-bold mb-4 text-black text-center my-5">Reset Password</h2>
 
       <form onSubmit={handleReset}>
-        <div className="relative">
+        <div className="relative mb-3 outline-none rounded border-blue-300 border">
         <input
-          type={showPassword ?  "text " : "password" }
+          type={showPassword ? "text" : "password"}
           placeholder="New Password"
-          className="border p-2 w-full mb-3 text-black"
-          onChange={(e) => setPassword(e.target.value)}
+          className="border p-2 w-full text-black"
+          value={password}
+          onChange={(e) => handlePasswordChange(e.target.value)}
         />
             <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-4 text-gray-500"
+          className="absolute right-3 top-3 text-gray-500"
         >
             {showPassword ? (
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
@@ -102,19 +140,23 @@ export default function ResetPassword() {
           )}
         </button>
         </div>
+        {passwordError && (
+          <p className="text-red-500 text-sm mb-2">{passwordError}</p>
+        )}
         
         <div className="relative">
         <input
-          type={showConfirmPassword ? "text " : "password" }
+          type={showConfirmPassword ? "text" : "password"}
           placeholder="Confirm Password"
-          className="border p-2 w-full mb-3 text-black"
-          onChange={(e) => setConfirm(e.target.value)}
+          className="border p-2 w-full text-black rounded border-blue-300 border"
+          value={confirm}
+          onChange={(e) => handleConfirmChange(e.target.value)}
         />
         
             <button
           type="button"
           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          className="absolute right-3 top-4 text-gray-500"
+          className="absolute right-3 top-3 text-gray-500"
         >
             {showConfirmPassword ? (
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
@@ -127,31 +169,41 @@ export default function ResetPassword() {
           )}
         </button>
         </div>
-        <button className="bg-green-600 text-white my-5 px-4 py-2 rounded">
-         {isLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white mx-auto"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  ></path>
-                </svg>
-              ) : (
-                "Reset Password")}
-        </button>
+        {confirmError && (
+          <p className="text-red-500 text-sm mb-2">{confirmError}</p>
+        )}
+        <button
+  disabled={isDisabled || isLoading}
+  className={`bg-green-600 w-40 float-right text-white my-5 px-4 py-2 rounded ${
+    isDisabled ? "opacity-70 cursor-not-allowed" : "hover:bg-green-800"
+  }`}
+>
+  {isLoading ? (
+    <svg
+      className="animate-spin h-5 w-5 text-white mx-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+  ) : (
+    "Reset Password"
+  )}
+</button>
+
       </form>
 
       {msg && <p className="mt-4">{msg}</p>}

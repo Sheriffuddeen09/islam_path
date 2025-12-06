@@ -1,24 +1,13 @@
 
 import api from "../Api/axios";
 import { useEffect, useState } from "react";
-import DashboardLayout from "./Dashboard";
+import StudentDashboard from "./Dashboard";
 import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
-import AdminVideoForm from "./AdminVideoCreate";
-import CreateVideoSection from "./CreateVideo";
 
-export default function TeacherDashboardLayout({onCreated}) {
+export default function StudentDashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
-
-  const [savedChoice, setSavedChoice] = useState(null);
-
-  useEffect(() => {
-    api.get("/api/user-status").then(res => {
-      setSavedChoice(res.data.admin_choice);  // comes from database
-    });
-  }, []);
-
   
 
   const [visible, setVisible] = useState(1)
@@ -28,28 +17,16 @@ export default function TeacherDashboardLayout({onCreated}) {
     }
 
 
-    const isLocked = !savedChoice;
-
-  // Teacher savedChoice = Comment 1
- const isTeacher = savedChoice === "arabic_teacher";
-
-  // Menu items for Comment 1
-  const teacherMenu = [
-    { id: 7, label: "Student Request" },
+  const menu = [
+    { id: 7, label: "Teacher Request" },
     { id: 8, label: "Live Class" },
-    { id: 9, label: "Student Assignment" },
-    { id: 10, label: "Student Quiz" },
+    { id: 9, label: "View Assignment" },
+    { id: 10, label: "View Quiz" },
+    { id: 11, label: "Ranks" },
+    { id: 11, label: "Profile" },
   ];
 
-  // Menu items for Comment 2
-  const defaultMenu = [
-    { id: 6, label: "Create Content" },
-    { id: 7, label: "Order" },
-    { id: 8, label: "Sale History" },
-  ];
-
-  // Choose which menu
-  const menu = isTeacher ? teacherMenu : defaultMenu;
+ 
 
 
 
@@ -108,7 +85,7 @@ export default function TeacherDashboardLayout({onCreated}) {
           }`}>
             Friends
           </li>
-          <li onClick={() => handleVisible(4)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
+          <li className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-blue-600 text-white" : "bg-transparent"
           }`}>
             Create Video
@@ -119,21 +96,8 @@ export default function TeacherDashboardLayout({onCreated}) {
             Profile
           </li>
         </ul>
-
-        <div className="relative">
-
-      {/* 🔐 LOCKED OVERLAY */}
-      {isLocked && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
-          <div className="flex flex-col items-center gap-2 text-gray-700">
-            <Lock className="w-6 h-6" />
-            <span className="font-semibold text-sm">Choose Your Option First</span>
-          </div>
-        </div>
-      )}
-
       {/* Actual Menu */}
-      <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
+      <div className= "">
         <h3 className="text-xs text-blue-800 font-bold mt-6 mb-2">SET SECTION</h3>
 
         <ul className="space-y-2 mb-10">
@@ -141,7 +105,7 @@ export default function TeacherDashboardLayout({onCreated}) {
             <li
               key={item.id}
               onClick={() => setVisible(item.id)}
-              className={`p-2 rounded-lg text-sm font-semibold cursor-pointer 
+              className={`p-2 rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                 hover:bg-gray-200 hover:text-gray-600 
                 ${visible === item.id ? "bg-blue-600 text-white" : "bg-transparent"}
               `}
@@ -152,19 +116,15 @@ export default function TeacherDashboardLayout({onCreated}) {
         </ul>
       </div>
 
-    </div>
       </aside>
 
       {/* ---------------------- MAIN CONTENT ---------------------- */}
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <DashboardLayout />
+        <StudentDashboard />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <StudentRequest />
-        </div>
-        <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
-        <CreateVideoSection onCreated={onCreated} />
         </div>
             
       </section>

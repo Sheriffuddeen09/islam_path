@@ -457,21 +457,25 @@ const handleRegister = async () => {
         </div>
     <div className="flex flex-1 mt-4 flex-col lg:flex-row mb-10 justify-around items-center sm:p-6 gap-10">
         {/* Left Section - Form */}
+        <div className=" flex justify-end float-left">
        
+        </div>
          <div className="lg:w-5/12 md:w-[600px] w-80 mx-auto p-6 border border-1 border-blue-200 shadow-2xl rounded-lg">
-         <button
-          className="px-4 py-2  text-black rounded opacity-60 "
+         
+          {
+            steps === 1 && (
+              <>
+              <button
+          className="px-4 py-2  -mb-5 text-white font-bold rounded opacity-60 "
           
         >
           <Link to={'/login'}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-black">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
 </svg>
 </Link>
         </button>
-          {
-            steps === 1 && (
-              <>
+
           <h2 className="text-2xl font-bold text-center sm:py-5 text-black mb-10">Tell us about yourself</h2>
 
           <div className="mt-6 sm:px-4">
@@ -578,7 +582,7 @@ const handleRegister = async () => {
           }
           {steps === 2 && (
   <>
-   {/* <button
+   <button
           className="px-4 py-2  text-black rounded opacity-60 "
           onClick={prevButton}
         >
@@ -586,7 +590,7 @@ const handleRegister = async () => {
   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
 </svg>
 
-        </button> */}
+        </button>
     <h2 className="text-2xl font-bold text-center text-black">Choose Account Type</h2>
 
     <p className="text-center text-sm text-gray-700 mt-2">
@@ -665,7 +669,15 @@ const handleRegister = async () => {
    {/* ------------------------ STEP 3 ------------------------ */}
       {steps === 3 && (
         <>
-  
+  <button
+          className="px-4 py-2  text-black rounded opacity-60 "
+          onClick={prevButton}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+</svg>
+
+        </button>
           <h2 className="text-2xl font-bold text-center text-black mb-7">What's your contact info?</h2>
 
           <div className="mt-6 space-y-4">
@@ -767,7 +779,7 @@ const handleRegister = async () => {
 
  {steps === 4 && (
         <>
-        {/* <button
+        <button
           className="px-4 py-2  text-black rounded opacity-60 "
           onClick={prevButton}
         >
@@ -775,7 +787,7 @@ const handleRegister = async () => {
   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
 </svg>
 
-        </button> */}
+        </button>
           <h2 className="text-2xl font-bold text-black text-center">Verify your login</h2>
           <p className="text-gray-600 mt-2 text-center">Enter the 6-digit code sent to your email</p>
 

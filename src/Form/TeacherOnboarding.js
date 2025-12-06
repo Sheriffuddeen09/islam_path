@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import api from "../Api/axios";
 import Navbar from "../layout/Header";
 import { useNavigate } from "react-router-dom";
+import Notification from "./Notification";
 
 export default function TeacherOnboarding() {
   const [courseTitle, setCourseTitle] = useState("");
@@ -9,8 +10,11 @@ export default function TeacherOnboarding() {
   const [currency, setCurrency] = useState("");
   const [loading, setLoading] = useState("");
   const [compliment, setCompliment] = useState("");
+  const [qualification, setQualification] = useState("");
+  const [experience, setExperience] = useState("");
   const [logo, setLogo] = useState(null);
   const [cv, setCv] = useState(null);
+  const [notification, setNotification] = useState({ message: "", type: "" });
   const textareaRef = useRef(null);
 
 
@@ -25,6 +29,27 @@ export default function TeacherOnboarding() {
     textarea.style.height = "auto"; // reset height
     textarea.style.height = textarea.scrollHeight + "px"; // set to scrollHeight
   };
+
+  const handleChangeC = (e) => {
+    const value = e.target.value;
+    setCompliment(value);
+
+    // Auto-expand
+    const textarea = textareaRef.current;
+    textarea.style.height = "auto"; // reset height
+    textarea.style.height = textarea.scrollHeight + "px"; // set to scrollHeight
+  };
+
+  const handleChangeQ = (e) => {
+    const value = e.target.value;
+    setQualification(value);
+
+    // Auto-expand
+    const textarea = textareaRef.current;
+    textarea.style.height = "auto"; // reset height
+    textarea.style.height = textarea.scrollHeight + "px"; // set to scrollHeight
+  };
+
   const handleFileChangeLogo = (e) => {
     setLogo(e.target.files[0]);
   };
@@ -35,53 +60,69 @@ export default function TeacherOnboarding() {
 
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const form = new FormData();
-    form.append("admin_id", 1);
-    form.append("course_title", courseTitle);
-    form.append("course_payment", payment);
-    form.append("currency", currency);
-    form.append("compliment", compliment);
-    if (logo) form.append("logo", logo);
-    if (cv) form.append("cv", cv);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-    const res = await api.post(
-      "/api/admin/teacher/save",
-      form,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+  const form = new FormData();
+  form.append("admin_id", 1);
+  form.append("course_title", courseTitle);
+  form.append("course_payment", payment);
+  form.append("currency", currency);
+  form.append("compliment", compliment);
+  form.append("experience", experience);
+  form.append("qualification", qualification);
+  if (logo) form.append("logo", logo);
+  if (cv) form.append("cv", cv);
 
-    // Show success message
-    alert(res.data.message || "Teacher details saved successfully!");
+  try {
+    const res = await api.post("/api/admin/teacher/save", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
-    // Redirect to dashboard
-    router("/dashboard");
+    setNotification({
+      message: res.data.message || "Teacher details saved successfully!",
+      type: "success",
+    });
+
+    setTimeout(() => {
+      router("/admin/dashboard");
+    }, 1500);
   } catch (err) {
-    // Handle validation or other errors
-    if (err.response && err.response.data && err.response.data.errors) {
-      // Laravel validation errors
+    if (err.response?.data?.errors) {
       const messages = Object.values(err.response.data.errors)
         .flat()
         .join("\n");
-      alert(messages);
+
+      setNotification({
+        message: messages,
+        type: "error",
+      });
     } else {
-      alert(err.response?.data?.message || "Something went wrong!");
+      setNotification({
+        message: err.response?.data?.message || "Something went wrong!",
+        type: "error",
+      });
     }
   } finally {
     setLoading(false);
   }
-  };
+};
+
 
   const content = (
     <form onSubmit={handleSubmit} className="py-4 sm:px-8 px-5 sm:w-[500px] w-80  mx-auto border border-blue-600 rounded-2xl my-5">
       <h1 className="sm:text-2xl font-bold mb-4 text-black text-lg text-center">Become an Arabic Teacher</h1>
 
-      <input type="text" placeholder="Course Title"
+      <input value={courseTitle} type="text" placeholder="Course Title"
         onChange={(e) => setCourseTitle(e.target.value)}
-        className="w-full p-2 border border-blue-600 rounded-lg outline-0 text-black mb-3"
+        className="w-full p-2 border border-blue-600 rounded-lg outline-0 text-black mb-4"
       />
+
+      <input value={experience} type="text" placeholder="Course Title Optional"
+        onChange={(e) => setExperience(e.target.value)}
+        className="w-full p-2 border border-blue-600 rounded-lg outline-0 text-black mb-1"
+      />
+      <p className="text-xs text-black mb-4"> wish to take more than one course</p>
 
       <div className="flex items-center mb-3 gap-2">
         <select
@@ -89,7 +130,7 @@ export default function TeacherOnboarding() {
           onChange={(e) => setCurrency(e.target.value)}
           className="border border-blue-600 rounded-lg outline-0 text-black px-2 py-2  rounded"
         >
-          <option value=""></option>
+          <option value="">Cur</option>
           <option value="$">USD ($)</option>
           <option value="₦">NGN (₦)</option>
           <option value="€">EUR (€)</option>
@@ -108,7 +149,7 @@ export default function TeacherOnboarding() {
       ref={textareaRef}
       value={compliment}
       placeholder="Compliment"
-      onChange={handleChange}
+      onChange={handleChangeC}
       className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
       rows={4} // default rows
     />
@@ -123,7 +164,6 @@ export default function TeacherOnboarding() {
         onChange={handleFileChangeLogo}
         className="hidden"
       />
-
       {/* Custom Upload Button */}
       <label
         htmlFor="logoUpload"
@@ -143,6 +183,18 @@ export default function TeacherOnboarding() {
         </div>
       )}
     </div>
+
+
+      {/* Qualification */}
+
+       <textarea
+      ref={textareaRef}
+      value={qualification}
+      placeholder="Qualification"
+      onChange={handleChangeQ}
+      className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
+      rows={4} // default rows
+    />
 
     {/* Cv */}
 
@@ -204,6 +256,7 @@ export default function TeacherOnboarding() {
 
             </button>
       </div>
+
     </form>
   );
 
@@ -211,6 +264,14 @@ export default function TeacherOnboarding() {
     <div>
       <Navbar />
       {content}
+      {notification.message && (
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ message: "", type: "" })}
+      />
+    )}
+
       </div>
   )
 }

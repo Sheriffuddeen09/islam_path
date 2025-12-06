@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
@@ -6,24 +6,55 @@ import HomePage from './pages/Home'
 import NotFound from "./layout/Notfound";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
 import ForgotPassword from "./Form/ForgetPassword";
 import ResetPassword from "./Form/ResetPassword";
 import TeacherOnboarding from "./Form/TeacherOnboarding";
 import AdminChoice from "./Form/AdminChoice";
 import GetMentor from "./pages/GetMentor";
-import CheckLogin from "./Form/CheckLogin";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
+import { useEffect, useState } from "react";
+import api from "./Api/axios";
+import StudentDashboardLayout from "./studentdashboard/StudentDashboard";
+import ProtectedRoute from "./ProtectedRoute";
+import RouteChangeWrapper from "./route/RouteChangeWrapper";
+import AdminVideoPage from "./pages/video/AdminVideoPage";
 
    
 function App() {
 
+    const [choice, setChoice] = useState(""); 
+    const [selected, setSelected] = useState("");  
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    const [videos, setVideos] = useState([]);
+
+    // 🔥 This function receives the new video from AdminVideoForm
+    const handleVideoCreated = (newVideo) => {
+      setVideos((prev) => [newVideo, ...prev]); // Update UI instantly
+    };
+
   
   return (
     <div className="">
+      <RouteChangeWrapper>
       <Routes>
 
-        {/* register */}
+      {/* Home Page*/}
+      <Route path="/" element={
+          <HomePage />
+      } />
+
+      <Route path="/get-mentor" element={
+          <GetMentor />
+      } />
+
+       <Route path="/video" element={
+          <AdminVideoPage videos={videos} setVideos={setVideos} />
+      } />
+
+
+      {/* register */}
       <Route path="/register" element={
         
         <RegisterPage />
@@ -33,11 +64,6 @@ function App() {
       {/* login */}
       <Route path="/login" element={
         <LoginPage />
-    } />
-
-      {/* Home Page*/}
-      <Route path="/" element={
-          <HomePage />
       } />
 
       {/* Forget Password */}
@@ -50,30 +76,36 @@ function App() {
           <ResetPassword />
       } />
 
-      <Route path="/teacher-form" element={
+      <Route path="/admin/teacher-form" element={
           <TeacherOnboarding />
       } />
 
-      <Route path="/terms-form" element={
-          <AdminChoice />
+      <Route path="/admin/choose-choice" element={
+          <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
+          currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
       } />
 
-      <Route path="/get-mentor" element={
-          <GetMentor />
+      <Route path="/admin/dashboard" element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <TeacherDashboardLayout choice={choice} onCreated={handleVideoCreated} />
+        </ProtectedRoute>
       } />
 
-      <Route path="/user-status" element={
-          <CheckLogin />
-      } />
+      <Route
+          path="/student/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboardLayout />
+            </ProtectedRoute>
+          }
+      />
 
-      <Route path="/dashboard" element={
-          <TeacherDashboardLayout />
-      } />
 
        <Route path="*" element={<NotFound />} />
 
       </Routes>
         <ToastContainer />
+      </RouteChangeWrapper>
     </div>
   );
 }

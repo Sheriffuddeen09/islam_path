@@ -210,6 +210,9 @@ main {
 .files{
   animation: filesChange 4s infinite alternate;
 }
+.admin{
+  animation: adminChange 4s infinite alternate;
+}
 /* 🔵🟢🔴 Color Changing Animation */
 
 @keyframes colorChange {
@@ -231,6 +234,13 @@ main {
   33% { background-color: #00b7ff; }    /* Blue */
   66% { background-color: #00c46c; }    /* Green */
   100% { background-color: #ffb400; }   /* Yellow */
+}
+
+@keyframes adminChange {
+  0% { color: #ff4d4d; }     /* Red */
+  33% { color: #00b7ff; }    /* Blue */
+  66% { color: #00c46c; }    /* Green */
+  100% { color: #ffb400; }   /* Yellow */
 }
 
 /* Typing effect */
@@ -257,4 +267,12 @@ ol {
   animation: topping 6s steps(3) infinite;
   position: relative;
   top: 0;
+}
+
+:disabled{
+  background-color: whitesmoke;
+}
+
+.scroll-bar{
+  scroll-snap-type: mandatory x;
 }

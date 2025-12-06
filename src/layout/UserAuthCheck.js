@@ -1,38 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../Api/axios";
 
-const useAuthCheck = () => {
-  const [isLoggedin, setIsLoggedin] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+const useLoadData = (setUser) => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkLogin = async () => {
+    const loadData = async () => {
       try {
-        // Make sure to include credentials (cookies)
-        const res = await api.get("/api/user-status", {
+        await api.get("/sanctum/csrf-cookie");
+
+        const userRes = await api.get("/api/user-status", {
           withCredentials: true,
         });
 
-        if (res.data.logged_in) {
-          setIsLoggedin(true);
-          setUser(res.data.user);
-        } else {
-          setIsLoggedin(false);
-          setUser(null);
+        const user =
+          userRes.data.status === "logged_in" ? userRes.data.user : null;
+
+        setUser(user);
+
+        // Only redirect if route is protected
+        const protectedRoutes = [
+          "/student/dashboard",
+          "/admin/dashboard",
+          
+        ];
+
+        if (!user && protectedRoutes.includes(location.pathname)) {
+          navigate("/login");
         }
       } catch (err) {
-        setIsLoggedin(false);
+        console.error(err);
         setUser(null);
-      } finally {
-        setLoading(false);
       }
     };
 
-    checkLogin();
-  }, []);
-
-  return { isLoggedin, user, loading };
+    loadData();
+  }, [location.pathname, navigate, setUser]);
 };
 
-export default useAuthCheck;
+export default useLoadData;

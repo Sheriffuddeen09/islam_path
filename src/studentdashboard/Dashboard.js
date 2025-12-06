@@ -3,7 +3,7 @@ import api from "../Api/axios";
 import AlertIcon from "./Icon";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function DashboardLayout() {
+export default function StudentDashboard() {
   const [isloading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
@@ -17,21 +17,16 @@ export default function DashboardLayout() {
     try {
       await api.get("/sanctum/csrf-cookie");
 
-      const [userRes, notifRes] = await Promise.all([
-        api.get("/api/user-status", { withCredentials: true }),
-        api.get("/api/dashboard/notifications", { withCredentials: true }),
-      ]);
+      const userRes = await api.get("/api/user-status", { withCredentials: true });
 
       const currentUser =
         userRes.data.status === "logged_in" ? userRes.data.user : null;
 
       setUser(currentUser);
-      setNotifications(notifRes.data.notifications || []);
+      setNotifications(currentUser?.notifications || []); // or [] if not available
 
       const protectedRoutes = [
-        "/dashboard",
-        "/admin/dashboard",
-        "/admin/teacher-form",
+        "/student/dashboard"
       ];
 
       if (!currentUser && protectedRoutes.includes(location.pathname)) {
@@ -115,8 +110,7 @@ export default function DashboardLayout() {
 
 
 
-                {/* Admin Choice Choose Notification */}
-
+        {/* Notifications */}
         <div className="space-y-4">
           {isloading
             ? Array.from({ length: 3 }).map((_, i) => (

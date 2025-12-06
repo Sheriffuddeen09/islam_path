@@ -91,7 +91,7 @@ const loginUser = async () => {
     localStorage.setItem("token", res.data.token);
     
     // No success notification, just redirect
-    navigate("/dashboard");
+    navigate(res.data.redirect);
 
   } catch (err) {
     const res = err.response;

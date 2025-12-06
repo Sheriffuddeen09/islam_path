@@ -7,6 +7,7 @@ import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
 import Navbar from "../layout/Header";
 import TextSlider from "./TextSlider";
+import Notification from "./Notification";
 
 
 const texts = [
@@ -31,83 +32,71 @@ const texts = [
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [msg, setMsg] = useState("");
-  const [status, setStatus] = useState(""); // success, failed
   const [isLoading, setIsLoading] = useState(false);
-  const [canResend, setCanResend] = useState(true);
-  const [timer, setTimer] = useState(30);
+  const [errors, setErrors] = useState({});
+  
+  const [notify, setNotify] = useState({ message: "", type: "" });
 
-  // Timer countdown for resend
-  useEffect(() => {
-    let countdown;
-    if (!canResend) {
-      countdown = setInterval(() => {
-        setTimer((t) => {
-          if (t <= 1) {
-            clearInterval(countdown);
-            setCanResend(true);
-            return 30;
-          }
-          return t - 1;
-        });
-      }, 1000);
-    }
+const showNotification = (msg) => {
+  setNotify({ message: msg, type: "error" });
 
-    return () => clearInterval(countdown);
-  }, [canResend]);
+  // Clear after 5 seconds
+  setTimeout(() => {
+    setNotify({ message: "", type: "" });
+  }, 5000);
+};
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const clearError = (field) => {
+  setErrors(prev => ({ ...prev, [field]: '' }));
+}
 
-    try {
-      const res = await api.post(
+const handleSubmit = async (e) => { 
+
+  e.preventDefault()
+  setIsLoading(true);
+
+  // Local validation
+  if (!email) {
+    showNotification("Email is required");
+    return;
+  }
+  if (!email.includes("@")) {
+    showNotification("Enter a valid email address");
+    return;
+  }
+
+  try {
+    await api.get("/sanctum/csrf-cookie");
+    const res = await api.post(
         "/api/forgot-password",
         { email }
       );
-
-      setMsg("Reset link delivered to your email");
-      setStatus("success");
-
-      setTimeout(() => {
-      setMsg("");
-      setStatus("");
-    }, 5000);
-
+   showNotification("Reset link delivered to your email");
     setEmail("");
-     
-      setTimer(30);
 
-    } catch (err) {
-      setMsg("Failed to send reset link");
-      setStatus("failed");
-    } finally {
-      setIsLoading(false);
+  } catch (err) {
+    const res = err.response;
+
+    // Validation error from backend
+    if (res?.status === 422 && res.data?.errors) {
+      const firstError = Object.values(res.data.errors)[0][0];
+      showNotification(firstError);
+      return;
     }
-  };
 
-//   const resendLink = async () => {
-//    try {
-//       const res = await api.post(
-//         " /api/forgot-password",
-//         { email }
-//       );
+    // Server error
+    if (res?.status === 500 && res.data?.message) {
+      showNotification(res.data.message);
+      return;
+    }
 
-//       setMsg("Reset link delivered to your email");
-//       setStatus("success");
+    // Unknown error
+    showNotification("Something went wrong. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-//       setTimeout(() => {
-//       setMsg("");
-//       setStatus("");
-//     }, 5000);
-    
-//       setTimer(30);
-
-//     } catch (err) {
-//       setMsg("Failed to send reset link");
-//       setStatus("failed");
-//     } 
-//   };
 
   const content = (
     <div className="flex flex-1 flex-col justify-center mt-6 items-center md:flex-row">
@@ -125,34 +114,15 @@ export default function ForgotPassword() {
               type="email"
               value={email}
               required
-              className="border border-blue-400 p-3 w-full mb-3 rounded focus:ring focus:ring-blue-300"
+              className="border border-blue-400 text-black p-3 w-full mb-3 rounded focus:ring focus:ring-blue-300"
               placeholder="Enter your email"
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {setEmail(e.target.value); clearError('email');}}
             />
-
-             {/* <div className="mt-4 text-center">
-            <button
-              disabled={!canResend}
-              onClick={resendLink}
-              className={` ${
-                canResend
-                  ? "text-blue-600 hover:underline"
-                  : "text-gray-400 cursor-not-allowed"
-              } font-semibold`}
-            >
-              {canResend ? "Resend Link" : `Resend in ${timer}s`}
-            </button>
-          </div> */}
-    {msg && (
-  <p
-    className={`mt-4 font-semibold text-center ${
-      status === "success" ? "text-green-600" : "text-red-600"
-    }`}
-  >
-    {msg}
-  </p>
-)}
-
+             
+             {errors.email && (
+                        <p className="text-red-600 text-xs mt-2">{errors.email}</p>
+                      )}
+                      
             <button
               disabled={isLoading}
               className="bg-blue-600 disabled:opacity-40 text-white hover:bg-blue-800 font-bold text-sm my-5 float-right px-4 py-3 rounded"
@@ -202,6 +172,13 @@ export default function ForgotPassword() {
           <TextSlider texts={texts} />
         </div>
       {content}
+
+       <Notification
+        message={notify.message}
+        type={notify.type}
+        onClose={() => setNotify({ message: "", type: "" })}
+      />
+
     </div>
   );
 }

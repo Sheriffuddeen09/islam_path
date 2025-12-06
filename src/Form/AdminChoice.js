@@ -1,81 +1,98 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../Api/axios";
+import Navbar from "../layout/Header";
 
-export default function AdminChoice() {
-  const [selected, setSelected] = useState("");
-  const [choice, setChoice] = useState("");   // ✅ backend value
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+export default function AdminChoice({setChoice, setCurrentUser, setIsLoading, setSelected, choice, isLoading, selected, currentUser}) {
+
+  const [notification, setNotification] = useState(null);
+
   const navigate = useNavigate();
-
-  // =============================
-  //      CHECK LOGIN STATUS
-  // =============================
-  useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        await api.get("/sanctum/csrf-cookie");
-
-        const res = await api.get("/api/user");
-        const statusRes = await api.get("/api/user-status");
-
-        if (res.data) {
-          setCurrentUser(res.data);
+  
+      useEffect(() => {
+      const checkLogin = async () => {
+        try {
+          await api.get("/sanctum/csrf-cookie");
+          
+          const res = await api.get("/api/user");
+          const statusRes = await api.get("/api/user-status");
+  
+          if (res.data) {
+            setCurrentUser(res.data);
+          }
+        } catch (err) {
+          navigate("/login");
         }
-      } catch (err) {
-        navigate("/login");
-      }
-    };
+      };
+  
+      checkLogin();
+    }, []);
+  
+  
 
-    checkLogin();
-  }, [navigate]);
 
+  
   const options = [
-    {
-      id: "sell",
-      title: "Sell Your Courses",
-      emoji: "💼",
-      bg: "bg-green-100",
-      text: "text-green-600",
-      hoverBg: "group-hover:bg-green-600",
-    },
-    {
-      id: "free",
-      title: "Create Free Content",
-      emoji: "🎁",
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-      hoverBg: "group-hover:bg-blue-600",
-    },
-    {
-      id: "teacher",
-      title: "Become an Arabic Teacher",
-      emoji: "📚",
-      bg: "bg-yellow-100",
-      text: "text-yellow-600",
-      hoverBg: "group-hover:bg-yellow-600",
-    },
-  ];
+  {
+    id: "sell_online_content",
+    title: "Sell Your Courses",
+    emoji: "💼",
+    bg: "bg-green-100",
+    text: "text-green-600",
+    hoverBg: "group-hover:bg-green-600",
+  },
+  {
+    id: "create_free_content",
+    title: "Create Free Content",
+    emoji: "🎁",
+    bg: "bg-blue-100",
+    text: "text-blue-600",
+    hoverBg: "group-hover:bg-blue-600",
+  },
+  {
+    id: "arabic_teacher",
+    title: "Become an Arabic Teacher",
+    emoji: "📚",
+    bg: "bg-yellow-100",
+    text: "text-yellow-600",
+    hoverBg: "group-hover:bg-yellow-600",
+  },
+];
 
   // =============================
   //       SUBMIT CHOICE
   // =============================
   const handleSubmit = async () => {
-    if (!choice) return;
+  if (!choice) return;
 
-    setIsLoading(true);
-    try {
-      const res = await api.post("/api/admin/choose-choice", { choice });
+  setIsLoading(true);
 
+  try {
+    const res = await api.post("/api/admin/choose-choice", { choice });
+
+    // ✅ Instead of alert, show notification
+    setNotification({ message: res.data.message, type: 'info' });
+
+    // Redirect after 1–2 seconds
+    setTimeout(() => {
       navigate(res.data.redirect);
-    } catch (err) {
-      console.log("Error submitting choice:", err.response?.data || err);
-      alert("Something went wrong.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    }, 4000);
+
+  } catch (err) {
+    console.log("Error submitting choice:", err.response?.data || err);
+    setNotification({ message: 'Something went wrong.', type: 'error' });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (notification) {
+    const timer = setTimeout(() => setNotification(null), 4000); // hide after 4s
+    return () => clearTimeout(timer);
+  }
+}, [notification]);
+
 
   if (!currentUser) {
     return (
@@ -85,7 +102,7 @@ export default function AdminChoice() {
     );
   }
 
-  return (
+  const content = (
     <section className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-10">
         <h1 className="sm:text-3xl text-lg font-bold text-gray-900 text-center mb-6">
@@ -141,10 +158,49 @@ export default function AdminChoice() {
                 : "bg-gray-300 text-gray-600 cursor-not-allowed"
             }`}
           >
-            {isLoading ? "Saving..." : "Next"}
+            {isLoading ?  <svg
+      className="animate-spin h-5 w-5 text-white mx-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg> : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+</svg>}
           </button>
         </div>
       </div>
     </section>
   );
+
+  return (
+    <div>
+      <Navbar />
+      {notification && (
+  <div className="fixed inset-0 sm:-translate-y-52 -translate-y-52 flex items-center justify-center z-50 pointer-events-none">
+    <div className={`px-6 py-4 rounded shadow-lg pointer-events-auto
+      ${notification.type === 'error' ? 'bg-red-500 text-white' : 'bg-red-500 text-white'}
+    `}>
+      {notification.message}
+    </div>
+  </div>
+)}
+
+
+      {content}
+    </div>
+  )
 }

@@ -5,6 +5,7 @@ import App from './App';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import AuthProvider from './layout/AuthProvider';
 const queryclient = new QueryClient()
 const clientId = "YOUR_GOOGLE_CLIENT_ID";
 
@@ -17,7 +18,9 @@ root.render(
     <Route path='/*' element={
     <QueryClientProvider client={queryclient}>
        <GoogleOAuthProvider clientId={clientId}>
-      <App />
+        <AuthProvider>
+        <App />
+        </AuthProvider>
       </GoogleOAuthProvider>
     </QueryClientProvider>
       }

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
-import { CreativeCommons, Globe, LayoutDashboard, LibraryIcon, MessageCircle, Search, User, User2, User2Icon } from "lucide-react";
-import useAuthCheck from './UserAuthCheck';
+import { CreativeCommons, Globe, LibraryIcon, MessageCircle, Search, User, User2, User2Icon, Video } from "lucide-react";
+import useAuthCheck from './useAuthCheck';
 
 function Navbar() {
 
@@ -12,27 +12,34 @@ function Navbar() {
       const [content, setContent] = useState(false)
       const homepage = useLocation().pathname
       
-    const { isLoggedin, loading } = useAuthCheck();
+   const { isLoggedin, user } = useAuthCheck();
 
-    if (loading) return <div>Loading...</div>;
+    const dashboardLink =
+  user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
+
+
+
 
     const check = (
       <div>
-        {isLoggedin ? <Link
-              to="/dashboard"
-              className="bg-gray-800 w-28 font-bold text-white px-5 py-2 text-sm rounded-full flex items-center gap-2 hover:bg-gray-900"
-            >
-              <LayoutDashboard />
-              Dashboard
-            </Link>
-           : <Link
-              to="/login"
-              className="bg-green-700 w-28 text-white px-5 py-2 text-sm font-bold rounded-full flex justify-center items-center gap-2 hover:bg-green-800"
-            >
-              <User2 className='w-4 h-4'/>
-              Login
-            </Link>}
-      </div>
+         
+      {isLoggedin && user ? (
+        <Link
+          to={dashboardLink}
+          className="bg-gray-800 w-28 font-bold text-white px-5 py-2 text-sm rounded-full flex items-center justify-center hover:bg-gray-900"
+        >
+          Dashboard
+        </Link>
+      ) : (
+        <Link
+          to="/login"
+          className="bg-green-700 w-28 text-white px-5 py-2 text-sm font-bold rounded-full flex justify-center items-center gap-2 hover:bg-green-800"
+        >
+          <User2 className="w-4 h-4" />
+          Login
+        </Link>
+      )}
+    </div>
     );
 
 
@@ -95,6 +102,10 @@ function Navbar() {
                 </Link>
                 <Link to={'/message'} className={`${homepage === '/message' ? 'text-blue-400' : 'text-gray-600'} text-black
                  text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer logistic`}>Message
+                
+                </Link>
+                <Link to={'/video'} className={`${homepage === '/message' ? 'text-blue-400' : 'text-gray-600'} text-black
+                 text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer logistic`}>Video
                 
                 </Link>
                 <Link to={'/content'} className={` ${homepage === '/content' ? 'text-blue-400' : 'text-gray-600'} relative group inline-block text-black text-gray-600 text-[16px] 
@@ -230,6 +241,9 @@ function Navbar() {
                 </Link>
                 
                 <Link to={'/message'} className={`${homepage === '/message' ? 'text-blue-400' : 'text-gray-600'} text-black inline-flex text-gray-600 hover:text-blue-800 gap-3 font-bold rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer pt-5 pb-2`}><MessageCircle />Message
+                
+                </Link>
+                <Link to={'/video'} className={`${homepage === '/message' ? 'text-blue-400' : 'text-gray-600'} text-black inline-flex text-gray-600 hover:text-blue-800 gap-3 font-bold rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer pt-5 pb-2`}><Video />Video
                 
                 </Link>
                 <div className='font-bold py-6 md:px-6 flex flex-col '> 
