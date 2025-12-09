@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "../../layout/Header";
+import VideoCards from "./VideoCards";
+import { useAuth } from "../../layout/AuthProvider";
+
 
 export default function VideoSidebar({
   videos = [],
@@ -11,6 +14,24 @@ export default function VideoSidebar({
   loading = false // pass loading prop or handle state here
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [likes, setLikes] = useState({});
+  const [shares, setShares] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const {user: currentUser} = useAuth();
+ 
+
+const handleLike = (id) => {
+  setLikes((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+};
+
+const handleShare = (id) => {
+  setShares((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+  navigator.share
+    ? navigator.share({ title: "Share Video", url: `/videos/${id}` })
+    : alert("Sharing not supported on this device.");
+};
+
 
   const filteredVideos = selectedCategory
     ? videos.filter((v) => v.category?.id === selectedCategory)
@@ -44,9 +65,12 @@ export default function VideoSidebar({
           </button>
 
           <h3 className="text-xs text-blue-800 font-bold mb-2">FILTER VIDEO</h3>
-          <ul className="space-y-4 mb-6">
+          <ul className="space-y-4 mb-">
             <li
               onClick={() => setSelectedCategory(null)}
+              style={{
+                  margin: 5
+                }}
               className={`cursor-pointer p-2 text-sm rounded-lg ${
                 !selectedCategory
                   ? "bg-blue-500 text-white hover:bg-gray-100 hover:text-black"
@@ -59,9 +83,11 @@ export default function VideoSidebar({
             {categories.map((cat) => (
               <li
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`cursor-pointer p-2 rounded-lg capitalize ${
-                  selectedCategory === cat.id ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                onClick={() => setSelectedCategory(cat.id)} style={{
+                  margin: 5
+                }}
+                className={`cursor-pointer px-2 py-2 -my-3 space-y-0 rounded-lg capitalize ${
+                  selectedCategory === cat.id ? "bg-blue-500 text-white" : "hover:text-gray-500 hover:bg-blue-100 text-black font-semibold"
                 }`}
               >
                 {cat.name}
@@ -71,7 +97,7 @@ export default function VideoSidebar({
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 transition-all p-4 flex flex-col items-center">
+        <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 flex flex-col items-center">
           {loading ? (
             // Skeleton loader
             <div className="space-y-4 w-full max-w-md">
@@ -91,34 +117,38 @@ export default function VideoSidebar({
             </div>
           ) : filteredVideos.length > 0 ? (
             <>
-              {/* Admin Info */}
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_nLCu85ayoTKwYw6alnvrockq5QBT2ZWR2g&s"
-                  className="w-12 h-12 rounded-full"
-                />
-                <div>
-                  <div className="font-bold text-black">
-                    {admin?.first_name} {admin?.last_name}
-                  </div>
-                  <div className="text-xs text-black">{admin?.role}</div>
-                </div>
-              </div>
-
               {/* Video List */}
               <ul className="space-y-2 w-full max-w-md">
                 {filteredVideos.map((v) => (
-                  <li key={v.id} className="flex items-center gap-3">
-                    <img
-                      src={v.thumbnail_url || "/video-placeholder.png"}
-                      className="w-14 h-10 object-cover rounded"
-                    />
-                    <Link to={`/videos/${v.id}`} className="text-sm">
-                      {v.title}
-                    </Link>
-                  </li>
+            
+                  <li key={v.id} className="p-3 border rounded-lg mb-3 shadow-sm">
+
+                  {/* Admin Details */}
+                <div className="flex items-center justify-start gap-6 my-6 mt-2">
+               <span className="text-white w-16 h-16 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 ">
+                 {admin?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
+                  
+                  <div className="text-xs">
+                    <div className="font-bold text-[17px] text-black">
+                    {admin?.first_name} {admin?.last_name}
+                  </div>
+                  <div className="text-[11px] text-black">{admin?.role}</div>
+                  </div>
+                </div>
+
+                {/* Video Thumbnail */}
+                <div>
+                 <VideoCards v={v} currentIndex = {currentIndex} setCurrentIndex = {setCurrentIndex} 
+                 handleShare={handleShare} shares={shares} 
+                 currentUser={currentUser}
+                 />
+                </div>
+              </li>
+
                 ))}
               </ul>
+              {/* --- LIKE • COMMENT • SHARE BAR --- */}
+      
             </>
           ) : (
             <p className="text-sm text-gray-500 mt-6">No videos available</p>

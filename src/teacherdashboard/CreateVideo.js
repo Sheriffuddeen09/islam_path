@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
+import Notification from "../Form/Notification";
 
 /**
  * CreateVideoSection
@@ -17,6 +18,18 @@ export default function CreateVideoSection({onCreated}) {
   const [thumb,setThumb]=useState(null);
   const [loading,setLoading]=useState(false);
  const [categories, setCategories] = useState([]);
+  const [notify, setNotify] = useState({ message: "", type: "" });
+  
+  const showNotification = (msg) => {
+    setNotify({ message: msg, type: "error" });
+  
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
+  
+
 
   useEffect(() => {
   const fetchCategories = async () => {
@@ -40,34 +53,54 @@ export default function CreateVideoSection({onCreated}) {
 
 
   const handleSubmit = async (e) => {
-      e.preventDefault();
-        if (!category_id) return setError("Please select a category_id.");
-        if (!videoFile) return setError("Please choose a video file to upload.");
-        if (!isPermissible)
-        return setError(
-            "You must confirm that this video content is permissible in Islam."
-        );
-      if(!videoFile) return alert("Video required");
-      const fd = new FormData();
-      fd.append('description', desc);
-      fd.append('category_id', category_id);
-      fd.append('video', videoFile);
-      fd.append('is_permissible', isPermissible ? 1 : 0);
-      if(thumb) fd.append('thumbnail', thumb);
-      try {
-        setLoading(true);
-        const res = await api.post('/api/videos', fd, { headers: {'Content-Type':'multipart/form-data'} });
-        onCreated && onCreated(res.data.video);
-         await new Promise((r) => setTimeout(r, 1000));
+  e.preventDefault();
 
-      // on success:
-      setOpen(false);
-      resetForm();
-      } catch(err){ console.error(err); alert('upload failed') }
-      finally { setLoading(false); }
-    };
+  // VALIDATIONS
+  if (!category_id) return showNotification("Please select a category.", "error");
+  if (!videoFile) return showNotification("Please choose a video file to upload.", "error");
+  if (!isPermissible)
+    return showNotification("You must confirm this content is permissible in Islam.", "error");
 
-  
+  const fd = new FormData();
+  fd.append("description", desc);
+  fd.append("category_id", category_id);
+  fd.append("video", videoFile);
+  fd.append("is_permissible", isPermissible ? 1 : 0);
+  if (thumb) fd.append("thumbnail", thumb);
+
+  try {
+    setLoading(true);
+
+    const res = await api.post("/api/videos", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // SUCCESS NOTIFICATION
+    showNotification("Video uploaded successfully!", "success");
+
+    // Callback for parent component
+    onCreated && onCreated(res.data.video);
+
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // Close modal
+    setOpen(false);
+    resetForm();
+
+  } catch (err) {
+    console.error(err);
+
+    // SERVER ERROR MESSAGE
+    const msg =
+      err.response?.data?.message ||
+      "Video upload failed. Please try again.";
+
+    showNotification(msg, "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <div className="p-6 bg-white shadow-lg rounded-xl lg:ml-[346px] max-w-3xl mx-auto mt-10">
       <h2 className="sm:text-3xl text-xl text-center font-bold mb-4 text-gray-800">
@@ -258,6 +291,11 @@ export default function CreateVideoSection({onCreated}) {
           </div>
         </div>
       )}
+      <Notification
+        message={notify.message}
+        type={notify.type}
+        onClose={() => setNotify({ message: "", type: "" })}
+      />
     </div>
   );
 }

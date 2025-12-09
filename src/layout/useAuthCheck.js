@@ -1,8 +1,7 @@
-import { useContext } from "react";
-import { AuthContext } from "./AuthProvider";
+import {useAuth} from './AuthProvider';
 
 export default function useAuthCheck() {
-  const context = useContext(AuthContext);
+  const context = useAuth();
 
   // prevent undefined errors
   if (!context) {

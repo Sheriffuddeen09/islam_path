@@ -1,11 +1,13 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect,} from "react";
 import api from "../Api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useContext } from "react";
 
-export const AuthContext = createContext(null);
+ const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -39,9 +41,18 @@ export default function AuthProvider({ children }) {
 
   const isLoggedin = user !== null;
 
+  useEffect(() => {
+    api.get("/api/me")
+      .then(res => setUser(res.data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isLoggedin, user, setUser }}>
+    <AuthContext.Provider value={{ isLoggedin, user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
 }
+
+export const useAuth = () => useContext(AuthContext);

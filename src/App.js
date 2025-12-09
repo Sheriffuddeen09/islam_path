@@ -12,12 +12,12 @@ import TeacherOnboarding from "./Form/TeacherOnboarding";
 import AdminChoice from "./Form/AdminChoice";
 import GetMentor from "./pages/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
-import { useEffect, useState } from "react";
-import api from "./Api/axios";
+import {  useState } from "react";
 import StudentDashboardLayout from "./studentdashboard/StudentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import RouteChangeWrapper from "./route/RouteChangeWrapper";
 import AdminVideoPage from "./pages/video/AdminVideoPage";
+import VideoPlayerId from "./pages/video/VideoPlayerId";
 
    
 function App() {
@@ -52,6 +52,8 @@ function App() {
        <Route path="/video" element={
           <AdminVideoPage videos={videos} setVideos={setVideos} />
       } />
+
+      <Route path="/video/:id" element={<VideoPlayerId />} />
 
 
       {/* register */}

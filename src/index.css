@@ -273,6 +273,11 @@ ol {
   background-color: whitesmoke;
 }
 
-.scroll-bar{
+.scroll-bar {
   scroll-snap-type: mandatory x;
+  scroll-behavior: auto;
+}
+
+.bg-transparent{
+  background: var(0, 0, 0.7);
 }

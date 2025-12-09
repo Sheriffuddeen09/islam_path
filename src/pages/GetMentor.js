@@ -32,12 +32,12 @@ export default function GetMentor() {
       </div>
     );
 
-  if (teachers.length === 0)
-    return (
-      <div className="text-center text-gray-600 text-xl py-10">
-        No teacher available
-      </div>
-    );
+  // if (teachers.length === 0)
+  //   return (
+  //     <div className="text-center text-gray-600 text-xl py-10">
+  //       No teacher available
+  //     </div>
+  //   );
 
     // Teacher
 
@@ -45,9 +45,11 @@ const content = ( <div className="p-x4"> <h2 className="texts text-2xl font-bold
 Get Your Arabic Teachers </h2>
   {/* GRID */}
   {teachers.length === 0 ? (
+    <div>
   <p className="text-center text-gray-600 text-xl font-semibold py-10">
     No teacher available
   </p>
+  </div>
 ) : (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
     {teachers.map((t) => (
@@ -116,7 +118,7 @@ Get Your Arabic Teachers </h2>
         ) : (
           <button
             disabled
-            className="bg-gray-400 text-white w-28 font-bold text-sm p-2 rounded-lg mt-auto text-center cursor-not-allowed"
+            className="bg-gray-400 text-black w-28 font-bold text-sm p-2 rounded-lg mt-auto text-center cursor-not-allowed"
           >
             No CV
           </button>
@@ -153,12 +155,16 @@ Get Your Arabic Teachers </h2>
 
   {selectedTeacher && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full relative">
+          <div className="bg-white rounded-lg p-6  overflow-y-auto overflow-x-hidden
+    scrollbar-thin scrollbar-thumb-gray-400 h-full scrollbar-track-gray-100  my-6 max-w-md w-full relative">
             <button
               onClick={() => setSelectedTeacher(null)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-lg font-bold"
+              className="absolute top-4 right-5 text-gray-500 hover:text-gray-800 text-lg font-bold"
             >
-              &times;
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+
             </button>
 
             <h1 className="text-2xl text-center py-3 font-bold mb-3 text-black">

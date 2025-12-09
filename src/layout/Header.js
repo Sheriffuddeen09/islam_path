@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
 import { CreativeCommons, Globe, LibraryIcon, MessageCircle, Search, User, User2, User2Icon, Video } from "lucide-react";
-import useAuthCheck from './useAuthCheck';
+import { useAuth } from './AuthProvider';
 
 function Navbar() {
 
@@ -12,7 +12,7 @@ function Navbar() {
       const [content, setContent] = useState(false)
       const homepage = useLocation().pathname
       
-   const { isLoggedin, user } = useAuthCheck();
+   const { isLoggedin, user } = useAuth()
 
     const dashboardLink =
   user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
@@ -52,7 +52,7 @@ function Navbar() {
 
     return (
 
-        <header className="z-50 bg-white w-full z-10  shadow-2xl px-3 py-4 sm:p-3 ">
+        <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-3 py-4 sm:p-3 mb-10 ">
             <nav className='flex flex-row justify-between items-center lg:mx-7'>
               <div className='inline-flex items-center gap-2'>
                 <Link to={'/'}>
