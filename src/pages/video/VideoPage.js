@@ -3,6 +3,7 @@ import { useState } from "react";
 import Navbar from "../../layout/Header";
 import VideoCards from "./VideoCards";
 import { useAuth } from "../../layout/AuthProvider";
+import VideoOptions from "./VideoOption";
 
 
 export default function VideoSidebar({
@@ -124,8 +125,10 @@ const handleShare = (id) => {
                   <li key={v.id} className="p-3 border rounded-lg mb-3 shadow-sm">
 
                   {/* Admin Details */}
+                <div className="flex items-center justify-between gap-6 my-6 mt-2">
                 <div className="flex items-center justify-start gap-6 my-6 mt-2">
-               <span className="text-white w-16 h-16 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 ">
+
+                    <span className="text-white w-16 h-16 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 ">
                  {admin?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
                   
                   <div className="text-xs">
@@ -134,6 +137,9 @@ const handleShare = (id) => {
                   </div>
                   <div className="text-[11px] text-black">{admin?.role}</div>
                   </div>
+                  
+                  </div>
+                  <VideoOptions video={v} />
                 </div>
 
                 {/* Video Thumbnail */}

@@ -19,6 +19,7 @@ import RouteChangeWrapper from "./route/RouteChangeWrapper";
 import VideoPlayerId from "./pages/video/VideoPlayerId";
 import { useAuth } from "./layout/AuthProvider"; // Example auth hook
 import VideoPageApi from "./pages/video/VideoPageApi";
+import ProtectRoute from "./route/ProtectRouter";
 
    
 function App() {
@@ -54,18 +55,18 @@ function App() {
        <Route
           path="/video"
           element={
-            <ProtectedRoute authUser={authUser}>
-              <VideoPageApi />
-            </ProtectedRoute>
+            <ProtectRoute allowedRoles={['admin', 'user']}>
+              <VideoPageApi setVideos={setVideos} videos={videos} />
+            </ProtectRoute>
           }
         />
 
       <Route
           path="/video/:id"
           element={
-            <ProtectedRoute authUser={authUser}>
+            <ProtectRoute allowedRoles={['admin', 'user']}>
               <VideoPlayerId />
-            </ProtectedRoute>
+            </ProtectRoute>
           }
         />
 
