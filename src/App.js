@@ -16,8 +16,9 @@ import {  useState } from "react";
 import StudentDashboardLayout from "./studentdashboard/StudentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import RouteChangeWrapper from "./route/RouteChangeWrapper";
-import AdminVideoPage from "./pages/video/AdminVideoPage";
 import VideoPlayerId from "./pages/video/VideoPlayerId";
+import { useAuth } from "./layout/AuthProvider"; // Example auth hook
+import VideoPageApi from "./pages/video/VideoPageApi";
 
    
 function App() {
@@ -26,6 +27,7 @@ function App() {
     const [selected, setSelected] = useState("");  
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const { authUser } = useAuth();
 
     const [videos, setVideos] = useState([]);
 
@@ -49,11 +51,23 @@ function App() {
           <GetMentor />
       } />
 
-       <Route path="/video" element={
-          <AdminVideoPage videos={videos} setVideos={setVideos} />
-      } />
+       <Route
+          path="/video"
+          element={
+            <ProtectedRoute authUser={authUser}>
+              <VideoPageApi />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/video/:id" element={<VideoPlayerId />} />
+      <Route
+          path="/video/:id"
+          element={
+            <ProtectedRoute authUser={authUser}>
+              <VideoPlayerId />
+            </ProtectedRoute>
+          }
+        />
 
 
       {/* register */}

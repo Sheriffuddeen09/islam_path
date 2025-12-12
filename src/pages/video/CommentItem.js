@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
-import ReplyComment from "./ReplyComment";
 import Reply from "./Reply";
+import CommentImage from "./ComentImage";
+import CommentWithCopy from "./CopyText";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
-export default function CommentItem({ isDeleting, v, comment, onReplyAdded, onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setComments }) {
+export default function CommentItem({setIsDeleting, setIsEdit, isEdit, isDeleting, v, comment, onReplyAdded, onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setComments }) {
   const [replyText, setReplyText] = useState("");
   const [showReplies, setShowReplies] = useState(false);
   const [editText, setEditText] = useState(comment.body || "");
@@ -18,6 +19,7 @@ export default function CommentItem({ isDeleting, v, comment, onReplyAdded, onDe
   const [isEditing, setIsEditing] = useState(false);
   const [reactions, setReactions] = useState(comment.reactions || []); // ✅ array of { emoji, user }
   const [hoverReactions, setHoverReactions] = useState(false);
+  const authUser = useAuth()
 
 useEffect(() => {
   const arr = reactions && !Array.isArray(reactions)
@@ -54,24 +56,6 @@ const userReaction = reactionArray.find(r => r.user?.id === currentUser?.id)?.em
 // Total reactions
 const totalReactions = reactionArray.length;
 
-  // --- Post reply ---
-  const postReply = async () => {
-    if (!replyText.trim()) return;
-    setLoading(true);
-    try {
-      const res = await api.post(`/api/videos/${comment.video_id}/comments`, {
-        body: replyText,
-        parent_id: comment.id
-      });
-      onReplyAdded && onReplyAdded(comment.id, res.data.comment);
-      setReplyText("");
-      setShowReplies(false);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // --- Toggle reaction ---
   const toggleReaction = async (emoji) => {
@@ -120,11 +104,11 @@ const totalReactions = reactionArray.length;
 };
 
   
- const handleReact = async (commentId, emoji) => {
+ const handleReact = async (replyId, emoji) => {
   setLoading(true);
   try {
     const res = await api.post(
-      `/api/comments/${commentId}/reaction`,
+      `/api/replies/${replyId}/react`,
       { emoji }
     );
 
@@ -203,18 +187,14 @@ const handleReplyToggle = () =>{
               </div>
               {/* Text */}
             {comment.body && (
-              <p className="text-sm text-black">{comment.body}</p>
+              <p className="text-sm text-black ">{comment.body}</p>
             )}
-            {comment.image && (
-            <img
-              src={`${'http://localhost:8000'}/storage/${comment.image}`}
-              alt="comment"
-              className="mt-2 rounded w-40"
-            />
-          )}
+            <div className="mx-auto">
+            {comment.image && <CommentImage image={comment.image} />}
+            </div>
 
               {isEditing && (
-          <div className="fixed inset-0 flex bg-gray-50 items-center justify-center z-50">
+          <div  className=" flex fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
             <div className="bg-gray-200 p-6 bg-gray-50 rounded w-96 flex flex-col gap-4 relative">
               <h3 className="font-semibold text-lg text-center text-black">Edit Comment</h3>
 
@@ -280,25 +260,35 @@ const handleReplyToggle = () =>{
 
             <div className="flex flex-col items-end text-xs text-gray-400 gap-1">
               {!isEditing && (
-                <div className="flex gap-2">
-                  <button title="Edit" onClick={() => setIsEditing(true)} className="text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-          </svg>
-          </button>
-          <button title="Delete" onClick={() => setShowDeleteConfirm(true)} className="text-red-600">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-</svg>
-</button>
-                </div>
+                <div className="relative group inline-block">
+                        <button className="text-2xl text-black font-bold ">:</button>
+                        
+                        <div className={`inline-flex items-center absolute top-10 right-0 mb-2 flex gap-2 p-2 bg-white border rounded shadow opacity-0 invisible group-hover:visible group-hover:opacity-100 transform group-hover:-translate-y-2 transition-all duration-200 z-50 gap-3 items-center shadow-md p-2 rounded-lg`}>
+                      {authUser?.user?.id === comment.user?.id && (
+                        <>
+                                  <button title="Edit" onClick={() => setIsEditing(true)} className="text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-blue-500">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                          </svg>
+                          </button>
+                          <button title="Delete" onClick={() => setShowDeleteConfirm(true)} className="text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                        </button>
+                        </>
+                      )}
+                        <CommentWithCopy comment={comment} />
+                
+                        </div>
+                        </div>
               )}
             </div>
           </div>
 
           {/* Delete Confirmation */}
           {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
+            <div  className=" flex fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
               <div className="bg-gray-200 text-red-700 p-6 font-semibold text-center rounded w-80 flex flex-col gap-3">
                 <span>Are you sure you want to delete this comment?</span>
                 <div className="flex gap-3 justify-center">
@@ -336,7 +326,7 @@ const handleReplyToggle = () =>{
             </div>
           )}
 
-          {/* Reactions & Reply */}
+          {/* Reactions & Reply Like */}
           {/* Reactions & Reply */}
 <div className="mt-2 flex items-center gap-2 text-sm relative group inline-block ">
   {/* MAIN reaction button */}
@@ -344,14 +334,14 @@ const handleReplyToggle = () =>{
   {timeAgo(comment.created_at)}
 </span>
   <div
-    className="px-2 py-1 bg-gray-200 text-black rounded flex items-center gap-1 cursor-pointer"
+    className="px-2 py-1 text-blue-600 text-sm rounded flex items-center gap-1 cursor-pointer"
     onMouseEnter={() => setHoverReactions(true)}
     onMouseLeave={() => setHoverReactions(false)}
   >
     {/* show ALL distinct emojis */}
     {uniqueEmojis.length > 0
       ? uniqueEmojis.map(e => <span key={e}>{e}</span>)
-      : <span>👍</span>
+      : <span>Like</span>
     }
 
     {/* show TOTAL count */}
@@ -423,14 +413,13 @@ const handleReplyToggle = () =>{
             loading={loading}
             replyText={replyText}
             setReplyText={setReplyText}
-            postReply={postReply}
             closeReply={handleReplyToggle}
             v={v}
             comment={comment}
             onReplyAdded={onReplyAdded}
             handleReact={handleReact}
             handleDeleteReply={handleDeleteReply}
-            onEdhandleEditReplyit={handleEditReply}
+            onEdit={handleEditReply}
             totalReaction={totalReactions}
             userReaction={userReaction}
             uniqueEmojisr ={ uniqueEmojis}
@@ -438,6 +427,13 @@ const handleReplyToggle = () =>{
             EMOJIS={EMOJIS}
             toggleReaction ={toggleReaction}
             isDeleting={isDeleting}
+            isEditing={isEdit}
+            setIsEditing={setIsEdit}
+            setIsDeleting={setIsDeleting}
+            handleDelete={handleDelete}
+            handleUpdate={handleUpdate}
+            reactions={reactions}
+
           /> 
        </div>
 

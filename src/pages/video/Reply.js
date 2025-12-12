@@ -1,6 +1,6 @@
 import ReplyComment from "./ReplyComment";
 
-export default function Reply ({isDeleting, EMOJIS, toggleReaction, hoverReactions, uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, handleEditReply, loading, replyText, setReplyText, postReply, closeReply, v, comment, onReplyAdded, handleReact}){
+export default function Reply ({handleDelete, handleUpdate, setIsDeleting, setIsEditing, isEditing, isDeleting, EMOJIS, toggleReaction, hoverReactions, uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, onEdit, loading, replyText, setReplyText, postReply, closeReply, v, comment, onReplyAdded, handleReact}){
     
     return(
         <div>
@@ -16,7 +16,7 @@ export default function Reply ({isDeleting, EMOJIS, toggleReaction, hoverReactio
             onReplyAdded={onReplyAdded}
             onReact={handleReact}
             onDelete={handleDeleteReply}
-            onEdit={handleEditReply}
+            onEdit={onEdit}
             totalReaction={totalReaction}
             userReaction={userReaction}
             uniqueEmojisr={uniqueEmojisr}
@@ -24,6 +24,12 @@ export default function Reply ({isDeleting, EMOJIS, toggleReaction, hoverReactio
             EMOJIS={EMOJIS}
             toggleReaction ={toggleReaction}
             isDeleting={isDeleting}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            setIsDeleting={setIsDeleting}
+            handleUpdate={handleUpdate}
+            handleDelete = {handleDelete}
+
           />
         </div>
     )

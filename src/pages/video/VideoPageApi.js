@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import VideoPage from "./VideoPage";  // your sidebar component
 import api from "../../Api/axios";
 
-export default function AdminVideoPage({videos, setVideos}) {
+export default function VideoPageApi({videos, setVideos}) {
   const [categories, setCategories] = useState([]);
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);

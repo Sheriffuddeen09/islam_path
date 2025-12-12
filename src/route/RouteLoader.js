@@ -6,7 +6,7 @@ export default function RouteLoader() {
   useEffect(() => {
     const interval = setInterval(() => {
       setStep(prev => (prev + 1) % 3);
-    }, 500); // change letter every 0.5 sec
+    }, 3500); // change letter every 0.5 sec
 
     return () => clearInterval(interval);
   }, []);
@@ -19,7 +19,7 @@ export default function RouteLoader() {
       <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
 
       {/* Animated IPK */}
-      <h1 className="text-4xl font-bold mt-4">{letters[step]}</h1>
+      <h1 className="text-4xl font-bold mt-4 text-black">{letters[step]}</h1>
     </div>
   );
 }

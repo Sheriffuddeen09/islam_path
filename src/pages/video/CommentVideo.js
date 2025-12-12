@@ -10,6 +10,7 @@ export default function CommentsSidebar({ v, videoId, setShowComments, comments,
   const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
   const inputRef = useRef(null);
   const [showFull, setShowFull] = useState(false);
+  const [isEditing, setIsEditing] = useState(false)
 
 
 
@@ -113,15 +114,25 @@ export default function CommentsSidebar({ v, videoId, setShowComments, comments,
   const isLong = words.length > 150;
   const shortDescription = isLong ? words.slice(0, 150).join(" ") + "..." : v.description;
 
-const handleReplyAdded = async (parentId, text, image) => {
+  
+const handleReplyAdded = async (parentId, text = null, image = null) => {
   const formData = new FormData();
-  formData.append("body", text);
   formData.append("parent_id", parentId);
-  if (image) formData.append("image", image);
 
-  const res = await api.post(`/api/videos/${videoId}/comments`, formData);
+  if (text) formData.append("body", text);
+  if (image instanceof File) formData.append("image", image);
 
-  const newReply = res.data.comment;
+  const res = await api.post(
+    `/api/videos/${videoId}/comments`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+
+  const newReply = {
+    ...res.data.comment,
+    reactions: res.data.comment.reactions || [],
+    replies: [],
+  };
 
   setComments(prev =>
     prev.map(c =>
@@ -133,6 +144,7 @@ const handleReplyAdded = async (parentId, text, image) => {
 
   return newReply;
 };
+
 
 const [isDeleting, setIsDeleting] = useState(false);
 
@@ -156,17 +168,36 @@ const handleDeleteReply = async (replyId) => {
 };
 
 const handleEditReply = async (replyId, text) => {
-  const res = await api.put(`/api/comments/${replyId}`, { body: text });
+  try {
+    setIsEditing(true);
 
-  setComments(prev =>
-    prev.map(c => ({
-      ...c,
-      replies: c.replies?.map(r =>
-        r.id === replyId ? res.data.comment : r
-      )
-    }))
-  );
+    const res = await api.put(`/api/comments/${replyId}`, {
+      body: text,
+    });
+
+    // res.data.comment is the updated comment
+    // but we only want to update the specific reply in state
+    setComments(prev =>
+      prev.map(comment => ({
+        ...comment,
+        replies: comment.replies?.map(reply =>
+          reply.id === replyId
+            ? { ...reply, body: res.data.comment.body, updated_at: res.data.comment.updated_at }
+            : reply
+        ),
+      }))
+    );
+
+    return true;
+  } catch (err) {
+    console.error("Failed to edit reply:", err);
+    throw err;
+  } finally {
+    setIsEditing(false);
+  }
 };
+
+
 
 
   return (
@@ -224,6 +255,9 @@ const handleEditReply = async (replyId, text) => {
           handleDeleteReply={handleDeleteReply}
           handleEditReply={handleEditReply}
           isDeleting={isDeleting}
+          isEdit={isEditing}
+          setIsEditing={setIsEditing}
+          setIsDeleting={setIsDeleting}
         />
         ))}
       </div>

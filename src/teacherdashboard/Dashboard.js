@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../Api/axios";
 import AlertIcon from "./Icon";
 import { useLocation, useNavigate } from "react-router-dom";
+import LogoutButton from "../Form/LogOut";
 
 export default function DashboardLayout() {
   const [isloading, setIsLoading] = useState(true);
@@ -66,18 +67,7 @@ export default function DashboardLayout() {
               </span>
             </div>
 
-            <button onClick={async () => { try { await api.post('/api/logout', {}, 
-              { withCredentials: true }); window.location.href = '/login'; } 
-              catch (err) { console.error('Logout failed', err); } }} 
-              title="Logout" className="p-2 rounded-lg hover:bg-gray-200 transition">
-
-                 <svg xmlns="http://www.w3.org/2000/svg" title='Logout' fill="none"
-                  viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5"> 
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                   d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" /> 
-                   </svg> 
-
-                   </button> 
+           <LogoutButton />
                    
                    <button title="Privacy" 
 
