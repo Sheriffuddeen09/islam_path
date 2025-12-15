@@ -5,10 +5,10 @@ import DashboardLayout from "./Dashboard";
 import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
-import AdminVideoForm from "./AdminVideoCreate";
 import CreateVideoSection from "./CreateVideo";
+import ProfilePage from "./AdminProfile";
 
-export default function TeacherDashboardLayout({onCreated}) {
+export default function TeacherDashboardLayout({onCreated, videos}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
 
   const [savedChoice, setSavedChoice] = useState(null);
@@ -25,6 +25,10 @@ export default function TeacherDashboardLayout({onCreated}) {
   
     const handleVisible = (id) => {
       setVisible(id)
+    }
+
+    const handleOpenModel = () =>{
+      setSidebarOpen(!sidebarOpen)
     }
 
 
@@ -89,16 +93,16 @@ export default function TeacherDashboardLayout({onCreated}) {
 
         <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
         <ul className="space-y-2">
-          <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
+          <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 1 ? "bg-blue-600 text-white" : "bg-transparent"}`}>
             Dashboard
           </li>
-          <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
-            <Link to="/">
+          <Link to="/">
+          <li className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
             Home Page
-          </Link>
           </li>
-          <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
+          </Link>
+          <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 2 ? "bg-blue-600 text-white" : "bg-transparent"
           }`}>
             Message
@@ -108,12 +112,12 @@ export default function TeacherDashboardLayout({onCreated}) {
           }`}>
             Friends
           </li>
-          <li onClick={() => handleVisible(4)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
+          <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-blue-600 text-white" : "bg-transparent"
           }`}>
             Create Video
           </li>
-          <li className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
+          <li onClick={() => {handleVisible(5); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 5 ? "bg-blue-600 text-white" : "bg-transparent"
           }`}>
             Profile
@@ -158,13 +162,16 @@ export default function TeacherDashboardLayout({onCreated}) {
       {/* ---------------------- MAIN CONTENT ---------------------- */}
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <DashboardLayout />
+        <DashboardLayout videos={videos} />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <StudentRequest />
         </div>
         <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
         <CreateVideoSection onCreated={onCreated} />
+        </div>
+        <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
+        <ProfilePage  />
         </div>
             
       </section>

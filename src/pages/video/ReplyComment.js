@@ -5,6 +5,7 @@ import CommentWithCopy from "./CopyText";
 import ReplyWithCopy from "./CopyTextReply";
 import ReplyListMap from "./ReplyListMap";
 import { useAuth } from "../../layout/AuthProvider";
+import { Link } from "react-router-dom";
 
 export default function ReplyComment ({reactions, loading, handleDelete, handleUpdate, isEditing, isDeleting, toggleReaction, uniqueEmojisr, totalReaction, userReaction, onEdit, closeReply, onDelete, onReact, v, replyText, setReplyText, comment, onReplyAdded}){
 
@@ -20,6 +21,7 @@ export default function ReplyComment ({reactions, loading, handleDelete, handleU
     const [isEditingComment, setIsEditingComment] = useState(false)
     const authUser = useAuth()
     console.log("authUser:", authUser)
+    const {user} = useAuth()
    
 // loading
     
@@ -221,6 +223,7 @@ const contentEdit = (
     <div>
     <div className="flex  flex-row justify-between px-5 items-start border-b-2 border-blue-600 py-2 mb- z-50 gap-2 mt-2 ">
          <div>
+          <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
       <span className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
               {v.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
         <div className="text-xs">
@@ -231,6 +234,7 @@ const contentEdit = (
             {v.user?.role || v.user?.admin?.role || "No role"}
           </div>
         </div>
+        </Link>
         <p className="text-xs text-black mb-3 mt-3">
          {showFull || !isLong ? v.description : shortDescription}{" "}
         {isLong && (
@@ -258,12 +262,16 @@ const contentEdit = (
 </svg>{comment.replies.length}</p>
 <div className="px-4 py-2">
     <div className="inline-flex gap-2 items-start">
+      <Link to={`/profile/${user.id}`} className="">
     <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
+    </Link>
     <div className="bg-gray-50 px-4 py-2 rounded-lg ">
     <div className=" flex flex-row justify-between  items-start gap-16">
       <div>
+    <Link to={`/profile/${user.id}`} className="">
     <p className="text-black font-bold">{comment.user.first_name} {comment.user.last_name}</p>
     <p className="text-black my-2 text-sm font-semibold">{comment.body}</p>
+    </Link>
     </div>
     <div className="relative group inline-block">
         <button className="text-2xl text-black font-bold ">:</button>

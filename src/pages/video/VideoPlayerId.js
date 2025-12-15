@@ -4,6 +4,7 @@ import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import CommentsSidebar from "./CommentVideo";
 import logo from '../../layout/image/favicon.png'
+import VideoOptionsId from "./VideoOptionId";
 
 export default function VideoPlayerPage() {
   const { id } = useParams(); // Video ID from URL
@@ -13,6 +14,8 @@ export default function VideoPlayerPage() {
   const [usersPreview, setUsersPreview] = useState([]);
   const [showFull, setShowFull] = useState(false);
   const [comments, setComments] = useState([]);
+  const { user } = useAuth();
+
 
  
   const { user: currentUser } = useAuth();
@@ -131,7 +134,12 @@ const toggleReaction = async (emoji) => {
 };
 
 
-  if (loading) return <p className="text-center py-10">Loading videos...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
   if (!videos.length || currentIndex === -1)
     return <p className="text-center py-10">Video not found</p>;
 
@@ -205,14 +213,15 @@ const toggleReaction = async (emoji) => {
       </div>
       {/* Video Description + Poster Name (overlay) */}
       <div
-        className={`absolute bottom-16 sm:block left-1/2 -translate-x-40
-                    bg-gray-900 w-80 bg-opacity-80 px-4 py-2 rounded text-white
+        className={`absolute bottom-16 lg:block left-1/2 -translate-x-40
+                    bg-black bg-opacity-20 w-80 px-4 py-2 rounded text-black font-semibold
                     transition-all duration-300
                     flex flex-col items-start space-y-1
                     ${showOverlay ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
       >
 
       <div className="flex items-center my-6 gap-2 mt-2 ">
+        <Link to={`/profile/${user.id}`} className="z-50 flex items-center gap-2">
             <span className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {v.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
 
         <div className="text-xs">
@@ -223,9 +232,10 @@ const toggleReaction = async (emoji) => {
             {v.user?.role || v.user?.admin?.role || "No role"}
           </div>
         </div>
+        </Link>
       </div>
 
-      <p className="text-xs -translate-y-5">
+      <p className="text-xs -translate-y-4">
         {showFull || !isLong ? v.description : shortDescription}{" "}
         {isLong && (
           <span
@@ -240,30 +250,30 @@ const toggleReaction = async (emoji) => {
 
     {/* Mobile View  */}
 
-    <div style={{
-      backgroundColor: 'transparent'
-    }}
-        className={`absolute bottom-16 left-1/2 -translate-x-40 z-50 pointer-events-auto
-                      w-80 sm:hidden px-4 py-2 rounded text-white
+    <div 
+        className={`absolute bg-black bg-opacity-30 bottom-16 sm:bottom-20 left-1/2 -translate-x-40 sm:-translate-x-48 z-50 pointer-events-auto
+                      w-80 sm:w-96 lg:hidden px-4 py-2 rounded text-white
                     transition-all duration-300
                     flex flex-col items-start space-y-1
                   `}
       >
 
       <div className="flex items-center my-6 z-50 gap-2 mt-2 ">
+        <Link to={`/profile/${user.id}`} className="z-50">
       <span className="text-white w-12 h-12 mx-auto flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
               {v.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
         <div className="text-xs">
-          <div className="font-bold text-[14px] text-black">
+          <div className="font-bold text-[14px] sm:text-[18px] text-white">
             {v.user?.first_name} {v.user?.last_name}
           </div>
-          <div className="text-[11px] text-black">
+          <div className="text-[11px] sm:text-[15px] sm:mt-1 text-white">
             {v.user?.role || v.user?.admin?.role || "No role"}
           </div>
         </div>
+      </Link>
       </div>
 
-      <p className="text-xs -translate-y-5 text-black">
+      <p className="text-xs -translate-y-3 text-black sm:text-[18px] font-semibold">
         {showFull || !isLong ? v.description : shortDescription}{" "}
         {isLong && (
           <span
@@ -311,36 +321,43 @@ const toggleReaction = async (emoji) => {
       </div>
         </div>
 
-        <div className="absolute flex flex-col items-center  top-1/2 left-1/2 translate-x-24 -translate-y-1/2 z-50 pointer-events-auto">
-      <button onClick={() => toggleReaction('👍')} className="mt-2 px-3 py-1 text-white rounded inline-flex items-center gap-2">
-        {myReaction === '👍' ? <p className="text-blue-600 font-bold">Like</p> : <p className="text-white font-bold">Like</p>  }
-         {Object.keys(reactionCounts).map((emoji) => (
-          <span key={emoji} className="text-xl -mr-2"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-blue-600 font-bold">
+        <div className="absolute flex flex-col items-center  top-1/2 left-1/2 translate-x-24 md:translate-x-48 lg:translate-x-24 -translate-y-1/2 z-50 pointer-events-auto">
+      <button onClick={() => toggleReaction('👍')} className="mt-2 px-3 py-1 text-white rounded flex flex-col items-start gap-1">
+        {myReaction === '👍' ? <p className="text-blue-600 font-bold">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 p-1 rounded-full text-white hover:bg-gray-600 bg-blue-600 font-bold">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                </svg></span>
-        ))}
-      </button>
-      <div className="flex flex-col items-center gap-2 mt-">
-       
+                </svg>
+        </p> : <p className="text-white font-bold">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 p-1 text-black bg-white hover:text-white hover:bg-gray-600 rounded-full font-bold">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+          </svg>
+        </p>  }
+         {/* {Object.keys(reactionCounts).map((emoji) => (
+          <span key={emoji} className="text-xl -mr-2"></span>
+        ))} */}
         <span className="text-sm ml-3">
           {Object.values(reactionCounts).reduce((a,b)=>a+b,0)}
         </span>
-      </div>
+      </button>
 
       <button
           onClick={() => setShowComments(!showComments)}
-          className="mt-2 px-4 py-2 text-white rounded"
+          className="mt- px-4 py-2 text-white rounded"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 hover:bg-gray-600 p-1 rounded ">
   <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
 </svg>
         {v.comments_count}
         </button>
+
+          <div className="z-50">
+        <VideoOptionsId video={v} />
+        </div>
      </div>
       {/* Comments Sidebar */}
       {showComments &&
         <div
-        className={`fixed bottom-0 right-0 w-full max-h-1/2 md:w-96 md:top-0 md:right-0 md:bottom-0 bg-white shadow-lg overflow-y-auto transition-transform duration-300 z-50
+        className={`fixed bottom-0 right-0 w-full max-h-1/2 lg:w-96 md:w-[450px] md:top-0 md:right-0 md:bottom-0 bg-white shadow-lg overflow-y-auto transition-transform duration-300 z-50
         ${showComments ? "translate-y-0" : "translate-y-full md:translate-y-0"}`}
       >
         <CommentsSidebar videoId={v.id} v={v} setShowComments={setShowComments} comments={comments} setComments={setComments} />

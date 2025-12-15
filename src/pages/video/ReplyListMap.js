@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import ReplyWithCopy from "./CopyTextReply";
 import ReplyImage from "./ReplyImage";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../layout/AuthProvider";
 
 
 export default function ReplyListMap({authUser, onReact, reply, setShowReactions,comment, timeAgo, showReactions, editText, setEditText, onEdit, onDelete, isDeleting, isEditing }){
   const [reactions, setReactions] = useState([]);
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [deletingReplyId, setDeletingReplyId] = useState(null);
+  const {user} = useAuth()
   // Normalize reactions on mount or reply change
   useEffect(() => {
     const parsed = typeof reply.reactions === "string" ? JSON.parse(reply.reactions) : reply.reactions || {};
@@ -57,10 +60,12 @@ export default function ReplyListMap({authUser, onReact, reply, setShowReactions
     return(
 
         <div className="px-4 py-2">
-    <div className="inline-flex gap-2 items-start">
+    <div className="flex gap-2 items-start justify-end">
     <div className="bg-gray-50 px-4 py-2">
     <div className="inline-flex gap-12 items-center">
+      <Link to={`/profile/${user.id}`} className="">
         <p className="text-black font-bold">{reply?.user?.first_name} {reply?.user?.last_name}</p>
+      </Link>
         <div className="relative group inline-block">
         <button className="text-2xl text-black font-bold ">:</button>
         <div className={`inline-flex items-center absolute top-10 -right-5 mb-2 flex gap p-2 bg-white border rounded shadow opacity-0 invisible group-hover:visible group-hover:opacity-100 transform group-hover:-translate-y-2 transition-all duration-200 z-50 gap-3 items-center shadow-md p-2 rounded-lg`}>
@@ -136,8 +141,9 @@ export default function ReplyListMap({authUser, onReact, reply, setShowReactions
       </div>
 
     </div>
+    <Link to={`/profile/${user.id}`} className="">
     <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
-
+    </Link>
     </div>
 
 

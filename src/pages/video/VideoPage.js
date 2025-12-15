@@ -16,7 +16,6 @@ export default function VideoSidebar({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [likes, setLikes] = useState({});
-  const [shares, setShares] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const {user: currentUser} = useAuth();
@@ -26,12 +25,6 @@ const handleLike = (id) => {
   setLikes((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
 };
 
-const handleShare = (id) => {
-  setShares((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-  navigator.share
-    ? navigator.share({ title: "Share Video", url: `/videos/${id}` })
-    : alert("Sharing not supported on this device.");
-};
 
 
   const filteredVideos = selectedCategory
@@ -41,29 +34,16 @@ const handleShare = (id) => {
   return (
     <div>
       <Navbar />
-      <div className="flex min-h-screen bg-white text-gray-800">
+      <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow"
-          onClick={() => setSidebarOpen(true)}
-        >
-          ☰
-        </button>
 
         {/* Sidebar */}
         <aside
-          className={`fixed top-20 left-0 h-full lg:w-80 md:w-96 md:py-10 lg:py-8 w-72 bg-white border border-t-0 border-2 py-4 sm:px-3 px-4 z-40
+          className={`fixed hidden lg:block top-20 left-0 h-full w-64 md:py-10 lg:py-8  bg-white border border-t-0 border-2 py-4 sm:px-3 px-4 z-40
             transform transition-transform duration-300
-            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
             overflow-y-auto overflow-x-hidden
             scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
         >
-          <button
-            className="lg:hidden absolute top-4 right-4 text-xl"
-            onClick={() => setSidebarOpen(false)}
-          >
-            ✕
-          </button>
 
           <h3 className="text-xs text-blue-800 font-bold mb-2">FILTER VIDEO</h3>
           <ul className="space-y-4 mb-">
@@ -97,6 +77,34 @@ const handleShare = (id) => {
           </ul>
         </aside>
 
+<div className="lg:hidden block">
+        <ul className="flex space-x-4 w-full px-2 -mb-16 mt-28 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+  <li
+    onClick={() => setSelectedCategory(null)}
+    className={`cursor-pointer whitespace-nowrap px-4 py-1 font-semibold w-24 h-10 mx-auto flex flex-col items-center justify-center  rounded-lg ${
+      !selectedCategory
+        ? "bg-blue-500 text-white"
+        : "bg-gray-200 bg-transparent"
+    }`}
+  >
+    All Videos
+  </li>
+
+  {categories.map((cat) => (
+    <li
+      key={cat.id}
+      onClick={() => setSelectedCategory(cat.id)}
+      className={`cursor-pointer whitespace-nowrap mx-auto flex flex-col items-center justify-center px-4 py-1 font-semibold h-10  rounded-lg ${
+        selectedCategory === cat.id
+          ? "bg-blue-500 text-white"
+          : "hover:text-gray-500  bg-gray-100 text-black font-semibold"
+      }`}
+    >
+      {cat.name}
+    </li>
+  ))}
+</ul>
+</div>
         {/* Main Content */}
         <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 flex flex-col items-center">
           {loading ? (
@@ -119,34 +127,22 @@ const handleShare = (id) => {
           ) : filteredVideos.length > 0 ? (
             <>
               {/* Video List */}
-              <ul className="space-y-2 w-full max-w-md">
+              <ul className="grid 
+  grid-cols-1 
+  md:grid-cols-2 
+  lg:grid-cols-3  
+  justify-items-center items-center
+  gap-3  w-full">
                 {filteredVideos.map((v) => (
             
-                  <li key={v.id} className="p-3 border rounded-lg mb-3 shadow-sm">
+                  <li key={v.id} className="border rounded-xl mb-3 shadow-sm">
 
                   {/* Admin Details */}
-                <div className="flex items-center justify-between gap-6 my-6 mt-2">
-                <div className="flex items-center justify-start gap-6 my-6 mt-2">
-
-                    <span className="text-white w-16 h-16 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 ">
-                 {admin?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
-                  
-                  <div className="text-xs">
-                    <div className="font-bold text-[17px] text-black">
-                    {admin?.first_name} {admin?.last_name}
-                  </div>
-                  <div className="text-[11px] text-black">{admin?.role}</div>
-                  </div>
-                  
-                  </div>
-                  <VideoOptions video={v} />
-                </div>
 
                 {/* Video Thumbnail */}
                 <div>
                  <VideoCards v={v} currentIndex = {currentIndex} setCurrentIndex = {setCurrentIndex} 
-                 handleShare={handleShare} shares={shares} 
-                 currentUser={currentUser}
+                 currentUser={currentUser} admin={admin}
                  />
                 </div>
               </li>

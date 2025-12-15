@@ -20,6 +20,10 @@ import VideoPlayerId from "./pages/video/VideoPlayerId";
 import { useAuth } from "./layout/AuthProvider"; // Example auth hook
 import VideoPageApi from "./pages/video/VideoPageApi";
 import ProtectRoute from "./route/ProtectRouter";
+import LibraryPage from "./pages/video/LibraryVideo";
+import ReportList from "./report/ReportList";
+import ProfilePageId from "./teacherdashboard/AdminProfileId";
+
 
    
 function App() {
@@ -52,6 +56,15 @@ function App() {
           <GetMentor />
       } />
 
+      <Route path="/report-list" element={
+          <ReportList />
+      } />
+
+
+      <Route path="/library" element={
+          <LibraryPage />
+      } />
+
        <Route
           path="/video"
           element={
@@ -70,6 +83,9 @@ function App() {
           }
         />
 
+
+      {/* profile */}
+     <Route path="/profile/:id" element={<ProfilePageId />} />
 
       {/* register */}
       <Route path="/register" element={
@@ -104,7 +120,7 @@ function App() {
 
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
-          <TeacherDashboardLayout choice={choice} onCreated={handleVideoCreated} />
+          <TeacherDashboardLayout choice={choice} onCreated={handleVideoCreated} videos={videos} />
         </ProtectedRoute>
       } />
 

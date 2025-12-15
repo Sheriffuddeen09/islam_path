@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import api from "../../Api/axios";
 import { Link } from "react-router-dom";
 import ReportForm from "../../report/ReportForm";
 import { useAuth } from "../../layout/AuthProvider";
 
-export default function VideoOptions({ video }) {
+export default function VideoOptionsId({ video }) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState("");
   const [notification, setNotification] = useState("");
   const [shares, setShares] = useState({});
   const [openReport, setOpenReport] = useState(false)
   const {user} = useAuth()
-
+  
   const showNotification = (msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(""), 3000); // hide after 3s
@@ -93,9 +93,6 @@ export default function VideoOptions({ video }) {
   }
 };
 
-
-
-
 const handleReport = () =>{
   setOpenReport(!openReport)
 }
@@ -103,17 +100,21 @@ const handleReport = () =>{
     <div className="relative inline-block text-left">
       <button
         onClick={() => setOpen(!open)}
-        className="px-2 py-2 text-black rounded hover:text-gray-700 hover:bg-gray-200 transition"
+        className="px- py- text-black rotate rounded hover:text-gray-700 hover:bg-gray-600 transition"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-</svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-white">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+    </svg>
 
       </button>
 
       {open && (
-        <div className="absolute -top-64 right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
-          <ul className="flex flex-col gap- p-4">
+        <div className="fixed -top-0 flex flex-col justify-center mx-auto right-0 h-80  mt-2 w-80 sm:w-96 bg-white border rounded shadow-lg z-10">
+          <ul className="flex flex-col gap- p-4 relative">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={handleOption} class="size-6 cursor-pointer absolute top-0 right-6 text-black">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+</svg>
+
             <li>
               <button onClick={ () => {handleDownload(); handleOption()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2  hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
               >Download</button>

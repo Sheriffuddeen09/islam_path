@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import api from "../Api/axios";
 import AlertIcon from "./Icon";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -7,10 +7,24 @@ import LogoutButton from "../Form/LogOut";
 export default function DashboardLayout() {
   const [isloading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [videoCount, setVideoCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    const fetchVideoCount = async () => {
+      try {
+        const res = await api.get("/api/user/videos/count", { withCredentials: true });
+        setVideoCount(res.data.video_count || 0);
+      } catch (err) {
+        console.error("Failed to fetch video count:", err);
+      }
+    };
+
+    fetchVideoCount();
+  }, []);
+  
  useEffect(() => {
   const loadData = async () => {
     setIsLoading(true);
@@ -28,6 +42,7 @@ export default function DashboardLayout() {
 
       setUser(currentUser);
       setNotifications(notifRes.data.notifications || []);
+
 
       const protectedRoutes = [
         "/dashboard",
@@ -166,7 +181,7 @@ export default function DashboardLayout() {
                 <div key={i} className="animate-pulse bg-gray-200 h-24 rounded-xl"></div>
               ))
             : <>
-                <Card title="Video Post" value="152" color="bg-blue-100" icon={AlertIcon} />
+                <Card title="Video Post" value={`${videoCount}`} color="bg-blue-100" icon={AlertIcon} />
                 <Card title="Notification" value="$2,100" color="bg-orange-100" />
                 <Card title="Reviews" value="28,441" color="bg-green-100" />
                 <Card title="Rate" value="152 Unread" color="bg-purple-100" />

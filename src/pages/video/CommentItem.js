@@ -4,6 +4,7 @@ import { useAuth } from "../../layout/AuthProvider";
 import Reply from "./Reply";
 import CommentImage from "./ComentImage";
 import CommentWithCopy from "./CopyText";
+import { Link } from "react-router-dom";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
@@ -20,6 +21,7 @@ export default function CommentItem({setIsDeleting, setIsEdit, isEdit, isDeletin
   const [reactions, setReactions] = useState(comment.reactions || []); // ✅ array of { emoji, user }
   const [hoverReactions, setHoverReactions] = useState(false);
   const authUser = useAuth()
+  const {user} = useAuth()
 
 useEffect(() => {
   const arr = reactions && !Array.isArray(reactions)
@@ -176,15 +178,19 @@ const handleReplyToggle = () =>{
 
   return (
     <div className="flex gap-3">
+      <Link to={`/profile/${user.id}`} className="">
      <span className="text-white w-12 h-12 mx-auto flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
+      </Link>
       <div className="flex-1">
         <div className="bg-gray-50 p-3 rounded">
           {/* Comment Header */}
           <div className="flex justify-between items-start">
             <div>
+              <Link to={`/profile/${user.id}`} className="z-50">
               <div className="font-semibold text-black">
                 {comment.user?.first_name || "Anonymous"} {comment.user?.last_name || ""}
               </div>
+              </Link>
               {/* Text */}
             {comment.body && (
               <p className="text-sm text-black ">{comment.body}</p>

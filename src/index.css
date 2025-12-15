@@ -281,3 +281,6 @@ ol {
 .bg-transparent{
   background: var(0, 0, 0.7);
 }
+.rotate{
+  transform: rotate(90deg);
+}

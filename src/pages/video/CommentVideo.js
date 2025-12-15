@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../../Api/axios";
 import CommentItem from "./CommentItem";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function CommentsSidebar({ v, videoId, setShowComments, comments, setComments }) {
   const [newComment, setNewComment] = useState('');
@@ -12,6 +14,7 @@ export default function CommentsSidebar({ v, videoId, setShowComments, comments,
   const [showFull, setShowFull] = useState(false);
   const [isEditing, setIsEditing] = useState(false)
 
+  const {user} = useAuth()
 
 
   // Fetch comments
@@ -201,9 +204,10 @@ const handleEditReply = async (replyId, text) => {
 
 
   return (
-    <div className="flex flex-col bg-white h-screen w-full md:w-96 px-2">
+    <div className="flex flex-col bg-white h-screen w-full md:w-[400px] lg:w-96 px-2">
      <div className="flex  flex-row justify-between px-5 items-start border-b-2 border-blue-600 py-2 mb- z-50 gap-2 mt-2 ">
       <div>
+        <Link to={`/profile/${user.id}`} className="z-50 flex items-center gap-2">
       <span className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
               {v.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
         <div className="text-xs">
@@ -214,6 +218,7 @@ const handleEditReply = async (replyId, text) => {
             {v.user?.role || v.user?.admin?.role || "No role"}
           </div>
         </div>
+        </Link>
         <p className="text-xs text-black mb-3 mt-3">
          {showFull || !isLong ? v.description : shortDescription}{" "}
         {isLong && (

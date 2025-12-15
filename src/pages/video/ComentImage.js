@@ -20,7 +20,7 @@ export default function CommentImage({ image }) {
 
       {/* Modal for full image */}
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black w-full bg-opacity-70 flex items-center justify-center z-50">
           {/* Close button */}
           <button
             onClick={() => setOpen(false)}
@@ -32,7 +32,7 @@ export default function CommentImage({ image }) {
           {/* Image */}
           <img
             src={src}
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded"
+            className="h-[96vh] w-96 object-contain rounded"
             alt="full comment"
           />
         </div>
