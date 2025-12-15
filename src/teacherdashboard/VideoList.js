@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import VideoPage from "./VideoPage";  
 import api from "../../Api/axios";
 
-export default function VideoList({videos, setVideos}) {
+export default function VideoList() {
   const [categories, setCategories] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("");
