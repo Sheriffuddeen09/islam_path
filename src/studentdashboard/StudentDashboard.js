@@ -5,6 +5,7 @@ import StudentDashboard from "./Dashboard";
 import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
+import StudentProfilePage from "./StudentProfile";
 
 export default function StudentDashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -16,6 +17,10 @@ export default function StudentDashboardLayout() {
       setVisible(id)
     }
 
+     const handleSidebarOpen = () => {
+      setSidebarOpen(!sidebarOpen)
+    }
+
 
   const menu = [
     { id: 7, label: "Teacher Request" },
@@ -23,7 +28,6 @@ export default function StudentDashboardLayout() {
     { id: 9, label: "View Assignment" },
     { id: 10, label: "View Quiz" },
     { id: 11, label: "Ranks" },
-    { id: 11, label: "Profile" },
   ];
 
  
@@ -70,11 +74,11 @@ export default function StudentDashboardLayout() {
              === 1 ? "bg-blue-600 text-white" : "bg-transparent"}`}>
             Dashboard
           </li>
-          <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
-            <Link to="/">
+          <Link to="/">
+          <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg hover:bg-gray-200 mt-2 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
             Home Page
-          </Link>
           </li>
+          </Link>
           <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 2 ? "bg-blue-600 text-white" : "bg-transparent"
           }`}>
@@ -90,7 +94,7 @@ export default function StudentDashboardLayout() {
           }`}>
             Create Video
           </li>
-          <li className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
+          <li onClick={() => handleVisible(5)} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
              === 5 ? "bg-blue-600 text-white" : "bg-transparent"
           }`}>
             Profile
@@ -104,7 +108,7 @@ export default function StudentDashboardLayout() {
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => setVisible(item.id)}
+              onClick={() => {setVisible(item.id); handleSidebarOpen()}}
               className={`p-2 rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                 hover:bg-gray-200 hover:text-gray-600 
                 ${visible === item.id ? "bg-blue-600 text-white" : "bg-transparent"}
@@ -123,10 +127,12 @@ export default function StudentDashboardLayout() {
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <StudentDashboard />
         </div>
-        <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
+        <StudentProfilePage />
+        </div>
+        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
         <StudentRequest />
         </div>
-            
       </section>
     </div>
   );

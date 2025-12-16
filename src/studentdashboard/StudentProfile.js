@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User2, User } from "lucide-react";
-import VideoList from "./VideoList";
-import StudentPerformance from "./StudentPerformance";
+import Performance from "./Performance";
+import StudentRequest from "./StudentRequest";
 
-export default function ProfilePage() {
+export default function StudentProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -134,10 +134,10 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-          <VideoList />
+          <Performance />
           </div>
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-          <StudentPerformance  />
+          <StudentRequest  />
         </div>
         </div>
   )

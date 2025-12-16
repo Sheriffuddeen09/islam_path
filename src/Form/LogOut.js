@@ -66,7 +66,7 @@ export default function LogoutButton() {
           />
         </svg>
       )}
-      {isLoggingOut && <span>Logging out...</span>}
+      {isLoggingOut && <span className="text-xs text-blue-600 font-bold">Logging out...</span>}
     </button>
   );
 }

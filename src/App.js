@@ -120,7 +120,7 @@ function App() {
 
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
-          <TeacherDashboardLayout choice={choice} onCreated={handleVideoCreated} videos={videos} />
+          <TeacherDashboardLayout onCreated={handleVideoCreated} />
         </ProtectedRoute>
       } />
 

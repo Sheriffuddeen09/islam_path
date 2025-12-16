@@ -878,7 +878,7 @@ const handleRegister = async () => {
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-4 text-gray-500"
+          className="absolute right-6 top-5 text-gray-500"
         >
           {showPassword ? (
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
@@ -907,7 +907,7 @@ const handleRegister = async () => {
         <button
           type="button"
           onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-          className="absolute right-3 top-4 text-gray-500"
+          className="absolute right-6 top-6 text-gray-500"
         >
           {showPasswordConfirm ? (
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">

@@ -1,24 +1,19 @@
 import { useEffect, useState } from "react";
-import VideoPage from "./VideoPage";  
-import api from "../../Api/axios";
+import api from "../Api/axios";
+import VideoCard from "./VideoCard";
 
 export default function VideoList() {
-  const [categories, setCategories] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState("");
+
+   
 
   useEffect(() => {
     async function fetchData() {
       try {
         const videosRes = await api.get("/api/videos");
-        const categoriesRes = await api.get("/api/categories");
-        const adminRes = await api.get("/api/admin");
 
         setVideos(videosRes.data.data);
-        setCategories(categoriesRes.data);
-        setAdmin(adminRes.data);
         setLoading(false);
       } catch (error) {
         console.error(error);
@@ -28,7 +23,10 @@ export default function VideoList() {
     fetchData();
   }, []);
 
-  // 🚀 Rolling Loader UI
+  const handleDeleteVideo = (id) => {
+  setVideos((prev) => prev.filter((v) => v.id !== id));
+};
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
@@ -38,13 +36,25 @@ export default function VideoList() {
 
   return (
     <div className="">
-      <VideoPage
-        videos={videos}
-        admin={admin}
-        categories={categories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+      <ul className="grid 
+       grid-cols-1 
+       md:grid-cols-2 
+       lg:grid-cols-3  
+       justify-items-center items-center
+       gap-3  w-full">
+                     {videos.map((v) => (
+                 
+                       <li key={v.id} className="border rounded-xl mb-3 shadow-sm">
+                     <div>
+                        <VideoCard key={v.id}
+                        video={v}
+                        onDelete={handleDeleteVideo}
+                      />
+                     </div>
+                   </li>
+     
+                     ))}
+                   </ul>
     </div>
   );
 }

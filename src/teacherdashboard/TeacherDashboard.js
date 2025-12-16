@@ -7,8 +7,9 @@ import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import CreateVideoSection from "./CreateVideo";
 import ProfilePage from "./AdminProfile";
+import TeacherLiveRequests from "./TeacherRequest";
 
-export default function TeacherDashboardLayout({onCreated, videos}) {
+export default function TeacherDashboardLayout({onCreated}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
 
   const [savedChoice, setSavedChoice] = useState(null);
@@ -93,32 +94,32 @@ export default function TeacherDashboardLayout({onCreated, videos}) {
 
         <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
         <ul className="space-y-2">
-          <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
-             === 1 ? "bg-blue-600 text-white" : "bg-transparent"}`}>
+          <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+             === 1 ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100 " : "bg-transparent hover:bg-gray-200 hover:text-gray-600"}`}>
             Dashboard
           </li>
           <Link to="/">
-          <li className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
+          <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer `}>
             Home Page
           </li>
           </Link>
-          <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
-             === 2 ? "bg-blue-600 text-white" : "bg-transparent"
+          <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+             === 2 ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100" : "bg-transparent hover:bg-gray-200 hover:text-gray-600"
           }`}>
             Message
           </li>
-          <li className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
-             === 3 ? "bg-blue-600 text-white" : "bg-transparent"
+          <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+             === 3 ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100" : "bg-transparent hover:bg-gray-200 hover:text-gray-600"
           }`}>
             Friends
           </li>
-          <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
-             === 4 ? "bg-blue-600 text-white" : "bg-transparent"
+          <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+             === 4 ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100" : "bg-transparent hover:bg-gray-200 hover:text-gray-600"
           }`}>
             Create Video
           </li>
-          <li onClick={() => {handleVisible(5); handleOpenModel()}} className={`p-2 rounded-lg hover:bg-gray-200 hover:text-gray-600 text-sm font-semibold cursor-pointer ${visible
-             === 5 ? "bg-blue-600 text-white" : "bg-transparent"
+          <li onClick={() => {handleVisible(5); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+             === 5 ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100" : "bg-transparent hover:bg-gray-200 hover:text-gray-600"
           }`}>
             Profile
           </li>
@@ -144,10 +145,10 @@ export default function TeacherDashboardLayout({onCreated, videos}) {
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => setVisible(item.id)}
+              onClick={() => {setVisible(item.id); handleOpenModel()}}
               className={`p-2 rounded-lg text-sm font-semibold cursor-pointer 
                 hover:bg-gray-200 hover:text-gray-600 
-                ${visible === item.id ? "bg-blue-600 text-white" : "bg-transparent"}
+                ${visible === item.id ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100" : "bg-transparent hover:bg-gray-200 hover:text-gray-600"}
               `}
             >
               {item.label}
@@ -162,7 +163,7 @@ export default function TeacherDashboardLayout({onCreated, videos}) {
       {/* ---------------------- MAIN CONTENT ---------------------- */}
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <DashboardLayout videos={videos} />
+        <DashboardLayout />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <StudentRequest />
@@ -172,6 +173,10 @@ export default function TeacherDashboardLayout({onCreated, videos}) {
         </div>
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
         <ProfilePage  />
+        </div>
+
+        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+        <TeacherLiveRequests  />
         </div>
             
       </section>

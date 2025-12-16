@@ -23,3 +23,12 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
+
+
+export const getLiveRequests = () => {
+  return api.get("/api/live-class/requests");
+};
+
+export const respondToRequest = (id, action) => {
+  return api.post(`/api/live-class/respond/${id}`, { action });
+};
