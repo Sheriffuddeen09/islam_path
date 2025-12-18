@@ -13,6 +13,7 @@ export default function GetMentor() {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [loadingId, setLoadingId] = useState(null);
 
 
   useEffect(() => {
@@ -55,6 +56,10 @@ useEffect(() => {
 
 
   const handleRequest = async (teacherId) => {
+
+    if (loadingId) return;
+
+  setLoadingId(teacherId);
     console.log("HANDLE REQUEST START", teacherId);
 
     if (!authReady) return;
@@ -82,6 +87,7 @@ useEffect(() => {
       });
     } finally {
       setRequestLoading(false);
+      setLoadingId(null);
     }
   };
 
@@ -185,22 +191,43 @@ Get Your Arabic Teachers </h2>
       </div>
       <div>
           <button
-            onClick={() => handleRequest(t.id)}
-            className="text-white"
-          >
-              {requestStatus[t.id] === "pending" && (
-                <p className="bg-blue-600 cursor-pointer rounded px-4 rounded-lg text-xs py-3 hover:bg-blue-500">Request Pending</p>
-              )}
-              {requestStatus[t.id] === "accepted" && (
-                <p className="bg-green-600 cursor-pointer hover:bg-green-500 rounded-lg px-4 text-xs py-3">Request Accepted</p>
-              )}
-              {requestStatus[t.id] === "declined" && (
-                <p className="bg-red-600 cursor-pointer hover:bg-red-500 rounded-lg px-4 text-xs py-3">Request Declined</p>
-              )}
-              {!requestStatus[t.id] && (
-                <p className="bg-green-600 cursor-pointer px-4 text-xs py-3 rounded-lg hover:bg-green-500">Request Live Class</p>
-              )}
-            </button>
+  onClick={() => handleRequest(t.id)}
+  disabled={loadingId === t.id}
+  className="text-white"
+>
+  {loadingId === t.id ? (
+    <p className="bg-gray-500 rounded-lg px-4 text-xs py-3 flex items-center gap-2">
+      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+    </p>
+  ) : (
+    <>
+      {requestStatus[t.id] === "pending" && (
+        <p className="bg-blue-600 rounded-lg px-4 text-xs py-3 hover:bg-blue-500">
+          Request Pending
+        </p>
+      )}
+
+      {requestStatus[t.id] === "accepted" && (
+        <p className="bg-gray-100 rounded-lg px-4 text-gray-600 text-xs py-3 hover:bg-gray-200">
+          Request Accepted
+        </p>
+      )}
+
+          {requestStatus[t.id] === "declined" && (
+            <p className="bg-red-600 rounded-lg px-4 text-xs py-3 hover:bg-red-500">
+              Request Resend
+            </p>
+          )}
+
+          {!requestStatus[t.id] && (
+            <p className="bg-green-600 rounded-lg px-4 text-xs py-3 hover:bg-green-500">
+              Request Live Class
+            </p>
+          )}
+        </>
+      )}
+    </button>
+
         </div>
         </div>
         {t.compliment && (
@@ -269,23 +296,44 @@ Get Your Arabic Teachers </h2>
               </div>
               <div>
             <button
-            onClick={() => handleRequest(selectedTeacher.id)}
-            disabled={requestLoading || requestStatus[selectedTeacher.id] === "pending"}
-            className="text-white text-xs"
-          >
-                {requestStatus[selectedTeacher.id] === "pending" && (
-                  <p className="bg-blue-600 cursor-pointer px-4 text-xs py-3 rounded-lg hover:bg-blue-500">Request Pending</p>
-                )}
-                {requestStatus[selectedTeacher.id] === "accepted" && (
-                  <p className="bg-green-600 cursor-pointer hover:bg-green-500 px-4 text-xs py-3 rounded-lg">Request Accepted</p>
-                )}
-                {requestStatus[selectedTeacher.id] === "declined" && (
-                  <p className="bg-red-600 cursor-pointer hover:bg-red-500 px-4 text-xs py-3 rounded-lg">Request Declined</p>
-                )}
-                {!requestStatus[selectedTeacher.id] && (
-                  <p className="bg-green-600 cursor-pointer px-4 text-xs py-3 hover:bg-green-500 rounded-lg">Request Live Class</p>
-                )}
-          </button>
+  onClick={() => handleRequest(selectedTeacher.id)}
+  disabled={loadingId === selectedTeacher.id}
+  className="text-white"
+>
+  {loadingId === selectedTeacher.id ? (
+    <p className="bg-gray-500 rounded-lg px-4 text-xs py-3 flex items-center gap-2">
+      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+      Processing...
+    </p>
+  ) : (
+    <>
+      {requestStatus[selectedTeacher.id] === "pending" && (
+        <p className="bg-blue-600 rounded-lg px-4 text-xs py-3 hover:bg-blue-500">
+          Request Pending
+        </p>
+      )}
+
+      {requestStatus[selectedTeacher.id] === "accepted" && (
+        <p className="bg-gray-100 rounded-lg px-4 text-gray-600 text-xs py-3 hover:bg-gray-200 whitespace-nowrap">
+          Request Accepted
+        </p>
+      )}
+
+      {requestStatus[selectedTeacher.id] === "declined" && (
+        <p className="bg-red-600 rounded-lg px-4 text-xs py-3 hover:bg-red-500">
+          Request Resend
+        </p>
+      )}
+
+      {!requestStatus[selectedTeacher.id] && (
+        <p className="bg-green-600 rounded-lg px-4 text-xs py-3 hover:bg-green-500">
+          Request Live Class
+        </p>
+      )}
+    </>
+  )}
+</button>
+
 
 
           </div>
@@ -319,7 +367,7 @@ Get Your Arabic Teachers </h2>
 
 
       {notification && (
-        <div className={`fixed top-4 right-4 px-4 py-2 text-white z-50
+        <div className={`fixed top-4 right-4 rounded px-4 py-2 text-white z-50
           ${notification.type === "success" ? "bg-green-600 cursor-pointer" : "bg-red-600 cursor-pointer"}`}>
           {notification.text}
         </div>

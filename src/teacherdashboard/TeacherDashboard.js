@@ -2,7 +2,6 @@
 import api from "../Api/axios";
 import { useEffect, useState } from "react";
 import DashboardLayout from "./Dashboard";
-import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import CreateVideoSection from "./CreateVideo";
@@ -11,14 +10,32 @@ import TeacherLiveRequests from "./TeacherRequest";
 
 export default function TeacherDashboardLayout({onCreated}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
-
+  const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
+
+  const [pendingCount, setPendingCount] = useState(0);
+
 
   useEffect(() => {
     api.get("/api/user-status").then(res => {
       setSavedChoice(res.data.admin_choice);  // comes from database
     });
   }, []);
+
+
+  useEffect(() => {
+  const fetchRequests = async () => {
+    try {
+      const res = await api.get("/api/notifications/requests");
+      console.log("Pending Requests from API:", res.data.pending_requests);
+      setPendingRequests(res.data.pending_requests || 0);
+    } catch (err) {
+      console.error(err);
+      setPendingRequests(0);
+    }
+  };
+  fetchRequests();
+}, []);
 
   
 
@@ -40,7 +57,7 @@ export default function TeacherDashboardLayout({onCreated}) {
 
   // Menu items for Comment 1
   const teacherMenu = [
-    { id: 7, label: "Student Request" },
+    { id: 7, label: "Student Request", showBadge: true },
     { id: 8, label: "Live Class" },
     { id: 9, label: "Student Assignment" },
     { id: 10, label: "Student Quiz" },
@@ -146,12 +163,17 @@ export default function TeacherDashboardLayout({onCreated}) {
             <li
               key={item.id}
               onClick={() => {setVisible(item.id); handleOpenModel()}}
-              className={`p-2 rounded-lg text-sm font-semibold cursor-pointer 
+              className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                 hover:bg-gray-200 hover:text-gray-600 
                 ${visible === item.id ? "bg-blue-600 text-white hover:bg-blue-500 hover:text-gray-100" : "bg-transparent hover:bg-gray-200 hover:text-gray-600"}
               `}
             >
               {item.label}
+              {item.showBadge && pendingCount > 0 && (
+        <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+          {pendingCount}
+        </span>
+      )}
             </li>
           ))}
         </ul>
@@ -165,9 +187,9 @@ export default function TeacherDashboardLayout({onCreated}) {
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <DashboardLayout />
         </div>
-        <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
+        {/* <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <StudentRequest />
-        </div>
+        </div> */}
         <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
         <CreateVideoSection onCreated={onCreated} />
         </div>
@@ -176,7 +198,7 @@ export default function TeacherDashboardLayout({onCreated}) {
         </div>
 
         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
-        <TeacherLiveRequests  />
+        <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
             
       </section>

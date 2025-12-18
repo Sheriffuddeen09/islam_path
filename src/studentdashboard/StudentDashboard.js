@@ -10,6 +10,14 @@ import StudentProfilePage from "./StudentProfile";
 export default function StudentDashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   
+  const [pendingRequests, setPendingRequests] = useState(0);
+
+  useEffect(() => {
+    api.get("/api/notifications/requests").then(res => {
+      setPendingRequests(res.data.pending_requests);
+    });
+  }, []);
+
 
   const [visible, setVisible] = useState(1)
   
@@ -23,12 +31,12 @@ export default function StudentDashboardLayout() {
 
 
   const menu = [
-    { id: 7, label: "Teacher Request" },
-    { id: 8, label: "Live Class" },
-    { id: 9, label: "View Assignment" },
-    { id: 10, label: "View Quiz" },
-    { id: 11, label: "Ranks" },
-  ];
+  { id: 7, label: "Teacher Request", showBadge: true },
+  { id: 8, label: "Live Class" },
+  { id: 9, label: "View Assignment" },
+  { id: 10, label: "View Quiz" },
+  { id: 11, label: "Ranks" },
+];
 
  
 
@@ -48,7 +56,7 @@ export default function StudentDashboardLayout() {
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
     <aside
-  className={`fixed top-0 left-0 h-full lg:w-64 md:w-96 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 sm:px-2 px-4 z-40
+  className={`fixed top-0 left-0 h-full lg:w-64 md:w-64 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 sm:px-2 px-4 z-40
     transform transition-transform duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
     lg:translate-x-0
@@ -63,7 +71,7 @@ export default function StudentDashboardLayout() {
           ✕
         </button>
 
-        <div className="text-xl whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
+        <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
           <span className="text-purple-600">Islam Path</span>
           <span>Of Knowledge</span>
         </div>
@@ -109,12 +117,17 @@ export default function StudentDashboardLayout() {
             <li
               key={item.id}
               onClick={() => {setVisible(item.id); handleSidebarOpen()}}
-              className={`p-2 rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
+              className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                 hover:bg-gray-200 hover:text-gray-600 
                 ${visible === item.id ? "bg-blue-600 text-white" : "bg-transparent"}
               `}
             >
               {item.label}
+               {item.showBadge && pendingRequests > 0 && (
+                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {pendingRequests}
+                </span>
+              )}
             </li>
           ))}
         </ul>

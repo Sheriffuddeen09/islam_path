@@ -13,7 +13,9 @@ export function initEcho() {
     wsHost: process.env.REACT_APP_WS_HOST || window.location.hostname,
     wsPort: process.env.REACT_APP_WS_PORT || 6001,
     forceTLS: false,
-    enabledTransports: ["ws", "wss"]
+    enabledTransports: ["ws", "wss"],
+    authEndpoint: "/broadcasting/auth",
+    withCredentials: true,
   });
 
   return window.Echo;

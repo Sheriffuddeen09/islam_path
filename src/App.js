@@ -23,7 +23,7 @@ import ProtectRoute from "./route/ProtectRouter";
 import LibraryPage from "./pages/video/LibraryVideo";
 import ReportList from "./report/ReportList";
 import ProfilePageId from "./teacherdashboard/AdminProfileId";
-
+import ChatPage from './chat/ChatPage'
 
    
 function App() {
@@ -73,6 +73,8 @@ function App() {
             </ProtectRoute>
           }
         />
+
+        <Route path="/chat/:chatId" element={<ChatPage />} />
 
       <Route
           path="/video/:id"

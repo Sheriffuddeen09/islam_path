@@ -3,6 +3,7 @@ import api from "../Api/axios";
 import AlertIcon from "./Icon";
 import { useLocation, useNavigate } from "react-router-dom";
 import LogoutButton from "../Form/LogOut";
+import StudentAccept from './StudentAccept'
 
 export default function DashboardLayout() {
   const [isloading, setIsLoading] = useState(true);
@@ -189,55 +190,16 @@ export default function DashboardLayout() {
         </div>
 
         {/* Table & Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="">
 
           {/* Table */}
           <div className="lg:col-span-2 bg-white shadow-lg rounded-xl p-4">
             {isloading ? <SkeletonTable /> : (
               <>
-                <h2 className="font-bold text-lg mb-4">Student Analysis</h2>
-                <table className="w-full text-left">
-                  <thead className="text-gray-400 text-sm">
-                    <tr>
-                      <th>Image</th>
-                      <th>Name</th>
-                      <th>Price</th>
-                      <th>View</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { name: "Bamboo Watch", price: "$65", img: "🟤" },
-                      { name: "Black Watch", price: "$72", img: "⚫" },
-                      { name: "Blue Band", price: "$79", img: "🔵" },
-                    ].map((item, i) => (
-                      <tr key={i} className="border-t hover:bg-gray-50">
-                        <td className="p-2">{item.img}</td>
-                        <td className="p-2">{item.name}</td>
-                        <td className="p-2">{item.price}</td>
-                        <td className="p-2 text-blue-500 cursor-pointer">🔍</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+               <StudentAccept />
               </>
             )}
           </div>
-
-          {/* Chart */}
-          <div className="bg-white shadow-lg rounded-xl p-4">
-            {isloading ? (
-              <div className="animate-pulse bg-gray-200 h-64 rounded-xl"></div>
-            ) : (
-              <>
-                <h2 className="font-bold text-lg mb-4">Sales Overview</h2>
-                <div className="h-64 w-full bg-gray-100 rounded-lg flex items-center justify-center">
-                  📈 Chart Placeholder
-                </div>
-              </>
-            )}
-          </div>
-
         </div>
 
       </section>

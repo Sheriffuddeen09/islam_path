@@ -19,7 +19,7 @@
   }
   
   body{
-    background-color: white;
+    background-color: transparent;
     color: white;
     overflow-x: hidden;
   }
@@ -269,9 +269,9 @@ ol {
   top: 0;
 }
 
-:disabled{
+/* :disabled{
   background-color: whitesmoke;
-}
+} */
 
 .scroll-bar {
   scroll-snap-type: mandatory x;
@@ -283,4 +283,36 @@ ol {
 }
 .rotate{
   transform: rotate(90deg);
+}
+
+@keyframes spinFlip {
+  0% {
+    transform: rotate(0deg) scaleX(1);
+  }
+  25% {
+    transform: rotate(90deg) scaleX(-1);
+  }
+  50% {
+    transform: rotate(180deg) scaleX(1);
+  }
+  75% {
+    transform: rotate(270deg) scaleX(-1);
+  }
+  100% {
+    transform: rotate(360deg) scaleX(1);
+  }
+}
+
+.animate-logo-spin-flip {
+  animation: spinFlip 10s ease-in-out infinite;
+}
+.animate-logo-spin-flip:hover {
+  animation-play-state: paused;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
