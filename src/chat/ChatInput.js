@@ -49,48 +49,6 @@ export default function ChatInput({ chatId, onSend, setMessages }) {
   }
 };
 
-const startRecording = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mediaRecorder = new MediaRecorder(stream);
-    recorderRef.current = mediaRecorder;
-    audioChunks.current = [];
-
-    mediaRecorder.ondataavailable = (e) => {
-      audioChunks.current.push(e.data);
-    };
-
-    mediaRecorder.start();
-  } catch (err) {
-    console.error("Failed to start recording:", err);
-  }
-};
-
-const stopRecording = () => {
-  if (!recorderRef.current) return; // ⬅️ prevent null errors
-
-  recorderRef.current.stop(); // stops recording
-  recorderRef.current = null; // reset ref
-};
-
-const sendVoice = async () => {
-  if (audioChunks.current.length === 0) return;
-
-  const blob = new Blob(audioChunks.current, { type: "audio/webm" });
-  const form = new FormData();
-  form.append("chat_id", chatId);
-  form.append("voice", blob);
-
-  try {
-    await api.post("/api/messages/voice", form);
-    audioChunks.current = []; // reset after sending
-  } catch (err) {
-    console.error("Failed to send voice:", err);
-  }
-};
-
-
-
   return (
     <div className="p-3 mb-4 bg-gray-900">
       

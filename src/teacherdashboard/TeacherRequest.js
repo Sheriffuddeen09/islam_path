@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import api, { respondToRequest } from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
-import { Link } from "react-router-dom";
 
 export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
   const [requests, setRequests] = useState([]);

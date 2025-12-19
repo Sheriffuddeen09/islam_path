@@ -24,6 +24,7 @@ import LibraryPage from "./pages/video/LibraryVideo";
 import ReportList from "./report/ReportList";
 import ProfilePageId from "./teacherdashboard/AdminProfileId";
 import ChatPage from './chat/ChatPage'
+import ReportChat from "./chat/ReportChat";
 
    
 function App() {
@@ -58,6 +59,10 @@ function App() {
 
       <Route path="/report-list" element={
           <ReportList />
+      } />
+
+      <Route path="/report-chat" element={
+          <ReportChat />
       } />
 
 

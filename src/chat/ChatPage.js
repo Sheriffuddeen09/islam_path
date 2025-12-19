@@ -87,15 +87,14 @@ export default function ChatPage() {
 
                 </button>
                 {user && chatPartner &&  (
-                <Link to={`/profile/${user.id}`} className="inline-flex items-center gap-2">
-                 <div className="w-12 h-12 rounded-full bg-blue-900 text-white text-xl flex items-center justify-center font-bold">
-                  {chatPartner?.first_name?.[0] || "?"}
-                </div>
+                <Link to={`/profile/${chatPartner.id}`} className="inline-flex items-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-blue-900 text-white text-xl flex items-center justify-center font-bold">
+                    {chatPartner?.first_name?.[0] || "?"}
+                  </div>
 
-                
-                <span className="font-semibold truncate text-black">
-                  {chatPartner?.first_name} {chatPartner?.last_name}
-                </span>
+                  <span className="font-semibold truncate text-black">
+                    {chatPartner?.first_name} {chatPartner?.last_name}
+                  </span>
                 </Link>
               )}
 

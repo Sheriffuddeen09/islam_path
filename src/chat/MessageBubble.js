@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../layout/AuthProvider";
+import MessageBubblePop from "./MessageModal";
 
 export default function MessageBubble({ message }) {
   const { user } = useAuth();
@@ -64,8 +65,13 @@ export default function MessageBubble({ message }) {
     }
   };
 
+  const handleAction = (type, payload) => {
+  
+};
+
+
   return (
-    <>
+    <div className={`flex flex-col mb-3 ${isMe ? "items-end" : "items-start"}`}>
       <div className={`flex mb-3 ${isMe ? "justify-end" : "justify-start"}`}>
         {!isMe && (
           <div className="w-10 h-10 rounded-full bg-blue-900 flex text-2xl items-center justify-center text-white font-semibold mr-2">
@@ -111,6 +117,17 @@ export default function MessageBubble({ message }) {
           )}
         </div>
       )}
-    </>
+
+      <MessageBubblePop isMe={isMe} message={message} onAction={handleAction} />
+
+      {/* <div className="relative group inline-block">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 bg-gray-100 text-black rounded-full -translate-x-12 -translate-y-2 ">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+    </svg> */}
+
+    {/* <div className="absolute -top-14 w-full right-40 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
+    </div>
+    </div> */}
+    </div>
   );
 }

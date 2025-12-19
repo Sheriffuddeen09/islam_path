@@ -49,10 +49,10 @@ export default function ChatThread({ chatId, messages, loading }) {
       ))}
 
       {typing && (
-        <div className="text-xs italic text-gray-500 px-3">
+        <div className="text-xs italic translate-y-8 text-white px-3">
           Typing...
         </div>
-      )}
+       )}
 
       {/* SCROLL TARGET */}
       <div ref={bottomRef} />

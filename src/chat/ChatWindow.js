@@ -77,9 +77,6 @@ const handleSend = async (newMessage) => {
   setMessages((prev) => [...prev, newMessage]);
 };
 
-const handleSendVoice = async (message) => {
-  setMessages((prev) => [...prev, message]);
-};
 
   return (
     <>
