@@ -3,8 +3,9 @@ import api from "../Api/axios";
 import ChatInput from "./ChatInput";
 import { initEcho } from "../echo";
 import ChatThread from "./ChatThread";
+import { ReportModal } from "./ReportModal";
 
-export default function ChatWindow({ chat, showGuide, setShowGuide, startLive, setStartLive, activeChat }) {
+export default function ChatWindow({ chat, showGuide, setShowGuide, startLive, setStartLive, activeChat, openReport, closeReport }) {
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
 
@@ -125,11 +126,16 @@ const handleSend = async (newMessage) => {
   />
 )}
 
-
+      {openReport && (
+              <ReportModal
+                  chat={chat}
+                  onClose={closeReport}
+              />
+        )}
 
       {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto bg-gray-900 no-scrollbar">
-          <ChatThread messages={messages} chatId={chat.id} loading={loadingMessages} />
+          <ChatThread messages={messages} chatId={chat.id} loading={loadingMessages} setMessages={setMessages} />
       </div>
 
       

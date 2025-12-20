@@ -13,6 +13,17 @@ export default function ChatPage() {
   const [startLive, setStartLive] = useState(false);
 
   const {user} = useAuth()
+  const [openReport, setOpenReport] = useState(false);
+
+ const handleReportPop = () => {
+  setOpenReport(true);  // 👈 open report modal
+};
+
+const closeReport = () => {
+  setOpenReport(false);
+};
+
+
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -99,15 +110,16 @@ export default function ChatPage() {
               )}
 
                 </div>
-                
+                <div className="inline-flex items-center gap-3 sm:mx-4 mx-2 ">
+                  <button className="p-2 bg-gray-300 rounded-full hover:bg-gray-400 text-black"  onClick={() => setShowGuide(true)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="size-6 text-black font-bold cursor-pointer hover:text-blue-600 sm:mx-4 mx-2"
-                  onClick={() => setShowGuide(true)}
+                  className="size-6"
+                 
                 >
                   <path
                     strokeLinecap="round"
@@ -115,11 +127,18 @@ export default function ChatPage() {
                     d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
                   />
                 </svg>
+                </button>
+              <button title="Report" className="text-black p-2 bg-gray-300 rounded-full hover:bg-gray-400 " onClick={handleReportPop}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                  </svg>
 
+              </button>
 
               </div>
+              </div>
 
-              <ChatWindow activeChat={activeChat} chat={activeChat} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
+              <ChatWindow activeChat={activeChat} chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
             </div>
           ) : (  
             <div className="flex flex-col items-center justify-center bg-gray-900 w-full text-white h-full text-center p-6">

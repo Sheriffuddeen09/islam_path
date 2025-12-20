@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { ReportModal } from "./ReportModal";
-
-export default function MessageBubblePop({ message, isMe, onAction }) {
+import DeleteModal from './DeleteModal'
+export default function MessageBubblePop({ message, user, isMe, setMessages, onAction }) {
   const [open, setOpen] = useState(false);
-  const [openReport, setOpenReport] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const ref = useRef();
 
   // Close menu on outside click
@@ -15,15 +14,7 @@ export default function MessageBubblePop({ message, isMe, onAction }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
-
- const handleReportPop = () => {
-  setOpen(false);        // 👈 close menu
-  setOpenReport(true);  // 👈 open report modal
-};
-
-const closeReport = () => {
-  setOpenReport(false);
-};
+  
 
 const handleDeletePop = () => {
   setOpen(false);        // 👈 close menu
@@ -31,6 +22,15 @@ const handleDeletePop = () => {
 };
 const closeDelete = () => {
   setOpenDelete(false);
+};
+
+
+const handleEditPop = () => {
+  setOpen(false);        // 👈 close menu
+  setOpenEdit(true);  // 👈 open report modal
+};
+const closeEdit = () => {
+  setOpenEdit(false);
 };
 
 
@@ -51,32 +51,42 @@ const closeDelete = () => {
           ref={ref}
           className="fixed h-full w-full top-0 right-0  z-50 bg-black bg-opacity-70 flex mx-auto  flex-col justify-center items-center shadow rounded w-96 text-sm"
         >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={() => setOpen(!open)} class="size-6 fixed  right-14 text-black -translate-y-16  z-50">
+       
+
+        <div className="bg-white relative text-black px-2 h-52 flex flex-col justify-center font-semibold sm:w-96 w-72 p-2 rounded-lg">
+           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={() => setOpen(!open)} class="size-8 absolute cursor-pointer p-1 hover:bg-gray-300 rounded-full right-4 top-3 text-black z-50">
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
-
-        <div className="bg-white text-black font-semibold sm:w-96 w-72 p-2 rounded-lg">
           <MenuItem label="Reply" onClick={() => onAction("reply", message)} />
           {message.type === "text" && (
             <MenuItem label="Copy" onClick={() => navigator.clipboard.writeText(message.message)} />
           )}
-          <MenuItem label="Edit" onClick={() => onAction("edit", message)} />
-          <MenuItem label="Delete" onClick={() => onAction("delete", message)} />
-          {!isMe && (
-            <MenuItem label="Report" onClick={handleReportPop} />
-          )}
-
+          <MenuItem label="Edit" onClick={handleEditPop} />
+          <MenuItem label="Delete" onClick={handleDeletePop} />
           <MenuItem label="Block User" onClick={() => onAction("block", message.sender_id)} />
         </div>
         </div>
       )}
 
-      {openReport && (
-        <ReportModal
+     
+
+        {openDelete && (
+        <DeleteModal
             message={message}
-            onClose={closeReport}
+            onClose={closeDelete}
+            setMessages={setMessages}
+            currentUserId={user.id}
         />
-        )}
+        )} 
+
+        {openEdit && (
+        <DeleteModal
+            message={message}
+            onClose={closeEdit}
+            setMessages={setMessages}
+            currentUserId={user.id}
+        />
+        )} 
 
     </div>
   );

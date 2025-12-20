@@ -3,45 +3,40 @@ import api from "../Api/axios";
 import { useState } from "react";
 import { useAuth } from "../layout/AuthProvider";
 
-export function ReportModal({ message, onClose }) {
+
+export function ReportModal({ chat, onClose }) {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
-  const [loading, setLoading] = useState(false)
-  const {user: authUser} = useAuth()
+  const [loading, setLoading] = useState(false);
+  const { user: authUser } = useAuth();
 
-  const reportedUserId = message.sender_id;
+  // determine who is being reported
+  const reportedUserId =
+    chat.teacher_id === authUser.id
+      ? chat.student_id
+      : chat.teacher_id;
 
   const submitReport = async () => {
-  if (!reason) return;
+    if (!reason) return;
 
-  if (!authUser) {
-    toast.error("User not loaded. Try again.");
-    return;
-  }
+    setLoading(true);
+    try {
+      const res = await api.post("/api/chat/report", {
+        chat_id: chat.id,
+        reported_user_id: reportedUserId, // ✅ correct key
+        reason,
+        details,
+      });
 
-  if (reportedUserId === authUser.id) {
-    toast.error("You cannot report your own message.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const res = await api.post("/api/messages/report", {
-      message_id: message.id,
-      reported_user_id: reportedUserId,
-      reason,
-      details,
-    });
-
-    toast.success(res.data.message || "Message reported successfully");
-    onClose();
-  } catch (err) {
-    console.error(err);
-    toast.error(err.response?.data?.message || err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success(res.data.message || "Report submitted successfully");
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const content = (

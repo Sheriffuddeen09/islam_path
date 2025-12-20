@@ -12,7 +12,7 @@ export default function ReportChat() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await api.get("/api/messages/report-get");
+        const res = await api.get("/api/chat/reports");
         setReports(res.data || []);
         toast.success(res.data.message || "Message reported successfully");
 
@@ -82,7 +82,7 @@ export default function ReportChat() {
                 </td>
 
                 <td className="px-4 py-3 text-sm">
-                  {r.message_id || "N/A"}
+                  {r.chat_id || "N/A"}
                 </td>
 
                 <td className="px-4 py-3 text-sm font-medium text-blue-600">
@@ -125,7 +125,7 @@ export default function ReportChat() {
             </ p>
 
             <p className="text-sm text-gray-700">
-              <strong>Chat Id:</strong> {r.message_id || "N/A"}
+              <strong>Chat Id:</strong> {r.chat_id || "N/A"}
             </p>
 
             <p className="text-sm text-gray-700">

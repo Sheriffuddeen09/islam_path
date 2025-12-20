@@ -179,9 +179,7 @@ useEffect(() => {
 
         if (!other) return null;
 
-        const lastMessage = chat.messages?.length
-          ? chat.messages[chat.messages.length - 1]
-          : chat.latest_message || null;
+        const lastMessage = chat.latest_message || null;
 
         const isOnline = onlineStatus[other.id] || false;
         const isActive = activeChat?.id === chat.id;

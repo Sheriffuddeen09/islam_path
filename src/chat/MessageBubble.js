@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../layout/AuthProvider";
 import MessageBubblePop from "./MessageModal";
 
-export default function MessageBubble({ message }) {
+export default function MessageBubble({ message, setMessages }) {
   const { user } = useAuth();
   const isMe = message.sender_id === user.id;
 
@@ -118,7 +118,7 @@ export default function MessageBubble({ message }) {
         </div>
       )}
 
-      <MessageBubblePop isMe={isMe} message={message} onAction={handleAction} />
+      <MessageBubblePop user={user} isMe={isMe} message={message} setMessages={setMessages} onAction={handleAction} />
 
       {/* <div className="relative group inline-block">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 bg-gray-100 text-black rounded-full -translate-x-12 -translate-y-2 ">
