@@ -1,10 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import DeleteModal from './DeleteModal'
-export default function MessageBubblePop({ message, user, isMe, setMessages, onAction }) {
+import EditModal from "./EditModal";
+import ClearChatModal from "./ClearModal";
+
+export default function MessageBubblePop({ message, user, authUser, currentUserId, isMe, setMessages, onAction, setActiveChat, activeChat, chat }) {
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [clearMessage, setClearMessage] = useState(null);
   const ref = useRef();
+
+ const canClear = message.sender_id === currentUserId
+ const canEdit = message.sender_id === currentUserId &&
+  message.type === "text"&&
+  !message.seen_at; 
+
+
+
+
 
   // Close menu on outside click
   useEffect(() => {
@@ -25,14 +38,31 @@ const closeDelete = () => {
 };
 
 
-const handleEditPop = () => {
-  setOpen(false);        // 👈 close menu
-  setOpenEdit(true);  // 👈 open report modal
-};
-const closeEdit = () => {
-  setOpenEdit(false);
+const handleMessageUpdate = (updatedMessage) => {
+  setMessages((prev) =>
+    prev.map((msg) =>
+      msg.id === updatedMessage.id ? updatedMessage : msg
+    )
+  );
 };
 
+
+// const handleMessageEdit = (updatedMessage) => {
+//   setChats((prevChats) =>
+//     prevChats.map((chat) =>
+//       chat.id === updatedMessage.chat_id
+//         ? {
+//             ...chat,
+//             latest_message: {
+//               ...chat.latest_message,
+//               message: updatedMessage.message,
+//               edited: true,
+//             },
+//           }
+//         : chat
+//     )
+//   );
+// };
 
 
   return (
@@ -53,15 +83,34 @@ const closeEdit = () => {
         >
        
 
-        <div className="bg-white relative text-black px-2 h-52 flex flex-col justify-center font-semibold sm:w-96 w-72 p-2 rounded-lg">
-           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={() => setOpen(!open)} class="size-8 absolute cursor-pointer p-1 hover:bg-gray-300 rounded-full right-4 top-3 text-black z-50">
+        <div className="bg-white relative text-black px-2 py-6 flex flex-col justify-center font-semibold sm:w-96 w-72 p-2 rounded-lg">
+           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={() => setOpen(!open)} class="size-8 absolute cursor-pointer p-1 hover:bg-gray-300 rounded-full right-4 top-0 text-black z-50">
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
           <MenuItem label="Reply" onClick={() => onAction("reply", message)} />
           {message.type === "text" && (
             <MenuItem label="Copy" onClick={() => navigator.clipboard.writeText(message.message)} />
           )}
-          <MenuItem label="Edit" onClick={handleEditPop} />
+          { canClear &&
+            <MenuItem label="Clear All Message" onClick={() => {
+              setOpen(false);
+              setClearMessage(true)}} />
+        }
+
+         {/* <button
+        onClick={() => onForward(message)}
+        className="absolute bottom-1 right-1 text-gray-400 hover:text-white"
+      >
+        forward
+      </button> */}
+
+        { canEdit &&
+            <MenuItem label="Edit" onClick={() => {
+              setOpen(false);
+              setEditingMessage(message)}} />
+        }
+
+
           <MenuItem label="Delete" onClick={handleDeletePop} />
           <MenuItem label="Block User" onClick={() => onAction("block", message.sender_id)} />
         </div>
@@ -79,14 +128,23 @@ const closeEdit = () => {
         />
         )} 
 
-        {openEdit && (
-        <DeleteModal
-            message={message}
-            onClose={closeEdit}
-            setMessages={setMessages}
-            currentUserId={user.id}
+        {editingMessage && (
+        <EditModal
+          currentUserId={authUser.id}
+          message={editingMessage}
+          onClose={() => setEditingMessage(null)}
+          onMessageUpdate={handleMessageUpdate}
         />
         )} 
+
+         {clearMessage && (
+        <ClearChatModal
+          chatId={activeChat}
+          chat={chat}
+          onClose={() => setClearMessage(false)}
+          onCleared={() => setMessages([])} // 👈 instantly clears UI
+        />
+      )}
 
     </div>
   );

@@ -1,98 +1,86 @@
 import { useState } from "react";
 import api from "../Api/axios";
-import { Check, CheckCheck } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
-export default function EditModal({ messages, currentUserId, onMessageUpdate }) {
-  const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editText, setEditText] = useState("");
 
-  const startEdit = (message) => {
-    setEditingMessageId(message.id);
-    setEditText(message.message);
-  };
+export default function EditModal({ message, onMessageUpdate, onClose }) {
 
-  const cancelEdit = () => {
-    setEditingMessageId(null);
-    setEditText("");
-  };
+ const [editText, setEditText] = useState(message?.message || "");
+ const [loading, setLoading] = useState(false)
 
-  const saveEdit = async (message) => {
-    try {
-      const res = await api.put(`/api/messages/${message.id}`, { message: editText });
-      onMessageUpdate(res.data.message); // update parent state
-      cancelEdit();
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to edit message.");
-    }
-  };
+  const saveEdit = async () => {
+  if (!editText.trim()) return;
 
-  const canEdit = (message) => {
-    // Only text, own message, and not seen yet
-    return (
-      message.sender_id === currentUserId &&
-      message.type === "text" &&
-      !message.seen_at
-    );
-  };
+  setLoading(true);
+  try {
+    const res = await api.put(`/api/messages/${message.id}`, {
+      message: editText
+    });
 
-  return (
+    onMessageUpdate(res.data.message);
+    onClose(); // ✅ will now work
+  } catch (err) {
+    toast.error(err.response?.data?.message || err.message);
+
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  const content = (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      {messages.map((msg) => {
-        const isEditing = editingMessageId === msg.id;
-        const isMine = msg.sender_id === currentUserId;
+      <div className="bg-white p-6 rounded sm:w-96 w-72 ">
+        <input
+          type="text"
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          className="border text-black border-blue-600 outline-0  p-2 rounded-md my-3  w-full mb-2"
+        />
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="bg-gray-300 px-3 py-1 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+</svg>
 
-        return (
-          <div
-            key={msg.id}
-            className={`flex gap-2 p-2 rounded ${
-              isMine ? "bg-blue-50 self-end" : "bg-gray-100 self-start"
-            }`}
-          >
-            <div className="flex-1">
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    className="border p-1 rounded flex-1"
-                  />
-                  <button
-                    onClick={() => saveEdit(msg)}
-                    className="bg-blue-500 text-white px-2 rounded"
-                  >
-                    Save
-                  </button>
-                  <button onClick={cancelEdit} className="bg-gray-300 px-2 rounded">
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <span>{msg.message}</span>
-                  {msg.edited && <span className="text-xs text-gray-400">(edited)</span>}
-                </div>
-              )}
-            </div>
+          </button>
+          <button onClick={saveEdit} className="bg-blue-500 text-white px-3 py-1 rounded">{
+          loading ?
+            <svg
+      className="animate-spin h-5 w-5 text-white mx-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25 text-black"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+          :
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+</svg>
 
-            {/* Edit button */}
-            {!isEditing && canEdit(msg) && (
-              <button
-                onClick={() => startEdit(msg)}
-                className="text-xs text-blue-500 hover:underline"
-              >
-                Edit
-              </button>
-            )}
-
-            {/* Seen icon */}
-            {isMine && msg.seen_at && (
-              <CheckCheck className="w-4 h-4 text-blue-500" />
-            )}
-          </div>
-        );
-      })}
+          }
+          </button>
+        </div>
+      </div>
+      </div>
+  )
+  return(
+    <div>
+      {content}
+      <Toaster position="top-right" />
     </div>
   );
 }

@@ -11,6 +11,7 @@ export default function ChatPage() {
   const [isMobile, setIsMobile] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
   const [startLive, setStartLive] = useState(false);
+  const [chats, setChats] = useState([]);
 
   const {user} = useAuth()
   const [openReport, setOpenReport] = useState(false);
@@ -72,7 +73,7 @@ const closeReport = () => {
             w-full md:w-[350px] lg:w-96
           `}
         >
-          <ChatList activeChat={activeChat} setActiveChat={setActiveChat} />
+          <ChatList activeChat={activeChat} setActiveChat={setActiveChat}  chats={chats} setChats={setChats} />
         </div>
 
         {/* Chat Window */}
@@ -86,8 +87,8 @@ const closeReport = () => {
         >
           {activeChat ? (
             <div className="flex flex-col mt-0 h-full w-full no-scrollbar">
-              <div className=" px-2 border-b flex justify-between items-center  gap-2 no-scrollbar">
-                <div className="inline-flex  items-center gap-2 py-3 sm:mx-4 mx-2 no-scrollbar">
+              <div className=" px-2 py-2 border-b flex justify-between items-center  gap-2 no-scrollbar">
+                <div className="inline-flex  items-center gap-2 py-1 sm:mx-4 mx-2 no-scrollbar">
                 <button
                   className="text-blue-600 font-semibold sm:hidden"
                   onClick={() => setActiveChat(null)}
@@ -138,7 +139,7 @@ const closeReport = () => {
               </div>
               </div>
 
-              <ChatWindow activeChat={activeChat} chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
+              <ChatWindow activeChat={activeChat} setActiveChat={setActiveChat} setChats chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
             </div>
           ) : (  
             <div className="flex flex-col items-center justify-center bg-gray-900 w-full text-white h-full text-center p-6">

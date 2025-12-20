@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../layout/AuthProvider";
 import MessageBubblePop from "./MessageModal";
 
-export default function MessageBubble({ message, setMessages }) {
+export default function MessageBubble({ message, setMessages, messages, setChats, setActiveChat, activeChat, chat }) {
   const { user } = useAuth();
   const isMe = message.sender_id === user.id;
 
@@ -13,7 +13,7 @@ export default function MessageBubble({ message, setMessages }) {
     ? new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     : "";
 
-  const bubbleColor = isMe ? "bg-gray-600 text-white" : "bg-blue-100 text-gray-900";
+  const bubbleColor = isMe ? "bg-gray-600 text-white" : "bg-blue-800 text-white 0";
 
   const baseUrl = "http://localhost:8000";
   const fileUrl = message.file
@@ -118,7 +118,8 @@ export default function MessageBubble({ message, setMessages }) {
         </div>
       )}
 
-      <MessageBubblePop user={user} isMe={isMe} message={message} setMessages={setMessages} onAction={handleAction} />
+      <MessageBubblePop user={user} chat={chat} currentUserId={user.id} authUser={user} isMe={isMe} message={message} setMessages={setMessages} 
+      onAction={handleAction} messages={messages} setChats={setChats} setActiveChat={setActiveChat} activeChat={activeChat} />
 
       {/* <div className="relative group inline-block">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 bg-gray-100 text-black rounded-full -translate-x-12 -translate-y-2 ">

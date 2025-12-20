@@ -25,11 +25,10 @@ function ChatSkeleton({ title }) {
 }
 
 // ================= CHATLIST =================
-export default function ChatList({ setActiveChat, activeChat }) {
+export default function ChatList({ setActiveChat, activeChat, chats, setChats }) {
   const [authUser, setAuthUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingChats, setLoadingChats] = useState(true);
-  const [chats, setChats] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({}); // { userId: true/false }
 
   const fetchedOnce = useRef(false);

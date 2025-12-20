@@ -3,7 +3,7 @@ import { useTyping } from "./UseTyping";
 import logo from "../layout/image/favicon.png";
 import { useEffect, useRef } from "react";
 
-export default function ChatThread({ chatId, messages, loading, setMessages }) {
+export default function ChatThread({ chatId, messages, loading, setMessages, setActiveChat, activeChat, setChats, chat }) {
   const typing = useTyping(chatId);
   const bottomRef = useRef(null);
 
@@ -45,7 +45,8 @@ export default function ChatThread({ chatId, messages, loading, setMessages }) {
     <div className="flex-1 overflow-y-auto p-4 flex flex-col h-[460px] gap-2 no-scrollbar">
 
       {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} setMessages={setMessages} />
+        <MessageBubble key={msg.id} message={msg} setMessages={setMessages} messages={messages} 
+        activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats} chat={chat} />
       ))}
 
       {typing && (
