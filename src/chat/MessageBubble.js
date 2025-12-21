@@ -21,13 +21,35 @@ export default function MessageBubble({
   users,
   setReplyingTo
 }) {
+
+  const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+
   const [open, setOpen] = useState(false)
+  const [showReactions, setShowReactions] = useState(null)
   const { user } = useAuth();
   const isMe = message.sender_id === user.id;
   const [preview, setPreview] = useState({ open: false, type: "", src: "" });
 
   const openPreview = (type, src) => setPreview({ open: true, type, src });
   const closePreview = () => setPreview({ open: false, type: "", src: "" });
+
+   const handleOpen = () =>{
+    setOpen(!open)
+  }
+
+  const react = async (messageId, emoji) => {
+  const { data } = await api.post("/api/messages/react", {
+    message_id: messageId,
+    emoji,
+  });
+
+  setMessages(prev =>
+    prev.map(m => (m.id === data.id ? data : m))
+  );
+
+  setShowReactions(null);
+};
+
 
   const forwardMessages = async (messageIds, receiverIds) => {
   try {
@@ -123,7 +145,26 @@ const renderReply = (
 </div>
     );
 
+    const emojiarray = (
+      <div className="bg-white">
+      {message.reactions?.length > 0 && (
+  <div className="flex gap-1 mt-1 bg-black/30 rounded-full px-2 py-0.5 text-xs relative">
+    {Object.entries(
+      message.reactions.reduce((acc, r) => {
+        acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([emoji, count]) => (
+      <span key={emoji}>
+        {emoji} {count}
+      </span>
+    ))}
     
+  </div>
+)}
+
+</div>
+    )
 
   const sender = message.sender || { first_name: "Unknown", last_name: "", role: "unknown" };
   const firstLetter = sender.first_name ? sender.first_name[0].toUpperCase() : "?";
@@ -185,14 +226,16 @@ const renderReply = (
           
         </div>
           <div className={`flex  flex-col mb-3 ${isMe ? "items-end" : "items-start"} group relative inline-block" `}>
+      {emojiarray}
       <button className="bg-gray-800 w-8 mt-2 p-1 rounded-full hover:bg-gray-900">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
         <path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
       </svg>
       </button>
+      
 
         {/* Forward Icon & Button */}
-        <div className={`flex flex-row mb-3 ${isMe ? "items-end right-0" : "items-start left-0"} absolute -bottom-12 w-40 bg-white bg-opacity-30 opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-2 rounded-lg  z-50 shadow-md gap-3 inline-flex items-center`}>
+        <div className={`flex flex-row mb-3 ${isMe ? "items-end right-0" : "items-start left-0"} absolute -bottom-12 w-40 bg-white bg-opacity-30 opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md gap-3 inline-flex items-center`}>
           {selectedMessages.includes(message) && selectedMessages.length > 0 && (
             <button
               className="text-white text-sm underline"
@@ -209,7 +252,7 @@ const renderReply = (
               <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
             </svg>
           </button>
-          <button className="bg-gray-800 p-0.5 rounded-full hover:bg-gray-900">
+          <button onClick={() => setShowReactions(message.id)} className="bg-gray-800 p-0.5 rounded-full hover:bg-gray-900">
             😮
           </button>
            <button onClick={() => {setReplyingTo(message); setOpen(false)}}  className="bg-gray-800 p-1 rounded-full hover:bg-gray-900">
@@ -220,26 +263,17 @@ const renderReply = (
       </button>
 
       {/* Message action menu */}
-      <MessageBubblePop
-        user={user}
-        users={users}
-        chat={chat}
-        currentUserId={user.id}
-        authUser={user}
-        isMe={isMe}
-        message={message}
-        setMessages={setMessages}
-        messages={messages}
-        setChats={setChats}
-        setActiveChat={setActiveChat}
-        selectedMessages={selectedMessages}
-        setForwardModalOpen={setForwardModalOpen}
-        activeChat={activeChat}
-        open={open}
-        setOpen={setOpen}
-        setReplyingTo={setReplyingTo}
-      />
 
+      <button
+        onClick={handleOpen}
+        className="bg-gray-800 p-1 rounded-full hover:bg-gray-900"
+      >
+       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+  <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
+</svg>
+
+      </button>
+     
         </div>
       </div>
         </div>
@@ -264,6 +298,55 @@ const renderReply = (
         </div>
       )}
      
+
+     {/* Emoji Pop up */}
+
+     {showReactions === message.id && (
+  <div className="absolute bottom-6 right-0 bg-black rounded-full flex gap-2 p-2 z-50">
+    {EMOJIS.map(emoji => (
+      <button
+        key={emoji}
+        onClick={() => react(message.id, emoji)}
+        className="text-lg hover:scale-125 transition"
+      >
+        {emoji}
+      </button>
+    ))}
+    <button className="absolute -bottom-6 rounded-full right-0 bg-gray-800 text-white" onClick={() => setShowReactions(null)}>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+  <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+</svg>
+</button>
+  </div>
+)}
+
+
+
+      {/* message modal */}
+     {open && (
+  <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
+    <MessageBubblePop
+      user={user}
+      users={users}
+      chat={chat}
+      currentUserId={user.id}
+      authUser={user}
+      isMe={isMe}
+      message={message}
+      setMessages={setMessages}
+      messages={messages}
+      setChats={setChats}
+      setActiveChat={setActiveChat}
+      selectedMessages={selectedMessages}
+      setForwardModalOpen={setForwardModalOpen}
+      activeChat={activeChat}
+      open={open}
+      setOpen={setOpen}
+      setReplyingTo={setReplyingTo}
+    />
+  </div>
+)}
+
       {/* Forward Modal */}
       { forwardModalOpen &&(
       <ForwardModal

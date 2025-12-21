@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../Api/axios";
 import Navbar from "../layout/Header";
 import { useNavigate } from "react-router-dom";
 import Notification from "./Notification";
 
-export default function TeacherOnboarding() {
-  const [courseTitle, setCourseTitle] = useState("");
+export default function TeacherOnboarding({onProfileCompleted}) {
+  const [specialization, setSpecialization] = useState("");
   const [payment, setPayment] = useState("");
   const [currency, setCurrency] = useState("");
   const [loading, setLoading] = useState("");
@@ -15,40 +15,22 @@ export default function TeacherOnboarding() {
   const [logo, setLogo] = useState(null);
   const [cv, setCv] = useState(null);
   const [notification, setNotification] = useState({ message: "", type: "" });
-  const textareaRef = useRef(null);
-
+  const [coursetitles, setCoursetitles]  = useState([])
+  const [coursetitle_id, setCoursetitleId]  = useState('')
+  const [user, setUser] = useState([])
+  
 
   const router = useNavigate();
 
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setCompliment(value);
+  const complimentRef = useRef(null);
+const qualificationRef = useRef(null);
 
-    // Auto-expand
-    const textarea = textareaRef.current;
-    textarea.style.height = "auto"; // reset height
-    textarea.style.height = textarea.scrollHeight + "px"; // set to scrollHeight
-  };
+const autoGrow = (ref) => {
+  if (!ref.current) return;
+  ref.current.style.height = "auto";
+  ref.current.style.height = ref.current.scrollHeight + "px";
+};
 
-  const handleChangeC = (e) => {
-    const value = e.target.value;
-    setCompliment(value);
-
-    // Auto-expand
-    const textarea = textareaRef.current;
-    textarea.style.height = "auto"; // reset height
-    textarea.style.height = textarea.scrollHeight + "px"; // set to scrollHeight
-  };
-
-  const handleChangeQ = (e) => {
-    const value = e.target.value;
-    setQualification(value);
-
-    // Auto-expand
-    const textarea = textareaRef.current;
-    textarea.style.height = "auto"; // reset height
-    textarea.style.height = textarea.scrollHeight + "px"; // set to scrollHeight
-  };
 
   const handleFileChangeLogo = (e) => {
     setLogo(e.target.files[0]);
@@ -58,65 +40,107 @@ export default function TeacherOnboarding() {
     setCv(e.target.files[0]);
   };
 
+   useEffect(() => {
+    const fetchCoursetitles = async () => {
+      const res = await api.get("/api/coursetitles");
+      setCoursetitles(res.data);
+    };
+    fetchCoursetitles();
+  }, []);
+
+  const selectedCourse = coursetitles.find(
+    (c) => String(c.id) === String(coursetitle_id)
+  );
+  const isOtherCourse = selectedCourse?.name?.toLowerCase() === "other";
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  const form = new FormData();
-  form.append("admin_id", 1);
-  form.append("course_title", courseTitle);
-  form.append("course_payment", payment);
-  form.append("currency", currency);
-  form.append("compliment", compliment);
-  form.append("experience", experience);
-  form.append("qualification", qualification);
-  if (logo) form.append("logo", logo);
-  if (cv) form.append("cv", cv);
-
-  try {
-    const res = await api.post("/api/admin/teacher/save", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    setNotification({
-      message: res.data.message || "Teacher details saved successfully!",
-      type: "success",
-    });
-
-    setTimeout(() => {
-      router("/admin/dashboard");
-    }, 1500);
-  } catch (err) {
-    if (err.response?.data?.errors) {
-      const messages = Object.values(err.response.data.errors)
-        .flat()
-        .join("\n");
-
-      setNotification({
-        message: messages,
-        type: "error",
-      });
-    } else {
-      setNotification({
-        message: err.response?.data?.message || "Something went wrong!",
-        type: "error",
-      });
+    if (!coursetitle_id) {
+      setNotification({ message: "Please select a course.", type: "error" });
+      setLoading(false);
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
 
+    if (isOtherCourse && !specialization.trim()) {
+      setNotification({ message: "Please specify your Teaching Course.", type: "error" });
+      setLoading(false);
+      return;
+    }
+
+    const form = new FormData();
+    form.append("coursetitle_id", coursetitle_id);
+    form.append("specialization", specialization);
+    form.append("course_payment", payment);
+    form.append("currency", currency);
+    form.append("compliment", compliment);
+    form.append("experience", experience);
+    form.append("qualification", qualification);
+    if (logo) form.append("logo", logo);
+    if (cv) form.append("cv", cv);
+
+    try {
+      const res = await api.post("/api/admin/teacher/save", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // ✅ Update user immediately in DashboardLayout
+      if (onProfileCompleted) {
+        onProfileCompleted(prev => ({
+          ...prev,
+          teacher_profile_completed: true, // mark profile as completed
+        }));
+      }
+
+      setNotification({ message: res.data.message || "Saved successfully!", type: "success" });
+
+      setTimeout(() => {
+        router("/admin/dashboard");
+      }, 1000);
+    } catch (err) {
+      const messages = err.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join("\n")
+        : err.response?.data?.message || "Something went wrong!";
+      setNotification({ message: messages, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const content = (
-    <form onSubmit={handleSubmit} className="py-4 sm:px-8 px-5 sm:w-[500px] w-80  mx-auto border border-blue-600 rounded-2xl my-5">
+    <div className="sm:h-[78vh] h-[78vh] no-scrollbar overflow-y-auto p-4">
+    <form onSubmit={handleSubmit} className="py-4 sm:px-8 px-5 sm:w-[500px] w-80 mx-auto border border-blue-600 rounded-2xl">
       <h1 className="sm:text-2xl font-bold mb-4 text-black text-lg text-center">Become an Arabic Teacher</h1>
 
-      <input value={courseTitle} type="text" placeholder="Course Title"
-        onChange={(e) => setCourseTitle(e.target.value)}
-        className="w-full p-2 border border-blue-600 rounded-lg outline-0 text-black mb-4"
+      <select
+        value={coursetitle_id}
+        onChange={(e) => {
+          setCoursetitleId(e.target.value);
+          setSpecialization("");
+        }}
+        className="w-full p-3 border cursor-pointer rounded-lg border-blue-300 bg-white text-black"
+      >
+        <option value="">Select Course</option>
+        {coursetitles.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+
+
+      <input
+        type="text"
+        placeholder="Other Course (Specify)"
+        value={specialization}
+        onChange={(e) => setSpecialization(e.target.value)}
+        disabled={!isOtherCourse}
+        className={`w-full p-2 mt-3 rounded-lg outline-0 text-black mb-4 border 
+          ${isOtherCourse ? "border-blue-600 bg-white" : "border-gray-300 bg-gray-100 cursor-not-allowed"}
+        `}
       />
+
 
       <input value={experience} type="text" placeholder="Course Title Optional"
         onChange={(e) => setExperience(e.target.value)}
@@ -145,14 +169,17 @@ export default function TeacherOnboarding() {
         />
       </div>
 
-       <textarea
-      ref={textareaRef}
-      value={compliment}
-      placeholder="Compliment"
-      onChange={handleChangeC}
-      className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
-      rows={4} // default rows
-    />
+      <textarea
+    ref={complimentRef}
+    value={compliment}
+    placeholder="Compliment"
+    onChange={(e) => {
+      setCompliment(e.target.value);
+      autoGrow(complimentRef);
+    }}
+    className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
+  />
+
 
       <label className="text-black mb-5 font-bold pb-5">Academy Logo</label>
      <div className="flex items-center my-5 gap-4">
@@ -188,12 +215,14 @@ export default function TeacherOnboarding() {
       {/* Qualification */}
 
        <textarea
-      ref={textareaRef}
+      ref={qualificationRef}
       value={qualification}
       placeholder="Qualification"
-      onChange={handleChangeQ}
+      onChange={(e) => {
+        setQualification(e.target.value);
+        autoGrow(qualificationRef);
+      }}
       className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
-      rows={4} // default rows
     />
 
     {/* Cv */}
@@ -258,12 +287,15 @@ export default function TeacherOnboarding() {
       </div>
 
     </form>
+    </div>
   );
 
   return (
     <div>
       <Navbar />
+      <div className="pt-24 pb-8">
       {content}
+      </div>
       {notification.message && (
       <Notification
         message={notification.message}

@@ -90,7 +90,7 @@ export default function StudentRequest() {
               {requests.map(req => (
                 <tr key={req.id} className="hover:bg-gray-50 transition-colors duration-200">
                   <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{req.teacher.first_name} {req.teacher.last_name}</td>
-                  <td className="px-4 py-3 text-gray-600 font-medium capitalize whitespace-nowrap">{JSON.parse(req.teacher.teacher_info).course_title} &bull; {JSON.parse(req.teacher.teacher_info).experience}</td>
+                  <td className="px-4 py-3 text-gray-600 font-medium capitalize whitespace-nowrap">{JSON.parse(req.teacher.teacher_info).coursetitle} &bull; {JSON.parse(req.teacher.teacher_info).experience}</td>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(req.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {req.status === "accepted" && (

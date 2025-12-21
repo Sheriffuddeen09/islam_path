@@ -7,8 +7,9 @@ import { Lock } from "lucide-react";
 import CreateVideoSection from "./CreateVideo";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
+import LiveClass from "./LiveClass";
 
-export default function TeacherDashboardLayout({onCreated}) {
+export default function TeacherDashboardLayout({onCreated, user, setUser}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
@@ -54,6 +55,7 @@ export default function TeacherDashboardLayout({onCreated}) {
 
   // Teacher savedChoice = Comment 1
  const isTeacher = savedChoice === "arabic_teacher";
+
 
   // Menu items for Comment 1
   const teacherMenu = [
@@ -185,7 +187,7 @@ export default function TeacherDashboardLayout({onCreated}) {
       {/* ---------------------- MAIN CONTENT ---------------------- */}
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <DashboardLayout />
+        <DashboardLayout user={user} setUser={setUser} />
         </div>
         {/* <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <StudentRequest />
@@ -200,7 +202,9 @@ export default function TeacherDashboardLayout({onCreated}) {
         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
         <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-            
+        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+        <LiveClass  />
+        </div>
       </section>
     </div>
   );

@@ -16,10 +16,6 @@ export default function MessageBubblePop({ open, setOpen, message, user, authUse
   message.type === "text"&&
   !message.seen_at; 
 
-
-  const handleOpen = () =>{
-    setOpen(!open)
-  }
   // Close menu on outside click
   useEffect(() => {
     const handler = e => {
@@ -49,25 +45,7 @@ const handleMessageUpdate = (updatedMessage) => {
 
 
   return (
-    <div className={`relative ${isMe ? "text-right" : "text-right"}`}>
-      {/* MENU ICON */}
-      <button
-        onClick={handleOpen}
-        className="bg-gray-800 p-1 rounded-full hover:bg-gray-900"
-      >
-       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
-  <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
-</svg>
-
-      </button>
-
-      {/* POPUP MENU */}
-      {open && (
-        <div
-          ref={ref}
-          className="fixed h-full w-full top-0 right-0  z-50 bg-black bg-opacity-70 flex mx-auto  flex-col justify-center items-center shadow rounded w-96 text-sm"
-        >
-       
+    <div>
 
         <div className="bg-white relative text-black px-2 py-6 flex flex-col justify-center font-semibold sm:w-96 w-72 p-2 rounded-lg">
            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={() => setOpen(!open)} class="size-8 absolute cursor-pointer p-1 hover:bg-gray-300 rounded-full right-4 top-0 text-black z-50">
@@ -91,12 +69,6 @@ const handleMessageUpdate = (updatedMessage) => {
               setClearMessage(true)}} />
         }
 
-         {/* <button
-        onClick={() => onForward(message)}
-        className="absolute bottom-1 right-1 text-gray-400 hover:text-white"
-      >
-        forward
-      </button> */}
 
         { canEdit &&
             <MenuItem label="Edit" onClick={() => {
@@ -106,10 +78,8 @@ const handleMessageUpdate = (updatedMessage) => {
 
 
           <MenuItem label="Delete" onClick={handleDeletePop} />
-          <MenuItem label="Block User"  />
         </div>
-        </div>
-      )}
+      
 
      
 

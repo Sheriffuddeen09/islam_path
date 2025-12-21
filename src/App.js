@@ -1,4 +1,4 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
@@ -17,7 +17,6 @@ import StudentDashboardLayout from "./studentdashboard/StudentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import RouteChangeWrapper from "./route/RouteChangeWrapper";
 import VideoPlayerId from "./pages/video/VideoPlayerId";
-import { useAuth } from "./layout/AuthProvider"; // Example auth hook
 import VideoPageApi from "./pages/video/VideoPageApi";
 import ProtectRoute from "./route/ProtectRouter";
 import LibraryPage from "./pages/video/LibraryVideo";
@@ -33,7 +32,7 @@ function App() {
     const [selected, setSelected] = useState("");  
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
-    const { authUser } = useAuth();
+    const [user, setUser] = useState(null);
 
     const [videos, setVideos] = useState([]);
 
@@ -79,7 +78,7 @@ function App() {
           }
         />
 
-        <Route path="/chat/:chatId" element={<ChatPage />} />
+        <Route path="/chat/:id" element={<ChatPage />} />
 
       <Route
           path="/video/:id"
@@ -116,9 +115,10 @@ function App() {
           <ResetPassword />
       } />
 
-      <Route path="/admin/teacher-form" element={
-          <TeacherOnboarding />
-      } />
+      <Route 
+          path="/admin/teacher-form" 
+          element={<TeacherOnboarding onProfileCompleted={setUser} />} 
+        />
 
       <Route path="/admin/choose-choice" element={
           <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
@@ -127,7 +127,7 @@ function App() {
 
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
-          <TeacherDashboardLayout onCreated={handleVideoCreated} />
+          <TeacherDashboardLayout onCreated={handleVideoCreated} user={user} setUser={setUser} />
         </ProtectedRoute>
       } />
 

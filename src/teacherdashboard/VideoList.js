@@ -34,6 +34,13 @@ export default function VideoList() {
       </div>
     );
 
+    if (!videos.length) {
+    return (
+      <div className="text-center text-gray-500 text-xl font-medium py-16">
+        No Video found.
+      </div>
+    );
+  }
   return (
     <div className="">
       <ul className="grid 

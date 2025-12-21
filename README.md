@@ -49,3 +49,15 @@ const firebaseConfig = {
 
 **Video Record Link**
 https://drive.google.com/file/d/1sYOrVrK0JYNb09itUAClwMvtah7ML_iX/view?usp=sharing
+
+
+
+* copy
+* reply to
+* forward
+* edit
+* delete
+* clear all
+* report
+* reactions
+

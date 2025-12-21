@@ -3,6 +3,8 @@ import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User2, User } from "lucide-react";
 import VideoList from "./VideoList";
 import StudentPerformance from "./StudentPerformance";
+import TeacherFormEdit from "./TeacherFormEdit";
+import GetMentorProfile from "./GetMentorProfile";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -10,6 +12,7 @@ export default function ProfilePage() {
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showTeacherEditModal, setShowTeacherEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [notification, setNotification] = useState({
   show: false,
@@ -72,7 +75,7 @@ const fetchProfile = async () => {
 };
 
 
-  const handleFormChange = (e) => {
+const handleFormChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -112,6 +115,7 @@ const fetchProfile = async () => {
   }
 }, [profile]);
 
+
 const [visibleProfile, setVisibleProfile] = useState(1)
   
     const handleVisibleProfile = (id) => {
@@ -122,40 +126,46 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   if (loading) return <Loader />;
 
   const profile_content = (
-    <div className="max-w-5xl lg:ml-64 mt-7 border-blue-200 mx-auto border-t-2  px-4 py-2">
-    <div className="text-white p-4 mb-0 flex flex-row gap-5">
+    <div className="sm:max-w-5xl w-full lg:ml-64 mt-4 border-blue-200 mx-auto border-t-2  sm:px-4">
+    <div className="text-white p-4 mb-0 flex md:gap-3 gap-2 md:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  ">
       
-          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
+          <button onClick={() => {handleVisibleProfile(1);}} className={`py-3 md:px-6 px-2 whitespace-nowrap rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
              === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800"
+          }`}>Teacher Profile</button>
+          <button onClick={() => {handleVisibleProfile(2);}} className={`py-3 md:px-6 px-2 whitespace-nowrap rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
+             === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800"
           }`}>Video</button>
-          <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
-             === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800 "
+          <button onClick={() => {handleVisibleProfile(3);}} className={`py-3 md:px-6 px-2 whitespace-nowrap rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
+             === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800 "
           }`}>Student Performance</button>
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-          <VideoList />
+          <GetMentorProfile />
           </div>
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
+          <VideoList />
+          </div>
+          <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
           <StudentPerformance  />
         </div>
         </div>
   )
   const content = (
-    <div className="max-w-5xl lg:ml-64 mt-0 mx-auto px-4 py-0">
+    <div className="max-w-5xl lg:ml-64 mt-0 mx-auto sm:px-4 py-0">
      
 
       {/* Profile Header */}
-      <div className="bg-white rounded-2xl shadow p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
+      <div className="bg-gray-900 rounded-2xl py-4 shadow sm:p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
         
-        <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600">
-          {profile.first_name?.[0]}
-          {profile.last_name?.[0]}
+        <div className="w-32 h-32 rounded-full bg-white flex items-center justify-center text-4xl font-bold text-black">
+          {profile?.first_name?.[0]}
+          {profile?.last_name?.[0]}
         </div>
 
             
         <div className="text-center md:text-left flex-1">
-          <h2 className="text-2xl md:text-3xl font-bold">{profile.first_name} • {profile.last_name}</h2>
+          <h2 className="text-2xl md:text-3xl text-white font-bold">{profile.first_name} • {profile.last_name}</h2>
           <p className="text-sm text-gray-500">{profile.role}</p>
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
             {visibility.email && (
@@ -168,27 +178,43 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </div>
          <div className="flex justify-between items-center gap-4">
         <button
-          onClick={() => setEditVisibility(!editVisibility)} title="profile visibility"
-          className="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-500"
+          onClick={() => setEditVisibility(!editVisibility)} title=""
+          className="px-2 py-1 bg-gray-900 text-white flex flex-col items-center rounded hover:bg-gray-700"
         >
           {editVisibility ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
-            : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            : 
+            <>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>
+            <span className="text-[8px]">Visibility</span>
+            </>
             }
         </button>
         <button
           onClick={() => setShowEditModal(true)}
-          title="Edit"
-           className="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-500"
+          className="px-2 py-1 bg-gray-900 text-white flex flex-col items-center rounded hover:bg-gray-700"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-</svg>
+          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+        </svg>
+            <span className="text-[8px]">Profile</span>
 
         </button>
+
+                <button
+          onClick={() => setShowTeacherEditModal(true)}
+           className="px-2 py-1 bg-gray-900 text-white flex flex-col items-center rounded hover:bg-gray-700"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+  <path fill-rule="evenodd" d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z" clip-rule="evenodd" />
+</svg>
+
+            <span className="text-[8px]">Teacher</span>
+        </button>
+
       </div>
       
       </div>
@@ -331,7 +357,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-2 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-2 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
               >
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -373,6 +399,12 @@ const [visibleProfile, setVisibleProfile] = useState(1)
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showTeacherEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+         <TeacherFormEdit setShowTeacherEditModal={setShowTeacherEditModal} />
         </div>
       )}
     </div>

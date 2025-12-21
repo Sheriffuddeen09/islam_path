@@ -3,7 +3,6 @@ import { useState } from "react";
 import Navbar from "../../layout/Header";
 import VideoCards from "./VideoCards";
 import { useAuth } from "../../layout/AuthProvider";
-import VideoOptions from "./VideoOption";
 
 
 export default function VideoSidebar({
@@ -14,16 +13,9 @@ export default function VideoSidebar({
   setSelectedCategory,
   loading = false // pass loading prop or handle state here
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [likes, setLikes] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const {user: currentUser} = useAuth();
- 
-
-const handleLike = (id) => {
-  setLikes((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
-};
 
 
 
@@ -39,7 +31,7 @@ const handleLike = (id) => {
 
         {/* Sidebar */}
         <aside
-          className={`fixed hidden lg:block top-20 left-0 h-full w-64 md:py-10 lg:py-8  bg-white border border-t-0 border-2 py-4 sm:px-3 px-4 z-40
+          className={`fixed hidden lg:block top-[85px] left-2 rounded-xl h-full w-64 md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
             transform transition-transform duration-300
             overflow-y-auto overflow-x-hidden
             scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}

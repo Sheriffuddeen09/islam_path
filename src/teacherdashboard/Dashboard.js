@@ -66,6 +66,20 @@ export default function DashboardLayout() {
   loadData();
 }, [location.pathname]);
 
+useEffect(() => {
+  const refreshUser = async () => {
+    try {
+      const userRes = await api.get("/api/user-status", { withCredentials: true });
+      setUser(userRes.data.user);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  refreshUser();
+}, []);
+
+
   return (
     <div className="">
       <section className="flex-1 lg:ml-64 transition-all ">
