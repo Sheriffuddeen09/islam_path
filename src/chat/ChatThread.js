@@ -1,11 +1,37 @@
 import MessageBubble from "./MessageBubble";
 import { useTyping } from "./UseTyping";
 import logo from "../layout/image/favicon.png";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import api from "../Api/axios";
 
-export default function ChatThread({ chatId, messages, loading, setMessages, setActiveChat, activeChat, setChats, chat }) {
+export default function ChatThread({ chatId, setReplyingTo, replyingTo, messages, loading, setMessages, setActiveChat, activeChat, setChats, chat }) {
   const typing = useTyping(chatId);
   const bottomRef = useRef(null);
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  const [forwardModalOpen, setForwardModalOpen] = useState(false);
+
+function toggleSelect(msg) {
+  setSelectedMessages(prev =>
+    prev.includes(msg)
+      ? prev.filter(m => m !== msg)
+      : [...prev, msg]
+  );
+}
+
+const [users, setUsers] = useState([]);
+
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("/api/users");
+      setUsers(res.data);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    }
+  };
+
+  fetchUsers();
+}, []);
 
   /* ================= AUTO SCROLL ================= */
   useEffect(() => {
@@ -46,7 +72,11 @@ export default function ChatThread({ chatId, messages, loading, setMessages, set
 
       {messages.map((msg) => (
         <MessageBubble key={msg.id} message={msg} setMessages={setMessages} messages={messages} 
-        activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats} chat={chat} />
+        activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats} chat={chat}
+        selectedMessages={selectedMessages} setForwardModalOpen={setForwardModalOpen} forwardModalOpen={forwardModalOpen} // ✅ MUST PASS
+        toggleSelect={toggleSelect} setSelectedMessages={setSelectedMessages} users={users} 
+        setReplyingTo={setReplyingTo}  replyingTo={replyingTo}    // ✅ MUST PASS
+        />
       ))}
 
       {typing && (

@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import DeleteModal from './DeleteModal'
 import EditModal from "./EditModal";
 import ClearChatModal from "./ClearModal";
+import toast, {Toaster} from "react-hot-toast";
 
-export default function MessageBubblePop({ message, user, authUser, currentUserId, isMe, setMessages, onAction, setActiveChat, activeChat, chat }) {
-  const [open, setOpen] = useState(false);
+export default function MessageBubblePop({ open, setOpen, message, user, authUser, currentUserId, isMe, setMessages, activeChat, chat }) {
   const [openDelete, setOpenDelete] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
   const [clearMessage, setClearMessage] = useState(null);
+
   const ref = useRef();
 
  const canClear = message.sender_id === currentUserId
@@ -16,9 +17,9 @@ export default function MessageBubblePop({ message, user, authUser, currentUserI
   !message.seen_at; 
 
 
-
-
-
+  const handleOpen = () =>{
+    setOpen(!open)
+  }
   // Close menu on outside click
   useEffect(() => {
     const handler = e => {
@@ -47,32 +48,17 @@ const handleMessageUpdate = (updatedMessage) => {
 };
 
 
-// const handleMessageEdit = (updatedMessage) => {
-//   setChats((prevChats) =>
-//     prevChats.map((chat) =>
-//       chat.id === updatedMessage.chat_id
-//         ? {
-//             ...chat,
-//             latest_message: {
-//               ...chat.latest_message,
-//               message: updatedMessage.message,
-//               edited: true,
-//             },
-//           }
-//         : chat
-//     )
-//   );
-// };
-
-
   return (
-    <div className={`relative mb-3 ${isMe ? "text-right" : "text-right"}`}>
+    <div className={`relative ${isMe ? "text-right" : "text-right"}`}>
       {/* MENU ICON */}
       <button
-        onClick={() => setOpen(!open)}
-        className="ml-1 text-gray-500 hover:text-black"
+        onClick={handleOpen}
+        className="bg-gray-800 p-1 rounded-full hover:bg-gray-900"
       >
-        ⋮
+       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+  <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
+</svg>
+
       </button>
 
       {/* POPUP MENU */}
@@ -87,9 +73,17 @@ const handleMessageUpdate = (updatedMessage) => {
            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" onClick={() => setOpen(!open)} class="size-8 absolute cursor-pointer p-1 hover:bg-gray-300 rounded-full right-4 top-0 text-black z-50">
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
-          <MenuItem label="Reply" onClick={() => onAction("reply", message)} />
+          
+
           {message.type === "text" && (
-            <MenuItem label="Copy" onClick={() => navigator.clipboard.writeText(message.message)} />
+            <MenuItem
+              label="Copy"
+              onClick={() => {
+                navigator.clipboard.writeText(message.message);
+                toast.success("Text copied!"); 
+                setOpen(false); 
+              }}
+            />
           )}
           { canClear &&
             <MenuItem label="Clear All Message" onClick={() => {
@@ -112,7 +106,7 @@ const handleMessageUpdate = (updatedMessage) => {
 
 
           <MenuItem label="Delete" onClick={handleDeletePop} />
-          <MenuItem label="Block User" onClick={() => onAction("block", message.sender_id)} />
+          <MenuItem label="Block User"  />
         </div>
         </div>
       )}
@@ -145,6 +139,10 @@ const handleMessageUpdate = (updatedMessage) => {
           onCleared={() => setMessages([])} // 👈 instantly clears UI
         />
       )}
+
+      
+
+      <Toaster position="top-right" />
 
     </div>
   );

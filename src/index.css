@@ -316,3 +316,12 @@ ol {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@keyframes replyFlash {
+  0% { background-color: rgba(59, 130, 246, 0.4); }
+  100% { background-color: transparent; }
+}
+
+.reply-highlight {
+  animation: replyFlash 1.2s ease-out;
+}

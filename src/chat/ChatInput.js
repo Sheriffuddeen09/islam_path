@@ -1,14 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import api from "../Api/axios";
 import VoiceNote from "./VoiceNote";
 
-export default function ChatInput({ chatId, onSend, setMessages }) {
+export default function ChatInput({ setReplyingTo, replyingTo, chatId, onSend, setMessages }) {
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [sending, setSending] = useState(false);
-  const recorderRef = useRef(null);
-  const audioChunks = useRef([]);
+
   const typingTimeout = useRef(null);
 
   const handleTyping = () => {
@@ -26,6 +25,7 @@ export default function ChatInput({ chatId, onSend, setMessages }) {
   else form.append("type", "text");
   if (text) form.append("message", text);
   if (file) form.append("file", file);
+  if (replyingTo) form.append("replied_to", replyingTo.id);
 
   try {
     setSending(true);
@@ -42,6 +42,8 @@ export default function ChatInput({ chatId, onSend, setMessages }) {
     setText("");
     setFile(null);
     setUploadProgress(0);
+    setReplyingTo(null);
+
   } catch (err) {
     console.error(err);
   } finally {
@@ -49,9 +51,45 @@ export default function ChatInput({ chatId, onSend, setMessages }) {
   }
 };
 
+const textareaRef = useRef(null);
+
+useEffect(() => {
+  if (replyingTo && textareaRef.current) {
+    textareaRef.current.focus();
+  }
+}, [replyingTo]);
+
+
   return (
     <div className="p-3 mb-4 bg-gray-900">
       
+      {/* Reply preview */}
+      {replyingTo && (
+  <div className="bg-black/30 p-2 rounded mb-2 flex justify-between items-center">
+    <div className="text-xs">
+      <p className="text-blue-400 font-semibold">
+        Replying to {replyingTo.sender.first_name}
+      </p>
+      <p className="truncate opacity-80">
+        {replyingTo.type === "text"
+          ? replyingTo.message
+          : replyingTo.type === "image"
+          ? "🖼 Photo"
+          : replyingTo.type === "voice"
+          ? "🎤 Voice message"
+          : replyingTo.type}
+      </p>
+    </div>
+
+    <button
+      onClick={() => setReplyingTo(null)}
+      className="text-red-400 text-sm"
+    >
+      ✕
+    </button>
+  </div>
+)}
+
       {file && <span className="text-sm text-gray-700 pb-2">{file.name}</span>}
       {uploadProgress > 0 && (
         <div className="h-1 bg-gray-200 rounded mb-4">
@@ -65,6 +103,7 @@ export default function ChatInput({ chatId, onSend, setMessages }) {
 
       <div className="pt-2  mb-2 flex relative gap-2">
         <textarea
+          ref={textareaRef}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
