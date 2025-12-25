@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import toast, {Toaster} from "react-hot-toast";
 import api from "../Api/axios";
 import ArrayInput from "./ArrayInput";
 
-export default function TeacherFormEdit({setShowTeacherEditModal}) {
+export default function TeacherFormEdit({ onClose, teacher, onUpdate }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
     coursetitle_id: "",
-    qualification: [],
-    experience: [],
-    specialization: [],
-    compliment: [],
+    qualification: [""],
+    experience: [""],
+    specialization: [""],
+    compliment: [""],
     course_payment: "",
     currency: "NGN",
     logo: null,
@@ -22,53 +22,37 @@ export default function TeacherFormEdit({setShowTeacherEditModal}) {
 
   const [courseTitles, setCourseTitles] = useState([]);
 
-useEffect(() => {
-  const fetchCourses = async () => {
-    try {
-      const res = await api.get("/api/coursetitles");
-      setCourseTitles(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  fetchCourses();
-}, []);
-
-
-  // 🔹 Fetch existing data
- useEffect(() => {
-  const fetchForm = async () => {
-    try {
-      const res = await api.get("/api/teacher-form");
-
-      const data =
-        res.data?.data ||
-        res.data?.teacherForm ||
-        null;
-
-      if (!data) {
-        setLoading(false);
-        return;
+  // 🔹 Fetch course titles
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await api.get("/api/coursetitles");
+        setCourseTitles(res.data);
+      } catch (err) {
+        console.error(err);
       }
+    };
+    fetchCourses();
+  }, []);
 
-      setForm((prev) => ({
-        ...prev,
-        ...data,
-        qualification: data.qualification ?? [""],
-        experience: data.experience ?? [""],
-        specialization: data.specialization ?? [""],
-        compliment: data.compliment ?? [""],
-      }));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 🔹 Initialize form from teacher prop
+  useEffect(() => {
+    if (!teacher) return;
 
-  fetchForm();
-}, []);
+    setForm({
+      coursetitle_id: teacher.coursetitle_id || "",
+      qualification: teacher.qualification?.length ? teacher.qualification : [""],
+      experience: teacher.experience?.length ? teacher.experience : [""],
+      specialization: teacher.specialization?.length ? teacher.specialization : [""],
+      compliment: teacher.compliment?.length ? teacher.compliment : [""],
+      course_payment: teacher.course_payment || "",
+      currency: teacher.currency || "NGN",
+      logo: null,
+      cv: null,
+    });
 
+    setLoading(false);
+  }, [teacher]);
 
   // 🔹 Submit
   const submitForm = async (e) => {
@@ -79,20 +63,46 @@ useEffect(() => {
     const fd = new FormData();
 
     Object.keys(form).forEach((key) => {
-      if (Array.isArray(form[key])) {
-        form[key].forEach((v, i) => fd.append(`${key}[${i}]`, v));
-      } else if (form[key] !== null) {
-        fd.append(key, form[key]);
+      const value = form[key];
+
+      // Arrays
+      if (Array.isArray(value)) {
+        value.forEach((v, i) => fd.append(`${key}[${i}]`, v));
+        return;
+      }
+
+      // Files
+      if ((key === "logo" || key === "cv") && value instanceof File) {
+        fd.append(key, value);
+        return;
+      }
+
+      // Normal fields
+      if (value !== null && value !== "" && key !== "logo" && key !== "cv") {
+        fd.append(key, value);
       }
     });
 
     try {
-      await api.post("/api/teacher-form?_method=PUT", fd);
+      const res = await api.post("/api/teacher-form?_method=PUT", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       toast.success("Teacher profile updated successfully ✅");
+
+      // 🔹 Call parent onUpdate to refresh teacher list
+      if (onUpdate) {
+        onUpdate({
+          ...teacher,
+          ...res.data.data, // updated fields returned from backend
+        });
+      }
+
+      onClose();
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors);
-        toast.error("Please fix the errors below");
+        toast.error("Please fix the errors below, or choose your course title");
       } else {
         toast.error("Something went wrong");
       }
@@ -101,11 +111,11 @@ useEffect(() => {
     }
   };
 
+
   const otherCourseId = courseTitles.find(
   (c) => c.name.toLowerCase() === "other"
 )?.id;
 
-const isOtherSelected = String(form.coursetitle_id) === String(otherCourseId);
 const isFile = (val) => val instanceof File;
 const autoGrow = (ref) => {
   if (!ref.current) return;
@@ -119,7 +129,7 @@ const autoGrow = (ref) => {
       onSubmit={submitForm}
       className="bg-white p-6 rounded-xl relative shadow max-w-3xl w-full"
     >
-      <svg onClick={() => setShowTeacherEditModal(false)} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 absolute top-2 right-1 cursor-pointer">
+      <svg onClick={onClose} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 absolute top-2 right-1 cursor-pointer">
   <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
 </svg>
 
@@ -130,26 +140,26 @@ const autoGrow = (ref) => {
   Course Title
 </label>
 
-<select
-  value={form.coursetitle_id ?? ""}
+
+ <select
+  value={form.coursetitle_id === "" ? "" : Number(form.coursetitle_id)}
   onChange={(e) => {
-    const selectedId = String(e.target.value);
+    const selectedId = e.target.value === "" ? "" : Number(e.target.value);
 
     setForm((prev) => ({
       ...prev,
       coursetitle_id: selectedId,
       specialization:
-        selectedId === String(otherCourseId)
-          ? (Array.isArray(prev.specialization) && prev.specialization.length
-              ? prev.specialization
-              : [""])
-          : [], // clear when not "Other"
+        selectedId === otherCourseId
+          ? prev.specialization.length
+            ? prev.specialization
+            : [""]
+          : [], // clear ONLY when switching away from Other
     }));
   }}
   className="border rounded-lg px-3 py-2 w-full"
 >
   <option value="">Select a course</option>
-
   {courseTitles.map((course) => (
     <option key={course.id} value={course.id}>
       {course.name}
@@ -158,13 +168,11 @@ const autoGrow = (ref) => {
 </select>
 
 
-        {errors.coursetitle_id && (
-            <p className="text-xs text-red-600">{errors.coursetitle_id}</p>
-        )}
+
         </div>
 
         {/* SPECIALIZATION */}
-      {String(form.coursetitle_id) === String(otherCourseId) && (
+      {Number(form.coursetitle_id) === Number(otherCourseId) && (
   <ArrayInput
     label="Specialization"
     values={form.specialization}
@@ -174,6 +182,7 @@ const autoGrow = (ref) => {
     placeholder="e.g. Advanced Tajweed"
   />
 )}
+
 
 
 
@@ -230,80 +239,73 @@ const autoGrow = (ref) => {
       </div>
 
       {/* FILES */}
-      <div className=" grid grid-cols-2 ">
+      
+  <div className="grid grid-cols-2 gap-6">
 
-  {/* Logo Upload */}
+  {/* LOGO */}
   <div>
-    <label className="text-black font-bold mb-2 block">Logo (Image)</label>
-    <div className="flex items-center gap-4">
-      {/* Hidden file input */}
-      <input
-        type="file"
-        accept="image/*"
-        id="logoUpload"
-        onChange={(e) => setForm({ ...form, logo: e.target.files[0] })}
-        className="hidden"
+    <label className="font-semibold text-sm block mb-2">Logo (Image)</label>
+
+    <input
+      type="file"
+      accept="image/*"
+      id="logoUpload"
+      className="hidden"
+      onChange={(e) =>
+        setForm((prev) => ({ ...prev, logo: e.target.files[0] }))
+      }
+    />
+
+    <label
+      htmlFor="logoUpload"
+      className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded"
+    >
+      Upload Logo
+    </label>
+
+    {form.logo && (
+      <img
+        src={
+          typeof form.logo === "string"
+            ? form.logo
+            : URL.createObjectURL(form.logo)
+        }
+        className="mt-3 w-20 h-20 object-cover rounded"
       />
-
-      {/* Custom button */}
-      <label
-        htmlFor="logoUpload"
-        className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-700 transition"
-      >
-        Upload Logo
-      </label>
-
-      {/* Preview */}
-      {form.logo && (
-        <img
-          src={
-            isFile(form.logo)
-              ? URL.createObjectURL(form.logo)
-              : form.logo // already a URL
-          }
-          alt="Teacher Logo"
-          className="w-24 h-24 rounded object-cover"
-        />
-      )}
-
-    </div>
+    )}
   </div>
 
-  {/* CV Upload */}
+  {/* CV */}
   <div>
-    <label className="text-black font-bold mb-2 block">CV (Document)</label>
-    <div className="flex items-center gap-4">
-      {/* Hidden file input */}
-      <input
-        type="file"
-        accept=".pdf,.doc,.docx,.txt"
-        id="cvUpload"
-        onChange={(e) => setForm({ ...form, cv: e.target.files[0] })}
-        className="hidden"
-      />
+    <label className="font-semibold text-sm block mb-2">CV (PDF)</label>
 
-      {/* Custom button */}
-      <label
-        htmlFor="cvUpload"
-        className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-700 transition"
-      >
-        Upload CV
-      </label>
+    <input
+      type="file"
+      accept=".pdf,.doc,.docx"
+      id="cvUpload"
+      className="hidden"
+      onChange={(e) =>
+        setForm((prev) => ({ ...prev, cv: e.target.files[0] }))
+      }
+    />
 
-      {/* Preview */}
-      {form.cv && (
-  <a
-    href={isFile(form.cv) ? URL.createObjectURL(form.cv) : form.cv}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-blue-600 underline"
-  >
-    View CV
-  </a>
-)}
+    <label
+      htmlFor="cvUpload"
+      className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded"
+    >
+      Upload CV
+    </label>
 
-    </div>
+    {form.cv && (
+      <p className="mt-3 text-sm text-gray-600">
+        {typeof form.cv === "string"
+          ? "Existing CV uploaded"
+          : form.cv.name}
+      </p>
+    )}
   </div>
+
+
 
 </div>
 
@@ -336,6 +338,8 @@ const autoGrow = (ref) => {
   ) : ( "Save Changes" )}
       </button>
       </div>
+
+      <Toaster position="top-10" className="flex justify-center items-center mx-auto" />
     </form>
   );
 }

@@ -32,6 +32,8 @@ function App() {
     const [selected, setSelected] = useState("");  
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [teachers, setTeachers] = useState([]);
+
     const [user, setUser] = useState(null);
 
     const [videos, setVideos] = useState([]);
@@ -53,7 +55,7 @@ function App() {
       } />
 
       <Route path="/get-mentor" element={
-          <GetMentor />
+          <GetMentor teachers={teachers} setTeachers={setTeachers} />
       } />
 
       <Route path="/report-list" element={
@@ -127,7 +129,8 @@ function App() {
 
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
-          <TeacherDashboardLayout onCreated={handleVideoCreated} user={user} setUser={setUser} />
+          <TeacherDashboardLayout onCreated={handleVideoCreated} user={user} setUser={setUser}
+          teachers={teachers} setTeachers={setTeachers} />
         </ProtectedRoute>
       } />
 

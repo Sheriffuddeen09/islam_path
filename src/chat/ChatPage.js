@@ -87,7 +87,7 @@ const closeReport = () => {
         >
           {activeChat ? (
             <div className="flex flex-col mt-0 h-full w-full no-scrollbar">
-              <div className=" px-2 py-2 border-b flex justify-between items-center  gap-2 no-scrollbar">
+              <div className=" px-2 py-2 border-b flex justify-between items-center bg-transparent gap-2 no-scrollbar">
                 <div className="inline-flex  items-center gap-2 py-1 sm:mx-4 mx-2 no-scrollbar">
                 <button
                   className="text-blue-600 font-semibold sm:hidden"

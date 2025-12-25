@@ -5,20 +5,37 @@ import VideoList from "./VideoList";
 import StudentPerformance from "./StudentPerformance";
 import TeacherFormEdit from "./TeacherFormEdit";
 import GetMentorProfile from "./GetMentorProfile";
+import { useAuth } from "../layout/AuthProvider";
 
-export default function ProfilePage() {
+export default function ProfilePage({teachers, setTeachers}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showTeacherEditModal, setShowTeacherEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
+
+  const [editingTeacher, setEditingTeacher] = useState(null);
+
+  // 🔹 Open modal
+  const handleEdit = (teacher) => setEditingTeacher(teacher);
+
+  const handleClose = () => setEditingTeacher(null);
+
+  const handleUpdate = (updatedTeacher) => {
+    setTeachers((prev) =>
+      prev.map((t) => (t.id === updatedTeacher.id ? updatedTeacher : t))
+    );
+  };
+
+
+
   const [notification, setNotification] = useState({
   show: false,
   type: "", // "success" | "error"
   message: "",
 });
+  const {user} = useAuth()
 
 const showNotification = (type, message) => {
   setNotification({ show: true, type, message });
@@ -123,6 +140,13 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     }
 
 
+    const handleTeacherUpdate = (updatedTeacher) => {
+  setTeachers((prev) =>
+    prev.map((t) => (t.id === updatedTeacher.id ? updatedTeacher : t))
+  );
+};
+
+
   if (loading) return <Loader />;
 
   const profile_content = (
@@ -141,7 +165,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-          <GetMentorProfile />
+          <GetMentorProfile teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} />
           </div>
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
           <VideoList />
@@ -166,8 +190,13 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             
         <div className="text-center md:text-left flex-1">
           <h2 className="text-2xl md:text-3xl text-white font-bold">{profile.first_name} • {profile.last_name}</h2>
-          <p className="text-sm text-gray-500">{profile.role}</p>
-          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
+          {user?.admin_choice === "arabic_teacher" &&
+            user?.teacher_profile_completed && (
+                <p className="text-sm text-white my-2 ">
+                  Teacher
+                </p>
+            )}
+          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-white">
             {visibility.email && (
               <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {profile.email}</span>
             )}
@@ -179,7 +208,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
          <div className="flex justify-between items-center gap-4">
         <button
           onClick={() => setEditVisibility(!editVisibility)} title=""
-          className="px-2 py-1 bg-gray-900 text-white flex flex-col items-center rounded hover:bg-gray-700"
+          className="px-2 py-1 bg-white text-black flex flex-col items-center rounded hover:bg-gray-700"
         >
           {editVisibility ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -195,24 +224,13 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </button>
         <button
           onClick={() => setShowEditModal(true)}
-          className="px-2 py-1 bg-gray-900 text-white flex flex-col items-center rounded hover:bg-gray-700"
+          className="px-2 py-1 bg-white text-black flex flex-col items-center rounded hover:bg-gray-700"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
         </svg>
             <span className="text-[8px]">Profile</span>
 
-        </button>
-
-                <button
-          onClick={() => setShowTeacherEditModal(true)}
-           className="px-2 py-1 bg-gray-900 text-white flex flex-col items-center rounded hover:bg-gray-700"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-  <path fill-rule="evenodd" d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z" clip-rule="evenodd" />
-</svg>
-
-            <span className="text-[8px]">Teacher</span>
         </button>
 
       </div>
@@ -357,7 +375,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-2 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
+                className="px-2 py-2 bg-gray-700 text-white rounded hover:bg-white"
               >
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -402,9 +420,13 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </div>
       )}
 
-      {showTeacherEditModal && (
+      {editingTeacher && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-         <TeacherFormEdit setShowTeacherEditModal={setShowTeacherEditModal} />
+         <TeacherFormEdit 
+          teacher={editingTeacher}
+          onClose={handleClose}
+          onUpdate={handleUpdate}
+           />
         </div>
       )}
     </div>

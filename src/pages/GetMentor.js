@@ -4,11 +4,10 @@ import { useAuth } from "../layout/AuthProvider";
 import Navbar from "../layout/Header";
 import MentorCard from "./MentorCard";
 
-export default function GetMentor() {
+export default function GetMentor({teachers, setTeachers}) {
   const { user } = useAuth();
   const authReady = user !== null;
 
-  const [teachers, setTeachers] = useState([]);
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -124,7 +123,7 @@ const filteredCourse = selectedCoursetitles
       <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-800">
         {/* Sidebar */}
         <aside
-          className={`fixed hidden lg:block top-[85px] left-2 rounded-xl h-full w-64 md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
+          className={`fixed hidden md:block top-[85px] left-2 rounded-xl h-full lg:w-64 md:w-44 md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
             transform transition-transform duration-300
             overflow-y-auto overflow-x-hidden
             scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
@@ -162,7 +161,7 @@ const filteredCourse = selectedCoursetitles
           </ul>
         </aside>
 
-<div className="lg:hidden block">
+<div className="md:hidden block">
         <ul className="flex space-x-4 w-full px-2 -mb-16 mt-28 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
   <li
     onClick={() => setSelectedCoursetitles(null)}
@@ -191,9 +190,9 @@ const filteredCourse = selectedCoursetitles
 </ul>
 </div>
         {/* Main Content */}
-        <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 flex flex-col items-center">
+        <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 md:ml-40 flex flex-col items-center">
           {loading ? (
-            // Skeleton loader
+            // Skeleton loader lg:ml
             <div className="space-y-4 w-full max-w-md">
               <div className="animate-pulse flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-300 rounded-full" />

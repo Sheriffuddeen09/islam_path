@@ -1,38 +1,48 @@
+import { useState, useEffect } from "react";
+
 export default function ArrayInput({
   label,
   values = [],
   onChange = () => {},
   placeholder = "",
   disabled = false,
-  autoGrow = false,     // 👈 NEW
+  autoGrow = false,
 }) {
-  const safeValues = Array.isArray(values) ? values : [];
+  const [localValues, setLocalValues] = useState(Array.isArray(values) ? values : []);
+
+  // 🔹 Sync with prop changes
+  useEffect(() => {
+    setLocalValues(Array.isArray(values) ? values : []);
+  }, [values]);
 
   const handleChange = (index, value) => {
     if (disabled) return;
-    const updated = [...safeValues];
+    const updated = [...localValues];
     updated[index] = value;
+    setLocalValues(updated);
     onChange(updated);
   };
 
   const handleAutoGrow = (e) => {
     if (!autoGrow) return;
-
     if (e.target.value.length < 70) return;
-
     e.target.style.height = "auto";
     e.target.style.height = e.target.scrollHeight + "px";
   };
 
-  const addField = () => !disabled && onChange([...safeValues, ""]);
+  const addField = () => !disabled && handleChange(localValues.length, "");
   const removeField = (index) =>
-    !disabled && onChange(safeValues.filter((_, i) => i !== index));
+    !disabled &&
+    handleChange(
+      index,
+      null // remove field at index
+    );
 
   return (
     <div className={`space-y-2 ${disabled ? "opacity-50" : ""}`}>
       <label className="text-sm font-semibold">{label}</label>
 
-      {safeValues.map((val, idx) => (
+      {localValues.map((val, idx) => (
         <div key={idx} className="flex gap-2 items-start">
           {autoGrow ? (
             <textarea
@@ -57,7 +67,10 @@ export default function ArrayInput({
           {!disabled && (
             <button
               type="button"
-              onClick={() => removeField(idx)}
+              onClick={() =>
+                setLocalValues(localValues.filter((_, i) => i !== idx)) &&
+                onChange(localValues.filter((_, i) => i !== idx))
+              }
               className="text-red-600 font-bold mt-2"
             >
               ✕
@@ -69,7 +82,7 @@ export default function ArrayInput({
       {!disabled && (
         <button
           type="button"
-          onClick={addField}
+          onClick={() => setLocalValues([...localValues, ""]) && onChange([...localValues, ""])}
           className="text-sm text-blue-600"
         >
           + Add

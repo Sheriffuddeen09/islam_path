@@ -2,6 +2,8 @@
 export default function MentorCard({loadingId, requestStatus, handleRequest, selectedTeacher, setSelectedTeacher, t, notification}) {
  
 
+    const isOther = t.coursetitle_name?.toLowerCase() === "other";
+    const displayTitle = isOther ? "Other" : t.coursetitle_name;
 
   return (
     <>
@@ -11,7 +13,7 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 relative ">
         <div
     key={t.id}
-    className="bg-white rounded-lg w-64 h-72 overflow-hidden shadow-xl border border-gray-300 group p-4 transform hover:scale-105 transition duration-300 flex flex-col mx-auto justify-center relative"
+    className="bg-white rounded-lg w-64 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform hover:scale-105 transition duration-300 flex flex-col mx-auto justify-center relative"
   >
           <img
             src={t.logo || "/default-avatar.png"}
@@ -24,11 +26,34 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
             {t.first_name} {t.last_name} &bull; {t.currency} {t.course_payment}
           </h3>
         )}
-        {t.coursetitle_name && t.experience && (
-          <h3 className="font-semibold text-lg mb-1 text-black text-center">
-            &bull; {t.coursetitle_name} &bull; {t.experience || "N/A"}
-          </h3>
+
+        {/* Course Title */}
+        <div className="inline-flex  mx-auto items-center gap-1">
+        {displayTitle && (
+          <p className="text-center font-bold text-blue-600  text-xs">
+            📚 {displayTitle}
+          </p>
         )}
+
+        {/* Specializations (only show if course is Other) */}
+        {isOther && t.specialization?.length > 0 && (
+          <ul className="text-center font-bold text-blue-600 text-xs">
+            {t.specialization.map((spec, idx) => (
+              <li key={idx}>• {spec}</li>
+            ))}
+          </ul>
+        )}
+
+        {/* Experience */}
+        {t.experience?.length > 0 && (
+          <p className="text-center font-bold text-black text-xs">
+            🧑‍🏫 Experience: {t.experience.join(", ")}
+          </p>
+        )}
+        </div>
+
+
+
 
 
         {/* Payment */}
@@ -39,11 +64,11 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
         )}
 
          {t.compliment && (
-              <p className="text-gray-700 mx-auto font-normal text-black text-[13px] mb-2 text-center">
-                {t.compliment.length > 80
-                  ? `${t.compliment.substring(0, 80)}... `
+              <p className="text-gray-700 mx-auto font-normal text-black text-[11px] mb-2 text-center">
+                {t.compliment.length > 50
+                  ? `${t.compliment.substring(0, 20)}... `
                   : t.compliment}
-                {t.compliment.length > 80 && (
+                {t.compliment.length > 50 && (
                   <span
                     onClick={() => setSelectedTeacher({ compliment: t.compliment, qualification: t.qualification, first_name: t.first_name })}
                     className="text-blue-600 cursor-pointer hover:text-blue-800"
@@ -54,20 +79,20 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
               </p>
             )}
              <div className="absolute bg-black bg-opacity-100 flex flex-col h-44 bottom-0 w-full right-0 pb-2 justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-      <div className="flex flex-row gap-3 items-center mx-auto justify-center mb-4">
+      <div className="flex flex-row gap-3 items-center mx-auto justify-center my-4">
       <div>
         {t.cv ? (
           <a
             href={t.cv}
             target="_blank"
-            className="bg-blue-600 cursor-pointer text-white w-24 font-bold text-xs px-2 py-3 rounded-lg mt-auto text-center hover:bg-blue-700 cursor-pointer"
+            className="bg-blue-600 cursor-pointer text-white w-24 font-bold text-xs px-2 py-3 rounded-lg text-center hover:bg-blue-700 cursor-pointer"
           >
             View CV
           </a>
         ) : (
           <button
             disabled
-            className="bg-gray-400 text-black w-20 font-bold text-xs px-2 py-3 rounded-lg mt-auto text-center cursor-not-allowed"
+            className="bg-gray-400 text-black w-20 font-bold text-xs px-2 py-3 rounded-lg  text-center cursor-not-allowed"
           >
             No CV
           </button>
@@ -80,7 +105,7 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
   className="text-white"
 >
   {loadingId === t.id ? (
-    <p className="bg-gray-500 rounded-lg px-4 text-xs py-3 flex items-center gap-2">
+    <p className="bg-gray-500 rounded-lg px-4 text-xs py-3 flex items-center ">
       <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
     </p>
   ) : (
@@ -115,11 +140,11 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
         </div>
         </div>
         {t.compliment && (
-              <p className="text-gray-700 mx-auto font-normal text-white text-[12px] px-3 mb-2 text-center">
-                {t.compliment.length > 80
-                  ? `${t.compliment.substring(0, 80)}... `
+              <p className="text-gray-700 mx-auto font-normal text-white text-[11px] px-3 mb-2 text-center">
+                {t.compliment.length > 50
+                  ? `${t.compliment.substring(0, 50)}... `
                   : t.compliment}
-                {t.compliment.length > 80 && (
+                {t.compliment.length > 50 && (
                   <span
                      onClick={() => setSelectedTeacher(t)}
                     className="text-blue-300 cursor-pointer text-xs hover:text-blue-500"

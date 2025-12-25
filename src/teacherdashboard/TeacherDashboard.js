@@ -9,7 +9,7 @@ import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import LiveClass from "./LiveClass";
 
-export default function TeacherDashboardLayout({onCreated, user, setUser}) {
+export default function TeacherDashboardLayout({onCreated, user, setUser, teachers, setTeachers}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
@@ -91,7 +91,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser}) {
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
     <aside
-  className={`fixed top-0 left-0 h-full lg:w-64 md:w-96 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 sm:px-2 px-4 z-40
+  className={`fixed top-0 left-0 h-full lg:w-64 md:w-96 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
     transform transition-transform duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
     lg:translate-x-0
@@ -196,7 +196,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser}) {
         <CreateVideoSection onCreated={onCreated} />
         </div>
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-        <ProfilePage  />
+        <ProfilePage  teachers={teachers} setTeachers={setTeachers} />
         </div>
 
         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>

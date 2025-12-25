@@ -3,11 +3,10 @@ import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
 import Navbar from "../layout/Header";
 
-export default function GetMentorProfile() {
+export default function GetMentorProfile({teachers, setTeachers, handleEdit}) {
   const { user } = useAuth();
   const authReady = user !== null;
 
-  const [teachers, setTeachers] = useState([]);
   const [requestStatus, setRequestStatus] = useState({});
   const [requestLoading, setRequestLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -107,31 +106,32 @@ useEffect(() => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center mt-5 justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
 
  return (
   <>
-    <div className="px-4 py-10 max-w-7xl mx-auto">
+    <div className="md:px-4 py-10 w-full mx-auto">
       {teachers.length === 0 ? (
         <p className="text-center text-gray-500 text-xl font-medium py-6">
           No teacher available
         </p>
       ) : (
-        <div className="">
+        <div className="lg:-translate-x-7">
           {teachers.map((t) => (
             <div
               key={t.id}
               className=" bg-gray-900 -mt-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 group overflow-hidden border"
             >
               {/* Avatar */}
-              <div className="flex flex-wrap items-center sm:gap-10 gap-4 p-6">
-                <img
-                  src={t.logo || "/default-avatar.png"}
-                  alt="Teacher"
-                  className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
+              <div className="flex justify-between items-start sm:gap-10 gap-4 p-4">
+                <div className="flex flex-wrap items-center sm:gap-10 gap-4">
+                  <img
+                    src={t.logo || "/default-avatar.png"}
+                    alt="Teacher"
+                    className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
                 />
                 <div>
                 {t.course_payment && (
@@ -201,7 +201,20 @@ useEffect(() => {
                   </button>
                 </div>
               </div>
+              </div>
+               
+
                 </div>
+                <button
+                   onClick={() => handleEdit(t)}
+                    className="px-2 py-1 bg-white text-black flex flex-col items-center rounded hover:bg-gray-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd" d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z" clip-rule="evenodd" />
+          </svg>
+
+            <span className="text-[8px]">Teacher</span>
+        </button>
               </div>
 
               {/* Content */}

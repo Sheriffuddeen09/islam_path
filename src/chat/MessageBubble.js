@@ -195,7 +195,7 @@ const renderReply = (
     }
   };
 
-  return (
+  const content = (
     <div className={`flex flex-col mb-3 ${isMe ? "items-end" : "items-start"} relative`}>
       <div className={`flex mb-3 ${isMe ? "justify-end" : "justify-start"}`}>
         {!isMe && (
@@ -235,10 +235,10 @@ const renderReply = (
       
 
         {/* Forward Icon & Button */}
-        <div className={`flex flex-row mb-3 ${isMe ? "items-end right-0" : "items-start left-0"} absolute -bottom-12 w-40 bg-white bg-opacity-30 opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md gap-3 inline-flex items-center`}>
+        <div className={`flex flex-row mb-3 ${isMe ? "items-end right-0" : "items-start left-0"} absolute -bottom-12 w bg-white bg-opacity-30 opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md gap-3 inline-flex items-center`}>
           {selectedMessages.includes(message) && selectedMessages.length > 0 && (
             <button
-              className="text-white text-sm underline"
+              className="text-white text-sm underline whitespace-nowrap"
               onClick={() => setForwardModalOpen(true)}
             >
               Forward ({selectedMessages.length})
@@ -363,4 +363,14 @@ const renderReply = (
       <Toaster position="top-right" />
     </div>
   );
+
+  return(
+    <div>
+      <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg w-80 text-xs p-3">
+        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
+        Learn More.
+      </div>
+      {content}
+    </div>
+  )
 }
