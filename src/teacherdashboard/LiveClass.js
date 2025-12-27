@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useAuth } from "../layout/AuthProvider";
 import api from "../Api/axios";
 import { initEcho } from "../echo";
 import { Check, CheckCheck } from "lucide-react";
+import logo from "../layout/image/favicon.png";
+import ChatWindow from "../chat/ChatWindow";
 import { Link } from "react-router-dom";
-import { useAuth } from "../layout/AuthProvider";
+
 
 // ================= SKELETON =================
 function ChatSkeleton({ title }) {
@@ -26,40 +29,69 @@ function ChatSkeleton({ title }) {
   );
 }
 
-// ================= CHATLIST =================
+
+
+  
 export default function LiveClass() {
-  const [authUser, setAuthUser] = useState(null);
+  const { user: authUser } = useAuth();
+
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingChats, setLoadingChats] = useState(true);
-  const [onlineStatus, setOnlineStatus] = useState({}); // { userId: true/false }
+
+  const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
-  const [isMobile, setIsMobile] = useState(true);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  const [messages, setMessages] = useState([]);
+
+  const [onlineStatus, setOnlineStatus] = useState({});
+  const [chatFilter, setChatFilter] = useState("all"); // all | unread
+
+
   const [showGuide, setShowGuide] = useState(false);
   const [startLive, setStartLive] = useState(false);
-  const [chats, setChats] = useState([]);
-
-  const {user} = useAuth()
-  const [openReport, setOpenReport] = useState(false);
-
   const fetchedOnce = useRef(false);
 
-  // ================ FETCH AUTH USER ================
+  const [openReport, setOpenReport] = useState(false);
+
+ const handleReportPop = () => {
+  setOpenReport(true);  // 👈 open report modal
+};
+
+const closeReport = () => {
+  setOpenReport(false);
+};
 
 
+  const chatPartner =
+  activeChat && authUser
+    ? activeChat.teacher?.id === authUser.id
+      ? activeChat.student
+      : activeChat.student?.id === authUser.id
+      ? activeChat.teacher
+      : activeChat.teacher || activeChat.student
+    : null;
+
+
+  // ================= FETCH USER =================
   useEffect(() => {
     api.get("/api/me")
-      .then(res => setAuthUser(res.data))
-      .catch(() => setAuthUser(null))
       .finally(() => setLoadingUser(false));
   }, []);
 
-  // ================ FETCH CHATS ================
+  // ================= FETCH CHATS =================
   const fetchChats = async () => {
     if (!authUser) return;
     try {
       setLoadingChats(true);
       const res = await api.get("/api/chats");
-      setChats(res.data);
+      setChats(
+        res.data.map(chat => ({
+          ...chat,
+          unread_count: chat.unread_count || 0,
+          latest_message: chat.latest_message || null
+        }))
+      );
     } catch (err) {
       console.error(err);
     } finally {
@@ -72,181 +104,349 @@ export default function LiveClass() {
     fetchedOnce.current = true;
 
     fetchChats();
-    const interval = setInterval(fetchChats, 10000); // optional 10s polling
+    const interval = setInterval(fetchChats, 10000);
     return () => clearInterval(interval);
   }, [authUser]);
 
-  // ================ ONLINE STATUS ================
- const chatUserIds = useMemo(() => {
-  if (!authUser || chats.length === 0) return [];
-  const ids = chats
-    .map(chat => (authUser.role === "teacher" ? chat.student?.id : chat.teacher?.id))
-    .filter(Boolean);
-  return Array.from(new Set(ids));
-}, [authUser, chats]);
+  // ================= ONLINE STATUS =================
+  const chatUserIds = useMemo(() => {
+    if (!authUser) return [];
+    return Array.from(
+      new Set(
+        chats
+          .map(c =>
+            authUser.role === "teacher"
+              ? c.student?.id
+              : c.teacher?.id
+          )
+          .filter(Boolean)
+      )
+    );
+  }, [authUser, chats]);
 
-useEffect(() => {
-  if (!authUser || chatUserIds.length === 0) return;
-
-  let cancelled = false;
-
-  const fetchStatus = async () => {
-    try {
-      const res = await api.post("/api/users/online-status-bulk", {
-        user_ids: chatUserIds,
-      });
-      if (!cancelled) setOnlineStatus(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchStatus();
-  const interval = setInterval(fetchStatus, 15000);
-
-  return () => {
-    cancelled = true;
-    clearInterval(interval);
-  };
-}, [authUser, chatUserIds]);
-
-  // ================ REAL-TIME UPDATES ================
   useEffect(() => {
-    if (!authUser) return;
+    if (!chatUserIds.length) return;
 
-    const echo = initEcho();
-    const channel = echo.private(`chat.${authUser.id}`);
-
-    channel.listen("NewMessage", (e) => {
-      setChats(prev =>
-        prev.map(chat =>
-          chat.id === e.message.chat_id
-            ? {
-                ...chat,
-                latest_message: e.message,
-                unread_count:
-                  e.message.sender_id !== authUser.id
-                    ? chat.unread_count + 1
-                    : chat.unread_count,
-              }
-            : chat
-        )
-      );
-    });
-
-    channel.listen("MessageSeen", (e) => {
-      setChats(prev =>
-        prev.map(chat =>
-          chat.id === e.message.chat_id
-            ? { ...chat, latest_message: { ...chat.latest_message, seen_at: e.message.seen_at } }
-            : chat
-        )
-      );
-    });
-
-    return () => {
-      echo.leave(`chat.${authUser.id}`);
+    const fetchStatus = async () => {
+      try {
+        const res = await api.post("/api/users/online-status-bulk", {
+          user_ids: chatUserIds,
+        });
+        setOnlineStatus(res.data || {});
+      } catch (e) {}
     };
-  }, [authUser]);
 
-  // ================ MARK SEEN No message yet ================
+    fetchStatus();
+    const i = setInterval(fetchStatus, 15000);
+    return () => clearInterval(i);
+  }, [chatUserIds]);
+
+   
+  // ================= REAL TIME ================= unread_count
   useEffect(() => {
-    if (!activeChat) return;
-    api.post(`/api/chats/${activeChat.id}/seen`).catch(() => {});
-  }, [activeChat]);
+  if (!authUser) return;
 
-  // ================ STATES & RENDER ================
-  if (loadingUser) return <ChatSkeleton title />;
+  const echo = initEcho();
+  const channel = echo.private(`chat.${authUser.id}`);
 
-  if (!authUser) return <div className="p-4 text-red-500">Not authenticated</div>;
+  // New incoming message
+  channel.listen("NewMessage", (e) => {
+    setChats(prev =>
+      prev.map(c => {
+        if (c.id !== e.message.chat_id) return c;
+
+        const isActive = activeChat?.id === c.id;
+        return {
+          ...c,
+          latest_message: e.message,
+          unread_count: !isActive && e.message.sender_id !== authUser.id
+            ? (c.unread_count || 0) + 1
+            : c.unread_count
+        };
+      })
+    );
+
+    // Append message if chat is open
+    if (activeChat?.id === e.message.chat_id) {
+      setMessages(prev => [...prev, e.message]);
+      api.post(`/api/chats/${activeChat.id}/seen`).catch(() => {});
+    }
+  });
+
+  // Message seen event
+  channel.listen("MessageSeen", (e) => {
+    setChats(prev =>
+      prev.map(c =>
+        c.id === e.message.chat_id
+          ? {
+              ...c,
+              latest_message: {
+                ...c.latest_message,
+                seen_at: e.message.seen_at
+              }
+            }
+          : c
+      )
+    );
+  });
+
+  return () => echo.leave(`chat.${authUser.id}`);
+}, [authUser, activeChat]);
+
+
+  // ================= OPEN CHAT =================
+  const openChat = async (chat) => {
+  setActiveChat(chat);
+
+  // clear unread locally
+  setChats(prev =>
+    prev.map(c =>
+      c.id === chat.id ? { ...c, unread_count: 0 } : c
+    )
+  );
+
+  try {
+    const res = await api.get(`/api/chats/${chat.id}/messages`);
+    setMessages(res.data.messages || []);
+    await api.post(`/api/chats/${chat.id}/seen`);
+  } catch (e) {}
+};
+
+
+  // ================= HELPERS =================
+  const unreadTotal = useMemo(
+    () => chats.reduce((sum, c) => sum + (c.unread_count || 0), 0),
+    [chats]
+  );
+
+  const filteredChats = useMemo(() => {
+    if (chatFilter === "unread") {
+      return chats.filter(c => (c.unread_count || 0) > 0);
+    }
+    return chats;
+  }, [chatFilter, chats]);
 
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  const getMessagePreview = (msg) => {
-    if (!msg) return "Start a Conservation";
-    if (msg.type === "text") return msg.message;
-    if (msg.type === "image") return "📷 Image uploaded";
-    if (msg.type === "video") return "🎬 Video uploaded";
-    if (msg.type === "voice") return "🎵 Voice note Uploaded";
-    return "📄 Document uploaded";
-  };
+  function getMessagePreview(message) {
+  if (!message) return "";
+
+  if (message.type === "text") return message.message;
+  if (message.type === "voice") return "🎤 Voice message";
+  if (message.type === "image") return "🖼 Image";
+  if (message.type === "file") return "📎 Document";
+
+  return "New message";
+}
+
+
+  if (loadingUser) return <ChatSkeleton title />;
+  if (!authUser) return <div className="p-4 text-red-500">Not authenticated</div>;
 
   return (
-    <div className="h-full overflow-y-auto ">
-      {loadingChats && <ChatSkeleton />}
+    <div className="h-full flex">
+      {/* CHAT LIST */}
+      <div className="w-full lg:ml-64 mt-5 border-r bg-gray-900">
 
-      {!loadingChats && chats.length === 0 && (
-        <div className="p-6 text-center text-gray-500 hover:text-white">
-          start conversation
-        </div>
-      )}
-
-      {!loadingChats && chats.map(chat => {
-        const isTeacher = ["teacher", "admin"].includes(authUser.role);
-        const other = isTeacher ? chat.student : chat.teacher;
-
-        if (!other) return null;
-
-        const lastMessage = chat.latest_message || null;
-
-        const isOnline = onlineStatus[other.id] || false;
-        const isActive = activeChat?.id === chat.id;
-        const isMine = lastMessage?.sender_id === authUser.id;
-
-        return (
-          <div
-            key={chat.id}
-            
-            className={`flex gap-3 bg-white  rounded-lg p-5 items-center lg:ml-60 border-b border-t border-gray-100 ${
-              isActive ? "bg-blue-100 hover:bg-blue-50" : "hover:bg-gray-200 hover:text-white"
+        {/* TOP FILTER */}
+        <div className="flex gap-2 p-3 border-b sticky top-0 bg-gray-900 z-10">
+          <button
+            onClick={() => setChatFilter("all")}
+            className={`px-4 py-2 rounded-full text-sm ${
+              chatFilter === "all"
+                ? "bg-blue-600 text-white font-semibold"
+                : "bg-gray-200 font-semibold"
             }`}
           >
-            <div className="w-12 h-12 rounded-full bg-gray-700 text-white text-2xl flex items-center justify-center font-bold">
-              {other.first_name[0]}
-            </div>
+            All messages
+          </button>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center">
-                <div className="flex justify-between items-center gap-3">
-                  <div className="font-semibold text-black truncate">
+          <button
+            onClick={() => setChatFilter("unread")}
+            className={`px-4 py-1 rounded-full text-sm flex gap-1 items-center ${
+              chatFilter === "unread" ? "bg-blue-600 text-white font-semibold" : "bg-gray-200 text-black font-semibold"
+            }`}
+          >
+            Unread
+            {unreadTotal > 0 && (
+              <span className="bg-white text-blue-600 text-xs py-1 px-2 rounded-full">
+                {unreadTotal}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {loadingChats && <ChatSkeleton />}
+
+        {!loadingChats && filteredChats.length === 0 && (
+          <div className="p-6 text-center text-white">
+            No chats here
+          </div>
+        )}
+
+        {filteredChats.map(chat => {
+          const isTeacher = ["teacher", "admin"].includes(authUser.role);
+          const other = isTeacher ? chat.student : chat.teacher;
+          if (!other) return null;
+
+          const lastMessage = chat.latest_message;
+          const isMine = lastMessage?.sender_id === authUser.id;
+
+
+          const isOnline = onlineStatus[other.id];
+
+          console.log(chat);
+
+
+          return (
+            <div
+              key={chat.id}
+               onClick={() => {
+                  openChat(chat);
+                  setIsMinimized(false);
+                }}
+
+              className="flex gap-3 p-4 border-b hover:bg-gray-800 cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-full bg-gray-700 text-white flex items-center justify-center font-bold">
+                {other.first_name[0]}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex justify-between">
+                  <div className="font-semibold text-white">
                     {other.first_name} {other.last_name}
                   </div>
-                  <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-500" : "bg-gray-400"}`} />
-                </div>
-                {lastMessage && (
-                  <div className="text-xs text-gray-600">
-                    {formatTime(lastMessage.created_at)}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center text-xs justify-between mt-1">
-                <div className="flex items-center gap-1 text-sm text-gray-500 truncate">
-                  {isMine && lastMessage && (
-                    lastMessage.seen_at
-                      ? <CheckCheck className="w-4 h-4 text-blue-500" />
-                      : <Check className="w-4 h-4 text-gray-400" />
+                  {lastMessage && (
+                    <span className="text-xs text-white">
+                      {formatTime(lastMessage.created_at)}
+                    </span>
                   )}
-                  <p className="text-xs">{getMessagePreview(lastMessage)}</p>
                 </div>
 
-                {chat.unread_count > 0 && (
-                  <span className="bg-blue-800 text-xs text-white px-2 py-0.5 rounded-full">
-                    {chat.unread_count}
-                  </span>
-                )}
+                <div className="flex justify-between items-center mt-1 text-sm text-white">
+                  <div className="flex items-center gap-1 truncate">
+                    {isMine && lastMessage && (
+                      lastMessage.seen_at
+                        ? <CheckCheck size={16} className="text-white" />
+                        : <Check size={16} />
+                    )}
+                    <span className="truncate">
+                      {getMessagePreview(lastMessage)}
+                    </span>
+                  </div>
+
+                  {chat.unread_count > 0 && activeChat?.id !== chat.id && (
+                    <span className="bg-green-700 text-white text-xs py-1 px-2 rounded-full">
+                      {chat.unread_count}
+                    </span>
+                  )}
+
+                </div>
               </div>
-             
             </div>
-            <Link to={`/chat/${chat.id}`}>
-             <button className=" cursor-pointer bg-black px-4 py-2 rounded-lg text-white text-sm font-semibold">
-                Class Chat
-              </button>
-            </Link>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* Active Chat Messages */}
+      {activeChat && 
+          <div
+            className={`
+              fixed z-50 bg-transparent
+              transition-all duration-300 ease-in-out
+              overflow-hidden
+
+              ${isMinimized
+                ? "bottom-0 right-0 h-16 w-full sm:w-[420px] rounded-t-lg"
+                : "top-0 right-0 md:top-10 md:right-10 h-full w-full sm:h-[700px] sm:w-[420px] sm:rounded-lg"
+              }
+            `}
+          >
+
+
+
+                    <div className=" px-2 py-2 border-b bg-white rounded-tr-lg rounded-tl-lg rounded-bl-0 rounded-br-0 flex justify-between items-center bg-transparent gap-2 no-scrollbar">
+                      <div className="inline-flex  items-center gap-2 py-1 sm:mx-4 mx-2 no-scrollbar">
+                      <button
+                        className="text-blue-600 font-semibold sm:hidden"
+                        onClick={() => setActiveChat(null)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                        </svg>
+      
+                      </button>
+                      {authUser && chatPartner &&  (
+                      <Link to={`/profile/${chatPartner.id}`} className="inline-flex items-center gap-2">
+                        <div className="w-12 h-12 rounded-full bg-blue-900 text-white text-xl flex items-center justify-center font-bold">
+                          {chatPartner?.first_name?.[0] || "?"}
+                        </div>
+      
+                        <span className="font-semibold truncate text-black">
+                          {chatPartner?.first_name} {chatPartner?.last_name}
+                        </span>
+                      </Link>
+                    )}
+      
+                      </div>
+
+                      <div className="inline-flex items-center gap-3 sm:mx-4 mx-2 ">
+                                              <div className="flex items-center gap-2">
+                  {/* Minimize */}
+                  <button
+                    onClick={() => setIsMinimized(!isMinimized)}
+                    className="px-1 hover:bg-gray-200 rounded"
+                  >
+                    —
+                  </button>
+
+                  {/* Close */}
+                  <button
+                    onClick={() => {
+                      setActiveChat(null);
+                      setIsMinimized(false);
+                    }}
+                    className="px-1 hover:bg-gray-200 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                        <button className="p-1 bg-gray-300 rounded-full hover:bg-gray-400 text-black"  onClick={() => setShowGuide(true)}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="size-4"
+                       
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+                        />
+                      </svg>
+                      </button>
+                    <button title="Report" className="text-black p-1 bg-gray-300 rounded-full hover:bg-gray-400 " onClick={handleReportPop}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                        </svg>
+      
+                    </button>
+      
+                    </div>
+                    </div>
+      
+                    <ChatWindow messages={messages} setMessages={setMessages} activeChat={activeChat} setActiveChat={setActiveChat} setChats chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
+                  </div>
+                }
+          
     </div>
   );
 }
+
+         

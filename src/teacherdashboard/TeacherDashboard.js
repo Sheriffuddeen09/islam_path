@@ -60,7 +60,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
   // Menu items for Comment 1
   const teacherMenu = [
     { id: 7, label: "Student Request", showBadge: true },
-    { id: 8, label: "Live Class" },
+    { id: 8, label: "Message" },
     { id: 9, label: "Student Assignment" },
     { id: 10, label: "Student Quiz" },
   ];
@@ -91,7 +91,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
     <aside
-  className={`fixed top-0 left-0 h-full lg:w-64 md:w-96 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
+  className={`fixed top-0 left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
     transform transition-transform duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
     lg:translate-x-0

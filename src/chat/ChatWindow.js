@@ -5,8 +5,8 @@ import { initEcho } from "../echo";
 import ChatThread from "./ChatThread";
 import { ReportModal } from "./ReportModal";
 
-export default function ChatWindow({ chat, setChats, setActiveChat, showGuide, setShowGuide, startLive, setStartLive, activeChat, openReport, closeReport }) {
-  const [messages, setMessages] = useState([]);
+export default function ChatWindow({ messages, setMessages, chat, setChats, setActiveChat, showGuide, setShowGuide, startLive, setStartLive, activeChat, openReport, closeReport }) {
+ 
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null); // store message being replied to
 

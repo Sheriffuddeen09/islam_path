@@ -61,7 +61,7 @@ useEffect(() => {
 
 
   return (
-    <div className="p-3 mb-4 bg-gray-900">
+    <div className="p-3 mb-4 -translate-y-16 bg-gray-900">
       
       {/* Reply preview */}
       {replyingTo && (
@@ -130,7 +130,7 @@ useEffect(() => {
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="sm:w-6 sm:h-6 w-4 h-4 text-black hover:text-gray-600"
+              className="sm:w-4 sm:h-4 w-4 h-4 text-black hover:text-gray-600"
             >
               <path
                 strokeLinecap="round"
@@ -178,7 +178,7 @@ useEffect(() => {
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
                 stroke="currentColor"
-                className="sm:w-6 sm:h-6 w-4 h-4 text-blue-700 hover:text-blue-600"
+                className="sm:w-4 sm:h-4 w-4 h-4 text-blue-700 hover:text-blue-600"
               >
                 <path
                   strokeLinecap="round"

@@ -6,6 +6,7 @@ import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import StudentProfilePage from "./StudentProfile";
+import LiveClass from "../teacherdashboard/LiveClass";
 
 export default function StudentDashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -32,7 +33,7 @@ export default function StudentDashboardLayout() {
 
   const menu = [
   { id: 7, label: "Teacher Request", showBadge: true },
-  { id: 8, label: "Live Class" },
+  { id: 8, label: "Message" },
   { id: 9, label: "View Assignment" },
   { id: 10, label: "View Quiz" },
   { id: 11, label: "Ranks" },
@@ -145,6 +146,9 @@ export default function StudentDashboardLayout() {
         </div>
         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
         <StudentRequest />
+        </div>
+        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+        <LiveClass  />
         </div>
       </section>
     </div>

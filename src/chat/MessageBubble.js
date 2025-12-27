@@ -146,9 +146,9 @@ const renderReply = (
     );
 
     const emojiarray = (
-      <div className="bg-white">
+      <div className="">
       {message.reactions?.length > 0 && (
-  <div className="flex gap-1 mt-1 bg-black/30 rounded-full px-2 py-0.5 text-xs relative">
+  <div className="flex gap-1 mt-1 bg-black/30 text-white rounded-full px-2 py-0.5 text-xs relative">
     {Object.entries(
       message.reactions.reduce((acc, r) => {
         acc[r.emoji] = (acc[r.emoji] || 0) + 1;
@@ -156,7 +156,7 @@ const renderReply = (
       }, {})
     ).map(([emoji, count]) => (
       <span key={emoji}>
-        {emoji} {count}
+        {emoji}
       </span>
     ))}
     
@@ -196,13 +196,9 @@ const renderReply = (
   };
 
   const content = (
-    <div className={`flex flex-col mb-3 ${isMe ? "items-end" : "items-start"} relative`}>
-      <div className={`flex mb-3 ${isMe ? "justify-end" : "justify-start"}`}>
-        {!isMe && (
-          <div className="w-10 h-10 rounded-full bg-blue-900 flex text-2xl items-center justify-center text-white font-semibold mr-2">
-            {firstLetter}
-          </div>
-        )}
+    <div className={`flex flex-col mb-6 ${isMe ? "items-end" : "items-start"} relative`}>
+      <div className={`flex mb- ${isMe ? "justify-end" : "justify-start"}`}>
+  
       <div>
         <div className={`p-3 rounded-lg flex flex-col max-w-xs gap-1 relative ${bubbleColor}`}>
           {message.forwarded_from && <span className="text-xs text-gray-400 mb-1">Forwarded</span>}
@@ -228,14 +224,14 @@ const renderReply = (
           <div className={`flex  flex-col mb-3 ${isMe ? "items-end" : "items-start"} group relative inline-block" `}>
       {emojiarray}
       <button className="bg-gray-800 w-8 mt-2 p-1 rounded-full hover:bg-gray-900">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-white">
         <path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
       </svg>
       </button>
       
 
         {/* Forward Icon & Button */}
-        <div className={`flex flex-row mb-3 ${isMe ? "items-end right-0" : "items-start left-0"} absolute -bottom-12 w bg-white bg-opacity-30 opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md gap-3 inline-flex items-center`}>
+        <div className={`flex flex-row mb-3 ${isMe ? "items-end right-8" : "items-start left-8"} absolute -bottom-3 w bg-white bg-opacity-30 opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md gap-3 inline-flex items-center`}>
           {selectedMessages.includes(message) && selectedMessages.length > 0 && (
             <button
               className="text-white text-sm underline whitespace-nowrap"
@@ -256,7 +252,7 @@ const renderReply = (
             😮
           </button>
            <button onClick={() => {setReplyingTo(message); setOpen(false)}}  className="bg-gray-800 p-1 rounded-full hover:bg-gray-900">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-white">
           <path stroke-linecap="round" stroke-linejoin="round" d="M7.49 12 3.74 8.248m0 0 3.75-3.75m-3.75 3.75h16.5V19.5" />
         </svg>
 
@@ -268,7 +264,7 @@ const renderReply = (
         onClick={handleOpen}
         className="bg-gray-800 p-1 rounded-full hover:bg-gray-900"
       >
-       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-white">
   <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
 </svg>
 
@@ -277,12 +273,6 @@ const renderReply = (
         </div>
       </div>
         </div>
-
-        {isMe && (
-          <div className="w-10 h-10 rounded-full bg-black flex text-2xl items-center justify-center text-white font-semibold ml-2">
-            {firstLetter}
-          </div>
-        )}
           </div>
       {/* Preview Modal */}
       {preview.open && (
@@ -366,10 +356,7 @@ const renderReply = (
 
   return(
     <div>
-      <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg w-80 text-xs p-3">
-        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
-        Learn More.
-      </div>
+      
       {content}
     </div>
   )

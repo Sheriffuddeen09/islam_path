@@ -46,6 +46,7 @@ const closeReport = () => {
     }
   }, [activeChat, isMobile]);
 
+  
   const chatPartner =
   activeChat && user
     ? activeChat.teacher?.id === user.id
@@ -175,7 +176,7 @@ const closeReport = () => {
 
     {/* CHAT CONTENT */}
     <div className="flex-1 overflow-hidden">
-      {content}
+      {/* {content} */}
     </div>
 
   </div>
