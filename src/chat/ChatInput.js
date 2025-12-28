@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import api from "../Api/axios";
 import VoiceNote from "./VoiceNote";
+import toast, {Toaster} from "react-hot-toast";
+import { useAuth } from "../layout/AuthProvider";
 
-export default function ChatInput({ setReplyingTo, replyingTo, chatId, onSend, setMessages }) {
+export default function ChatInput({ setReplyingTo, replyingTo, chatId, onSend, setMessages, activeChat, setActiveChat, setChats }) {
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [sending, setSending] = useState(false);
+  const {user: authUser} = useAuth()
 
   const typingTimeout = useRef(null);
 
@@ -16,42 +19,64 @@ export default function ChatInput({ setReplyingTo, replyingTo, chatId, onSend, s
     typingTimeout.current = setTimeout(() => {}, 1500);
   };
 
-  const sendMessage = async () => {
+   const sendMessage = async () => {
+  if (sending) return;
   if (!text.trim() && !file) return;
 
   const form = new FormData();
   form.append("chat_id", chatId);
-  if (file) form.append("type", file.type.split("/")[0]);
-  else form.append("type", "text");
-  if (text) form.append("message", text);
-  if (file) form.append("file", file);
-  if (replyingTo) form.append("replied_to", replyingTo.id);
+
+  let messageType = "text";
+
+  if (file) {
+    if (!(file instanceof File)) {
+      toast.error("Invalid file selected");
+      return;
+    }
+
+    if (file.type.startsWith("image/")) messageType = "image";
+    else if (file.type.startsWith("audio/")) messageType = "voice";
+    else if (file.type.startsWith("video/")) messageType = "video";
+    else messageType = "file";
+
+    form.append("file", file); // ✅ ALWAYS FROM STATE
+  }
+
+  form.append("type", messageType);
+  if (text.trim()) form.append("message", text);
 
   try {
     setSending(true);
     const { data } = await api.post("/api/messages", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (e) => {
-        if (file) setUploadProgress(Math.round((e.loaded * 100) / e.total));
-      },
+      headers: { "Content-Type": "multipart/form-data" }
     });
-
-    // Update parent messages
-    if (onSend) onSend(data);
 
     setText("");
     setFile(null);
-    setUploadProgress(0);
-    setReplyingTo(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
+    if (onSend) onSend(data);
 
   } catch (err) {
-    console.error(err);
+    toast.error(err.response?.data?.message || "Upload failed");
   } finally {
     setSending(false);
   }
 };
 
+
+
+
 const textareaRef = useRef(null);
+const fileInputRef = useRef(null);
+
+console.log("fileInputRef.current.files[0]", fileInputRef.current?.files[0]);
+
+const isBlocked = activeChat?.block_info?.blocked_id === authUser.id;
+
 
 useEffect(() => {
   if (replyingTo && textareaRef.current) {
@@ -103,27 +128,36 @@ useEffect(() => {
 
       <div className="pt-2  mb-2 flex relative gap-2">
         <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            handleTyping();
-          }}
-           className={`flex-1 border rounded-lg px-3 py-5 -mb-4 text-sm text-black resize-none transition-all duration-200
-                    ${text.split(/\s+/).length > 70 ? "h-40" : "h-16"}  ${sending ? "bg-gray-100 cursor-not-allowed" : ""}
-                  `}
-          placeholder="Type a message…"
-        />
+    ref={textareaRef}
+    value={text}
+    onChange={(e) => {
+      if (!isBlocked) setText(e.target.value);
+      handleTyping();
+    }}
+    className={`flex-1 border rounded-lg px-3 py-5 -mb-4 text-sm text-black resize-none transition-all duration-200
+      ${text.split(/\s+/).length > 70 ? "h-40" : "h-16"}
+      ${sending || isBlocked ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
+    `}
+    placeholder={isBlocked ? "You have been blocked in this chat" : "Type a message…"}
+    readOnly={isBlocked}
+  />
 
         <div className="inline-flex items-center absolute top-2 right-4 gap">
           {/* File input */}
           <label className="cursor-pointer px-3 py-2 rounded">
             <input
-              type="file"
-              hidden
-              onChange={(e) => setFile(e.target.files[0])} // just select file, don't send yet
-              accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            />
+            ref={fileInputRef}
+            type="file"
+            hidden
+            onChange={(e) => {
+              const selectedFile = e.target.files?.[0];
+              if (selectedFile) {
+                setFile(selectedFile);
+              }
+            }}
+            accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          />
+
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -140,11 +174,13 @@ useEffect(() => {
             </svg>
           </label>
 
-          {/* Record Vioce note mb */}
-
-          <VoiceNote chatId={chatId} onNewMessage={(message) => setMessages(prev => [...prev, message])} />
+          {/* Record Voice note mb */}
+          {!activeChat?.block_info && (
+            <VoiceNote chatId={chatId} onNewMessage={(message) => setMessages(prev => [...prev, message])} />
+          )}
 
           {/* Send button */}
+  {!activeChat?.block_info && (
           <button
             onClick={sendMessage}
             className="px-4 py-2 rounded flex items-center justify-center"
@@ -188,8 +224,11 @@ useEffect(() => {
               </svg>
             )}
           </button>
+
+          )}
         </div>
       </div>
+      <Toaster position="top-10" className="flex justify-center items-center mx-auto" />
     </div>
   );
 }

@@ -3,9 +3,12 @@ import { useAuth } from "../layout/AuthProvider";
 import api from "../Api/axios";
 import { initEcho } from "../echo";
 import { Check, CheckCheck } from "lucide-react";
-import logo from "../layout/image/favicon.png";
 import ChatWindow from "../chat/ChatWindow";
 import { Link } from "react-router-dom";
+import toast, {Toaster} from "react-hot-toast";
+import BlockButton from "../chat/Block";
+import UserStatus from "../chat/online/OnlineStatuesDot";
+
 
 
 // ================= SKELETON =================
@@ -32,7 +35,7 @@ function ChatSkeleton({ title }) {
 
 
   
-export default function LiveClass() {
+export default function LiveClass({fetchUnreadCount}) {
   const { user: authUser } = useAuth();
 
   const [loadingUser, setLoadingUser] = useState(true);
@@ -44,7 +47,6 @@ export default function LiveClass() {
 
   const [messages, setMessages] = useState([]);
 
-  const [onlineStatus, setOnlineStatus] = useState({});
   const [chatFilter, setChatFilter] = useState("all"); // all | unread
 
 
@@ -81,23 +83,36 @@ const closeReport = () => {
 
   // ================= FETCH CHATS =================
   const fetchChats = async () => {
-    if (!authUser) return;
-    try {
-      setLoadingChats(true);
-      const res = await api.get("/api/chats");
-      setChats(
-        res.data.map(chat => ({
-          ...chat,
-          unread_count: chat.unread_count || 0,
-          latest_message: chat.latest_message || null
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingChats(false);
-    }
-  };
+  if (!authUser) return;
+
+  try {
+    setLoadingChats(true);
+
+    const res = await api.get("/api/chats");
+
+    const normalized = res.data.map(chat => ({
+      ...chat,
+      unread_count: Number(chat.unread_count || 0),
+      latest_message: chat.latest_message || null,
+
+      // ✅ normalize block info
+      block_info: chat.block_info
+        ? {
+            ...chat.block_info,
+            blocked_by_me: chat.block_info.blocker_id === authUser.id,
+            blocked_me: chat.block_info.blocked_id === authUser.id,
+          }
+        : null,
+    }));
+
+    setChats(normalized);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoadingChats(false);
+  }
+};
+
 
   useEffect(() => {
     if (!authUser || fetchedOnce.current) return;
@@ -124,22 +139,6 @@ const closeReport = () => {
     );
   }, [authUser, chats]);
 
-  useEffect(() => {
-    if (!chatUserIds.length) return;
-
-    const fetchStatus = async () => {
-      try {
-        const res = await api.post("/api/users/online-status-bulk", {
-          user_ids: chatUserIds,
-        });
-        setOnlineStatus(res.data || {});
-      } catch (e) {}
-    };
-
-    fetchStatus();
-    const i = setInterval(fetchStatus, 15000);
-    return () => clearInterval(i);
-  }, [chatUserIds]);
 
    
   // ================= REAL TIME ================= unread_count
@@ -194,11 +193,20 @@ const closeReport = () => {
 }, [authUser, activeChat]);
 
 
+
+
   // ================= OPEN CHAT =================
   const openChat = async (chat) => {
+  // 🚫 blocked check
+  if (chat.block_info?.blocked_me) {
+    toast.error("You have been blocked in this chat");
+    return;
+  }
+
   setActiveChat(chat);
 
-  // clear unread locally
+  fetchUnreadCount()
+  // ✅ clear unread locally
   setChats(prev =>
     prev.map(c =>
       c.id === chat.id ? { ...c, unread_count: 0 } : c
@@ -207,10 +215,37 @@ const closeReport = () => {
 
   try {
     const res = await api.get(`/api/chats/${chat.id}/messages`);
-    setMessages(res.data.messages || []);
+    setMessages(res.data || []);
+
+    // ✅ mark seen in backend
     await api.post(`/api/chats/${chat.id}/seen`);
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 };
+
+
+  // ================= Unblock =================
+const handleUnblock = async () => { 
+  try {
+    await api.post(`/api/chats/${activeChat.id}/unblock`);
+
+    // Update UI
+    setChats(prev =>
+      prev.map(c =>
+        c.id === activeChat.id ? { ...c, block_info: null } : c
+      )
+    );
+
+    setActiveChat(prev => ({ ...prev, block_info: null }));
+
+    toast.success("User unblocked");
+  } catch (err) {
+    toast.error("Failed to unblock user");
+    console.error(err);
+  }
+};
+
 
 
   // ================= HELPERS =================
@@ -294,11 +329,6 @@ const closeReport = () => {
           const isMine = lastMessage?.sender_id === authUser.id;
 
 
-          const isOnline = onlineStatus[other.id];
-
-          console.log(chat);
-
-
           return (
             <div
               key={chat.id}
@@ -315,8 +345,13 @@ const closeReport = () => {
 
               <div className="flex-1">
                 <div className="flex justify-between">
-                  <div className="font-semibold text-white">
+                  <div className="font-semibold text-white flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                     {other.first_name} {other.last_name}
+                   <UserStatus user={authUser} />
+                    </div>
+
+                    {/* ✅ Blocked badge inside user box */}
                   </div>
                   {lastMessage && (
                     <span className="text-xs text-white">
@@ -329,12 +364,22 @@ const closeReport = () => {
                   <div className="flex items-center gap-1 truncate">
                     {isMine && lastMessage && (
                       lastMessage.seen_at
-                        ? <CheckCheck size={16} className="text-white" />
+                        ? <CheckCheck size={16} className="blue-200" />
                         : <Check size={16} />
                     )}
                     <span className="truncate">
                       {getMessagePreview(lastMessage)}
                     </span>
+                    {chat.block_info?.blocked_by_me && (
+                    <span className="ml-2 text-xs bg-red-200 text-red-800 font-semibold px-2 py-0.5 rounded">
+                      You blocked
+                    </span>
+                  )}
+                  {chat.block_info?.blocked_me && (
+                    <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">
+                      Blocked
+                    </span>
+                  )}
                   </div>
 
                   {chat.unread_count > 0 && activeChat?.id !== chat.id && (
@@ -380,7 +425,7 @@ const closeReport = () => {
                       </button>
                       {authUser && chatPartner &&  (
                       <Link to={`/profile/${chatPartner.id}`} className="inline-flex items-center gap-2">
-                        <div className="w-12 h-12 rounded-full bg-blue-900 text-white text-xl flex items-center justify-center font-bold">
+                        <div className="sm:w-12 w-10 sm:h-12 h-10 rounded-full bg-blue-900 text-white text-xl flex items-center justify-center font-bold">
                           {chatPartner?.first_name?.[0] || "?"}
                         </div>
       
@@ -392,8 +437,8 @@ const closeReport = () => {
       
                       </div>
 
-                      <div className="inline-flex items-center gap-3 sm:mx-4 mx-2 ">
-                                              <div className="flex items-center gap-2">
+                      <div className="inline-flex items-center sm:gap-3 gap-2 sm:mx-4 mx-2 ">
+                                              <div className="flex items-center gap-1">
                   {/* Minimize */}
                   <button
                     onClick={() => setIsMinimized(!isMinimized)}
@@ -437,14 +482,16 @@ const closeReport = () => {
                         </svg>
       
                     </button>
-      
+
+                   <BlockButton activeChat={activeChat} authUser={authUser} chatPartner={chatPartner} setActiveChat={setActiveChat} setChats={setChats} />
+
                     </div>
                     </div>
       
                     <ChatWindow messages={messages} setMessages={setMessages} activeChat={activeChat} setActiveChat={setActiveChat} setChats chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
                   </div>
                 }
-          
+          <Toaster position="top-10" className="flex justify-center items-center mx-auto" />
     </div>
   );
 }

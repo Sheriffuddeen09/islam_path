@@ -16,6 +16,18 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
 
   const [pendingCount, setPendingCount] = useState(0);
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchUnreadCount = async () => {
+      const res = await api.get("/api/messages/unread-count");
+      setUnreadCount(res.data.unread_senders);
+    };
+
+    useEffect(() => {
+      fetchUnreadCount();
+    }, []);
+
+
 
   useEffect(() => {
     api.get("/api/user-status").then(res => {
@@ -60,7 +72,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
   // Menu items for Comment 1
   const teacherMenu = [
     { id: 7, label: "Student Request", showBadge: true },
-    { id: 8, label: "Message" },
+    { id: 8, label: "Class Message", showBadges: true },
     { id: 9, label: "Student Assignment" },
     { id: 10, label: "Student Quiz" },
   ];
@@ -172,10 +184,18 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
             >
               {item.label}
               {item.showBadge && pendingCount > 0 && (
-        <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-          {pendingCount}
-        </span>
-      )}
+                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
+
+              {
+                item.showBadges && unreadCount > 0 && (
+                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )
+              }
             </li>
           ))}
         </ul>
@@ -203,7 +223,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
         <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-        <LiveClass  />
+        <LiveClass fetchUnreadCount={fetchUnreadCount} />
         </div>
       </section>
     </div>

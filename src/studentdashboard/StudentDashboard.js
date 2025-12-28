@@ -13,6 +13,18 @@ export default function StudentDashboardLayout() {
   
   const [pendingRequests, setPendingRequests] = useState(0);
 
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+      const fetchUnreadCount = async () => {
+        const res = await api.get("/api/messages/unread-count");
+        setUnreadCount(res.data.unread_senders);
+      };
+  
+      useEffect(() => {
+        fetchUnreadCount();
+      }, []);
+
+
   useEffect(() => {
     api.get("/api/notifications/requests").then(res => {
       setPendingRequests(res.data.pending_requests);
@@ -33,7 +45,7 @@ export default function StudentDashboardLayout() {
 
   const menu = [
   { id: 7, label: "Teacher Request", showBadge: true },
-  { id: 8, label: "Message" },
+  { id: 8, label: "Class Message", showBadges: true },
   { id: 9, label: "View Assignment" },
   { id: 10, label: "View Quiz" },
   { id: 11, label: "Ranks" },
@@ -129,6 +141,13 @@ export default function StudentDashboardLayout() {
                   {pendingRequests}
                 </span>
               )}
+               {
+                item.showBadges && unreadCount > 0 && (
+                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )
+              }
             </li>
           ))}
         </ul>
@@ -148,7 +167,7 @@ export default function StudentDashboardLayout() {
         <StudentRequest />
         </div>
         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-        <LiveClass  />
+        <LiveClass fetchUnreadCount={fetchUnreadCount} />
         </div>
       </section>
     </div>

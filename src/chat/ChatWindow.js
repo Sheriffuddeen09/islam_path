@@ -141,7 +141,7 @@ const handleSend = async (newMessage) => {
 
       
       {/* Input */}
-      <ChatInput chatId={chat.id} activeChat={activeChat} setReplyingTo={setReplyingTo} replyingTo={replyingTo} setMessages={setMessages} onSend={handleSend}
+      <ChatInput chatId={chat.id}  activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats} setReplyingTo={setReplyingTo} replyingTo={replyingTo} setMessages={setMessages} onSend={handleSend}
          />
     </>
   );

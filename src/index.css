@@ -325,3 +325,6 @@ ol {
 .reply-highlight {
   animation: replyFlash 1.2s ease-out;
 }
+.blue-200 {
+  color: #0759be;
+}

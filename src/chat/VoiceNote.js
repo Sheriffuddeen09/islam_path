@@ -177,7 +177,7 @@ export default function VoiceNote({ chatId, onNewMessage }) {
     <span className="text-black">{time}</span>
   </div>
 )}
-
+<Toaster position="top-10" className="flex justify-center items-center mx-auto" />
     </div>
   );
 }

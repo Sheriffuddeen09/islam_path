@@ -4,6 +4,7 @@ import MessageBubblePop from "./MessageModal";
 import { ForwardModal } from "./ForwardMessage";
 import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
+import { Check, CheckCheck } from "lucide-react";
 
 export default function MessageBubble({
   message,
@@ -171,7 +172,7 @@ const renderReply = (
   const time = message.created_at
     ? new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     : "";
-  const bubbleColor = isMe ? "bg-gray-600 text-white" : "bg-blue-800 text-white";
+  const bubbleColor = isMe ? "bg-gray-800 text-white" : "bg-green-800 text-white";
   const baseUrl = "http://localhost:8000";
   const fileUrl = message.file
     ? message.file.startsWith("http")
@@ -189,7 +190,13 @@ const renderReply = (
       case "voice":
         return <audio src={fileUrl} controls className="w-52" />;
       case "file":
-        return <a href={fileUrl} target="_blank" className="underline text-blue-700">Download file</a>;
+        return <div className={`inline-flex items-center border p-2 font-semibold rounded text-white ${isMe ? 'bg-gray-700' : "bg-green-700"}`}>
+          <a href={fileUrl} target="_blank" className="underline text-blue-700">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" 
+          class="size-6 border font-bold border-white text-white rounded-full p-1 mr-2">
+        <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+        </svg>
+        </a>Document</div>;
       default:
         return <span className="whitespace-pre-wrap w-full break-words">{message.message}</span>;
     }
@@ -215,9 +222,22 @@ const renderReply = (
             </div>
           )}
 
-          <div className="flex justify-end items-center whitespace-nowrap gap-1 mt-1 text-[8px] float-right">
-            <span>{time}</span>
-          </div>
+         {/* Message time and seen indicator */}
+<div className="flex justify-end items-center whitespace-nowrap gap-1 mt-1 text-[10px] float-right">
+  <span>{time}</span>
+  
+  {/* Seen Checkmarks */}
+        {isMe && message.sender_id === user.id && (
+          <span className="flex items-center gap-0.5 ml-1">
+            {message.seen_at
+              // Two blue checkmarks for seen
+              ? <CheckCheck size={16} className="blue-200" />
+              : <Check size={16} />
+            }
+          </span>
+        )}
+      </div>
+
 
           
         </div>
