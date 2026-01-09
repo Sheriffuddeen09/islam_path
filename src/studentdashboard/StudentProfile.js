@@ -127,7 +127,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       
           <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
              === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800"
-          }`}>Video</button>
+          }`}>Course </button>
           <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
              === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800 "
           }`}>Student Performance</button>

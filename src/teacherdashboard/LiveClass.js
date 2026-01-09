@@ -14,12 +14,12 @@ import UserStatus from "../chat/online/OnlineStatuesDot";
 // ================= SKELETON =================
 function ChatSkeleton({ title }) {
   return (
-    <div className="px-4 lg:ml-60">
+    <div className="px-4">
       {title && (
-        <div className="h-6 w-48 bg-gray-200 mt-24 lg:ml-60 rounded mx-auto mb-6 animate-pulse" />
+        <div className="h-6 bg-gray-200rounded mx-auto mb-6 animate-pulse" />
       )}
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="flex gap-3 p-4 lg:ml-60 border-b animate-pulse">
+        <div key={i} className="flex gap-3 p-4 border-b animate-pulse">
           <div className="w-2.5 h-2.5 rounded-full bg-gray-300 mt-4" />
           <div className="w-10 h-10 rounded-full bg-gray-300" />
           <div className="flex-1 space-y-2">
@@ -276,7 +276,13 @@ const handleUnblock = async () => {
 }
 
 
-  if (loadingUser) return <ChatSkeleton title />;
+  if (loadingUser)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
+
   if (!authUser) return <div className="p-4 text-red-500">Not authenticated</div>;
 
   return (
@@ -367,7 +373,7 @@ const handleUnblock = async () => {
                         ? <CheckCheck size={16} className="blue-200" />
                         : <Check size={16} />
                     )}
-                    <span className="truncate">
+                    <span className="w-52 sm:w-full">
                       {getMessagePreview(lastMessage)}
                     </span>
                     {chat.block_info?.blocked_by_me && (
@@ -430,7 +436,7 @@ const handleUnblock = async () => {
                         </div>
       
                         <span className="font-semibold truncate text-black">
-                          {chatPartner?.first_name} {chatPartner?.last_name}
+                          {chatPartner?.first_name} {chatPartner?.last_name?.[0]}
                         </span>
                       </Link>
                     )}

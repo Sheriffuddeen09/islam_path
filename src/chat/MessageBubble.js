@@ -180,6 +180,30 @@ const renderReply = (
       : `${baseUrl}/storage/${message.file}`
     : null;
 
+
+    const linkifyText = (text) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  return text.split(urlRegex).map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+};
+
+
   const renderContent = () => {
     switch (message.type) {
       case "image":
@@ -198,7 +222,11 @@ const renderReply = (
         </svg>
         </a>Document</div>;
       default:
-        return <span className="whitespace-pre-wrap w-full break-words">{message.message}</span>;
+            return (
+              <span className="whitespace-pre-wrap w-full break-words">
+                {linkifyText(message.message)}
+              </span>
+            );
     }
   };
 

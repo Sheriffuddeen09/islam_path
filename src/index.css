@@ -187,12 +187,12 @@
   font-weight: bold;
 }
 
-.dynamic {
+/* .dynamic {
   margin-left: -15px;
   height: 20px;
   overflow: hidden;
   line-height: 20px;
-}
+} */
 
 main {
   position: relative;
@@ -213,13 +213,13 @@ main {
 .admin{
   animation: adminChange 4s infinite alternate;
 }
-/* 🔵🟢🔴 Color Changing Animation */
+/* 🔵🟢🔴 Color Changing Animation */ ol{}
 
 @keyframes colorChange {
-  0% { background-color: #342d2d; }     /* Red */
-  33% { background-color: #21333b; }    /* Blue */
-  66% { background-color: #153426; }    /* Green */
-  100% { background-color: #352d19; }   /* Yellow */
+  0% { color: #342d2d; }     /* Red */
+  33% { color: #21333b; }    /* Blue */
+  66% { color: #153426; }    /* Green */
+  100% { color: #352d19; }   /* Yellow */
 }
 
 @keyframes textChange {
@@ -250,9 +250,8 @@ main::after {
   height: 100%;
   width: 100%;
   left: 0;
-  border-left: 2px solid black;
   background-color: white;
-  animation: typing 5s steps(24) infinite;
+  animation: typing 5s steps(25) infinite;
 }
 
 @keyframes typing {
@@ -327,4 +326,34 @@ ol {
 }
 .blue-200 {
   color: #0759be;
+}
+
+.btn-primary {
+  @apply bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500;
+}
+
+.btn-secondary {
+  @apply bg-gray-300 px-4 py-2 rounded;
+}
+
+.card {
+  @apply bg-gray-100 p-4 rounded shadow;
+}
+
+.input {
+  @apply border p-2 rounded w-full;
+}
+@keyframes questionFade {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-question {
+  animation: questionFade 0.3s ease-in-out;
 }

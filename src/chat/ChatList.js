@@ -153,14 +153,28 @@ useEffect(() => {
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  const truncateWords = (text, limit = 50) => {
+  if (!text) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length <= limit) return text;
+  return words.slice(0, limit).join(" ") + "…";
+};
+
+
   const getMessagePreview = (msg) => {
-    if (!msg) return "Start a Conservation";
-    if (msg.type === "text") return msg.message;
-    if (msg.type === "image") return "📷 Image uploaded";
-    if (msg.type === "video") return "🎬 Video uploaded";
-    if (msg.type === "voice") return "🎵 Voice note Uploaded";
-    return "📄 Document uploaded";
-  };
+  if (!msg) return "Start a conversation";
+
+  if (msg.type === "text") {
+    return truncateWords(msg.message, 50);
+  }
+
+  if (msg.type === "image") return "📷 Image uploaded";
+  if (msg.type === "video") return "🎬 Video uploaded";
+  if (msg.type === "voice") return "🎵 Voice note uploaded";
+
+  return "📄 Document uploaded";
+};
+
 
   return (
     <div className="h-full overflow-y-auto ">
@@ -218,7 +232,7 @@ useEffect(() => {
                       ? <CheckCheck className="w-4 h-4 text-blue-500" />
                       : <Check className="w-4 h-4 text-gray-400" />
                   )}
-                  <p className="text-xs">{getMessagePreview(lastMessage)}</p>
+                  {/* <p className="text-xs w-40">{getMessagePreview(lastMessage)}</p> */}
                 </div>
 
                 {chat.unread_count > 0 && (

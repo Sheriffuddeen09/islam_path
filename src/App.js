@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
@@ -13,9 +13,7 @@ import AdminChoice from "./Form/AdminChoice";
 import GetMentor from "./pages/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 import {  useState } from "react";
-import StudentDashboardLayout from "./studentdashboard/StudentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
-import RouteChangeWrapper from "./route/RouteChangeWrapper";
 import VideoPlayerId from "./pages/video/VideoPlayerId";
 import VideoPageApi from "./pages/video/VideoPageApi";
 import ProtectRoute from "./route/ProtectRouter";
@@ -24,6 +22,12 @@ import ReportList from "./report/ReportList";
 import ProfilePageId from "./teacherdashboard/AdminProfileId";
 import ChatPage from './chat/ChatPage'
 import ReportChat from "./chat/ReportChat";
+import StudentAssignment from "./assignment/StudentAssignment";
+import StudentExam from "./exam/StudentExam";
+import StudentDashboard from "./studentdashboard/StudentDashboard";
+import ExpiredPage from "./assignment/ExpiredPage";
+import AssignmentBlock from "./assignment/Block";
+import ExamBlock from "./exam/Block";
 
    
 function App() {
@@ -46,7 +50,7 @@ function App() {
   
   return (
     <div className="">
-      <RouteChangeWrapper>
+     
       <Routes>
 
       {/* Home Page*/}
@@ -117,6 +121,34 @@ function App() {
           <ResetPassword />
       } />
 
+
+      {/* Student Assignment */}
+
+      <Route
+          path="/student/assignment/:token"
+          element={<StudentAssignment />}
+        />
+
+        <Route
+          path="/student/exams/:token"
+          element={<StudentExam />}
+        />
+
+        <Route
+          path="/expire"
+          element={<ExpiredPage />}
+        />
+
+         <Route
+          path="/block"
+          element={<AssignmentBlock />}
+        />
+
+        <Route
+          path="/block"
+          element={<ExamBlock />}
+        />
+
       <Route 
           path="/admin/teacher-form" 
           element={<TeacherOnboarding onProfileCompleted={setUser} />} 
@@ -138,17 +170,16 @@ function App() {
           path="/student/dashboard"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboardLayout />
+              <StudentDashboard />
             </ProtectedRoute>
           }
       />
 
-
+    
        <Route path="*" element={<NotFound />} />
 
       </Routes>
         <ToastContainer />
-      </RouteChangeWrapper>
     </div>
   );
 }

@@ -59,9 +59,15 @@ export default function AuthProvider({ children }) {
   // 🔄 Global loader
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-white">
+      <div className="flex items-center flex-col justify-center h-screen bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid" />
+        <div className="wrapper flex flex-col items-center">
+        <p className="text-2xl sm:text-4xl welcome font-bold text-black mb-2">Welcome to</p>
+        <ul className="dynamic mt-1 mb-5 text-2xl sm:text-4xl">
+          <ol><main>Islam Path of Knowledge</main></ol>
+        </ul>
       </div>
+    </div>
     );
   }
 
