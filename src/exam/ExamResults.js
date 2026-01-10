@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
 import toast, { Toaster } from "react-hot-toast";
+import ExamFetchPdf from "./ExamFetchPdf";
 
+export async function fetchExamResult (id) {
+  const res = await api.get(
+    `/api/exam-results-pdf/${id}`
+  );
+  return res.data;
+}
 
 export default function ExamResults() {
     const [results, setResults] = useState([]);
@@ -163,25 +170,9 @@ export default function ExamResults() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {user.role === "student" && (
-                          <button onClick={() => downloadPdf(r.id)}
-                            className="px-3 py-2 text-sm bg-green-600 text-white text-sm rounded"
-                          >
-                            {
-                           loadingPdf ? (
-                            <svg
-                            className="animate-spin h-5 w-5 text-white text-sm"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                          </svg>
-                           ) :
-                            "Download Result"
-                           } 
-                          </button>
-                        )}
+                        <ExamFetchPdf resultId={r.id} preview={preview} />
+                        
+                      )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button

@@ -73,10 +73,12 @@ const styles = StyleSheet.create({
   }
 });
 
-export default function AssignmentResultPDF({result}) {
 
+export default function ExamResultPDF({ result }) {
 
-  const percentage = ((result.score / result.total_questions) * 100).toFixed(2);
+  
+  const percentage =
+    ((result.score / result.total_questions) * 100).toFixed(2);
 
   return (
     <Document>
@@ -85,12 +87,12 @@ export default function AssignmentResultPDF({result}) {
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.title}>
-            {result.assignment.title}
+            {result.exam.title}
           </Text>
 
           <Text style={styles.meta}>
-            Teacher: {result.assignment.teacher.first_name}{" "}
-            {result.assignment.teacher.last_name}
+            Teacher: {result.exam.teacher.first_name}{" "}
+            {result.exam.teacher.last_name}
           </Text>
 
           <Text style={styles.meta}>
@@ -108,7 +110,7 @@ export default function AssignmentResultPDF({result}) {
         </View>
 
         {/* QUESTIONS */}
-        {result.assignment.questions.map((q, index) => {
+        {result.exam.questions.map((q, index) => {
           const answer = result.answers.find(
             a => a.question_id === q.id
           );

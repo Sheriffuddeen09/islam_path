@@ -2,9 +2,16 @@ import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
 import toast, { Toaster } from "react-hot-toast";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import AssignmentResultPDF from "./AssignmentResultPDF";
+import AssignmentFetchPdf from "./AssignmentFetchPdf";
 
+
+
+export async function fetchAssignmentResult(id) {
+  const res = await api.get(
+    `/api/assignment-results-pdf/${id}`
+  );
+  return res.data;
+}
 
 
 
@@ -15,7 +22,6 @@ export default function AssignmentResults() {
     const [deleteLoading, setDeleteLoading] = useState(null);
     const [deletePop, setDeletePop] = useState(null);
     const [loading, setLoading] = useState(false)
-    const [loadingPdf, setLoadingPdf] = useState(false)
 
     const {user} = useAuth()
     
@@ -75,30 +81,7 @@ export default function AssignmentResults() {
       fetchResults();
     }, []);
   
-   const downloadPdf = async (id) => {
-    
-      setLoadingPdf(true);
-
-    try {
-  
-      const res = await api.get(
-        `/api/assignment-results/${id}/pdf`,
-        { responseType: "blob" }
-      );
-  
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "assignment-result.pdf");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (e) {
-      toast.error("Failed to download PDF");
-    } finally {
-      setLoadingPdf(false);
-    }
-  };
+   
   
     if (loading)
       return (
@@ -165,25 +148,7 @@ export default function AssignmentResults() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {user.role === "student" && (
-                          <button 
-                          onClick={() => downloadPdf(r.id)}
-                          className="px-3 py-2 text-sm bg-green-600 text-white text-sm rounded"
-                          >
-                           {
-                           loadingPdf ? (
-                            <svg
-                            className="animate-spin h-5 w-5 text-white text-sm"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                          </svg>
-                           ) :
-                            "Download Result"
-                           } 
-                          </button>
+                          <AssignmentFetchPdf resultId={r.id} />
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -291,18 +256,7 @@ export default function AssignmentResults() {
         </span>
       )}
 
-          <PDFDownloadLink
-          document={<AssignmentResultPDF result={preview} />}
-          fileName="assignment-result.pdf"
-        >
-          {({ loading }) =>
-            loading ? "Generating PDF..." : (
-              <button className="bg-green-600 text-white px-4 py-2 rounded">
-                Download PDF
-              </button>
-            )
-          }
-        </PDFDownloadLink>  
+      
           <h3 className="text-sm mb-1">
             <strong>Course Title:</strong> {preview.assignment.title}
           </h3>
