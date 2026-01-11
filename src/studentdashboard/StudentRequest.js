@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function StudentRequest() {
+export default function StudentRequest({handleVisible}) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
@@ -105,12 +105,12 @@ export default function StudentRequest() {
                   </td>
                   <td className="px-4 py-3 space-x-2 whitespace-nowrap">
                     {req.status === "accepted" && (
-                      <Link 
-                        to={`/live-class/`} 
+                      <button 
+                        onClick={() => handleVisible(8)}
                         className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
                       >
                         Start
-                      </Link>
+                      </button>
                     )}
                     {req.status === "declined" && (
                       <button
@@ -129,7 +129,7 @@ export default function StudentRequest() {
                   {["accepted", "declined"].includes(req.status) && (
                   <button
                     onClick={() => clearStudentRequest(req.id)}
-                    className="text-xs text-gray-400 hover:text-red-600 float-right -translate-x-5"
+                    className="text-xs text-gray-900 hover:text-red-600 translate-x-5"
                   >
                     {
             deleteLoading ? 

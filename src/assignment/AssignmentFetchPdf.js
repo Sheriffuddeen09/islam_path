@@ -3,29 +3,9 @@ import { fetchAssignmentResult } from "./AssignmentResults";
 import AssignmentResultPDF from "./AssignmentResultPDF";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 
-export default function AssignmentFetchPdf({ resultId }) {
+export default function AssignmentFetchPdf({ loadingResult, result }) {
 
 
-    const [result, setResult] = useState(null);
-      const [loading, setLoading] = useState(true);
-    
-      useEffect(() => {
-        const loadResult = async () => {
-          try {
-            const data = await fetchAssignmentResult(resultId);
-            setResult(data);
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setLoading(false);
-          }
-        };
-    
-        loadResult();
-      }, [resultId]);
-    
-      if (loading) return <p>Loading result...</p>;
-      if (!result) return <p>No result found</p>;
 
 
       return (
@@ -34,9 +14,10 @@ export default function AssignmentFetchPdf({ resultId }) {
             <PDFDownloadLink
             document={<AssignmentResultPDF result={result} />}
             fileName="assignment-result.pdf"
+            className="px-3 py-2 text-sm bg-blue-600 text-white text-sm rounded"
             >
             {
-                loading ? (
+                loadingResult ? (
                 <svg
                 className="animate-spin h-5 w-5 text-white text-sm"
                 xmlns="http://www.w3.org/2000/svg"

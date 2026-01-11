@@ -146,8 +146,8 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
           {req.status !== "pending" && (
           <button
             onClick={() => clearByTeacher(req.id)}
-            className="text-xs text-gray-500 hover:text-red-600"
-          >{
+             className="px-3 py-1 text-white rounded bg-gray-900 hover:bg-gray-700 flex items-center gap-2"
+              >{
             deleteLoading ? 
             (
     <svg

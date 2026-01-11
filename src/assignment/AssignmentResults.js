@@ -57,6 +57,7 @@ export default function AssignmentResults() {
     };
   
   
+  
     const deleteResult = async (id) => {
           setDeleteLoading(id);
           try {
@@ -111,9 +112,8 @@ export default function AssignmentResults() {
                     <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase whitespace-nowrap tracking-wider">
                       Ratio (%)
                     </th>
-                    <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider">Preview</th>
-                    <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase whitespace-nowrap tracking-wider">
-                      {user.role === "student" && ("Download PDF")}
+                    <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider whitespace-nowrap">Preview 
+                    {user.role === "student" && (" && Download Result")}                    
                     </th>
                     <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider">Remove</th>
                   </tr>
@@ -146,11 +146,7 @@ export default function AssignmentResults() {
                           Preview
                         </button>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        {user.role === "student" && (
-                          <AssignmentFetchPdf resultId={r.id} />
-                        )}
-                      </td>
+                      
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button
                           onClick={handleDeletePop}
@@ -240,7 +236,7 @@ export default function AssignmentResults() {
               >
                 ✕
               </button>
-  
+           
         {user.role === "student" && (
             <span className="text-sm  mb-2">
               <strong>Teacher:</strong>{" "}
@@ -261,17 +257,18 @@ export default function AssignmentResults() {
             <strong>Course Title:</strong> {preview.assignment.title}
           </h3>
 
-      <div className="flex flex-wrap gap-4 text-sm text-gray-700 mb-3">
+      <div className="flex flex-wrap items-start gap-4 text-sm text-gray-700 mb-3">
         <span>
           <strong>Score:</strong> {preview.score} / {preview.total_questions} * <strong>Ratio: {(preview.score / preview.total_questions * 100).toFixed(2)}%</strong>
         </span>
 
-  {/* ROLE-BASED NAME */}
+      {user.role === "student" && (
+              <AssignmentFetchPdf result={preview} loadingResult={loadingPreview} />
+           )}
           
         </div>
 
-            
-              {/* SCROLLABLE QUESTIONS */}
+            {/* SCROLLABLE QUESTIONS */}
       <div className="max-h-[60vh] overflow-y-auto space-y-4">
               {preview.assignment.questions.map((q, index) => {
                 const answer = preview.answers.find(

@@ -133,9 +133,8 @@ export default function ExamResults() {
                     <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase whitespace-nowrap tracking-wider">
                       Ratio (%)
                     </th>
-                    <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider">Preview</th>
-                    <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase whitespace-nowrap tracking-wider">
-                      {user.role === "student" && ("Download PDF")}
+                    <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider whitespace-nowrap">Preview 
+                      {user.role === "student" && (" && Download Result")}
                     </th>
                     <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider">Remove</th>
                   </tr>
@@ -168,12 +167,7 @@ export default function ExamResults() {
                           Preview
                         </button>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        {user.role === "student" && (
-                        <ExamFetchPdf resultId={r.id} preview={preview} />
-                        
-                      )}
-                      </td>
+                     
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button
                           onClick={handleDeletePop}
@@ -255,44 +249,46 @@ export default function ExamResults() {
         
         {/* PREVIEW MODAL */}
         {preview && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-3xl rounded-lg p-6 relative">
-              <button
-                onClick={() => setPreview(null)}
-                className="absolute top-3 right-3 text-gray-500"
-              >
-                ✕
-              </button>
-  
-        {user.role === "student" && (
-            <span className="text-sm  mb-2">
-              <strong>Teacher:</strong>{" "}
-              {preview.exam.teacher.first_name}{" "}
-              {preview.exam.teacher.last_name}
-            </span>
-          )}
-
-        {user.role === "admin" && preview.student && (
-        <span className="text-sm mb-2">
-          <strong>Attendant Student:</strong>{" "}
-          {preview.student.first_name} {preview.student.last_name}
-        </span>
-      )}
-
-          
-          <h3 className="text-sm mb-1">
-            <strong>Course Title:</strong> {preview.exam.title}
-          </h3>
-
-      <div className="flex flex-wrap gap-4 text-sm text-gray-700 mb-3">
-        <span>
-          <strong>Score:</strong> {preview.score} / {preview.total_questions} * <strong>Ratio: {(preview.score / preview.total_questions * 100).toFixed(2)}%</strong>
-        </span>
-
-  {/* ROLE-BASED NAME */}
-          
-        </div>
-
+                  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                    <div className="bg-white w-full max-w-3xl rounded-lg p-6 relative">
+                      <button
+                        onClick={() => setPreview(null)}
+                        className="absolute top-3 right-3 text-gray-500"
+                      >
+                        ✕
+                      </button>
+                   
+                {user.role === "student" && (
+                    <span className="text-sm  mb-2">
+                      <strong>Teacher:</strong>{" "}
+                      {preview.exam.teacher.first_name}{" "}
+                      {preview.exam.teacher.last_name}
+                    </span>
+                  )}
+        
+                {user.role === "admin" && preview.student && (
+                <span className="text-sm mb-2">
+                  <strong>Attendant Student:</strong>{" "}
+                  {preview.student.first_name} {preview.student.last_name}
+                </span>
+              )}
+        
+              
+                  <h3 className="text-sm mb-1">
+                    <strong>Course Title:</strong> {preview.exam.title}
+                  </h3>
+        
+              <div className="flex flex-wrap items-start gap-4 text-sm text-gray-700 mb-3">
+                <span>
+                  <strong>Score:</strong> {preview.score} / {preview.total_questions} * <strong>Ratio: {(preview.score / preview.total_questions * 100).toFixed(2)}%</strong>
+                </span>
+        
+              {user.role === "student" && (
+                      <ExamFetchPdf result={preview} loadingResult={loadingPreview} />
+                   )}
+                  
+                </div>
+        
             
               {/* SCROLLABLE QUESTIONS */}
       <div className="max-h-[60vh] overflow-y-auto space-y-4">

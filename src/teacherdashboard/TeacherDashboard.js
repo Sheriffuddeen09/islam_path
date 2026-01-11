@@ -320,7 +320,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
       {/* ---------------------- MAIN CONTENT ---------------------- */}
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <DashboardLayout user={user} setUser={setUser} />
+        <DashboardLayout handleVisible={handleVisible} user={user} setUser={setUser} />
         </div>
         {/* <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <StudentRequest />
@@ -336,7 +336,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
         <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-        <LiveClass fetchUnreadCount={fetchUnreadCount} />
+        <LiveClass handleVisible={handleVisible} fetchUnreadCount={fetchUnreadCount} />
         </div>
         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
         <CreateAssignment  />

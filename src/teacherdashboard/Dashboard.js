@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import LogoutButton from "../Form/LogOut";
 import StudentAccept from './StudentAccept'
 
-export default function DashboardLayout() {
+export default function DashboardLayout({handleVisible}) {
   const [isloading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [videoCount, setVideoCount] = useState(0);
@@ -210,7 +210,7 @@ useEffect(() => {
           <div className="lg:col-span-2 bg-white shadow-lg rounded-xl p-4">
             {isloading ? <SkeletonTable /> : (
               <>
-               <StudentAccept />
+               <StudentAccept handleVisible={handleVisible} />
               </>
             )}
           </div>

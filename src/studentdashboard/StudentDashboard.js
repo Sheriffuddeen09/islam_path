@@ -269,10 +269,10 @@ export default function StudentDashboard (){
                          <StudentProfilePage />
                          </div>
                          <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
-                         <StudentRequest />
+                         <StudentRequest handleVisible={handleVisible} />
                          </div>
                          <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-                         <LiveClass fetchUnreadCount={fetchUnreadCount}  />
+                         <LiveClass  fetchUnreadCount={fetchUnreadCount}  />
                          </div> 
                          <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
                          <AssignmentLibrary  />
