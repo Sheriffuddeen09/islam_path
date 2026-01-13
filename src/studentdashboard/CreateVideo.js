@@ -10,6 +10,7 @@ import Notification from "../Form/Notification";
  */
 export default function CreateVideoSection({onCreated}) {
   const [open, setOpen] = useState(false);
+  const [category_id, setCategoryId] = useState("");
   const [desc, setDesc] = useState("");
   const [videoFile, setVideoFile] = useState(null);
   const [isPermissible, setIsPermissible] = useState(false);
@@ -30,7 +31,15 @@ export default function CreateVideoSection({onCreated}) {
   
 
 
- 
+  useEffect(() => {
+  const fetchCategories = async () => {
+    const res = await api.get("/api/categories");
+    const data = await res.data;
+    setCategories(data);
+  };
+
+  fetchCategories();
+}, []);
 
 
 
@@ -47,12 +56,14 @@ export default function CreateVideoSection({onCreated}) {
   e.preventDefault();
 
   // VALIDATIONS
+  if (!category_id) return showNotification("Please select a category.", "error");
   if (!videoFile) return showNotification("Please choose a video file to upload.", "error");
   if (!isPermissible)
     return showNotification("You must confirm this content is permissible in Islam.", "error");
 
   const fd = new FormData();
   fd.append("description", desc);
+  fd.append("category_id", category_id);
   fd.append("video", videoFile);
   fd.append("is_permissible", isPermissible ? 1 : 0);
   if (thumb) fd.append("thumbnail", thumb);
@@ -139,6 +150,18 @@ export default function CreateVideoSection({onCreated}) {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                  <select onChange={(e) => setCategoryId(e.target.value)}
+                 value={category_id} className="w-full p-3 border cursor-pointer rounded-lg border border-blue-300 bg-white text-black">
+                  <option  value="">Select Category</option>
+                  {categories.map(c => (
+                    <option className="text-black cursor-pointer" key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

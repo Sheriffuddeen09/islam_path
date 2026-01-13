@@ -62,11 +62,8 @@ export default function AssignmentResults() {
           setDeleteLoading(id);
           try {
             await api.delete(`/api/assignment-results/${id}`);
-    
-            setResults(prev =>
-              prev.filter(result => result.id !== id)
-            );
-            toast.success("Result deleted");
+            setResults(prev => prev.filter(r => r.id !== id));
+            toast.success("Result removed");
             fetchResults();
       
             setDeletePop(false)
@@ -76,7 +73,7 @@ export default function AssignmentResults() {
             setDeleteLoading(null);
           }
         };
-      
+
   
     useEffect(() => {
       fetchResults();
@@ -113,7 +110,7 @@ export default function AssignmentResults() {
                       Ratio (%)
                     </th>
                     <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider whitespace-nowrap">Preview 
-                    {user.role === "student" && (" && Download Result")}                    
+                    {user.role === "student" && (" & Download")}                    
                     </th>
                     <th className="px-4 py-3 text-left text-white text-sm font-medium uppercase tracking-wider">Remove</th>
                   </tr>
@@ -143,69 +140,19 @@ export default function AssignmentResults() {
                           onClick={() => openPreview(r.id)}
                           className="px-3 py-2 text-sm bg-blue-600 text-white text-sm rounded"
                         >
-                          Preview
+                          Preview {user.role === "student" && ('& Download')}
                         </button>
                       </td>
                       
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button
-                          onClick={handleDeletePop}
-                          className="text-red-600"
+                        
+                          className="bg-red-600 rounded px-3 py-2 text-sm text-white hover:bg-red-700 transition disabled:opacity-50"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                          </svg>
+                         After 30 days
                         </button>
                       </td>
-                       {deletePop && (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-white w-full mx-auto text-center text-sm sm:text-[15px] p-2 font-semibold text-black sm:w-96 rounded-lg p-6 relative">
-        
-        <span className="text-center my-10">Are you sure you want to delete this Assignment, student won't be having access to the Assignment After Delete?</span>
-  
-        <div className="flex gap-3 my-5 justify-center">
-           {/* CANCEL */}
-          <button
-            onClick={() => setDeletePop(false)}
-            className="px-3 py-1 bg-gray-900 text-white text-sm rounded"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-  </svg>
-  
-          </button>
-  
-          {/* CONFIRM */}
-          <button
-            onClick={() => deleteResult(r.id)}
-            disabled={deleteLoading}
-            className="px-3 py-1 bg-red-600 text-white text-sm rounded flex items-center justify-center"
-          >
-            
-         
-        
-  
-            {deleteLoading === r.id ? (
-              <svg
-                className="animate-spin h-5 w-5 text-white text-sm"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-              </svg>
-            ) : (
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-  </svg>
-  
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  )}
+                       
                     </tr>
                   ))}
                 </tbody>
@@ -257,7 +204,7 @@ export default function AssignmentResults() {
             <strong>Course Title:</strong> {preview.assignment.title}
           </h3>
 
-      <div className="flex flex-wrap items-start gap-4 text-sm text-gray-700 mb-3">
+      <div className="flex items-start justify-between gap-1 text-sm text-gray-700 mb-3">
         <span>
           <strong>Score:</strong> {preview.score} / {preview.total_questions} * <strong>Ratio: {(preview.score / preview.total_questions * 100).toFixed(2)}%</strong>
         </span>

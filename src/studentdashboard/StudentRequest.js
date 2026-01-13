@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"; 
 import api from "../Api/axios";
 import { Link } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
+
 
 export default function StudentRequest({handleVisible}) {
   const [requests, setRequests] = useState([]);
@@ -67,15 +67,15 @@ export default function StudentRequest({handleVisible}) {
 
   return (
     <div className="p- lg:p-6 lg:ml-60 max-w-7xl mx-auto">
-      <ToastContainer position="top-right" autoClose={3000} />
+      <Toaster position="top-right" autoClose={3000} />
       <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">Live Class Requests</h2>
 
-      {requests.length === 0 ? (
-        <p className="text-gray-500 text-center">No live class requests sent yet.</p>
-      ) : (
-        // Scrollable container
-        <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-          <table className="min-w-full divide-y divide-gray-200">
+      
+        <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-80 no-scrollbar sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+          <table className="min-w-full divide-y divide-white bg-white">
+                 {requests.length === 0 && (
+        <p className="text-gray-500 p-4 text-center whitespace-nowrap">No Teacher Request Send</p>
+      )}
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
                 <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Teacher</th>
@@ -106,10 +106,10 @@ export default function StudentRequest({handleVisible}) {
                   <td className="px-4 py-3 space-x-2 whitespace-nowrap">
                     {req.status === "accepted" && (
                       <button 
-                        onClick={() => handleVisible(8)}
-                        className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
+                       
+                        className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-md hover:bg-green-700 font-semibold transition"
                       >
-                        Start
+                      Added to Your Message List
                       </button>
                     )}
                     {req.status === "declined" && (
@@ -168,7 +168,7 @@ export default function StudentRequest({handleVisible}) {
             </tbody>
           </table>
         </div>
-      )}
+      
     </div>
   );
 }

@@ -9,8 +9,11 @@ import AssignmentLibrary from "../assignment/AssignmentLibrary";
 import AssignmentResults from "../assignment/AssignmentResults";
 import ExamResults from "../exam/ExamResults";
 import ExamLibrary from "../exam/ExamLibrary";
+import StudentFriend from "../pages/friend/StudentFriend";
+import CreateVideoSection from "./CreateVideo";
+import LibraryPage from "../pages/video/LibraryVideo";
 
-export default function StudentDashboard (){
+export default function StudentDashboard ({onCreated}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -36,6 +39,15 @@ export default function StudentDashboard (){
           setPendingRequests(res.data.pending_requests);
         });
       }, []);
+
+
+      // useEffect(() => {
+      //   api.get("/api/friend-notifications/requests").then(res => {
+      //     setPendingRequests(res.data.pending_requests);
+      //   });
+      // }, []);
+
+
           const handleVisible = (id) => {
             setVisible(id)
           }
@@ -48,8 +60,8 @@ export default function StudentDashboard (){
         const menu = [
         { id: 7, label: "Teacher Request", showBadge: true },
         { id: 8, label: "Class Message", showBadges: true },
-        { id: 9, label: "View Unfinish Assignment" },
-        { id: 10, label: "View Unfinish Examination" },
+        { id: 9, label: "View Continue Assignment" },
+        { id: 10, label: "View Continue Examination" },
         { id: 11, label: "View Assignment Result" },
         { id: 12, label: "View Examination Result" },
         { id: 13, label: "Ranks" },
@@ -114,12 +126,12 @@ export default function StudentDashboard (){
                  <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                     === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                  }`}>
-                   Friends
+                   Library
                  </li>
                  <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                     === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                  }`}>
-                   Create Video
+                   Create Post
                  </li>
                  <li onClick={() => handleVisible(5)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                     === 5 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
@@ -195,26 +207,31 @@ export default function StudentDashboard (){
                  
                          <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
                          <ul className="space-y-2">
-                           <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                           <li onClick={() => {handleVisible(1);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                               === 1 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
                              Dashboard
                            </li>
                            <Link to="/">
-                           <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg hover:bg-gray-200 mt-2 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
+                           <li  className={`p-2 rounded-lg hover:bg-gray-200 mt-2 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
                              Home Page
                            </li>
                            </Link>
-                           <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                           <li onClick={() => {handleVisible(2);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                               === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                            }`}>
                              Message
                            </li>
-                           <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                           <li onClick={() => {handleVisible(3);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                               === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                            }`}>
-                             Friends
+                             Library
                            </li>
-                           <li onClick={() => handleVisible(5)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                            <li onClick={() => {handleVisible(4);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                           }`}>
+                             Create Post
+                           </li>
+                           <li onClick={() => {handleVisible(5);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                               === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                            }`}>
                              Profile
@@ -265,6 +282,12 @@ export default function StudentDashboard (){
                          <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
                          <DashboardStudent />
                          </div>
+                         <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
+                         <LibraryPage />
+                         </div>
+                          <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
+                          <CreateVideoSection onCreated={onCreated} />
+                          </div>
                          <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
                          <StudentProfilePage />
                          </div>

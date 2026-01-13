@@ -28,6 +28,7 @@ import StudentDashboard from "./studentdashboard/StudentDashboard";
 import ExpiredPage from "./assignment/ExpiredPage";
 import AssignmentBlock from "./assignment/Block";
 import ExamBlock from "./exam/Block";
+import StudentFriend from "./pages/friend/StudentFriend";
 
    
 function App() {
@@ -37,6 +38,7 @@ function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [teachers, setTeachers] = useState([]);
+    const [students, setStudents] = useState([]);
 
     const [user, setUser] = useState(null);
 
@@ -71,8 +73,8 @@ function App() {
       } />
 
 
-      <Route path="/library" element={
-          <LibraryPage />
+      <Route path="/friend" element={
+          <StudentFriend students={students} setStudents={setStudents} />
       } />
 
        <Route
@@ -170,7 +172,7 @@ function App() {
           path="/student/dashboard"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard />
+              <StudentDashboard onCreated={handleVideoCreated}  user={user} setUser={setUser} />
             </ProtectedRoute>
           }
       />

@@ -14,6 +14,7 @@ import AssignmentResults from "../assignment/AssignmentResults";
 import CreateExam from "../exam/CreateExam";
 import TeacherExamPreview from "../exam/TeacherExamPreview";
 import ExamResults from "../exam/ExamResults";
+import LibraryPage from "../pages/video/LibraryVideo";
 
 export default function TeacherDashboardLayout({onCreated, user, setUser, teachers, setTeachers}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -143,7 +144,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
           <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Friends
+            Library
           </li>
           <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
@@ -255,7 +256,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
           <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Friends
+            Library
           </li>
           <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
@@ -322,9 +323,9 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <DashboardLayout handleVisible={handleVisible} user={user} setUser={setUser} />
         </div>
-        {/* <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
-        <StudentRequest />
-        </div> */}
+        <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
+        <LibraryPage />
+        </div>
         <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
         <CreateVideoSection onCreated={onCreated} />
         </div>

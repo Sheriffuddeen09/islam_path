@@ -3,6 +3,8 @@ import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User2, User } from "lucide-react";
 import Performance from "./Performance";
 import StudentRequest from "./StudentRequest";
+import toast, { Toaster } from "react-hot-toast";
+
 
 export default function StudentProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -16,6 +18,9 @@ export default function StudentProfilePage() {
   type: "", // "success" | "error"
   message: "",
 });
+
+  const [student, setStudent] = useState(null);
+
 
 const showNotification = (type, message) => {
   setNotification({ show: true, type, message });
@@ -117,6 +122,97 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     const handleVisibleProfile = (id) => {
       setVisibleProfile(id)
     }
+
+
+    const [relation, setRelation] = useState(null);
+
+useEffect(() => {
+  api.get(`/api/student-friend/status/${student.id}`)
+    .then(res => setRelation(res.data));
+}, [student.id]);
+
+const sendRequest = async () => {
+  await api.post("/api/student-friend/request", {
+    student_id: student.id
+  });
+
+  setRelation({
+    status: "pending",
+    direction: "sent"
+  });
+
+  toast.success("Friend request sent");
+};
+
+const respond = async (action) => {
+  await api.post(`/api/student-requests/${relation.id}/respond`, { action });
+
+  if (action === "accepted") {
+    toast.success("Friend added");
+  } else {
+    toast("Request declined");
+  }
+
+  // Refresh status
+  const res = await api.get(`/api/student-friend/status/${student.id}`);
+  setRelation(res.data);
+};
+
+
+
+const renderButton = () => {
+  if (!relation || relation.status === "none") {
+    return (
+      <button
+        onClick={sendRequest}
+        className="px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        Add Friend
+      </button>
+    );
+  }
+
+  if (relation.status === "pending" && relation.direction === "sent") {
+    return (
+      <button
+        disabled
+        className="px-4 py-2 bg-gray-400 text-white rounded"
+      >
+        Pending
+      </button>
+    );
+  }
+
+  if (relation.status === "pending" && relation.direction === "received") {
+    return (
+      <div className="flex gap-2">
+        <button
+          onClick={() => respond("accepted")}
+          className="px-3 py-1 bg-green-600 text-white rounded"
+        >
+          Accept
+        </button>
+        <button
+          onClick={() => respond("declined")}
+          className="px-3 py-1 bg-red-600 text-white rounded"
+        >
+          Decline
+        </button>
+      </div>
+    );
+  }
+
+  if (relation.status === "accepted") {
+    return (
+      <button
+       
+        className="px-4 py-2 bg-purple-600 text-white rounded"
+      >
+        Message
+      </button>
+    );
+  }
+};
 
 
   if (loading) return <Loader />;
@@ -381,6 +477,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
    
   return(
     <div>
+         <Toaster position="top-right" autoClose={3000} />
+      
         {content}
         {profile_content}
 

@@ -82,7 +82,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
       {requests.map((req) => (
         <div
           key={req.id}
-          className="border p-4 rounded-lg mb-3 flex justify-between items-center"
+          className="border p-4 rounded-lg mb-3 flex flex-wrap justify-between items-center"
         >
           <div>
             <p className="font-semibold">
@@ -100,7 +100,9 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex  gap-2">
+            
+
             {req.status === "pending" && (
   <>
     <button
@@ -138,11 +140,20 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
         "Decline"
       )}
     </button>
+
+    
   </>
 )}
 
           </div>
-
+          <div className="flex items-center gap-2">
+            {req.status === "accepted" && (
+              <button
+                className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-md hover:bg-green-700 font-semibold transition"
+              >
+                         Added to Your Message List
+              </button>
+            )}
           {req.status !== "pending" && (
           <button
             onClick={() => clearByTeacher(req.id)}
@@ -177,6 +188,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
           }
           </button>
         )}
+        </div>
         </div>
       ))}
     </div>

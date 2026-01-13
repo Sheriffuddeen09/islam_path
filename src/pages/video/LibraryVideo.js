@@ -107,6 +107,13 @@ export default function LibraryPage() {
       </div>
     );
 
+    if (!videos.length) {
+    return (
+      <div className="p-6 text-center flex flex-col justify-center items-center  text-black text-3xl font-bold">
+        Library is Empty.
+      </div>
+    );
+  }
   const content = (
     <div className="p-4 grid grid-cols-1 pt-24 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {videos.map(video => (
@@ -177,7 +184,6 @@ export default function LibraryPage() {
 
   return (
     <div>
-      <Navbar />
       {content}
       {notification && (
         <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded shadow-lg">

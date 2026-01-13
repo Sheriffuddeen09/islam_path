@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import api from "../Api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import logo from './image/favicon.png'
 
 const AuthContext = createContext(null);
 
@@ -62,9 +63,8 @@ export default function AuthProvider({ children }) {
       <div className="flex items-center flex-col justify-center h-screen bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid" />
         <div className="wrapper flex flex-col items-center">
-        <p className="text-2xl sm:text-4xl welcome font-bold text-black mb-2">Welcome to</p>
-        <ul className="dynamic mt-1 mb-5 text-2xl sm:text-4xl">
-          <ol><main>Islam Path of Knowledge</main></ol>
+        <ul className="dynamic mt-1 my-5 text-4xl">
+          <ol><main>I P K</main></ol>
         </ul>
       </div>
     </div>
