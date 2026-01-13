@@ -199,7 +199,7 @@ const requestList = (
             </>
          
           {students.length === 0 && (
-            <p className="text-sm text-gray-500 mt-6">No Friend Available</p>
+            <p className="text-lg text-black font-bold text-start border-b p-2 ">No Friend Available</p>
           )}
         
         </div>
