@@ -3,7 +3,7 @@ import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
 import Navbar from "../layout/Header";
 
-export default function GetMentorProfile({teachers, setTeachers, handleEdit}) {
+export default function GetMentorProfileId({teachers, setTeachers}) {
   const { user } = useAuth();
   const authReady = user !== null;
 
@@ -163,15 +163,41 @@ useEffect(() => {
 
                   {/* Request Button */}
                   <button
-                        onClick={() => handleEdit(t)}
+                    onClick={() => handleRequest(t.id)}
                     disabled={loadingId === t.id}
                     className="text-white"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-            <path fill-rule="evenodd" d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z" clip-rule="evenodd" />
-          </svg>
+                    {loadingId === t.id ? (
+                      <div className="bg-gray-500 px-5 py-3 rounded-xl flex items-center">
+                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                      </div>
+                    ) : (
+                      <>
+                        {requestStatus[t.id] === "pending" && (
+                          <span className="bg-blue-600 hover:bg-blue-500 px-5 py-3 rounded-xl text-xs font-semibold">
+                            Pending
+                          </span>
+                        )}
 
-            <span className="">Edit Profile</span>
+                        {requestStatus[t.id] === "accepted" && (
+                          <span className="bg-gray-100 text-gray-700 px-5 py-3 rounded-xl text-xs font-semibold">
+                            Accepted
+                          </span>
+                        )}
+
+                        {requestStatus[t.id] === "declined" && (
+                          <span className="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-xl text-xs font-semibold">
+                            Resend
+                          </span>
+                        )}
+
+                        {!requestStatus[t.id] && (
+                          <span className="bg-green-600 hover:bg-green-500 px-5 py-3 rounded-xl text-xs font-semibold">
+                            Request Class
+                          </span>
+                        )}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

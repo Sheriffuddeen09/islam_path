@@ -37,10 +37,14 @@ export default function GetMentor({teachers, setTeachers}) {
   }, []);
 
   const sendLiveRequest = async (teacherId) => {
-    return api.post("/api/live-class/request", {
-      teacher_id: teacherId,
-    });
-  };
+  await api.post("/api/live-class/request", { teacher_id: teacherId });
+
+  setTeachers(prev =>
+    prev.filter(t => t.id !== teacherId)
+  );
+};
+
+
 useEffect(() => {
   const fetchRequestStatus = async () => {
     try {
@@ -102,11 +106,19 @@ useEffect(() => {
 }, [notification]);
 
 
-const filteredCourse = selectedCoursetitles
-  ? teachers.filter(
-      (t) => Number(t.coursetitle_id) === Number(selectedCoursetitles)
-    )
-  : teachers;
+const filteredCourse = teachers
+  // 1️⃣ Filter by course (if selected)
+  .filter(t =>
+    selectedCoursetitles
+      ? Number(t.coursetitle_id) === Number(selectedCoursetitles)
+      : true
+  )
+  // 2️⃣ Remove pending & accepted
+  .filter(t =>
+    requestStatus[t.id] !== "pending" &&
+    requestStatus[t.id] !== "accepted"
+  );
+
 
 
   if (loading)
@@ -162,7 +174,7 @@ const filteredCourse = selectedCoursetitles
         </aside>
 
 <div className="md:hidden block">
-        <ul className="flex space-x-4 w-full px-2 -mb-16 mt-28 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+        <ul className="flex space-x-1 w-full py-2 px-2 -mb-16 mt-24 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
   <li
     onClick={() => setSelectedCoursetitles(null)}
     className={`cursor-pointer whitespace-nowrap px-4 py-1 font-semibold w-24 h-10 mx-auto flex flex-col items-center justify-center  rounded-lg ${
@@ -226,7 +238,7 @@ const filteredCourse = selectedCoursetitles
                 {/* Video Thumbnail */}
                 <div>
                  <MentorCard t={t} selectedTeacher={selectedTeacher} handleRequest={handleRequest}
-                 loadingId={loadingId} notification={notification}
+                 loadingId={loadingId} notification={notification} filteredCourse={filteredCourse}
                  setRequestStatus={setRequestStatus} requestStatus={requestStatus} setSelectedTeacher={setSelectedTeacher}
                  />
                 </div>

@@ -53,6 +53,10 @@ useEffect(() => {
   if (!Array.isArray(messages) || messages.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6">
+        <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
+        Learn More.
+      </div>
         <img src={logo} alt="Logo" className="h-14 mb-4 opacity-80" />
 
         <h2 className="text-2xl font-semibold text-white mb-2">
@@ -60,8 +64,11 @@ useEffect(() => {
         </h2>
 
         <p className="text-white max-w-md">
-          Messages, live class discussions, and updates will appear here.
+          Messages, and updates will appear here.
         </p>
+        <div className="mt-6 mb-16 text-sm text-white">
+          💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
+        </div>
       </div>
     );
   }

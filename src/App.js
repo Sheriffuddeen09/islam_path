@@ -29,6 +29,8 @@ import ExpiredPage from "./assignment/ExpiredPage";
 import AssignmentBlock from "./assignment/Block";
 import ExamBlock from "./exam/Block";
 import StudentFriend from "./pages/friend/StudentFriend";
+import AdminFriend from "./pages/friend/AdminFriend"
+import ProfileRouter from "./route/ProfileRoute";
 
    
 function App() {
@@ -39,6 +41,8 @@ function App() {
     const [currentUser, setCurrentUser] = useState(null);
     const [teachers, setTeachers] = useState([]);
     const [students, setStudents] = useState([]);
+    const [admins, setAdmins] = useState([])
+    const [incomingRequests, setIncomingRequests] = useState([]);
 
     const [user, setUser] = useState(null);
 
@@ -73,8 +77,16 @@ function App() {
       } />
 
 
-      <Route path="/friend" element={
-          <StudentFriend students={students} setStudents={setStudents} />
+      <Route path="/student-friend" element={
+          <StudentFriend students={students} setStudents={setStudents} 
+          incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
+           />
+      } />
+
+      <Route path="/admin-friend" element={
+          <AdminFriend admins={admins} setAdmins={setAdmins} 
+          incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
+           />
       } />
 
        <Route
@@ -99,7 +111,10 @@ function App() {
 
 
       {/* profile */}
-     <Route path="/profile/:id" element={<ProfilePageId />} />
+      <Route path="/profile/:id" element={<ProfileRouter students={students} setStudents={setStudents}/>}
+      setIncomingRequests={setIncomingRequests} />
+
+
 
       {/* register */}
       <Route path="/register" element={

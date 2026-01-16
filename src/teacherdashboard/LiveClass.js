@@ -57,7 +57,7 @@ export default function LiveClass({fetchUnreadCount}) {
   const [openReport, setOpenReport] = useState(false);
 
  const handleReportPop = () => {
-  setOpenReport(true);  // 👈 open report modal
+  setOpenReport(true);  // 👈 open report modal 
 };
 
 const closeReport = () => {
@@ -67,12 +67,13 @@ const closeReport = () => {
 
   const chatPartner =
   activeChat && authUser
-    ? activeChat.teacher?.id === authUser.id
-      ? activeChat.student
-      : activeChat.student?.id === authUser.id
-      ? activeChat.teacher
-      : activeChat.teacher || activeChat.student
+    ? activeChat.user_one_id === authUser.id
+      ? activeChat.other_user
+      : activeChat.user_two_id === authUser.id
+      ? activeChat.other_user
+      : null
     : null;
+
 
 
   // ================= FETCH USER =================
@@ -326,10 +327,11 @@ const handleUnblock = async () => {
           </div>
         )}
 
+
         {filteredChats.map(chat => {
-          const isTeacher = ["teacher", "admin"].includes(authUser.role);
-          const other = isTeacher ? chat.student : chat.teacher;
-          if (!other) return null;
+          const other = chat.other_user;
+        if (!other) return null;
+
 
           const lastMessage = chat.latest_message;
           const isMine = lastMessage?.sender_id === authUser.id;
@@ -364,9 +366,16 @@ const handleUnblock = async () => {
                       {formatTime(lastMessage.created_at)}
                     </span>
                   )}
-                </div>
 
+                  
+                </div>
+                  {
+                    !lastMessage && (
+                      <p className="whitespace-nowrap text-white text-xs mt-1">Start a conversation </p>
+                    )
+                  }
                 <div className="flex justify-between items-center mt-1 text-sm text-white">
+                  
                   <div className="flex items-center gap-1 truncate">
                     {isMine && lastMessage && (
                       lastMessage.seen_at

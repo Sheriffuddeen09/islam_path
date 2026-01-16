@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import Navbar from "../../layout/Header";
-import StudentFriendCard from "./StudentFriendCard";
 import toast, { Toaster } from "react-hot-toast";
+import AdminFriendCard from "./AdminFriendCard";
 
-export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests}) {
+export default function AdminFriend({admins, setAdmins}) {
  
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
@@ -12,6 +12,7 @@ export default function StudentFriend({students, setStudents, setIncomingRequest
   const [loadingId, setLoadingId] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
+  const [ incomingRequests, setIncomingRequests] = useState([])
 
 
 
@@ -19,10 +20,10 @@ export default function StudentFriend({students, setStudents, setIncomingRequest
   useEffect(() => {
     const fetchStudent = async () => {
       try {
-        const res = await api.get("/api/student-friend"); 
-        setStudents(res.data.students || []);
+        const res = await api.get("/api/admin-friend"); 
+        setAdmins(res.data.admins || []);
       } catch (error) {
-        console.error("Error fetching students:", error);
+        console.error("Error fetching admins:", error);
       } finally {
         setLoading(false);
       }
@@ -41,7 +42,7 @@ const respond = async (id, action) => {
 
   try{
 
-  await api.post(`/api/student-friend/respond/${id}`, { action });
+  await api.post(`/api/admin-friend/respond/${id}`, { action });
 
   // remove instantly from UI
   setIncomingRequests(prev =>
@@ -60,7 +61,7 @@ const respond = async (id, action) => {
 };
 
 useEffect(() => {
-  api.get("/api/student-friend/all-requests")
+  api.get("/api/admin-friend/all-requests")
     .then(res => {
       setIncomingRequests(res.data.requests || []);
     })
@@ -69,7 +70,7 @@ useEffect(() => {
 
 
 useEffect(() => {
-  api.get("/api/student-friend/my-requests")
+  api.get("/api/admin-friend/my-requests")
     .then(res => {
       setMyRequests(res.data.requests || []);
     })
@@ -93,11 +94,11 @@ const myRequestList = (
       >
         <div className="flex items-center gap-3">
           <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center mx-auto justify-center text-[80px] font-bold text-gray-600">
-          {req.student?.first_name?.[0]}
+          {req.admin?.first_name?.[0]}
         </div>
           <div>
             <p className="font-semibold">
-              {req.student?.first_name} {req.student?.last_name}
+              {req.admin?.first_name} {req.admin?.last_name}
             </p>
             <p className="text-sm mt-2 font-bold bg-gray-800 p-1 text-white rounded px-3 py-1">
               Pending request
@@ -237,7 +238,7 @@ const requestList = (
             {myRequestList}
          
             <>
-             {students.length === 1 && (
+             {admins.length === 1 && (
             <p className="text-lg text-black font-bold text-start border-b p-2 "> Friend You May Know </p>
           )}
               {/* Video List */}
@@ -247,17 +248,17 @@ const requestList = (
   lg:grid-cols-3  
   justify-items-center items-center
   gap-3  w-full">
-                {students.map((student) => (
+                {admins.map((admin) => (
             
-                  <li key={student.id}>
+                  <li key={admin.id}>
 
                   {/* Admin Details */}
 
                 {/* Video Thumbnail */}
                 <div>
-                 <StudentFriendCard student={student}
+                 <AdminFriendCard admin={admin}
                  loadingId={loadingId} notification={notification} setLoadingId={setLoadingId}
-                 setRequestStatus={setRequestStatus} requestStatus={requestStatus} setStudents={setStudents}
+                 setRequestStatus={setRequestStatus} requestStatus={requestStatus} setAdmins={setAdmins}
                  />
                 </div>
               </li>
@@ -268,7 +269,7 @@ const requestList = (
       
             </>
          
-          {students.length === 0 && (
+          {admins.length === 0 && (
             <p className="text-lg text-black font-bold text-start border-b p-2 ">No Friend Available</p>
           )}
         

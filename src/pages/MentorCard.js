@@ -1,19 +1,37 @@
 
-export default function MentorCard({loadingId, requestStatus, handleRequest, selectedTeacher, setSelectedTeacher, t, notification}) {
+export default function MentorCard({filteredCourse, loadingId, requestStatus, handleRequest, selectedTeacher, setSelectedTeacher, t, notification}) {
  
 
     const isOther = t.coursetitle_name?.toLowerCase() === "other";
     const displayTitle = isOther ? "Other" : t.coursetitle_name;
+    const complimentText = Array.isArray(t.compliment)
+    ? t.compliment.join(" ")
+    : typeof t.compliment === "string"
+    ? t.compliment
+    : "";
+
+    
+
 
   return (
     <>
     <div className="p-x4"> 
+      {filteredCourse.length === 0 && (
+  <p className="text-sm text-gray-500 mt-6 text-center">
+    No Teacher Course available
+  </p>
+)}
+
   {/* GRID */}
 
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 relative ">
+   
+         
         <div
     key={t.id}
-    className="bg-white rounded-lg w-64 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform hover:scale-105 transition duration-300 flex flex-col mx-auto justify-center relative"
+    className={`bg-white rounded-lg w-60 h-64 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform hover:scale-105 transition duration-300 
+flex flex-col mx-auto justify-center relative 
+${requestStatus[t.id] === "pending" || requestStatus[t.id] === "accepted" ? "hidden" : "block"}`}
   >
           <img
             src={t.logo || "/default-avatar.png"}
@@ -30,14 +48,14 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
         {/* Course Title */}
         <div className="inline-flex  mx-auto items-center gap-1">
         {displayTitle && (
-          <p className="text-center font-bold text-blue-600  text-xs">
+          <p className="text-center font-bold text-black  text-xs">
             📚 {displayTitle}
           </p>
         )}
 
         {/* Specializations (only show if course is Other) */}
         {isOther && t.specialization?.length > 0 && (
-          <ul className="text-center font-bold text-blue-600 text-xs">
+          <ul className="text-center font-bold text-black text-xs">
             {t.specialization.map((spec, idx) => (
               <li key={idx}>• {spec}</li>
             ))}
@@ -47,7 +65,7 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
         {/* Experience */}
         {t.experience?.length > 0 && (
           <p className="text-center font-bold text-black text-xs">
-            🧑‍🏫 Experience: {t.experience.join(", ")}
+            🧑‍🏫 {t.experience.join(", ")}
           </p>
         )}
         </div>
@@ -63,49 +81,42 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
           </p>
         )}
 
-         {t.compliment && (
-              <p className="text-gray-700 mx-auto font-normal text-black text-[11px] mb-2 text-center">
-                {t.compliment.length > 50
-                  ? `${t.compliment.substring(0, 20)}... `
-                  : t.compliment}
-                {t.compliment.length > 50 && (
-                  <span
-                    onClick={() => setSelectedTeacher({ compliment: t.compliment, qualification: t.qualification, first_name: t.first_name })}
-                    className="text-blue-600 cursor-pointer hover:text-blue-800"
-                  >
-                    read more
-                  </span>
-                )}
-              </p>
-            )}
-             <div className="absolute bg-black bg-opacity-100 flex flex-col h-44 bottom-0 w-full right-0 pb-2 justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-      <div className="flex flex-row gap-3 items-center mx-auto justify-center my-4">
+         {complimentText && (
+            <p className="text-gray-900 mx-auto px-1 font-semibold text-[12px] mb-2 text-center">
+              {complimentText.length > 95
+                ? `${complimentText.substring(0, 95)}`
+                : complimentText}
+
+              {complimentText.length > 95 && (
+                <span
+                  onClick={() => setSelectedTeacher(t)}
+                  className="text-blue-600 cursor-pointer hover:text-blue-800 ml-1"
+                >
+                  read more
+                </span>
+              )}
+            </p>
+          )}
+
+             <div className="absolute bg-black bg-opacity-100 flex flex-col h-16 bottom-0 w-full right-0 pb-2 justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+      <div className="flex flex-row gap-1 items-center mx-auto justify-center my-3">
       <div>
-        {t.cv ? (
-          <a
-            href={t.cv}
-            target="_blank"
+          <button
+             onClick={() => setSelectedTeacher(t)}
             className="bg-blue-600 cursor-pointer text-white w-24 font-bold text-xs px-2 py-3 rounded-lg text-center hover:bg-blue-700 cursor-pointer"
           >
-            View CV
-          </a>
-        ) : (
-          <button
-            disabled
-            className="bg-gray-400 text-black w-20 font-bold text-xs px-2 py-3 rounded-lg  text-center cursor-not-allowed"
-          >
-            No CV
+           View Details
           </button>
-        )}
+        
       </div>
       <div>
           <button
   onClick={() => handleRequest(t.id)}
   disabled={loadingId === t.id}
-  className="text-white"
+  className="text-white w-32 whitespace-nowrap"
 >
   {loadingId === t.id ? (
-    <p className="bg-gray-500 rounded-lg px-4 text-xs py-3 flex items-center ">
+    <p className="bg-gray-500 rounded-lg px-4 text-xs mx-auto flex flex-col justify-center py-3 items-center ">
       <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
     </p>
   ) : (
@@ -139,21 +150,6 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
 
         </div>
         </div>
-        {t.compliment && (
-              <p className="text-gray-700 mx-auto font-normal text-white text-[11px] px-3 mb-2 text-center">
-                {t.compliment.length > 50
-                  ? `${t.compliment.substring(0, 50)}... `
-                  : t.compliment}
-                {t.compliment.length > 50 && (
-                  <span
-                     onClick={() => setSelectedTeacher(t)}
-                    className="text-blue-300 cursor-pointer text-xs hover:text-blue-500"
-                  >
-                    read more
-                  </span>
-                )}
-              </p>
-            )}
         </div>
         </div>
         </div>
@@ -176,8 +172,8 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
             <h1 className="text-2xl text-center py-3 font-bold mb-3 text-black">
               Teacher Details
             </h1>
-            <div className="flex justify-between items-center my-5">
-            <p className="text-gray-700 font-bold mb-2">
+            <div className="flex justify-between flex-wrap items-center my-5">
+            <p className="text-gray-900 font-bold mb-2">
               {selectedTeacher.first_name || "N/A"} {selectedTeacher.last_name || "N/A"}
             </p>
             
@@ -246,24 +242,24 @@ export default function MentorCard({loadingId, requestStatus, handleRequest, sel
         </div>
 
 
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-900 mb-4">
               <span>•</span> {selectedTeacher.coursetitle_name} {selectedTeacher.experience} <span>•</span> {selectedTeacher.currency} {selectedTeacher.course_payment}
             </p>
 
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-900 mb-4">
               <span>•</span> {selectedTeacher.location || "N/A"}
             </p>
 
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-900 capitalize mb-4">
               <span>•</span> {selectedTeacher.gender || "N/A"}
             </p>
 
-             <p className="text-gray-700 mb-4">
+             <p className="text-gray-900 mb-4">
               <strong>Qualification:</strong> {selectedTeacher.qualification || "N/A"}
             </p>
 
 
-            <p className="text-gray-700">
+            <p className="text-gray-900">
               <strong>Compliment:</strong> {selectedTeacher.compliment}
             </p>
           </div>

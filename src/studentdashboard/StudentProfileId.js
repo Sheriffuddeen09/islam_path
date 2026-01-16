@@ -1,18 +1,22 @@
 import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
+import Performance from "./Performance";
+import StudentRequest from "./StudentRequest";
 import Navbar from "../layout/Header";
+import toast, { Toaster } from "react-hot-toast";
+import { useAuth } from "../layout/AuthProvider";
 import { useEffect, useState } from "react";
-import GetMentorProfile from "./GetMentorProfile";
-import AdminAdded from "../pages/friend/AdminAdded";
-import VideoList from "./VideoList";
+import { useNavigate } from "react-router-dom";
+import StudentProfile from "../pages/friend/StudentAdded";
 
 
 
-export default function AdminProfilePageId({setStudents, profileId, student}) {
+export default function StudentProfilePageId({setStudents, profileId}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
+  const { user } = useAuth();
 
   const fetchProfile = async () => {
   if (!profileId) return;
@@ -36,8 +40,7 @@ export default function AdminProfilePageId({setStudents, profileId, student}) {
 
   useEffect(() => {
     fetchProfile();
-
-}, [profileId]);
+}, [profileId, user]);
 
 
 
@@ -51,7 +54,16 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       setVisibleProfile(id)
     }
 
-
+  
+  
+  const sendLiveRequest = async (profileId) => {
+    return api.post("/api/student-friend/request", {
+      student_id: profileId,
+    });
+  };
+  
+    
+  
 
   if (loading) return <Loader />;
 
@@ -64,18 +76,17 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       
           <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
              === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-          }`}>Video</button>
+          }`}>All Post</button>
           <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
              === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-          }`}>Teacher Profile</button>
+          }`}>Student Performance</button>
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-          <VideoList />
+          <Performance />
           </div>
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-          {/* <GetMentorProfile  /> */}
-          Loading For Now
+          <StudentRequest  />
         </div>
         </div>
   )
@@ -105,7 +116,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             )}
           </div>
         </div>
-            <AdminAdded />
+            <StudentProfile />
       </div>
 
       {/* Profile Details */}
@@ -160,6 +171,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   return(
     <div>
         <Navbar />
+        <Toaster position="top-right" />
         {content}
         {profile_content}
 

@@ -6,20 +6,19 @@ import toast, { Toaster } from "react-hot-toast";
 
 
 
-export default function StudentAdded() {
+export default function AdminAdded() {
   const { id } = useParams();               // ✅ FIX 1
-  const { user } = useAuth();
 
   const [status, setStatus] = useState("none");
   const [loading, setLoading] = useState(true);
   const [btnLoading, setBtnLoading] = useState(false);
-  const [student, setStudent] = useState(null)
+  const [admin, setAdmin] = useState(null)
 
-  // 🔹 Fetch student profile + friend status
+  // 🔹 Fetch admin profile + friend status
   useEffect(() => {
-  api.get(`/api/student/profile/${id}`)
+  api.get(`/api/admin/profile/${id}`)
     .then(res => {
-      setStudent(res.data.student);
+      setAdmin(res.data.admin);
       setStatus(res.data.status || "none"); // ✅ FIX HERE
     })
     .catch(() => toast.error("Failed to load profile"))
@@ -33,8 +32,8 @@ export default function StudentAdded() {
   const sendFriendRequest = async () => {   // ✅ FIX 3
     setBtnLoading(true);
     try {
-      await api.post("/api/student-friend/request", {
-        student_id: student.id,
+      await api.post("/api/admin-friend/request", {
+        admin_id: admin.id,
       });
 
       setStatus("pending");
@@ -53,8 +52,8 @@ export default function StudentAdded() {
     </p></p>;
   }
 
-  if (!student) {
-    return <p className="text-center mt-10">Student not found</p>;
+  if (!admin) {
+    return <p className="text-center mt-10">admin not found</p>;
   }
 
   return (

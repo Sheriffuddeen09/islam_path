@@ -7,7 +7,7 @@ import TeacherFormEdit from "./TeacherFormEdit";
 import GetMentorProfile from "./GetMentorProfile";
 import { useAuth } from "../layout/AuthProvider";
 
-export default function ProfilePage({teachers, setTeachers}) {
+export default function ProfilePage({teachers, setTeachers, }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -196,6 +196,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                   Teacher
                 </p>
             )}
+          <p className="text-sm my-1 text-white font-semibold">Profile ID: {profile.id}</p>
+
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-white">
             {visibility.email && (
               <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {profile.email}</span>
