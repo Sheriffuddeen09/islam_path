@@ -1,20 +1,162 @@
 working on
 
-* if answer is correct green but answer is wrong red and show correct answer
-* performance (rank, student name, earn bagde, analystic)
-
-Friend 
-
-* get all the student, the student have added to be in the student profile and it should have message button but if 
-another student the profile and have not added the student it should show add friend instead of message  
-adjustment
+* work out laravel and react performance of (ranks, student names, assignment performance, exam performance, accurate, analystic)
 
 
-* message chat will be in homepage
+* message chat will be in 
+* if i click the message in the profile it should open directly the student message box 
 * profile will change to dashboard
 * setting will hold the edit profile, visibility of account, privacy and so on
 * change the ui of get mentor [remove the read more on hover change cv to view details, and reduce the height.
 if the rwquest is send the profile to disappear from the get mentor but decline it should return]
 
 
- 
+
+
+
+this the table f the result assignment but does not show the wrong answer color and the correct answer word does nt show under the questions  
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('assignment_answers', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('assignment_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('question_id')->constrained('assignment_questions')->cascadeOnDelete();
+            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
+            $table->enum('selected_answer', ['A','B','C','D']);
+            $table->timestamps();
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('assignment_answers');
+    }
+}; public function index()
+{
+    $user = auth()->user();
+
+    $expiryDate = now()->subDays(30);
+
+    $query = AssignmentResult::with([
+        'assignment.teacher',
+        'student'
+    ])
+    // ✅ GLOBAL RULE: hide results older than 30 days
+    ->where('submitted_at', '>=', $expiryDate);
+
+    /**
+     * 🧑‍🎓 STUDENT VIEW
+     */
+    if ($user->role === 'student') {
+        $query
+            ->where('hidden_for_student', false)
+            ->where('student_id', $user->id);
+    }
+
+    /**
+     * 👨‍🏫 TEACHER VIEW
+     */
+    if ($user->role === 'teacher') {
+        $query
+            ->where('hidden_for_teacher', false)
+            ->whereHas('assignment', function ($q) use ($user) {
+                $q->where('teacher_id', $user->id);
+            });
+    }
+
+    $results = $query->latest()->get();
+
+    return $results->map(function ($r) {
+        return [
+            'id' => $r->id,
+
+            'assignment_title' => optional($r->assignment)->title,
+
+            'teacher' => optional($r->assignment->teacher)
+                ? $r->assignment->teacher->first_name . ' ' . $r->assignment->teacher->last_name
+                : null,
+
+            'student' => optional($r->student)
+                ? $r->student->first_name . ' ' . $r->student->last_name
+                : null,
+
+            'score' => $r->score,
+            'total' => $r->total_questions,
+
+            'ratio' => $r->total_questions > 0
+                ? round(($r->score / $r->total_questions) * 100, 1)
+                : 0,
+
+            'submitted_at' => $r->submitted_at,
+        ];
+    });
+}
+
+public function show(AssignmentResult $result)
+{
+    // ❌ Block expired results
+    if ($result->submitted_at < now()->subDays(30)) {
+        abort(404, 'This result has expired');
+    }
+
+    $result->load([
+        'assignment.questions',
+        'answers.question',
+        'student',
+        'assignment.teacher'
+    ]);
+
+    return response()->json($result);
+}
+  <div className="max-h-[60vh] overflow-y-auto space-y-4">
+              {preview.assignment.questions.map((q, index) => {
+                const answer = preview.answers.find(
+                  a => a.question_id === q.id
+                );
+
+                return (
+                  <div key={q.id} className="border-b pb-3">
+                    <p className="font-semibold">
+                      {index + 1}. {q.question}
+                    </p>
+
+                   {["A", "B", "C", "D"].map(opt => {
+                const isCorrect = q.correct_answer === opt;
+                const isChosen = answer?.selected_answer === opt;
+
+                let className = "text-gray-700";
+
+                // 🟢 Correct answer (chosen or not)
+                if (isCorrect) {
+                  className = "text-green-600 font-semibold";
+                }
+
+                // 🔴 Wrong answer chosen
+                if (isChosen && !isCorrect) {
+                  className = "text-red-600 font-semibold";
+                }
+
+                return (
+                  <p key={opt} className={className}>
+                    {opt}. {q[`option_${opt.toLowerCase()}`]}
+                  </p>
+                );
+              })}
+
+
+                  </div>
+                );
+              })}
+            </div>
+
+            
+
+

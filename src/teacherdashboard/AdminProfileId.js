@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import GetMentorProfile from "./GetMentorProfile";
 import AdminAdded from "../pages/friend/AdminAdded";
 import VideoList from "./VideoList";
+import AdminProfileFriend from "./AdminProfileFriend";
 
 
 
@@ -86,9 +87,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       {/* Profile Header */}
       <div className="bg-gray-900 sm:p-14 translate-y-24 mb-28 rounded-2xl shadow p-6  flex flex-col md:flex-row gap-6 items-center">
         
-        <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600">
+         <div className="w-28 h-28 rounded-full bg-blue-600 text-white flex items-center justify-center text-[80px] font-bold">
           {profile.first_name?.[0]}
-          {profile.last_name?.[0]}
         </div>
 
             
@@ -161,6 +161,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     <div>
         <Navbar />
         {content}
+        <AdminProfileFriend />
         {profile_content}
 
     </div>

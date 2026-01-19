@@ -15,6 +15,12 @@ export default function CreateExam() {
   const [showQuestions, setShowQuestions] = useState(true);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [assignmentLink, setAssignmentLink] = useState("");
+  const [errors, setErrors] = useState({
+  title: "",
+  dueAt: "",
+  questions: "",
+});
+
 
   // Add new question
   const addQuestion = () => {
@@ -26,21 +32,53 @@ export default function CreateExam() {
       ...prev,
       { question: "", A: "", B: "", C: "", D: "", answer: "" },
     ]);
+
+    
     setShowQuestions(true); // ensure questions section is open
   };
 
   // Submit exam
   const submit = async () => {
+  let hasError = false;
+  const newErrors = { title: "", dueAt: "", questions: "" };
+
+  if (!title.trim()) {
+    newErrors.title = "Please input exam title";
+    hasError = true;
+  }
+
   if (!dueAt) {
-    toast.error("Please select a due date");
-    return;
+    newErrors.dueAt = "Please select due date";
+    hasError = true;
   }
 
   if (questions.length === 0) {
-    toast.error("Add at least 1 question");
+    newErrors.questions = "Please add at least one question";
+    hasError = true;
+  }
+
+  // Check each question
+  const invalidQuestionIndex = questions.findIndex(
+    q =>
+      !q.question.trim() ||
+      !q.A.trim() ||
+      !q.B.trim() ||
+      !q.C.trim() ||
+      !q.D.trim() ||
+      !q.answer
+  );
+
+  if (invalidQuestionIndex !== -1) {
+    newErrors.questions = `Please complete question ${invalidQuestionIndex + 1}`;
+    hasError = true;
+  }
+
+  if (hasError) {
+    setErrors(newErrors);
     return;
   }
 
+  // ✅ No errors → continue
   setLoading(true);
 
   const formattedDueAt = new Date(dueAt)
@@ -56,25 +94,22 @@ export default function CreateExam() {
       questions,
     });
 
-    // ✅ FIXED HERE
     const link = `${window.location.origin}/student/exams/${res.data.access_token}`;
-
     await navigator.clipboard.writeText(link);
 
-    // ✅ RESET FORM
+    // RESET
     setTitle("");
     setDueAt("");
     setDuration(30);
     setQuestions([]);
+    setErrors({ title: "", dueAt: "", questions: "" });
     setShowQuestions(false);
 
-    // ✅ OPEN MODAL
     setAssignmentLink(link);
     setShowCopyModal(true);
 
     toast.success("Exam created & link copied 🎉");
   } catch (err) {
-    console.error(err);
     toast.error("Failed to create exam");
   } finally {
     setLoading(false);
@@ -102,7 +137,14 @@ export default function CreateExam() {
             className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200"
             placeholder="e.g. Hadith – Fiqhu Test"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={e => {
+            setTitle(e.target.value);
+
+            if (errors.title) {
+              setErrors(prev => ({ ...prev, title: "" }));
+            }
+          }}
+
           />
         </div>
 
@@ -111,7 +153,14 @@ export default function CreateExam() {
           <input
             type="date"
             value={dueAt}
-            onChange={e => setDueAt(e.target.value)}
+            onChange={e => {
+            setDueAt(e.target.value);
+
+            if (errors.dueAt) {
+              setErrors(prev => ({ ...prev, dueAt: "" }));
+            }
+          }}
+
             className="w-full mt-1 px-4 py-2 border rounded-lg"
           />
         </div>
@@ -146,11 +195,24 @@ export default function CreateExam() {
                 index={i}
                 question={q}
                 setQuestions={setQuestions}
+                setErrors={setErrors}
               />
             ))}
+
+             {errors.questions && (
+            <p className="text-red-600 font-bold text-sm mb-2">{errors.questions}</p>
+            )}
+          {errors.title && (
+            <p className="text-red-600 font-bold text-sm mb-2">{errors.title}</p>
+          )}
+
+          {errors.dueAt && (
+            <p className="text-red-600 font-bold text-sm mb-2">{errors.dueAt}</p>
+          )}
           </div>
           </>
       )}
+        
 
           <button
             onClick={addQuestion}

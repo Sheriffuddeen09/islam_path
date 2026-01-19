@@ -1,4 +1,4 @@
-export default function ExamQuestionBuilder({ index, question, setQuestions }) {
+export default function ExamQuestionBuilder({ index, question, setQuestions, setErrors }) {
   // Update a specific field of the question
   const update = (field, value) => {
     setQuestions(prev => {
@@ -6,7 +6,12 @@ export default function ExamQuestionBuilder({ index, question, setQuestions }) {
       copy[index] = { ...copy[index], [field]: value };
       return copy;
     });
+
+     setErrors(prev => ({ ...prev, questions: "" }));
   };
+
+  
+
 
   return (
     <div className="border p-3 rounded mt-4 bg-white">

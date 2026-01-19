@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
 import toast, { Toaster } from "react-hot-toast";
+import { motion } from "framer-motion";
 import AssignmentFetchPdf from "./AssignmentFetchPdf";
+
 
 
 
@@ -19,8 +21,6 @@ export default function AssignmentResults() {
     const [results, setResults] = useState([]);
     const [preview, setPreview] = useState(null);
     const [loadingPreview, setLoadingPreview] = useState(false);
-    const [deleteLoading, setDeleteLoading] = useState(null);
-    const [deletePop, setDeletePop] = useState(null);
     const [loading, setLoading] = useState(false)
 
     const {user} = useAuth()
@@ -39,10 +39,6 @@ export default function AssignmentResults() {
     }
   };
   
-  const handleDeletePop = () =>{
-  
-    setDeletePop(!deletePop)
-  }
   
     const openPreview = async (id) => {
       setLoadingPreview(true);
@@ -55,31 +51,34 @@ export default function AssignmentResults() {
         setLoadingPreview(false);
       }
     };
-  
-  
-  
-    const deleteResult = async (id) => {
-          setDeleteLoading(id);
-          try {
-            await api.delete(`/api/assignment-results/${id}`);
-            setResults(prev => prev.filter(r => r.id !== id));
-            toast.success("Result removed");
-            fetchResults();
-      
-            setDeletePop(false)
-          } catch {
-            toast.error("Delete failed");
-          } finally {
-            setDeleteLoading(null);
-          }
-        };
+
+    
+  const percentage = (preview?.score / preview?.total_questions) * 100;
+
+  const grade =
+    percentage >= 75 ? "Excellent" :
+    percentage >= 65 ? "Very Good" :
+    percentage >= 50 ? "Good" :
+    percentage >= 40 ? "Pass" : "Fail";
+
+  const badgeCount =
+    grade === "Excellent" ? 5 :
+    grade === "Very Good" ? 3 :
+    grade === "Good" ? 2 :
+    grade === "Pass" ? 1 : 0;
+
+  const gradeColor =
+    grade === "Excellent" ? "text-green-600" :
+    grade === "Very Good" ? "text-blue-600" :
+    grade === "Good" ? "text-yellow-600" :
+    grade === "Pass" ? "text-purple-600" : "text-red-600";
 
   
     useEffect(() => {
       fetchResults();
     }, []);
   
-   
+    
   
     if (loading)
       return (
@@ -175,89 +174,115 @@ export default function AssignmentResults() {
         
         {/* PREVIEW MODAL */}
         {preview && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-3xl rounded-lg p-6 relative">
-              <button
-                onClick={() => setPreview(null)}
-                className="absolute top-3 right-3 text-gray-500"
-              >
-                ✕
-              </button>
-           
-        {user.role === "student" && (
-            <span className="text-sm  mb-2">
-              <strong>Teacher:</strong>{" "}
-              {preview.assignment.teacher.first_name}{" "}
-              {preview.assignment.teacher.last_name}
-            </span>
-          )}
-
-        {user.role === "admin" && preview.student && (
-        <span className="text-sm mb-2">
-          <strong>Attendant Student:</strong>{" "}
-          {preview.student.first_name} {preview.student.last_name}
-        </span>
-      )}
-
-      
-          <h3 className="text-sm mb-1">
-            <strong>Course Title:</strong> {preview.assignment.title}
-          </h3>
-
-      <div className="flex items-start justify-between gap-1 text-sm text-gray-700 mb-3">
-        <span>
-          <strong>Score:</strong> {preview.score} / {preview.total_questions} * <strong>Ratio: {(preview.score / preview.total_questions * 100).toFixed(2)}%</strong>
-        </span>
-
-      {user.role === "student" && (
-              <AssignmentFetchPdf result={preview} loadingResult={loadingPreview} />
-           )}
-          
-        </div>
-
-            {/* SCROLLABLE QUESTIONS */}
-      <div className="max-h-[60vh] overflow-y-auto space-y-4">
-              {preview.assignment.questions.map((q, index) => {
-                const answer = preview.answers.find(
-                  a => a.question_id === q.id
-                );
-
-                return (
-                  <div key={q.id} className="border-b pb-3">
-                    <p className="font-semibold">
-                      {index + 1}. {q.question}
+                  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                    <div className="bg-white w-full max-w-3xl rounded-lg p-6 relative overflow-x-auto max-h-[98vh] no-scrollbar border rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                      <button
+                        onClick={() => setPreview(null)}
+                        className="absolute top-3 right-3 text-gray-500"
+                      >
+                        ✕
+                      </button>
+                   
+                   
+            <div className="text-center mt-4 mb-6">
+                <div className="flex justify-around items-center flex-row ">
+                    <h1 className={`text-4xl font-bold ${gradeColor}`}>
+                      {grade} Result 🎉
+                    </h1>
+                    {user?.role === "student" && (
+                    <AssignmentFetchPdf result={preview} loadingPreview={loadingPreview} />
+                    )}
+              </div>
+                    <p className="text-gray-900 text-lg font-bold mt-2">
+                      {preview.student.first_name} • {preview.student.last_name} 
                     </p>
-
-                   {["A", "B", "C", "D"].map(opt => {
-                const isCorrect = q.correct_answer === opt;
-                const isChosen = answer?.selected_answer === opt;
-
-                let className = "text-gray-700";
-
-                // 🟢 Correct answer (chosen or not)
-                if (isCorrect) {
-                  className = "text-green-600 font-semibold";
-                }
-
-                // 🔴 Wrong answer chosen
-                if (isChosen && !isCorrect) {
-                  className = "text-red-600 font-semibold";
-                }
-
-                return (
-                  <p key={opt} className={className}>
-                    {opt}. {q[`option_${opt.toLowerCase()}`]}
+                  </div>
+            
+                  {/* SCORE */}
+                  <div className="bg-white shadow rounded-lg p-6 text-center mb-6">
+                     <p className="text-sm mt-2 text-black font-bold">
+                      Earn: {badgeCount} 🏅
+                      </p>
+                    <div className="flex justify-around items-center">
+                    <p className="text-2xl text-black font-semibold">
+                      Score: {preview.score} / {preview.total_questions}
+                    </p>
+                    <p className="text-green-600 font-semibold mt-1">
+                      Percentage: {percentage.toFixed(1)}%
+                    </p>
+                    </div>
+                    <p className="text-sm mt-2 text-black font-bold">
+                      Teacher: {preview.assignment.teacher.first_name} {preview.assignment.teacher.last_name}
+                    </p>
+                   
+                  </div>
+            
+            
+                  {/* BADGE ANIMATION */}
+                  <div className="flex justify-center gap-3 mb-8">
+                    {Array.from({ length: badgeCount }).map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ delay: i * 0.2, type: "spring" }}
+                        className="bg-yellow-400 text-white px-4 py-2 rounded-full font-semibold shadow"
+                      >
+                        🏅 Badge
+                      </motion.div>
+                    ))}
+                  </div>
+            
+                  {/* QUESTIONS & ANSWERS */}
+                  <div className="space-y-5">
+                   {preview.assignment.questions.map((q, index) => {
+              const answer = preview.answers?.find(
+                a => Number(a.question_id) === Number(q.id)
+              );
+            
+              console.log({
+                questionId: q.id,
+                correct: q.correct_answer,
+                student: answer?.selected_answer,
+              });
+            
+              return (
+                <div key={q.id} className="border rounded-lg p-4">
+                  <p className="font-semibold mb-2">
+                    {index + 1}. {q.question}
                   </p>
-                );
-              })}
-
-
+            
+                  {["A", "B", "C", "D"].map(opt => {
+                    const correct = q.correct_answer?.toUpperCase();
+                    const chosen = answer?.selected_answer?.toUpperCase();
+            
+                    const isCorrect = correct === opt;
+                    const isChosen = chosen === opt;
+            
+                    return (
+                      <p
+                        key={opt}
+                        className={`pl-3 py-1 rounded ${
+                          isCorrect
+                            ? "bg-green-100 text-green-700 font-semibold"
+                            : isChosen
+                            ? "bg-red-100 text-red-700 mt-1 font-semibold"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {opt}. {q[`option_${opt.toLowerCase()}`]}
+                        {isCorrect && " ✅"}
+                        {isChosen && !isCorrect && " ❌"}
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            })}
+            
                   </div>
-                );
-              })}
-            </div>
-
-                  </div>
+              
+                </div>
                 </div>
               )}
   

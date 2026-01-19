@@ -4,7 +4,7 @@ import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
 import HomePage from './pages/Home'
 import NotFound from "./layout/Notfound";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import ForgotPassword from "./Form/ForgetPassword";
 import ResetPassword from "./Form/ResetPassword";
@@ -31,6 +31,8 @@ import ExamBlock from "./exam/Block";
 import StudentFriend from "./pages/friend/StudentFriend";
 import AdminFriend from "./pages/friend/AdminFriend"
 import ProfileRouter from "./route/ProfileRoute";
+import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
+import StudentExamResult from "./exam/StudentExamResult";
 
    
 function App() {
@@ -115,6 +117,12 @@ function App() {
       setIncomingRequests={setIncomingRequests} />
 
 
+        <Route path="/student/assignment/result/:resultId" element={<StudentAssignmentResult />} />
+        <Route path="/student/exams/result/:resultId" element={<StudentExamResult />} />
+
+      
+{/* /student/assignment/result/ */}
+
 
       {/* register */}
       <Route path="/register" element={
@@ -196,7 +204,12 @@ function App() {
        <Route path="*" element={<NotFound />} />
 
       </Routes>
-        <ToastContainer />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: { zIndex: 9999 },
+          }}
+        />
     </div>
   );
 }

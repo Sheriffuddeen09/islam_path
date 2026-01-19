@@ -8,6 +8,7 @@ import { useAuth } from "../layout/AuthProvider";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StudentProfile from "../pages/friend/StudentAdded";
+import StudentProfileFriend from "./StudentProfileFriend";
 
 
 
@@ -55,14 +56,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     }
 
   
-  
-  const sendLiveRequest = async (profileId) => {
-    return api.post("/api/student-friend/request", {
-      student_id: profileId,
-    });
-  };
-  
-    
+
   
 
   if (loading) return <Loader />;
@@ -97,9 +91,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       {/* Profile Header */}
       <div className="bg-gray-900 sm:p-14 translate-y-24 mb-28 rounded-2xl shadow p-6  flex flex-col md:flex-row gap-6 items-center">
         
-        <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600">
+        <div className="w-28 h-28 rounded-full bg-gray-600 text-white flex items-center justify-center text-[80px] font-bold">
           {profile.first_name?.[0]}
-          {profile.last_name?.[0]}
         </div>
 
             
@@ -173,6 +166,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         <Navbar />
         <Toaster position="top-right" />
         {content}
+        <StudentProfileFriend />
         {profile_content}
 
     </div>

@@ -19,7 +19,12 @@ export default function StudentProfilePage() {
   message: "",
 });
 
-  const [student, setStudent] = useState(null);
+  const [badges, setBadges] = useState({
+  total: 0,
+  assignment: 0,
+  exam: 0,
+});
+
 
 
 const showNotification = (type, message) => {
@@ -29,6 +34,11 @@ const showNotification = (type, message) => {
     setNotification({ show: false, type: "", message: "" });
   }, 3000);
 };
+
+useEffect(() => {
+  api.get("/api/student/badges")
+    .then(res => setBadges(res.data.totalBadges));
+}, []);
 
 
 const fetchProfile = async () => {
@@ -126,6 +136,33 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
 
   if (loading) return <Loader />;
+
+  
+
+  const badge = (
+          <div>
+          <div className="grid grid-cols-3 gap-4">
+        <div className="bg-purple-100 p-4 rounded">
+          <p className="text-sm text-gray-500">Total Badges</p>
+          <p className="text-2xl font-bold">{badges?.total}</p>
+        </div>
+
+        <div className="bg-blue-100 p-4 rounded">
+          <p className="text-sm text-gray-500">Assignment</p>
+          <p className="text-2xl font-bold">{badges?.assignment}</p>
+        </div>
+
+        <div className="bg-green-100 p-4 rounded">
+          <p className="text-sm text-gray-500">Exam</p>
+          <p className="text-2xl font-bold">{badges?.exam}</p>
+        </div>
+      </div>
+
+    </div>
+  )
+
+
+
 
   const profile_content = (
     <div className="max-w-5xl lg:ml-64 mt-7 border-blue-200 mx-auto border-t-2  px-4 py-2">

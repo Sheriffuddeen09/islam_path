@@ -8,7 +8,6 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function StudentAdded() {
   const { id } = useParams();               // ✅ FIX 1
-  const { user } = useAuth();
 
   const [status, setStatus] = useState("none");
   const [loading, setLoading] = useState(true);
@@ -27,9 +26,6 @@ export default function StudentAdded() {
 }, [id]);
 
 
-
-
-  // 🔹 Send friend request
   const sendFriendRequest = async () => {   // ✅ FIX 3
     setBtnLoading(true);
     try {

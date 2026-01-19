@@ -5,12 +5,13 @@ import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
 import { Loader } from "lucide-react";
 
-export default function StudentProfileFriend() {
+export default function AdminProfileFriend() {
+
   const { id: profileId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [acceptedStudents, setAcceptedStudents] = useState([]);
+  const [acceptedAdmins, setAcceptedAdmins] = useState([]);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(4);
@@ -21,9 +22,9 @@ export default function StudentProfileFriend() {
 
     const fetchAccepted = async () => {
       try {
-        const res = await api.get(`/api/student/profile/accepted/${profileId}`);
-        // Each student object now includes a 'status' field
-        setAcceptedStudents(res.data.acceptedStudents || []);
+        const res = await api.get(`/api/admin/profile/accepted/${profileId}`);
+        // Each admin object now includes a 'status' field
+        setAcceptedAdmins(res.data.acceptedAdmins || []);
         setIsOwner(res.data.isOwner);
       } catch (err) {
         console.error(err);
@@ -35,13 +36,13 @@ export default function StudentProfileFriend() {
     fetchAccepted();
   }, [profileId]);
 
-  const sendFriendRequest = async (studentId) => {   // ✅ FIX 3
+  const sendFriendRequest = async (adminId) => {   // ✅ FIX 3
       setBtnLoading(true);
       try {
-        await api.post("/api/student-friend/request", {
-          student_id: studentId,
+        await api.post("/api/admin-friend/request", {
+          admin_id: adminId,
         });
-        setAcceptedStudents([...acceptedStudents]);
+        setAcceptedAdmins([...acceptedAdmins]);
         toast.success("Friend request sent");
       } catch (err) {
         toast.error(err.response?.data?.message || "Request failed");
@@ -56,7 +57,7 @@ export default function StudentProfileFriend() {
       </div>
     );
 
-  if (!acceptedStudents.length) {
+  if (!acceptedAdmins.length) {
     return (
       <p className="text-gray-500 text-center mt-6">
        
@@ -65,10 +66,8 @@ export default function StudentProfileFriend() {
   }
 
   const showMore = () =>
-    setVisibleCount(prev => Math.min(prev + 4, acceptedStudents.length));
+    setVisibleCount(prev => Math.min(prev + 4, acceptedAdmins.length));
   const showLess = () => setVisibleCount(4);
-
-
 
   return (
     <div className="mt-6 max-w-5xl mx-auto">
@@ -76,37 +75,37 @@ export default function StudentProfileFriend() {
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg text-black translate-x-5 font-semibold">
-          Students ({acceptedStudents.length})
+        <h3 className="text-lg text-black font-semibold">
+          Admins ({acceptedAdmins.length})
         </h3>
       </div>
 
       {/* GRID */}
-      <div className="grid grid-cols-1  rounded-lg  sm:grid-cols-2 md:grid-cols-4 md:gap-40 gap-4">
-        {acceptedStudents.slice(0, visibleCount).map(student => {
-          const status = student.status ?? 'none'; // ✅ use the status from backend
-          const isOwnerUser = user?.id === student.id;
+      <div className="grid grid-cols-1  rounded-lg  sm:grid-cols-2 md:grid-cols-4 gap-4">
+        {acceptedAdmins.slice(0, visibleCount).map(admin => {
+          const status = admin.status ?? 'none'; // ✅ use the status from backend
+          const isOwnerUser = user?.id === admin.id;
 
           return (
             <div
-              key={student.id}
+              key={admin.id}
               className="bg-white rounded-xl border-2  border-blue-500 w-72 mx-auto px-3 shadow py-6 flex flex-col items-center text-center hover:shadow-lg transition"
             >
               {/* Avatar */}
               <div className="w-24 h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[80px] font-bold">
-                {student.first_name?.[0]}
+                {admin.first_name?.[0]}
               </div>
 
               {/* Name */}
              <p className="mt-2 font-semibold text-gray-800">
-                {isOwnerUser ? "You" : `${student.first_name} ${student.last_name}`}
+                {isOwnerUser ? "You" : `${admin.first_name} ${admin.last_name}`}
               </p>
 
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-                  onClick={() => navigate(`/chats/${student.id}`)}
-                  className="mt-3 w-52 bg-blue-800 hover:bg-purple-700 text-white text-sm py-2 rounded-lg"
+                  onClick={() => navigate(`/chats/${admin.id}`)}
+                  className="mt-3 w-52 bg-purple-600 hover:bg-purple-700 text-white text-sm py-2 rounded-lg"
                 >
                   💬 Message
                 </button>
@@ -136,14 +135,14 @@ export default function StudentProfileFriend() {
 
       {/* SEE MORE / LESS */}
       <div className="flex justify-center mt-6">
-        {visibleCount < acceptedStudents.length ? (
+        {visibleCount < acceptedAdmins.length ? (
           <button
             onClick={showMore}
             className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold"
           >
             See more
           </button>
-        ) : acceptedStudents.length > 4 ? (
+        ) : acceptedAdmins.length > 4 ? (
           <button
             onClick={showLess}
             className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold"

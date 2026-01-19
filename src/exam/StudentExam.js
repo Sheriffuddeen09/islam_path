@@ -74,13 +74,13 @@ const submit = async (source = "manual") => {
   setSubmitting(true);
 
   try {
-    await api.post(`/api/student/exam/${token}/submit`, {
+    const res = await api.post(`/api/student/exam/${token}/submit`, {
       answers,
       source,
     });
 
     toast.success("Exam submitted");
-    navigate("/student/dashboard");
+     navigate(`/student/exams/result/${res.data.result_id}`);
   } catch (err) {
     // toast.error(err.response?.data?.message || "Submission failed");
     submittingRef.current = false; // allow retry
@@ -136,7 +136,7 @@ const submit = async (source = "manual") => {
 
         if (data.status === "submitted") {
           toast.error("Already submitted");
-          navigate("/student/dashboard");
+          navigate(`/student/exams/result/${res.data.result_id}`);
           return;
         }
         
