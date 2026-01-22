@@ -86,7 +86,7 @@ useEffect(() => {
 
 
   return (
-    <div className="p-3 mb-4 -translate-y-16 bg-gray-900">
+    <div className="p-3 mb-4  bg-gray-900">
       
       {/* Reply preview */}
       {replyingTo && (
@@ -126,7 +126,7 @@ useEffect(() => {
       )}
 
 
-      <div className="pt-2  mb-2 flex relative gap-2">
+      <div className="pt-2 -translate-y-3 mb-2 flex relative gap-2">
         <textarea
     ref={textareaRef}
     value={text}
@@ -135,7 +135,7 @@ useEffect(() => {
       handleTyping();
     }}
     className={`flex-1 border rounded-lg px-3 py-5 -mb-4 text-sm text-black resize-none transition-all duration-200
-      ${text.split(/\s+/).length > 70 ? "h-40" : "h-16"}
+      ${text.split(/\s+/).length > 70 ? "h-40" : "h-20"}
       ${sending || isBlocked ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
     `}
     placeholder={isBlocked ? "You have been blocked in this chat" : "Type a message…"}

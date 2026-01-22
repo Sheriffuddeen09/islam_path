@@ -68,7 +68,7 @@ export default function StudentRequest({handleVisible}) {
   return (
     <div className="p- lg:p-6 lg:ml-60 max-w-7xl mx-auto">
       <Toaster position="top-right" autoClose={3000} />
-      <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">Live Class Requests</h2>
+      <h2 className="text-xl font-bold mb-6 text-black pb-2 text-start border-b-2 border-blue-500">Live Class Requests</h2>
 
       
         <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-80 no-scrollbar sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">

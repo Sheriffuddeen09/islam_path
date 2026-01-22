@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StudentProfile from "../pages/friend/StudentAdded";
 import StudentProfileFriend from "./StudentProfileFriend";
+import PerformanceId from "./PerformanceId";
 
 
 
@@ -66,13 +67,15 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
   const profile_content = (
     <div className="max-w-5xl mx-auto">
-    <div className="text-white  mt-7 border-blue-200 border-b-2 mb-5  px-4 py-2 flex flex-row gap-5">
-      
-          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
+    <div className="text-white flex sm:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">  
+          <button onClick={() => {handleVisibleProfile(1);}} className={`whitespace-nowrap py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
              === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>All Post</button>
-          <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
+           <button onClick={() => {handleVisibleProfile(2);}} className={`whitespace-nowrap py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
              === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+          }`}>Video</button>
+          <button onClick={() => {handleVisibleProfile(3);}} className={`whitespace-nowrap py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
+             === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>Student Performance</button>
         </div>
         
@@ -81,6 +84,9 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           </div>
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
           <StudentRequest  />
+        </div>
+         <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+          <PerformanceId  />
         </div>
         </div>
   )

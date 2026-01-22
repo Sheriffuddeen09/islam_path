@@ -1,5 +1,5 @@
 
-import Header from "../layout/Header";
+import Navbar from "../layout/Header";
 import { useEffect, useState } from "react"
 //import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { homesdata } from "./Data";
@@ -10,9 +10,11 @@ import { BookOpen, MessageCircle, Search, UserCheck } from "lucide-react";
 
 //import PropertySection from "./PropertySection";
 
-export default function HomePage() {
+export default function HomePage({handleMessageOpen}) {
 
   const [index, setIndex] = useState(0);
+  const [messageOPen, setMessageOpen] = useState(false)
+
 
   // Auto Slide
   useEffect(() => {
@@ -146,7 +148,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <Header />
+      <Navbar handleMessageOpen={handleMessageOpen}/>
       {content}
     
 

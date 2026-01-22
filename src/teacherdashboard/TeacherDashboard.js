@@ -1,13 +1,11 @@
 
 import api from "../Api/axios";
 import { useEffect, useState } from "react";
-import DashboardLayout from "./Dashboard";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import CreateVideoSection from "./CreateVideo";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
-import LiveClass from "./LiveClass";
 import CreateAssignment from "../assignment/CreateAssignment";
 import TeacherAssignmentPreview from "../assignment/TeacherAssignmentPreview";
 import AssignmentResults from "../assignment/AssignmentResults";
@@ -15,6 +13,7 @@ import CreateExam from "../exam/CreateExam";
 import TeacherExamPreview from "../exam/TeacherExamPreview";
 import ExamResults from "../exam/ExamResults";
 import LibraryPage from "../pages/video/LibraryVideo";
+import Setting from "./Setting";
 
 export default function TeacherDashboardLayout({onCreated, user, setUser, teachers, setTeachers}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -23,16 +22,18 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
 
   const [pendingCount, setPendingCount] = useState(0);
 
-  const [unreadCount, setUnreadCount] = useState(0);
-
-    const fetchUnreadCount = async () => {
-      const res = await api.get("/api/messages/unread-count");
-      setUnreadCount(res.data.unread_senders);
+   const [editingTeacher, setEditingTeacher] = useState(null);
+  
+    // 🔹 Open modal
+    const handleEdit = (teacher) => setEditingTeacher(teacher);
+  
+    const handleClose = () => setEditingTeacher(null);
+  
+    const handleUpdate = (updatedTeacher) => {
+      setTeachers((prev) =>
+        prev.map((t) => (t.id === updatedTeacher.id ? updatedTeacher : t))
+      );
     };
-
-    useEffect(() => {
-      fetchUnreadCount();
-    }, []);
 
 
 
@@ -69,7 +70,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
       setSidebarOpen(!sidebarOpen)
     }
 
-
+    
     const isLocked = !savedChoice;
 
   // Teacher savedChoice = Comment 1
@@ -78,21 +79,20 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
 
   // Menu items for Comment 1
   const teacherMenu = [
-    { id: 7, label: "Student Request", showBadge: true },
-    { id: 8, label: "Class Message", showBadges: true },
-    { id: 9, label: "Create Student Assignment" },
-    { id: 10, label: "Create Student Examination" },
-    { id: 11, label: "View Assignment" },
-    { id: 12, label: "View Examination" },
-    { id: 13, label: "View Assignment Result" },
-    { id: 14, label: "View Examination Result" },
+    { id: 5, label: "Student Request", showBadge: true },
+    { id: 6, label: "Create Student Assignment" },
+    { id: 7, label: "Create Student Examination" },
+    { id: 8, label: "View Assignment" },
+    { id: 9, label: "View Examination" },
+    { id: 10, label: "View Assignment Result" },
+    { id: 11, label: "View Examination Result" },
   ];
 
   // Menu items for Comment 2
   const defaultMenu = [
-    { id: 6, label: "Create Content" },
-    { id: 7, label: "Order" },
-    { id: 8, label: "Sale History" },
+    { id: 5, label: "Create Content" },
+    { id: 6, label: "Order" },
+    { id: 7, label: "Sale History" },
   ];
 
   // Choose which menu
@@ -136,25 +136,21 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
           </li>
           </Link>
           </li>
-          <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+          
+          <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Message
+            Library
           </li>
-          <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+          <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Library
+            Create Video
           </li>
           <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Create Video
-          </li>
-          <li onClick={() => {handleVisible(5); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 5 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Profile
+            Setting
           </li>
         </ul>
 
@@ -190,14 +186,6 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
                   {pendingCount}
                 </span>
               )}
-
-              {
-                item.showBadges && unreadCount > 0 && (
-                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {unreadCount}
-                </span>
-              )
-              }
             </li>
           ))}
         </ul>
@@ -248,25 +236,21 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
             Home Page
           </li>
           </Link>
+         
           <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Message
+            Library
           </li>
-          <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+          <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Library
+            Create Video
           </li>
           <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Create Video
-          </li>
-          <li onClick={() => {handleVisible(5); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 5 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Profile
+            Setting
           </li>
         </ul>
 
@@ -302,14 +286,6 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
                   {pendingCount}
                 </span>
               )}
-
-              {
-                item.showBadges && unreadCount > 0 && (
-                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                  {unreadCount}
-                </span>
-              )
-              }
             </li>
           ))}
         </ul>
@@ -321,40 +297,41 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
       {/* ---------------------- MAIN CONTENT ---------------------- */}
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <DashboardLayout handleVisible={handleVisible} user={user} setUser={setUser} />
+        <ProfilePage handleVisible={handleVisible} user={user} setUser={setUser} 
+        teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} />
         </div>
-        <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <LibraryPage />
         </div>
-        <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
         <CreateVideoSection onCreated={onCreated} />
         </div>
-        <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-        <ProfilePage  teachers={teachers} setTeachers={setTeachers} />
+        <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
+        <Setting  editingTeacher={editingTeacher}
+        handleEdit={handleEdit}
+          handleClose={handleClose}
+          handleUpdate={handleUpdate} />
         </div>
 
-        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
         <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-        <LiveClass handleVisible={handleVisible} fetchUnreadCount={fetchUnreadCount} />
-        </div>
-        <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
         <CreateAssignment  />
         </div>
-        <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
         <CreateExam  />
         </div>
-        <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
         <TeacherAssignmentPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
         <TeacherExamPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
         <AssignmentResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
       </section>

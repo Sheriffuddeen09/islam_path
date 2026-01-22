@@ -75,7 +75,7 @@ useEffect(() => {
 
   /* ================= MESSAGES ================= */
   return (
-    <div className="flex-1 overflow-y-auto p-4 flex flex-col h-[460px] gap-2 no-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 flex flex-col sm:h-[340px] h-full gap-2 no-scrollbar">
       <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg w-80 text-xs p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.

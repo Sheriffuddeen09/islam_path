@@ -1,30 +1,28 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
-import { Loader } from "lucide-react";
 
-export default function AdminProfileFriend() {
+export default function StudentProfileFriendDashboard() {
 
-  const { id: profileId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [acceptedAdmins, setAcceptedAdmins] = useState([]);
+  const [acceptedStudents, setAcceptedStudents] = useState([]);
   const [isOwner, setIsOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
 
   useEffect(() => {
-    if (!profileId) return;
+  
 
     const fetchAccepted = async () => {
       try {
-        const res = await api.get(`/api/admin/profile/accepted/${profileId}`);
-        // Each admin object now includes a 'status' field
-        setAcceptedAdmins(res.data.acceptedAdmins || []);
+        const res = await api.get(`/api/student/me`);
+        // Each student object now includes a 'status' field
+        setAcceptedStudents(res.data.acceptedStudents || []);
         setIsOwner(res.data.isOwner);
       } catch (err) {
         console.error(err);
@@ -34,15 +32,15 @@ export default function AdminProfileFriend() {
     };
 
     fetchAccepted();
-  }, [profileId]);
+  }, []);
 
-  const sendFriendRequest = async (adminId) => {   // ✅ FIX 3
+  const sendFriendRequest = async (studentId) => {   // ✅ FIX 3
       setBtnLoading(true);
       try {
-        await api.post("/api/admin-friend/request", {
-          admin_id: adminId,
+        await api.post("/api/student-friend/request", {
+          student_id: studentId,
         });
-        setAcceptedAdmins([...acceptedAdmins]);
+        setAcceptedStudents([...acceptedStudents]);
         toast.success("Friend request sent");
       } catch (err) {
         toast.error(err.response?.data?.message || "Request failed");
@@ -57,7 +55,7 @@ export default function AdminProfileFriend() {
       </div>
     );
 
-  if (!acceptedAdmins.length) {
+  if (!acceptedStudents.length) {
     return (
       <p className="text-gray-500 text-center mt-6">
        
@@ -66,45 +64,45 @@ export default function AdminProfileFriend() {
   }
 
   const showMore = () =>
-    setVisibleCount(prev => Math.min(prev + 4, acceptedAdmins.length));
+    setVisibleCount(prev => Math.min(prev + 4, acceptedStudents.length));
   const showLess = () => setVisibleCount(4);
 
   return (
-    <div className="mt-6 max-w-5xl mx-auto">
+    <div className="mt-6 max-w-5xl lg:ml-64 mx-auto">
       <Toaster position="top-right" />
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-2  py-2 px-4">
-        <h3 className="text-lg text-black font-semibold border-b-2 border-blue-400 w-full pb-2">
-          Admins ({acceptedAdmins.length})
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg text-black font-semibold">
+          Students ({acceptedStudents.length})
         </h3>
       </div>
 
       {/* GRID */}
       <div className="grid  rounded-lg  grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
-        {acceptedAdmins.slice(0, visibleCount).map(admin => {
-          const status = admin.status ?? 'none'; // ✅ use the status from backend
-          const isOwnerUser = user?.id === admin.id;
+        {acceptedStudents.slice(0, visibleCount).map(student => {
+          const status = student.status ?? 'none'; // ✅ use the status from backend
+          const isOwnerUser = user?.id === student.id;
 
           return (
             <div
-              key={admin.id}
-              className="bg-white rounded-xl border-2  border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
+              key={student.id}
+              className="bg-white rounded-xl border-2  border-blue-500 sm:w-52 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
             >
               {/* Avatar */}
                <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[55px] font-bold">
-                {admin.first_name?.[0]}
+                {student.first_name?.[0]}
               </div>
 
               {/* Name */}
              <p className="mt-2 font-semibold text-gray-800">
-                {isOwnerUser ? "You" : `${admin.first_name} ${admin.last_name?.[0]}`}
+                {isOwnerUser ? "You" : `${student.first_name} ${student.last_name?.[0]}`}
               </p>
 
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-                  onClick={() => navigate(`/chats/${admin.id}`)}
+                  onClick={() => navigate(`/chats/${student.id}`)}
                   className="mt-1 px-4 bg-blue-800 whitespace-nowrap hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
                 >
                   💬 Message
@@ -135,14 +133,14 @@ export default function AdminProfileFriend() {
 
       {/* SEE MORE / LESS */}
       <div className="flex justify-center mt-6">
-        {visibleCount < acceptedAdmins.length ? (
+        {visibleCount < acceptedStudents.length ? (
           <button
             onClick={showMore}
             className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold"
           >
             See more
           </button>
-        ) : acceptedAdmins.length > 4 ? (
+        ) : acceptedStudents.length > 4 ? (
           <button
             onClick={showLess}
             className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-sm font-semibold"

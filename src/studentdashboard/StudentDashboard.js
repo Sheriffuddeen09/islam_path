@@ -1,17 +1,15 @@
 import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import StudentProfilePage from "./StudentProfile";
-import LiveClass from "../teacherdashboard/LiveClass";
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import DashboardStudent from "./DashbordStudent";
 import AssignmentLibrary from "../assignment/AssignmentLibrary";
 import AssignmentResults from "../assignment/AssignmentResults";
 import ExamResults from "../exam/ExamResults";
 import ExamLibrary from "../exam/ExamLibrary";
-import StudentFriend from "../pages/friend/StudentFriend";
 import CreateVideoSection from "./CreateVideo";
 import LibraryPage from "../pages/video/LibraryVideo";
+import Setting from "./Setting";
 
 export default function StudentDashboard ({onCreated}){
 
@@ -21,17 +19,7 @@ export default function StudentDashboard ({onCreated}){
         
    const [pendingRequests, setPendingRequests] = useState(0);
     
-  const [unreadCount, setUnreadCount] = useState(0);
   
-      
-          const fetchUnreadCount = async () => {
-            const res = await api.get("/api/messages/unread-count");
-            setUnreadCount(res.data.unread_senders);
-          };
-      
-          useEffect(() => {
-            fetchUnreadCount();
-          }, []);
     
     
       useEffect(() => {
@@ -58,13 +46,11 @@ export default function StudentDashboard ({onCreated}){
       
       
         const menu = [
-        { id: 7, label: "Teacher Request", showBadge: true },
-        { id: 8, label: "Class Message", showBadges: true },
-        { id: 9, label: "View Continue Assignment" },
-        { id: 10, label: "View Continue Examination" },
-        { id: 11, label: "View Assignment Result" },
-        { id: 12, label: "View Examination Result" },
-        { id: 13, label: "Ranks" },
+        { id: 5, label: "Teacher Request", showBadge: true },
+        { id: 6, label: "View Continue Assignment" },
+        { id: 7, label: "View Continue Examination" },
+        { id: 8, label: "View Assignment Result" },
+        { id: 9, label: "View Examination Result" },
       ];
       
 
@@ -118,25 +104,21 @@ export default function StudentDashboard ({onCreated}){
                  </li>
                  </Link>
                  </li>
+                 
                  <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                     === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                  }`}>
-                   Message
-                 </li>
-                 <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                 }`}>
                    Library
                  </li>
-                 <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                 <li onClick={() => handleVisible(3)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                    === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                  }`}>
                    Create Post
                  </li>
-                 <li onClick={() => handleVisible(5)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 5 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                 <li onClick={() => handleVisible(4)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                    === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                  }`}>
-                   Profile
+                   Setting
                  </li>
                </ul>
              {/* Actual Menu */}
@@ -159,13 +141,7 @@ export default function StudentDashboard ({onCreated}){
                          {pendingRequests}
                        </span>
                      )}
-                      {
-                       item.showBadges && unreadCount > 0 && (
-                       <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                         {unreadCount}
-                       </span>
-                     )
-                     }
+                    
                    </li>
                  ))}
                </ul>
@@ -219,22 +195,17 @@ export default function StudentDashboard ({onCreated}){
                            <li onClick={() => {handleVisible(2);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                               === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                            }`}>
-                             Message
-                           </li>
-                           <li onClick={() => {handleVisible(3);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                           }`}>
                              Library
                            </li>
-                            <li onClick={() => {handleVisible(4);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                            <li onClick={() => {handleVisible(3);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                            }`}>
                              Create Post
                            </li>
-                           <li onClick={() => {handleVisible(5);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
+                           <li onClick={() => {handleVisible(4);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
                               === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
                            }`}>
-                             Profile
+                             Setting
                            </li>
                          </ul>
                        {/* Actual Menu */}
@@ -256,15 +227,7 @@ export default function StudentDashboard ({onCreated}){
                                  <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                                    {pendingRequests}
                                  </span>
-                               )}
-                                {
-                                 item.showBadges && unreadCount > 0 && (
-                                 <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                                   {unreadCount}
-                                 </span>
-                               )
-                               }
-                              
+                               )}  
                              </li>
                            ))}
                          </ul>
@@ -275,38 +238,32 @@ export default function StudentDashboard ({onCreated}){
                
                        {/* ---------------------- MAIN CONTENT ---------------------- */}
                        <section className="flex-1 p-6 transition-all">
-                         {/* <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-                         <StudentDashboard />
-                         </div> */}
-                         {/* */}
-                         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-                         <DashboardStudent />
-                         </div>
-                         <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
-                         <LibraryPage />
-                         </div>
-                          <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
-                          <CreateVideoSection onCreated={onCreated} />
-                          </div>
-                         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
+                        
+                        <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
                          <StudentProfilePage />
                          </div>
-                         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
+                         <LibraryPage />
+                         </div>
+                          <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
+                          <CreateVideoSection onCreated={onCreated} />
+                          </div>
+                         <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
+                         <Setting />
+                         </div>
+                         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
                          <StudentRequest handleVisible={handleVisible} />
                          </div>
-                         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-                         <LiveClass  fetchUnreadCount={fetchUnreadCount}  />
-                         </div> 
-                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
                          <AssignmentLibrary  />
                          </div> 
-                          <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+                          <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
                          <ExamLibrary  />
                          </div> 
-                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
                          <AssignmentResults  />
                          </div> 
-                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
                          <ExamResults  />
                          </div> 
                        </section>

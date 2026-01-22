@@ -1,162 +1,55 @@
 working on
 
-* work out laravel and react performance of (ranks, student names, assignment performance, exam performance, accurate, analystic)
-
-
-* message chat will be in 
-* if i click the message in the profile it should open directly the student message box 
-* profile will change to dashboard
-* setting will hold the edit profile, visibility of account, privacy and so on
-* change the ui of get mentor [remove the read more on hover change cv to view details, and reduce the height.
-if the rwquest is send the profile to disappear from the get mentor but decline it should return]
-
-
-
-
-
-this the table f the result assignment but does not show the wrong answer color and the correct answer word does nt show under the questions  
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+1. the performance and accuracy should be only for user login in the dashboard not overall student
+public function performanceSplit()
     {
-        Schema::create('assignment_answers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('assignment_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('question_id')->constrained('assignment_questions')->cascadeOnDelete();
-            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
-            $table->enum('selected_answer', ['A','B','C','D']);
-            $table->timestamps();
-        });
-
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('assignment_answers');
-    }
-}; public function index()
-{
-    $user = auth()->user();
-
-    $expiryDate = now()->subDays(30);
-
-    $query = AssignmentResult::with([
-        'assignment.teacher',
-        'student'
-    ])
-    // ✅ GLOBAL RULE: hide results older than 30 days
-    ->where('submitted_at', '>=', $expiryDate);
-
-    /**
-     * 🧑‍🎓 STUDENT VIEW
-     */
-    if ($user->role === 'student') {
-        $query
-            ->where('hidden_for_student', false)
-            ->where('student_id', $user->id);
-    }
-
-    /**
-     * 👨‍🏫 TEACHER VIEW
-     */
-    if ($user->role === 'teacher') {
-        $query
-            ->where('hidden_for_teacher', false)
-            ->whereHas('assignment', function ($q) use ($user) {
-                $q->where('teacher_id', $user->id);
-            });
-    }
-
-    $results = $query->latest()->get();
-
-    return $results->map(function ($r) {
         return [
-            'id' => $r->id,
+            'assignments' => DB::table('assignment_results')
+                ->avg(DB::raw('score * 100.0 / total_questions')),
 
-            'assignment_title' => optional($r->assignment)->title,
-
-            'teacher' => optional($r->assignment->teacher)
-                ? $r->assignment->teacher->first_name . ' ' . $r->assignment->teacher->last_name
-                : null,
-
-            'student' => optional($r->student)
-                ? $r->student->first_name . ' ' . $r->student->last_name
-                : null,
-
-            'score' => $r->score,
-            'total' => $r->total_questions,
-
-            'ratio' => $r->total_questions > 0
-                ? round(($r->score / $r->total_questions) * 100, 1)
-                : 0,
-
-            'submitted_at' => $r->submitted_at,
+            'exams' => DB::table('exam_results')
+                ->avg(DB::raw('score * 100.0 / total_questions')),
         ];
-    });
-}
-
-public function show(AssignmentResult $result)
-{
-    // ❌ Block expired results
-    if ($result->submitted_at < now()->subDays(30)) {
-        abort(404, 'This result has expired');
     }
 
-    $result->load([
-        'assignment.questions',
-        'answers.question',
-        'student',
-        'assignment.teacher'
-    ]);
+   
+    public function accuracy()
+    {
+        return [
+            'assignment_accuracy' => DB::table('assignment_results')
+                ->avg(DB::raw('score * 100.0 / total_questions')),
 
-    return response()->json($result);
-}
-  <div className="max-h-[60vh] overflow-y-auto space-y-4">
-              {preview.assignment.questions.map((q, index) => {
-                const answer = preview.answers.find(
-                  a => a.question_id === q.id
-                );
+            'exam_accuracy' => DB::table('exam_results')
+                ->avg(DB::raw('score * 100.0 / total_questions')),
+        ];
+    }
 
-                return (
-                  <div key={q.id} className="border-b pb-3">
-                    <p className="font-semibold">
-                      {index + 1}. {q.question}
-                    </p>
+2. student should be rank according to their average scores 
+public function studentAnalytics()
+    {
+    return DB::table('users')
+    ->where('role', 'student')
+    ->leftJoin('assignment_results', 'users.id', '=', 'assignment_results.student_id')
+    ->leftJoin('exam_results', 'users.id', '=', 'exam_results.student_id')
+    ->leftJoin('student_badges', 'users.id', '=', 'student_badges.student_id')
+    ->select(
+    'users.id',
+    DB::raw("users.first_name || ' ' || users.last_name as name"),
+    DB::raw("AVG(assignment_results.score * 100.0 / assignment_results.total_questions) as assignment_avg"),
+    DB::raw("AVG(exam_results.score * 100.0 / exam_results.total_questions) as exam_avg"),
+    DB::raw("AVG(assignment_results.score * 100.0 / assignment_results.total_questions) as avg_score"),
+    DB::raw('(SELECT COALESCE(SUM(badges),0) FROM student_badges WHERE student_badges.student_id = users.id) as total_badges')
 
-                   {["A", "B", "C", "D"].map(opt => {
-                const isCorrect = q.correct_answer === opt;
-                const isChosen = answer?.selected_answer === opt;
-
-                let className = "text-gray-700";
-
-                // 🟢 Correct answer (chosen or not)
-                if (isCorrect) {
-                  className = "text-green-600 font-semibold";
-                }
-
-                // 🔴 Wrong answer chosen
-                if (isChosen && !isCorrect) {
-                  className = "text-red-600 font-semibold";
-                }
-
-                return (
-                  <p key={opt} className={className}>
-                    {opt}. {q[`option_${opt.toLowerCase()}`]}
-                  </p>
-                );
-              })}
+    )
+    ->groupBy('users.id')
+    ->get();
+    }
 
 
-                  </div>
-                );
-              })}
-            </div>
+    
+* the performance is not showing
 
-            
 
+* if i click the message in the profile it should open directly the student message box 
+* student should request for teacher by 15 badges and when student register they should be given 30 badges
 

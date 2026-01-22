@@ -1,9 +1,16 @@
-import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User2, User } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
 import Performance from "./Performance";
 import StudentRequest from "./StudentRequest";
+import Navbar from "../layout/Header";
 import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import StudentProfile from "../pages/friend/StudentAdded";
+import StudentProfileFriendDashboard from "./StudentProfileFriendDashboard";
+import AlertIcon from "./Icon";
+import LogoutButton from "../Form/LogOut";
+import VideoList from "../teacherdashboard/VideoList";
 
 
 export default function StudentProfilePage() {
@@ -11,13 +18,10 @@ export default function StudentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({});
-  const [notification, setNotification] = useState({
-  show: false,
-  type: "", // "success" | "error"
-  message: "",
-});
+  const [isloading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [badges, setBadges] = useState({
   total: 0,
@@ -26,33 +30,62 @@ export default function StudentProfilePage() {
 });
 
 
-
-const showNotification = (type, message) => {
-  setNotification({ show: true, type, message });
-
-  setTimeout(() => {
-    setNotification({ show: false, type: "", message: "" });
-  }, 3000);
-};
-
 useEffect(() => {
   api.get("/api/student/badges")
-    .then(res => setBadges(res.data.totalBadges));
+    .then(res => {
+      setBadges(res.data);
+    })
+    .catch(() => {
+      setBadges({ total: 0, assignment: 0, exam: 0 });
+    });
 }, []);
 
+  useEffect(() => {
+        const loadData = async () => {
+          setIsLoading(true);
+      
+          try {
+            await api.get("/sanctum/csrf-cookie");
+      
+            const userRes = await api.get("/api/user-status", { withCredentials: true });
+      
+            const currentUser =
+              userRes.data.status === "logged_in" ? userRes.data.user : null;
+      
+            setUser(currentUser);
+      
+            const protectedRoutes = [
+              "/student/dashboard"
+            ];
+      
+            if (!currentUser && protectedRoutes.includes(location.pathname)) {
+              navigate("/login");
+            }
+          } catch (err) {
+            console.error(err);
+            setUser(null);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+      
+        loadData();
+      }, [location.pathname]);
+      
+  
 
-const fetchProfile = async () => {
+  const fetchProfile = async () => {
+
   try {
-    const res = await api.get("/api/profile");
+    const res = await api.get(`/api/profile`);
     setProfile(res.data);
     setVisibility(res.data.visibility || {
-        dob: false,
-        location: false,
-        email: false,
-        gender: false,
-        phone: false
-      });
-
+      dob: false,
+      location: false,
+      email: false,
+      gender: false,
+      phone: false
+    });
   } catch (err) {
     console.error(err);
   } finally {
@@ -61,71 +94,14 @@ const fetchProfile = async () => {
 };
 
   useEffect(() => {
-
     fetchProfile();
-  }, []);
+},[]);
+
+
 
   const handleToggleVisibility = (field) => {
     setVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
-
-  const saveVisibility = async () => {
-  setLoading(true);
-  try {
-    await api.put("/api/profile/visibility", { visibility });
-
-    setEditVisibility(false);
-    showNotification("success", "Profile visibility updated 👁️");
-  } catch (err) {
-    showNotification(
-      "error",
-      err.response?.data?.message || "Failed to update visibility ❌"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const saveProfile = async () => {
-  setLoading(true);
-  try {
-    await api.put("/api/profile", editForm);
-
-    await fetchProfile(); // ✅ THIS FIXES IT
-    setShowEditModal(false);
-
-    showNotification("success", "Profile updated successfully ✅");
-  } catch (err) {
-    showNotification(
-      "error",
-      err.response?.data?.message || "Failed to update profile ❌"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-  useEffect(() => {
-  if (profile) {
-    setEditForm({
-      first_name: profile.first_name || "",
-      last_name: profile.last_name || "",
-      email: profile.email || "",
-      phone: profile.phone || "",
-      location: profile.location || "",
-      dob: profile.dob || "",
-      gender: profile.gender || "",
-    });
-  }
-}, [profile]);
 
 const [visibleProfile, setVisibleProfile] = useState(1)
   
@@ -133,107 +109,95 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       setVisibleProfile(id)
     }
 
-
-
-  if (loading) return <Loader />;
-
   
-
-  const badge = (
+const badge = (
           <div>
-          <div className="grid grid-cols-3 gap-4">
-        <div className="bg-purple-100 p-4 rounded">
-          <p className="text-sm text-gray-500">Total Badges</p>
-          <p className="text-2xl font-bold">{badges?.total}</p>
-        </div>
-
-        <div className="bg-blue-100 p-4 rounded">
-          <p className="text-sm text-gray-500">Assignment</p>
-          <p className="text-2xl font-bold">{badges?.assignment}</p>
-        </div>
-
-        <div className="bg-green-100 p-4 rounded">
-          <p className="text-sm text-gray-500">Exam</p>
-          <p className="text-2xl font-bold">{badges?.exam}</p>
+          <div className=" mt-0 gap-4">
+        <div className=" py-4 rounded">
+          <p className="text-lg text-white font-bold">🏅 <span className=" font-bold">{badges.total}</span> Badges </p>
+          
         </div>
       </div>
 
     </div>
   )
+  
+
+  if (loading) return <Loader />;
+
+  if (!profile) return <p>Profile not found</p>;
 
 
+  const headerDashboard = (
+    <div className="flex justify-end mb-4">
+          <div className="flex items-center gap-1 sm:gap-4">
+            <div className="inline-flex items-center gap-2">
+              <p className="admin font-bold text-[14px] sm:text-[15px] whitespace-nowrap">Assalamu Alaykum</p>
+              <span className="font-semibold capitalize text-xs sm:text-[15px] whitespace-nowrap">
+                <b>{user?.role || ""}</b>
+              </span>
+              <span className="font-semibold text-xs sm:text-[15px] whitespace-nowrap">
+                <b>{user?.first_name || "No user"}</b>
+              </span>
+            </div>
 
-
+            <LogoutButton />
+          </div>
+        </div>
+  )
   const profile_content = (
-    <div className="max-w-5xl lg:ml-64 mt-7 border-blue-200 mx-auto border-t-2  px-4 py-2">
-    <div className="text-white p-4 mb-0 flex flex-row gap-5">
+    <div className="max-w-5xl lg:ml-64 mx-auto">
+    <div className="text-white flex sm:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
       
-          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
-             === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800"
-          }`}>Course </button>
-          <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
-             === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-white text-black hover:bg-gray-300 hover:text-gray-800 "
+          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
+             === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+          }`}>All Post</button>
+          <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+             === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+          }`}>Video</button>
+          <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+             === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>Student Performance</button>
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-          <Performance />
+        All Post Loading
           </div>
+          
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-          <StudentRequest  />
+            <VideoList />
+        </div>
+        <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+            <Performance badges={badges} />
         </div>
         </div>
   )
   const content = (
-    <div className="max-w-5xl lg:ml-64 mt-0 mx-auto px-4 py-0">
+    <div className="max-w-5xl lg:ml-64 0 mx-auto px-4 py-0">
      
 
       {/* Profile Header */}
-      <div className="bg-white rounded-2xl shadow p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
+      <div className="bg-gray-900 sm:p-14 rounded-2xl shadow p-6  flex flex-col md:flex-row gap-6 items-center">
         
-        <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600">
+        <div className="w-28 h-28 rounded-full bg-gray-600 text-white flex items-center justify-center text-[80px] font-bold">
           {profile.first_name?.[0]}
-          {profile.last_name?.[0]}
         </div>
 
             
         <div className="text-center md:text-left flex-1">
-          <h2 className="text-2xl md:text-3xl font-bold">{profile.first_name} • {profile.last_name}</h2>
-          <p className="text-sm text-gray-500">{profile.role}</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.first_name} • {profile.last_name}</h2>
+          <p className="text-sm my-1 text-white font-semibold capitalize">{profile.role}</p>
+          <p className="text-sm my-1 text-white font-semibold">PROFILE {profile.id}</p>
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
             {visibility.email && (
-              <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {profile.email}</span>
+              <span className="flex text-white items-center gap-1"><Mail className="w-4 h-4" /> {profile.email}</span>
             )}
             {visibility.phone && (
-              <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> {profile.phone}</span>
+              <span className="flex text-white items-center gap-1"><Phone className="w-4 h-4" /> {profile.phone}</span>
             )}
           </div>
         </div>
-         <div className="flex justify-between items-center gap-4">
-        <button
-          onClick={() => setEditVisibility(!editVisibility)} title="profile visibility"
-          className="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-500"
-        >
-          {editVisibility ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-            : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-            </svg>
-            }
-        </button>
-        <button
-          onClick={() => setShowEditModal(true)}
-          title="Edit"
-           className="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-500"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-</svg>
-
-        </button>
-      </div>
-      
+        {badge}
       </div>
 
       {/* Profile Details */}
@@ -281,172 +245,21 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           isVisible={visibility.gender}
         />
       </div>
-
-      {editVisibility && (
-        <div className="mt-6 flex justify-end">
-          <button onClick={saveVisibility} className="px-2 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            {loading ? (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  ) : 
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-    }
-
-          </button>
-        </div>
-      )}
-
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
-            <h3 className="text-xl font-bold mb-4">Edit Profile</h3>
-            <div className="flex flex-col gap-4">
-             <input
-                type="text"
-                name="first_name"
-                value={editForm.first_name}
-                onChange={handleFormChange}
-                className="border p-2 rounded w-full"
-                placeholder="First Name"
-                />
-
-              <input
-                type="text"
-                name="last_name"
-                value={editForm.last_name}
-                onChange={handleFormChange}
-                placeholder="Last Name"
-                className="border p-2 rounded w-full"
-              />
-              <input
-                type="email"
-                name="email"
-                value={editForm.email}
-                onChange={handleFormChange}
-                placeholder="Email"
-                className="border p-2 rounded w-full"
-              />
-              <input
-                type="text"
-                name="phone"
-                value={editForm.phone}
-                onChange={handleFormChange}
-                placeholder="Phone"
-                className="border p-2 rounded w-full"
-              />
-              <input
-                type="text"
-                name="location"
-                value={editForm.location}
-                onChange={handleFormChange}
-                placeholder="Location"
-                className="border p-2 rounded w-full"
-              />
-              <input
-                type="date"
-                name="dob"
-                value={editForm.dob}
-                onChange={handleFormChange}
-                placeholder="Date of Birth"
-                className="border p-2 rounded w-full"
-              />
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="px-2 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-              >
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
-
-              </button>
-              <button
-                onClick={saveProfile}
-                className="px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-              {loading ? (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  ) : 
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-    }
-
-
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 
    
   return(
     <div>
-         <Toaster position="top-right" autoClose={3000} />
-      
+        
+        <Toaster position="top-right" />
+        {headerDashboard}
         {content}
+        <StudentProfileFriendDashboard   />
         {profile_content}
-
-        {notification.show && (
-  <div
-    className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-lg shadow-lg text-white transition-all
-      ${
-        notification.type === "success"
-          ? "bg-green-600"
-          : "bg-red-600"
-      }
-    `}
-  >
-    {notification.message}
-  </div>
-)}
 
     </div>
   )
-
-
 }
 
 function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {

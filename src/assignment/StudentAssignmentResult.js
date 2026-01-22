@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../Api/axios";
 import { motion } from "framer-motion";
+import AssignmentFetchPdf from "./AssignmentFetchPdf";
+import { useAuth } from "../layout/AuthProvider";
 
 export default function StudentAssignmentResult() {
   const { resultId } = useParams();
   const [result, setResult] = useState(null);
+    const {user} = useAuth()
+  
 
   useEffect(() => {
     api.get(`/api/assignment-results/${resultId}`)
@@ -46,9 +50,14 @@ export default function StudentAssignmentResult() {
 
       {/* HEADER */}
       <div className="text-center mt-4 mb-6">
-        <h1 className={`text-4xl font-bold ${gradeColor}`}>
-          {grade} Result 🎉
-        </h1>
+        <div className="flex justify-around items-center flex-row ">
+          <h1 className={`text-4xl font-bold ${gradeColor}`}>
+            {grade} Result 🎉
+          </h1>
+          {user?.role === "student" && (
+          <AssignmentFetchPdf result={result} />
+          )}
+    </div>
         <p className="text-gray-900 text-lg font-bold mt-2">
           {result.student.first_name} • {result.student.last_name} 
         </p>

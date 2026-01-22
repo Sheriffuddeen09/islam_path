@@ -51,8 +51,8 @@ export default function StudentProfileFriend() {
     };
 
   if (loading) return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      <div className="flex items-center justify-center h-10">
+        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
 
@@ -75,50 +75,50 @@ export default function StudentProfileFriend() {
       <Toaster position="top-right" />
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg text-black translate-x-5 font-semibold">
+      <div className="flex justify-between items-center mb-2  py-2 px-4">
+        <h3 className="text-lg text-black font-semibold border-b-2 border-blue-400 w-full pb-2">
           Students ({acceptedStudents.length})
         </h3>
       </div>
 
       {/* GRID */}
-      <div className="grid grid-cols-1  rounded-lg  sm:grid-cols-2 md:grid-cols-4 md:gap-40 gap-4">
+      <div className="grid  rounded-lg  grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
         {acceptedStudents.slice(0, visibleCount).map(student => {
-          const status = student.status ?? 'none'; // ✅ use the status from backend
+          const status = student.status ?? 'none'; 
           const isOwnerUser = user?.id === student.id;
 
           return (
             <div
               key={student.id}
-              className="bg-white rounded-xl border-2  border-blue-500 w-72 mx-auto px-3 shadow py-6 flex flex-col items-center text-center hover:shadow-lg transition"
+              className="bg-white rounded-xl border-2  border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
             >
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[80px] font-bold">
+              <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[55px] font-bold">
                 {student.first_name?.[0]}
               </div>
 
               {/* Name */}
-             <p className="mt-2 font-semibold text-gray-800">
-                {isOwnerUser ? "You" : `${student.first_name} ${student.last_name}`}
+             <p className="mt-1 font-semibold text-gray-800">
+                {isOwnerUser ? "You" : `${student.first_name} ${student.last_name?.[0]}`}
               </p>
 
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
                   onClick={() => navigate(`/chats/${student.id}`)}
-                  className="mt-3 w-52 bg-blue-800 hover:bg-purple-700 text-white text-sm py-2 rounded-lg"
+                  className="mt-1 px-4 bg-blue-800 whitespace-nowrap hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
                 >
                   💬 Message
                 </button>
               ) : status === "pending" ? (
                 <button
                   disabled
-                  className="mt-3 w-full bg-gray-400 text-white text-sm py-2 rounded-lg cursor-not-allowed"
+                  className="mt-3 w-full bg-gray-400 text-white text-sm py-3 px-4 rounded-lg cursor-not-allowed"
                 >
                   Pending
                 </button>
               ) : (
-                <button onClick={sendFriendRequest} className="bg-blue-800 mt-2 w-52 px-5 py-2 rounded">
+                <button onClick={sendFriendRequest} className="bg-blue-800 mt-2 px-4 px-5 py-2 rounded">
                 {
                   btnLoading ?
                   <p className=" rounded-lg text-xs flex items-center gap-2">

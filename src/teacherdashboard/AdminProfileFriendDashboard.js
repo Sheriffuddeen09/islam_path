@@ -5,24 +5,23 @@ import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
 import { Loader } from "lucide-react";
 
-export default function AdminProfileFriend() {
+export default function AdminProfileFriendDashboard() {
 
-  const { id: profileId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [acceptedAdmins, setAcceptedAdmins] = useState([]);
   const [isOwner, setIsOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
 
   useEffect(() => {
-    if (!profileId) return;
+  
 
     const fetchAccepted = async () => {
       try {
-        const res = await api.get(`/api/admin/profile/accepted/${profileId}`);
+        const res = await api.get(`/api/admin/me`);
         // Each admin object now includes a 'status' field
         setAcceptedAdmins(res.data.acceptedAdmins || []);
         setIsOwner(res.data.isOwner);
@@ -34,7 +33,7 @@ export default function AdminProfileFriend() {
     };
 
     fetchAccepted();
-  }, [profileId]);
+  }, []);
 
   const sendFriendRequest = async (adminId) => {   // ✅ FIX 3
       setBtnLoading(true);
@@ -70,12 +69,12 @@ export default function AdminProfileFriend() {
   const showLess = () => setVisibleCount(4);
 
   return (
-    <div className="mt-6 max-w-5xl mx-auto">
+    <div className="mt-6 max-w-5xl lg:ml-64 mx-auto">
       <Toaster position="top-right" />
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-2  py-2 px-4">
-        <h3 className="text-lg text-black font-semibold border-b-2 border-blue-400 w-full pb-2">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg text-black font-semibold">
           Admins ({acceptedAdmins.length})
         </h3>
       </div>
@@ -89,7 +88,7 @@ export default function AdminProfileFriend() {
           return (
             <div
               key={admin.id}
-              className="bg-white rounded-xl border-2  border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
+              className="bg-white rounded-xl border-2  border-blue-500 sm:w-52 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
             >
               {/* Avatar */}
                <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[55px] font-bold">

@@ -190,7 +190,7 @@ export default function AssignmentResults() {
                       {grade} Result 🎉
                     </h1>
                     {user?.role === "student" && (
-                    <AssignmentFetchPdf result={preview} loadingPreview={loadingPreview} />
+                    <AssignmentFetchPdf result={preview} />
                     )}
               </div>
                     <p className="text-gray-900 text-lg font-bold mt-2">

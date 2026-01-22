@@ -7,33 +7,38 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
   const [loading, setLoading] = useState(false);
 
   const handleBlock = async () => {
-    if (!activeChat) return;
-    setLoading(true);
-    try {
-      await api.post(`/api/chats/${activeChat.id}/block`);
+  console.log("clicked block");
 
-      const newBlockInfo = {
-        blocked: true,
-        blocker_id: authUser.id,
-        blocked_id: chatPartner.id,
-      };
+  if (!activeChat || !chatPartner) {
+    console.warn("Blocked by guard clause");
+    return;
+  }
 
-      setChats(prev =>
-        prev.map(c =>
-          c.id === activeChat.id ? { ...c, block_info: newBlockInfo } : c
-        )
-      );
+  setLoading(true);
+  try {
+    const res = await api.post(`/api/chats/${activeChat.id}/block`);
 
-      setActiveChat(prev => ({ ...prev, block_info: newBlockInfo }));
+    const newBlockInfo = res.data.block_info;
 
-      toast.success("User blocked successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to block user");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setChats(prev =>
+      prev.map(c =>
+        c.id === activeChat.id ? { ...c, block_info: newBlockInfo } : c
+      )
+    );
+
+    setActiveChat(prev => ({
+      ...prev,
+      block_info: newBlockInfo,
+    }));
+
+    toast.success("User blocked successfully");
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    toast.error("Failed to block user");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleUnblock = async () => {
     if (!activeChat) return;
@@ -62,20 +67,15 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
     <div className="flex gap-2">
       {/* Block button (only if not blocked) */}
       {!activeChat?.block_info?.blocked && (
-          <div className="relative group inline-block">
+          <div className="">
 
-        <button
-          className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+        <button 
+          onClick={handleBlock}
+          disabled={loading}
+          className="px-3 py-2 inline-flex gap-2 items-center text-sm font-bold bg-red-600 text-white rounded hover:bg-red-700"
          
         >
           <UserX className="w-4 h-4" />
-          </button>
-          <button 
-           onClick={handleBlock}
-          disabled={loading}
-           className="absolute top-5 z-50 right-0 text-black bg-white opacity-0 
-            group-hover:opacity-100 group-hover:translate-y-2 transform transition-all
-             duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md">
           {
             loading 
             ? 
@@ -110,26 +110,20 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
       {/* Unblock button (only if current user blocked the other) */}
       {activeChat?.block_info?.blocked &&
         activeChat.block_info.blocker_id === authUser.id && (
-          <div className="relative group inline-block">
+          <div className="">
 
           <button
-            className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-           
-          >
-            <Unlock className="w-4 h-4" />
-          </button>
-            <button
              onClick={handleUnblock}
             disabled={loading}
-             className="absolute top-5 z-50 right-0 text-black bg-white opacity-0 
-            group-hover:opacity-100 group-hover:translate-y-2 transform transition-all
-             duration-500 invisible group-hover:visible p-2 rounded-lg shadow-md">
+            className="px-3 py-2 inline-flex gap-2 items-center text-sm font-bold bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            <Unlock className="w-4 h-4" />
             
             {
             loading 
             ? 
                 <svg
-      className="animate-spin h-5 w-5 text-blue-900 mx-auto"
+      className="animate-spin h-5 w-5 text-white mx-auto"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -154,8 +148,8 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
           </button>
           </div>
         )}
-        <Toaster position="top-10" className="flex justify-center items-center mx-auto" />
-        
+        {/* <Toaster position="top-right" className="flex justify-center items-center mx-auto" />
+         */}
     </div>
   );
 }

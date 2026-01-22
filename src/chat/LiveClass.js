@@ -35,7 +35,7 @@ function ChatSkeleton({ title }) {
 
 
   
-export default function LiveClass({fetchUnreadCount}) {
+export default function LiveClass({fetchUnreadCount, handleMessageOpen}) {
   const { user: authUser } = useAuth();
 
   const [loadingUser, setLoadingUser] = useState(true);
@@ -65,13 +65,11 @@ const closeReport = () => {
 };
 
 
-  const chatPartner =
+ const chatPartner =
   activeChat && authUser
     ? activeChat.user_one_id === authUser.id
-      ? activeChat.other_user
-      : activeChat.user_two_id === authUser.id
-      ? activeChat.other_user
-      : null
+      ? activeChat.user_two
+      : activeChat.user_one
     : null;
 
 
@@ -226,28 +224,6 @@ const closeReport = () => {
 };
 
 
-  // ================= Unblock =================
-const handleUnblock = async () => { 
-  try {
-    await api.post(`/api/chats/${activeChat.id}/unblock`);
-
-    // Update UI
-    setChats(prev =>
-      prev.map(c =>
-        c.id === activeChat.id ? { ...c, block_info: null } : c
-      )
-    );
-
-    setActiveChat(prev => ({ ...prev, block_info: null }));
-
-    toast.success("User unblocked");
-  } catch (err) {
-    toast.error("Failed to unblock user");
-    console.error(err);
-  }
-};
-
-
 
   // ================= HELPERS =================
   const unreadTotal = useMemo(
@@ -287,12 +263,12 @@ const handleUnblock = async () => {
   if (!authUser) return <div className="p-4 text-red-500">Not authenticated</div>;
 
   return (
-    <div className="h-full flex">
+    <div className="flex ">
       {/* CHAT LIST */}
-      <div className="w-full lg:ml-64 mt-5 border-r bg-gray-900">
+      <div className="sm:w-80 w-full message overflow-x-auto h-80 no-scrollbar shadow-md scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 sm:w-96 fixed sm:right-96 right-0 rounded-bl-lg rounded-br-lg z-50 mt-5 bg-gray-900">
 
         {/* TOP FILTER */}
-        <div className="flex gap-2 p-3 border-b sticky top-0 bg-gray-900 z-10">
+        <div className="flex gap-2 p-3 border-t bg-gray-900 z-10 relative">
           <button
             onClick={() => setChatFilter("all")}
             className={`px-4 py-2 rounded-full text-sm ${
@@ -317,6 +293,12 @@ const handleUnblock = async () => {
               </span>
             )}
           </button>
+          <button
+          onClick={handleMessageOpen}
+          className="px-1 hover:bg-gray-200 bg-gray-300 text-black rounded absolute right-5 top-4"
+        >
+          ✕
+        </button>
         </div>
 
         {loadingChats && <ChatSkeleton />}
@@ -329,6 +311,9 @@ const handleUnblock = async () => {
 
 
         {filteredChats.map(chat => {
+
+          
+          
           const other = chat.other_user;
         if (!other) return null;
 
@@ -336,8 +321,11 @@ const handleUnblock = async () => {
           const lastMessage = chat.latest_message;
           const isMine = lastMessage?.sender_id === authUser.id;
 
+           
 
           return (
+             <>
+
             <div
               key={chat.id}
                onClick={() => {
@@ -345,7 +333,7 @@ const handleUnblock = async () => {
                   setIsMinimized(false);
                 }}
 
-              className="flex gap-3 p-4 border-b hover:bg-gray-800 cursor-pointer"
+              className="flex gap-3 p-4 border-t hover:bg-gray-800 cursor-pointer "
             >
               <div className="w-12 h-12 rounded-full bg-gray-700 text-white flex items-center justify-center font-bold">
                 {other.first_name[0]}
@@ -405,13 +393,9 @@ const handleUnblock = async () => {
 
                 </div>
               </div>
+             
             </div>
-          );
-        })}
-      </div>
-
-      {/* Active Chat Messages */}
-      {activeChat && 
+          {activeChat && 
           <div
             className={`
               fixed z-50 bg-transparent
@@ -420,7 +404,7 @@ const handleUnblock = async () => {
 
               ${isMinimized
                 ? "bottom-0 right-0 h-16 w-full sm:w-[420px] rounded-t-lg"
-                : "top-0 right-0 md:top-10 md:right-10 h-full w-full sm:h-[700px] sm:w-[420px] sm:rounded-lg"
+                : "top-0 right-0 md:top-20 md:right-10 w-full sm:h-[600px] sm:w-[420px] sm:rounded-lg"
               }
             `}
           >
@@ -438,26 +422,26 @@ const handleUnblock = async () => {
                         </svg>
       
                       </button>
-                      {authUser && chatPartner &&  (
-                      <Link to={`/profile/${chatPartner.id}`} className="inline-flex items-center gap-2">
+                      {/* {authUser && chatPartner &&  ( */}
+                      <Link to={`/profile/${other.id}`} className="inline-flex items-center gap-2">
                         <div className="sm:w-12 w-10 sm:h-12 h-10 rounded-full bg-blue-900 text-white text-xl flex items-center justify-center font-bold">
-                          {chatPartner?.first_name?.[0] || "?"}
+                          {other?.first_name?.[0] || "?"}
                         </div>
       
                         <span className="font-semibold truncate text-black">
-                          {chatPartner?.first_name} {chatPartner?.last_name?.[0]}
+                          {other?.first_name} {other?.last_name?.[0]}
                         </span>
                       </Link>
-                    )}
+                    {/* )} */}
       
                       </div>
 
-                      <div className="inline-flex items-center sm:gap-3 gap-2 sm:mx-4 mx-2 ">
+                      <div className="inline-flex items-center gap-3  sm:mx-4 mx-2 ">
                                               <div className="flex items-center gap-1">
                   {/* Minimize */}
                   <button
                     onClick={() => setIsMinimized(!isMinimized)}
-                    className="px-1 hover:bg-gray-200 rounded"
+                    className="px-1 hover:bg-gray-200 bg-gray-300 text-black rounded"
                   >
                     —
                   </button>
@@ -468,13 +452,11 @@ const handleUnblock = async () => {
                       setActiveChat(null);
                       setIsMinimized(false);
                     }}
-                    className="px-1 hover:bg-gray-200 rounded"
+                    className="px-1 hover:bg-gray-200 bg-gray-300 text-black rounded"
                   >
                     ✕
                   </button>
-                </div>
-
-                        <button className="p-1 bg-gray-300 rounded-full hover:bg-gray-400 text-black"  onClick={() => setShowGuide(true)}>
+                  <button className="p-1 bg-gray-300 rounded-full hover:bg-gray-400 text-black"  onClick={() => setShowGuide(true)}>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -489,24 +471,47 @@ const handleUnblock = async () => {
                           strokeLinejoin="round"
                           d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
                         />
+                  </svg>
+                  </button>
+                </div>
+                      <div className=" relative group inline-block cursor-pointer">
+                      <button className="p-1 bg-gray-300 rounded-full hover:bg-gray-400 text-black">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+                        <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
                       </svg>
+
                       </button>
-                    <button title="Report" className="text-black p-1 bg-gray-300 rounded-full hover:bg-gray-400 " onClick={handleReportPop}>
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+
+                      <div className="absolute top-5 z-50 flex-col flex gap-2 right-0 bg-white opacity-0 group-hover:opacity-100 group-hover:translate-y-2 transform transition-all duration-500 invisible group-hover:visible p-4 rounded-lg shadow-md">
+                    <button title="Report" className="text-black p-2 inline-flex gap-1 bg-gray-300 rounded-lg items-center font-bold text-sm hover:bg-gray-400 " onClick={handleReportPop}>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                           <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                         </svg>
-      
+                      Report
                     </button>
 
-                   <BlockButton activeChat={activeChat} authUser={authUser} chatPartner={chatPartner} setActiveChat={setActiveChat} setChats={setChats} />
+                   <BlockButton activeChat={activeChat} authUser={authUser} chatPartner={other} setActiveChat={setActiveChat} setChats={setChats} />
 
+                    </div>
+                    </div>
                     </div>
                     </div>
       
                     <ChatWindow messages={messages} setMessages={setMessages} activeChat={activeChat} setActiveChat={setActiveChat} setChats chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
                   </div>
                 }
-          <Toaster position="top-10" className="flex justify-center items-center mx-auto" />
+         
+          </>
+
+          );
+
+         
+          
+        })}
+      </div>
+
+      {/* Active Chat Messages */}
+       <Toaster position="top-10" className="flex justify-center items-center mx-auto" />
     </div>
   );
 }

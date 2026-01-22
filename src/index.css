@@ -146,16 +146,21 @@
 .sunmukhi-mobile {
   display: none;
 }
-
-@media (max-width: 768px) {
-  .sunmukhi-desktop {
-    display: none;
+@media (min-width: 310px) {
+.message{
+    height: 100%;
+    top: 56px;
   }
-  .sunmukhi-mobile {
-    display: block;
-    font-size: 2rem;
   }
+  
+@media (min-width: 768px) {
+  .message{
+    height: 500px;
+    top: 56px;
+  }
+  
 }
+
 
 .scrollb{
   scroll-snap-type: mandatory x;

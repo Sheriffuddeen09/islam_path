@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
 import { CreativeCommons, Globe, LibraryIcon, MessageCircle, Search, User, User2, User2Icon, Video } from "lucide-react";
 import { useAuth } from './AuthProvider';
+import LiveClass from '../chat/LiveClass';
+import api from '../Api/axios';
 
 function Navbar() {
 
@@ -10,9 +12,27 @@ function Navbar() {
       const [browse, setBrowse] = useState(false)
       const [members, setMember] = useState(false)
       const [content, setContent] = useState(false)
+      const [messageOpen, setMessageOpen] = useState(false)
       const homepage = useLocation().pathname
       
    const { isLoggedin, user } = useAuth()
+
+   const [unreadCount, setUnreadCount] = useState(0);
+     
+         
+    const fetchUnreadCount = async () => {
+      const res = await api.get("/api/messages/unread-count");
+      setUnreadCount(res.data.unread_senders);
+    };
+
+    useEffect(() => {
+      fetchUnreadCount();
+    }, []);
+
+    const handleMessageOpen = () =>{
+    
+        setMessageOpen(!messageOpen)
+      }
 
     const dashboardLink =
   user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
@@ -51,7 +71,7 @@ function Navbar() {
   }
 
     return (
-
+      <>
         <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-3 py-4 sm:p-3 mb-10 ">
             <nav className='flex flex-row justify-between items-center lg:mx-7'>
               <div className='inline-flex items-center gap-2'>
@@ -100,10 +120,10 @@ function Navbar() {
                 </Link>
                 <Link to={'/create'} className={`${homepage === '/create' ? 'text-blue-400' : 'text-gray-600'} text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer create`}>Create
                 </Link>
-                <Link to={'/message'} className={`${homepage === '/message' ? 'text-blue-400' : 'text-gray-600'} text-black
+                <button onClick={handleMessageOpen} className={`${messageOpen ? 'text-blue-400' : 'text-gray-600'} text-black
                  text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer logistic`}>Message
                 
-                </Link>
+                </button>
                 <Link to={'/video'} className={`${homepage === '/message' ? 'text-blue-400' : 'text-gray-600'} text-black
                  text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer logistic`}>Video
                 
@@ -223,10 +243,17 @@ function Navbar() {
                   <User2 /> 
                 <Link to={'/members'} className={`${homepage === '/members' ? 'text-blue-400' : 'text-gray-600'} text-black text-gray-600 hover:text-blue-800 gap-3 font-bold rounded-xl lg:p-2 p-1 
                 transition-all duration-500 ease-in-out cursor-pointer pb-2 tech`}>Members</Link>
-                <button onClick={() => setMember(!members)} className='text-3xl'>
+                <button onClick={() => setMember(!members)} className='text-3xl relative'>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class={`size-5 ${browse ? "rotate-180" : ""} transition-all duration-500 ease-in-out`}>
                   <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>
+                 {
+                 unreadCount > 0 && (
+                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )
+              }
                 </button>
                 </div>
                   <div className={`w-44 shadow-md  text-black ${members ? "blocked" :"hide"}`}>
@@ -282,6 +309,12 @@ function Navbar() {
         </section>
         </div>
         </header>
+
+        <div className={`${messageOpen ? 'block' : 'hidden'}`}>
+          <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} />
+          </div>
+        
+        </>
     )
 
 }

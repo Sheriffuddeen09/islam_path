@@ -7,7 +7,7 @@ import api from "../Api/axios";
 
 const COLORS = ["#16a34a", "#dc2626"];
 
-export default function Performance({badges}) {
+export default function PerformanceId() {
   const [students, setStudents] = useState([]);
   const [accuracy, setAccuracy] = useState(null);
   const [performance, setPerformance] = useState(null);

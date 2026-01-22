@@ -6,10 +6,11 @@ import GetMentorProfile from "./GetMentorProfile";
 import AdminAdded from "../pages/friend/AdminAdded";
 import VideoList from "./VideoList";
 import AdminProfileFriend from "./AdminProfileFriend";
+import GetMentorProfileId from "./GetMentorProfileId";
 
 
 
-export default function AdminProfilePageId({setStudents, profileId, student}) {
+export default function AdminProfilePageId({setStudents, profileId}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -61,24 +62,29 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
   const profile_content = (
     <div className="max-w-5xl mx-auto">
-    <div className="text-white  mt-7 border-blue-200 border-b-2 mb-5  px-4 py-2 flex flex-row gap-5">
-      
-          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
-             === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-          }`}>Video</button>
-          <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
-             === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-          }`}>Teacher Profile</button>
-        </div>
-        
-        <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-          <VideoList />
-          </div>
-          <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-          {/* <GetMentorProfile  /> */}
-          Loading For Now
-        </div>
-        </div>
+    <div className="text-white flex sm:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
+     
+          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
+                      === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                   }`}>All Post</button>
+                   <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                      === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                   }`}>Video</button>
+                   <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                      === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                   }`}>Teacher Profile</button>
+                 </div>
+                 
+                 <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
+                 All Post Loading
+                   </div>
+                   <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
+                     <VideoList />
+                     </div>
+                   <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+                     <GetMentorProfileId />
+                 </div>
+                 </div>
   )
   const content = (
     <div className="max-w-5xl 0 mx-auto px-4 py-0">

@@ -123,7 +123,7 @@ const handleSend = async (newMessage) => {
       {startLive && (
   <div
     id="jitsi-container"
-    className="w-full h-[400px] bg-black"
+    className="w-full h-[400px] bg-black relative"
   />
 )}
 
@@ -141,8 +141,11 @@ const handleSend = async (newMessage) => {
 
       
       {/* Input */}
+      <div className=''>
       <ChatInput chatId={chat.id}  activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats} setReplyingTo={setReplyingTo} replyingTo={replyingTo} setMessages={setMessages} onSend={handleSend}
          />
+        </div>
+
     </>
   );
 }

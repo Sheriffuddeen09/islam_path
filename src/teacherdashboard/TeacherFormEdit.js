@@ -35,6 +35,8 @@ export default function TeacherFormEdit({ onClose, teacher, onUpdate }) {
     fetchCourses();
   }, []);
 
+  
+
   // 🔹 Initialize form from teacher prop
   useEffect(() => {
     if (!teacher) return;
@@ -53,6 +55,23 @@ export default function TeacherFormEdit({ onClose, teacher, onUpdate }) {
 
     setLoading(false);
   }, [teacher]);
+
+
+  useEffect(() => {
+  if (teacher) {
+    setForm({
+      coursetitle_id: teacher.coursetitle_id || "",
+      qualification: teacher.qualification?.length ? teacher.qualification : [""],
+      experience: teacher.experience?.length ? teacher.experience : [""],
+      specialization: teacher.specialization?.length ? teacher.specialization : [""],
+      compliment: teacher.compliment?.length ? teacher.compliment : [""],
+      course_payment: teacher.course_payment || "",
+      currency: teacher.currency || "NGN",
+      logo: null,
+      cv: null,
+    });
+  }
+}, [teacher]);
 
   // 🔹 Submit
   const submitForm = async (e) => {
@@ -89,6 +108,7 @@ export default function TeacherFormEdit({ onClose, teacher, onUpdate }) {
       });
 
       toast.success("Teacher profile updated successfully ✅");
+      
 
       // 🔹 Call parent onUpdate to refresh teacher list
       if (onUpdate) {

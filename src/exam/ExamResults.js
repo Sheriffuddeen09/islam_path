@@ -188,7 +188,7 @@ export default function ExamResults() {
                           {grade} Result 🎉
                         </h1>
                         {user?.role === "student" && (
-                        <ExamFetchPdf result={preview} loadingPreview={loadingPreview} />
+                        <ExamFetchPdf result={preview}  />
                         )}
                   </div>
                     
