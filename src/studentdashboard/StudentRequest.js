@@ -71,7 +71,7 @@ export default function StudentRequest({handleVisible}) {
       <h2 className="text-xl font-bold mb-6 text-black pb-2 text-start border-b-2 border-blue-500">Live Class Requests</h2>
 
       
-        <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-80 no-scrollbar sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+        <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-full no-scrollbar sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <table className="min-w-full divide-y divide-white bg-white">
                  {requests.length === 0 && (
         <p className="text-gray-500 p-4 text-center whitespace-nowrap">No Teacher Request Send</p>

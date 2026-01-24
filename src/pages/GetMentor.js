@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
-import Navbar from "../layout/Header";
+
 import MentorCard from "./MentorCard";
 
-export default function GetMentor({teachers, setTeachers}) {
+export default function GetMentor({teachers, setTeachers, requestStatus, setRequestStatus}) {
   const { user } = useAuth();
   const authReady = user !== null;
 
-  const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
@@ -130,7 +129,7 @@ const filteredCourse = teachers
 
   return (
     <>
-    <Navbar />
+    
    
       <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-800">
         {/* Sidebar */}

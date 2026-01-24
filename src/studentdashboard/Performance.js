@@ -7,7 +7,7 @@ import api from "../Api/axios";
 
 const COLORS = ["#16a34a", "#dc2626"];
 
-export default function Performance({badges}) {
+export default function Performance() {
   const [students, setStudents] = useState([]);
   const [accuracy, setAccuracy] = useState(null);
   const [performance, setPerformance] = useState(null);
@@ -19,30 +19,30 @@ export default function Performance({badges}) {
   const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const [
-          studentsRes,
-          accuracyRes,
-          performanceRes,
-        ] = await Promise.all([
-          api.get("/api/analytics/students"),
-          api.get("/api/analytics/accuracy"),
-          api.get("/api/analytics/performance"),
-        ]);
+  const fetchAnalytics = async () => {
+    try {
+      const [
+        studentsRes,
+        accuracyRes,
+        performanceRes,
+      ] = await Promise.all([
+        api.get("/api/analytics/students"),
+        api.get("/api/analytics/accuracy"),
+        api.get("/api/analytics/performance"),
+      ]);
 
-        setStudents(studentsRes.data);
-        setAccuracy(accuracyRes.data);
-      
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setStudents(studentsRes.data);
+      setAccuracy(accuracyRes.data);
+      setPerformance(performanceRes.data); // ✅ REQUIRED
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchAnalytics();
-  }, []);
+  fetchAnalytics();
+}, []);
 
   /* ===== FILTER LOGIC ===== */
   const filteredStudents = useMemo(() => {
@@ -74,14 +74,15 @@ export default function Performance({badges}) {
   { name: "Exam Accuracy", value: accuracy?.exam_accuracy ?? 0 },
 ];
 
-if (!performance || !accuracy) return null;
-
 
   return (
     <div className="text-black sm:p-6 py-3 sm:space-y-8">
 
       {/* ===== STATS ===== */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <p className="font-bold border-b-2 p-2 text-xl border-blue-500 mb-3 -mt-5">
+        Your Performance
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 sm:gap-4 gap-1 mb-4">
       <div className="bg-white p-4 rounded shadow text-center">
         <p className="text-gray-500 text-sm">Assignment Accuracy</p>
         <p className="text-2xl font-bold">
@@ -149,15 +150,16 @@ if (!performance || !accuracy) return null;
       {/* ===== STUDENT TABLE =====  */}
 
       <div>
-        <h2 className="text-black font-semibold mb-3">Student Performance</h2>
+        <h2 className="text-black font-semibold my-3 text-sm">Student Performance</h2>
     
-       <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-80 no-scrollbar sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+       <div className="overflow-x-auto max-h-[70vh] border rounded-lg shadow-md w-full no-scrollbar sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <table className="min-w-full divide-y divide-white bg-white">
                  {filteredStudents.length === 0 && (
         <p className="text-gray-500 p-4 text-center whitespace-nowrap">No Student Performance Available</p>
       )}
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
+                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Rank</th>
                 <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Name</th>
                 <th className="px-4 py-3 text-left text-gray-600 font-medium whitespace-nowrap uppercase tracking-wider">Average</th>
                 <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase whitespace-nowrap tracking-wider">Assignment</th>
@@ -168,6 +170,7 @@ if (!performance || !accuracy) return null;
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredStudents.map(s => (
                 <tr key={s.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{s.rank}</td>
                   <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{s.name}</td>
                   <td>{(((s.assignment_avg ?? 0) + (s.exam_avg ?? 0)) / 2).toFixed(1)}%</td>
                   <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{s.assignment_avg || "--"}</td>

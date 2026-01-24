@@ -6,13 +6,12 @@ import { useAuth } from './AuthProvider';
 import LiveClass from '../chat/LiveClass';
 import api from '../Api/axios';
 
-function Navbar() {
+function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat}) {
 
       const [menu, setMenu] = useState(false)
       const [browse, setBrowse] = useState(false)
       const [members, setMember] = useState(false)
       const [content, setContent] = useState(false)
-      const [messageOpen, setMessageOpen] = useState(false)
       const homepage = useLocation().pathname
       
    const { isLoggedin, user } = useAuth()
@@ -29,11 +28,7 @@ function Navbar() {
       fetchUnreadCount();
     }, []);
 
-    const handleMessageOpen = () =>{
-    
-        setMessageOpen(!messageOpen)
-      }
-
+   
     const dashboardLink =
   user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
 
@@ -311,7 +306,9 @@ function Navbar() {
         </header>
 
         <div className={`${messageOpen ? 'block' : 'hidden'}`}>
-          <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} />
+          <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} 
+          setMessageOpen={setMessageOpen}
+          activeChat={activeChat} setActiveChat={setActiveChat} messageOpen={messageOpen}/>
           </div>
         
         </>

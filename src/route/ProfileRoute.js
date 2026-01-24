@@ -1,27 +1,15 @@
 import { useParams } from "react-router-dom";
 import { useAuth } from "../layout/AuthProvider";
-import StudentProfilePageId from "../studentdashboard/StudentProfileId";
-import ProfilePageId from "../teacherdashboard/AdminProfileId";
+import ProfileId from "./ProfileId";
 
-export default function ProfileRouter({setIncomingRequests, students, setStudents}) {
+export default function ProfileRouter({handleMessageOpen, requestStatus}) {
   const { id } = useParams();
   const { user } = useAuth();
 
-  if (!user) return null; // or loading spinner
-
-  switch (user.role) {
-    case "student":
-      return (
-
-      <StudentProfilePageId profileId={id}  setStudents={setStudents} setIncomingRequests={setIncomingRequests}/>
-    
-    );
-
-    case "admin":
-      return <ProfilePageId profileId={id} />;
-
-
-    default:
-      return <div>Unauthorized</div>;
-  }
+  
+  return (
+    <div>
+      <ProfileId profileId={id} handleMessageOpen={handleMessageOpen} requests={requestStatus} />
+    </div>
+  )
 }

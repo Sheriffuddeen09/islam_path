@@ -5,7 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
 import { Loader } from "lucide-react";
 
-export default function AdminProfileFriendDashboard() {
+export default function AdminProfileFriendDashboard({handleMessageOpen}) {
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -103,11 +103,12 @@ export default function AdminProfileFriendDashboard() {
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-                  onClick={() => navigate(`/chats/${admin.id}`)}
-                  className="mt-1 px-4 bg-blue-800 whitespace-nowrap hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
-                >
-                  💬 Message
-                </button>
+                onClick={() => handleMessageOpen(admin.id)}
+                className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
+              >
+                💬 Message
+              </button>
+
               ) : status === "pending" ? (
                 <button
                   disabled

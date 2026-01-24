@@ -1,21 +1,27 @@
 import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
-import Navbar from "../layout/Header";
+
 import { useEffect, useState } from "react";
-import GetMentorProfile from "./GetMentorProfile";
 import AdminAdded from "../pages/friend/AdminAdded";
-import VideoList from "./VideoList";
-import AdminProfileFriend from "./AdminProfileFriend";
-import GetMentorProfileId from "./GetMentorProfileId";
+import VideoList from "../teacherdashboard/VideoList";
+import AdminProfileFriend from "../teacherdashboard/AdminProfileFriend";
+import GetMentorProfileId from "../teacherdashboard/GetMentorProfileId";
+import { useAuth } from "../layout/AuthProvider";
+import PerformanceId from "../studentdashboard/PerformanceId";
+import StudentRequest from "../studentdashboard/StudentRequest";
+import Performance from "../studentdashboard/Performance";
+import StudentProfileFriend from "../studentdashboard/StudentProfileFriend";
+import StudentAdded from "../pages/friend/StudentAdded";
 
 
 
-export default function AdminProfilePageId({setStudents, profileId}) {
+export default function ProfileId({handleMessageOpen, profileId, requests}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
 
+  const { user: authUser } = useAuth();
   const fetchProfile = async () => {
   if (!profileId) return;
 
@@ -54,15 +60,74 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     }
 
 
+    const showStudentFriend = () => {
+  if (!authUser || !profile) return false;
+
+  return (
+    authUser.role === "student" &&
+    profile.role === "student" &&
+    authUser.id !== profile.id
+  );
+};
+
+const showAdminFriend = () => {
+  if (!authUser || !profile) return false;
+
+  return (
+    authUser.role === "admin" &&
+    profile.role === "admin" &&
+    authUser.id !== profile.id
+  );
+};
+
+
+const isAdminTeacher = profile?.admin_choice === "arabic_teacher";
+
+
+const requestsArray = Array.isArray(requests) ? requests : [];
+
+
+const requestWithTeacher = requestsArray.find(
+  r =>
+    r.teacher_id === profile?.id ||
+    r.student_id === profile?.id
+);
+
+const requestStatus = requestWithTeacher?.status ?? null;
+
+
+const canSeeContactInfo = () => {
+  if (!authUser || !profile) return false;
+
+  // Admin sees everything
+  if (authUser.role === "admin") return true;
+
+  // If profile is NOT admin teacher → show
+  if (!isAdminTeacher) return true;
+
+  // Student viewing admin teacher
+  if (authUser.role === "student" && isAdminTeacher) {
+    return requests === "accepted";
+  }
+
+  return false;
+};
+
+
 
   if (loading) return <Loader />;
 
   if (!profile) return <p>Profile not found</p>;
 
 
+
+ 
   const profile_content = (
-    <div className="max-w-5xl mx-auto">
-    <div className="text-white flex sm:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
+    <div className="max-w-5xl px-2 mx-auto">
+      {
+            profile.role === "admin" && (
+              <>
+    <div className="text-white flex sm:w-full w-full  overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
      
           <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
                       === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
@@ -84,6 +149,38 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                    <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
                      <GetMentorProfileId />
                  </div>
+                </>
+                    )
+                    }
+                 {
+                  
+                    profile.role === "student" && (
+                      <>
+                       <div className="text-white flex sm:w-full w-full px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">  
+                                <button onClick={() => {handleVisibleProfile(1);}} className={`whitespace-nowrap py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
+                                   === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                                }`}>All Post</button>
+                                 <button onClick={() => {handleVisibleProfile(2);}} className={`whitespace-nowrap py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
+                                   === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                                }`}>Video</button>
+                                <button onClick={() => {handleVisibleProfile(3);}} className={`whitespace-nowrap py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
+                                   === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                                }`}>Student Performance</button>
+                              </div>
+                              
+                              <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
+                                <Performance />
+                                </div>
+                                <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
+                                <StudentRequest  />
+                              </div>
+                               <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+                                <PerformanceId  />
+                              </div>
+                      </>
+                    )
+                  
+                 }
                  </div>
   )
   const content = (
@@ -100,18 +197,32 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             
         <div className="text-center md:text-left flex-1">
           <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.first_name} • {profile.last_name}</h2>
-          <p className="text-sm my-1 text-white font-semibold capitalize">{profile.role}</p>
+          <p className="text-sm my-1 text-white font-semibold capitalize">{profile.role} • {profile.role === 'admin' &&( 'Teacher')}</p>
           <p className="text-sm my-1 text-white font-semibold">PROFILE ID: {profileId}</p>
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
-            {visibility.email && (
-              <span className="flex text-white items-center gap-1"><Mail className="w-4 h-4" /> {profile.email}</span>
+            {canSeeContactInfo() && (
+              <span className="flex text-white items-center gap-1">
+                <Mail className="w-4 h-4" /> {profile.email}
+              </span>
             )}
-            {visibility.phone && (
-              <span className="flex text-white items-center gap-1"><Phone className="w-4 h-4" /> {profile.phone}</span>
+
+            {canSeeContactInfo() &&  (
+              <span className="flex text-white items-center gap-1">
+                <Phone className="w-4 h-4" /> {profile.phone}
+              </span>
             )}
           </div>
+
         </div>
-            <AdminAdded />
+        
+{showStudentFriend() && (
+  <StudentAdded handleMessageOpen={handleMessageOpen} />
+)}
+
+{showAdminFriend() && (
+  <AdminAdded handleMessageOpen={handleMessageOpen} />
+)}
+
       </div>
 
       {/* Profile Details */}
@@ -137,18 +248,18 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           icon={<Mail />}
           label="Email"
           value={visibility.email ? profile.email : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("email")}
-          isVisible={visibility.email}
+          isVisible={visibility.location}
         />
+
         <ProfileCard
           icon={<Phone />}
           label="Phone"
           value={visibility.phone ? profile.phone : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("phone")}
           isVisible={visibility.phone}
         />
+
         
         <ProfileCard
           icon={<User />}
@@ -165,9 +276,22 @@ const [visibleProfile, setVisibleProfile] = useState(1)
    
   return(
     <div>
-        <Navbar />
+        
         {content}
-        <AdminProfileFriend />
+         {
+            authUser.role === "student" &&
+          (
+            <StudentProfileFriend handleMessageOpen={handleMessageOpen} />
+          )
+        }
+        {
+          
+            authUser.role === "admin" &&
+            (
+            <AdminProfileFriend handleMessageOpen={handleMessageOpen} />
+          )
+        }
+        
         {profile_content}
 
     </div>

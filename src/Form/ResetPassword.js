@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../Api/axios";
 import { useNavigate } from "react-router-dom";
 import TextSlider from "./TextSlider";
-import Navbar from "../layout/Header";
+
 import ImageSlider from "./ImageSlider";
 import dua_success from "./image/dua_success.png";
 import success from "./image/path_islam.png";
@@ -217,7 +217,7 @@ const isDisabled =
 
    return (
     <div>
-      <Navbar />
+      
       <div className=" text lg:hidden block pb-3 mt-5 -md:mb-20 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
           <TextSlider texts={texts} />
         </div>

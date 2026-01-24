@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 
 
-export default function AdminAdded() {
+export default function AdminAdded({handleMessageOpen}) {
   const { id } = useParams();               // ✅ FIX 1
 
   const [status, setStatus] = useState("none");
@@ -48,7 +48,7 @@ export default function AdminAdded() {
   if (loading) {
     return <p  className="bg-green-800 px-5 py-2 rounded">
       <p className=" rounded-lg text-xs flex items-center gap-2">
-      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+      <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span>
     </p></p>;
   }
 
@@ -62,9 +62,13 @@ export default function AdminAdded() {
 
       {/* Action Button */}
       {status === "accepted" && (
-        <button className="bg-blue-800 text-white px-5 py-2 rounded">
-          💬 Message
-        </button>
+       <button
+      onClick={() => handleMessageOpen(admin.id)}
+      className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
+    >
+      💬 Message
+    </button>
+
       )}
 
       {status === "pending" && (
@@ -78,7 +82,7 @@ export default function AdminAdded() {
           {
             btnLoading ?
              <p className=" rounded-lg text-xs flex items-center gap-2">
-      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+      <span className="animate-spin h-6 w-6 my-10 border-2 border-white border-t-transparent rounded-full"></span>
     </p>
           :
           "➕ Add Friend"

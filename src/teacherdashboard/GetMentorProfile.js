@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
-import Navbar from "../layout/Header";
+
 
 export default function GetMentorProfile() {
   const [loading, setLoading] = useState(true);

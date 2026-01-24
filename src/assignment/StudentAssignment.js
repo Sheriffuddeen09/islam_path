@@ -594,7 +594,7 @@ const handleStart = async () => {
         {/* ================= QUESTIONS ================= */}
         {showResume && (
       <div className="text-black fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="text-black bg-white p-6 rounded-lg w-80 text-black">
+        <div className="text-black bg-white p-6 rounded-lg w-full text-black">
           <h2 className="text-black text-center font-semibold text-lg">
             Resume Assignment?
           </h2>

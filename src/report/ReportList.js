@@ -150,7 +150,7 @@ export default function ReportList() {
   return (
 
     <div>
-      <Navbar />
+      
       {content}
     </div>
   )

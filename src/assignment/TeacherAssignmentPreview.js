@@ -126,7 +126,7 @@ export default function TeacherAssignmentPreview() {
 
     
   const content = (
-     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
               <table className="min-w-full divide-y divide-white bg-white">
                  {assignments.length === 0 && (
         <p className="text-gray-500 p-4 text-center whitespace-nowrap">No assignment available</p>

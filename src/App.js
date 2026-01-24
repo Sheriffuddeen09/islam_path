@@ -1,4 +1,4 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, Outlet } from "react-router-dom";
 
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
@@ -17,10 +17,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import VideoPlayerId from "./pages/video/VideoPlayerId";
 import VideoPageApi from "./pages/video/VideoPageApi";
 import ProtectRoute from "./route/ProtectRouter";
-import LibraryPage from "./pages/video/LibraryVideo";
 import ReportList from "./report/ReportList";
-import ProfilePageId from "./teacherdashboard/AdminProfileId";
-import ChatPage from './chat/ChatPage'
 import ReportChat from "./chat/ReportChat";
 import StudentAssignment from "./assignment/StudentAssignment";
 import StudentExam from "./exam/StudentExam";
@@ -33,6 +30,7 @@ import AdminFriend from "./pages/friend/AdminFriend"
 import ProfileRouter from "./route/ProfileRoute";
 import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
 import StudentExamResult from "./exam/StudentExamResult";
+import Navbar from "./layout/Header";
 
    
 function App() {
@@ -50,6 +48,17 @@ function App() {
 
     const [videos, setVideos] = useState([]);
 
+    const [requestStatus, setRequestStatus] = useState({});
+    const [messageOpen, setMessageOpen] = useState(false);
+    const [activeChat, setActiveChat] = useState(null);
+
+
+    const handleMessageOpen = (studentId) => {
+      setActiveChat(studentId);
+      setMessageOpen(true); // always open, not toggle
+    };
+
+
     // 🔥 This function receives the new video from AdminVideoForm
     const handleVideoCreated = (newVideo) => {
       setVideos((prev) => [newVideo, ...prev]); // Update UI instantly
@@ -58,8 +67,14 @@ function App() {
   
   return (
     <div className="">
-     
+
       <Routes>
+    <Route element={<LayoutWithHeader
+          handleMessageOpen={handleMessageOpen}
+          messageOpen={messageOpen}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          setMessageOpen={setMessageOpen}  />}>
 
       {/* Home Page*/}
       <Route path="/" element={
@@ -67,7 +82,8 @@ function App() {
       } />
 
       <Route path="/get-mentor" element={
-          <GetMentor teachers={teachers} setTeachers={setTeachers} />
+          <GetMentor teachers={teachers} setTeachers={setTeachers} setRequestStatus={setRequestStatus}
+          requestStatus={requestStatus} />
       } />
 
       <Route path="/report-list" element={
@@ -100,8 +116,6 @@ function App() {
           }
         />
 
-        <Route path="/chat/:id" element={<ChatPage />} />
-
       <Route
           path="/video/:id"
           element={
@@ -113,8 +127,9 @@ function App() {
 
 
       {/* profile */}
-      <Route path="/profile/:id" element={<ProfileRouter students={students} setStudents={setStudents}/>}
-      setIncomingRequests={setIncomingRequests} />
+      <Route path="/profile/:id" element={<ProfileRouter 
+      requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}/>}
+       />
 
 
         <Route path="/student/assignment/result/:resultId" element={<StudentAssignmentResult />} />
@@ -183,11 +198,12 @@ function App() {
           <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
           currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
       } />
-
+    </Route>
+    <Route element={<LayoutWithOutHeader />}>
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <TeacherDashboardLayout onCreated={handleVideoCreated} user={user} setUser={setUser}
-          teachers={teachers} setTeachers={setTeachers} />
+          teachers={teachers} setTeachers={setTeachers}  />
         </ProtectedRoute>
       } />
 
@@ -195,10 +211,12 @@ function App() {
           path="/student/dashboard"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard onCreated={handleVideoCreated}  user={user} setUser={setUser} />
+              <StudentDashboard onCreated={handleVideoCreated}  user={user} setUser={setUser}
+               />
             </ProtectedRoute>
           }
       />
+      </Route>
 
     
        <Route path="*" element={<NotFound />} />
@@ -215,3 +233,36 @@ function App() {
 }
 
 export default App;
+
+function LayoutWithHeader({
+  handleMessageOpen,
+  messageOpen,
+  activeChat,
+  setActiveChat,
+  setMessageOpen
+}) {
+  return (
+    <div>
+      <Navbar
+        handleMessageOpen={handleMessageOpen}
+        messageOpen={messageOpen}
+        activeChat={activeChat}
+        setActiveChat={setActiveChat}
+        setMessageOpen={setMessageOpen}
+      />
+
+      {/* 🔥 THIS IS REQUIRED */}
+      <Outlet />
+    </div>
+  );
+}
+
+
+function LayoutWithOutHeader() {
+
+  return (
+    <div>
+        <Outlet />
+    </div>
+  )
+}

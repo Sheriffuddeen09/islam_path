@@ -4,7 +4,7 @@ import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
 
-export default function StudentProfileFriendDashboard() {
+export default function StudentProfileFriendDashboard({handleMessageOpen}) {
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -102,11 +102,12 @@ export default function StudentProfileFriendDashboard() {
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-                  onClick={() => navigate(`/chats/${student.id}`)}
-                  className="mt-1 px-4 bg-blue-800 whitespace-nowrap hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
+                  onClick={() => handleMessageOpen(student.id)}
+                  className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
                 >
                   💬 Message
                 </button>
+
               ) : status === "pending" ? (
                 <button
                   disabled

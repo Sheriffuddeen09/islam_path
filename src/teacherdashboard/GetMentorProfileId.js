@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
-import Navbar from "../layout/Header";
+import { useParams } from "react-router-dom";
 
 export default function GetMentorProfileId() {
   const { user } = useAuth();
@@ -16,10 +16,12 @@ export default function GetMentorProfileId() {
 
 const [error, setError] = useState("");
 
+  const {id} = useParams()
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get("/api/teacher-single");
+        const res = await api.get(`/api/teacher-single/${id}`);
 
         if (!res.data.status) {
           setError(res.data.message);
@@ -119,8 +121,8 @@ useEffect(() => {
 
   if (loading)
     return (
-      <div className="flex items-center mt-5 justify-center mt-10">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      <div className="flex items-center mt-5 justify-center">
+        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
 

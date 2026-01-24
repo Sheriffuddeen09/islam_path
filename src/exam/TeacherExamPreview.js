@@ -128,7 +128,7 @@ export default function TeacherExamPreview() {
 
     
   const content = (
-     <div className="overflow-x-auto max-h-[70vh] border no-scrollbar rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+     <div className="overflow-x-auto max-h-[70vh] border no-scrollbar rounded-lg shadow-md w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
               <table className="min-w-full divide-y divide-white bg-white">
                 {exam.length === 0 && (
         <p className="text-gray-500 whitespace-nowrap p-4 text-center">No exam available</p>

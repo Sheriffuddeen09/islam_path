@@ -144,7 +144,7 @@ export default function ReportChat() {
   return (
 
     <div>
-      <Navbar />
+      
       <Toaster position="top-right" />
       {content}
     </div>

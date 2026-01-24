@@ -15,7 +15,7 @@ import ExamResults from "../exam/ExamResults";
 import LibraryPage from "../pages/video/LibraryVideo";
 import Setting from "./Setting";
 
-export default function TeacherDashboardLayout({onCreated, user, setUser, teachers, setTeachers}) {
+export default function TeacherDashboardLayout({onCreated, user, setUser, teachers, setTeachers, handleMessageOpen}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
@@ -298,7 +298,8 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
       <section className="flex-1 p-6 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <ProfilePage handleVisible={handleVisible} user={user} setUser={setUser} 
-        teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} />
+        teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} handleMessageOpen={handleMessageOpen}
+         />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
         <LibraryPage />

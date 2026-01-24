@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../Api/axios";
-import Navbar from "../layout/Header";
+
 import { useNavigate } from "react-router-dom";
 import Notification from "./Notification";
 
@@ -292,7 +292,7 @@ const autoGrow = (ref) => {
 
   return (
     <div>
-      <Navbar />
+      
       <div className="pt-24 pb-8">
       {content}
       </div>

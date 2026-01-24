@@ -526,20 +526,6 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
     </div>
   );
 }
-  function ProfileCardContent({ icon, label }) {
-  return (
-    <div className="bg-white rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">{icon}</div>
-        <div>
-          <p className="text-lg font-semibold text-gray-900">{label}</p>
-        </div>
-      </div>
-     
-    </div>
-  );
-
-}
 
 
 function Loader() {

@@ -11,7 +11,7 @@ import CreateVideoSection from "./CreateVideo";
 import LibraryPage from "../pages/video/LibraryVideo";
 import Setting from "./Setting";
 
-export default function StudentDashboard ({onCreated}){
+export default function StudentDashboard ({onCreated, handleMessageOpen}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -240,7 +240,7 @@ export default function StudentDashboard ({onCreated}){
                        <section className="flex-1 p-6 transition-all">
                         
                         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-                         <StudentProfilePage />
+                         <StudentProfilePage handleMessageOpen={handleMessageOpen} />
                          </div>
                          <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
                          <LibraryPage />

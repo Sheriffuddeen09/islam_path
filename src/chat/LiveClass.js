@@ -35,14 +35,13 @@ function ChatSkeleton({ title }) {
 
 
   
-export default function LiveClass({fetchUnreadCount, handleMessageOpen}) {
+export default function LiveClass({fetchUnreadCount, handleMessageOpen, messageOpen, activeChat, setActiveChat, setMessageOpen}) {
   const { user: authUser } = useAuth();
 
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingChats, setLoadingChats] = useState(true);
 
   const [chats, setChats] = useState([]);
-  const [activeChat, setActiveChat] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const [messages, setMessages] = useState([]);
@@ -55,6 +54,8 @@ export default function LiveClass({fetchUnreadCount, handleMessageOpen}) {
   const fetchedOnce = useRef(false);
 
   const [openReport, setOpenReport] = useState(false);
+
+  
 
  const handleReportPop = () => {
   setOpenReport(true);  // 👈 open report modal 
@@ -139,6 +140,10 @@ const closeReport = () => {
   }, [authUser, chats]);
 
 
+  const handleRemoveMessage = () =>{
+    setMessageOpen(false)
+    setActiveChat(null)
+  }
    
   // ================= REAL TIME ================= unread_count
   useEffect(() => {
@@ -191,6 +196,14 @@ const closeReport = () => {
   return () => echo.leave(`chat.${authUser.id}`);
 }, [authUser, activeChat]);
 
+
+
+useEffect(() => {
+  if (messageOpen && activeChat) {
+    fetchChats(activeChat);
+    setActiveChat(activeChat);
+  }
+}, [messageOpen, activeChat]);
 
 
 
@@ -294,7 +307,7 @@ const closeReport = () => {
             )}
           </button>
           <button
-          onClick={handleMessageOpen}
+          onClick={handleRemoveMessage}
           className="px-1 hover:bg-gray-200 bg-gray-300 text-black rounded absolute right-5 top-4"
         >
           ✕

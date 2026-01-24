@@ -15,7 +15,7 @@ export default function AssignmentLibrary() {
   
 
 const content = (
-     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-full sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
               <table className="min-w-full divide-y divide-white bg-white">
                 <thead className="bg-blue-900 sticky top-0 z-10">
                   <tr>

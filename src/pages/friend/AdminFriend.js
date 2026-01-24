@@ -209,7 +209,7 @@ const requestList = (
 
   return (
     <>
-    <Navbar />
+    
    
    <Toaster position="top-right" />
       <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-800">

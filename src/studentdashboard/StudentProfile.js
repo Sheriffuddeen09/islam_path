@@ -1,19 +1,15 @@
 import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
 import Performance from "./Performance";
-import StudentRequest from "./StudentRequest";
-import Navbar from "../layout/Header";
 import toast, { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import StudentProfile from "../pages/friend/StudentAdded";
 import StudentProfileFriendDashboard from "./StudentProfileFriendDashboard";
-import AlertIcon from "./Icon";
 import LogoutButton from "../Form/LogOut";
 import VideoList from "../teacherdashboard/VideoList";
 
 
-export default function StudentProfilePage() {
+export default function StudentProfilePage({handleMessageOpen}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -147,7 +143,7 @@ const badge = (
   )
   const profile_content = (
     <div className="max-w-5xl lg:ml-64 mx-auto">
-    <div className="text-white flex sm:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
+    <div className="text-white flex sm:w-full w-full px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
       
           <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
              === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
@@ -255,7 +251,7 @@ const badge = (
         <Toaster position="top-right" />
         {headerDashboard}
         {content}
-        <StudentProfileFriendDashboard   />
+        <StudentProfileFriendDashboard  handleMessageOpen={handleMessageOpen} />
         {profile_content}
 
     </div>

@@ -1,55 +1,70 @@
 working on
+             
+* student should request for teacher by 15 badges and 
 
-1. the performance and accuracy should be only for user login in the dashboard not overall student
-public function performanceSplit()
-    {
-        return [
-            'assignments' => DB::table('assignment_results')
-                ->avg(DB::raw('score * 100.0 / total_questions')),
+1. when student register they should be given 30 badges and it should added to the one in dashboard 
+2. if the phone code and  does not correct with number it should show error
+public function register(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'dob' => 'required|date',
+        'phone' => 'required|string|unique:users,phone',
+        'email' => 'required|email|unique:users,email',
+        'phone_country_code' => 'required|string',
+        'location' => 'required|string',
+        'location_country_code' => 'required|string',
+        'gender' => 'required|in:male,female,other',
+        'role' => 'required|in:student,admin',
+        'password' => 'required|string|min:8|confirmed'
+    ]);
 
-            'exams' => DB::table('exam_results')
-                ->avg(DB::raw('score * 100.0 / total_questions')),
-        ];
+    if ($validator->fails()) {
+        return response()->json(["errors" => $validator->errors()], 422);
     }
 
-   
-    public function accuracy()
-    {
-        return [
-            'assignment_accuracy' => DB::table('assignment_results')
-                ->avg(DB::raw('score * 100.0 / total_questions')),
+    // Check OTP verification
+    $otpRecord = OtpVerification::where('email', $request->email)
+        ->orderBy('created_at', 'desc')
+        ->first();
 
-            'exam_accuracy' => DB::table('exam_results')
-                ->avg(DB::raw('score * 100.0 / total_questions')),
-        ];
+    if (!$otpRecord || !$otpRecord->verified) {
+        return response()->json(['message' => 'Email not verified'], 400);
     }
 
-2. student should be rank according to their average scores 
-public function studentAnalytics()
-    {
-    return DB::table('users')
-    ->where('role', 'student')
-    ->leftJoin('assignment_results', 'users.id', '=', 'assignment_results.student_id')
-    ->leftJoin('exam_results', 'users.id', '=', 'exam_results.student_id')
-    ->leftJoin('student_badges', 'users.id', '=', 'student_badges.student_id')
-    ->select(
-    'users.id',
-    DB::raw("users.first_name || ' ' || users.last_name as name"),
-    DB::raw("AVG(assignment_results.score * 100.0 / assignment_results.total_questions) as assignment_avg"),
-    DB::raw("AVG(exam_results.score * 100.0 / exam_results.total_questions) as exam_avg"),
-    DB::raw("AVG(assignment_results.score * 100.0 / assignment_results.total_questions) as avg_score"),
-    DB::raw('(SELECT COALESCE(SUM(badges),0) FROM student_badges WHERE student_badges.student_id = users.id) as total_badges')
+    $user = User::create([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'dob' => $request->dob,
+        'phone' => $request->phone,
+        'phone_country_code' => $request->phone_country_code,
+        'location' => $request->location,
+        'location_country_code' => $request->location_country_code,
+        'email' => $request->email,
+        'gender' => $request->gender,
+        'role' => $request->role,
+        'password' => Hash::make($request->password),
+        'email_verified_at' => now()
+    ]);
 
-    )
-    ->groupBy('users.id')
-    ->get();
-    }
+    $otpRecord->delete();
+
+    // Automatically log the user in
+    Auth::login($user);
+
+    // Redirect based on role
+    $redirect = $user->role === 'admin'
+        ? '/admin/dashboard'
+        : '/student/dashboard';
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Registration complete and logged in',
+        'redirect' => $redirect,
+        'user' => $user
+    ], 201);
+}
 
 
-    
-* the performance is not showing
-
-
-* if i click the message in the profile it should open directly the student message box 
-* student should request for teacher by 15 badges and when student register they should be given 30 badges
 

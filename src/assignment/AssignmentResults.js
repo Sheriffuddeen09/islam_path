@@ -89,7 +89,7 @@ export default function AssignmentResults() {
   
 
   const content = (
-     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-full sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
               <table className="min-w-full divide-y divide-white bg-white">
                  {results.length === 0 && (
           <p className="text-gray-500 p-4 text-center whitespace-nowrap">No Result available</p>
@@ -175,7 +175,7 @@ export default function AssignmentResults() {
         {/* PREVIEW MODAL */}
         {preview && (
                   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-white w-full max-w-3xl rounded-lg p-6 relative overflow-x-auto max-h-[98vh] no-scrollbar border rounded-lg shadow-md w-80 sm:w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                    <div className="bg-white w-full max-w-3xl rounded-lg p-6 relative overflow-x-auto max-h-[98vh] no-scrollbar border rounded-lg shadow-md w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                       <button
                         onClick={() => setPreview(null)}
                         className="absolute top-3 right-3 text-gray-500"

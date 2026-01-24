@@ -25,7 +25,7 @@ export default function VideoSidebar({
 
   return (
     <div>
-      <Navbar />
+      
       <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 

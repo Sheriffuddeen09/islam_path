@@ -49,7 +49,6 @@ export default function RegisterPage() {
   const [phonenumber, setPhonenumber] = useState('');
   const [location, setLocation] = useState('');
   const [privacy, setPrivacy] = useState('');
-  const [locationCountryCode, setLocationCountryCode] = useState('');
 
   // OTP
   const [otpSent, setOtpSent] = useState(false);
@@ -217,7 +216,6 @@ const handleContactNext = async () => {
   if (!countryCode) newErrors.countryCode = "Country code is required";
   if (!location) newErrors.location = "Location is required";
   if (!phonenumber) newErrors.phonenumber = "Phone number is required";
-  if (!locationCountryCode) newErrors.locationCountryCode = "Location country code is required";
 
   if (Object.keys(newErrors).length > 0) {
     return setErrors(newErrors);
@@ -251,16 +249,24 @@ const handleContactNext = async () => {
     }
 
   } catch (err) {
-    console.log(err);
+  console.log(err);
 
-    if (err.response?.data?.errors?.email) {
-      setErrors({ email: err.response.data.errors.email[0] });
-    }
+  const apiErrors = err.response?.data?.errors;
 
-    if (err.response?.data?.errors?.phone) {
-      setErrors({ phonenumber: err.response.data.errors.phone[0] });
-    }
+  if (apiErrors?.email) {
+    setErrors(prev => ({
+      ...prev,
+      email: apiErrors.email[0],
+    }));
   }
+
+  if (apiErrors?.phone) {
+    setErrors(prev => ({
+      ...prev,
+      phonenumber: apiErrors.phone[0], // ✅ map correctly
+    }));
+  }
+}
   finally{
     setLoading(false);
   }
@@ -350,7 +356,6 @@ const handleRegister = async () => {
     phone: phonenumber,
     phone_country_code: countryCode,
     location,
-    location_country_code: locationCountryCode,
     email,
     password,
     password_confirmation: passwordConfirm,
@@ -445,12 +450,7 @@ const handleRegister = async () => {
 
       {/* Main Content */}
 
-      {/* <div className="wrapper flex flex-col items-center block sm:hidden">
-  <p className="text-2xl welcome font-bold text-black mt-5 mb-2">Welcome to</p>
-  <ul className="dynamic mt-1 mb-5">
-    <ol><main>Islam Path of Knowledge</main></ol>
-  </ul>
-</div> */}
+
 
   <div className=" text lg:hidden block pb-3 mt-5 -md:mb-60 md:translate-y-28 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
           <TextSlider texts={texts} />
@@ -724,24 +724,13 @@ const handleRegister = async () => {
             <div className="relative mt-7 sm:px-4 py-3">
               <label className="text-black absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">Location</label>
               <div className="flex gap-2">
-                <select
-                  value={locationCountryCode}
-                  onChange={(e)=>{setLocationCountryCode(e.target.value); clearError('locationCountryCode')}}
-                  className="border rounded px-4 py-3 w-36 text-black"
-                >
-                  <option value=""></option>
-                  <option value="+234">NG</option>
-                  <option value="+1">US</option>
-                </select>
-
                 <input
                   value={location}
                   onChange={(e)=>{setLocation(e.target.value); clearError('location')}}
-                  className="flex-1 border rounded px-4 py-3 text-black w-36 sm:w-full"
+                  className="flex-1 border rounded px-4 py-3 text-black w-full"
                   placeholder="City / State"
                 />
               </div>
-              {errors.locationCountryCode && <p className="text-red-600 text-xs mt-1">{errors.locationCountryCode}</p>}
               {errors.location && <p className="text-red-600 text-xs mt-1">{errors.location}</p>}
             </div>
 
@@ -806,15 +795,21 @@ const handleRegister = async () => {
             ))}
           </div>
              <div className="mt-4 text-center">
-      <button style={{
-        backgroundColor: 'transparent',
-      }}
-        className={`px-4 py-2 rounded mx-auto ${resendTimer > 0 ? 'bg-transparent hover:bg-transparent text-gray-400 cursor-not-allowed' : 'bg-transparent text-blue-600 font-bold hover:bg-blue-700'}`}
-        onClick={resendOtp}
-        disabled={resendTimer > 0}
-      >
-        {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
-      </button>
+      <button
+      onClick={resendOtp}
+      disabled={resendTimer > 0}
+      className={`px-4 py-2 rounded mx-auto font-bold transition
+        ${resendTimer > 0
+          ? "text-gray-400 cursor-not-allowed"
+          : "text-blue-600 hover:text-blue-800 cursor-pointer"
+        }
+      `}
+    >
+      {resendTimer > 0
+        ? `Resend OTP in ${resendTimer}s`
+        : "Resend OTP"}
+    </button>
+
     </div>
           {errors.otp && <p className="text-red-600 sm:translate-x-8 translate-x-2 text-xs mt-2">{errors.otp}</p>}
 

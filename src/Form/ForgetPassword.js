@@ -5,7 +5,7 @@ import success from "./image/path_islam.png";
 import dua from "./image/dua.png";
 import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
-import Navbar from "../layout/Header";
+
 import TextSlider from "./TextSlider";
 import Notification from "./Notification";
 
@@ -167,7 +167,7 @@ const handleSubmit = async (e) => {
 
   return (
     <div>
-      <Navbar />
+      
       <div className=" text lg:hidden block pb-3 mt-5 -md:mb-60 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
           <TextSlider texts={texts} />
         </div>

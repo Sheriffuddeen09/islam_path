@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../Api/axios";
-import Navbar from "../layout/Header";
+
 
 export default function AdminChoice({setChoice, setCurrentUser, setIsLoading, setSelected, choice, isLoading, selected, currentUser}) {
 
@@ -188,7 +188,7 @@ useEffect(() => {
 
   return (
     <div>
-      <Navbar />
+      
       {notification && (
   <div className="fixed inset-0 sm:-translate-y-52 -translate-y-52 flex items-center justify-center z-50 pointer-events-none">
     <div className={`px-6 py-4 rounded shadow-lg pointer-events-auto
