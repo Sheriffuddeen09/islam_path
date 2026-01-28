@@ -694,6 +694,21 @@ const handleRegister = async () => {
               {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
             </div>
 
+
+         {/* Location */}
+            <div className="relative mt-7 sm:px-4 py-3">
+              <label className="text-black absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">Address</label>
+              <div className="flex gap-2">
+                <input
+                  value={location}
+                  onChange={(e)=>{setLocation(e.target.value); clearError('location')}}
+                  className="flex-1 border rounded px-4 py-3 text-black w-full"
+                  placeholder="City / State / Location"
+                />
+              </div>
+              {errors.location && <p className="text-red-600 text-xs mt-1">{errors.location}</p>}
+            </div>
+            
             {/* Phone */}
             <div className="relative mt-7 sm:px-4 py-3">
               <label className="text-black absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">Phone Number</label>
@@ -703,7 +718,7 @@ const handleRegister = async () => {
                   onChange={(e)=>{setCountryCode(e.target.value); clearError('countryCode')}}
                   className="border rounded px-4 py-3 w-36 text-black"
                 >
-                  <option value=""></option>
+                  <option value="">+</option>
                   <option value="+234">🇳🇬 +234</option>
                   <option value="+1">🇺🇸 +1</option>
                   <option value="+44">🇬🇧 +44</option>
@@ -720,19 +735,7 @@ const handleRegister = async () => {
               {errors.phonenumber && <p className="text-red-600 text-xs mt-1">{errors.phonenumber}</p>}
             </div>
 
-            {/* Location */}
-            <div className="relative mt-7 sm:px-4 py-3">
-              <label className="text-black absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">Location</label>
-              <div className="flex gap-2">
-                <input
-                  value={location}
-                  onChange={(e)=>{setLocation(e.target.value); clearError('location')}}
-                  className="flex-1 border rounded px-4 py-3 text-black w-full"
-                  placeholder="City / State"
-                />
-              </div>
-              {errors.location && <p className="text-red-600 text-xs mt-1">{errors.location}</p>}
-            </div>
+           
 
             <button
               onClick={handleContactNext}

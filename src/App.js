@@ -31,6 +31,7 @@ import ProfileRouter from "./route/ProfileRoute";
 import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
 import StudentExamResult from "./exam/StudentExamResult";
 import Navbar from "./layout/Header";
+import AppImage from "./imagecrop/App";
 
    
 function App() {
@@ -47,6 +48,7 @@ function App() {
     const [user, setUser] = useState(null);
 
     const [videos, setVideos] = useState([]);
+    const [posts, setPosts] = useState([]);
 
     const [requestStatus, setRequestStatus] = useState({});
     const [messageOpen, setMessageOpen] = useState(false);
@@ -64,6 +66,10 @@ function App() {
       setVideos((prev) => [newVideo, ...prev]); // Update UI instantly
     };
 
+    const handlePostCreated = (newPost) => {
+      setPosts((prev) => [newPost, ...prev]); // Update UI instantly
+    };
+
   
   return (
     <div className="">
@@ -78,7 +84,8 @@ function App() {
 
       {/* Home Page*/}
       <Route path="/" element={
-          <HomePage />
+          // <HomePage posts={posts} setPosts={setPosts} />
+          <AppImage />
       } />
 
       <Route path="/get-mentor" element={
@@ -202,7 +209,7 @@ function App() {
     <Route element={<LayoutWithOutHeader />}>
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
-          <TeacherDashboardLayout onCreated={handleVideoCreated} user={user} setUser={setUser}
+          <TeacherDashboardLayout onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
           teachers={teachers} setTeachers={setTeachers}  />
         </ProtectedRoute>
       } />
@@ -211,7 +218,7 @@ function App() {
           path="/student/dashboard"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard onCreated={handleVideoCreated}  user={user} setUser={setUser}
+              <StudentDashboard onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
                />
             </ProtectedRoute>
           }

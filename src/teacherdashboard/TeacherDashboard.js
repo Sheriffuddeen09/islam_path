@@ -14,8 +14,9 @@ import TeacherExamPreview from "../exam/TeacherExamPreview";
 import ExamResults from "../exam/ExamResults";
 import LibraryPage from "../pages/video/LibraryVideo";
 import Setting from "./Setting";
+import CreatePost from "../pages/post/CreatePost";
 
-export default function TeacherDashboardLayout({onCreated, user, setUser, teachers, setTeachers, handleMessageOpen}) {
+export default function TeacherDashboardLayout({onCreated, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
@@ -145,7 +146,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
           <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Create Video
+            Create Post
           </li>
           <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
@@ -245,7 +246,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
           <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
           }`}>
-            Create Video
+            Create Post
           </li>
           <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
@@ -305,7 +306,7 @@ export default function TeacherDashboardLayout({onCreated, user, setUser, teache
         <LibraryPage />
         </div>
         <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
-        <CreateVideoSection onCreated={onCreated} />
+        <CreatePost handlePostCreated={handlePostCreated} />
         </div>
         <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
         <Setting  editingTeacher={editingTeacher}

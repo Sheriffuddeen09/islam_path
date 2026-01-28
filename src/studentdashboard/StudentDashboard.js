@@ -10,8 +10,9 @@ import ExamLibrary from "../exam/ExamLibrary";
 import CreateVideoSection from "./CreateVideo";
 import LibraryPage from "../pages/video/LibraryVideo";
 import Setting from "./Setting";
+import CreatePost from "../pages/post/CreatePost";
 
-export default function StudentDashboard ({onCreated, handleMessageOpen}){
+export default function StudentDashboard ({onCreated, handlePostCreated, handleMessageOpen}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -246,7 +247,7 @@ export default function StudentDashboard ({onCreated, handleMessageOpen}){
                          <LibraryPage />
                          </div>
                           <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
-                          <CreateVideoSection onCreated={onCreated} />
+                          <CreatePost handlePostCreated={handlePostCreated} />
                           </div>
                          <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
                          <Setting />

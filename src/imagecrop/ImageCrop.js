@@ -1,32 +1,14 @@
-working on
-             
-* student should request for teacher by 15 badges and 
-* if the phone code and  does not correct with number it should show error
+import './ImageCrop.css';
+import { useState,useRef ,useEffect} from 'react';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+import { BsFillCloudDownloadFill } from 'react-icons/bs';
+import { AiOutlineRotateRight } from 'react-icons/ai';
 
-create out steps by step laravel and react where user can create a post with image upload and text area, and
-video, if user post only text it should work, if user post only image it should work, if user post only video it should work, if user post image and text it should work
-and if post video and text it should work, if user post only text it should have black background.
-* fetch post
-2. comment,
-3. reaction to post 
-4. reaction to comment,
-5. reaction to reply,
-6. reply to comment and mention name
-7. reply 
-8. reply to reply and mention name
-9. views
-10. share
 
-1. the onCropDone function should be called when the user 
-finishes cropping the image, to save  and next or exit to upload image  . 
-2. and if mutiple image upload it should next to the image for crop
-3. after done cropping the image it should show preview of the image
-4. remove zooming 
-5. make the image be at center and don't change anything just add the requirement
-import { useRef, useState } from "react";
-import ReactCrop from "react-image-crop";
+import { canvasPreview } from './cropImage';
 
-export default function ImageCrop({url, onCropDone}) {
+export default function ImageCrop({url}) {
   const imgRef = useRef(null);
   const [crop, setCrop] = useState(null);
   const [rotation, setRotation] = useState(0);
@@ -37,7 +19,21 @@ export default function ImageCrop({url, onCropDone}) {
   const imageUrl=url;
 
 
+  const onZoom = (e) => {
+    setScale(parseFloat(e));
+  };
 
+  const rotateRight = () => {
+    let newRotation = rotation + 90;
+    if (newRotation >= 360) {
+      newRotation = -360;
+    }
+    setRotation(newRotation);
+  };
+
+  const download = async () => {
+    await canvasPreview(imgRef.current, completedCrop, scale, rotation);
+  };
   const onImageLoad = (e) => {
     setHeight(e?.currentTarget?.height);
     setWidth(e?.currentTarget?.width);
@@ -50,7 +46,8 @@ export default function ImageCrop({url, onCropDone}) {
     });
   };
   return (
-    <div className="flex flex-col items-center justify-center mt-6"
+    <div
+    className={'outerDiv'}
     onWheel={(e) => {
       if (e.deltaY > 0) {
         setScale(scale + 0.1);
@@ -84,11 +81,29 @@ export default function ImageCrop({url, onCropDone}) {
         crossorigin='anonymous'
         alt='Error'
         src={ imageUrl}
-        className="max-h-[60vh] max-w-[80vw] object-contain"
         style={{ transform: `scale(${scale}) rotate(${rotation}deg)` }}
         onLoad={onImageLoad}
       />
     </ReactCrop>
+    <div className={'controls'}>
+        <input
+          type='range'
+          min={0.1}
+          max={3}
+          step={0.05}
+          value={scale}
+          onInput={(e) => {
+            onZoom(e.target.value);
+          }}
+          className={'slider'}
+        ></input>
+        <span className={'rangeText'}>Zoom In/Out</span>
+    </div>
+    <div className={'controlsIcon'}>
+          <BsFillCloudDownloadFill className={'icon'} onClick={download} />
+          <AiOutlineRotateRight className={'icon'} onClick={rotateRight} />
+        
+    </div>
   </div>
   );
 }

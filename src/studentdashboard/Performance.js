@@ -86,14 +86,14 @@ export default function Performance() {
       <div className="bg-white p-4 rounded shadow text-center">
         <p className="text-gray-500 text-sm">Assignment Accuracy</p>
         <p className="text-2xl font-bold">
-          {accuracy.assignment_accuracy?.toFixed(1)}%
+          {accuracy.assignment_accuracy?.toFixed(1) || '0.0'}%
         </p>
       </div>
 
       <div className="bg-white p-4 rounded shadow text-center">
         <p className="text-gray-500 text-sm">Exam Accuracy</p>
         <p className="text-2xl font-bold">
-          {accuracy.exam_accuracy?.toFixed(1)}%
+          {accuracy.exam_accuracy?.toFixed(1) || '0.0'}%
         </p>
       </div>
 
