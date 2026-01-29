@@ -1,5 +1,4 @@
 import { Route, Routes, useLocation, Outlet } from "react-router-dom";
-
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
 import HomePage from './pages/Home'
@@ -31,7 +30,6 @@ import ProfileRouter from "./route/ProfileRoute";
 import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
 import StudentExamResult from "./exam/StudentExamResult";
 import Navbar from "./layout/Header";
-import AppImage from "./imagecrop/App";
 
    
 function App() {
@@ -84,8 +82,7 @@ function App() {
 
       {/* Home Page*/}
       <Route path="/" element={
-          // <HomePage posts={posts} setPosts={setPosts} />
-          <AppImage />
+      <HomePage posts={posts} setPosts={setPosts} />   
       } />
 
       <Route path="/get-mentor" element={

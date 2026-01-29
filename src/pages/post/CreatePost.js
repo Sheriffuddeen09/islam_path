@@ -6,7 +6,7 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import ImageCrop from "./util/ImageCrop";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 
 export default function CreatePost({handlePostCreated}) {
@@ -17,27 +17,23 @@ export default function CreatePost({handlePostCreated}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCrop, setShowCrop] = useState(false);
 
-
+  
   const [video, setVideo] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
   const [videoStart, setVideoStart] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [videoEnd, setVideoEnd] = useState(10);
 
-  const ffmpegRef = useRef(
-  createFFmpeg({
-    log: true,
-    corePath: "https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js",
-  })
-);
-
+  const ffmpegRef = useRef(null);
   const [ffmpegReady, setFfmpegReady] = useState(false);
+
 
 
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
+  const [showTrimModal, setShowTrimModal] = useState(false);
 
   const showNotification = (msg) => {
     setNotify({ message: msg, type: "error" });
@@ -50,34 +46,65 @@ export default function CreatePost({handlePostCreated}) {
 
 
   // VIDEO SELECT
-  const handleVideo = (file) => {
-    setVideo(file);
-    setVideoPreview(URL.createObjectURL(file));
-    setImages(null);
-    setCroppedImages(null);
-  };
 
-
-  const handleSelectImages = (files) => {
-  setImages(Array.from(files));
-  setCroppedImages([]);
-  setCurrentIndex(0);
-  setShowCrop(true);
-};
 
 
 const loadFFmpeg = async () => {
-  if (ffmpegRef.current.isLoaded()) return;
-  await ffmpegRef.current.load();
+  if (ffmpegRef.current?.isLoaded()) return;
+
+  ffmpegRef.current = createFFmpeg({
+    log: true,
+    corePath:
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
+  });
+
+  if (!ffmpegRef.current.isLoaded()) {
+    await ffmpegRef.current.load();
+  }
+
+  setFfmpegReady(true);
 };
 
+// when i open this https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js it does not open but say{Couldn't find the requested file /dist/ffmpeg-core.js in @ffmpeg/core.}
+// when i open this it open https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.min.js
 
+useEffect(() => {
+  if (videoPreview) {
+    loadFFmpeg();
+  }
+}, [videoPreview]);
 
-  // APPLY VIDEO TRIM
+  // const applyVideoTrim = async () => {
+  //   const ffmpeg = ffmpegRef.current;
+
+  //   await ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
+
+  //   await ffmpeg.run(
+  //     "-ss", `${videoStart}`,
+  //     "-to", `${videoEnd}`,
+  //     "-i", "input.mp4",
+  //     "-c", "copy",
+  //     "output.mp4"
+  //   );
+
+  //   const data = ffmpeg.FS("readFile", "output.mp4");
+
+  //   const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
+
+  //   const trimmedFile = new File([trimmedBlob], "trimmed.mp4", {
+  //     type: "video/mp4",
+  //   });
+
+  //   setVideo(trimmedFile);
+
+  //   // ✅ THIS is what shows preview above Post button
+  //   setVideoPreview(URL.createObjectURL(trimmedBlob));
+  // };
+
   const applyVideoTrim = async () => {
   const ffmpeg = ffmpegRef.current;
 
-  await ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
+  ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
 
   await ffmpeg.run(
     "-ss", `${videoStart}`,
@@ -89,39 +116,83 @@ const loadFFmpeg = async () => {
 
   const data = ffmpeg.FS("readFile", "output.mp4");
 
-  const trimmedBlob = new Blob([data.buffer], {
-    type: "video/mp4",
-  });
-
-  const trimmedFile = new File(
-    [trimmedBlob],
-    "trimmed.mp4",
-    { type: "video/mp4" }
-  );
+  const blob = new Blob([data.buffer], { type: "video/mp4" });
+  const trimmedFile = new File([blob], "trimmed.mp4", { type: "video/mp4" });
 
   setVideo(trimmedFile);
-  setVideoPreview(URL.createObjectURL(trimmedBlob));
+  setVideoPreview(URL.createObjectURL(blob)); 
 };
 
-  // SUBMIT POST
-  
-  const submitPost = async () => {
-  if (!text && croppedImages.length === 0 && !video) return;
 
-  if (croppedImages.length > 0 && video) {
+  const handleVideo = (file) => {
+  setVideo(file);
+  setVideoPreview(URL.createObjectURL(file));
+  setShowTrimModal(true);
+  setCroppedImages([]);
+};
+
+
+const handleTrimAndClose = async () => {
+  await applyVideoTrim();
+  setShowTrimModal(false); // only close modal
+};
+
+
+
+  const handleSelectImages = (files) => {
+  setImages(Array.from(files));
+  setCroppedImages([]);
+  setCurrentIndex(0);
+  setShowCrop(true);
+};
+
+
+  // SUBMIT POST
+
+  const countWords = (text = "") => {
+  return text
+    .trim()
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // fix mercifulAll → merciful All
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .filter(Boolean).length;
+};
+
+  
+
+  const MAX_WORDS = 50;
+
+const submitPost = async () => {
+  
+
+  const images = croppedImages || [];
+
+  if (!text && images.length === 0 && !video) return;
+
+  if (images.length > 0 && video) {
     showNotification("You can upload images OR a video, not both.", "error");
     return;
   }
+  
+  if (text) {
+    const wordCount = countWords(text);
 
+    if (wordCount > MAX_WORDS) {
+      showNotification(
+        `Text is too long. Maximum allowed is ${MAX_WORDS} words. You entered ${wordCount}.`,
+        "error"
+      );
+      return;
+    }
+  }
   const formData = new FormData();
-
   if (text) formData.append("content", text);
 
-  croppedImages.forEach((file, i) => {
-    formData.append("images[]", file);
-  });
-
-
+  if (croppedImages?.length) {
+    croppedImages.forEach(file => {
+      formData.append("images[]", file);
+    });
+  }
 
   if (video) {
     formData.append("video", video);
@@ -130,25 +201,16 @@ const loadFFmpeg = async () => {
   setLoading(true);
   setProgress(0);
 
-  console.log(croppedImages);
-croppedImages.forEach(f => console.log(f instanceof File, f.type));
-
-
   try {
     const res = await api.post("/api/posts", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (e) => {
-          setProgress(Math.round((e.loaded * 100) / e.total));
-        },
-      });
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (e) =>
+        setProgress(Math.round((e.loaded * 100) / e.total)),
+    });
 
     handlePostCreated?.(res.data.post);
-
     showNotification("Uploaded successfully!", "success");
 
-    // reset safely
     setText("");
     setCroppedImages([]);
     setVideo(null);
@@ -156,15 +218,15 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
     setProgress(0);
     setOpen(null);
   } catch (err) {
-    const msg =
-      err.response?.data?.message ||
-      "Upload failed. Please try again.";
-
-    showNotification(msg, "error");
+    showNotification(
+      err.response?.data?.message || "Upload failed.",
+      "error"
+    );
   } finally {
     setLoading(false);
   }
 };
+
 
 
   return (
@@ -215,11 +277,11 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
         value={text}
         onChange={e => setText(e.target.value)}
         placeholder="What's on your mind?"
-        className="w-full h-20 sm:h-32 border p-3 rounded resize-none"
+        className="w-full h-20 sm:h-32 border-2 p-3 rounded resize-none"
       />
 
       {/* MEDIA INPUTS */}
-      <p className="py-2 border-b-2 border-blue-500 font-bold text-sm text-black mt-4">Media Select</p>
+      <p className="py-2 border-b-2 border-blue-500 font-bold text-sm text-black mt-4">Select Media Upload</p>
       <div className="inline-flex gap-3 mt-3">
         <div>
         <input
@@ -233,9 +295,10 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
         />
          <label
             htmlFor="imageupload"
-            className=""
+             className="flex flex-col items-center gap-1"
         >
             <img src={imagePost} alt="image-image" className="w-20 cursor-pointer hover:scale-105" />
+            <label className="text-sm text-black font-bold">Image</label>
         </label>
         </div>
         <div>
@@ -244,9 +307,10 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
         className="hidden" onChange={e => handleVideo(e.target.files[0])} />
          <label
             htmlFor="videoUpload"
-            className=""
+            className="flex flex-col items-center gap-1"
         >
         <img src={videoPost} alt="image-image" className="w-24 rounded-full h-20 cursor-pointer hover:scale-105" />
+        <label className="text-sm text-black font-bold">Video</label>
         </label>
         </div>
       </div>
@@ -265,9 +329,17 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
       </div>
 
 
-
       {/* VIDEO PREVIEW + TRIM */}
-     
+     {videoPreview && (
+      <div className="mt-4">
+        <video
+          src={videoPreview}
+          controls
+          className="w-full max-h-40 rounded"
+        />
+      </div>
+    )}
+
 
       {/* UPLOAD PROGRESS */}
       {progress > 0 && (
@@ -324,13 +396,15 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
     </div>
      )}
 
-    
-    {videoPreview && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded w-[90%] max-w-3xl h-[80%] relative">
 
-      <button
-        onClick={() => setVideoPreview(null)}
+    
+        {showTrimModal && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded w-[90%] max-w-3xl sm:h-[80%] h-full flex flex-col 
+    justify-center items-center relative">
+
+       <button
+        onClick={() => setShowTrimModal(false)}
         className="absolute top-3 right-3 bg-gray-200 p-2 rounded-full"
       >
         ✕
@@ -366,18 +440,21 @@ croppedImages.forEach(f => console.log(f instanceof File, f.type));
       </div>
 
       <button
-        onClick={applyVideoTrim}
-        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+         disabled={!ffmpegReady}
+        onClick={handleTrimAndClose}
+        className={`mt-4 px-4 py-2 rounded text-white ${
+          ffmpegReady ? "bg-blue-600" : "bg-gray-400 cursor-not-allowed"
+        }`}
       >
-        Apply Trim
+        {ffmpegReady ? "Apply Trim" : "Loading video engine…"}
       </button>
+
 
     </div>
   </div>
 )}
-
     
-
+  
       {/* IMAGE CROP MODAL */}
       {showCrop && images[currentIndex] && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
