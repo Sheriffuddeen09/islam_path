@@ -4,6 +4,7 @@ import { useAuth } from "../../layout/AuthProvider";
 import { useEffect, useState } from "react";
 import Notification from "../../Form/Notification";
 import api from "../../Api/axios"; 
+import ImageGrid from "./ImageGrid";
 
 export default function PostCard({ post }) {
 
@@ -104,7 +105,7 @@ export default function PostCard({ post }) {
   
     // Render
     const text = post.content || "";
-    const shortText = text.length > 100 ? text.substring(0, 100) + "..." : text;
+    const shortText = text.length > 100 ? text.substring(0, 100) + "....." : text;
   
 
   const isTextOnly = post.content && post.media?.length === 0;
@@ -128,14 +129,23 @@ export default function PostCard({ post }) {
   return "text-sm px-4 py-6";
 };
 
+const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
+
+const othersCount = usersPreview.filter(
+  (u) => u.id !== currentUser?.id
+).length;
+
+const me = usersPreview.find(
+  (u) => u.id === currentUser?.id
+);
 
 
   return (
     <div
-      className={`p-4 rounded-lg sm:w-96 w-full border`}
+      className={`rounded-lg sm:w-96 w-full border`}
     >
       {/* USER */}
-      <div className="flex items-start justify-between">
+      <div className="flex p-4 -mb-3 items-start justify-between">
       <div className="flex items-center gap-3">
         <Link to={`/profile/${user.id}`}>
         <p className="font-bold text-white pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
@@ -155,59 +165,55 @@ export default function PostCard({ post }) {
       </div>
 
       {/* TEXT */}
-      <div
+     <div
   className={
     isTextOnly
-      ? `bg-black text-white h-64 mt-10 rounded mx-auto flex flex-col
+      ? `bg-black text-white p-4 h-64 mt-10 rounded mx-auto flex flex-col
          justify-center items-center text-center font-semibold
          ${getTextSizeClass(post.content)}`
       : "bg-white rounded p-4 text-black text-sm font-semibold whitespace-pre-line"
   }
 >
-
-     
-
-      {post.content && (
-        <p className=" ">
-          {showMore ? text : shortText}
-
-          {text.length > 100 && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                setShowMore(!showMore);
-              }}
-              className="text-blue-600 ml-1"
-            >
-              {showMore ? "" : "Read more"}
-            </button>
-          )}
-        </p>
-      )}
-
-    </div>
-
-
+  {post.content && (
+    <p className="cursor-pointer" onClick={(e) => {
+            e.preventDefault();
+            setShowMore(!showMore);
+          }}>
+      {isTextOnly
+        ? post.content
+        : showMore
+        ? text
+        : shortText}
+    </p>
+  )}
+</div>
 
       {/* Media */}
-      {post.media.map(m =>
-        m.type === "image" ? (
-          <img key={m.id} src={m.url} 
-          alt="post"
-          className="rounded-lg max-h-[500px] w-full object-cover mb-3"
-          onClick={() => navigate(`/post/${post.id}`)}
-          />
-        ) : (
-           <div
-      className="relative aspect-video bg-black cursor-pointer"
-        onClick={() => navigate(`/post/${post.id}`)}
-      >
+      {/* IMAGES */}
+      <div className="px-4">
+    {post.media.some(m => m.type === "image") && (
+      <ImageGrid
+        media={post.media.filter(m => m.type === "image")}
+        postId={post.id}
+      />
+    )}
+</div>
+
+{/* VIDEOS */}
+{post.media
+  .filter(m => m.type === "video")
+  .map(m => (
+    <div
+      key={m.id}
+      className="relative px-4 cursor-pointer"
+      onClick={() => navigate(`/post/${post.id}`)}
+    >
       <video
-        id={m.id}
         src={m.url}
-        className="w-full h-full object-cover"
+        className="w-full h-64 object-cover"
         muted
       />
+           
 
       {/* Play icon */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -228,7 +234,7 @@ export default function PostCard({ post }) {
       )}
 
 
-      <div className="flex justify-between mt-5 items-center ">
+      <div className="flex justify-between items-center ">
 
         <div className="flex gap-1 items-center">
        <div className=" text-xs inline-flex items-center gap-2 text-gray-600">
@@ -236,37 +242,41 @@ export default function PostCard({ post }) {
           <span key={emoji} className="text-xs -mr-2">{emoji}</span>
         ))}
         
-        {usersPreview.length > 0 && (
-          <>
-            <span
-              className="font-semibold text-xs cursor-pointer hover:underline"
-              onClick={() => setShowUsersPopup(true)}
-            >
-              {usersPreview[0].id === currentUser?.id
-                ? "You"
-                : usersPreview[0].name}
-            </span>
-
-            {usersPreview.length > 1 && (
-              <span className="ml-1 text-xs text-gray-500 cursor-pointer">
-                and {usersPreview.length - 1} others
-              </span>
-            )}
-          </>
+        {total > 0 && (
+      <div className="text-xs flex items-center gap-1 cursor-pointer">
+        {/* YOU */}
+        {me && (
+          <span
+            className="font-semibold hover:underline"
+            onClick={() => setShowUsersPopup(true)}
+          >
+            You
+          </span>
         )}
-        {
-          counts.length === 0 && (
-        <span className="text-xs ">{totalLikes(counts)}</span>
-        )
-        }
+
+        {/* AND */}
+        {me && othersCount > 0 && <span>and</span>}
+
+        {/* OTHERS */}
+        {othersCount > 0 && (
+          <span
+            className="text-gray-500 hover:underline"
+            onClick={() => setShowUsersPopup(true)}
+          >
+            {othersCount} other{othersCount > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+    )}
+
       </div>
         
       </div>
 
       </div>
           
-      <div className="flex items-center border-t justify-between mt-4 pt-3 text-sm text-gray-600">
-                  <div className="flex justify-between text-gray-600">
+      <div className="flex items-center border-t justify-between mt-4 py-3 text-sm text-gray-600">
+                  <div className="flex justify-between text-gray-600 mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
                   {showReactions && (
@@ -294,7 +304,7 @@ export default function PostCard({ post }) {
                     </svg> {post.comments_count}
                   </button>
 
-                   <span className="flex items-center gap-1">
+                   <span className="flex items-center gap-1 mx-4">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4 text-black">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
                 </svg> {post.comments_count}
@@ -302,28 +312,28 @@ export default function PostCard({ post }) {
                 </div>
         
                {showUsersPopup && (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg w-80 p-4">
-      <h3 className="font-semibold mb-3">Likes</h3>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg w-80 p-4">
+            <h3 className="font-semibold mb-3">Likes</h3>
 
-      {usersPreview.map(u => (
-        <div key={u.id} className="flex justify-between text-sm py-1">
-          <span>
-            {u.id === currentUser?.id ? "You" : u.name}
-          </span>
-          <span className="text-gray-500">{u.role}</span>
+            {usersPreview.map(u => (
+              <div key={u.id} className="flex justify-between text-sm py-1">
+                <span>
+                  {u.id === currentUser?.id ? "You" : u.name}
+                </span>
+                <span className="text-gray-500">{u.role}</span>
+              </div>
+            ))}
+
+            <button
+              className="mt-4 w-full text-sm text-blue-600"
+              onClick={() => setShowUsersPopup(false)}
+            >
+              Close
+            </button>
+          </div>
         </div>
-      ))}
-
-      <button
-        className="mt-4 w-full text-sm text-blue-600"
-        onClick={() => setShowUsersPopup(false)}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
+      )}
       
        <Notification
                   message={notify.message}

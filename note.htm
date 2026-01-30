@@ -8,86 +8,79 @@ video, if user post only text it should work, if user post only image it should 
 and if post video and text it should work, if user post only text it should have black background.
 * fetch post id
 2. comment,
+3. reply to comment and mention name
 4. reaction to comment,
-5. reaction to reply,
-6. reply to comment and mention name
-7. reply 
+5. reply,
+6. reply to reply
+7. reaction to reply
 8. reply to reply and mention name
 9. views
 10. share
 
-i use this but it was not working why 
- :8000/storage/posts/…8n8Z8JNdVlSBF.jpg:1 
- GET http://localhost:8000/storage/posts/images/8uRN1XlRk0wx3dLo1aMg2sLVm7b8n8Z8JNdVlSBF.jpg net::ERR_BLOCKED_BY_RESPONSE.NotSameOriginAfterDefaultedToSameOriginByCoep 200 (OK)
+1. if the image is more than one the grid will show according to the amount of images like if it was two
+2. and if it was 3 image it should be 2x1
+image it will show in grid 2 but appear twice instead of once  {post.media.map(m =>
+        m.type === "image" ? (
+          <ImageGrid media={post.media} postId={post.id} />
+        ) : (
+           <div
+      className="relative aspect-video bg-black cursor-pointer"
+        onClick={() => navigate(`/post/${post.id}`)}
+      >
+      import { useNavigate } from "react-router-dom";
 
-:8000/storage/posts/…JB1poqNJXDxUY.mp4:1 
- GET http://localhost:8000/storage/posts/videos/xQ3DdZc9V5PBiApaXSknS4sSv9uJB1poqNJXDxUY.mp4 net::ERR_BLOCKED_BY_RESPONSE.NotSameOriginAfterDefaultedToSameOriginByCoep 200 (OK)
+export default function ImageGrid({ media = [], postId }) {
+  const navigate = useNavigate();
 
-<?php
+  if (!media.length) return null;
 
-namespace App\Http\Middleware;
+  const images = media.filter(m => m.type === "image");
+  const total = images.length;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+  // ✅ SINGLE IMAGE
+  if (total === 1) {
+    return (
+      <img
+        src={images[0].url}
+        alt="post"
+        onClick={() => navigate(`/post/${postId}`)}
+        className="w-full max-h-[500px] rounded-lg object-cover cursor-pointer"
+      />
+    );
+  }
 
-class SetCrossOriginHeaders
-{
-    public function handle(Request $request, Closure $next): Response
-    {
-        $response = $next($request);
+  // ✅ GRID (2–4 or more)
+  const visibleImages = images.slice(0, 4);
+  const remaining = total - 4;
 
-        // Use 'same-site' if on the same domain, 'cross-origin' otherwise
-        $response->header('Cross-Origin-Resource-Policy', 'cross-origin'); 
-        // Optional: for broader compatibility
-        $response->header('Access-Control-Allow-Origin', '*'); 
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
+      {visibleImages.map((img, index) => {
+        const isLast = index === 3 && remaining > 0;
 
-        return $response;
-    }
-}
+        return (
+          <div
+            key={img.id}
+            className="relative w-full h-48 cursor-pointer"
+            onClick={() => navigate(`/post/${postId}`)}
+          >
+            <img
+              src={img.url}
+              alt="post"
+              className="w-full h-full object-cover"
+            />
 
-<?php
-
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
-
-return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        channels: __DIR__.'/../routes/channels.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
-    )
-
-    ->withMiddleware(function (Middleware $middleware) {
-
-        // ✅ API middleware (Sanctum + last seen tracking)
-        $middleware->api([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \App\Http\Middleware\UpdateLastSeen::class,
-            \App\Http\Middleware\SetCrossOriginHeaders::class,
-        ]);
-
-        // ✅ Web middleware
-        $middleware->web([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
-        ]);
-
-        // ✅ Global middleware
-        $middleware->append(
-            \Illuminate\Http\Middleware\HandleCors::class
+            {/* ✅ +N OVERLAY */}
+            {isLast && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <span className="text-white text-3xl font-bold">
+                  +{remaining}
+                </span>
+              </div>
+            )}
+          </div>
         );
-
-        // ✅ Disable CSRF for API
-        $middleware->validateCsrfTokens(except: [
-            'api/*',
-        ]);
-    })
-
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })
-    ->create();
+      })}
+    </div>
+  );
+}
