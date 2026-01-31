@@ -174,17 +174,6 @@ const submitPost = async () => {
     return;
   }
   
-  if (text) {
-    const wordCount = countWords(text);
-
-    if (wordCount > MAX_WORDS) {
-      showNotification(
-        `Text is too long. Maximum allowed is ${MAX_WORDS} words. You entered ${wordCount}.`,
-        "error"
-      );
-      return;
-    }
-  }
   const formData = new FormData();
   if (text) formData.append("content", text);
 

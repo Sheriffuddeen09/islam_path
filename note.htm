@@ -17,70 +17,125 @@ and if post video and text it should work, if user post only text it should have
 9. views
 10. share
 
-1. if the image is more than one the grid will show according to the amount of images like if it was two
-2. and if it was 3 image it should be 2x1
-image it will show in grid 2 but appear twice instead of once  {post.media.map(m =>
-        m.type === "image" ? (
-          <ImageGrid media={post.media} postId={post.id} />
-        ) : (
-           <div
-      className="relative aspect-video bg-black cursor-pointer"
-        onClick={() => navigate(`/post/${post.id}`)}
-      >
-      import { useNavigate } from "react-router-dom";
+1. the post reaction is not saving when i reload it return to empty.
+<?php
 
-export default function ImageGrid({ media = [], postId }) {
-  const navigate = useNavigate();
+namespace App\Models;
 
-  if (!media.length) return null;
+use Illuminate\Database\Eloquent\Model;
 
-  const images = media.filter(m => m.type === "image");
-  const total = images.length;
+class PostComment extends Model
+{
+    protected $fillable = [
+        'post_id',
+        'user_id',
+        'parent_id',
+        'body',
+        'image',
+    ];
 
-  // ✅ SINGLE IMAGE
-  if (total === 1) {
-    return (
-      <img
-        src={images[0].url}
-        alt="post"
-        onClick={() => navigate(`/post/${postId}`)}
-        className="w-full max-h-[500px] rounded-lg object-cover cursor-pointer"
-      />
-    );
-  }
+    /* ---------------- RELATIONSHIPS ---------------- */
 
-  // ✅ GRID (2–4 or more)
-  const visibleImages = images.slice(0, 4);
-  const remaining = total - 4;
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-  return (
-    <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-      {visibleImages.map((img, index) => {
-        const isLast = index === 3 && remaining > 0;
+    public function post()
+    {
+        return $this->belongsTo(Post::class);
+    }
 
-        return (
-          <div
-            key={img.id}
-            className="relative w-full h-48 cursor-pointer"
-            onClick={() => navigate(`/post/${postId}`)}
-          >
-            <img
-              src={img.url}
-              alt="post"
-              className="w-full h-full object-cover"
-            />
+    // Replies (recursive)
+    public function replies()
+    {
+        return $this->hasMany(PostComment::class, 'parent_id')
+                    ->with('replies.user');
+    }
 
-            {/* ✅ +N OVERLAY */}
-            {isLast && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <span className="text-white text-3xl font-bold">
-                  +{remaining}
-                </span>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+    public function comment()
+    {
+        return $this->belongsTo(PostComment::class, 'comment_id');
+    }
+
+    public function reactions()
+            {
+                return $this->hasMany(CommentReaction::class, 'comment_id'); 
+            }
+
 }
+
+const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
+
+  
+    const toggleReaction = async (emoji) => {
+      if (!currentUser) {
+        showNotification("Please log in to react.");
+        return;
+      }
+  
+      try {
+        if (myReaction === emoji) {
+    setMyReaction(null);
+  
+    // ✅ update counts
+    setCounts((prev) => {
+      const copy = { ...prev };
+      copy[emoji] = (Number(copy[emoji] || 0) - 1);
+      if (copy[emoji] <= 0) delete copy[emoji];
+      return copy;
+    });
+  
+    // ✅ IMPORTANT: remove user name immediately
+    setUsersPreview((prev) =>
+      prev.filter((u) => u.id !== currentUser.id)
+    );
+  
+    await api.delete(`/api/post/${post.id}/reaction`);
+    return;
+  }
+        setCounts((prev) => {
+          const copy = { ...prev };
+          if (myReaction) {
+            copy[myReaction] = (Number(copy[myReaction] || 1) - 1);
+            if (copy[myReaction] <= 0) delete copy[myReaction];
+          }
+          copy[emoji] = (Number(copy[emoji] || 0) + 1);
+          return copy;
+        });
+        setMyReaction(emoji);
+  
+        // send to server
+        const res = await api.post(`/api/post/${post.id}/reaction`, { emoji });
+  
+        // server returns canonical counts & users — use them if present
+        if (res?.data?.counts) setCounts(res.data.counts);
+        if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
+        if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
+      } catch (err) {
+        showNotification("Reaction error", err);
+        try {
+          const fresh = await api.get(`/api/post/${post.id}/reactions`);
+          setCounts(fresh.data.counts || {});
+          setUsersPreview(fresh.data.users?.slice(0,6) || []);
+          setMyReaction(fresh.data.my_reaction || null);
+        } catch (err2) { /* ignore */ }
+      } finally {
+        setShowReactions(false);
+      }
+    };
+  
+    // Clicking the Like button: quick toggle (use myReaction or default 👍)
+    const onLikeClick = () => {
+      const emoji = myReaction || "👍";
+      toggleReaction(emoji);
+    };
+  
+    useEffect(() => {
+    if (post.reacted_users) {
+      setUsersPreview(post.reacted_users.slice(0, 6));
+    }
+  }, [post.reacted_users]);
+  
+  
+
