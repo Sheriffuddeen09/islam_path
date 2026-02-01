@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Clipboard } from "lucide-react"; // icon for copy
 
-export default function CommentWithCopy({ comment }) {
+export default function PostCommentCopyText({ comment }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (text) => {
@@ -16,14 +16,15 @@ export default function CommentWithCopy({ comment }) {
 
   return (
     <div>
-      <div className="flex justify-between items-center">
+      <div className="">
         <div>
         </div>
         <button
           onClick={() => handleCopy(comment.body)}
-          className="text-gray-500 hover:text-gray-900"
+          className="text-gray-500 whitespace-nowrap hover:text-gray-900 inline-flex items-center gap-2 p-1"
         >
           <Clipboard className="w-4 h-4" />
+          Copy Text
         </button>
       </div>
 

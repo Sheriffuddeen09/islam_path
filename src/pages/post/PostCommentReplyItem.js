@@ -1,13 +1,13 @@
 import { useState } from "react";
-import ReplyImage from "./ReplyImage";
-import CommentImage from "./ComentImage";
-import CommentWithCopy from "./CopyText";
-import ReplyWithCopy from "./CopyTextReply";
-import ReplyListMap from "./ReplyListMap";
+import PostReplyImage from "./PostReplyImage";
+import PostCommentImage from "./PostCommentImage";
+import PostCommentCopyText from "./PostCommentCopyText";
+import PostReplyCopyText from "./PostReplyCopyText";
+import ReplyListMap from "./PostReplyListMap";
 import { useAuth } from "../../layout/AuthProvider";
 import { Link } from "react-router-dom";
 
-export default function ReplyComment ({reactions, loading, handleDelete, handleUpdate, isEditing, isDeleting, toggleReaction, uniqueEmojisr, totalReaction, userReaction, onEdit, closeReply, onDelete, onReact, v, replyText, setReplyText, comment, onReplyAdded}){
+export default function PostCommentReplyItem ({reactions, loading, handleDelete, handleUpdate, isEditing, isDeleting, toggleReaction, uniqueEmojisr, totalReaction, userReaction, onEdit, closeReply, onDelete, onReact, post, replyText, setReplyText, comment, onReplyAdded}){
 
     const [showFull, setShowFull] = useState(false);
     const [replyImage, setReplyImage] = useState(null);
@@ -71,14 +71,6 @@ const sendEmojiReply = async (emoji) => {
   setIsSubmitting(false);
 };
 
-
-
-
-
-
-    const words = v.description?.split(" ") || [];
-    const isLong = words.length > 150;
-    const shortDescription = isLong ? words.slice(0, 150).join(" ") + "..." : v.description;
 
     function timeAgo(dateString) {
   const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
@@ -222,31 +214,7 @@ const contentEdit = (
             <div className=" flex flex-col justify-between p-2 h-full w-full ">
     <div>
     <div className="flex  flex-row justify-between px-5 items-start border-b-2 border-blue-600 py-2 mb- z-50 gap-2 mt-2 ">
-         <div>
-          <Link to={`/profile/${user.id}`} className="flex items-center gap-2">
-      <span className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
-              {v.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
-        <div className="text-xs">
-          <div className="font-bold text-[14px] text-black">
-            {v.user?.first_name} {v.user?.last_name}
-          </div>
-          <div className="text-[11px] text-black">
-            {v.user?.role || v.user?.admin?.role || "No role"}
-          </div>
-        </div>
-        </Link>
-        <p className="text-xs text-black mb-3 mt-3">
-         {showFull || !isLong ? v.description : shortDescription}{" "}
-        {isLong && (
-          <span
-            onClick={() => setShowFull(!showFull)}
-            className="text-blue-300 cursor-pointer ml-1"
-          >
-            {showFull ? "show less" : "read more"}
-          </span>
-        )}
-      </p>
-      </div>
+      
       <button 
         onClick={closeReply} className="text-black">
           
@@ -291,13 +259,13 @@ const contentEdit = (
         </button>
         </>
       )}
-        <CommentWithCopy comment={comment} />
+        <PostCommentCopyText comment={comment} />
 
         </div>
         </div>
         </div>
 
-     {comment.image && <CommentImage image={comment.image} />}
+     {comment.image && <PostCommentImage image={comment.image} />}
 
         <div className="inline-flex gap-3 items-center cursor-pointer">
   <span className="text-black text-xs">{timeAgo(comment.created_at)}</span>

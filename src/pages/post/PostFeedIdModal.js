@@ -8,7 +8,7 @@ import { PostInput } from "./PostInput";
 export function PostFeedIdModal({ postId, post, onClose, user, total, othersCount, setShowUsersPopup, me, 
                                   showUsersPopup, currentUser, usersPreview, counts, setShowReactions,
                                 showReactions, reactionList,toggleReaction, onLikeClick, myReaction, 
-                                setPostIdModal }) {
+                                setPostIdModal, reactionLoading }) {
 
   const [postComments, setPostComments] = useState([])
   const [showEmoji, setShowEmoji] = useState(false);
@@ -68,8 +68,8 @@ return comment;
   if (!post) return null;
 
   return (
-    <div className="fixed px-2 inset-0 bg-white/80 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-xl border shadow-lg">
+    <div className="fixed px-2 inset-0 bg-white/90 flex sm:py-5 items-center justify-center z-50">
+      <div className="bg-white rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
 
         {/* HEADER */}
         <div className="flex justify-between items-center px-4 py-3 border-b">
@@ -197,11 +197,17 @@ return comment;
                   {showReactions && (
                     <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
                       {reactionList.map((emoji) => (
-                        <span key={emoji} onClick={() => toggleReaction(emoji)}
-                              className="text-2xl hover:scale-125 transition cursor-pointer">
-                          {emoji}
+                        <span
+                          key={emoji}
+                          onClick={() => !reactionLoading && toggleReaction(emoji)}
+                          className={`text-2xl transition cursor-pointer ${
+                            reactionLoading ? "opacity-50 pointer-events-none" : "hover:scale-125"
+                          }`}
+                        >
+                          {reactionLoading && myReaction === emoji ? "⏳" : emoji}
                         </span>
                       ))}
+
                     </div>
                   )}
         
@@ -258,12 +264,13 @@ return comment;
           <div className="bg-white rounded-lg w-80 p-4">
             <h3 className="font-semibold mb-3">Likes</h3>
 
-            {usersPreview.map(u => (
-              <div key={u.id} className="flex justify-between text-sm py-1">
-                <span>
-                  {u.id === currentUser?.id ? "You" : u.name}
-                </span>
-                <span className="text-gray-500">{u.role}</span>
+             {usersPreview.map(u => (
+              <div key={u.id} className="flex justify-between h-96 hover:text-blue-800 overflow-y-auto text-sm py-1">
+                <Link to={`/profile/${u.id}`}>
+                  <span className="hover:text-blue-400">
+                    {u.id === currentUser?.id ? "You" : u.name}
+                  </span>
+                </Link>
               </div>
             ))}
 

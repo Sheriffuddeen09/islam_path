@@ -1,17 +1,17 @@
-import ReplyComment from "./ReplyComment";
+import PostCommentReplyItem from "./PostCommentReplyItem";
 
-export default function Reply ({handleDelete, handleUpdate, setIsDeleting, setIsEditing, isEditing, isDeleting, EMOJIS, toggleReaction, hoverReactions, uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, onEdit, loading, replyText, setReplyText, postReply, closeReply, v, comment, onReplyAdded, handleReact}){
+export default function PostCommentReply ({handleDelete, handleUpdate, setIsDeleting, setIsEditing, isEditing, isDeleting, EMOJIS, toggleReaction, hoverReactions, uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, onEdit, loading, replyText, setReplyText, postReply, closeReply, post, comment, onReplyAdded, handleReact}){
     
     return(
         <div>
 
-          <ReplyComment
+          <PostCommentReplyItem
             loading={loading}
             replyText={replyText}
             setReplyText={setReplyText}
             postReply={postReply}
             closeReply={closeReply}
-            v={v}
+            post={post}
             comment={comment}
             onReplyAdded={onReplyAdded}
             onReact={handleReact}

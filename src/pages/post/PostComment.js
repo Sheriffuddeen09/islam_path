@@ -32,10 +32,10 @@ export default function PostComment({ post, postId, postComments, setPostComment
   });
 };
 
-  const handleDelete = async (commentId) => {
+  const handleDelete = async (postId) => {
     try {
-      await api.delete(`/api/comments/${commentId}`);
-      setPostComments(prev => prev.filter(c => c.id !== commentId));
+      await api.delete(`/api/posts/${postId}`);
+      setPostComments(prev => prev.filter(c => c.id !== postId));
     } catch (err) {
       console.error(err);
     }
@@ -122,7 +122,7 @@ const handleEditReply = async (replyId, text) => {
   return (
     <div className="flex flex-col bg-white w-full bg-white py-2">
       {/* Comments list */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 p-4 space-y-4">
         {postComments.map(c => (
           <PostCommentItem
           key={c.id}

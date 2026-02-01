@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 
-export default function ReplyImage({ image }) {
+export default function PostReplyImage({ image }) {
   const [open, setOpen] = useState(false);
 
   if (!image) return null;

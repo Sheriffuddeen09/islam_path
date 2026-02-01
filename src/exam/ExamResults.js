@@ -88,7 +88,7 @@ export default function ExamResults() {
   
 
   const content = (
-     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md w-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+     <div className="overflow-x-auto max-h-[70vh] no-scrollbar border rounded-lg shadow-md sm:w-full w-80 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
               <table className="min-w-full divide-y divide-white bg-white ">
                  {results.length === 0 && (
           <p className="text-gray-500 text-center p-4 whitespace-nowrap">No Exam Result available</p>

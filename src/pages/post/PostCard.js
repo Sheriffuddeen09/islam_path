@@ -19,6 +19,8 @@ export default function PostCard({ post }) {
   const [showUsersPopup, setShowUsersPopup] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [postIdModal, setPostIdModal] = useState(null);
+  const [reactionLoading, setReactionLoading] = useState(false);
+
 
 
 
@@ -37,62 +39,57 @@ export default function PostCard({ post }) {
 
   
     const toggleReaction = async (emoji) => {
-      if (!currentUser) {
-        showNotification("Please log in to react.");
-        return;
-      }
-  
-      try {
-        if (myReaction === emoji) {
-    setMyReaction(null);
-  
-    // ✅ update counts
-    setCounts((prev) => {
-      const copy = { ...prev };
-      copy[emoji] = (Number(copy[emoji] || 0) - 1);
-      if (copy[emoji] <= 0) delete copy[emoji];
-      return copy;
-    });
-  
-    // ✅ IMPORTANT: remove user name immediately
-    setUsersPreview((prev) =>
-      prev.filter((u) => u.id !== currentUser.id)
-    );
-  
-    await api.delete(`/api/post/${post.id}/reaction`);
+  if (!currentUser) {
+    showNotification("Please log in to react.");
     return;
   }
-        setCounts((prev) => {
-          const copy = { ...prev };
-          if (myReaction) {
-            copy[myReaction] = (Number(copy[myReaction] || 1) - 1);
-            if (copy[myReaction] <= 0) delete copy[myReaction];
-          }
-          copy[emoji] = (Number(copy[emoji] || 0) + 1);
-          return copy;
-        });
-        setMyReaction(emoji);
-  
-        // send to server
-        const res = await api.post(`/api/post/${post.id}/reaction`, { emoji });
-  
-        // server returns canonical counts & users — use them if present
-        if (res?.data?.counts) setCounts(res.data.counts);
-        if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
-        if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
-      } catch (err) {
-        showNotification("Reaction error", err);
-        try {
-          const fresh = await api.get(`/api/post/${post.id}/reactions`);
-          setCounts(fresh.data.counts || {});
-          setUsersPreview(fresh.data.users?.slice(0,6) || []);
-          setMyReaction(fresh.data.my_reaction || null);
-        } catch (err2) { /* ignore */ }
-      } finally {
-        setShowReactions(false);
+
+  if (reactionLoading) return; // ⛔ prevent double clicks
+
+  setReactionLoading(true);
+
+  try {
+    if (myReaction === emoji) {
+      setMyReaction(null);
+
+      setCounts((prev) => {
+        const copy = { ...prev };
+        copy[emoji] = (Number(copy[emoji] || 0) - 1);
+        if (copy[emoji] <= 0) delete copy[emoji];
+        return copy;
+      });
+
+      setUsersPreview((prev) => prev.filter((u) => u.id !== currentUser.id));
+
+      await api.delete(`/api/post/${post.id}/reaction`);
+      return;
+    }
+
+    setCounts((prev) => {
+      const copy = { ...prev };
+      if (myReaction) {
+        copy[myReaction] = (Number(copy[myReaction] || 1) - 1);
+        if (copy[myReaction] <= 0) delete copy[myReaction];
       }
-    };
-  
+      copy[emoji] = (Number(copy[emoji] || 0) + 1);
+      return copy;
+    });
+
+    setMyReaction(emoji);
+
+    const res = await api.post(`/api/post/${post.id}/reaction`, { emoji });
+
+    if (res?.data?.counts) setCounts(res.data.counts);
+    if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
+    if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
+  } catch (err) {
+    showNotification("Reaction error", err);
+  } finally {
+    setReactionLoading(false);
+    setShowReactions(false);
+  }
+};
+
     // Clicking the Like button: quick toggle (use myReaction or default 👍)
     const onLikeClick = () => {
       const emoji = myReaction || "👍";
@@ -105,6 +102,15 @@ export default function PostCard({ post }) {
     }
   }, [post.reacted_users]);
   
+
+  useEffect(() => {
+  api.get(`/api/post/${post.id}/reactions`).then(res => {
+    setCounts(res.data.counts || {});
+    setUsersPreview(res.data.users?.slice(0,6) || []);
+    setMyReaction(res.data.my_reaction || null);
+  });
+}, [post.id]);
+
   
     // Render
     const text = post.content || "";
@@ -245,6 +251,7 @@ const me = usersPreview.find(
             {othersCount} other{othersCount > 1 ? "s" : ""}
           </span>
         )}
+     
       </div>
     )}
 
@@ -275,11 +282,17 @@ const me = usersPreview.find(
                   {showReactions && (
                     <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
                       {reactionList.map((emoji) => (
-                        <span key={emoji} onClick={() => toggleReaction(emoji)}
-                              className="text-2xl hover:scale-125 transition cursor-pointer">
-                          {emoji}
-                        </span>
-                      ))}
+                      <span
+                        key={emoji}
+                        onClick={() => !reactionLoading && toggleReaction(emoji)}
+                        className={`text-2xl transition cursor-pointer ${
+                          reactionLoading ? "opacity-50 pointer-events-none" : "hover:scale-125"
+                        }`}
+                      >
+                        {reactionLoading && myReaction === emoji ? "⏳" : emoji}
+                      </span>
+                    ))}
+
                     </div>
                   )}
         
@@ -315,7 +328,8 @@ const me = usersPreview.find(
                   <PostFeedIdModal
                    total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 
                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
-                    user={user} counts={counts} setShowReactions={setShowReactions}
+                    user={user} counts={counts} setShowReactions={setShowReactions} 
+                    reactionLoading={reactionLoading}
                                 showReactions={showReactions} reactionList={reactionList} 
                                 toggleReaction={toggleReaction} onLikeClick={onLikeClick} 
                                 myReaction={myReaction} setPostIdModal={setPostIdModal} postId={post.id}
@@ -330,10 +344,11 @@ const me = usersPreview.find(
 
             {usersPreview.map(u => (
               <div key={u.id} className="flex justify-between text-sm py-1">
-                <span>
-                  {u.id === currentUser?.id ? "You" : u.name}
-                </span>
-                <span className="text-gray-500">{u.role}</span>
+                <Link to={`/profile/${u.id}`}>
+                  <span>
+                    {u.id === currentUser?.id ? "You" : u.name}
+                  </span>
+                </Link>
               </div>
             ))}
 

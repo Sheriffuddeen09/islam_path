@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Clipboard } from "lucide-react"; // icon for copy
 
-export default function ReplyWithCopy({ reply }) {
+export default function PostReplyCopyText({ reply }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (text) => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import ReplyWithCopy from "./CopyTextReply";
-import ReplyImage from "./ReplyImage";
+import ReplyWithCopy from "./PostReplyCopyText";
+import ReplyImage from "./PostReplyImage";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 

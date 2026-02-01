@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 
-export default function CommentImage({ image }) {
+export default function PostCommentImage({ image }) {
   const [open, setOpen] = useState(false);
 
   if (!image) return null;
@@ -13,14 +13,14 @@ export default function CommentImage({ image }) {
       {/* Thumbnail */}
       <img
         src={src}
-        className="w-24 h-24 rounded object-cover mt-2 cursor-pointer"
+        className="w-40 h-32 mx-auto rounded object-cover mt-2 cursor-pointer"
         alt="comment image"
         onClick={() => setOpen(true)}
       />
 
       {/* Modal for full image */}
       {open && (
-        <div className="fixed inset-0 bg-black w-full bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black w-full bg-opacity-90 flex items-center justify-center z-50">
           {/* Close button */}
           <button
             onClick={() => setOpen(false)}
