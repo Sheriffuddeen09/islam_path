@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../Api/axios";
 import PostCommentItem from "./PostCommentItem";
 
-export default function PostComment({ post, postId, postComments, setPostComments }) {
+export default function PostComment({ post, postId, postComments, setPostComments, image }) {
   const [isEditing, setIsEditing] = useState(false)
   const [commentLoading, setCommentLoading] = useState(false)
   
@@ -137,6 +137,7 @@ if (commentLoading)
         {postComments.map(c => (
           <PostCommentItem
           key={c.id}
+          image={image}
           post={post}
           comment={c}
           onReplyAdded={handleReplyAdded}

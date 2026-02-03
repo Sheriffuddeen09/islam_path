@@ -9,7 +9,7 @@ import { CommentReportModal } from "./report/CommentReportModal";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
-export default function PostCommentItem({setIsDeleting, setIsEdit, isEdit, isDeleting, post, comment, onReplyAdded, onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setPostComments }) {
+export default function PostCommentItem({image, setIsDeleting, setIsEdit, isEdit, isDeleting, post, comment, onReplyAdded, onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setPostComments }) {
   
   const [showReplies, setShowReplies] = useState(false);
   const [editText, setEditText] = useState(comment.body || "");
@@ -37,8 +37,8 @@ export default function PostCommentItem({setIsDeleting, setIsEdit, isEdit, isDel
   };
 
   const handleReplyToComment = () => {
-    const name = `${reply.user.first_name} ${reply.user.last_name}`;
-      setReplyTo({ id: reply.user.id, name });
+    const name = `${comment.user.first_name} ${comment.user.last_name}`;
+      setReplyTo({ id: comment.user.id, name });
     
       // Pre-fill input with mention
       setReplyText(`@${name} `);
@@ -279,7 +279,7 @@ const handleReplyToggle = () =>{
                       </button>
 
                       {/* MENU: only appears when hovering ICON */}
-                      <div className="absolute right-0 mt-2 bg-white border rounded shadow
+                      <div className="absolute right-0 bg-white border rounded shadow
                           opacity-0 invisible
                           group-hover/icon:visible group-hover/icon:opacity-100
                           transition p-2 flex flex-col gap-2 z-50">                      
@@ -303,10 +303,8 @@ const handleReplyToggle = () =>{
                           )}
                         </>
                       )}
-                      {hasText && (
- 
+
                         <PostCommentCopyText comment={comment} />
-                      )}
 
                       {!isOwner && (
                         <button onClick={handleReport}  className="whitespace-nowrap text-sm inline-flex items-center gap-2 p-1">
@@ -437,6 +435,7 @@ const handleReplyToggle = () =>{
        
            <div className={`${showReplies ? 'block' : 'hidden'}`}>
            <PostCommentReply
+           image={image}
             emojiClick={emojiClick}
             setEmojiClick={setEmojiClick}
             replyImage={replyImage}

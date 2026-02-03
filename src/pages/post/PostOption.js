@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import { Link } from "react-router-dom";
-import ReportForm from "../../report/ReportForm";
 import { useAuth } from "../../layout/AuthProvider";
 import { PostReportModal } from "./report/PostReportModal";
 
@@ -11,7 +10,14 @@ export default function PostOptions({ post }) {
   const [notification, setNotification] = useState("");
   const [shares, setShares] = useState({});
   const [openReport, setOpenReport] = useState(false)
-  const {user} = useAuth()
+  
+  const { authUser } = useAuth();
+
+  const isOwner = authUser?.id === post?.user?.id;
+
+console.log(authUser);
+// console.log(post.user);
+
 
   const showNotification = (msg) => {
     setNotification(msg);
@@ -73,7 +79,7 @@ export default function PostOptions({ post }) {
 
 
   const handleViewProfile = () => {
-    window.location.href = `/profile/${user.id}`;
+    window.location.href = `/profile/${authUser.id}`;
   };
 
   const handleOption = () =>{
@@ -129,11 +135,18 @@ const handleReport = () =>{
               <button onClick={() => {handleOption(); handleCopyLink()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
               >Copy Link</button>
             </li>
-            <li>
+            
+            {!isOwner && (
+              <li>
+                <button
+                  onClick={() => { handleOption(); handleReport(); }}
+                  className="flex items-center font-bold text-[15px] gap-2 w-full px-2 py-2 hover:text-gray-600 hover:bg-gray-50 rounded"
+                >
+                  Report
+                </button>
+              </li>
+            )}
 
-              <button onClick={() => {handleOption(); handleReport()}} className="flex items-center font-bold text-[15px] text-blue-800 gap-2 w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
-              >Report</button>
-            </li>
             <li>
               <button onClick={() => {handleOption(); handleShare()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
               >Share</button>

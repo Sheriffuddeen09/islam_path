@@ -30,6 +30,7 @@ import ProfileRouter from "./route/ProfileRoute";
 import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
 import StudentExamResult from "./exam/StudentExamResult";
 import Navbar from "./layout/Header";
+import PostImagePageId from "./pages/post/PostImagePageId";
 
    
 function App() {
@@ -128,6 +129,9 @@ function App() {
             </ProtectRoute>
           }
         />
+
+        <Route path="/post/:id" element={<PostImagePageId />} />
+
 
 
       {/* profile */}

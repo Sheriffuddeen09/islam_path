@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { PostReplyInput } from "./PostReplyInput";
 import { CommentReportModal } from "./report/CommentReportModal";
 
-export default function PostCommentReplyItem ({handleReplyToComment, loading, loadingEmoji, 
+export default function PostCommentReplyItem ({image, handleReplyToComment, loading, loadingEmoji, 
                       setIsEditing, replyInputRef, handleDelete, handleUpdate, isEditing, 
                       isDeleting, toggleReaction, uniqueEmojisr, totalReaction, onEdit, closeReply, 
                       onDelete, onReact, post, replyText, setReplyText, comment, onReplyAdded,
@@ -34,14 +34,21 @@ export default function PostCommentReplyItem ({handleReplyToComment, loading, lo
 
 const [isSubmitting, setIsSubmitting] = useState(false);
 
+const buildReplyBody = (baseText = "") => {
+  if (!replyTo) return baseText;
+  const mention = `@${replyTo.name} `;
+  return baseText.startsWith(mention) ? baseText : mention + baseText;
+};
 
 
 const sendTextReply = async () => {
   if (!replyText.trim()) return;
 
   setIsSubmitting(true);
-  await onReplyAdded(comment.id, replyText, null, null);
+  const body = buildReplyBody(replyText);
+  await onReplyAdded(comment.id, body, null, null);
   setReplyText("");
+  setReplyTo(null);
   setIsSubmitting(false);
 };
 
@@ -49,17 +56,20 @@ const sendImageReply = async (file) => {
   if (!file) return;
 
   setIsSubmitting(true);
-  await onReplyAdded(comment.id, null, file, null);
-  setReplyImage(null);
+  const body = buildReplyBody(""); // 👈 still send mention in body
+  await onReplyAdded(comment.id, body, file, null);
   setIsSubmitting(false);
 };
 
 const sendEmojiReply = async (emoji) => {
   setIsSubmitting(true);
-  await onReplyAdded(comment.id, null, null, emoji);
+  const body = buildReplyBody(emoji); // 👈 emoji + mention
+  await onReplyAdded(comment.id, body, null, emoji);
   setEmojiClick(false);
+  setReplyTo(null);
   setIsSubmitting(false);
 };
+
 
 //length
 
@@ -280,7 +290,8 @@ const contentEdit = (
                       </button>
                   )}
 
-                  {hasText && <PostCommentCopyText comment={comment} />}
+                  <PostCommentCopyText comment={comment} />
+
                   {!isOwner && (
                   <button onClick={handleReport}  className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -398,7 +409,7 @@ const contentEdit = (
 
           {/* Reply Input */}
 
-          <PostReplyInput isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
+          <PostReplyInput image={image} isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
           sendTextReply={sendTextReply} setEmojiClick={setEmojiClick} sendEmojiReply={sendEmojiReply}
           REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} />
            </div>

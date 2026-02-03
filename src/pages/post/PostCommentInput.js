@@ -122,8 +122,8 @@ export function PostCommentInput({ commentInputRef, newComment, loading, setNewC
 }
         </div>
         <div >
-          {image && <div className="fixed px-2 inset-0 bg-white/80 flex items-center justify-center z-50">
-          Selected: {image.name}</div>}
+          {image && <div className="fixed px-2 font-bold text-xl text-black inset-0 bg-white/80 flex items-center justify-center z-50">
+          Uploading Selected Image: {image.name}</div>}
         </div>
       </div>
  

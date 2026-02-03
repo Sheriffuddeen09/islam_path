@@ -50,14 +50,14 @@ export default function PostFeed({posts, setPosts}) {
     
       {
         posts.length === 0 && (
-          <p className="text-black mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-sm font-bold ">
+          <p className="text-black lg:ml-96 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-sm font-bold ">
             No Feed Post Available
           </p>
          )
       }
     <div className="flex-1 transition-all p-4 mt-20 gap-3 lg:ml-64 flex flex-col items-center">
       {posts.map(post => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} setPosts={setPosts} />
       ))}
       </div>
       

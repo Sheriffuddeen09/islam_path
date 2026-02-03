@@ -1,8 +1,6 @@
 import { useState } from "react";
-import ReplyImage from "./ReplyImage";
 import CommentImage from "./ComentImage";
 import CommentWithCopy from "./CopyText";
-import ReplyWithCopy from "./CopyTextReply";
 import ReplyListMap from "./ReplyListMap";
 import { useAuth } from "../../layout/AuthProvider";
 import { Link } from "react-router-dom";

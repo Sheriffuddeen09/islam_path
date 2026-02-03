@@ -106,7 +106,7 @@ return comment;
 
           {/* Content */}
           {post.content && (
-            <p className="text-sm mb-3 whitespace-pre-line">
+            <p className="text-sm mb-3 px-4 whitespace-pre-line">
               {post.content}
             </p>
           )}
@@ -247,7 +247,7 @@ return comment;
                   </button>
                 </div>
          <div className="flex-1 w-full">
-        <PostComment postId={post.id} post={post} postComments={postComments} 
+        <PostComment postId={post.id} image={image} post={post} postComments={postComments} 
         setPostComments={setPostComments} loading={loading} setLoading={setLoading} />
         </div> 
        

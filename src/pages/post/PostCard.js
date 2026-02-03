@@ -6,8 +6,10 @@ import Notification from "../../Form/Notification";
 import api from "../../Api/axios"; 
 import ImageGrid from "./ImageGrid";
 import { PostFeedIdModal } from "./PostFeedIdModal";
+import {toast} from "react-hot-toast"
 
-export default function PostCard({ post }) {
+
+export default function PostCard({ post, setPosts }) {
 
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
@@ -140,6 +142,18 @@ const focusCommentInput = () => {
 };
 
 
+
+const handleHidePost = async (postId) => {
+  try {
+    await api.post(`/api/posts/${postId}/hide`);
+    toast.success("Post removed");
+    setPosts(prev => prev.filter(p => p.id !== postId));
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
   return (
     <div
       className={`rounded-xl  shadow sm:w-5/12 w-full border`}
@@ -161,7 +175,16 @@ const focusCommentInput = () => {
         </div>
       </div>
 
+        <div className='inline-flex items-center gap-3'>
       <PostOptions post={post} />
+      <button
+      onClick={() => handleHidePost(post.id)}
+      className="w-8 h-8 flex items-center justify-center"
+          >
+            ✕
+    </button>
+
+      </div>
       </div>
 
       {/* TEXT */}

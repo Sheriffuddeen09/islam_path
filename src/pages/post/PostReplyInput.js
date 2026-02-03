@@ -1,4 +1,4 @@
-export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, sendTextReply, setEmojiClick, sendEmojiReply, 
+export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, image, sendTextReply, setEmojiClick, sendEmojiReply, 
     REPLY_EMOJIS, emojiClick, replyText, setReplyText}) {
 
 
@@ -76,6 +76,11 @@ export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, se
 </svg>
 }
             </button>
+
+            <div >
+          {image && <div className="fixed px-2 font-bold text-xl text-black inset-0 bg-white/80 flex items-center justify-center z-50">
+          Uploading Selected Image: {image.name}</div>}
+        </div>
           </div>
           
     )

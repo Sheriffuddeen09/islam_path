@@ -1,6 +1,6 @@
 import PostCommentReplyItem from "./PostCommentReplyItem";
 
-export default function PostCommentReply ({handleDelete, replyInputRef, loadingEmoji, handleUpdate, 
+export default function PostCommentReply ({image, handleDelete, replyInputRef, loadingEmoji, handleUpdate, 
                 setIsDeleting, setIsEditing, isEditing, isDeleting, EMOJIS, toggleReaction, hoverReactions, 
                 uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, onEdit, loading, replyText,
                 setReplyText, postReply, closeReply, post, comment, onReplyAdded, handleReact,
@@ -43,6 +43,7 @@ export default function PostCommentReply ({handleDelete, replyInputRef, loadingE
             setIsDeleting={setIsDeleting}
             handleUpdate={handleUpdate}
             handleDelete = {handleDelete}
+            image={image}
 
           />
         </div>
