@@ -1,28 +1,32 @@
 import { useState } from "react";
-import PostReplyImage from "./PostReplyImage";
 import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
-import PostReplyCopyText from "./PostReplyCopyText";
-import ReplyListMap from "./PostReplyListMap";
+import PostReplyListMap from "./PostReplyListMap";
 import { useAuth } from "../../layout/AuthProvider";
 import { Link } from "react-router-dom";
+import { PostReplyInput } from "./PostReplyInput";
+import { CommentReportModal } from "./report/CommentReportModal";
 
-export default function PostCommentReplyItem ({reactions, loading, handleDelete, handleUpdate, isEditing, isDeleting, toggleReaction, uniqueEmojisr, totalReaction, userReaction, onEdit, closeReply, onDelete, onReact, post, replyText, setReplyText, comment, onReplyAdded}){
+export default function PostCommentReplyItem ({handleReplyToComment, loading, loadingEmoji, 
+                      setIsEditing, replyInputRef, handleDelete, handleUpdate, isEditing, 
+                      isDeleting, toggleReaction, uniqueEmojisr, totalReaction, onEdit, closeReply, 
+                      onDelete, onReact, post, replyText, setReplyText, comment, onReplyAdded,
+                      replyTo, focusReplyInput, setReplyTo, replyImage, setReplyImage, emojiClick, setEmojiClick}){
 
-    const [showFull, setShowFull] = useState(false);
-    const [replyImage, setReplyImage] = useState(null);
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(comment.body);
     const [showReactions, setShowReactions] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteComment, setShowDeleteComment] = useState(false);
-    const [emojiClick, setEmojiClick] = useState(false);
     const REPLY_EMOJIS = ['❤️','👍','😂','😮','😢','🔥'];
     const [isEditingComment, setIsEditingComment] = useState(false)
     const authUser = useAuth()
-    console.log("authUser:", authUser)
     const {user} = useAuth()
-   
+    const [openReport, setOpenReport] = useState(false);
+
+   const handleReport = () =>{
+  setOpenReport(!openReport)
+}
 // loading
     
 
@@ -30,20 +34,6 @@ export default function PostCommentReplyItem ({reactions, loading, handleDelete,
 
 const [isSubmitting, setIsSubmitting] = useState(false);
 
-const handleReply = async ({ image = null, text = replyText } = {}) => {
-  if (!text && !image) return;
-
-  try {
-    setIsSubmitting(true);
-    await onReplyAdded(comment.id, text, image);
-    setReplyText("");
-    setReplyImage(null);
-  } catch (err) {
-    console.error("Failed to send reply:", err);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
 
 const sendTextReply = async () => {
@@ -71,6 +61,8 @@ const sendEmojiReply = async (emoji) => {
   setIsSubmitting(false);
 };
 
+//length
+
 
     function timeAgo(dateString) {
   const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
@@ -93,6 +85,10 @@ const sendEmojiReply = async (emoji) => {
   const years = Math.floor(days / 365);
   return `${years}y`;
 }
+
+const isOwner = authUser?.user?.id === comment.user?.id;
+const hasText = !!comment.body;
+
 
 const handleEmojiClick = () =>{
   setEmojiClick(!emojiClick)
@@ -210,90 +206,152 @@ const contentEdit = (
 )
     return(
     
-        <div className="bg-white rounded-lg h-full w-full fixed left-0 top-0 z-50">
-            <div className=" flex flex-col justify-between p-2 h-full w-full ">
+        <div className="fixed px-2 inset-0 bg-white/80 flex sm:py-5 items-center justify-center z-50">
+      <div className="bg-white rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
+
     <div>
-    <div className="flex  flex-row justify-between px-5 items-start border-b-2 border-blue-600 py-2 mb- z-50 gap-2 mt-2 ">
-      
-      <button 
-        onClick={closeReply} className="text-black">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-        </button>
-      </div>
+    <div className="flex justify-around sm:justify-between items-center px-4 py-3 border-b">
+          <h2 className="text-lg font-semibold text-center sm:mx-auto">
+            {post.user.name}'s Post
+          </h2>
+          <button
+            onClick={closeReply}
+            className="w-8 h-8 sm:block hidden rounded-full bg-gray-200 flex items-center justify-center"
+          >
+            ✕
+          </button>
+          <button
+            onClick={closeReply}
+            className="block text-xs text-blue-900 sm:hidden rounded-full font-bold whitespace-nowrap"
+          >
+            View Post
+          </button>
+        </div>
 <div className="overflow-y-auto overflow-x-hidden scroll-bar h-[340px]
     scrollbar-thin scrollbar-thumb-transparent scrollbar-track-transparent">
-         <p className="text-black px-5 inline-flex text-sm font-bold mt-1 items-center gap-2 ">Reply <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
-</svg>{comment.replies.length}</p>
-<div className="px-4 py-2">
+         <p className="text-black px-5 inline-flex text-sm font-bold my-2 items-center gap-2 ">
+          Reply {comment.replies.length}</p>
+  <div className="px-4 py-2">
     <div className="inline-flex gap-2 items-start">
       <Link to={`/profile/${user.id}`} className="">
-    <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
-    </Link>
-    <div className="bg-gray-50 px-4 py-2 rounded-lg ">
-    <div className=" flex flex-row justify-between  items-start gap-16">
-      <div>
-    <Link to={`/profile/${user.id}`} className="">
-    <p className="text-black font-bold">{comment.user.first_name} {comment.user.last_name}</p>
-    <p className="text-black my-2 text-sm font-semibold">{comment.body}</p>
-    </Link>
-    </div>
-    <div className="relative group inline-block">
-        <button className="text-2xl text-black font-bold ">:</button>
-        
-        <div className={`inline-flex items-center absolute top-10 -right-5 mb-2 flex gap-2 p-2 bg-white border rounded shadow opacity-0 invisible group-hover:visible group-hover:opacity-100 transform group-hover:-translate-y-2 transition-all duration-200 z-50 gap-3 items-center shadow-md p-2 rounded-lg`}>
-      {authUser?.user?.id === comment.user?.id && (
-          <>
-                  <button title="Edit" onClick={handlePopClick} className="text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-gray-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-          </svg>
-          </button>
-          <button title="Delete" onClick={() => setShowDeleteComment(true)} className="text-red-600">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-        </svg>
-        </button>
-        </>
-      )}
-        <PostCommentCopyText comment={comment} />
+      <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
+      </Link>
+    <div className="bg-gray-50 sm:w-60 w-full flex-1 relative group  px-4 py-2 rounded-lg ">
+        <div className=" flex flex-row justify-between  items-start">
+          <div>
+          <Link to={`/profile/${user.id}`} className="">
+          <p className="text-black font-bold">{comment.user.first_name} {comment.user.last_name}</p>
+          <p className="text-black my-2 text-sm font-semibold">{comment.body}</p>
+          </Link>
+        </div>
+     {/* Comment in Reply */}
+              <div className="absolute top-2 right-2">
+            <div className="opacity-0 group-hover:opacity-100 transition">
+              <div className="relative group/icon">
+                
+                {/* ICON */}
+                <button className="text-black">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                  </svg>
+                </button>
 
-        </div>
-        </div>
-        </div>
+                {/* MENU: only on ICON hover */}
+                <div className="absolute right-0 bg-white border rounded shadow
+                                opacity-0 invisible
+                                group-hover/icon:visible group-hover/icon:opacity-100
+                                transition p-2 flex flex-col gap-2 z-50">
+
+                  {isOwner && hasText && (
+                    <button onClick={() => setIsEditing(true)} className="whitespace-nowrap text-sm hover:text-gray-800 inline-flex items-center gap-2 p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-blue-500">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                    Edit Comment
+                    </button>
+                  )}
+
+                  {isOwner && (
+                    <button onClick={() => setShowDeleteConfirm(true)} className="whitespace-nowrap text-sm hover:text-gray-800 inline-flex items-center gap-2 p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                      Delete Comment
+                      </button>
+                  )}
+
+                  {hasText && <PostCommentCopyText comment={comment} />}
+                  {!isOwner && (
+                  <button onClick={handleReport}  className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                        </svg>
+
+                    Report
+                  </button>
+                  )}
+
+                  {!isOwner && (
+                  <button onClick={handleReplyToComment} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+                    </svg>
+
+                    Reply To
+                  </button>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+    </div>
 
      {comment.image && <PostCommentImage image={comment.image} />}
 
-        <div className="inline-flex gap-3 items-center cursor-pointer">
+        
+<div className="inline-flex gap-3 items-center cursor-pointer">
   <span className="text-black text-xs">{timeAgo(comment.created_at)}</span>
-  <div className="relative group inline-block">
-  {uniqueEmojisr.length > 0
-      ? uniqueEmojisr.map(e => <span className="text-blue-600 text-sm" key={e}>{e}</span>)
-      : <span className="text-sm text-blue-600">Like</span>}
-  {totalReaction > 0 && <span className="text-black text-sm font-semibold ">{totalReaction}</span>}
 
-  {/* Hover reactions */}
-  <div className="absolute bottom-2 left-0 mb-2 flex gap-2 p-2 bg-white border rounded shadow opacity-0 invisible group-hover:visible group-hover:opacity-100 transform group-hover:-translate-y-2 transition-all duration-200 z-50">
-    {['❤️','👍','😂','😮','😢','🔥'].map(e => (
-      <button
-        key={e}
-        onClick={() => { toggleReaction(e); }}
-        className="text-xl hover:scale-125 transition"
-      >
-        {e}
-      </button>
-    ))}
+  {/* Reaction hover group */}
+  <div className="relative group/react inline-block">
+    {uniqueEmojisr.length > 0 &&
+      uniqueEmojisr.map(e => (
+        <span className="text-blue-600 text-sm" key={e}>{e}</span>
+      ))
+    }
+
+    <span className="text-sm text-blue-600">Like</span>
+
+    {totalReaction > 0 && (
+      <span className="ml-2 text-gray-700 text-sm font-semibold">{totalReaction}</span>
+    )}
+
+    {/* Hover reactions: ONLY when hovering this area */}
+    <div className="absolute bottom-2 left-0 mb-2 flex gap-2 p-2 bg-white border rounded shadow
+                    opacity-0 invisible
+                    group-hover/react:visible group-hover/react:opacity-100
+                    transform group-hover/react:-translate-y-2 transition-all duration-200 z-50">
+      {['❤️','👍','😂','😮','😢','🔥'].map(e => (
+        <button
+          key={e}
+          onClick={() => toggleReaction(e)}
+          className="text-lg hover:scale-110 transition"
+          disabled={loadingEmoji !== null}
+        >
+          {loadingEmoji === e ? (
+            <svg className="animate-spin h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          ) : e}
+        </button>
+      ))}
+    </div>
   </div>
-  </div>
-  {userReaction && (
-  <div className="text-xs text-gray-600 mt-1">
-   {userReaction}
-  </div>
-)}
 </div>
+
     </div>
     </div>
      
@@ -301,11 +359,15 @@ const contentEdit = (
 
 {contentDelete}
 {contentEdit}
+
+ <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
+    <CommentReportModal comment={comment} onClose={handleReport} />
+</div>
 {/* replies */}
 {comment.replies.map(reply => (
 
         <>
-        <ReplyListMap 
+        <PostReplyListMap 
           editing = {editing} 
           setEditing={setEditing} reply={reply} 
           setShowDeleteConfirm={setShowDeleteConfirm} setShowReactions={setShowReactions} comment={comment} 
@@ -313,6 +375,15 @@ const contentEdit = (
           editText={editText} setEditText={setEditText} onEdit={onEdit} onDelete={onDelete}
           isDeleting={isDeleting} isEditing={isEditing} showDeleteConfirm ={showDeleteConfirm}
           onReact={onReact} authUser={authUser ?? null}
+          totalReaction={totalReaction} toggleReaction={toggleReaction} uniqueEmojisr={uniqueEmojisr}
+            replyTo={replyTo}
+            setReplyTo={setReplyTo}
+            setReplyText={setReplyText}
+            handleReplyToComment={handleReplyToComment}
+            focusReplyInput={focusReplyInput}
+            setEmojiClick={setEmojiClick}
+            setReplyImage={setReplyImage}
+            emojiClick={emojiClick} replyImage={replyImage}
              />
         </>
     ))}
@@ -326,78 +397,11 @@ const contentEdit = (
 
 
           {/* Reply Input */}
-            <div className="mt-2 flex gap-2 relative px-4">
-            <textarea
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              className="flex-1 px-4 py-6 text-black outline-0  border-2 border-blue-400 h-32 rounded"
-              placeholder="Write a reply..."
-              rows={4}
-            />
 
-        <button 
-        onClick={() => setEmojiClick(!emojiClick)}
-        className="absolute top-1 left-8 border rounded shadow">
-          😮
-        </button >
-
-
-            <div className={`fixed bottom-14 left-10 gap-2 bg-white border p-2 rounded shadow z-50 ${emojiClick ? 'block' : 'hidden'}`}>
-              {REPLY_EMOJIS.map(e => (
-                <button
-                  key={e}
-                  onClick={() => { sendEmojiReply(e); setEmojiClick(false)}}
-                  className="text-xl hover:scale-125 transition"
-                  disabled={isSubmitting}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-
-            <label className="p-2 rounded absolute -top-0 left-14 hover:bg-gray-200 cursor-pointer">
-             <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => sendImageReply(e.target.files[0])}
-                />
-
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-black">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-</svg>
-
-            </label>
-            <button onClick={sendTextReply} className="px-3 py-1 absolute right-5 top-3 text-white rounded">
-                {isSubmitting ? (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25 text-blue-800"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  ) : 
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-blue-700">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-</svg>
-}
-            </button>
-          </div>
-          </div>
+          <PostReplyInput isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
+          sendTextReply={sendTextReply} setEmojiClick={setEmojiClick} sendEmojiReply={sendEmojiReply}
+          REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} />
+           </div>
         </div>
 
     )

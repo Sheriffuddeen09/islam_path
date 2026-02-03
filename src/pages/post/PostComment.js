@@ -2,19 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../Api/axios";
 import PostCommentItem from "./PostCommentItem";
 
-export default function PostComment({ post, postId, postComments, setPostComments, setLoading }) {
+export default function PostComment({ post, postId, postComments, setPostComments }) {
   const [isEditing, setIsEditing] = useState(false)
+  const [commentLoading, setCommentLoading] = useState(false)
+  
 
   
   const fetchComments = async () => {
-    setLoading(true)
+    setCommentLoading(true)
     try {
       const res = await api.get(`/api/posts/${postId}/comments`);
       setPostComments(res.data.comments);
     } catch (err) {
       console.error(err);
     }
-    setLoading(false)
+    setCommentLoading(false)
   };
 
   useEffect(() => {
@@ -34,17 +36,20 @@ export default function PostComment({ post, postId, postComments, setPostComment
 
   const handleDelete = async (postId) => {
     try {
-      await api.delete(`/api/posts/${postId}`);
+      await api.delete(`/api/posts/${postId}/comment`);
       setPostComments(prev => prev.filter(c => c.id !== postId));
     } catch (err) {
       console.error(err);
     }
   };
   
-const handleReplyAdded = async (parentId, text = null, image = null) => {
+const handleReplyAdded = async (parentId, text = null, image = null, emoji=null) => {
   const formData = new FormData();
   formData.append("parent_id", parentId);
 
+  if (emoji) {
+    formData.append("body", emoji);
+  } 
   if (text) formData.append("body", text);
   if (image instanceof File) formData.append("image", image);
 
@@ -76,7 +81,7 @@ const [isDeleting, setIsDeleting] = useState(false);
 const handleDeleteReply = async (replyId) => {
   try {
     setIsDeleting(true); // start loading
-    await api.delete(`/api/comments/${replyId}`);
+    await api.delete(`/api/posts/${replyId}/comment`);
     setPostComments(prev =>
       prev.map(c => ({
         ...c,
@@ -93,7 +98,7 @@ const handleDeleteReply = async (replyId) => {
 const handleEditReply = async (replyId, text) => {
   try {
     setIsEditing(true);
-    const res = await api.put(`/api/comments/${replyId}`, {
+    const res = await api.put(`/api/posts/${replyId}/comment`, {
       body: text,
     });
     setPostComments(prev =>
@@ -117,6 +122,12 @@ const handleEditReply = async (replyId, text) => {
 };
 
 
+if (commentLoading)
+    return (
+      <div className="flex items-center justify-center">
+        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
 
 
   return (

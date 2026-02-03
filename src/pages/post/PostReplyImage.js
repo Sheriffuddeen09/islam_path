@@ -13,14 +13,14 @@ export default function PostReplyImage({ image }) {
       {/* Thumbnail */}
       <img
         src={src}
-        className="w-24 h-24 rounded object-cover mt-2 cursor-pointer"
-        alt="reply image"
+        className="w-40 h-32 mx-auto rounded object-cover mt-2 cursor-pointer"
+        alt="comment image"
         onClick={() => setOpen(true)}
       />
 
       {/* Modal for full image */}
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black w-full bg-opacity-90 flex items-center justify-center z-50">
           {/* Close button */}
           <button
             onClick={() => setOpen(false)}
@@ -32,8 +32,8 @@ export default function PostReplyImage({ image }) {
           {/* Image */}
           <img
             src={src}
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded"
-            alt="full reply"
+            className="h-[96vh] w-96 object-contain rounded"
+            alt="full comment"
           />
         </div>
       )}

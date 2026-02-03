@@ -3,19 +3,19 @@ import { useRef, useState } from "react";
 import PostComment from "./PostComment";
 import PostOptions from "./PostOption";
 import api from "../../Api/axios";
-import { PostInput } from "./PostInput";
+import { PostCommentInput } from "./PostCommentInput";
+import ImageFlex from "./ImageFlex";
 
 export function PostFeedIdModal({ postId, post, onClose, user, total, othersCount, setShowUsersPopup, me, 
                                   showUsersPopup, currentUser, usersPreview, counts, setShowReactions,
                                 showReactions, reactionList,toggleReaction, onLikeClick, myReaction, 
-                                setPostIdModal, reactionLoading }) {
+                                focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef
+                              }) {
 
-  const [postComments, setPostComments] = useState([])
   const [showEmoji, setShowEmoji] = useState(false);
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState()
   const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
-  const inputRef = useRef(null);
   const [newComment, setNewComment] = useState('');
 
   const postComment = async (emoji = null, imageFile = null, parentId = null) => {
@@ -51,6 +51,7 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, othersCoun
   }
 };
 
+//
 
 const addReplyToComment = (postComments, parentId, reply) => {
 return postComments.map(comment => {
@@ -111,12 +112,15 @@ return comment;
           )}
 
           {/* Media preview */}
-          {post.media.some(m => m.type === "image") && (
-            <img
-              src={post.media[0].url}
-              className="rounded-lg w-full max-h-80 object-cover"
-            />
-          )}
+          <div className="px-4">
+              {post.media.some(m => m.type === "image") && (
+                <ImageFlex
+                  media={post.media.filter(m => m.type === "image")}
+                  postId={post.id}
+                />
+              )}
+          </div>
+      
 
           {post.media
           .filter(m => m.type === "video")
@@ -181,9 +185,14 @@ return comment;
       </p>
       <p className="inline-flex gap-1 items-center">
       {post.comments_count}
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4 text-black">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
-      </svg>
+           <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-5 h-5 text-gray-600"
+          >
+            <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
+          </svg>
       </p>
       </div>
 
@@ -220,7 +229,7 @@ return comment;
                   </button>
                 </div>
                 </div>
-                  <button className="flex items-center font-semibold " onClick={() => setPostIdModal(post)}>
+                  <button className="flex items-center font-semibold " onClick={focusCommentInput}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
                     </svg> Comment
@@ -245,8 +254,7 @@ return comment;
         </div>
 
         
-        <PostInput 
-          inputRef={inputRef}
+        <PostCommentInput 
           newComment={newComment}
           loading={loading}
           setNewComment={setNewComment}
@@ -256,6 +264,7 @@ return comment;
           setShowEmoji={setShowEmoji}
           emojiList={emojiList}
           postComment={postComment}
+          commentInputRef={commentInputRef}
         />
 
       </div>

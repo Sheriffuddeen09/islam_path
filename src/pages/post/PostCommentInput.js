@@ -1,4 +1,4 @@
-export function PostInput({ inputRef, newComment, loading, setNewComment, setImage, image, showEmoji, setShowEmoji, emojiList, postComment }) {
+export function PostCommentInput({ commentInputRef, newComment, loading, setNewComment, setImage, image, showEmoji, setShowEmoji, emojiList, postComment }) {
  
     //
   return (
@@ -6,7 +6,7 @@ export function PostInput({ inputRef, newComment, loading, setNewComment, setIma
         <div className="flex flex-col gap-2">
           <div className="flex relative items-center gap-2">
             <input
-              ref={inputRef}
+              ref={commentInputRef}
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
               placeholder="Add a comment..."
@@ -16,7 +16,7 @@ export function PostInput({ inputRef, newComment, loading, setNewComment, setIma
             {/* Emoji toggle button */}
             <button
               onClick={() => setShowEmoji(s => !s)}
-              className="p-2 rounded absolute -top-1 hover:bg-gray-200"
+              className="p-1 rounded absolute top-1 left-2 hover:bg-gray-200"
             >
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z" />
@@ -24,7 +24,7 @@ export function PostInput({ inputRef, newComment, loading, setNewComment, setIma
             </button>
 
             {/* Upload image */}
-            <label className="p-2 rounded absolute -top-1 left-8 hover:bg-gray-200 cursor-pointer">
+            <label className="p-1 rounded absolute top-1 left-10 hover:bg-gray-200 cursor-pointer">
               <input
                 type="file"
                 accept="image/*"

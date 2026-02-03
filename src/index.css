@@ -137,15 +137,6 @@
   right: 20px;
 }
 
-.sunmukhi-desktop {
-  font-size: 4rem;
-  font-weight: 800;
-  letter-spacing: 5px;
-}
-
-.sunmukhi-mobile {
-  display: none;
-}
 @media (min-width: 310px) {
 .message{
     height: 100%;

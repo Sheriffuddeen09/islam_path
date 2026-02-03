@@ -1,7 +1,7 @@
 import PostOptions from "./PostOption";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Notification from "../../Form/Notification";
 import api from "../../Api/axios"; 
 import ImageGrid from "./ImageGrid";
@@ -20,6 +20,8 @@ export default function PostCard({ post }) {
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [postIdModal, setPostIdModal] = useState(null);
   const [reactionLoading, setReactionLoading] = useState(false);
+  const [postComments, setPostComments] = useState([])
+
 
 
 
@@ -129,6 +131,15 @@ const me = usersPreview.find(
 );
 
 
+
+
+const commentInputRef = useRef(null);
+
+const focusCommentInput = () => {
+  setTimeout(() => commentInputRef.current?.focus(), 0);
+};
+
+
   return (
     <div
       className={`rounded-xl  shadow sm:w-5/12 w-full border`}
@@ -175,7 +186,7 @@ const me = usersPreview.find(
 
       {/* Media */}
       {/* IMAGES */}
-      <div className="px-4">
+      <div className="px-1">
     {post.media.some(m => m.type === "image") && (
       <ImageGrid
         media={post.media.filter(m => m.type === "image")}
@@ -267,9 +278,14 @@ const me = usersPreview.find(
       </p>
       <p className="inline-flex gap-1 items-center">
       {post.comments_count}
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4 text-black">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
-      </svg>
+           <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-5 h-5 text-gray-600"
+        >
+          <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
+        </svg>
       </p>
       </div>
 
@@ -305,14 +321,14 @@ const me = usersPreview.find(
                   </button>
                 </div>
                 </div>
-                  <button className="flex items-center font-semibold " onClick={() => setPostIdModal(post)}>
+                  <button className="flex items-center font-semibold " onClick={() => {setPostIdModal(post); focusCommentInput()}}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
                     </svg> Comment
                   </button>
 
                    <button className="flex items-center font-semibold gap-1 mx-4">
-                   <svg
+                    <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
@@ -329,11 +345,10 @@ const me = usersPreview.find(
                    total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 
                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
-                    reactionLoading={reactionLoading}
-                                showReactions={showReactions} reactionList={reactionList} 
-                                toggleReaction={toggleReaction} onLikeClick={onLikeClick} 
-                                myReaction={myReaction} setPostIdModal={setPostIdModal} postId={post.id}
-                    post={postIdModal}
+                    reactionLoading={reactionLoading} postComments={postComments} setPostComments={setPostComments}
+                    showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
+                    toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
+                    myReaction={myReaction} postId={post.id} post={postIdModal}
                     onClose={() => setPostIdModal(null)}
                   />
                 )}

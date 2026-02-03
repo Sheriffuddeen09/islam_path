@@ -3,6 +3,7 @@ import api from "../../Api/axios";
 import { Link } from "react-router-dom";
 import ReportForm from "../../report/ReportForm";
 import { useAuth } from "../../layout/AuthProvider";
+import { PostReportModal } from "./report/PostReportModal";
 
 export default function PostOptions({ post }) {
   const [open, setOpen] = useState(false);
@@ -152,7 +153,7 @@ const handleReport = () =>{
         </div>
       )}
     <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
-        <ReportForm post={post} handleReport={handleReport} />
+        <PostReportModal post={post} onClose={handleReport} />
     </div>
     </div>
   );

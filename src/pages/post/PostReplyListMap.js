@@ -1,148 +1,280 @@
 import { useEffect, useState } from "react";
-import ReplyWithCopy from "./PostReplyCopyText";
 import ReplyImage from "./PostReplyImage";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
+import PostReplyCopyText from "./PostReplyCopyText";
+import api from "../../Api/axios";
+import { ReplyReportModal } from "./report/ReplyReportModal";
 
 
-export default function ReplyListMap({authUser, onReact, reply, setShowReactions,comment, timeAgo, showReactions, editText, setEditText, onEdit, onDelete, isDeleting, isEditing }){
-  const [reactions, setReactions] = useState([]);
+export default function ReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
+                           onDelete, isDeleting, isEditing, replyTo, setReplyTo,setReplyText,
+                           focusReplyInput, setEmojiClick, setReplyImage, emojiClick, replyImage }){
+  
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [deletingReplyId, setDeletingReplyId] = useState(null);
+  const [reactions, setReactions] = useState(reply.reactions || []); // ✅ array of { emoji, user }
+  const [loadingEmoji, setLoadingEmoji] = useState(null);
+  const [selectedReaction, setSelectedReaction] = useState(null);
   const {user} = useAuth()
-  // Normalize reactions on mount or reply change
+  const {currentUser} = useAuth()
+    const [openReport, setOpenReport] = useState(false);
+  
+     const handleReport = () =>{
+    setOpenReport(!openReport)
+  }
+
+
+
   useEffect(() => {
-    const parsed = typeof reply.reactions === "string" ? JSON.parse(reply.reactions) : reply.reactions || {};
-    const normalized = Object.entries(parsed).flatMap(([emoji, users]) =>
-      Array.isArray(users) && users.length > 0
-        ? users.map(user_id => ({
-            emoji,
-            user: user_id ? { id: user_id } : { id: null, name: "Guest" },
-          }))
-        : []
-    );
-    setReactions(normalized);
+    const arr = reactions && !Array.isArray(reactions)
+      ? Object.entries(reactions).flatMap(([emoji, users]) =>
+          Array.isArray(users) ? users.map(u => ({ emoji, user: u })) : []
+        )
+      : reactions || [];
+  
+    const userReact = arr.find(r => r.user?.id === currentUser?.id)?.emoji || null;
+    setSelectedReaction(userReact);
+  }, [reactions, currentUser]);
+  
+  
+   useEffect(() => {
+    setReactions(reply.reactions || []);
   }, [reply.reactions]);
-
-  // Handle react
-  const reactToReply = async (emoji) => {
+  
+  
+  const reactionArray = reactions && !Array.isArray(reactions)
+    ? Object.entries(reactions).flatMap(([emoji, users]) =>
+        Array.isArray(users) ? users.map(u => ({ emoji, user: u })) : []
+      )
+    : reactions || [];
+  
+    const uniqueEmojisr = [...new Set(reactionArray.map(r => r.emoji))];
+  
+  
+  const userReaction = reactionArray.find(r => r.user?.id === currentUser?.id)?.emoji || null;
+  
+  const totalReaction = reactionArray.length;
+  
+  
+    const toggleReaction = async (emoji) => {
+    setLoadingEmoji(emoji); // 👈 only this emoji loads
     try {
-      // Optional: assign a guest ID to track unique guest reactions
-      const guestIdKey = `guest_${reply.id}`;
-      let guestId = localStorage.getItem(guestIdKey);
-      if (!guestId) {
-        guestId = crypto.randomUUID();
-        localStorage.setItem(guestIdKey, guestId);
-      }
-
-      // Call backend
-      const res = await onReact(reply.id, emoji, guestId); // backend should accept optional guestId
-
-      // Normalize reactions
-      const normalized = Object.entries(res.reactions || {}).flatMap(([emo, users]) =>
-        Array.isArray(users)
-          ? users.map(user_id => ({
-              emoji: emo,
-              user: user_id ? { id: user_id } : { id: null, name: "Guest" },
-            }))
-          : []
+      const res = await api.post(`/api/posts/${reply.id}/reaction`, { emoji });
+  
+      const apiReactions = res.data.reactions || {};
+      const normalized = Object.entries(apiReactions).flatMap(([e, users]) =>
+        Array.isArray(users) ? users.map(u => ({ emoji: e, user: u })) : []
       );
+  
       setReactions(normalized);
     } catch (err) {
-      console.error("Failed to react to reply:", err);
+      console.error(err);
+    } finally {
+      setLoadingEmoji(null); // 👈 stop loading
     }
   };
+  
+  useEffect(() => {
+    const loadReactions = async () => {
+      const res = await api.get(`/api/posts/${reply.id}/reactions`);
+      setReactions(res.data.reactions || []);
+    };
+    loadReactions();
+  }, [reply.id]);
+  
+  
+  
+  const isOwner = authUser?.user?.id === reply.user?.id;
+  const hasText = !!reply.body;
 
-  // Compute unique emojis and counts
-  const uniqueEmojis = [...new Set(reactions.map(r => r.emoji))];
+  const handleReplyToReply = (reply) => {
+  const name = `${reply.user.first_name} ${reply.user.last_name}`;
+  setReplyTo({ id: reply.user.id, name });
+
+  // Pre-fill input with mention
+  setReplyText(`@${name} `);
+
+  focusReplyInput();
+};
+
+
+  function renderWithMention(text) {
+  if (!text) return null;
+  if (!replyTo) return text;
+
+  const mention = `@${replyTo.name}`;
+
+  if (!text.startsWith(mention)) {
+    return text;
+  }
+
+  return (
+    <>
+      <span className="text-blue-600 font-semibold">{mention}</span>
+      {text.slice(mention.length)}
+    </>
+  );
+}
 
 
     return(
 
         <div className="px-4 py-2">
     <div className="flex gap-2 items-start justify-end">
-    <div className="bg-gray-50 px-4 py-2">
-    <div className="inline-flex gap-12 items-center">
-      <Link to={`/profile/${user.id}`} className="">
-        <p className="text-black font-bold">{reply?.user?.first_name} {reply?.user?.last_name}</p>
-      </Link>
-        <div className="relative group inline-block">
-        <button className="text-2xl text-black font-bold ">:</button>
-        <div className={`inline-flex items-center absolute top-10 -right-5 mb-2 flex gap p-2 bg-white border rounded shadow opacity-0 invisible group-hover:visible group-hover:opacity-100 transform group-hover:-translate-y-2 transition-all duration-200 z-50 gap-3 items-center shadow-md p-2 rounded-lg`}>
-        {authUser?.user?.id === reply.user?.id && (
-          <>
-        <button onClick={() => {
-          setEditingReplyId(reply.id);
-          setEditText(reply.body);  
-          }}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-blue-800 hover:text-gray-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-          </svg></button>
-        <button onClick={() => setDeletingReplyId(reply.id)}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500 text-red-800">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-        </svg>
-        </button>
-          </>
-        )} 
-        <ReplyWithCopy reply={reply} />
-        </div>
-        </div>
+    <div className="bg-gray-50 sm:w-60 w-full relative group  px-4 py-2 rounded-lg ">
+        <div className=" flex flex-row justify-between  items-start">
+        <Link to={`/profile/${user.id}`} className="">
+          <p className="text-black font-bold">{reply?.user?.first_name} {reply?.user?.last_name}</p>
+        </Link>
+        
+      <div className="absolute top-2 right-2">
+            <div className="opacity-0 group-hover:opacity-100 transition">
+              <div className="relative group/icon">
+                
+                {/* ICON */}
+                <button className="text-black">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                  </svg>
+                </button>
 
-    </div>
+                {/* MENU: only on ICON hover */}
+                <div className="absolute right-0  bg-white border rounded shadow
+                opacity-0 invisible
+                group-hover/icon:visible group-hover/icon:opacity-100
+                transition p-2 flex flex-col gap-2 z-50">
+
+  {/* IMAGE CASE */}
+  {reply.image ? (
+    <>
+      {isOwner ? (
+        <button onClick={() => setDeletingReplyId(reply.id)} className="whitespace-nowrap text-red-600 hover:text-red-500 inline-flex items-center gap-2 p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+          </svg>
+          Delete Comment
+          </button>
+      ) : (
+        <>
+          <button onClick={handleReplyToReply} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+                    </svg>
+            Reply To
+          </button>
+          <button onClick={handleReport} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+
+        Report
+        </button>
+        </>
+            )}
+          </>
+        ) : (
+          /* TEXT CASE */
+          <>
+            {isOwner ? (
+              <>
+                <button
+                  onClick={() => {
+                    setEditingReplyId(reply.id);
+                    setEditText(reply.body);
+                  }}
+                  className="whitespace-nowrap text-sm hover:text-gray-800 inline-flex items-center gap-2 p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-blue-500">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                    Edit Comment
+                    </button>
+
+                <button
+                  onClick={() => setDeletingReplyId(reply.id)}
+                  className="whitespace-nowrap text-sm hover:text-gray-800 inline-flex items-center gap-2 p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  </svg>
+                  Delete Comment
+                  </button>
+
+                <PostReplyCopyText reply={reply} />
+              </>
+            ) : (
+              <>
+                <PostReplyCopyText reply={reply} />
+                <button onClick={handleReplyToReply} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+                    </svg>
+                  Reply To
+                </button>
+                <button onClick={handleReport}  className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+              </svg>
+
+                Report</button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+              </div>
+            </div>
+          </div>
+
+
   
-    <p className="text-black my-2 text-sm font-semibold">{reply.body}</p>
+        </div>
+      
+    <p className="text-black my-2 text-sm font-semibold">
+      {renderWithMention(reply.body)}
+    </p>
         {/* ✅ Image preview */}
        {reply.image && <ReplyImage image={reply.image} />}
 
+        {/* Time and Reaction */}
 
-        <div
-        className="px-2 py-1 text-blue-600 text-sm flex  items-end gap-2 rounded flex gap-1 cursor-pointer"
-        onMouseEnter={() => setShowReactions(true)}
-        onMouseLeave={() => setShowReactions(false)}
-        >
-        <p className="text-blue-600 text-xs">{timeAgo(reply.created_at)}</p>
-        <div className="relative inline-block group">
-        <div className="flex gap-1 items-center">
-         {reactions.length > 0
-  ? [...new Set(reactions.map(r => r.emoji))].map(e => {
-      const count = reactions.filter(r => r.emoji === e).length;
-      return (
-        <span key={e} className="flex items-center gap-1 text-sm bg-gray-200 px-2 py-0.5 rounded">
-          {e} {count}
-        </span>
-      );
-    })
-  : <span className="text-blue-600">Like</span>
-}
+        <div className="inline-flex gap-3 items-center cursor-pointer">
+          <span className="text-black text-xs">{timeAgo(reply.created_at)}</span>
+          <div className="relative group/react inline-block">
+          {uniqueEmojisr.length > 0
+              && uniqueEmojisr.map(e => <span className="text-blue-600 text-sm" key={e}>{e}</span>)}
+              <span className="text-sm text-blue-600">Like</span>
+          {totalReaction > 0 && <span className="text-black ml-2 text-gray-700 text-sm font-semibold ">{totalReaction}</span>}
 
-
-        </div>
-
-
-
-
-
-            {showReactions && (
-            <div className="absolute bottom-2 left-0 mb-2 flex gap-2 p-2 bg-white border rounded shadow opacity-0 invisible group-hover:visible group-hover:opacity-100 transform group-hover:-translate-y-2 transition-all duration-200 z-50">
-                {['❤️','👍','😂','😮','😢','🔥'].map(e => (
-                <button
-                    key={e}
-                    onClick={() =>{ reactToReply(e); setShowReactions(false)}} 
-
-                    className="text-xl hover:scale-125 transition"
-                >
-                    {e}
-                </button>
-                ))}
-            </div>
+          {/* Hover reactions */}
+          <div className="absolute bottom-2 left-0 mb-2 flex gap-2 p-2 bg-white border rounded shadow
+              opacity-0 invisible
+              group-hover/react:visible group-hover/react:opacity-100
+              transform group-hover/react:-translate-y-2 transition-all duration-200 z-50">
+              {['❤️','👍','😂','😮','😢','🔥'].map(e => (
+              <button
+            key={e}
+            onClick={() => toggleReaction(e)}
+            className="text-lg hover:scale-110 transition flex items-center justify-center"
+            disabled={loadingEmoji !== null}
+          >
+            {loadingEmoji === e ? (
+              <svg className="animate-spin h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            ) : (
+              e
             )}
-      </div>
-      </div>
+          </button>
+            ))}
+          </div>
+          </div>
+        </div>
 
     </div>
     <Link to={`/profile/${user.id}`} className="">
-    <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
+    <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {reply.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
     </Link>
     </div>
 
@@ -155,7 +287,7 @@ export default function ReplyListMap({authUser, onReact, reply, setShowReactions
             <div className="bg-gray-200 p-6 bg-gray-50 rounded w-96 flex flex-col gap-4 relative">
               <h3 className="font-semibold text-lg text-center text-black">Edit Reply</h3>
 
-              {/* Text Input comment.body */}
+              {/* Text Input reply.body */}
               <textarea
                 value={editText}
                 onChange={e => setEditText(e.target.value)}
@@ -226,7 +358,7 @@ export default function ReplyListMap({authUser, onReact, reply, setShowReactions
       <>
             <div   className={`fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center z-50 `}>
               <div className="bg-gray-200 text-red-700 p-6 font-semibold text-center rounded w-80 flex flex-col gap-3">
-                <span>Are you sure you want to delete this comment?</span>
+                <span>Are you sure you want to delete this reply?</span>
                 <div className="flex gap-3 justify-center">
                   <button
             onClick={async () => {
@@ -271,6 +403,9 @@ export default function ReplyListMap({authUser, onReact, reply, setShowReactions
             </>
           )}
 
+          <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
+              <ReplyReportModal reply={reply} onClose={handleReport} />
+          </div>
     </div>
     )
 }

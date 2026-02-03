@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
 import { Link } from "react-router-dom";
 import PostCommentReply from "./PostCommentReply";
+import { CommentReportModal } from "./report/CommentReportModal";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
 export default function PostCommentItem({setIsDeleting, setIsEdit, isEdit, isDeleting, post, comment, onReplyAdded, onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setPostComments }) {
-  const [replyText, setReplyText] = useState("");
+  
   const [showReplies, setShowReplies] = useState(false);
   const [editText, setEditText] = useState(comment.body || "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -20,10 +21,33 @@ export default function PostCommentItem({setIsDeleting, setIsEdit, isEdit, isDel
   const [isEditing, setIsEditing] = useState(false);
   const [reactions, setReactions] = useState(comment.reactions || []); // ✅ array of { emoji, user }
   const [hoverReactions, setHoverReactions] = useState(false);
+  const [openReport, setOpenReport] = useState(false);
   const [loadingEmoji, setLoadingEmoji] = useState(null);
   const authUser = useAuth()
   const {user} = useAuth()
+  const [replyText, setReplyText] = useState("");
+  const [replyTo, setReplyTo] = useState(null); // { id, name }
+  const [replyImage, setReplyImage] = useState(null);
+  const [emojiClick, setEmojiClick] = useState(false);
 
+  const replyInputRef = useRef(null);
+
+  const focusReplyInput = () => {
+    setTimeout(() => replyInputRef.current?.focus(), 0);
+  };
+
+  const handleReplyToComment = () => {
+    const name = `${reply.user.first_name} ${reply.user.last_name}`;
+      setReplyTo({ id: reply.user.id, name });
+    
+      // Pre-fill input with mention
+      setReplyText(`@${name} `);
+    
+      focusReplyInput();
+    };
+
+
+  
 useEffect(() => {
   const arr = reactions && !Array.isArray(reactions)
     ? Object.entries(reactions).flatMap(([emoji, users]) =>
@@ -90,7 +114,7 @@ useEffect(() => {
   setLoading(true);
 
   try {
-    const res = await api.put(`/api/posts/${postId}`, {
+    const res = await api.put(`/api/posts/${postId}/comment`, {
       body: body.trim()
     });
 
@@ -120,7 +144,9 @@ useEffect(() => {
     }
   };
 
-
+const handleReport = () =>{
+  setOpenReport(!openReport)
+}
 
   
   function timeAgo(dateString) {
@@ -146,7 +172,6 @@ useEffect(() => {
 }
 
 const isOwner = authUser?.user?.id === comment.user?.id;
-const hasImage = !!comment.image;
 const hasText = !!comment.body;
 
 
@@ -257,10 +282,11 @@ const handleReplyToggle = () =>{
                       <div className="absolute right-0 mt-2 bg-white border rounded shadow
                           opacity-0 invisible
                           group-hover/icon:visible group-hover/icon:opacity-100
-                          transition p-2 flex flex-col gap-2 z-50">                      {authUser?.user?.id === comment.user?.id && (
+                          transition p-2 flex flex-col gap-2 z-50">                      
+                          {authUser?.user?.id === comment.user?.id && (
                         <>
                           {isOwner && hasText && (
-                              <button onClick={() => setIsEditing(true)} className="whitespace-nowrap text-blue-600 inline-flex items-center gap-2 p-1">
+                              <button onClick={() => setIsEditing(true)} className="whitespace-nowrap text-sm hover:text-gray-800 inline-flex items-center gap-2 p-1">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-blue-500">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                           </svg>
@@ -268,7 +294,7 @@ const handleReplyToggle = () =>{
                           </button>
                           )}
                           {isOwner && (
-                          <button title="Delete" onClick={() => setShowDeleteConfirm(true)} className="whitespace-nowrap text-red-600 inline-flex items-center gap-2 p-1">
+                          <button title="Delete" onClick={() => setShowDeleteConfirm(true)} className="whitespace-nowrap text-sm hover:text-gray-800 inline-flex items-center gap-2 p-1">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 hover:text-red-500">
                               <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                             </svg>
@@ -282,8 +308,8 @@ const handleReplyToggle = () =>{
                         <PostCommentCopyText comment={comment} />
                       )}
 
-                      {(!isOwner || true) && (
-                        <button  className="whitespace-nowrap text-sm inline-flex items-center gap-2 p-1">
+                      {!isOwner && (
+                        <button onClick={handleReport}  className="whitespace-nowrap text-sm inline-flex items-center gap-2 p-1">
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                           <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                         </svg>
@@ -298,7 +324,9 @@ const handleReplyToggle = () =>{
               )}
             </div>
           </div>
-
+               <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
+                  <CommentReportModal comment={comment} onClose={handleReport} />
+              </div>
           {/* Delete Confirmation */}
           {showDeleteConfirm && (
             <div  className=" flex fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -394,7 +422,7 @@ const handleReplyToggle = () =>{
   </div>
 
   <button
-     onClick={() => handleReplyToggle()}
+     onClick={() => {handleReplyToggle(); handleReplyToComment()}}
     className="text-blue-600 text-sm"
   >
     reply
@@ -409,9 +437,18 @@ const handleReplyToggle = () =>{
        
            <div className={`${showReplies ? 'block' : 'hidden'}`}>
            <PostCommentReply
+            emojiClick={emojiClick}
+            setEmojiClick={setEmojiClick}
+            replyImage={replyImage}
+            setReplyImage={setReplyImage}
             loading={loading}
+            replyInputRef={replyInputRef}
             replyText={replyText}
+            replyTo={replyTo}
+            setReplyTo={setReplyTo}
             setReplyText={setReplyText}
+            handleReplyToComment={handleReplyToComment}
+            focusReplyInput={focusReplyInput}
             closeReply={handleReplyToggle}
             post={post}
             comment={comment}
@@ -431,9 +468,17 @@ const handleReplyToggle = () =>{
             handleDelete={handleDelete}
             handleUpdate={handleUpdate}
             reactions={reactions}
+            setHoverReactions={setHoverReactions} uniqueEmojis={uniqueEmojis} 
+            totalReactions={totalReactions} 
+            loadingEmoji={loadingEmoji}
           /> 
        </div>
-
+      {comment.replies?.length > 0 && (
+  <button onClick={handleReplyToggle} className="text-xs text-blue-800 font-semibold mt-1 text-end">
+    {comment.replies[0].user.first_name} {comment.replies[0].user.last_name}
+    {comment.replies.length > 1 && ` • ${comment.replies.length}`} reply to your comment
+  </button>
+)}
       </div>
     </div>
   );

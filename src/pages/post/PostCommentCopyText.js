@@ -30,7 +30,7 @@ export default function PostCommentCopyText({ comment }) {
 
       {/* Copy confirmation */}
       {copied && (
-        <div  className=" flex fixed inset-0 translate-y-3 flex bg-green-500 text-white p-2 rounded-lg w-40 h-10 items-center mx-auto justify-center z-50">Copied to clipboard!</div>
+        <div  className=" flex fixed inset-0 whitespace-nowrap translate-y-3 flex bg-green-500 text-white p-2 rounded-lg w-40 h-10 items-center mx-auto justify-center z-50">Copied to clipboard!</div>
       )}
        
   </div>

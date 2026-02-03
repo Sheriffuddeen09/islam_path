@@ -1,20 +1,3 @@
-working on
-             
-* student should request for teacher by 15 badges and 
-* if the phone code and  does not correct with number it should show error
-* add report comment
-
-3. reply to comment and mention name
-4. reaction to comment,
-5. reply,
-6. reply to reply
-7. reaction to reply
-8. reply to reply and mention name
-9. views
-10. share
-
-
-1. when i submit the emoji and image it does submit with reply to and mentioned the name 
 export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, sendTextReply, setEmojiClick, sendEmojiReply, 
     REPLY_EMOJIS, emojiClick, replyText, setReplyText}) {
 
@@ -97,43 +80,3 @@ export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, se
           
     )
 }
-
-2. if it image user should be able to copy image as link 
-export default function PostReplyCopyText({ reply }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500); // reset after 1.5s
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
-  return (
-    <div>
-      <div className="">
-        <div>
-        </div>
-        <button
-          onClick={() => handleCopy(reply.body)}
-          className="text-gray-700 whitespace-nowrap text-sm hover:text-gray-900 inline-flex items-center gap-2 p-1"
-        >
-          <Clipboard className="w-4 h-4" />
-          Copy Text
-        </button>
-      </div>
-
-      {/* Copy confirmation */}
-      {copied && (
-        <div  className=" flex fixed whitespace-nowrap inset-0 translate-y-3 flex bg-green-500 text-white p-2 rounded-lg w-40 h-10 items-center mx-auto justify-center z-50">Copied to clipboard!</div>
-      )}
-       
-  </div>
-
-  );
-}
-3. code out what inside as image id if the the image is more than 1 it should show next button 
-exactly it was in the picture 
