@@ -353,3 +353,11 @@ ol {
 .animate-question {
   animation: questionFade 0.3s ease-in-out;
 }
+
+input{
+  outline: 0px;
+}
+
+textarea {
+  outline: 0px;
+}

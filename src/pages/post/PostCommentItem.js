@@ -3,9 +3,11 @@ import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PostCommentReply from "./PostCommentReply";
 import { CommentReportModal } from "./report/CommentReportModal";
+import Linkify from "linkify-react";
+
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
@@ -175,29 +177,43 @@ const isOwner = authUser?.user?.id === comment.user?.id;
 const hasText = !!comment.body;
 
 
+
 const handleReplyToggle = () =>{
   setShowReplies(!showReplies)
 }
 
+const navigate = useNavigate()
   return (
     <div className="flex gap-3">
-      <Link to={`/profile/${user.id}`} className="">
-     <span className="text-white w-12 h-12 mx-auto flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </span>
-      </Link>
+      
+     <button onClick={() => navigate(`/profile/${user.id}`)}  className="text-white w-12 h-12 mx-auto flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </button>
+      
       <div className="flex-1">
         <div className="bg-gray-50 p-3 rounded sm:w-60 w-full relative group">
           {/* Comment Header */}
           <div className="flex justify-between sm:w-44 items-start">
             <div>
-              <Link to={`/profile/${user.id}`} className="z-50">
-              <div className="font-semibold text-black">
+              
+              <button onClick={() => navigate(`/profile/${user.id}`)} className="font-semibold text-black">
                 {comment.user?.first_name || "Anonymous"} {comment.user?.last_name || ""}
-              </div>
-              </Link>
+              </button>
+              
               {/* Text */}
             {comment.body && (
-              <p className="text-sm text-black ">{comment.body}</p>
+              <p className="text-sm text-black max-w-xs break-words">
+                <Linkify
+                  options={{
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                    className: "text-blue-600 underline break-all"
+                  }}
+                >
+                  {comment.body}
+                </Linkify>
+              </p>
             )}
+
+
             <div className="mx-auto w-52">
             {comment.image && <PostCommentImage image={comment.image} />}
             </div>

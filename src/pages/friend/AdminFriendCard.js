@@ -69,10 +69,10 @@ export default function AdminFriendCard({loadingId, requestStatus, setLoadingId,
    
    <Toaster position="top-right" />
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 relative ">
+    <div className=" relative inline-flex flex-wrap">
         <div
     key={admin.id}
-    className="bg-white rounded-lg w-64 sm:w-60 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform transition duration-300 flex flex-col mx-auto justify-center relative"
+    className="bg-white rounded-lg w-64 sm:w-64 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform transition duration-300 flex flex-col mx-auto justify-center relative"
   > 
       <Link to={`/profile/${admin.id}`}>
 
@@ -139,7 +139,7 @@ export default function AdminFriendCard({loadingId, requestStatus, setLoadingId,
             }}
 
       >
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 absolute right-10 sm:right-16 top-8 p-1  bg-gray-400 rounded-full">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 absolute right-4 sm:right-4 top-2 p-1  bg-gray-200 rounded-full">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
         </svg>
               </button>

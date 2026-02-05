@@ -136,35 +136,39 @@ export default function VideoCards({ v, admin, currentUser }) {
 
   <div className="bg-white rounded-xl overflow-hidden">
     {/* Thumbnail */}
-     <Link
+     {/* <Link
           to={`/video/${v.id}`}
           className="text-blue-600 hover:underline text-xs"
-        >
+        > */}
     <div
       className="relative aspect-video bg-black cursor-pointer"
       onClick={() => navigate(`/video/${v.id}`)}
     >
       <video
         src={v.video_url}
-        className="w-full h-full object-cover"
-        muted
+        className="w-full h-64"
+        loop
+        onMouseEnter={(e) => e.currentTarget.play()}
+        onMouseLeave={(e) => {
+          e.currentTarget.pause();
+          e.currentTarget.currentTime = 0;
+        }}
       />
 
       {/* Play icon */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="bg-black/60 rounded-full p-">
+      <div className=" absolute inset-0 flex w-6 flex-col mx-auto items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6 text-white"
+            className="w-6 h-6 text-white border-2 rounded-full"
             fill="currentColor"
             viewBox="0 0 24 24" 
+          
           >
             <path d="M8 5v14l11-7z" />
           </svg>
         </div>
-      </div>
-    </div>
-</Link>
+        </div>
+{/* </Link> */}
     {/* Content */}
     <div className="p-4">
       {/* Title */}

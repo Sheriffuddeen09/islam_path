@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import ReplyImage from "./PostReplyImage";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 import PostReplyCopyText from "./PostReplyCopyText";
 import api from "../../Api/axios";
 import { ReplyReportModal } from "./report/ReplyReportModal";
+import Linkify from "linkify-react";
+
 
 
 export default function ReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
@@ -116,6 +118,24 @@ export default function ReplyListMap({authUser, reply, timeAgo, editText, setEdi
   );
 }
 
+function RenderCommentText({ text }) {
+  if (!text) return null;
+
+  return (
+    <Linkify
+      options={{
+        target: "_blank",
+        rel: "noopener noreferrer",
+        className: "text-blue-600 underline break-all"
+      }}
+    >
+      {renderWithMention(text)}
+    </Linkify>
+  );
+}
+
+
+const navigate = useNavigate()
 
     return(
 
@@ -123,9 +143,9 @@ export default function ReplyListMap({authUser, reply, timeAgo, editText, setEdi
     <div className="flex gap-2 items-start justify-end">
     <div className="bg-gray-50 sm:w-60 w-full relative group  px-4 py-2 rounded-lg ">
         <div className=" flex flex-row justify-between  items-start">
-        <Link to={`/profile/${user.id}`} className="">
-          <p className="text-black font-bold">{reply?.user?.first_name} {reply?.user?.last_name}</p>
-        </Link>
+        <button onClick={() => navigate(`/profile/${user.id}`)}
+         className="text-black font-bold">{reply?.user?.first_name} {reply?.user?.last_name}
+        </button>
         
       <div className="absolute top-2 right-2">
             <div className="opacity-0 group-hover:opacity-100 transition">
@@ -236,7 +256,11 @@ export default function ReplyListMap({authUser, reply, timeAgo, editText, setEdi
         </div>
       
     <p className="text-black my-2 text-sm font-semibold">
-      {renderWithMention(reply.body)}
+          {reply.body && (
+              <p className="text-sm text-black max-w-xs break-words">
+                <RenderCommentText text={reply.body} />
+              </p>
+            )}
     </p>
         {/* ✅ Image preview */}
        {reply.image && <ReplyImage image={reply.image} />}
@@ -278,9 +302,8 @@ export default function ReplyListMap({authUser, reply, timeAgo, editText, setEdi
         </div>
 
     </div>
-    <Link to={`/profile/${user.id}`} className="">
-    <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {reply.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
-    </Link>
+    <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 ">
+       {reply.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
     </div>
 
 

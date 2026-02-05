@@ -8,74 +8,99 @@ working on
 2. views
 3. share
 
+1. in mobile and ipad view instead of button it be flip to right with hand for next and to left for prev like facebook
 
-1. every user should be able to remove not only the poster and when i reload it should not reappear immediately
-it should take some days before reappear like facebook
-public function hide(Post $post)
-{
-    if ($post->user_id !== auth()->id()) {
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }
+export default function ReplyImageSlider({ images = [], post }) {
+  const [index, setIndex] = useState(0);
+  const navigate = useNavigate()
 
-    $post->is_hidden = true;
-    $post->save();
-
-    return response()->json(['message' => 'Post hidden successfully']);
+  if (!images.length) return null;
+  const next = () => setIndex(i => (i + 1) % images.length);
+  const prev = () => setIndex(i => (i - 1 + images.length) % images.length);
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      <img
+        src={images[index]}
+        alt="post"
+        className="h-full w-96 object-contain"
+      />
+      {images.length > 1 && (
+        <>
+        <button
+            onClick={next}
+             className="absolute left-4 sm:block hidden"
+          >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="bg-transparent size-14 rotate-90 bg-black/50 w-10 h-10 border-2 hover:bg-gray-100 hover:text-gray-600 border-white rounded-full text-white rounded-full">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+          </button>
+          <button
+            onClick={prev}
+             className="absolute  right-8 sm:block hidden"
+          >     
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="bg-transparent size-14 rotate-90 bg-black/50 w-10 h-10 border-2 hover:bg-gray-100 hover:text-gray-600 border-white rounded-full text-white rounded-full">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+          </svg>
+          </button>
+          <div className="absolute top-4 right-4">
+          <div className="inline-flex items-center gap-6">
+            <p className="bg-white text-black text-xs px-2 py-2 font-bold 
+            rounded-full">
+            {index + 1} / {images.length}
+            </p>
+            <div className="bg-white rounded-full">  
+            <PostOptions post={post} />
+            </div>
+            </div>
+          </div>
+          <div
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4"
+          >
+            <div className="inline-flex gap-12 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
+            w-10  h-10 cursor-pointer">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            <img onClick={() => navigate('/')} src={logo} alt="IPK" className="w-10 h-10 cursor-pointer" />
+          </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
+2. if i scroll to on mobile or ipad or hover on large screen it should auto play and
+ the video the icon should disappear, the speak to make it speak should appear and pause and play but
+it should auto play on hover and if i scroll on it  
+<div
+      className="relative aspect-video bg-black cursor-pointer"
+      onClick={() => navigate(`/video/${v.id}`)}
+    >
+      <video
+        src={v.video_url}
+        className="w-full h-64"
+        muted
+        loop
+        onMouseEnter={(e) => e.currentTarget.play()}
+        onMouseLeave={(e) => {
+          e.currentTarget.pause();
+          e.currentTarget.currentTime = 0;
+        }}
+      />
 
+      {/* Play icon */}
+      <div className=" absolute inset-0 flex w-6 flex-col mx-auto items-center justify-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-6 h-6 text-white border-2 rounded-full"
+            fill="currentColor"
+            viewBox="0 0 24 24" 
+          
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
+        </div>
 
-1. how will i use the two together
-$posts = Post::whereDoesntHave('hiddenBy', function ($q) {
-    $q->where('user_id', auth()->id())
-      ->where('hidden_until', '>', now());
-})->latest()->get();
-
-public function index()
-    {
-        $posts = Post::with([
-                'user:id,first_name,last_name,image',
-                'reactions',
-                'comments',
-                'media'
-            ])
-            ->latest()
-            ->get()
-            ->map(function ($post) {
-                return [
-                    'id' => $post->id,
-                    'content' => $post->content,
-
-                    'media' => $post->media->map(fn ($m) => [
-                        'id' => $m->id,
-                        'type' => $m->type, // image | video
-                        'url' => asset('storage/' . $m->path),
-                    ]),
-
-                    'created_at' => $post->created_at->diffForHumans(),
-
-                    'user' => [
-                        'id' => $post->user->id,
-                        'name' => $post->user->first_name.' '.$post->user->last_name,
-                    ],
-
-                    'reactions_count' => $post->reactions->count(),
-                    'comments_count' => $post->comments->count(),
-                ];
-            });
-
-        return response()->json([
-            'status' => true,
-            'posts' => $posts
-        ]);
-    }
-
-
-2. authUser is undefined 
-
- const { authUser } = useAuth();
-
-  const isOwner = authUser?.id === post?.user?.id;
-
-console.log(authUser);
-console.log(post.user); 

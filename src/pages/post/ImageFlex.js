@@ -11,7 +11,7 @@ export default function ImageFlex({ media = [], postId }) {
     return (
       <img
         src={media[0].url}
-        className="w-full sm:h-80 h-64 rounded-lg cursor-pointer"
+        className="w-full sm:h-96 h-64 rounded-lg cursor-pointer"
         onClick={() => navigate(`/post/${postId}`)}
       />
     );
@@ -25,7 +25,7 @@ export default function ImageFlex({ media = [], postId }) {
           <img
             key={img.id}
             src={img.url}
-            className=" sm:h-80 h-64 w-full cursor-pointer"
+            className=" sm:h-96 h-64 w-full cursor-pointer"
             onClick={() => navigate(`/post/${postId}`)}
           />
         ))}
@@ -39,7 +39,7 @@ export default function ImageFlex({ media = [], postId }) {
       <div className="grid grid-cols-1 gap-2">
         <img
           src={media[0].url}
-          className="row-span-2 sm:h-80 h-64 w-full cursor-pointer"
+          className="row-span-2 sm:h-96 h-64 w-full cursor-pointer"
           onClick={() => navigate(`/post/${postId}`)}
         />
 
@@ -47,7 +47,7 @@ export default function ImageFlex({ media = [], postId }) {
           <img
             key={img.id}
             src={img.url}
-            className="sm:h-80 h-64  w-full  cursor-pointer"
+            className="sm:h-96 h-64  w-full  cursor-pointer"
             onClick={() => navigate(`/post/${postId}`)}
           />
         ))}
@@ -60,19 +60,19 @@ export default function ImageFlex({ media = [], postId }) {
   const remaining = total - 4;
 
   return (
-    <div className="grid grid-cols-1 gap-1 sm:px-4">
+    <div className="grid grid-cols-1  gap-1 sm:px-4">
       {visible.map((img, index) => {
         const isLast = index === 3 && remaining > 0;
 
         return (
           <div
             key={img.id}
-            className="relative sm:h-80 h-64 cursor-pointer"
+            className="relative sm:h-96 h-64 cursor-pointer"
             onClick={() => navigate(`/post/${postId}`)}
           >
             <img
               src={img.url}
-              className="w-full sm:h-80 h-64 border-b-3 pt-3 border-gray-400 "
+              className="w-full sm:h-96 h-64 border-b-8 pb-1 border-gray-400 "
             />
 
             

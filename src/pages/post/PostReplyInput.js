@@ -8,15 +8,15 @@ export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, im
               ref={replyInputRef}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              className="flex-1 px-4 py-6 text-black outline-0  border-2 border-blue-400 h-32 rounded"
+              className="flex-1 px-4 py-8 text-black outline-0  border-2 border-gray-100 h-32 rounded"
               placeholder="Write a reply..."
               rows={4}
             />
 
         <button 
         onClick={() => setEmojiClick(!emojiClick)}
-        className="absolute top-1 left-8 hover:bg-gray-200 cursor-pointer p-1 rounded shadow">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+        className="absolute top-1 left-8 hover:bg-gray-200 cursor-pointer p-1 rounded">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5 text-black">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z" />
               </svg>
         </button >
@@ -43,7 +43,7 @@ export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, im
                 onChange={(e) => sendImageReply(e.target.files[0])}
                 />
 
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5 text-black">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
               </svg>
 

@@ -8,15 +8,13 @@ import ImageFlex from "./ImageFlex";
 
 export function PostFeedIdModal({ postId, post, onClose, user, total, othersCount, setShowUsersPopup, me, 
                                   showUsersPopup, currentUser, usersPreview, counts, setShowReactions,
-                                showReactions, reactionList,toggleReaction, onLikeClick, myReaction, 
-                                focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef
+                                showReactions, reactionList, toggleReaction, onLikeClick, myReaction, 
+                                focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef,
+                                image, setImage, loading, setLoading, newComment, setNewComment, emojiList, showEmoji,
+                                setShowEmoji
                               }) {
 
-  const [showEmoji, setShowEmoji] = useState(false);
-  const [image, setImage] = useState(null);
-  const [loading, setLoading] = useState()
-  const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
-  const [newComment, setNewComment] = useState('');
+  
 
   const postComment = async (emoji = null, imageFile = null, parentId = null) => {
   setLoading(true)
@@ -137,7 +135,7 @@ return comment;
               </div>
               ))}
 
-        {/* Reaction Count */}
+        {/* Reaction Count setShowUsersPopup */}
         <div className="flex justify-between border-t-2 py-2 mt-4 items-center ">
 
         <div className="flex gap-1 items-center">
@@ -248,7 +246,7 @@ return comment;
                 </div>
          <div className="flex-1 w-full">
         <PostComment postId={post.id} image={image} post={post} postComments={postComments} 
-        setPostComments={setPostComments} loading={loading} setLoading={setLoading} />
+        setPostComments={setPostComments} />
         </div> 
        
         </div>

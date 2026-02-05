@@ -53,6 +53,22 @@ function App() {
     const [messageOpen, setMessageOpen] = useState(false);
     const [activeChat, setActiveChat] = useState(null);
 
+    // Post 
+
+      const [image, setImage] = useState(null);
+      const [postComments, setPostComments] = useState([])
+      const [loading, setLoading] = useState(false)
+      const [showUsersPopup, setShowUsersPopup] = useState(false);
+      const [newComment, setNewComment] = useState('');
+      const [showEmoji, setShowEmoji] = useState(false);
+      const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
+      const [post, setPost] = useState(null);
+
+      
+
+
+    
+
 
     const handleMessageOpen = (studentId) => {
       setActiveChat(studentId);
@@ -83,7 +99,14 @@ function App() {
 
       {/* Home Page*/}
       <Route path="/" element={
-      <HomePage posts={posts} setPosts={setPosts} />   
+      <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        
+         />   
       } />
 
       <Route path="/get-mentor" element={
@@ -130,8 +153,7 @@ function App() {
           }
         />
 
-        <Route path="/post/:id" element={<PostImagePageId />} />
-
+        
 
 
       {/* profile */}
@@ -224,6 +246,15 @@ function App() {
             </ProtectedRoute>
           }
       />
+      <Route path="/post/:id" element={<PostImagePageId image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        post={post} setPost={setPost} postId={post?.id}
+        />} />
+
       </Route>
 
     

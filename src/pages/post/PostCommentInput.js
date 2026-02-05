@@ -9,8 +9,8 @@ export function PostCommentInput({ commentInputRef, newComment, loading, setNewC
               ref={commentInputRef}
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 p-4 border outline-0 border-gray-300 text-black w-full rounded h-20"
+              placeholder="Write a comment..."
+              className="flex-1 px-4 py-6 text-black outline-0  border-2 border-gray-300 h-32 rounded"
             />
 
             {/* Emoji toggle button */}
@@ -18,7 +18,7 @@ export function PostCommentInput({ commentInputRef, newComment, loading, setNewC
               onClick={() => setShowEmoji(s => !s)}
               className="p-1 rounded absolute top-1 left-2 hover:bg-gray-200"
             >
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5 text-black">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25z" />
               </svg>
             </button>
@@ -38,7 +38,7 @@ export function PostCommentInput({ commentInputRef, newComment, loading, setNewC
               }}
               />
 
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-5 h-5 text-black">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
               </svg>
 
@@ -48,7 +48,7 @@ export function PostCommentInput({ commentInputRef, newComment, loading, setNewC
             {/* Submit comment */}
             <button
               onClick={() => postComment()}
-              className="px-3 py-1 absolute right-0 text-white rounded"
+              className="px-3 py-1 absolute right-2 top-2 text-white rounded"
             >
               {loading ? (
             <svg

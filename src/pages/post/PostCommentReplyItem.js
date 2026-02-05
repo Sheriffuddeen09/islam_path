@@ -3,9 +3,10 @@ import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
 import PostReplyListMap from "./PostReplyListMap";
 import { useAuth } from "../../layout/AuthProvider";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PostReplyInput } from "./PostReplyInput";
 import { CommentReportModal } from "./report/CommentReportModal";
+import Linkify from "linkify-react";
 
 export default function PostCommentReplyItem ({image, handleReplyToComment, loading, loadingEmoji, 
                       setIsEditing, replyInputRef, handleDelete, handleUpdate, isEditing, 
@@ -99,14 +100,7 @@ const sendEmojiReply = async (emoji) => {
 const isOwner = authUser?.user?.id === comment.user?.id;
 const hasText = !!comment.body;
 
-
-const handleEmojiClick = () =>{
-  setEmojiClick(!emojiClick)
-}
-
-const handlePopClick = () =>{
-  setIsEditingComment(!isEditingComment)
-}
+const navigate = useNavigate()
 
 const contentDelete = (
   <div>
@@ -221,7 +215,7 @@ const contentEdit = (
 
     <div>
     <div className="flex justify-around sm:justify-between items-center px-4 py-3 border-b">
-          <h2 className="text-lg font-semibold text-center sm:mx-auto">
+          <h2 className="text-lg font-semibold text-black text-center sm:mx-auto">
             {post.user.name}'s Post
           </h2>
           <button
@@ -243,16 +237,27 @@ const contentEdit = (
           Reply {comment.replies.length}</p>
   <div className="px-4 py-2">
     <div className="inline-flex gap-2 items-start">
-      <Link to={`/profile/${user.id}`} className="">
-      <p className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</p>
-      </Link>
+      <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
+        {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
     <div className="bg-gray-50 sm:w-60 w-full flex-1 relative group  px-4 py-2 rounded-lg ">
         <div className=" flex flex-row justify-between  items-start">
           <div>
-          <Link to={`/profile/${user.id}`} className="">
-          <p className="text-black font-bold">{comment.user.first_name} {comment.user.last_name}</p>
-          <p className="text-black my-2 text-sm font-semibold">{comment.body}</p>
-          </Link>
+          <button onClick={() => navigate(`/profile/${user.id}`)} className="text-black font-bold">
+            {comment.user.first_name} {comment.user.last_name}</button>
+           {comment.body && (
+            <p className="text-sm text-black max-w-xs break-words">
+              <Linkify
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "text-blue-600 underline break-all"
+                }}
+              >
+                {comment.body}
+              </Linkify>
+            </p>
+          )}
+
         </div>
      {/* Comment in Reply */}
               <div className="absolute top-2 right-2">

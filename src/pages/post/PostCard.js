@@ -9,7 +9,9 @@ import { PostFeedIdModal } from "./PostFeedIdModal";
 import {toast} from "react-hot-toast"
 
 
-export default function PostCard({ post, setPosts }) {
+export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
+  loading, setLoading, showUsersPopup, setShowUsersPopup, newComment, setNewComment, emojiList, setEmojiList,
+showEmoji, setShowEmoji }) {
 
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
@@ -18,11 +20,9 @@ export default function PostCard({ post, setPosts }) {
   const [counts, setCounts] = useState(post.reaction_counts || {});
   const [myReaction, setMyReaction] = useState(post.my_reaction || null);
   const [usersPreview, setUsersPreview] = useState([]); 
-  const [showUsersPopup, setShowUsersPopup] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [postIdModal, setPostIdModal] = useState(null);
   const [reactionLoading, setReactionLoading] = useState(false);
-  const [postComments, setPostComments] = useState([])
 
 
 
@@ -156,7 +156,7 @@ const handleHidePost = async (postId) => {
 
   return (
     <div
-      className={`rounded-xl  shadow sm:w-5/12 w-full border`}
+      className={`rounded-xl shadow md:w-96 lg:w-[400px] w-full border`}
     >
       {/* USER */}
       <div className="flex p-4 bg-gray-100 items-start justify-between">
@@ -191,7 +191,7 @@ const handleHidePost = async (postId) => {
      <div
   className="bg-white p-4 text-black text-[14px]">
   {post.content && (
-    <p className="cursor-pointer">
+    <p className="cursor-pointer px-2">
       {showMore
         ? text
         : shortText}
@@ -231,12 +231,17 @@ const handleHidePost = async (postId) => {
         src={m.url}
         className="w-full h-64 object-cover"
         muted
+        loop
+        onMouseEnter={(e) => e.currentTarget.play()}
+        onMouseLeave={(e) => {
+          e.currentTarget.pause();
+          e.currentTarget.currentTime = 0;
+        }}
       />
-           
 
-      {/* Play icon */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="bg-black/60 rounded-full p-">
+      {/* Play icon overlay (optional) */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="bg-black/60 rounded-full p-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="w-6 h-6 text-white"
@@ -248,10 +253,8 @@ const handleHidePost = async (postId) => {
         </div>
       </div>
     </div>
-
-        )
-      )}
-
+  ))
+}
 
       <div className="flex justify-between px-4 mt-4 items-center ">
 
@@ -366,13 +369,17 @@ const handleHidePost = async (postId) => {
                     {postIdModal && (
                   <PostFeedIdModal
                    total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 
+                   image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
-                    reactionLoading={reactionLoading} postComments={postComments} setPostComments={setPostComments}
+                    reactionLoading={reactionLoading}  setPostComments={setPostComments}
                     showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
                     toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
                     myReaction={myReaction} postId={post.id} post={postIdModal}
                     onClose={() => setPostIdModal(null)}
+                    newComment={newComment} setNewComment={setNewComment}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                    emojiList={emojiList} setEmojiList={setEmojiList}
                   />
                 )}
                {showUsersPopup && (

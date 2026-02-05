@@ -11,12 +11,9 @@ export default function PostOptions({ post }) {
   const [shares, setShares] = useState({});
   const [openReport, setOpenReport] = useState(false)
   
-  const { authUser } = useAuth();
+  const authUser = useAuth()
 
-  const isOwner = authUser?.id === post?.user?.id;
-
-console.log(authUser);
-// console.log(post.user);
+  const isOwner = authUser?.user?.id === post?.user?.id;
 
 
   const showNotification = (msg) => {
@@ -113,13 +110,21 @@ const handleReport = () =>{
         className="px-1 py-1 text-black rounded hover:text-gray-700 hover:bg-gray-100 transition"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 rotate-90">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-</svg>
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+  </svg>
 
       </button>
 
       {open && (
         <div className="absolute top-10 right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
+           <button
+            onClick={() => setOpen(!open)}
+            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
+            w-6 h-6 flex items-center justify-center"
+          >
+            ✕
+
+      </button>
           <ul className="flex flex-col gap- p-4">
             <li>
               <button onClick={ () => {handleDownload(); handleOption()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2  hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"

@@ -215,7 +215,7 @@ const requestList = (
       <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-800">
         {/* Sidebar */}
         <aside
-          className={`fixed hidden md:block top-[85px] left-2 rounded-xl h-full lg:w-64 md:w-44 md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
+          className={`fixed hidden md:block top-[85px] left-2 rounded-xl h-full lg:w-72 md:w-44 md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
             transform transition-transform duration-300
             overflow-y-auto overflow-x-hidden
             scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
@@ -238,16 +238,14 @@ const requestList = (
             {myRequestList}
          
             <>
-             {admins.length === 1 && (
-            <p className="text-lg text-black font-bold text-start border-b p-2 "> Friend You May Know </p>
-          )}
+             <p className="text-lg lg:ml-8 mb-4 text-black font-bold text-start border-b-2 border-gray-800 p-2 "> Friend You May Know </p>
               {/* Video List */}
               <ul className="grid 
   grid-cols-1 
   md:grid-cols-2 
-  lg:grid-cols-3  
+  lg:grid-cols-3  sm:gap-0 gap-2
   justify-items-center items-center
-  gap-3  w-full">
+   w-full">
                 {admins.map((admin) => (
             
                   <li key={admin.id}>
