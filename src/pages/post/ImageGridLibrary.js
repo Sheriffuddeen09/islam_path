@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-export default function ImageGrid({ media = [], postId }) {
+export default function ImageGridLibrary({ media = [], postId }) {
   const navigate = useNavigate();
   const total = media.length;
 
@@ -11,7 +11,7 @@ export default function ImageGrid({ media = [], postId }) {
     return (
       <img
         src={media[0].url}
-        className="w-full h-64 rounded-lg cursor-pointer"
+        className="w-full h-24 rounded-lg cursor-pointer"
         onClick={() => navigate(`/post/image/${postId}`)}
       />
     );
@@ -25,7 +25,7 @@ export default function ImageGrid({ media = [], postId }) {
           <img
             key={img.id}
             src={img.url}
-            className="h-64 w-full rounded-lg cursor-pointer"
+            className="h-24 w-full rounded-lg cursor-pointer"
             onClick={() => navigate(`/post/image/${postId}`)}
           />
         ))}
@@ -67,7 +67,7 @@ export default function ImageGrid({ media = [], postId }) {
         return (
           <div
             key={img.id}
-            className="relative h-40 cursor-pointer"
+            className="relative h-20 cursor-pointer"
             onClick={() => navigate(`/post/image/${postId}`)}
           >
             <img

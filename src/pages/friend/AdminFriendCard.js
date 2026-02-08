@@ -45,21 +45,16 @@ export default function AdminFriendCard({loadingId, requestStatus, setLoadingId,
 };
 
 
-  const removeTemporarily = async (id) => {
-  try {
-    await api.delete(`/api/requests/remove-temporary/${id}`);
-
-    // remove instantly from UI
-    setAdmins(prev =>
-      prev.filter(admin => admin.id !== id)
-    );
-
-    toast.success("Removed Successfully")
-
-  } catch (err) {
-    console.error(err);
-  }
-};
+  const removeTemporarily = async (adminId) => {
+    try {
+      await api.post(`/api/admin-request/hide/${adminId}`);
+      toast.success("Student Remove");
+  
+      setAdmins(prev => prev.filter(p => p.id !== adminId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
 
 

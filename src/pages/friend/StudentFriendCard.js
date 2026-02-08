@@ -45,15 +45,17 @@ export default function StudentFriendCard({loadingId, requestStatus, setLoadingI
 };
 
 
-  const removeTemporarily =  async (studentId) => {
-    try {
-      await api.post(`/api/student-requests/${studentId}/hide`);
-      toast.success("Post removed");
-      setStudents(prev => prev.filter(p => p.id !== studentId));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const removeTemporarily = async (studentId) => {
+  try {
+    await api.post(`/api/student-request/hide/${studentId}`);
+    toast.success("Student Remove");
+
+    setStudents(prev => prev.filter(p => p.id !== studentId));
+  } catch (err) {
+    console.error(err);
+  }
+};
+
   
 
 

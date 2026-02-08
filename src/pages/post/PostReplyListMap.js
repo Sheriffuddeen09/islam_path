@@ -9,9 +9,9 @@ import Linkify from "linkify-react";
 
 
 
-export default function ReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
+export default function PostReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
                            onDelete, isDeleting, isEditing, replyTo, setReplyTo,setReplyText,
-                           focusReplyInput, setEmojiClick, setReplyImage, emojiClick, replyImage }){
+                           focusReplyInput }){
   
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [deletingReplyId, setDeletingReplyId] = useState(null);
@@ -102,21 +102,31 @@ export default function ReplyListMap({authUser, reply, timeAgo, editText, setEdi
 
   function renderWithMention(text) {
   if (!text) return null;
-  if (!replyTo) return text;
 
-  const mention = `@${replyTo.name}`;
+  const parts = text.split(/(@\{[^}]+\}|@\w+)/g);
 
-  if (!text.startsWith(mention)) {
-    return text;
-  }
+  return parts.map((part, index) => {
+    if (part.startsWith("@")) {
+      // Remove @{ } or @
+      const clean = part.startsWith("@{")
+        ? part.slice(2, -1)   // @{olawale love} -> olawale love
+        : part.slice(1);      // @olawale -> olawale
 
-  return (
-    <>
-      <span className="text-blue-600 font-semibold">{mention}</span>
-      {text.slice(mention.length)}
-    </>
-  );
+      return (
+        <button
+          key={index}
+          onClick={() => navigate(`/profile/${clean}`)}
+          className="text-blue-400 font-semibold hover:underline"
+        >
+          {part}
+        </button>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
 }
+
 
 function RenderCommentText({ text }) {
   if (!text) return null;

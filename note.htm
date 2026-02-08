@@ -8,99 +8,177 @@ working on
 2. views
 3. share
 
-1. in mobile and ipad view instead of button it be flip to right with hand for next and to left for prev like facebook
+1. when the video load it was show 0.00 the play is diabla, fullscreen, and speacker are diable 
+it think i need videoStream to make it work right 
+{media?.type === "video" && (
+          <video
+            src={`${api}/storage/${media.path}`}
+            className="w-full h-full object-cover"
+            controls
+          />
+        )}
 
-export default function ReplyImageSlider({ images = [], post }) {
-  const [index, setIndex] = useState(0);
-  const navigate = useNavigate()
+        but this is not working 
+        use Illuminate\Http\Request;
+use App\Models\Post;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
-  if (!images.length) return null;
-  const next = () => setIndex(i => (i + 1) % images.length);
-  const prev = () => setIndex(i => (i - 1 + images.length) % images.length);
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <img
-        src={images[index]}
-        alt="post"
-        className="h-full w-96 object-contain"
-      />
-      {images.length > 1 && (
-        <>
-        <button
-            onClick={next}
-             className="absolute left-4 sm:block hidden"
-          >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="bg-transparent size-14 rotate-90 bg-black/50 w-10 h-10 border-2 hover:bg-gray-100 hover:text-gray-600 border-white rounded-full text-white rounded-full">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
-          </button>
-          <button
-            onClick={prev}
-             className="absolute  right-8 sm:block hidden"
-          >     
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="bg-transparent size-14 rotate-90 bg-black/50 w-10 h-10 border-2 hover:bg-gray-100 hover:text-gray-600 border-white rounded-full text-white rounded-full">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
-          </svg>
-          </button>
-          <div className="absolute top-4 right-4">
-          <div className="inline-flex items-center gap-6">
-            <p className="bg-white text-black text-xs px-2 py-2 font-bold 
-            rounded-full">
-            {index + 1} / {images.length}
-            </p>
-            <div className="bg-white rounded-full">  
-            <PostOptions post={post} />
-            </div>
-            </div>
-          </div>
-          <div
-          onClick={() => navigate('/')}
-          className="absolute top-4 left-4"
-          >
-            <div className="inline-flex gap-12 items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
-            w-10  h-10 cursor-pointer">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-            <img onClick={() => navigate('/')} src={logo} alt="IPK" className="w-10 h-10 cursor-pointer" />
-          </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
+class VideoStreamController extends Controller
+{
+    public function stream(Request $request, Post $video)
+    {
+        // ✅ Correct storage path
+        $path = storage_path('app/public/' . $video->video_path);
+
+        if (!file_exists($path)) {
+            abort(404, 'Post file not found');
+        }
+
+        $size = filesize($path);
+        $start = 0;
+        $length = $size;
+        $end = $size - 1;
+
+        // ✅ Range support (required for HTML5 video)
+        if ($request->headers->has('Range')) {
+            [$unit, $range] = explode('=', $request->header('Range'));
+            [$rangeStart, $rangeEnd] = explode('-', $range);
+
+            $start = intval($rangeStart);
+            $end = $rangeEnd === '' ? $size - 1 : intval($rangeEnd);
+            $length = $end - $start + 1;
+
+            return response()->stream(function () use ($path, $start, $length) {
+                $file = fopen($path, 'rb');
+                fseek($file, $start);
+
+                $buffer = 8192;
+                $remaining = $length;
+
+                while ($remaining > 0 && !feof($file)) {
+                    $read = min($buffer, $remaining);
+                    echo fread($file, $read);
+                    flush();
+                    $remaining -= $read;
+                }
+
+                fclose($file);
+            }, 206, [
+                'Content-Type' => 'video/mp4',
+                'Content-Length' => $length,
+                'Content-Range' => "bytes $start-$end/$size",
+                'Accept-Ranges' => 'bytes',
+            ]);
+        }
+
+        // Full file
+        return response()->file($path, [
+            'Content-Type' => 'video/mp4',
+            'Content-Length' => $size,
+            'Accept-Ranges' => 'bytes',
+        ]);
+    }
 }
 
-2. if i scroll to on mobile or ipad or hover on large screen it should auto play and
- the video the icon should disappear, the speak to make it speak should appear and pause and play but
-it should auto play on hover and if i scroll on it  
-<div
-      className="relative aspect-video bg-black cursor-pointer"
-      onClick={() => navigate(`/video/${v.id}`)}
-    >
-      <video
-        src={v.video_url}
-        className="w-full h-64"
-        muted
-        loop
-        onMouseEnter={(e) => e.currentTarget.play()}
-        onMouseLeave={(e) => {
-          e.currentTarget.pause();
-          e.currentTarget.currentTime = 0;
-        }}
+        Route::get('/video/stream/{video}', [VideoStreamController::class, 'stream'])
+    ->name('video.stream')
+    ->middleware('signed');
+2. use this as example to create download for my video and image but seperate the video and image let 
+each have their download to avoid conflict and if the image is more than one user should be able to select 
+the one to download, so video to have it own download and image to have it own download and their button 
+to be different 
+
+use this as example because this work 
+public function download(Request $request, $id)
+{
+    $user = $request->user();
+    $video = Video::findOrFail($id);
+    if ($user) {
+        $user->library()->syncWithoutDetaching([$video->id]);
+
+        VideoDownload::updateOrCreate([
+            'user_id' => $user->id,
+            'video_id' => $video->id,
+        ]);
+    }
+    $path = storage_path('app/public/' . $video->video_path);
+    if (!file_exists($path)) {
+        return response()->json(['error' => 'File not found'], 404);
+    }
+    return response()->download($path, 'IPK video.mp4', [
+        'Content-Type' => 'video/mp4'
+    ]);
+}
+3. the image showing only border and white background and add scrollbar to it 
+export default function ImageGridLibrary({ media = [], postId }) {
+  const navigate = useNavigate();
+  const total = media.length;
+  if (!total) return null;
+  if (total === 1) {
+    return (
+      <img
+        src={media[0].url}
+        className="w-full h-24 rounded-lg cursor-pointer"
+        onClick={() => navigate(`/post/image/${postId}`)}
       />
+    );
+  }
+  if (total === 2) {
+    return (
+      <div className="grid grid-cols-2 gap-1">
+        {media.map(img => (
+          <img
+            key={img.id}
+            src={img.url}
+            className="h-24 w-full rounded-lg cursor-pointer"
+            onClick={() => navigate(`/post/image/${postId}`)}
+          />
+        ))}
+      </div>
+    );
+  }
+  if (total === 3) {
+    return (
+      <div className="grid grid-cols-2 gap-0.5">
+        <img
+          src={media[0].url}
+          className="row-span-2 h-full w-full rounded-lg cursor-pointer"
+          onClick={() => navigate(`/post/image/${postId}`)}
+        />
 
-      {/* Play icon */}
-      <div className=" absolute inset-0 flex w-6 flex-col mx-auto items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6 text-white border-2 rounded-full"
-            fill="currentColor"
-            viewBox="0 0 24 24" 
-          
+        {media.slice(1).map(img => (
+          <img
+            key={img.id}
+            src={img.url}
+            className="h-32  w-full rounded-lg cursor-pointer"
+            onClick={() => navigate(`/post/image/${postId}`)}
+          />
+        ))}
+      </div>
+    );
+  }
+  const visible = media.slice(0, 4);
+  const remaining = total - 4;
+  return (
+    <div className="grid grid-cols-2 gap-1 px-4">
+      {visible.map((img, index) => {
+        const isLast = index === 3 && remaining > 0;
+        return (
+          <div
+            key={img.id}
+            className="relative h-20 cursor-pointer"
+            onClick={() => navigate(`/post/image/${postId}`)}
           >
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </div>
-        </div>
-
+            <img
+              src={img.url}
+              className="w-full h-full rounded-lg"
+            />
+            {isLast && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
+                <span className="text-white text-3xl font-bold">
+                  +{remaining}
+                </span>
+              </div>
+            )}
+          </div>
+        );

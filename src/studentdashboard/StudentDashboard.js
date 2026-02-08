@@ -7,10 +7,9 @@ import AssignmentLibrary from "../assignment/AssignmentLibrary";
 import AssignmentResults from "../assignment/AssignmentResults";
 import ExamResults from "../exam/ExamResults";
 import ExamLibrary from "../exam/ExamLibrary";
-import CreateVideoSection from "./CreateVideo";
-import LibraryPage from "../pages/video/LibraryVideo";
 import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
+import PostLibrary from "../pages/post/PostLibrary";
 
 export default function StudentDashboard ({onCreated, handlePostCreated, handleMessageOpen}){
 
@@ -244,7 +243,7 @@ export default function StudentDashboard ({onCreated, handlePostCreated, handleM
                          <StudentProfilePage handleMessageOpen={handleMessageOpen} />
                          </div>
                          <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
-                         <LibraryPage />
+                         <PostLibrary />
                          </div>
                           <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
                           <CreatePost handlePostCreated={handlePostCreated} />

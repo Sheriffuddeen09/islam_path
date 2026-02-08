@@ -4,13 +4,12 @@ import { useAuth } from "../../layout/AuthProvider";
 import { useEffect, useRef, useState } from "react";
 import Notification from "../../Form/Notification";
 import api from "../../Api/axios"; 
-import ImageGrid from "./ImageGrid";
 import { PostFeedIdModal } from "./PostFeedIdModal";
 import {toast} from "react-hot-toast"
 import PostVideoCard from "./PostVideoCard";
 
 
-export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
+export default function PostCardVideo({ post, setPosts, image, setImage, postComments, setPostComments, 
   loading, setLoading, showUsersPopup, setShowUsersPopup, newComment, setNewComment, emojiList, setEmojiList,
 showEmoji, setShowEmoji }) {
 
@@ -208,27 +207,16 @@ const handleHidePost = async (postId) => {
   )}
 </div>
 
-      {/* IMAGES */}
-      <div className="px-1">
-    {post.media.some(m => m.type === "image") && (
-      <ImageGrid
-        media={post.media.filter(m => m.type === "image")}
-        postId={post.id}
-      />
-    )}
 
-    {/* Video */}
+{/* VIDEOS video */}
+    {post.media
+      .filter(m => m.type === "video")
+      .map(m => (
 
-        {post.media
-          .filter(m => m.type === "video")
-          .map(m => (
-    
-            <PostVideoCard v={m}  post={post} />
-    
-          ))
-        }
+        <PostVideoCard v={m}  post={post} />
 
-</div>
+      ))
+    }
 
       <div className="flex justify-between px-4 mt-4 items-center ">
 

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 import { PostReportModal } from "./report/PostReportModal";
 
-export default function PostOptions({ post }) {
+export default function PostOptionsId({ post }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
@@ -25,23 +25,21 @@ export default function PostOptions({ post }) {
   try {
     const token = localStorage.getItem("token");
 
-    const res = await fetch(`${api}/api/download-post/${post.id}`, {
+    const res = await fetch(`http://localhost:8000/api/download-post/${post.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Download failed:", text);
-      throw new Error("Download failed");
-    }
+    if (!res.ok) throw new Error("Download failed");
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
 
     const link = document.createElement("a");
     link.href = url;
-    // ❌ don't force extension here
-    link.download = ""; // browser will use server filename
+
+    // dynamic filename
+    link.download = post.type === "video" ? "IPK-video.mp4" : "IPK-image.jpg";
+
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -50,18 +48,10 @@ export default function PostOptions({ post }) {
   }
 };
 
-
-// const media = post.media?.[0];
-
-// const ext = media?.type === "video" ? "mp4" : "jpg";
-// const filename = media?.type === "video" ? "IPK-video.mp4" : "IPK-image.jpg";
-
-// link.download = filename;
-
   const handleSaveToLibrary = async () => {
     try {
       setLoading("save");
-      await api.post(`/api/post/${post.id}/save-to-library`);
+      await api.post(`/api/posts/${post.id}/save-to-library`);
       showNotification("Saved to your library!");
     } catch (err) {
       console.error(err);
@@ -109,7 +99,7 @@ const handleReport = () =>{
     <div className="relative inline-block text-left">
       <button
         onClick={() => setOpen(!open)}
-        className="px-1 py-1 text-black rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
+        className="px-1 py-1 text-white rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 rotate-90">
     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -118,7 +108,7 @@ const handleReport = () =>{
       </button>
 
       {open && (
-        <div className="absolute top-10 right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
+        <div className="absolute top-0 right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
            <button
             onClick={() => setOpen(!open)}
             className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
@@ -128,8 +118,7 @@ const handleReport = () =>{
 
       </button>
           <ul className="flex flex-col gap- p-4">
-            {/* {post.type  && ( */}
-                {post.media && post.media.length > 0 && (
+            {post.type !== "content" && (
                 <li>
                   <button
                     onClick={() => {
@@ -142,8 +131,6 @@ const handleReport = () =>{
                   </button>
                 </li>
               )}
-
-              {/* )} */}
 
             <li>
               <button onClick={() => {handleOption(); handleSaveToLibrary()}} disabled={loading === "save"} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
@@ -173,7 +160,7 @@ const handleReport = () =>{
             </li>
             <li>
               <button onClick={() => {handleOption(); handleViewProfile()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
-              >View Profile</button>
+              >View Poster Profile</button>
             </li>
           </ul>
         </div>

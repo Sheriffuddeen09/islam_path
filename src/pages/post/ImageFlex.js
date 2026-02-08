@@ -12,7 +12,7 @@ export default function ImageFlex({ media = [], postId }) {
       <img
         src={media[0].url}
         className="w-full sm:h-96 h-64 rounded-lg cursor-pointer"
-        onClick={() => navigate(`/post/${postId}`)}
+        onClick={() => navigate(`/post/image/${postId}`)}
       />
     );
   }
@@ -26,7 +26,7 @@ export default function ImageFlex({ media = [], postId }) {
             key={img.id}
             src={img.url}
             className=" sm:h-96 h-64 w-full cursor-pointer"
-            onClick={() => navigate(`/post/${postId}`)}
+            onClick={() => navigate(`/post/image/${postId}`)}
           />
         ))}
       </div>
@@ -40,7 +40,7 @@ export default function ImageFlex({ media = [], postId }) {
         <img
           src={media[0].url}
           className="row-span-2 sm:h-96 h-64 w-full cursor-pointer"
-          onClick={() => navigate(`/post/${postId}`)}
+          onClick={() => navigate(`/post/image/${postId}`)}
         />
 
         {media.slice(1).map(img => (
@@ -48,7 +48,7 @@ export default function ImageFlex({ media = [], postId }) {
             key={img.id}
             src={img.url}
             className="sm:h-96 h-64  w-full  cursor-pointer"
-            onClick={() => navigate(`/post/${postId}`)}
+            onClick={() => navigate(`/post/image/${postId}`)}
           />
         ))}
       </div>
@@ -68,7 +68,7 @@ export default function ImageFlex({ media = [], postId }) {
           <div
             key={img.id}
             className="relative sm:h-96 h-64 cursor-pointer"
-            onClick={() => navigate(`/post/${postId}`)}
+            onClick={() => navigate(`/post/image/${postId}`)}
           >
             <img
               src={img.url}

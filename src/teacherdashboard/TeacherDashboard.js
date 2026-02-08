@@ -12,9 +12,9 @@ import AssignmentResults from "../assignment/AssignmentResults";
 import CreateExam from "../exam/CreateExam";
 import TeacherExamPreview from "../exam/TeacherExamPreview";
 import ExamResults from "../exam/ExamResults";
-import LibraryPage from "../pages/video/LibraryVideo";
 import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
+import PostLibrary from "../pages/post/PostLibrary";
 
 export default function TeacherDashboardLayout({onCreated, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -303,7 +303,7 @@ export default function TeacherDashboardLayout({onCreated, handlePostCreated, us
          />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
-        <LibraryPage />
+        <PostLibrary />
         </div>
         <div className={`${visible === 3 ? 'block' : 'hidden'}`}>
         <CreatePost handlePostCreated={handlePostCreated} />

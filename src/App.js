@@ -31,6 +31,9 @@ import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
 import StudentExamResult from "./exam/StudentExamResult";
 import Navbar from "./layout/Header";
 import PostImagePageId from "./pages/post/PostImagePageId";
+import PostFeedVideo from "./pages/post/PostFeedVideo";
+import PostVideoPageId from "./pages/post/PostVideoPageId";
+import PostTextPageId from "./pages/post/PostTextPageId";
 
    
 function App() {
@@ -100,6 +103,19 @@ function App() {
       {/* Home Page*/}
       <Route path="/" element={
       <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        
+         />   
+      } />
+
+      {/* Video */}
+
+       <Route path="/post/video" element={
+        <PostFeedVideo posts={posts} setPosts={setPosts} image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -246,7 +262,25 @@ function App() {
             </ProtectedRoute>
           }
       />
-      <Route path="/post/:id" element={<PostImagePageId image={image} setImage={setImage}
+      <Route path="/post/image/:id" element={<PostImagePageId image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        post={post} setPost={setPost} postId={post?.id}
+        />} />
+
+        <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        post={post} setPost={setPost} postId={post?.id}
+        />} />
+
+         <Route path="/post/text/:id" element={<PostTextPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
