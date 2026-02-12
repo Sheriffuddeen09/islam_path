@@ -3,7 +3,7 @@ import logo from '../../layout/image/favicon.png'
 import PostOptions from "./PostOption";
 import { useState, useRef } from "react";
 
-export default function ReplyImageSlider({ images = [], post }) {
+export default function ReplyImageSlider({ images = [], post, chats }) {
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();
 
@@ -71,7 +71,7 @@ export default function ReplyImageSlider({ images = [], post }) {
               {index + 1} / {images.length}
               </p>
               <div className="bg-white rounded-full">  
-              <PostOptions post={post} />
+              <PostOptions post={post} chats={chats}/>
               </div>
             </div>
           </div>

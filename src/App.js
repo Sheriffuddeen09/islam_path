@@ -53,6 +53,9 @@ function App() {
     const [posts, setPosts] = useState([]);
 
     const [requestStatus, setRequestStatus] = useState({});
+
+    // Chat
+    const [chats, setChats] = useState([]);
     const [messageOpen, setMessageOpen] = useState(false);
     const [activeChat, setActiveChat] = useState(null);
 
@@ -74,9 +77,16 @@ function App() {
 
 
     const handleMessageOpen = (studentId) => {
+      if (!studentId) return; // ✅ block
       setActiveChat(studentId);
-      setMessageOpen(true); // always open, not toggle
+      setMessageOpen(true);
     };
+
+     const handleMessageOpenHeader = () => {
+      setActiveChat(null);
+      setMessageOpen(true);
+    };
+
 
 
     // 🔥 This function receives the new video from AdminVideoForm
@@ -97,10 +107,13 @@ function App() {
           handleMessageOpen={handleMessageOpen}
           messageOpen={messageOpen}
           activeChat={activeChat}
+          chats={chats}
+          setChats={setChats}
           setActiveChat={setActiveChat}
-          setMessageOpen={setMessageOpen}  />}>
+          setMessageOpen={setMessageOpen} 
+          handleMessageOpenHeader={handleMessageOpenHeader} />}>
 
-      {/* Home Page*/}
+      {/* Home Post Page*/}
       <Route path="/" element={
       <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
@@ -108,6 +121,10 @@ function App() {
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
         
          />   
       } />
@@ -121,6 +138,10 @@ function App() {
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
         
          />   
       } />
@@ -155,7 +176,9 @@ function App() {
           path="/video"
           element={
             <ProtectRoute allowedRoles={['admin', 'user']}>
-              <VideoPageApi setVideos={setVideos} videos={videos} />
+              <VideoPageApi setVideos={setVideos} videos={videos} 
+              chats={chats}
+              />
             </ProtectRoute>
           }
         />
@@ -164,7 +187,9 @@ function App() {
           path="/video/:id"
           element={
             <ProtectRoute allowedRoles={['admin', 'user']}>
-              <VideoPlayerId />
+              <VideoPlayerId 
+              chats={chats}
+              />
             </ProtectRoute>
           }
         />
@@ -269,6 +294,7 @@ function App() {
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
+        chats={chats}
         />} />
 
         <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}
@@ -278,6 +304,8 @@ function App() {
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
+        chats={chats}
+
         />} />
 
          <Route path="/post/text/:id" element={<PostTextPageId image={image} setImage={setImage}
@@ -287,6 +315,8 @@ function App() {
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
+        chats={chats}
+
         />} />
 
       </Route>
@@ -312,16 +342,22 @@ function LayoutWithHeader({
   messageOpen,
   activeChat,
   setActiveChat,
-  setMessageOpen
+  setMessageOpen,
+  chats, 
+  setChats,
+  handleMessageOpenHeader
 }) {
   return (
     <div>
       <Navbar
         handleMessageOpen={handleMessageOpen}
-        messageOpen={messageOpen}
         activeChat={activeChat}
         setActiveChat={setActiveChat}
+        messageOpen={messageOpen}
         setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
+        handleMessageOpenHeader={handleMessageOpenHeader}
       />
 
       {/* 🔥 THIS IS REQUIRED */}

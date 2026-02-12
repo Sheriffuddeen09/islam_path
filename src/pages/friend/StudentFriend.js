@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
-import Navbar from "../../layout/Header";
 import StudentFriendCard from "./StudentFriendCard";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -12,6 +11,8 @@ export default function StudentFriend({students, setStudents, setIncomingRequest
   const [loadingId, setLoadingId] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
+  const [visibleMyRequests, setVisibleMyRequests] = useState(2);
+  const [visibleIncomingRequests, setVisibleIncomingRequests] = useState(2);
 
 
 
@@ -86,7 +87,7 @@ if (loading)
 
 const myRequestList = (
   <div className="max-w-xl space-y-3 mt-2">
-    {myRequests.map(req => (
+    {myRequests.slice(0, visibleMyRequests).map(req => (
       <div
         key={req.id}
         className="flex items-center justify-between bg-white p-4 rounded-lg shadow"
@@ -107,12 +108,22 @@ const myRequestList = (
       </div>
     ))}
 
+    {myRequests.length > visibleMyRequests && (
+      <button
+        onClick={() => setVisibleMyRequests(prev => prev + 2)}
+        className="w-full mt-3 py-2 bg-gray-200 hover:bg-gray-300 rounded font-semibold"
+      >
+        See more
+      </button>
+    )}
+
   </div>
 
 )
 const requestList = (
   <div className="space-y-3 w-full max-w-xl mt-2">
-    {incomingRequests.map(req => (
+      {incomingRequests.slice(0, visibleIncomingRequests).map(req => (
+
       <div
         key={req.id}
         className="flex items-center justify-between bg-white p-4 rounded shadow"
@@ -203,6 +214,16 @@ const requestList = (
       </div>
     ))}
 
+    {incomingRequests.length > visibleIncomingRequests && (
+  <button
+    onClick={() => setVisibleIncomingRequests(prev => prev + 2)}
+    className="w-full mt-3 py-2 bg-gray-200 hover:bg-gray-300 rounded font-semibold"
+  >
+    See more
+  </button>
+)}
+
+
   </div>
 );
 
@@ -241,11 +262,11 @@ const requestList = (
             <p className="text-lg lg:ml-8 mb-4 text-black font-bold text-start border-b-2 border-gray-800 pb-2 "> Friend You May Know </p>
               {/* Video List */}
               <ul className="grid 
-  grid-cols-1 
-  md:grid-cols-2 
-  lg:grid-cols-3  sm:gap-0 gap-2
-  justify-items-center items-center
-   w-full">
+                grid-cols-1 
+                md:grid-cols-2 
+                lg:grid-cols-3  sm:gap-0 gap-2
+                justify-items-center items-center
+                w-full">
                 {students.map((student) => (
             
                   <li key={student.id}>

@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../Api/axios";
 
 export default function PostVideoCardLibrary({ v, post }) {
   const videoRef = useRef(null);
@@ -40,6 +41,15 @@ export default function PostVideoCardLibrary({ v, post }) {
     setPlaying(false);
   };
 
+  const viewedRef = useRef(false);
+
+const onPlay = async () => {
+  if (viewedRef.current) return;
+  viewedRef.current = true;
+  await api.post(`/api/post/${post.id}/view`);
+};
+
+
   return (
     <div
       key={v.id}
@@ -54,6 +64,7 @@ export default function PostVideoCardLibrary({ v, post }) {
         className="w-full h-48"
         muted
         playsInline
+        onPlay={onPlay}
       />
 
       {/* Play icon (only when NOT playing) */}

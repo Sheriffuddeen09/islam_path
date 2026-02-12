@@ -7,9 +7,12 @@ import PostOptions from "./PostOption";
 import { useAuth } from "../../layout/AuthProvider";
 import Notification from "../../Form/Notification";
 import { PostCommentInput } from "./PostCommentInput";
+import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
+import { MessageCircle } from "lucide-react";
+import PostOptionsId from "./PostOptionId";
 
 export default function PostImagePageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
-  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId
+  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId, chats
  }) {
   const { id } = useParams();
   const [counts, setCounts] = useState({});
@@ -22,8 +25,44 @@ export default function PostImagePageId({ image, postComments, setPostComments, 
   const [showCommentPop, setShowCommentPop] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [reactionLoading, setReactionLoading] = useState(false);
+  const [messageOpenShare, setMessageOpenShare] = useState(false)
+  const [shares, setShares] = useState(false)
+  const [selectedChats, setSelectedChats] = useState([]);
+  const [sending, setSending] = useState(false);
+
   
-  const {user} = useAuth()
+  const shareUrl = `${window.location.origin}/post/${post?.id}`;
+  
+  const shareLinks = {
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareUrl)}`,
+    twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
+  };
+  
+  const handleShare = async (platform) => {
+    const url = shareLinks[platform];
+  
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      // For TikTok / Instagram / YouTube
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Link copied! Paste it in the app to share.");
+    }
+  
+    await api.post(`/api/post/${post.id}/share`);
+  };
+  
+  
+  const shareToChat = async (chatId) => {
+    await api.post(`/api/chats/${chatId}/messages`, {
+      type: "link",
+      message: shareUrl,
+    });
+  
+    await api.post(`/api/post/${post.id}/share`);
+  };
 
   useEffect(() => {
     api.get(`/api/posts/${id}`)
@@ -225,7 +264,7 @@ focusCommentInput()
               </div>
         
                 <div className='inline-flex items-center gap-3'>
-              <PostOptions post={post} />
+              <PostOptionsId post={post} chats={chats}/>
 
               <button onClick={handleCommentPop}>
                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
@@ -298,14 +337,14 @@ focusCommentInput()
       </div>
       <div className="inline-flex items-center gap-3">
 
-        <p className="inline-flex gap-1 items-center">
+        <p className="inline-flex text-gray-800 gap-1 items-center">
       {post.comments_count}
          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
           </svg>
       </p>
-      <p className="inline-flex gap-1 items-center">
-      {post.comments_count}
+      <p className="inline-flex text-gray-800 gap-1 items-center">
+      {post.shares_count}
            <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -356,7 +395,7 @@ focusCommentInput()
                     </svg> Comment
                   </button>
 
-                   <button className="flex items-center font-semibold gap-1 mx-4">
+                   <button onClick={() => setShares(!shares)} className="flex items-center font-semibold gap-1 mx-4">
                     <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -425,7 +464,7 @@ focusCommentInput()
          {Array.isArray(post.media) && post.media.some(m => m.type === "image") && (
             <ReplyImageSlider
             images={post.media.filter(m => m.type === "image").map(m => m.url)}
-            post={post}
+            post={post} chats={chats}
           />
           )}
 
@@ -483,10 +522,10 @@ focusCommentInput()
     )} 
 
       </div>
-    {/* Reaction */}
+    {/* Reaction Share */}
 
     <button onClick={onLikeClick}
-                className={`flex items-center font-semibold ${myReaction ? 'font-bold bg-gray-200 rounded-lg text-blue-900 py-2 px-2 ' : 'bg-gray-900 py-2 px-2 text-white rounded-lg'}`}>
+                className={`flex items-center font-semibold ${myReaction ? 'font-bold bg-gray-200 rounded-lg text-blue-900 py-2 px-2 ' : 'bg-gray-900 hover:text-white hover:bg-gray-700 transition py-2 px-2 text-white rounded-lg'}`}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
               </svg>
@@ -498,7 +537,7 @@ focusCommentInput()
         
         
       </div>
-                  <button className="flex items-center justify-center font-semibold gap-1 w-16 h-10 mx-4 bg-gray-900 rounded-lg text-white font-bold py-2" onClick={handleCommentPop}>
+                  <button  className="flex items-center  justify-center font-semibold gap-1 w-16 h-10 mx-4 bg-gray-900 rounded-lg text-white font-bold py-2" onClick={handleCommentPop}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-white font-bold">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
                     </svg> {post.comments_count}
@@ -512,7 +551,7 @@ focusCommentInput()
                     className="w-5 h-5 bg-gray-900 rounded-lg text-white font-bold"
                   >
                     <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
-                  </svg> {post.comments_count}
+                  </svg> {post.shares_count}
                   </button>
                 </div>
 
@@ -536,6 +575,144 @@ focusCommentInput()
       )
     }
       
+{shares && (
+      <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
+          <button onClick={() => setShares(!shares)}
+            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            w-6 h-6 flex items-center justify-center"
+          >
+            ✕
+      </button>
+        <div className="flex flex-col mx-auto gap-3 items-center">
+          <button onClick={() => {setMessageOpenShare(!messageOpenShare); setShares(false);}} 
+          className="text-black flex flex-col  items-center gap-1 hover:text-blue-600">
+                <MessageCircle className="border-2 border-black rounded-full p-1" size={35} />
+                <span className="text-sm font-bold">Chat List</span>
+              </button>
+            <div className="grid grid-cols-4 border-t-2 pt-2 gap-4 text-center">
+              <button onClick={() => handleShare("facebook")} className="text-black flex flex-col items-center gap-1 hover:text-blue-600 text-black">
+                <FaFacebook size={28} />
+                <span className="text-sm">Facebook</span>
+              </button>
+
+              <button onClick={() => handleShare("whatsapp")} className="text-black flex flex-col items-center gap-1 hover:text-green-500">
+                <FaWhatsapp size={28} />
+                <span className="text-sm">WhatsApp</span>
+              </button>
+
+              <button onClick={() => handleShare("twitter")} className="text-black flex flex-col items-center gap-1 hover:text-sky-500">
+                <FaTwitter size={28} />
+                <span className="text-sm">Twitter</span>
+              </button>
+
+              <button onClick={() => handleShare("telegram")} className="text-black flex flex-col items-center gap-1 hover:text-blue-400">
+                <FaTelegram size={28} />
+                <span className="text-sm">Telegram</span>
+              </button>
+            </div>
+
+        </div>
+      
+      </div>
+      </div>
+      )
+      }
+
+      {messageOpenShare && (
+  <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+      <h2 className="font-bold mb-3">Share to chat</h2>
+
+       {chats.map((chat) => (
+          <div
+            key={chat.id}
+            className={`flex items-center gap-2 p-2 cursor-pointer rounded ${
+              selectedChats.includes(chat.id)
+                ? "bg-blue-200 my-1"
+                : "hover:bg-gray-100 my-1"
+            }`}
+            onClick={() => {
+              setSelectedChats((prev) =>
+                prev.includes(chat.id)
+                  ? prev.filter((id) => id !== chat.id)
+                  : [...prev, chat.id]
+              );
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={selectedChats.includes(chat.id)}
+              readOnly
+            />
+            <span>
+              <span>
+              {chat.other_user
+                ? `${chat.other_user.first_name} ${chat.other_user.last_name}`
+                : chat.teacher
+                  ? `${chat.teacher.first_name} ${chat.teacher.last_name}`
+                  : chat.student
+                    ? `${chat.student.first_name} ${chat.student.last_name}`
+                    : "Unknown User"}
+            </span>
+
+            </span>
+          </div>
+        ))}
+
+<button
+  disabled={sending || selectedChats.length === 0}
+  onClick={async () => {
+    try {
+      setSending(true);
+      for (const chatId of selectedChats) {
+        await shareToChat(chatId);
+      }
+      setSelectedChats([]);
+      setMessageOpenShare(false);
+    } finally {
+      setSending(false);
+    }
+  }}
+  className={`mt-3 w-full rounded py-2 text-white ${
+    sending || selectedChats.length === 0
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-blue-600 hover:bg-blue-700"
+  }`}
+>
+  {sending ? <svg
+      className="animate-spin h-5 w-5 text-white mx-auto flex justify-center items-center"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25 text-blue-800"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg> : `Send (${selectedChats.length})`}
+</button>
+
+
+      <button
+        onClick={() => setMessageOpenShare(false)}
+        className="mt-3 w-full bg-gray-200 rounded py-2"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
 
  <Notification
                   message={notify.message}

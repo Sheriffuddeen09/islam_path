@@ -11,7 +11,7 @@ import UserStatus from "../chat/online/OnlineStatuesDot";
 
 
 
-// ================= SKELETON =================
+// ================= Start SKELETON =================
 function ChatSkeleton({ title }) {
   return (
     <div className="px-4">
@@ -35,13 +35,13 @@ function ChatSkeleton({ title }) {
 
 
   
-export default function LiveClass({fetchUnreadCount, handleMessageOpen, messageOpen, activeChat, setActiveChat, setMessageOpen}) {
+export default function LiveClass({fetchUnreadCount, messageOpen, activeChat, setActiveChat, 
+  setMessageOpen, chats, setChats}) {
   const { user: authUser } = useAuth();
 
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingChats, setLoadingChats] = useState(true);
 
-  const [chats, setChats] = useState([]);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const [messages, setMessages] = useState([]);
@@ -64,14 +64,6 @@ export default function LiveClass({fetchUnreadCount, handleMessageOpen, messageO
 const closeReport = () => {
   setOpenReport(false);
 };
-
-
- const chatPartner =
-  activeChat && authUser
-    ? activeChat.user_one_id === authUser.id
-      ? activeChat.user_two
-      : activeChat.user_one
-    : null;
 
 
 
@@ -257,12 +249,13 @@ useEffect(() => {
   function getMessagePreview(message) {
   if (!message) return "";
 
+  if (message.type === "link") return message.message;
   if (message.type === "text") return message.message;
   if (message.type === "voice") return "🎤 Voice message";
   if (message.type === "image") return "🖼 Image";
   if (message.type === "file") return "📎 Document";
 
-  return "New message";
+  return "Start New Conversation";
 }
 
 
@@ -360,7 +353,7 @@ useEffect(() => {
                    <UserStatus user={authUser} />
                     </div>
 
-                    {/* ✅ Blocked badge inside user box */}
+                    {/* ✅ Blocked badge inside user box New */}
                   </div>
                   {lastMessage && (
                     <span className="text-xs text-white">
@@ -510,7 +503,10 @@ useEffect(() => {
                     </div>
                     </div>
       
-                    <ChatWindow messages={messages} setMessages={setMessages} activeChat={activeChat} setActiveChat={setActiveChat} setChats chat={activeChat} openReport={openReport} closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
+                    <ChatWindow messages={messages} setMessages={setMessages} activeChat={activeChat} 
+                    setActiveChat={setActiveChat} chats={chats} chat={activeChat} openReport={openReport} 
+                    closeReport={closeReport} handleReportPop={handleReportPop} setShowGuide={setShowGuide} 
+                    setStartLive={setStartLive} startLive={startLive} showGuide={showGuide} />
                   </div>
                 }
          

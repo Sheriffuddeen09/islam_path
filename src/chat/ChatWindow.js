@@ -5,7 +5,7 @@ import { initEcho } from "../echo";
 import ChatThread from "./ChatThread";
 import { ReportModal } from "./ReportModal";
 
-export default function ChatWindow({ messages, setMessages, chat, setChats, setActiveChat, showGuide, setShowGuide, startLive, setStartLive, activeChat, openReport, closeReport }) {
+export default function ChatWindow({ chats, messages, setMessages, chat, setChats, setActiveChat, showGuide, setShowGuide, startLive, setStartLive, activeChat, openReport, closeReport }) {
  
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [replyingTo, setReplyingTo] = useState(null); // store message being replied to
@@ -135,8 +135,9 @@ const handleSend = async (newMessage) => {
         )}
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-900 no-scrollbar">
-          <ChatThread messages={messages} setReplyingTo={setReplyingTo} replyingTo={replyingTo} chat={chat} setChats={setChats} setActiveChat={setActiveChat} activeChat={activeChat} chatId={chat.id} loading={loadingMessages} setMessages={setMessages} />
+      
+      <div className="flex-1 p-4 bg-gray-900 no-scrollbar">
+          <ChatThread chats={chats} messages={messages} setReplyingTo={setReplyingTo} replyingTo={replyingTo} chat={chat} setChats={setChats} setActiveChat={setActiveChat} activeChat={activeChat} chatId={chat.id} loading={loadingMessages} setMessages={setMessages} />
       </div>
 
       

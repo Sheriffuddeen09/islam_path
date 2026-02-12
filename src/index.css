@@ -361,3 +361,16 @@ input{
 textarea {
   outline: 0px;
 }
+
+.lock{
+  animation: scaleUp 2s infinite ease-in-out;
+}
+
+@keyframes scaleUp {
+  from{
+    transform: scaleY(1);
+  }
+  to{
+    transform: scaleY(1.2);
+  }
+}

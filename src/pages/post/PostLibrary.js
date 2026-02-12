@@ -61,45 +61,7 @@ export default function PostLibrary() {
     }
   };
 
-  const handleDownload = async (post) => {
-    setDownLoading(true)
-  try {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch(
-      `http://localhost:8000/api/download-post/${post.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!res.ok) throw new Error("Download failed");
-
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-
-    // ✅ FORCE DEFAULT FILE NAME
-    link.download = "IPK Video.mp4";
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    showNotification("Downloading Video...");
-  } catch (err) {
-    console.error(err);
-    showNotification("Failed to download Video!");
-  }
-  finally{
-    setDownLoading(false)
-  }
-};
-
+  
 
   if (loading)
     return (
@@ -122,7 +84,7 @@ export default function PostLibrary() {
           key={post.id}
           className="relative border rounded overflow-hidden hover:shadow-xl transition"
         >
-         <Library post={post} handleDownload={handleDownload} handleRemove={handleRemove}
+         <Library post={post} handleRemove={handleRemove}
          deleteLoading={deleteLoading} downloading={downloading} />
         </div>
       ))}

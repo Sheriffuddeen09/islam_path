@@ -62,37 +62,7 @@ useEffect(() => {
 }, []);
 
 
-  const handleRequest = async (teacherId) => {
-  if (loadingId !== null) return;
-
-  if (!authReady) return;
-
-  if (user.role === "admin") {
-    setNotification({ type: "error", text: "Admins cannot send requests" });
-    return;
-  }
-
-  setLoadingId(teacherId);
-
-  try {
-    await sendLiveRequest(teacherId);
-
-    setRequestStatus((prev) => ({
-      ...prev,
-      [teacherId]: "pending",
-    }));
-
-    setNotification({ type: "success", text: "Request sent" });
-  } catch (err) {
-    setNotification({
-      type: "error",
-      text: err.response?.data?.message || "Request failed",
-    });
-  } finally {
-    setLoadingId(null); // ✅ THIS FIXES THE STUCK LOADING
-  }
-};
-
+  
 
   useEffect(() => {
   if (!notification) return;
@@ -173,7 +143,7 @@ const filteredCourse = teachers
         </aside>
 
 <div className="md:hidden block">
-        <ul className="flex space-x-1 w-full py-2 px-2 -mb-16 mt-24 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+        <ul className="flex space-x-1 w-80 py-2 px-2 -mb-16 mt-24 items-center mx-auto overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
   <li
     onClick={() => setSelectedCoursetitles(null)}
     className={`cursor-pointer whitespace-nowrap px-4 py-1 font-semibold w-24 h-10 mx-auto flex flex-col items-center justify-center  rounded-lg ${
@@ -201,7 +171,7 @@ const filteredCourse = teachers
 </ul>
 </div>
         {/* Main Content */}
-        <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 md:ml-40 flex flex-col items-center">
+        <div className="flex-1 transition-all p-4 sm:mt-20 mt-10 lg:ml-64 md:ml-40 flex flex-col items-center">
           {loading ? (
             // Skeleton loader lg:ml
             <div className="space-y-4 w-full max-w-md">
@@ -225,9 +195,9 @@ const filteredCourse = teachers
               <ul className="grid 
   grid-cols-1 
   md:grid-cols-2 
-  lg:grid-cols-3  
+  lg:grid-cols-3  space-x-3 space-y-0
   justify-items-center items-center
-  gap-3  w-full">
+  w-full">
                 {filteredCourse.map((t) => (
             
                   <li key={t.id}>
@@ -236,9 +206,12 @@ const filteredCourse = teachers
 
                 {/* Video Thumbnail */}
                 <div>
-                 <MentorCard t={t} selectedTeacher={selectedTeacher} handleRequest={handleRequest}
+                 <MentorCard t={t} selectedTeacher={selectedTeacher} 
                  loadingId={loadingId} notification={notification} filteredCourse={filteredCourse}
-                 setRequestStatus={setRequestStatus} requestStatus={requestStatus} setSelectedTeacher={setSelectedTeacher}
+                 setRequestStatus={setRequestStatus} requestStatus={requestStatus} 
+                 setSelectedTeacher={setSelectedTeacher} setLoadingId={setLoadingId} 
+                 setNotification={setNotification} sendLiveRequest={sendLiveRequest}
+                user={user} authReady={authReady}
                  />
                 </div>
               </li>

@@ -3,7 +3,7 @@ import api from "../../Api/axios";
 import PostCardVideo from "./PostCardVideo";
 
 export default function PostFeedVideo({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
-  showEmoji, setShowEmoji, emojiList, setEmojiList,
+  showEmoji, setShowEmoji, emojiList, setEmojiList,messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
@@ -67,7 +67,10 @@ export default function PostFeedVideo({posts, setPosts, image, postComments, set
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        />
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}/>
       ))}
       </div>
      

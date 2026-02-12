@@ -3,7 +3,7 @@ import PostFeed from "./post/PostFeed";
 
 export default function HomePage({posts, setPosts, image, setImage, postComments,
    setPostComments, loading, setLoading, setShowUsersPopup, showUsersPopup, emojiList, setEmojiList, 
-    showEmoji, setShowEmoji, newComment, setNewComment
+    showEmoji, setShowEmoji, newComment, setNewComment, messageOpen, setMessageOpen, chats, setChats
   }) {
 
 
@@ -15,7 +15,11 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
       postComments={postComments} setPostComments={setPostComments} 
-      loading={loading} setLoading={setLoading} />
+      loading={loading} setLoading={setLoading}
+      messageOpen={messageOpen}
+      setMessageOpen={setMessageOpen}
+      chats={chats}
+      setChats={setChats} />
     </div>
   )
 }

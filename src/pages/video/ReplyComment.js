@@ -401,7 +401,7 @@ const contentEdit = (
             <button onClick={sendTextReply} className="px-3 py-1 absolute right-5 top-3 text-white rounded">
                 {isSubmitting ? (
     <svg
-      className="animate-spin h-5 w-5 text-white"
+      className="animate-spin h-5 w-5 text-white mx-auto flex justify-center items-center"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

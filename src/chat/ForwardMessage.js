@@ -41,7 +41,13 @@ export function ForwardModal({ messages, users, onSend, onClose }) {
                 selectedUsers.includes(user.id) ? "bg-gray-700" : ""
               }`}
             >
-              {user.first_name} {user.last_name} ({user.role})
+              {user.other_user
+                ? `${user.other_user.first_name} ${user.other_user.last_name} ( ${user.other_user.role} )`
+                : user.teacher
+                  ? `${user.teacher.first_name} ${user.teacher.last_name } ( ${user.teacher.role} )`
+                  : user.student
+                    ? `${user.student.first_name} ${user.student.last_name} ( ${user.student.role} )`
+                    : "Unknown User"}
             </button>
           ))}
         </div>

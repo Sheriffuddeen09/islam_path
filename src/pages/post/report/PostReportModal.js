@@ -8,7 +8,6 @@ export function PostReportModal({ post, onClose }) {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
 
   // determine who is being reported
 

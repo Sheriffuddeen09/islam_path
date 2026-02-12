@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { useAuth } from "../layout/AuthProvider";
 import { useParams } from "react-router-dom";
+import { Lock } from "lucide-react";
 
 export default function GetMentorProfileId() {
   const { user } = useAuth();
@@ -13,6 +14,27 @@ export default function GetMentorProfileId() {
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState(null);
   const [teacher, setTeacher] = useState(null);
+
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [adsWatched, setAdsWatched] = useState(0);
+  const [loadingUnlock, setLoadingUnlock] = useState(false);
+
+  
+ const [badges, setBadges] = useState({
+  total: 0,
+});
+
+
+useEffect(() => {
+  api.get("/api/student/badges")
+    .then(res => {
+      setBadges(res.data);
+    })
+    .catch(() => {
+      setBadges({ total: 0});
+    });
+}, []);
+
 
 const [error, setError] = useState("");
 
@@ -46,7 +68,7 @@ const [error, setError] = useState("");
  
 
 
-  const sendLiveRequest = async (teacherId) => {
+   const sendLiveRequest = async (teacherId) => {
     return api.post("/api/live-class/request", {
       teacher_id: teacherId,
     });
@@ -107,6 +129,57 @@ useEffect(() => {
       setLoadingId(null);
     }
   };
+  
+const handleUnlock = async (teacherId) => {
+
+  if (loadingId !== null) return;
+    
+  if (!authReady) return;
+  setLoadingId(teacherId);
+
+  if (user.role === "admin") {
+    setNotification({ type: "error", text: "Admins cannot send requests" });
+    return;
+  }
+
+  if (badges.total < 20) return;
+
+  setLoadingUnlock(true);
+  try {
+   const res = await sendLiveRequest(teacherId);
+   setRequestStatus((prev) => ({
+    ...prev,
+    [teacherId]: "pending",
+  }));
+    setBadges({ total: res.data.total }); // ✅ updated from backend
+    setShowUnlockModal(false);
+  setNotification({ type: "success", text: "Request sent" });
+      } catch (err) {
+        setNotification({
+          type: "error",
+          text: err.response?.data?.message || "Request failed",
+        });
+      } finally {
+        setLoadingId(null); // ✅ THIS FIXES THE STUCK LOADING
+    setLoadingUnlock(false);
+  }
+};
+
+
+
+const handleWatchAd = async () => {
+  if (adsWatched >= 6) return;
+
+  try {
+    const res = await api.post("/api/student/watch-ad");
+
+    // backend should return new total
+    setBadges({ total: res.data.total });
+    setAdsWatched(prev => prev + 1);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
   useEffect(() => {
   if (!notification) return;
@@ -185,43 +258,11 @@ useEffect(() => {
                   )}
 
                   {/* Request Button */}
-                  <button
-                    onClick={() => handleRequest(teacher.id)}
-                    disabled={loadingId === teacher.id}
-                    className="text-white"
-                  >
-                    {loadingId === teacher.id ? (
-                      <div className="bg-gray-500 px-5 py-3 rounded-xl flex items-center">
-                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      </div>
-                    ) : (
-                      <>
-                        {requestStatus[teacher.id] === "pending" && (
-                          <span className="bg-blue-600 hover:bg-blue-500 px-5 py-3 rounded-xl text-xs font-semibold">
-                            Pending
-                          </span>
-                        )}
-
-                        {requestStatus[teacher.id] === "accepted" && (
-                          <span className="bg-gray-100 text-gray-700 px-5 py-3 rounded-xl text-xs font-semibold">
-                            Accepted
-                          </span>
-                        )}
-
-                        {requestStatus[teacher.id] === "declined" && (
-                          <span className="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-xl text-xs font-semibold">
-                            Resend
-                          </span>
-                        )}
-
-                        {!requestStatus[teacher.id] && (
-                          <span className="bg-green-600 hover:bg-green-500 px-5 py-3 rounded-xl text-xs font-semibold">
-                            Request Class
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </button>
+                <button
+                  onClick={() => setShowUnlockModal(true)}
+                  className="text-white w-32 whitespace-nowrap bg-green-600 rounded-lg px-4 text-xs py-3 hover:bg-green-500">
+                  Send Request
+              </button>
                 </div>
               </div>
               </div>
@@ -299,6 +340,63 @@ useEffect(() => {
             </div>
          
         </div>
+
+        {showUnlockModal && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-5 w-80 text-center relative">
+      <div className="inline-flex items-end text-black gap-2">
+      <Lock />
+      <h2 className="font-bold text-lg  text-black ">Unlock Teacher</h2>
+      </div>
+    <hr />
+      <button
+        disabled={adsWatched >= 6}
+        onClick={handleWatchAd}
+        className={`w-44 text-xs py-1 mb-12 border-b-2 mt-10 flex justify-center text-center  rounded-lg  text-white ${
+          adsWatched >= 6 ? "bg-gray-300" : "bg-blue-600 text-white"
+        }`}
+      >
+        Watch Ad (+5 badges) ({adsWatched}/6)
+      </button>
+      <div className="flex text-black flex-col mb-10 gap-2">
+        <Lock className="lock  p-1 w-8 h-8 mx-auto border-2 border-black rounded-full"/>
+      <p className="font-bold text-lg ">Badges Required <b>20</b> 🏅</p>
+      </div>
+      <button
+        disabled={badges.total < 20 || loadingUnlock}
+        onClick={() => handleRequest(teacher.id)}
+        className={`w-52  py-3 rounded-full font-bold z-50 text-white ${
+          badges.total >= 20 ? "bg-red-600" : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
+        {loadingUnlock ? 
+        <p className="flex items-center gap-2">
+          <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
+        </p>
+        : "Unlock"}
+      </button>
+
+      {badges.total < 20 && (
+        <p className="text-sm text-red-500 font-bold mt-2 text-xs ">
+          Your badge is low. Watch ads or pass exam to earn badges.
+        </p>
+      )}
+
+      <button
+        onClick={() => setShowUnlockModal(false)}
+        className="mt-3 top-0 right-2 absolute rounded-full"
+      >
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
+            w-10  h-10 cursor-pointer">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+      </button>
+      <div className="inline-flex text-black mt-4 gap-2 items-center">
+      <p className="font-bold text-sm">Balance: <b>{badges.total}</b> 🏅</p>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Toast */}
       {notification && (

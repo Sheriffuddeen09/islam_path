@@ -20,7 +20,8 @@ export default function MessageBubble({
   forwardModalOpen,
   setSelectedMessages,
   users,
-  setReplyingTo
+  setReplyingTo,
+  chats
 }) {
 
   const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -182,6 +183,8 @@ const renderReply = (
 
 
     const linkifyText = (text) => {
+  if (!text || typeof text !== "string") return null; // ✅ guard
+
   const urlRegex = /(https?:\/\/[^\s]+)/g;
 
   return text.split(urlRegex).map((part, index) => {
@@ -198,10 +201,10 @@ const renderReply = (
         </a>
       );
     }
-
     return <span key={index}>{part}</span>;
   });
 };
+
 
 
   const renderContent = () => {
@@ -224,7 +227,7 @@ const renderReply = (
       default:
             return (
               <span className="whitespace-pre-wrap w-full break-words">
-                {linkifyText(message.message)}
+                { message.message && linkifyText(message.message)}
               </span>
             );
     }
@@ -232,8 +235,14 @@ const renderReply = (
 
   const content = (
     <div className={`flex flex-col mb-6 ${isMe ? "items-end" : "items-start"} relative`}>
-      <div className={`flex mb- ${isMe ? "justify-end" : "justify-start"}`}>
-  
+     
+      <div className={`flex items- justify-center gap-1  `}>
+      {!isMe && (
+        <div className="w-10 pb-1 h-10 text-4xl rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+          {message.sender?.first_name?.[0] || "U"}
+        </div>
+      )}
+      
       <div>
         <div className={`p-3 rounded-lg flex flex-col max-w-xs gap-1 relative ${bubbleColor}`}>
           {message.forwarded_from && <span className="text-xs text-gray-400 mb-1">Forwarded</span>}
@@ -264,10 +273,10 @@ const renderReply = (
             }
           </span>
         )}
+
+        
       </div>
 
-
-          
         </div>
           <div className={`flex  flex-col mb-3 ${isMe ? "items-end" : "items-start"} group relative inline-block" `}>
       {emojiarray}
@@ -312,15 +321,21 @@ const renderReply = (
         onClick={handleOpen}
         className="bg-gray-800 p-1 rounded-full hover:bg-gray-900"
       >
-       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-white">
-  <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
-</svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4 text-white">
+        <path fill-rule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clip-rule="evenodd" />
+      </svg>
 
       </button>
      
         </div>
       </div>
         </div>
+
+        {isMe && (
+        <div className="w-10 pb-1 h-10 text-4xl rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+          {message.sender?.first_name?.[0] || "U"}
+        </div>
+      )}
           </div>
       {/* Preview Modal */}
       {preview.open && (
@@ -389,7 +404,7 @@ const renderReply = (
       { forwardModalOpen &&(
       <ForwardModal
           messages={selectedMessages}
-          users={users}
+          users={chats}
           onSend={(selectedUserIds) => {
             forwardMessages(selectedMessages.map(m => m.id), selectedUserIds);
           }}

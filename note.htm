@@ -5,180 +5,293 @@ working on
 * add report comment
 
 1. why does the ast crop image show black
-2. views
-3. share
 
-1. when the video load it was show 0.00 the play is diabla, fullscreen, and speacker are diable 
-it think i need videoStream to make it work right 
-{media?.type === "video" && (
-          <video
-            src={`${api}/storage/${media.path}`}
-            className="w-full h-full object-cover"
-            controls
-          />
-        )}
 
-        but this is not working 
-        use Illuminate\Http\Request;
-use App\Models\Post;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+1. "message": "The POST method is not supported for route api/chats/1/messages. Supported methods: GET, HEAD.",
+    "exception": "Symfony\\Component\\HttpKernel\\Exception\\MethodNotAllowedHttpException",
+    "file": "C:\\Users\\Sheriffuddeen\\knowledge_path\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\AbstractRouteCollection.php",
+    "line": 131,
+    "trace": [
 
-class VideoStreamController extends Controller
+2. share count is not showing 
+public function index()
 {
-    public function stream(Request $request, Post $video)
-    {
-        // ✅ Correct storage path
-        $path = storage_path('app/public/' . $video->video_path);
+    $posts = Post::whereDoesntHave('hiddenBy', function ($q) {
+            $q->where('user_id', auth()->id())
+              ->where('hidden_until', '>', now());
+        })
+        ->with([
+            'user:id,first_name,last_name,image',
+            'reactions',
+            'comments',
+            'media'
+        ])
+        ->latest()
+        ->get()
+        ->map(function ($post) {
+            return [
+                'id' => $post->id,
+                'content' => $post->content,
 
-        if (!file_exists($path)) {
-            abort(404, 'Post file not found');
-        }
+                'media' => $post->media->map(fn ($m) => [
+                    'id' => $m->id,
+                    'type' => $m->type, // image | video
+                    'url' => asset('storage/' . $m->path),
+                ]),
 
-        $size = filesize($path);
-        $start = 0;
-        $length = $size;
-        $end = $size - 1;
+                'created_at' => $post->created_at->diffForHumans(),
 
-        // ✅ Range support (required for HTML5 video)
-        if ($request->headers->has('Range')) {
-            [$unit, $range] = explode('=', $request->header('Range'));
-            [$rangeStart, $rangeEnd] = explode('-', $range);
+                'user' => [
+                    'id' => $post->user->id,
+                    'name' => $post->user->first_name.' '.$post->user->last_name,
+                    'role' => $post->user->role,
+                ],
 
-            $start = intval($rangeStart);
-            $end = $rangeEnd === '' ? $size - 1 : intval($rangeEnd);
-            $length = $end - $start + 1;
+                'reactions_count' => $post->reactions->count(),
+                'comments_count' => $post->comments->count(),
+            ];
+        });
 
-            return response()->stream(function () use ($path, $start, $length) {
-                $file = fopen($path, 'rb');
-                fseek($file, $start);
-
-                $buffer = 8192;
-                $remaining = $length;
-
-                while ($remaining > 0 && !feof($file)) {
-                    $read = min($buffer, $remaining);
-                    echo fread($file, $read);
-                    flush();
-                    $remaining -= $read;
-                }
-
-                fclose($file);
-            }, 206, [
-                'Content-Type' => 'video/mp4',
-                'Content-Length' => $length,
-                'Content-Range' => "bytes $start-$end/$size",
-                'Accept-Ranges' => 'bytes',
-            ]);
-        }
-
-        // Full file
-        return response()->file($path, [
-            'Content-Type' => 'video/mp4',
-            'Content-Length' => $size,
-            'Accept-Ranges' => 'bytes',
-        ]);
-    }
-}
-
-        Route::get('/video/stream/{video}', [VideoStreamController::class, 'stream'])
-    ->name('video.stream')
-    ->middleware('signed');
-2. use this as example to create download for my video and image but seperate the video and image let 
-each have their download to avoid conflict and if the image is more than one user should be able to select 
-the one to download, so video to have it own download and image to have it own download and their button 
-to be different 
-
-use this as example because this work 
-public function download(Request $request, $id)
-{
-    $user = $request->user();
-    $video = Video::findOrFail($id);
-    if ($user) {
-        $user->library()->syncWithoutDetaching([$video->id]);
-
-        VideoDownload::updateOrCreate([
-            'user_id' => $user->id,
-            'video_id' => $video->id,
-        ]);
-    }
-    $path = storage_path('app/public/' . $video->video_path);
-    if (!file_exists($path)) {
-        return response()->json(['error' => 'File not found'], 404);
-    }
-    return response()->download($path, 'IPK video.mp4', [
-        'Content-Type' => 'video/mp4'
+    return response()->json([
+        'status' => true,
+        'posts' => $posts
     ]);
 }
-3. the image showing only border and white background and add scrollbar to it 
-export default function ImageGridLibrary({ media = [], postId }) {
-  const navigate = useNavigate();
-  const total = media.length;
-  if (!total) return null;
-  if (total === 1) {
-    return (
-      <img
-        src={media[0].url}
-        className="w-full h-24 rounded-lg cursor-pointer"
-        onClick={() => navigate(`/post/image/${postId}`)}
-      />
-    );
-  }
-  if (total === 2) {
-    return (
-      <div className="grid grid-cols-2 gap-1">
-        {media.map(img => (
-          <img
-            key={img.id}
-            src={img.url}
-            className="h-24 w-full rounded-lg cursor-pointer"
-            onClick={() => navigate(`/post/image/${postId}`)}
-          />
-        ))}
-      </div>
-    );
-  }
-  if (total === 3) {
-    return (
-      <div className="grid grid-cols-2 gap-0.5">
-        <img
-          src={media[0].url}
-          className="row-span-2 h-full w-full rounded-lg cursor-pointer"
-          onClick={() => navigate(`/post/image/${postId}`)}
-        />
+        
 
-        {media.slice(1).map(img => (
-          <img
-            key={img.id}
-            src={img.url}
-            className="h-32  w-full rounded-lg cursor-pointer"
-            onClick={() => navigate(`/post/image/${postId}`)}
-          />
-        ))}
+public function show(Post $post)
+{
+    $post->load([
+        'user:id,first_name,last_name,image',
+        'media',
+        'reactions',
+        'comments.user',
+        'comments.replies.user',
+    ]);
+
+    return response()->json([
+        'post' => [
+            'id' => $post->id,
+            'content' => $post->content,
+            'created_at' => $post->created_at->diffForHumans(),
+
+            'user' => [
+                'id' => $post->user->id,
+                'name' => $post->user->first_name.' '.$post->user->last_name,
+                'role' => $post->user->role,
+
+            ],
+
+            'media' => $post->media->map(fn ($m) => [
+                'id' => $m->id,
+                'type' => $m->type,
+                'url' => asset('storage/'.$m->path),
+            ]),
+
+            'reactions_count' => $post->reactions->count(),
+            'comments_count' => $post->comments->count(),
+        ]
+    ]);
+}
+
+myRequestList and incomingRequests should show see more if the request or incomingRequests is more than
+two and it show be showing 2 + 2 + 2 for each clicking see more until there is no more request 
+  const [requestStatus, setRequestStatus] = useState({});
+  const [notification, setNotification] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingId, setLoadingId] = useState(null);
+  const [myRequests, setMyRequests] = useState([]);
+  const [loadingAction, setLoadingAction] = useState(null);
+
+
+
+
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        const res = await api.get("/api/student-friend"); 
+        setStudents(res.data.students || []);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudent();
+  }, []);
+
+
+
+const respond = async (id, action) => {
+
+  if (loadingAction) return;
+
+  setLoadingAction({ id, action });
+
+  try{
+
+  await api.post(`/api/student-friend/respond/${id}`, { action });
+
+  // remove instantly from UI
+  setIncomingRequests(prev =>
+    prev.filter(r => r.id !== id)
+  );
+
+  toast.success(`Request ${action}`);
+  }
+
+  catch (err) {
+      console.error("Failed to respond", err);
+      toast.error("Something went wrong!");
+    } finally {
+      setLoadingAction(null);
+    }
+};
+
+useEffect(() => {
+  api.get("/api/student-friend/all-requests")
+    .then(res => {
+      setIncomingRequests(res.data.requests || []);
+    })
+    .catch(() => setIncomingRequests([]));
+}, []);
+
+
+useEffect(() => {
+  api.get("/api/student-friend/my-requests")
+    .then(res => {
+      setMyRequests(res.data.requests || []);
+    })
+    .catch(() => setMyRequests([]));
+}, []);
+
+
+if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
-  }
-  const visible = media.slice(0, 4);
-  const remaining = total - 4;
-  return (
-    <div className="grid grid-cols-2 gap-1 px-4">
-      {visible.map((img, index) => {
-        const isLast = index === 3 && remaining > 0;
-        return (
-          <div
-            key={img.id}
-            className="relative h-20 cursor-pointer"
-            onClick={() => navigate(`/post/image/${postId}`)}
-          >
-            <img
-              src={img.url}
-              className="w-full h-full rounded-lg"
-            />
-            {isLast && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
-                <span className="text-white text-3xl font-bold">
-                  +{remaining}
-                </span>
-              </div>
-            )}
+
+const myRequestList = (
+  <div className="max-w-xl space-y-3 mt-2">
+    {myRequests.map(req => (
+      <div
+        key={req.id}
+        className="flex items-center justify-between bg-white p-4 rounded-lg shadow"
+      >
+        <div className="flex items-center gap-3">
+          <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center mx-auto justify-center text-[80px] font-bold text-gray-600">
+          {req.student?.first_name?.[0]}
+        </div>
+          <div>
+            <p className="font-semibold">
+              {req.student?.first_name} {req.student?.last_name}
+            </p>
+            <p className="text-sm mt-2 font-bold bg-gray-800 p-1 text-white rounded px-3 py-1">
+              Pending request
+            </p>
           </div>
-        );
+        </div>
+      </div>
+    ))}
+
+  </div>
+
+)
+const requestList = (
+  <div className="space-y-3 w-full max-w-xl mt-2">
+    {incomingRequests.map(req => (
+      <div
+        key={req.id}
+        className="flex items-center justify-between bg-white p-4 rounded shadow"
+      >
+        <div className="flex items-center gap-3">
+           <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center mx-auto justify-center text-[80px] font-bold text-gray-600">
+          {req.requester?.first_name?.[0]}
+        </div>
+          <div>
+            <p className="font-semibold">
+              {req.requester?.first_name} {req.requester?.last_name}
+            </p>
+            <p className="text-xs text-gray-500">sent you a request</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => respond(req.id, "accepted")}
+            disabled={
+            loadingAction?.id === req.id &&
+            loadingAction?.action === "accepted"
+          }
+            className="px-3 py-1 bg-green-600 hover:bg-green-700 py-2 px-3 font-semibold text-sm text-white rounded"
+          >
+            {loadingAction?.id === req.id &&
+            loadingAction?.action === "accepted" ? (
+              <svg
+      className="animate-spin h-5 w-5 text-white mx-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+            ) : (
+              "Accept"
+            )}
+          </button>
+
+          <button
+            onClick={() => respond(req.id, "declined")}
+             disabled={
+            loadingAction?.id === req.id &&
+            loadingAction?.action === "declined"
+          }
+            className="px-3 py-1 bg-red-600 hover:bg-red-700 py-2 px-3 font-semibold text-sm text-white rounded"
+          >
+            {loadingAction?.id === req.id &&
+              loadingAction?.action === "declined" ? (
+                <svg
+      className="animate-spin h-5 w-5 text-white mx-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+              ) : (
+                "Decline"
+              )}
+          </button>
+        </div>
+      </div>
+    ))}
+
+  </div>
+);

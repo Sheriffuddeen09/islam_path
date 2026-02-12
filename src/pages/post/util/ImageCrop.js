@@ -41,7 +41,7 @@ export default function ImageCrop({ url, onCropDone, isLast }) {
       <div className="flex items-center justify-center w-full">
         <ReactCrop
           crop={crop}
-          onChange={(_, percentCrop) => setCrop(percentCrop)}
+          onChange={(c) => setCrop(c)}
           onComplete={(c) => setCompletedCrop(c)}
           keepSelection
         >

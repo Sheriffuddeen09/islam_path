@@ -3,7 +3,7 @@ import PostCard from "./PostCard";
 import api from "../../Api/axios";
 
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
-  showEmoji, setShowEmoji, emojiList, setEmojiList,
+  showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
@@ -66,6 +66,10 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
         />
       ))}
@@ -80,6 +84,10 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
         />
       ))}
@@ -129,6 +137,10 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
         />
       ))}
       </div>

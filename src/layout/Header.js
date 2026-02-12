@@ -6,7 +6,9 @@ import { useAuth } from './AuthProvider';
 import LiveClass from '../chat/LiveClass';
 import api from '../Api/axios';
 
-function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat}) {
+function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
+  chats, setChats,handleMessageOpenHeader
+}) {
 
       const [menu, setMenu] = useState(false)
       const [browse, setBrowse] = useState(false)
@@ -115,7 +117,7 @@ function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, set
                 </Link>
                 <Link to={'/create'} className={`${homepage === '/create' ? 'text-blue-400' : 'text-gray-600'} text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer create`}>Create
                 </Link>
-                <button onClick={handleMessageOpen} className={`${messageOpen ? 'text-blue-400' : 'text-gray-600'} text-black
+                <button onClick={handleMessageOpenHeader} className={`${messageOpen ? 'text-blue-400' : 'text-gray-600'} text-black
                  text-gray-600 text-[16px] hover:text-blue-800 rounded-xl lg:p-2 p-1 transition-all duration-500 ease-in-out cursor-pointer logistic`}>Message
                 
                 </button>
@@ -307,7 +309,7 @@ function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, set
 
         <div className={`${messageOpen ? 'block' : 'hidden'}`}>
           <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} 
-          setMessageOpen={setMessageOpen}
+          setMessageOpen={setMessageOpen} chats={chats} setChats={setChats}
           activeChat={activeChat} setActiveChat={setActiveChat} messageOpen={messageOpen}/>
           </div>
         
