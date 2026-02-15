@@ -11,7 +11,8 @@ import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
 import PostLibrary from "../pages/post/PostLibrary";
 
-export default function StudentDashboard ({onCreated, handlePostCreated, handleMessageOpen}){
+export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated, handleMessageOpen}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -237,10 +238,17 @@ export default function StudentDashboard ({onCreated, handlePostCreated, handleM
                  
                
                        {/* ---------------------- MAIN CONTENT ---------------------- */}
-                       <section className="flex-1 p-6 transition-all">
+                       <section className="flex-1 sm:p-6 p-2 transition-all">
                         
                         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-                         <StudentProfilePage handleMessageOpen={handleMessageOpen} />
+                         <StudentProfilePage handleMessageOpen={handleMessageOpen} 
+                         chats={chats} 
+                        image={image} setImage={setImage}
+                        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+                        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+                        newComment={newComment} setNewComment={setNewComment}
+                        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                        emojiList={emojiList} setEmojiList={setEmojiList}/>
                          </div>
                          <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
                          <PostLibrary />

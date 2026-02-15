@@ -94,7 +94,7 @@ useEffect(() => {
 }, []);
 
 
-  const handleRequest = async (teacherId) => {
+  const handleUnlock = async (teacherId) => {
 
     if (loadingId) return;
 
@@ -107,13 +107,14 @@ useEffect(() => {
       return;
     }
 
-    setRequestLoading(true);
-
+    if (badges.total < 20) return;
+    setLoadingUnlock(true);
     try {
-      await sendLiveRequest(teacherId);
+      const res = await sendLiveRequest(teacherId);
       setNotification({ type: "success", text: "Request sent" });
 
-
+      setBadges({ total: res.data.total }); // ✅ updated from backend
+      setShowUnlockModal(false);
       setRequestStatus(prev => ({
         ...prev,
         [teacherId]: "pending",
@@ -125,45 +126,12 @@ useEffect(() => {
         text: err.response?.data?.message || "Request failed",
       });
     } finally {
-      setRequestLoading(false);
+      setLoadingUnlock(false);
       setLoadingId(null);
     }
   };
   
-const handleUnlock = async (teacherId) => {
 
-  if (loadingId !== null) return;
-    
-  if (!authReady) return;
-  setLoadingId(teacherId);
-
-  if (user.role === "admin") {
-    setNotification({ type: "error", text: "Admins cannot send requests" });
-    return;
-  }
-
-  if (badges.total < 20) return;
-
-  setLoadingUnlock(true);
-  try {
-   const res = await sendLiveRequest(teacherId);
-   setRequestStatus((prev) => ({
-    ...prev,
-    [teacherId]: "pending",
-  }));
-    setBadges({ total: res.data.total }); // ✅ updated from backend
-    setShowUnlockModal(false);
-  setNotification({ type: "success", text: "Request sent" });
-      } catch (err) {
-        setNotification({
-          type: "error",
-          text: err.response?.data?.message || "Request failed",
-        });
-      } finally {
-        setLoadingId(null); // ✅ THIS FIXES THE STUCK LOADING
-    setLoadingUnlock(false);
-  }
-};
 
 
 
@@ -190,6 +158,23 @@ const handleWatchAd = async () => {
 
   return () => clearTimeout(timer);
 }, [notification]);
+
+const currentStatus = teacher ? requestStatus[teacher.id] : null;
+
+const isPending = currentStatus === "pending";
+const isAccepted = currentStatus === "accepted";
+const isDisabled = isPending || isAccepted || loadingId === teacher?.id || loadingUnlock;
+
+const getButtonText = () => {
+  if (isAccepted) return "Request Accepted";
+  if (isPending) return "Request Pending";
+  return <button
+        onClick={() => setShowUnlockModal(true)}
+        className="">
+        Send Request
+    </button>;
+};
+
 
 
   if (loading)
@@ -259,10 +244,23 @@ const handleWatchAd = async () => {
 
                   {/* Request Button */}
                 <button
-                  onClick={() => setShowUnlockModal(true)}
-                  className="text-white w-32 whitespace-nowrap bg-green-600 rounded-lg px-4 text-xs py-3 hover:bg-green-500">
-                  Send Request
-              </button>
+              disabled={isDisabled}
+              onClick={() => {
+                if (!isDisabled) setShowUnlockModal(true);
+              }}
+              className={`text-white w-32 whitespace-nowrap rounded-lg px-4 text-xs py-3 transition
+                ${
+                  isAccepted
+                    ? "bg-green-500 cursor-not-allowed"
+                    : isPending
+                    ? "bg-gray-200 text-gray-800 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-500"
+                }
+              `}
+            >
+              {getButtonText()}
+            </button>
+
                 </div>
               </div>
               </div>
@@ -364,7 +362,7 @@ const handleWatchAd = async () => {
       </div>
       <button
         disabled={badges.total < 20 || loadingUnlock}
-        onClick={() => handleRequest(teacher.id)}
+        onClick={() => handleUnlock(teacher.id)}
         className={`w-52  py-3 rounded-full font-bold z-50 text-white ${
           badges.total >= 20 ? "bg-red-600" : "bg-gray-400 cursor-not-allowed"
         }`}

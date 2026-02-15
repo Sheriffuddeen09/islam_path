@@ -7,6 +7,7 @@ export default function GetMentorProfile() {
   const [loading, setLoading] = useState(true);
   const [teacher, setTeacher] = useState(null); 
   const [error, setError] = useState("");
+  
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -37,7 +38,7 @@ export default function GetMentorProfile() {
   if (loading)
     return (
       <div className="flex items-center mt-5 justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
     

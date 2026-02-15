@@ -274,7 +274,14 @@ function App() {
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <TeacherDashboardLayout onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
-          teachers={teachers} setTeachers={setTeachers}  />
+          teachers={teachers} setTeachers={setTeachers} chats={chats} 
+          image={image} setImage={setImage}
+          postComments={postComments} setPostComments={setPostComments} loading={loading} 
+          setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+          newComment={newComment} setNewComment={setNewComment}
+          showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+          emojiList={emojiList} setEmojiList={setEmojiList}
+          />
         </ProtectedRoute>
       } />
 
@@ -283,6 +290,13 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentDashboard onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
+              chats={chats} 
+              image={image} setImage={setImage}
+              postComments={postComments} setPostComments={setPostComments} loading={loading} 
+              setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+              newComment={newComment} setNewComment={setNewComment}
+              showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+              emojiList={emojiList} setEmojiList={setEmojiList}
                />
             </ProtectedRoute>
           }

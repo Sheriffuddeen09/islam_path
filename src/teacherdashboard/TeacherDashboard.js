@@ -3,7 +3,6 @@ import api from "../Api/axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
-import CreateVideoSection from "./CreateVideo";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -16,7 +15,10 @@ import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
 import PostLibrary from "../pages/post/PostLibrary";
 
-export default function TeacherDashboardLayout({onCreated, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen}) {
+export default function TeacherDashboardLayout({chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
+  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
@@ -296,10 +298,16 @@ export default function TeacherDashboardLayout({onCreated, handlePostCreated, us
       </aside>
 
       {/* ---------------------- MAIN CONTENT ---------------------- */}
-      <section className="flex-1 p-6 transition-all">
+      <section className="flex-1 sm:p-6 p-2 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-        <ProfilePage handleVisible={handleVisible} user={user} setUser={setUser} 
+        <ProfilePage chats={chats} handleVisible={handleVisible} user={user} setUser={setUser} 
         teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} handleMessageOpen={handleMessageOpen}
+        image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
          />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>

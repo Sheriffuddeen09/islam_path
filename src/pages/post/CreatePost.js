@@ -312,7 +312,7 @@ const submitPost = async () => {
             <img
               key={i}
               src={URL.createObjectURL(img)}
-              className="rounded-lg"
+              className="rounded-lg h-48 w-full"
             />
           ))}
       </div>

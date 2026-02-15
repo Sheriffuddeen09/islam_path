@@ -7,21 +7,27 @@ export default function PostFeedVideo({posts, setPosts, image, postComments, set
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setFeedLoading(true)
-      try {
-        const res = await api.get("/api/posts-get");
-        setPosts(res.data.posts);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setFeedLoading(false);
-      }
-    };
+  const fetchPosts = async () => {
+  setFeedLoading(true);
+  try {
+    const res = await api.get("/api/posts-get");
 
-    fetchPosts();
-  }, []);
+    const onlyVideoPosts = res.data.posts.filter(p =>
+      p.media?.some(m => m.type === "video")
+    );
+
+    setPosts(onlyVideoPosts);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setFeedLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchPosts();
+}, []);
+
 
   if (feedLoading) return (
       <div className="flex items-center justify-center h-screen">

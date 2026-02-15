@@ -6,18 +6,25 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import StudentProfileFriendDashboard from "./StudentProfileFriendDashboard";
 import LogoutButton from "../Form/LogOut";
-import VideoList from "../teacherdashboard/VideoList";
+import MyPosts from "./mediaprofile/PostProfile";
+import MyVideos from "./mediaprofile/VideoProfile";
+import MyImages from "./mediaprofile/ImageProfile";
 
 
-export default function StudentProfilePage({handleMessageOpen}) {
+export default function StudentProfilePage({handleMessageOpen,  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats}) {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [isloading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [editContent, setEditContent] = useState("");
 
   const [badges, setBadges] = useState({
   total: 0,
@@ -71,6 +78,7 @@ useEffect(() => {
   
 
   const fetchProfile = async () => {
+    setLoadingProfile(true);
 
   try {
     const res = await api.get(`/api/profile`);
@@ -85,7 +93,7 @@ useEffect(() => {
   } catch (err) {
     console.error(err);
   } finally {
-    setLoading(false);
+    setLoadingProfile(false);
   }
 };
 
@@ -119,7 +127,7 @@ const badge = (
   )
   
 
-  if (loading) return <Loader />;
+  if (loadingProfile) return <Loader />;
 
   if (!profile) return <p>Profile not found</p>;
 
@@ -157,12 +165,35 @@ const badge = (
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-        All Post Loading
-          </div>
-          
-          <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-            <VideoList />
-        </div>
+                    <MyPosts chats={chats} 
+                    image={image} setImage={setImage}
+                    postComments={postComments} setPostComments={setPostComments} loading={loading} 
+                    setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+                    newComment={newComment} setNewComment={setNewComment}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                    emojiList={emojiList} setEmojiList={setEmojiList}
+                    editContent={editContent} setEditContent={setEditContent}
+                    showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                    showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                    selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                    />
+                  </div>
+                  <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
+                    <MyVideos chats={chats} 
+                    editContent={editContent} setEditContent={setEditContent}
+                    showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                    showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                    selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                    />
+                    </div>
+                    <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+                    <MyImages chats={chats} 
+                    editContent={editContent} setEditContent={setEditContent}
+                    showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                    showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                    selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                    />
+                    </div>
         <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
             <Performance badges={badges} />
         </div>

@@ -21,19 +21,29 @@ export default function ImageCrop({ url, onCropDone, isLast }) {
   };
 
   const handleFinishCrop = async () => {
-    if (!completedCrop || !imgRef.current) return;
+  if (!imgRef.current) return;
 
-    const blob = await canvasPreview(imgRef.current, completedCrop);
+  let cropToUse = completedCrop;
 
-    if (!blob) return;
+  // If user didn't crop, use full image
+  if (!cropToUse || !cropToUse.width || !cropToUse.height) {
+    cropToUse = {
+      unit: "px",
+      x: 0,
+      y: 0,
+      width: imgRef.current.naturalWidth,
+      height: imgRef.current.naturalHeight,
+    };
+  }
 
-    // preview
-    const preview = URL.createObjectURL(blob);
-    setPreviewUrl(preview);
+  const blob = await canvasPreview(imgRef.current, cropToUse);
+  if (!blob) return;
 
-    // send to parent
-    onCropDone(blob);
-  };
+  const preview = URL.createObjectURL(blob);
+  setPreviewUrl(preview);
+  onCropDone(blob);
+};
+
 
   return (
     <div className="flex flex-col items-center justify-center w-full relative">
@@ -50,11 +60,16 @@ export default function ImageCrop({ url, onCropDone, isLast }) {
             src={url}
             alt="Crop"
             onLoad={onImageLoad}
-            className="sm:h-96 h-60 max-w-[80vw] object-contain"
+            className="sm:h-96 h-60 max-w-[80vw] object-cover"
           />
         </ReactCrop>
       </div>
 
+      {/* note */}
+      <marquee behavior="scroll" direction="left" scrollamount="6" className="text-xs font-bold mt-4">
+      👉 if you click on the Crop & Next without Cropping it will make the image have a black background, 
+        to avoid it click the skip button.
+      </marquee>
       {/* ACTION BUTTON */}
       <div className="inline-flex items-center gap-3 justify-center mt-4">
       <button
@@ -63,7 +78,18 @@ export default function ImageCrop({ url, onCropDone, isLast }) {
       >
         {isLast ? "Crop" : "Crop & Next"}
       </button>
-
+      
+      <button
+        onClick={() => {
+          // Send original file/blob without canvas
+          fetch(url)
+            .then(res => res.blob())
+            .then(blob => onCropDone(blob));
+        }}
+        className="mt-4 bg-gray-500 text-white px-6 py-2 rounded"
+      >
+        Skip
+      </button>
       {/* PREVIEW AFTER CROP absolute top-2 right-2 bg-white p-2 rounded shadow-lg*/}
       {previewUrl && (
         <div className="">

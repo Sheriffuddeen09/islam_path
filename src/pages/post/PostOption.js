@@ -11,11 +11,11 @@ export default function PostOptions({ post,  chats }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
-  const [shares, setShares] = useState(false);
   const [openReport, setOpenReport] = useState(false)
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [messageOpenShare, setMessageOpenShare,] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
+  const [shares, setShares] = useState(false);
   const [sending, setSending] = useState(false);
 
 
@@ -151,6 +151,7 @@ const downloadSingleImage = async (img) => {
     window.location.href = `/profile/${currentUser?.user?.id}`;
   };
 
+  
   const handleOption = () =>{
     setOpen(!open)
   }

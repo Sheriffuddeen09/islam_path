@@ -4,20 +4,29 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LogoutButton from "../Form/LogOut";
 import GetMentorProfile from "./GetMentorProfile";
-import VideoList from "./VideoList";
 import AdminProfileFriendDashboard from "./AdminProfileFriendDashboard"
+import MyPosts from "./mediaprofile/PostProfile";
+import MyVideos from "./mediaprofile/VideoProfile";
+import MyImages from "./mediaprofile/ImageProfile";
 
 
-export default function ProfilePage({teachers, setTeachers, handleEdit, handleMessageOpen}) {
+export default function ProfilePage({teachers, chats, setTeachers, handleEdit, handleMessageOpen, 
+  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
+}) {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [isloading, setIsLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [editContent, setEditContent] = useState("");
  
    useEffect(() => {
   const loadData = async () => {
@@ -71,7 +80,7 @@ useEffect(() => {
  
 
   const fetchProfile = async () => {
-
+    setProfileLoading(true)
   try {
     const res = await api.get(`/api/profile`);
     setProfile(res.data);
@@ -85,7 +94,7 @@ useEffect(() => {
   } catch (err) {
     console.error(err);
   } finally {
-    setLoading(false);
+    setProfileLoading(false);
   }
 };
 
@@ -108,11 +117,11 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   
 
 
-  if (loading) return <Loader />;
+  if (profileLoading) return <Loader />;
 
   if (!profile) return <p>Profile not found</p>;
 
-
+//bg-gray-
   const headerDashboard = (
    <div>
      <div className="flex justify-end mb-6">
@@ -233,16 +242,43 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           }`}>Video</button>
           <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
              === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+          }`}>Photo</button>
+          <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+             === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>Teacher Profile</button>
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-        All Post Loading
+            <MyPosts chats={chats} 
+            image={image} setImage={setImage}
+            postComments={postComments} setPostComments={setPostComments} loading={loading} 
+            setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+            newComment={newComment} setNewComment={setNewComment}
+            showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+            emojiList={emojiList} setEmojiList={setEmojiList}
+            editContent={editContent} setEditContent={setEditContent}
+            showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+            showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+            selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+            />
           </div>
           <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-            <VideoList />
+            <MyVideos chats={chats} 
+            editContent={editContent} setEditContent={setEditContent}
+            showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+            showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+            selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+            />
             </div>
-          <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+            <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+            <MyImages chats={chats} 
+            editContent={editContent} setEditContent={setEditContent}
+            showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+            showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+            selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+            />
+            </div>
+          <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
             <GetMentorProfile teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit}/>
         </div>
         </div>

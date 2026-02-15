@@ -74,11 +74,11 @@ export default function ImageGridLibrary({ media = [], postId }) {
               src={getSrc(img)}
               className="w-full h-full rounded-lg object-cover"
             />
-            {/* {isLast && (
+            {isLast && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
                 <span className="text-white text-2xl font-bold">+{remaining}</span>
               </div>
-            )} */}
+            )}
           </div>
         );
       })}
