@@ -3,7 +3,7 @@ import api from "../../Api/axios";
 import VideoCardProfileId from "./VideoCardProfileId";
 import { useParams } from "react-router-dom";
 
-export default function MyVideosIdAdmin({chats, editContent, selectedPost,
+export default function MyVideosIdStudent({chats, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,}) {
     const [videoLoading, setVideoLoading] = useState(true);
     const [posts, setPosts] = useState([]);

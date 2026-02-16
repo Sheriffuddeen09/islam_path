@@ -43,7 +43,14 @@ useEffect(() => {
   }
 
   return(
-
+<>
+    {
+      posts.length === 0 &&(
+        <p className="my-8 text-center text-black font-bold text-sm sm:text-xl">
+          No Video to Display
+        </p>
+      )
+    }
   <div className="grid lg:grid-cols-3 mdgrid-cols-2 pb-10 grid-cols-1 gap-4">
   {posts.flatMap(p =>
     (p.media || [])
@@ -59,6 +66,6 @@ useEffect(() => {
       ))
   )}
 </div>
-
+</>
 )
 }

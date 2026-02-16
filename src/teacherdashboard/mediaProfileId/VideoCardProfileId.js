@@ -3,7 +3,7 @@ import api from "../../Api/axios";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 
-export default function VideoCardProfile({ v, post, setSelectedPost,
+export default function VideoCardProfileId({ v, post, setSelectedPost,
   setShowDeleteModal, chats, showDeleteModal, selectedPost, setPosts }) {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
@@ -26,17 +26,6 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
       setOpenOptionId(!openOptionId)
     }
   
-
-    const handleDelete = async (id) => {
-        try {
-          setLoadingProfile(true);
-          await api.delete(`/api/posts-single/${id}`);
-          setPosts(prev => prev.filter(p => p.id !== id));
-          setShowDeleteModal(false);
-        } finally {
-          setLoadingProfile(false);
-        }
-      };
     
   
    const shareUrl = `${window.location.origin}/post/${post?.id}/share`;
@@ -140,15 +129,7 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
         {openOption && (
         <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
             
-            <button 
-            onClick={() => {
-              setSelectedPost(post);
-              setShowDeleteModal(true);
-              handleOption(); 
-            }} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Delete
-            </button>
+           
             <button onClick={() => {handleOption(); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
               Share
@@ -180,15 +161,7 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
       {openOptionId && (
         <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
             
-            <button 
-            onClick={() => {
-              setSelectedPost(post);
-              setShowDeleteModal(true);
-              handleOptionId(); 
-            }} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Delete
-            </button>
+           
             <button onClick={() => {handleOptionId(); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
               Share
@@ -344,28 +317,6 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
         </div>
       </div>
     )}
-
-{showDeleteModal && (
-                      <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-72 text-center">
-                          <p>Are you sure you want to delete this post?</p>
-
-                          <div className="flex justify-end gap-2 mt-3">
-                            <button className="text-white bg-gray-800 p-2 rounded text-sm" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                            <button
-                              onClick={() => handleDelete(selectedPost.id)}
-                              disabled={loadingProfile}
-                              className="bg-red-500 text-white px-3 py-1 rounded"
-                            >
-                              {loadingProfile ? <p className="flex items-center gap-2">
-                            <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-                          </p>
-                        : "Delete"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
     </>
   );

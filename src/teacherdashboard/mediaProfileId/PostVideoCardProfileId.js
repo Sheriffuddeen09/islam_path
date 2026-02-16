@@ -3,8 +3,8 @@ import api from "../../Api/axios";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 
-export default function VideoCardProfile({ v, post, setSelectedPost,
-  setShowDeleteModal, chats, showDeleteModal, selectedPost, setPosts }) {
+export default function PostVideoCardProfileId({ v, post, setEditContent, setSelectedPost, setShowEditModal, 
+  setShowDeleteModal, chats, selectedPost, loadingProfile, showDeleteModal, handleDelete }) {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
@@ -12,32 +12,13 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
   const [messageOpenShare, setMessageOpenShare,] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [shares, setShares] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(false);
   const [sending, setSending] = useState(false);
   const [openOption, setOpenOption] = useState(false);
-  const [openOptionId, setOpenOptionId] = useState(false);
-  
   
     const handleOption = () =>{
       setOpenOption(!openOption)
     }
-
-     const handleOptionId = () =>{
-      setOpenOptionId(!openOptionId)
-    }
   
-
-    const handleDelete = async (id) => {
-        try {
-          setLoadingProfile(true);
-          await api.delete(`/api/posts-single/${id}`);
-          setPosts(prev => prev.filter(p => p.id !== id));
-          setShowDeleteModal(false);
-        } finally {
-          setLoadingProfile(false);
-        }
-      };
-    
   
    const shareUrl = `${window.location.origin}/post/${post?.id}/share`;
   
@@ -99,29 +80,21 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
     await api.post(`/api/post/${post.id}/view`);
   };
 
-//   black
   return (
     <>
       <div
-        className="relative aspect-video cursor-pointer rounded overflow-hidden"
-        
+        className="relative aspect-video bg-black cursor-pointer rounded overflow-hidden"
+        onClick={() => setOpen(true)}
       >
         <video
           ref={videoRef}
           src={v.url}
-          className="w-80 h-80 object-cover"
+          className="w-full h-72 object-cover"
+          muted
           playsInline
           onPlay={onPlay}
-          onClick={() => setOpen(true)}
         />
-      <button
-            onClick={handleOption}
-            className="px-1 py-1 text-black absolute top-2 z-50 right-2 rotate-90 bg-white rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-        </svg>
-      </button>
+
         {!playing && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="bg-black/60 p-2 rounded-full text-white">
@@ -136,25 +109,6 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
             </div>
           </div>
         )}
-
-        {openOption && (
-        <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
-            
-            <button 
-            onClick={() => {
-              setSelectedPost(post);
-              setShowDeleteModal(true);
-              handleOption(); 
-            }} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Delete
-            </button>
-            <button onClick={() => {handleOption(); setShares(!shares)}} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Share
-            </button>
-        </div>
-      )}
       </div>
 
       {/* Preview Modal */}
@@ -169,7 +123,7 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
               ✕
             </button>
             <button
-            onClick={handleOptionId}
+            onClick={handleOption}
             className="px-1 py-1 text-black  bg-white rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -177,19 +131,10 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
         </svg>
 
       </button>
-      {openOptionId && (
+      {openOption && (
         <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
-            
-            <button 
-            onClick={() => {
-              setSelectedPost(post);
-              setShowDeleteModal(true);
-              handleOptionId(); 
-            }} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Delete
-            </button>
-            <button onClick={() => {handleOptionId(); setShares(!shares)}} 
+           
+            <button onClick={() => {handleOption(); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
               Share
             </button>
@@ -344,29 +289,6 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
         </div>
       </div>
     )}
-
-{showDeleteModal && (
-                      <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-72 text-center">
-                          <p>Are you sure you want to delete this post?</p>
-
-                          <div className="flex justify-end gap-2 mt-3">
-                            <button className="text-white bg-gray-800 p-2 rounded text-sm" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                            <button
-                              onClick={() => handleDelete(selectedPost.id)}
-                              disabled={loadingProfile}
-                              className="bg-red-500 text-white px-3 py-1 rounded"
-                            >
-                              {loadingProfile ? <p className="flex items-center gap-2">
-                            <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-                          </p>
-                        : "Delete"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
     </>
   );
 }

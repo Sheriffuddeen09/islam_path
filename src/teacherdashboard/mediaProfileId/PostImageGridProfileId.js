@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import api from "../../Api/axios";
 
-export default function PostImageGridProfile({ media = [], post, chats,
-setEditContent, setSelectedPost, setShowEditModal, setPosts, fetchProfile
+export default function PostImageGridProfileId({ media = [], post, chats,
+setEditContent, setSelectedPost, setShowEditModal, setPosts,
  
  }) {
   const [open, setOpen] = useState(false);
@@ -24,38 +24,7 @@ setEditContent, setSelectedPost, setShowEditModal, setPosts, fetchProfile
   if (!media || media.length === 0) return null;
   
   
-    const handleDelete = async (mediaId, postId) => {
-  try {
-    setLoadingProfile(true);
-
-    const res = await api.delete(`/api/image/media/${mediaId}`);
-
-    await fetchProfile()
-    if (res.data.post_deleted) {
-      // 🔥 remove entire post from state
-      setPosts(prev => prev.filter(p => p.id !== postId));
-    } else {
-      // 🔥 remove only the media
-      setPosts(prev =>
-        prev.map(p => {
-          if (p.id !== postId) return p;
-
-          return {
-            ...p,
-            media: p.media.filter(m => m.id !== mediaId)
-          };
-        })
-      );
-    }
-
-    setOpen(false);
-    setShowDeleteModalId(false);
-    setIndex(0);
-
-  } finally {
-    setLoadingProfile(false);
-  }
-};
+   
 
 
  const shareUrl = `${window.location.origin}/post/${post?.id}/share`;
@@ -232,31 +201,7 @@ if (total === 1 && media[0]) {
 
         {openOptionId === current.id && (
           <div className="absolute top-10 right-0 mt-2 px-3 py-2 w-40 bg-white border rounded shadow-lg">
-            {post?.content && post?.content.trim() !== "" && (
-            <button
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
-              onClick={() => {
-                setSelectedPost(post);
-                setEditContent(post.content);
-                setShowEditModal(true);
-                setOpenOptionId(null);
-
-              }}
-            >
-                  Edit
-            </button>
-          )}
-            <button
-              className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:bg-gray-50"
-              onClick={() => {
-                setSelectedMediaId(current?.id);   // ✅ ALWAYS CURRENT
-                setSelectedPostId(post?.id);
-                setShowDeleteModalId(true);
-                setOpenOptionId(null);
-              }}
-            >
-              Delete
-            </button>
+            
 
             <button onClick={() => {setOpenOptionId(null); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
@@ -428,27 +373,6 @@ if (total === 1 && media[0]) {
       </div>
     )}
 
-{showDeleteModalId && (
-                      <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-72 text-center">
-                          <p>Are you sure you want to delete this Image?</p>
-
-                          <div className="flex justify-end gap-2 mt-3">
-                            <button className="text-white bg-gray-800 p-2 rounded text-sm" onClick={() => setShowDeleteModalId(false)}>Cancel</button>
-                            <button
-                            onClick={() => handleDelete(selectedMediaId, selectedPostId)}
-                            disabled={loadingProfile}
-                            className="bg-red-500 text-white px-3 py-1 rounded"
-                          >
-                              {loadingProfile ? <p className="flex items-center gap-2">
-                            <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-                          </p>
-                        : "Delete"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
     </div>
   );
 }

@@ -161,6 +161,9 @@ const badge = (
           }`}>Video</button>
           <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
              === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+          }`}>Photo</button>
+          <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+             === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>Student Performance</button>
         </div>
         
@@ -194,7 +197,7 @@ const badge = (
                     selectedPost={selectedPost} setSelectedPost={setSelectedPost}
                     />
                     </div>
-        <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+        <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
             <Performance badges={badges} />
         </div>
         </div>

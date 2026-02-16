@@ -3,23 +3,34 @@ import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import AdminAdded from "../pages/friend/AdminAdded";
-import VideoList from "../teacherdashboard/VideoList";
 import AdminProfileFriend from "../teacherdashboard/AdminProfileFriend";
 import GetMentorProfileId from "../teacherdashboard/GetMentorProfileId";
 import { useAuth } from "../layout/AuthProvider";
 import PerformanceId from "../studentdashboard/PerformanceId";
-import StudentRequest from "../studentdashboard/StudentRequest";
-import Performance from "../studentdashboard/Performance";
 import StudentProfileFriend from "../studentdashboard/StudentProfileFriend";
 import StudentAdded from "../pages/friend/StudentAdded";
+import MyImagesIdAdmin from "../teacherdashboard/mediaProfileId/ImageProfileId";
+import MyVideosIdAdmin from "../teacherdashboard/mediaProfileId/VideoProfileId";
+import MyPostsIdAdmin from "../teacherdashboard/mediaProfileId/PostProfileId";
+import MyPostsIdStudent from "../studentdashboard/mediaProfileId/PostProfileId";
+import MyVideosIdStudent from "../studentdashboard/mediaProfileId/VideoProfileId";
+import MyImagesIdStudent from "../studentdashboard/mediaProfileId/ImageProfileId";
 
 
 
-export default function ProfileId({handleMessageOpen, profileId, requests}) {
+
+export default function ProfileId({handleMessageOpen, profileId, requests, chats,
+  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
+}) {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [editContent, setEditContent] = useState("");
 
   const { user: authUser } = useAuth();
   const fetchProfile = async () => {
@@ -38,7 +49,7 @@ export default function ProfileId({handleMessageOpen, profileId, requests}) {
   } catch (err) {
     console.error(err);
   } finally {
-    setLoading(false);
+    setLoadingProfile(false);
   }
 };
 
@@ -115,7 +126,7 @@ const canSeeContactInfo = () => {
 
 
 
-  if (loading) return <Loader />;
+  if (loadingProfile) return <Loader />;
 
   if (!profile) return <p>Profile not found</p>;
 
@@ -129,26 +140,54 @@ const canSeeContactInfo = () => {
               <>
     <div className="text-white flex sm:w-full w-full  overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
      
-          <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
-                      === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                   }`}>All Post</button>
-                   <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
-                      === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                   }`}>Video</button>
-                   <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
-                      === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                   }`}>Teacher Profile</button>
-                 </div>
-                 
-                 <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-                 All Post Loading
-                   </div>
-                   <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-                     <VideoList />
-                     </div>
-                   <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
-                     <GetMentorProfileId />
-                 </div>
+          
+                    <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
+                       === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>All Post</button>
+                    <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                       === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>Video</button>
+                    <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                       === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>Photo</button>
+                    <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                       === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>Teacher Profile</button>
+                  </div>
+                  
+                  <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
+                      <MyPostsIdAdmin chats={chats} 
+                      image={image} setImage={setImage}
+                      postComments={postComments} setPostComments={setPostComments} loading={loading} 
+                      setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+                      newComment={newComment} setNewComment={setNewComment}
+                      showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                      emojiList={emojiList} setEmojiList={setEmojiList}
+                      editContent={editContent} setEditContent={setEditContent}
+                      showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                      showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                      selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      />
+                    </div>
+                    <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
+                      <MyVideosIdAdmin chats={chats} 
+                      editContent={editContent} setEditContent={setEditContent}
+                      showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                      showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                      selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      />
+                      </div>
+                      <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+                      <MyImagesIdAdmin chats={chats} 
+                      editContent={editContent} setEditContent={setEditContent}
+                      showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                      showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                      selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      />
+                      </div>
+                    <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
+                      <GetMentorProfileId />
+                  </div>
                 </>
                     )
                     }
@@ -157,24 +196,51 @@ const canSeeContactInfo = () => {
                     profile.role === "student" && (
                       <>
                        <div className="text-white flex sm:w-full w-full px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">  
-                                <button onClick={() => {handleVisibleProfile(1);}} className={`whitespace-nowrap py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
-                                   === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                                }`}>All Post</button>
-                                 <button onClick={() => {handleVisibleProfile(2);}} className={`whitespace-nowrap py-2 px-6 rounded-lg text-sm font-semibold cursor-pointer ${visibleProfile
-                                   === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                                }`}>Video</button>
-                                <button onClick={() => {handleVisibleProfile(3);}} className={`whitespace-nowrap py-2 px-6 rounded-lg  text-sm font-semibold cursor-pointer ${visibleProfile
-                                   === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                                }`}>Student Performance</button>
-                              </div>
-                              
-                              <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
-                                <Performance />
-                                </div>
-                                <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
-                                <StudentRequest  />
-                              </div>
-                               <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+                                 <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
+                       === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>All Post</button>
+                    <button onClick={() => {handleVisibleProfile(2);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                       === 2 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>Video</button>
+                    <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                       === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>Photo</button>
+                    <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
+                       === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
+                    }`}>Student Performance</button>
+                  </div>
+                  
+                  <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
+                      <MyPostsIdStudent chats={chats} 
+                      image={image} setImage={setImage}
+                      postComments={postComments} setPostComments={setPostComments} loading={loading} 
+                      setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+                      newComment={newComment} setNewComment={setNewComment}
+                      showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                      emojiList={emojiList} setEmojiList={setEmojiList}
+                      editContent={editContent} setEditContent={setEditContent}
+                      showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                      showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                      selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      />
+                    </div>
+                    <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
+                      <MyVideosIdStudent chats={chats} 
+                      editContent={editContent} setEditContent={setEditContent}
+                      showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                      showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                      selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      />
+                      </div>
+                      <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
+                      <MyImagesIdStudent chats={chats} 
+                      editContent={editContent} setEditContent={setEditContent}
+                      showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
+                      showEditModal={showEditModal} setShowEditModal={setShowEditModal}
+                      selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      />
+                      </div>
+                               <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
                                 <PerformanceId  />
                               </div>
                       </>

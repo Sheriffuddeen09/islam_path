@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation, Outlet } from "react-router-dom";
+import { Route, Routes, Outlet } from "react-router-dom";
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
 import HomePage from './pages/Home'
@@ -199,7 +199,15 @@ function App() {
 
       {/* profile */}
       <Route path="/profile/:id" element={<ProfileRouter 
-      requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}/>}
+      requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
+      chats={chats} 
+      image={image} setImage={setImage}
+      postComments={postComments} setPostComments={setPostComments} loading={loading} 
+      setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+      newComment={newComment} setNewComment={setNewComment}
+      showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+      emojiList={emojiList} setEmojiList={setEmojiList}
+      />}
        />
 
 

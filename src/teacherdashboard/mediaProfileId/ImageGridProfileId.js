@@ -3,7 +3,7 @@ import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import api from "../../Api/axios";
 
-export default function ImageGridProfile({ media = [], post, chats, setEditContent, setSelectedPost,
+export default function ImageGridProfileId({ media = [], post, chats, setEditContent, setSelectedPost,
   setShowEditModal, setShowDeleteModal, showDeleteModal, setPosts }) {
   const [openOptionId, setOpenOptionId] = useState(null);
   const [openOption, setOpenOption] = useState(false);
@@ -20,40 +20,6 @@ export default function ImageGridProfile({ media = [], post, chats, setEditConte
 
   // delete
   if (!media || media.length === 0) return null;
-
-
-  const handleDelete = async () => {
-  if (!deleteTarget) return;
-
-  try {
-    setLoadingProfile(true);
-
-    const { mediaId, postId } = deleteTarget;
-
-    const res = await api.delete(`/api/image/media/${mediaId}`);
-
-    if (res.data.post_deleted) {
-      // Remove entire post
-      setPosts(prev => prev.filter(p => p.id !== postId));
-    } else {
-      // Remove only media
-      setPosts(prev =>
-        prev.map(p =>
-          p.id === postId
-            ? { ...p, media: p.media.filter(m => m.id !== mediaId) }
-            : p
-        )
-      );
-    }
-
-    setDeleteTarget(null);
-    setOpenPreview(false);
-    setPreviewIndex(0);
-
-  } finally {
-    setLoadingProfile(false);
-  }
-};
 
 
 
@@ -120,18 +86,7 @@ const shareToChat = async (chatId) => {
 
       {openOption === img.id && (
         <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
-            <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setDeleteTarget({
-                mediaId: img.id,
-                postId: post.id
-              });
-            }}
-
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Delete
-            </button>
+           
             <button onClick={() => {setOpenOption(false); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
               Share
@@ -301,61 +256,6 @@ const shareToChat = async (chatId) => {
       </div>
     )}
 
-
-{deleteTarget && (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-    <div className="bg-white p-4 rounded w-72 text-center">
-      <p>Are you sure you want to delete this Image?</p>
-
-      <div className="flex justify-end gap-2 mt-3">
-        <button
-          onClick={() => setDeleteTarget(null)}
-          className="text-white bg-gray-800 p-2 rounded text-sm"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={handleDelete}
-          disabled={loadingProfile}
-         className="bg-red-500 text-white px-3 py-1 rounded">
-            {loadingProfile ? <p className="flex items-center gap-2">
-          <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-        </p>
-      : "Delete"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{deleteTargetId && (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-    <div className="bg-white p-4 rounded w-72 text-center">
-      <p>Are you sure you want to delete this Image?</p>
-
-      <div className="flex justify-end gap-2 mt-3">
-        <button
-          onClick={() => setDeleteTargetId(null)}
-          className="text-white bg-gray-800 p-2 rounded text-sm"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={handleDelete}
-          disabled={loadingProfile}
-         className="bg-red-500 text-white px-3 py-1 rounded">
-            {loadingProfile ? <p className="flex items-center gap-2">
-          <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-        </p>
-      : "Delete"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
- 
                         
 
     </>
@@ -401,17 +301,7 @@ const shareToChat = async (chatId) => {
     {openOptionId && (
         <div className=" absolute top-10 right-4 mt-6 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
            
-           <button
-         className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
-          onClick={() =>
-            setDeleteTarget({
-              mediaId: current.id,
-              postId: postId
-            })
-          }
-        >
-              Delete
-            </button>
+           
             <button onClick={() => {setOpenOptionId(null); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
               Share

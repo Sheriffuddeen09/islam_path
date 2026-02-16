@@ -9,7 +9,6 @@ export default function GetMentorProfileId() {
   const authReady = user !== null;
 
   const [requestStatus, setRequestStatus] = useState({});
-  const [requestLoading, setRequestLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState(null);

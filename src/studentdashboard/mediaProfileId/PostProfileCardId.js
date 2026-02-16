@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import PostImageGridProfile from "./PostImageGridProfile";
+import PostImageGridProfileId from "./PostImageGridProfileId";
 import { useNavigate } from "react-router-dom";
-import PostVideoCardProfile from "./PostVideoCardProfile";
+import PostVideoCardProfileId from "./PostVideoCardProfileId";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import { PostFeedIdModal } from "../../pages/post/PostFeedIdModal";
 
-export default function PostProfileCard({ post, chats, image, setImage, postComments, 
+export default function PostProfileCardId({ post, chats, image, setImage, postComments, 
   setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,setPosts,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,
         editContent, selectedPost, setPostLoading,fetchProfile,
@@ -177,40 +177,6 @@ const shareToChat = async (chatId) => {
 };
 
 
-const handleEdit = async () => {
-  if (!selectedPost) return;
-
-  try {
-    setLoadingProfile(true);
-    const res = await api.put(`/api/posts-single/${selectedPost.id}`, {
-      content: editContent,
-    });
-
-    setPosts(prev =>
-      prev.map(p =>
-        p.id === selectedPost.id
-          ? { ...p, ...res.data.post }  // ✅ merge, don’t replace
-          : p
-      )
-    );
-
-    setShowEditModal(false);
-  } finally {
-    setLoadingProfile(false);
-  }
-};
-
-const handleDelete = async (id) => {
-  try {
-    setLoadingProfile(true);
-    await api.delete(`/api/posts-single/${id}`);
-    setPosts(prev => prev.filter(p => p.id !== id));
-    setShowDeleteModal(false);
-  } finally {
-    setLoadingProfile(false);
-  }
-};
-
 
 const media = Array.isArray(post.media) ? post.media : [];
 
@@ -242,29 +208,7 @@ const media = Array.isArray(post.media) ? post.media : [];
 
       {open && (
         <div className=" absolute top-6 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
-            {post.content && post.content.trim() !== "" && (
-            <button
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
-              onClick={() => {
-                setSelectedPost(post);
-                setEditContent(post.content);
-                setShowEditModal(true);
-                handleOption();
-
-              }}
-            >
-                  Edit
-            </button>
-          )}
-            <button 
-            onClick={() => {
-              setSelectedPost(post);
-              setShowDeleteModal(true);
-              handleOption(); 
-            }} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Delete
-            </button>
+           
             <button onClick={() => {handleOption(); setShares(!shares)}} 
             className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
               Share
@@ -290,7 +234,7 @@ const media = Array.isArray(post.media) ? post.media : [];
   )}
         {/* Image */}
         {media?.some(m => m.type === "image") && (
-          <PostImageGridProfile
+          <PostImageGridProfileId
             media={post.media.filter(m => m.type === "image")}
             post={post}
             chats={chats}
@@ -302,8 +246,6 @@ const media = Array.isArray(post.media) ? post.media : [];
             showDeleteModal={showDeleteModal}
             selectedPost={selectedPost}
             loadingProfile={loadingProfile}
-            handleDelete={handleDelete}
-            fetchProfile={fetchProfile}
             setPostLoading={setPostLoading}
           />
         )}
@@ -311,7 +253,7 @@ const media = Array.isArray(post.media) ? post.media : [];
         {media
           ?.filter(m => m.type === "video")
           .map(m => (
-            <PostVideoCardProfile
+            <PostVideoCardProfileId
               key={m.id}
               v={m}
               post={post}
@@ -322,7 +264,6 @@ const media = Array.isArray(post.media) ? post.media : [];
               setShowDeleteModal={setShowDeleteModal}
               showDeleteModal={showDeleteModal}
               selectedPost={selectedPost}
-              handleDelete={handleDelete}
               loadingProfile={loadingProfile}
             />
           ))}
@@ -576,55 +517,7 @@ const media = Array.isArray(post.media) ? post.media : [];
                     Share
                   </button>
                 </div>
-                    {showDeleteModal && (
-                      <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-72 text-center">
-                          <p>Are you sure you want to delete this post?</p>
-
-                          <div className="flex justify-end gap-2 mt-3">
-                            <button className="text-white bg-gray-800 p-2 rounded text-sm" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                            <button
-                              onClick={() => handleDelete(selectedPost.id)}
-                              disabled={loadingProfile}
-                              className="bg-red-500 text-white px-3 py-1 rounded"
-                            >
-                              {loadingProfile ? <p className="flex items-center gap-2">
-                            <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-                          </p>
-                        : "Delete"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {showEditModal && (
-                      <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-80 sm:w-96">
-                          <h3 className="font-semibold my-4 text-center">Edit Post</h3>
-
-                          <textarea
-                            className="w-full border p-2 h-40 rounded-lg no-scrollbar"
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                          />
-
-                          <div className="flex justify-end gap-2 mt-3">
-                            <button className="text-white bg-gray-800 p-2 rounded text-sm" onClick={() => setShowEditModal(false)}>Cancel</button>
-                            <button
-                              onClick={handleEdit}
-                              disabled={loadingProfile}
-                              className="bg-blue-500 text-white px-3 py-1 rounded"
-                            >
-                              {loadingProfile ? <p className="flex items-center gap-2">
-                          <span className="animate-spin h-6 w-6 border-2 mx-auto border-white border-t-transparent rounded-full"></span>
-                        </p> : "Save"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
+                   
                 {postIdModal && (
                   <PostFeedIdModal
                     total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 

@@ -20,32 +20,7 @@ setEditContent, setSelectedPost, setShowEditModal, setPosts, fetchProfile
   const [selectedPostId, setSelectedPostId] = useState(null);
 
 
-  
-// const fetchPosts = async () => {
-//   setPostLoading(true);
-//   try {
-//     const res = await api.get("/api/posts-single");
-
-//     if (res.data.status) {
-//       setPosts(
-//         res.data.posts.map(post => ({
-//           ...post,
-//           media: (post.media || []).filter(m => m && m.url)
-//         }))
-//       );
-//     }
-
-//     await fetchPosts()
-//   } finally {
-//     setPostLoading(false);
-//   }
-// };
-
-// useEffect(() =>{
-//   fetchPosts()
-// })
-
-  // delete
+ 
   if (!media || media.length === 0) return null;
   
   
@@ -55,6 +30,7 @@ setEditContent, setSelectedPost, setShowEditModal, setPosts, fetchProfile
 
     const res = await api.delete(`/api/image/media/${mediaId}`);
 
+    await fetchProfile()
     if (res.data.post_deleted) {
       // 🔥 remove entire post from state
       setPosts(prev => prev.filter(p => p.id !== postId));

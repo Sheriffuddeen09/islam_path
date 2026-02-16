@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
-import ImageGridProfile from "./ImageGridProfile";
+import ImageGridProfileId from "./ImageGridProfileId";
+import { useParams } from "react-router-dom";
 
-export default function MyImages({chats, editContent, selectedPost,
+export default function MyImagesIdStudent({chats, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,}) {
   const [posts, setPosts] = useState([]);
   const [imageLoading, setImageLoading] = useState(false)
+  const {id} = useParams()
+     
   
-
-  useEffect(() => {
   const fetchImages = async () => {
-    try {
-      setImageLoading(true);
-      const res = await api.get("/api/posts-single");
+        setImageLoading(true)
+        try {
+          const res = await api.get(`/api/users/${id}/posts-single`);
 
       const onlyImages = res.data.posts.filter(p =>
         p.media.some(m => m.type === "image")
@@ -25,8 +26,9 @@ export default function MyImages({chats, editContent, selectedPost,
     }
   };
 
-  fetchImages();
-}, []);
+  useEffect(() =>{
+    fetchImages();
+  }, []);
 
 
   if(imageLoading){
@@ -51,7 +53,7 @@ export default function MyImages({chats, editContent, selectedPost,
     posts.map(post => (
     <div key={post.id}>
       {post.media.some(m => m.type === "image") && (
-        <ImageGridProfile
+        <ImageGridProfileId
           media={post.media.filter(m => m.type === "image")}
           post={post} setPosts={setPosts}
           chats={chats}

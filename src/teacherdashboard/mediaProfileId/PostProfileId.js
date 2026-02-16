@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import PostProfileCard from "./PostProfileCard";
+import PostProfileCardId from "./PostProfileCardId";
 import api from "../../Api/axios";
+import { useParams } from "react-router-dom";
 
-export default function MyPosts({chats, image, setImage, postComments, setPostComments, 
+export default function MyPostsIdAdmin({chats, image, setImage, postComments, setPostComments, 
         loading, setLoading, showUsersPopup, setShowUsersPopup, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList}) {
@@ -11,11 +12,11 @@ export default function MyPosts({chats, image, setImage, postComments, setPostCo
     const [error, setError] = useState("");
     const [postLoading, setPostLoading] = useState(false)
 
-  
+    const {id} = useParams()
     const fetchProfile = async () => {
       setPostLoading(true)
       try {
-        const res = await api.get("/api/posts-single");
+        const res = await api.get(`/api/users/${id}/posts-single`);
 
         if (!res.data.status) {
           setError(res.data.message);
@@ -46,7 +47,7 @@ export default function MyPosts({chats, image, setImage, postComments, setPostCo
   if (postLoading)
     return (
       <div className="flex items-center mt-5 justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-t-4 border-blue-500 border-solid"></div>
+        <div className="animate-spin rounded-full h-6 w-6 my-6 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
     
@@ -64,7 +65,7 @@ export default function MyPosts({chats, image, setImage, postComments, setPostCo
 <div className="p-3 mb-3 grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1">
       {posts.map(post => (
         <div key={post.id} className="p-3 mb-3">
-          <PostProfileCard
+          <PostProfileCardId
             key={post.id}
             post={post}
             editable={true}
