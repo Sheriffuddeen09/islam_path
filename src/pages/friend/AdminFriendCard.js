@@ -48,7 +48,7 @@ export default function AdminFriendCard({loadingId, requestStatus, setLoadingId,
   const removeTemporarily = async (adminId) => {
     try {
       await api.post(`/api/admin-request/hide/${adminId}`);
-      toast.success("Student Remove");
+      toast.success("Friend Remove");
   
       setAdmins(prev => prev.filter(p => p.id !== adminId));
     } catch (err) {
