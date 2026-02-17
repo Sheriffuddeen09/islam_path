@@ -1,7 +1,7 @@
 import { Route, Routes, Outlet } from "react-router-dom";
 import LoginPage from "./Form/LoginPage";
 import RegisterPage from "./Form/Register";
-import HomePage from './pages/Home'
+import HomePage from './pages/homepageComponent/Home'
 import NotFound from "./layout/Notfound";
 import { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,7 +9,7 @@ import ForgotPassword from "./Form/ForgetPassword";
 import ResetPassword from "./Form/ResetPassword";
 import TeacherOnboarding from "./Form/TeacherOnboarding";
 import AdminChoice from "./Form/AdminChoice";
-import GetMentor from "./pages/GetMentor";
+import GetMentor from "./pages/mentor/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 import {  useState } from "react";
 import ProtectedRoute from "./ProtectedRoute";
@@ -34,6 +34,7 @@ import PostImagePageId from "./pages/post/PostImagePageId";
 import PostFeedVideo from "./pages/post/PostFeedVideo";
 import PostVideoPageId from "./pages/post/PostVideoPageId";
 import PostTextPageId from "./pages/post/PostTextPageId";
+import QuranGrid from "./pages/homepageComponent/QuranGrid";
 
    
 function App() {
@@ -149,6 +150,10 @@ function App() {
       <Route path="/get-mentor" element={
           <GetMentor teachers={teachers} setTeachers={setTeachers} setRequestStatus={setRequestStatus}
           requestStatus={requestStatus} />
+      } />
+
+      <Route path="/quran" element={
+          <QuranGrid />
       } />
 
       <Route path="/report-list" element={

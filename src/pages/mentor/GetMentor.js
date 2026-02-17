@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../Api/axios";
-import { useAuth } from "../layout/AuthProvider";
+import api from "../../Api/axios";
+import { useAuth } from "../../layout/AuthProvider";
 
 import MentorCard from "./MentorCard";
 

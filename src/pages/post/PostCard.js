@@ -10,6 +10,7 @@ import {toast} from "react-hot-toast"
 import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
+import { Repost } from "./Repost";
 
 
 export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
@@ -31,6 +32,34 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
 
+  const postRef = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      async ([entry]) => {
+        if (entry.isIntersecting) {
+          try {
+            await api.post(`/api/posts/${post.id}/view`);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      },
+      { threshold: 0.6 } // 60% visible
+    );
+
+    if (postRef.current) {
+      observer.observe(postRef.current);
+    }
+
+    return () => {
+      if (postRef.current) observer.unobserve(postRef.current);
+    };
+  }, [post.id]);
+
+  
+
+ 
 
 const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
@@ -201,6 +230,35 @@ const handleHidePost = async (postId) => {
     >
       {/* USER */}
       <div className="flex p-4 bg-gray-100 items-start justify-between">
+        {post.original_post && (
+  <div className="border p-3 rounded-lg bg-gray-50 mt-3">
+    <p className="text-sm font-semibold">
+      {post.original_post.user.name}
+    </p>
+
+    <p className="text-sm text-gray-700">
+      {post.original_post.content}
+    </p>
+
+    {post.original_post.media?.map((m) =>
+      m.type === "image" ? (
+        <img
+          key={m.id}
+          src={m.url}
+          className="mt-2 rounded-lg"
+        />
+      ) : (
+        <video
+          key={m.id}
+          src={m.url}
+          controls
+          className="mt-2 rounded-lg"
+        />
+      )
+    )}
+  </div>
+)}
+
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
         <p className="font-bold text-white pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
@@ -381,6 +439,10 @@ const handleHidePost = async (postId) => {
                     <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
                   </svg>
                     Share
+                  </button>
+
+                  <button className="flex items-center font-semibold gap-1 mx-4">
+                    <Repost post={post} />
                   </button>
                 </div>
         

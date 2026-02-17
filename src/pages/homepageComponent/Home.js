@@ -1,4 +1,4 @@
-import PostFeed from "./post/PostFeed";
+import PostFeed from "../post/PostFeed";
 
 
 export default function HomePage({posts, setPosts, image, setImage, postComments,

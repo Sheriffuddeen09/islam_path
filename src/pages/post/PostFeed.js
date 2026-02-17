@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import api from "../../Api/axios";
+import SideBarRIght from "../homepageComponent/SideBarRIght";
+import SidebarLeft from "../homepageComponent/SideBarLeft";
 
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
@@ -34,21 +36,8 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 
-        {/* Sidebar */}
-        <aside
-          className={`fixed hidden sm:block top-[80px] left-2 rounded-xl h-full w-80 mx-auto text-center md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
-            transform transition-transform duration-300
-            overflow-y-auto overflow-x-hidden
-            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-        >
-
-          <h3 className="text-xs text-blue-800 font-bold mb-2">FILTER VIDEO</h3>
-          <ul className="space-y-4 mb-">
-            <li>
-              All
-            </li>
-          </ul>
-        </aside>
+        {/* SideBarRIght */}
+        <SidebarLeft />
     
     
       {
@@ -75,25 +64,8 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
       ))}
       </div>
      
-
-      <div className="md:block lg:hidden hidden">
-      <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
-      {posts.map(post => (
-        <PostCard key={post.id} post={post} setPosts={setPosts} 
-        image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        messageOpen={messageOpen}
-        setMessageOpen={setMessageOpen}
-        chats={chats}
-        setChats={setChats}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        />
-      ))}
-      </div>
-      </div>
       
+      <SideBarRIght />
     </div>
     </div>
   );
@@ -103,26 +75,13 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         <div className="flex flex-col lg:flex-row  items-end  mx-auto min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 
-        {/* Sidebar */}
-        <aside
-          className={`fixed hidden sm:block top-[80px] left-2 rounded-xl h-full w-80 mx-auto text-center md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
-            transform transition-transform duration-300
-            overflow-y-auto overflow-x-hidden
-            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-        >
-
-          <h3 className="text-xs text-blue-800 font-bold mb-2">FILTER VIDEO</h3>
-          <ul className="space-y-4 mb-">
-            <li>
-              All
-            </li>
-          </ul>
-        </aside>
-    
+        {/* SideBarLeft */}
+       
+    <SidebarLeft />
     
       {
         posts.length === 0 && (
-          <p className="text-black lg:ml-96 translate-y-40 sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
+          <p className="text-black md:translate-y-60 md:ml-96 lg:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-xl font-bold ">
             No Feed Post Available
           </p>
          )
@@ -152,7 +111,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
   return (
     <div>
       {largeScreen}
-      {ipadScreen}
+      {ipadScreen}  
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../Api/axios";
+import api from "../../Api/axios";
 import { Lock } from "lucide-react";
 
 export default function MentorCard({filteredCourse, loadingId, requestStatus, sendLiveRequest, setLoadingId, setNotification

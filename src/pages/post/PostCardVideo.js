@@ -30,6 +30,31 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
 
+  const postRef = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      async ([entry]) => {
+        if (entry.isIntersecting) {
+          try {
+            await api.post(`/api/posts/${post.id}/view`);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      },
+      { threshold: 0.6 } // 60% visible
+    );
+
+    if (postRef.current) {
+      observer.observe(postRef.current);
+    }
+
+    return () => {
+      if (postRef.current) observer.unobserve(postRef.current);
+    };
+  }, [post.id]);
+
 
 
 
