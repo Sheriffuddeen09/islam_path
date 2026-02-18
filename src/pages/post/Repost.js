@@ -1,10 +1,15 @@
 import { useState } from "react";
 import api from "../../Api/axios";
 import Notification from "../../Form/Notification";
+import { useAuth } from "../../layout/AuthProvider";
 
-export function Repost({ post }) {
+export function Repost({ post, setPosts }) {
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [loading, setLoading] = useState(false);
+
+  const {user} = useAuth()
+
+  console.log('user', user)
 
   const showNotification = (msg, type = "error") => {
     setNotify({ message: msg, type });
@@ -15,24 +20,32 @@ export function Repost({ post }) {
   };
 
   const handleRepost = async () => {
-    if (loading) return;
+  if (loading) return;
 
-    try {
-      setLoading(true);
+  setLoading(true);
 
-      await api.post(`/api/posts/${post.id}/repost`);
+  try {
+    await api.post(`/api/posts/${post.id}/repost`);
 
-      showNotification("Reposted successfully!", "success");
-    } catch (err) {
-      showNotification("Something went wrong");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Optimistic update
+    setPosts(prev =>
+      prev.map(p =>
+        p.id === post.id
+          ? { ...p, shares_count: p.shares_count + 1 }
+          : p
+      )
+    );
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div>
+      
       <button
         onClick={handleRepost}
         disabled={loading}
@@ -61,14 +74,15 @@ export function Repost({ post }) {
           </svg>
         )}
 
-        {loading ? "Reposting..." : "Repost"}
+        {loading ? "Reposting" : "Repost"}
       </button>
-
+    
       <Notification
         message={notify.message}
         type={notify.type}
         onClose={() => setNotify({ message: "", type: "" })}
       />
+
     </div>
   );
 }

@@ -34,6 +34,9 @@ export default function CreatePost({handlePostCreated}) {
   const [open, setOpen] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [showTrimModal, setShowTrimModal] = useState(false);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  const [visibility, setVisibility] = useState("public");
+
 
   const showNotification = (msg) => {
     setNotify({ message: msg, type: "error" });
@@ -74,33 +77,7 @@ useEffect(() => {
   }
 }, [videoPreview]);
 
-  // const applyVideoTrim = async () => {
-  //   const ffmpeg = ffmpegRef.current;
-
-  //   await ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
-
-  //   await ffmpeg.run(
-  //     "-ss", `${videoStart}`,
-  //     "-to", `${videoEnd}`,
-  //     "-i", "input.mp4",
-  //     "-c", "copy",
-  //     "output.mp4"
-  //   );
-
-  //   const data = ffmpeg.FS("readFile", "output.mp4");
-
-  //   const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-  //   const trimmedFile = new File([trimmedBlob], "trimmed.mp4", {
-  //     type: "video/mp4",
-  //   });
-
-  //   setVideo(trimmedFile);
-
-  //   // ✅ THIS is what shows preview above Post button
-  //   setVideoPreview(URL.createObjectURL(trimmedBlob));
-  // };
-
+  
   const applyVideoTrim = async () => {
   const ffmpeg = ffmpegRef.current;
 
@@ -149,21 +126,8 @@ const handleTrimAndClose = async () => {
 
   // SUBMIT POST
 
-  const countWords = (text = "") => {
-  return text
-    .trim()
-    .replace(/([a-z])([A-Z])/g, "$1 $2") // fix mercifulAll → merciful All
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .filter(Boolean).length;
-};
 
-  
-
-  const MAX_WORDS = 50;
-
-const submitPost = async () => {
-  
+  const submitPost = async () => {
 
   const images = croppedImages || [];
 
@@ -173,8 +137,11 @@ const submitPost = async () => {
     showNotification("You can upload images OR a video, not both.", "error");
     return;
   }
-  
+
   const formData = new FormData();
+
+  formData.append("visibility", visibility); // 👈 ADD THIS
+
   if (text) formData.append("content", text);
 
   if (croppedImages?.length) {
@@ -188,29 +155,21 @@ const submitPost = async () => {
   }
 
   setLoading(true);
-  setProgress(0);
 
   try {
-    const res = await api.post("/api/posts", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (e) =>
-        setProgress(Math.round((e.loaded * 100) / e.total)),
-    });
+    const res = await api.post("/api/posts", formData);
 
     handlePostCreated?.(res.data.post);
-    showNotification("Uploaded successfully!", "success");
 
+    setShowVisibilityModal(false); // 👈 CLOSE MODAL
     setText("");
     setCroppedImages([]);
     setVideo(null);
-    setVideoPreview(null);
-    setProgress(0);
-    setOpen(null);
+
+    showNotification("Uploaded successfully!", "success");
+
   } catch (err) {
-    showNotification(
-      err.response?.data?.message || "Upload failed.",
-      "error"
-    );
+    showNotification(err.response?.data?.message || "Upload failed.");
   } finally {
     setLoading(false);
   }
@@ -340,32 +299,13 @@ const submitPost = async () => {
       {/* POST BUTTON */}
       <div className="flex flex-row items-center justify-between mt-6">
    
-      <button
-        onClick={submitPost}
-        disabled={loading}
-        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        {loading ? <svg
-              className="animate-spin h-5 w-5 text-white mx-auto"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg> : "Post"}
-      </button>
+     <button
+      onClick={() => setShowVisibilityModal(true)}
+      disabled={loading}
+      className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+    >
+      Next
+    </button>
 
         <button
        onClick={() => {
@@ -482,6 +422,90 @@ const submitPost = async () => {
   </div>
 )} 
 
+{showVisibilityModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+
+    <div className="bg-white w-96 rounded-xl p-6 shadow-xl">
+
+      <h2 className="text-lg font-semibold mb-4">
+        Who can see your post?
+      </h2>
+
+      <div className="space-y-3">
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="radio"
+            value="public"
+            checked={visibility === "public"}
+            onChange={() => setVisibility("public")}
+          />
+          <div>
+            <p className="font-medium">Public</p>
+            <p className="text-xs text-gray-500">
+              Everyone can see this post
+            </p>
+          </div>
+        </label>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="radio"
+            value="friends"
+            checked={visibility === "friends"}
+            onChange={() => setVisibility("friends")}
+          />
+          <div>
+            <p className="font-medium">Friends</p>
+            <p className="text-xs text-gray-500">
+              Only accepted friends
+            </p>
+          </div>
+        </label>
+
+      </div>
+
+      {/* Submit Button INSIDE modal */}
+      <button
+        onClick={submitPost}
+        disabled={loading}
+        className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg"
+      >
+       
+       {loading ? <svg
+              className="animate-spin h-5 w-5 text-white mx-auto"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg> : "Post"}
+
+
+      </button>
+
+      <button
+        onClick={() => setShowVisibilityModal(false)}
+        className="mt-3 w-full bg-gray-300 py-2 rounded-lg"
+      >
+        Cancel
+      </button>
+
+    </div>
+  </div>
+)}
 
 
           <Notification

@@ -230,17 +230,29 @@ const handleHidePost = async (postId) => {
     >
       {/* USER */}
       <div className="flex p-4 bg-gray-100 items-start justify-between">
-        {post.original_post && (
-  <div className="border p-3 rounded-lg bg-gray-50 mt-3">
-    <p className="text-sm font-semibold">
-      {post.original_post.user.name}
-    </p>
+        
 
-    <p className="text-sm text-gray-700">
-      {post.original_post.content}
-    </p>
+  {/* Reposted By */}
+  {post.is_repost && (
+    <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+      🔁 Reposted by {post.reposted_by?.name}
+    </div>
+  )}
 
-    {post.original_post.media?.map((m) =>
+  {/* Original Post Card */}
+  {post.original_post && (
+    <div className="border rounded-lg p-3 bg-gray-50">
+      <p className="font-semibold text-sm">
+        {post.original_post.user?.name}
+      </p>
+
+      <p className="text-sm mt-1">
+        {post.original_post.content}
+      </p>
+    </div>
+  )}
+
+    {/* {post.original_post.media?.map((m) =>
       m.type === "image" ? (
         <img
           key={m.id}
@@ -257,7 +269,7 @@ const handleHidePost = async (postId) => {
       )
     )}
   </div>
-)}
+)} */}
 
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
@@ -440,10 +452,11 @@ const handleHidePost = async (postId) => {
                   </svg>
                     Share
                   </button>
-
+                  {post.user.id !== user.id &&
                   <button className="flex items-center font-semibold gap-1 mx-4">
-                    <Repost post={post} />
+                    <Repost post={post} setPosts={setPosts} />
                   </button>
+                  }
                 </div>
         
                     {postIdModal && (
