@@ -23,7 +23,7 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       title="Logout"
-      className="p-2 rounded-lg hover:bg-gray-200 transition flex items-center justify-center gap-2"
+      className="p-2 rounded text-sm font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2"
       disabled={isLoggingOut} // disable button while logging out
     >
       {isLoggingOut ? (
@@ -66,7 +66,8 @@ export default function LogoutButton() {
           />
         </svg>
       )}
-      {isLoggingOut && <span className="text-xs text-blue-600 font-bold">Logging out...</span>}
+      {isLoggingOut ? <span className="text-xs text-blue-600 font-bold">Logging out</span>
+      : "Logout"}
     </button>
   );
 }

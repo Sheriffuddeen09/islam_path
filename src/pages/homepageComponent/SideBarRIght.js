@@ -34,8 +34,8 @@ export default function SideBarRIght() {
                 className="flex items-center gap-3 p-2 rounded-lg 
                 hover:bg-gray-100 transition cursor-pointer">
               <Link className="flex items-center gap-3 " to={item.link}>
-              <div className="w-8 h-8 flex items-center justify-center
-                  rounded-full bg-blue-500 text-white text-lg font-semibold">
+              <div className={`w-8 h-8 flex items-center justify-center
+                  rounded-full ${item.background} text-white text-lg font-semibold`}>
                 {item.image}
               </div>
             <div className="flex flex-col ">
@@ -67,7 +67,7 @@ export default function SideBarRIght() {
         )}
       </div>
 
-      {/* FEMALE SECTION */}
+      {/* FEMALE SECTION uppercase */}
       <div>
         <h4 className="text-xs font-bold text-black mb-1 uppercase">
           Female Quran Recitation
@@ -80,8 +80,8 @@ export default function SideBarRIght() {
                 hover:bg-gray-100 transition cursor-pointer">
 
              <Link className="flex items-center gap-3 " to={item.link}>
-              <div className="w-8 h-8 flex items-center justify-center
-                  rounded-full bg-blue-500 text-white text-lg font-semibold">
+              <div  className={`w-8 h-8 flex items-center justify-center
+                  rounded-full ${item.background} text-white text-lg font-semibold`}>
                 {item.image}
               </div>
             <div className="flex flex-col ">

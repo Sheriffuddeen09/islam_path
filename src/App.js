@@ -24,8 +24,6 @@ import StudentDashboard from "./studentdashboard/StudentDashboard";
 import ExpiredPage from "./assignment/ExpiredPage";
 import AssignmentBlock from "./assignment/Block";
 import ExamBlock from "./exam/Block";
-import StudentFriend from "./pages/friend/StudentFriend";
-import AdminFriend from "./pages/friend/AdminFriend"
 import ProfileRouter from "./route/ProfileRoute";
 import StudentAssignmentResult from "./assignment/StudentAssignmentResult";
 import StudentExamResult from "./exam/StudentExamResult";
@@ -35,6 +33,7 @@ import PostFeedVideo from "./pages/post/PostFeedVideo";
 import PostVideoPageId from "./pages/post/PostVideoPageId";
 import PostTextPageId from "./pages/post/PostTextPageId";
 import QuranGrid from "./pages/homepageComponent/QuranGrid";
+import Friend from "./pages/friend/Friend";
 
    
 function App() {
@@ -165,14 +164,8 @@ function App() {
       } />
 
 
-      <Route path="/student-friend" element={
-          <StudentFriend students={students} setStudents={setStudents} 
-          incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
-           />
-      } />
-
-      <Route path="/admin-friend" element={
-          <AdminFriend admins={admins} setAdmins={setAdmins} 
+      <Route path="/friend" element={
+          <Friend students={students} setStudents={setStudents} admins={admins} setAdmins={setAdmins}
           incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
            />
       } />

@@ -22,8 +22,9 @@ export default function SidebarLeft() {
                 className="flex items-center gap-3 p-2 lg 
                 hover:bg-gray-100 transition cursor-pointer">
 
-              <div className="w-8 h-8 flex items-center justify-center
-                  rounded-full bg-blue-500 text-white text-lg font-semibold">
+              <div className={`w-8 h-8 flex items-center justify-center
+                  rounded-full ${item.background} text-white text-lg font-semibold`}>
+                    
                 {item.image}
               </div>
             <div className="flex flex-col ">

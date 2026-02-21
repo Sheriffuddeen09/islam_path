@@ -247,7 +247,7 @@ const requestList = (
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 md:ml-40">
+        <div className="flex-1 transition-all p-4 mt-20 lg:ml-64 md:ml-60">
           {myRequests.length === 1 && (
             <p className="text-lg text-black font-bold text-start border-b p-2 "> Pending Friend </p>
           )}

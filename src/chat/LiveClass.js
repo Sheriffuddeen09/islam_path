@@ -301,7 +301,7 @@ useEffect(() => {
           </button>
           <button
           onClick={handleRemoveMessage}
-          className="px-1 hover:bg-gray-200 bg-gray-300 text-black rounded absolute right-5 top-4"
+          className="px-1 hover:bg-gray-200 bg-gray-300 sm:block hidden text-black rounded-full absolute right-5 top-4"
         >
           ✕
         </button>

@@ -4,7 +4,7 @@ import Navbar from "../../layout/Header";
 import toast, { Toaster } from "react-hot-toast";
 import AdminFriendCard from "./AdminFriendCard";
 
-export default function AdminFriend({admins, setAdmins}) {
+export default function AdminFriend({admins, setAdmins, incomingRequests, setIncomingRequests}) {
  
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
@@ -12,7 +12,7 @@ export default function AdminFriend({admins, setAdmins}) {
   const [loadingId, setLoadingId] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
-  const [ incomingRequests, setIncomingRequests] = useState([])
+
 
 
 

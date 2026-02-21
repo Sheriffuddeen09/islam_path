@@ -11,6 +11,7 @@ import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
+import UndoRepost from "./UndoRepost";
 
 
 export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
@@ -34,30 +35,33 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
 
   const postRef = useRef();
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      async ([entry]) => {
-        if (entry.isIntersecting) {
-          try {
-            await api.post(`/api/posts/${post.id}/view`);
-          } catch (err) {
-            console.error(err);
-          }
+const [hasViewed, setHasViewed] = useState(false);
+
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    async ([entry]) => {
+      if (entry.isIntersecting && !hasViewed) {
+        try {
+          await api.post(`/api/posts/${post.id}/view`);
+          setHasViewed(true); // prevent multiple calls
+        } catch (err) {
+          console.error(err);
         }
-      },
-      { threshold: 0.6 } // 60% visible
-    );
+      }
+    },
+    { threshold: 0.6 }
+  );
 
-    if (postRef.current) {
-      observer.observe(postRef.current);
-    }
+  if (postRef.current) {
+    observer.observe(postRef.current);
+  }
 
-    return () => {
-      if (postRef.current) observer.unobserve(postRef.current);
-    };
-  }, [post.id]);
+  return () => {
+    if (postRef.current) observer.disconnect();
+  };
+}, [post.id, hasViewed]);
 
-  
+
 
  
 
@@ -228,48 +232,35 @@ const handleHidePost = async (postId) => {
     <div
       className={`rounded-xl shadow md:w-96 lg:w-[400px] w-full border`}
     >
+      {post.is_repost && (
+        <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
+        <div className="inline-flex items-center gap-3 justify-between">
+          <Link to={`/profile/${user?.id}`}>
+        <p className="font-bold text-white pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
+        flex flex-col items-center justify-center">
+          {post.reposted_by?.name[0]}
+        </p>
+        </Link>
+        
+         <div>
+          <Link to={`/profile/${user.id}`}>
+          <p className="font-semibold text-black text-sm">{post.reposted_by?.name}</p>
+          </Link>
+          <p className="text-xs opacity-70">{post.created_at}</p>
+        </div>
+         <p className="text-xs h-6 bg-gray-800 px-2 rounded text-white py-1 ">
+         Reposted
+         </p>
+        </div>
+           {post.is_repost && post.reposted_by?.id === currentUser?.id && ( 
+       <UndoRepost post={post} setPosts={setPosts} />
+           )}
+        </div>
+      )} 
+   
       {/* USER */}
       <div className="flex p-4 bg-gray-100 items-start justify-between">
-        
-
-  {/* Reposted By */}
-  {post.is_repost && (
-    <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-      🔁 Reposted by {post.reposted_by?.name}
-    </div>
-  )}
-
-  {/* Original Post Card */}
-  {post.original_post && (
-    <div className="border rounded-lg p-3 bg-gray-50">
-      <p className="font-semibold text-sm">
-        {post.original_post.user?.name}
-      </p>
-
-      <p className="text-sm mt-1">
-        {post.original_post.content}
-      </p>
-    </div>
-  )}
-
-    {/* {post.original_post.media?.map((m) =>
-      m.type === "image" ? (
-        <img
-          key={m.id}
-          src={m.url}
-          className="mt-2 rounded-lg"
-        />
-      ) : (
-        <video
-          key={m.id}
-          src={m.url}
-          controls
-          className="mt-2 rounded-lg"
-        />
-      )
-    )}
-  </div>
-)} */}
+       
 
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
@@ -400,6 +391,26 @@ const handleHidePost = async (postId) => {
         >
           <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
         </svg>
+      </p>
+
+      <p className="inline-flex gap-1 text-gray-800 items-center">
+      {post.reposts_count}
+           <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-5 h-5 text-gray-600"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+              3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865
+              a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+            />
+          </svg>
       </p>
       </div>
 
