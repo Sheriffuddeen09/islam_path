@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, User2, UserX2 } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut } from "lucide-react";
 
 
-export default function Setting() {
+export default function Setting({handleEdit}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -17,13 +17,68 @@ export default function Setting() {
   type: "", // "success" | "error"
   message: "",
 });
+  const [teacher, setTeacher] = useState(null)
+
+
+  const [error, setError] = useState("");
+
+  const [openDelete, setOpenDelete] = useState(false)
+  const [loadingDelete, setLoadingDelete] = useState(false)
+
+
+  const handleDeleteAccount = async () => {
+
+    setLoadingDelete(true)
+
+    try{
+      await api.delete('/api/delete-account')
+
+      localStorage.removeItem("token")
+
+      window.location.href = "/login"
+    }
+    catch(err){
+      console.error(err)
+    }
+    finally{
+      setLoadingDelete(false)
+    }
+  }
+
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/teacher-single");
+
+        if (!res.data.status) {
+          setError(res.data.message);
+        } else {
+          setTeacher(res.data.teacher);
+        }
+      } catch (err) {
+        if (err.response?.status === 403) {
+          setError("Teacher profile not completed");
+        } else {
+          setError("Failed to load profile");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
 const handleOpenVisibility = () =>{
 
   setOpenVisibility(!openVisibility)
 }
 
+const handleOpenProfile = () =>{
 
+  setOpenProfile(!openProfile)
+}
 
 
 
@@ -137,14 +192,14 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   const profileCotent = (
     <div className="lg:ml-64">
       
-      <div className="grid grid-cols-1  md:grid-cols-2 gap-6 mt-8">
+      <div className="grid grid-cols-2  md:grid-cols-2 sm:gap-4 gap-2 mt-8">
       <button onClick={handleOpenVisibility} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-          <UserX2 />
+          <Settings />
         </div>
         <div>
-          <p className="text-lg font-semibold text-gray-900">visibility Setting</p>
+          <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">visibility Setting</p>
         </div>
       </div>
       </button>
@@ -153,30 +208,46 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
        <button
           onClick={() => setShowEditModal(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
           <UserX2 />
         </div>
         <div>
-        <p className="text-lg font-semibold text-gray-900">Profile Setting</p>
+        <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Profile Setting</p>
         </div>
       </div>
       </button>
 
       {/* 3 */}
-
-     <button
-          onClick={() => setShowEditModal(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-       <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-          <UserX2 />
-        </div>
+      <button
+          onClick={() => setOpenDelete(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
+        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+          <LogOut />
+         </div>
         <div>
-         <p className="text-lg font-semibold text-gray-900">Privacy</p>
+         <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Close Account</p>
         </div>
       </div>
-      </button>        
-    </div>
+      </button>  
+            {/* 5 */}
+
+
+        <button
+          onClick={() => setShowEditModal(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
+        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+          <TrafficCone />
+         </div>
+        <div>
+         <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Privacy</p>
+        </div>
+      </div>
+      </button>  
+
+           
+     
+      </div>
     {
       openVisibility && (
          <div className=" gap-4 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -307,6 +378,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     </div>
   )
 
+
   const content = (
   
 
@@ -421,9 +493,61 @@ const [visibleProfile, setVisibleProfile] = useState(1)
    
   return(
     <div>
-      <h1 className="text-2xl text-black lg:ml-64 font-bold border-b-2 py-3 border-blue-400">Settings</h1>
+      <h1 className="text-2xl text-black lg:ml-64 font-bold border-b-2 px-2 py-3 border-blue-400">Settings</h1>
         {profileCotent}
         {content}
+        {
+          openDelete && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center
+            z-50">
+              <div className="bg-white mx-auto p-6 rounded-lg w-80 sm:w-96">
+              <h2 className="font-bold text-xl text-center mb-3">
+                ⚠️ Delete Account
+              </h2>
+              <p className="text-sm font-semibold text-center text-gray-800 mb-8">
+                This Action cannot be undone, you will lost your account profile and could 
+                not be able to restore. are you sure, you want to 
+                close your Account.
+              </p>
+              <div className="flex justify-around items-center">
+              <button onClick={() => setOpenDelete(false)}
+                className="bg-gray-800 text-white px-4 py-2 rounded"
+                >
+                Cancel
+              </button>
+
+              <button onClick={handleDeleteAccount}
+              disabled={loadingDelete}
+              className="bg-red-800 text-white px-4 py-2 rounded"
+              >
+                {
+              loadingDelete ? <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg> : "Delete Account"
+              }
+              </button>
+              </div>
+              </div>
+            </div>
+          )
+        }
         {notification.show && (
   <div
     className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-lg shadow-lg text-white transition-all
@@ -461,20 +585,6 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
       )}
     </div>
   );
-}
-  function ProfileCardContent({ icon, label }) {
-  return (
-    <div className="bg-white rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">{icon}</div>
-        <div>
-          <p className="text-lg font-semibold text-gray-900">{label}</p>
-        </div>
-      </div>
-     
-    </div>
-  );
-
 }
 
 
