@@ -227,15 +227,16 @@ const handleHidePost = async (postId) => {
   }
 };
 
-
+//
   return (
     <div
-      className={`rounded-xl shadow md:w-96 lg:w-[400px] w-full border`}
-    >
+      className={`rounded-xl shadow md:w-96  mt-6 sm:mt-0 lg:w-[400px] w-full border`}
+      ref={postRef}
+      >
       {post.is_repost && (
         <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
-          <Link to={`/profile/${user?.id}`}>
+          <Link to={`/profile/${post.reposted_by?.id}`}>
         <p className="font-bold text-white pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
         flex flex-col items-center justify-center">
           {post.reposted_by?.name[0]}
@@ -243,24 +244,35 @@ const handleHidePost = async (postId) => {
         </Link>
         
          <div>
-          <Link to={`/profile/${user.id}`}>
+          <Link to={`/profile/${post.reposted_by.id}`}>
           <p className="font-semibold text-black text-sm">{post.reposted_by?.name}</p>
           </Link>
           <p className="text-xs opacity-70">{post.created_at}</p>
         </div>
-         <p className="text-xs h-6 bg-gray-800 px-2 rounded text-white py-1 ">
+         {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded text-white py-1 ">
          Reposted
-         </p>
+         </p> */}
         </div>
-           {post.is_repost && post.reposted_by?.id === currentUser?.id && ( 
-       <UndoRepost post={post} setPosts={setPosts} />
-           )}
+        <div className="inline-flex gap-3 items-center">
+         <PostOptions post={post} 
+                   messageOpen={messageOpen}
+                   setMessageOpen={setMessageOpen}
+                   chats={chats}
+                   setChats={setChats}/>
+                   <button
+                   onClick={() => handleHidePost(post.id)}
+                   className="w-8 h-8 flex items-center justify-center"
+                       >
+                         ✕
+                 </button>
+         
+                  </div>
         </div>
-      )} 
-   
+
+                )} 
+  
       {/* USER */}
       <div className="flex p-4 bg-gray-100 items-start justify-between">
-       
 
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
@@ -277,6 +289,7 @@ const handleHidePost = async (postId) => {
         </div>
       </div>
 
+      {!post.is_repost &&
         <div className='inline-flex items-center gap-3'>
       <PostOptions post={post} 
       messageOpen={messageOpen}
@@ -291,8 +304,8 @@ const handleHidePost = async (postId) => {
     </button>
 
       </div>
+    }
       </div>
-
       {/* TEXT */}
      <div
   className="bg-white p-4 text-black text-[14px]">

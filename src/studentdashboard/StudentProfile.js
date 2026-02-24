@@ -131,7 +131,7 @@ const badge = (
 
   if (!profile) return <p>Profile not found</p>;
 
-
+// svg
   const headerDashboard = (
     <div className="flex justify-end mb-4">
           <div className="flex items-center gap-1 sm:gap-4">

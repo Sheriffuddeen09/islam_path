@@ -113,21 +113,7 @@ function App() {
           setMessageOpen={setMessageOpen} 
           handleMessageOpenHeader={handleMessageOpenHeader} />}>
 
-      {/* Home Post Page*/}
-      <Route path="/" element={
-      <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} 
-        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        messageOpen={messageOpen}
-        setMessageOpen={setMessageOpen}
-        chats={chats}
-        setChats={setChats}
-        
-         />   
-      } />
+      
 
       {/* Video */}
 
@@ -339,7 +325,28 @@ function App() {
 
         />} />
 
-      </Route>
+
+          {/* Home Post Page*/}
+      <Route path="/" element={
+      <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
+        handleMessageOpen={handleMessageOpen} 
+        activeChat={activeChat}
+        setActiveChat={setActiveChat}
+        handleMessageOpenHeader={handleMessageOpenHeader}
+        
+         />   
+      } />
+
+        </Route>
 
     
        <Route path="*" element={<NotFound />} />

@@ -9,7 +9,7 @@ import LogoutButton from '../Form/LogOut';
 import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
 
-function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
+function SingleHeader({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader
 }) {
 
@@ -117,17 +117,49 @@ console.log('currentUser', user)
 
     return (
       <>
-        <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-2 sm:py-2 py-2 sm:mb-6 ">
-        
+        <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-1 sm:py-2 py-0.5 sm:mb-6 mb- ">
+          
+          {/* Menu Top */}
+          <div className='sm:hidden block'>
+            
+            <nav className='flex flex-row py-1 justify-between items-center lg:mx-7'>
+                  <Link className='text whitespace-nowrap font-bold text-2xl serif' to={'/'}>
+                    Islam Path Knowledge   
+                  </Link>
+              <div className='inline-flex gap-2 items-center'>
+                  <SearchUser />
+                  
+                  <button
+                      onClick={handlemenu}
+                      className="sm:hidden flex text-white bg-gray-800 p-0.5 rounded-full"
+                    >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="w-8 h-8 text-white"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </nav>
+        </div>
 
-          <nav className='flex flex-row justify-between items-center '>
+          <nav className='flex flex-row justify-between items-center lg:mx-7'>
               <div className='inline-flex items-center gap-2'>
                 <Link to={'/'}>
                 <img className='hidden sm:block' src={logos} alt='logo' width={45} height={45}/>
                 </Link>
               </div>
             <div className=''> 
-              <div className='sm:gap-8 gap-3 font-bold inline-flex '> 
+              <div className='sm:gap-8 gap-4 font-bold inline-flex '> 
               
                 <Link to={'/'} className={`${homepage === '/' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
                   transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
@@ -198,10 +230,9 @@ console.log('currentUser', user)
                     </svg>
                     Menu
                   </button>
-                  {
-                    menu &&
+                  {/* { menu &&
                   <SearchUser />
-                  }
+                  } */}
               </div>
               
               {checkMobile}
@@ -249,4 +280,4 @@ console.log('currentUser', user)
 
 }
 
-export default Navbar
+export default SingleHeader

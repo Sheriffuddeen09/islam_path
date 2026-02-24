@@ -225,11 +225,12 @@ const shareToChat = async (chatId) => {
 };
 
 
-
+//
   return (
     <div
-      className={`rounded-xl shadow md:w-96 lg:w-[400px] w-full border`}
-    >
+      className={`rounded-xl shadow md:w-96  mt-6 sm:mt-0  lg:w-[400px] w-full border`}
+      ref={postRef}
+       >
  {post.is_repost && (
          <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
          <div className="inline-flex items-center gap-3 justify-between">
@@ -246,13 +247,21 @@ const shareToChat = async (chatId) => {
            </Link>
            <p className="text-xs opacity-70">{post.created_at}</p>
          </div>
-          <p className="text-xs h-6 bg-gray-800 px-2 rounded text-white py-1 ">
-          Reposted
-          </p>
+          
          </div>
-        {post.is_repost && post.reposted_by?.id === currentUser?.id && ( 
-               <UndoRepost post={post} setPosts={setPosts} />
-                   )}
+        {/* option */}
+        <PostOptions post={post} 
+          messageOpen={messageOpen}
+          setMessageOpen={setMessageOpen}
+          chats={chats}
+          setChats={setChats}/>
+          <button
+          onClick={() => handleHidePost(post.id)}
+          className="w-8 h-8 flex items-center justify-center"
+              >
+                ✕
+        </button>
+
          </div>
        )} 
    
@@ -274,6 +283,7 @@ const shareToChat = async (chatId) => {
         </div>
       </div>
 
+       {!post.is_repost &&
         <div className='inline-flex items-center gap-3'>
       <PostOptions post={post} 
        messageOpen={messageOpen}
@@ -288,6 +298,7 @@ const shareToChat = async (chatId) => {
     </button>
 
       </div>
+    }
       </div>
 
       {/* TEXT */}

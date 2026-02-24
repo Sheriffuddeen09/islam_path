@@ -9,21 +9,38 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setFeedLoading(true)
-      try {
-        const res = await api.get("/api/posts-get");
-        setPosts(res.data.posts);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setFeedLoading(false);
-      }
-    };
+ useEffect(() => {
+  const fetchPosts = async () => {
+    setFeedLoading(true);
 
-    fetchPosts();
-  }, []);
+    try {
+      const res = await api.get("/api/posts-get");
+
+      const filtered = res.data.posts.filter(post => {
+
+        const hasContent = !!post.content;
+
+        const hasImage = post.media?.some(m => m.type === "image");
+        const hasVideo = post.media?.some(m => m.type === "video");
+
+        if (hasVideo && !hasContent) {
+          return false;
+        }
+        return hasContent || hasImage || (hasVideo && hasContent);
+
+      });
+
+      setPosts(filtered);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
+  fetchPosts();
+}, []);
 
   if (feedLoading) return (
       <div className="flex items-center justify-center h-screen">
