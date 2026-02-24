@@ -142,21 +142,12 @@ export default function SearchUser() {
                 outline-none text-black border-gray-300"
               />
 
-              <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          onClick={() => setSearchOpen(false)}
-          className="w-6 h-6 absolute right-6 top-6 text-gray-600 cursor-pointer hover:text-black transition"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-          />
-        </svg>
+              <button
+                onClick={() => setSearchOpen(false)}
+                className="absolute right-6 top-6 text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
             </div>
 
             {/* CONTENT */}
