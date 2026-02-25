@@ -149,7 +149,7 @@ export default function SearchUser() {
           strokeWidth="1.5"
           stroke="currentColor"
           onClick={() => setSearchOpen(false)}
-          className="w-6 h-6 absolute right-6 top-6 text-gray-600 cursor-pointer hover:text-black transition"
+          className="w-6 h-6 absolute right-8 rotate-180 top-7 text-gray-600 cursor-pointer hover:text-black transition"
         >
           <path
             strokeLinecap="round"

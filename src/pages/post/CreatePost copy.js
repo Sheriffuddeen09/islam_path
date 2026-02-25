@@ -34,8 +34,9 @@ export default function CreatePost({handlePostCreated}) {
   const [open, setOpen] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [showTrimModal, setShowTrimModal] = useState(false);
-   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [visibility, setVisibility] = useState("public");
+
 
   const showNotification = (msg) => {
     setNotify({ message: msg, type: "error" });
@@ -76,33 +77,7 @@ useEffect(() => {
   }
 }, [videoPreview]);
 
-  // const applyVideoTrim = async () => {
-  //   const ffmpeg = ffmpegRef.current;
-
-  //   await ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
-
-  //   await ffmpeg.run(
-  //     "-ss", `${videoStart}`,
-  //     "-to", `${videoEnd}`,
-  //     "-i", "input.mp4",
-  //     "-c", "copy",
-  //     "output.mp4"
-  //   );
-
-  //   const data = ffmpeg.FS("readFile", "output.mp4");
-
-  //   const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-  //   const trimmedFile = new File([trimmedBlob], "trimmed.mp4", {
-  //     type: "video/mp4",
-  //   });
-
-  //   setVideo(trimmedFile);
-
-  //   // ✅ THIS is what shows preview above Post button
-  //   setVideoPreview(URL.createObjectURL(trimmedBlob));
-  // };
-
+  
   const applyVideoTrim = async () => {
   const ffmpeg = ffmpegRef.current;
 
@@ -151,22 +126,29 @@ const handleTrimAndClose = async () => {
 
   // SUBMIT POST
 
-  const countWords = (text = "") => {
-  return text
-    .trim()
-    .replace(/([a-z])([A-Z])/g, "$1 $2") // fix mercifulAll → merciful All
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .filter(Boolean).length;
-};
+console.log({
+  text,
+  imagesLength: images.length,
+  video,
+});
 
-  
+  function base64ToFile(base64, filename) {
+  const arr = base64.split(",");
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  if (!mimeMatch) return null;
 
-  const MAX_WORDS = 50;
+  const mime = mimeMatch[1];
+  const bstr = atob(arr[1]);
+  const u8arr = new Uint8Array(bstr.length);
 
-const submitPost = async () => {
-  
+  for (let i = 0; i < bstr.length; i++) {
+    u8arr[i] = bstr.charCodeAt(i);
+  }
 
+  return new File([u8arr], filename, { type: mime });
+}
+
+  const submitPost = async () => {
   const images = croppedImages || [];
 
   if (!text && images.length === 0 && !video) return;
@@ -175,54 +157,48 @@ const submitPost = async () => {
     showNotification("You can upload images OR a video, not both.", "error");
     return;
   }
-  
-  const formData = new FormData();
 
+  const formData = new FormData();
   formData.append("visibility", visibility);
 
   if (text) formData.append("content", text);
-  
 
-  if (croppedImages?.length) {
-    croppedImages.forEach(file => {
-      formData.append("images[]", file);
+  if (images.length > 0) {
+    images.forEach((img, index) => {
+      let fileToSend = img;
+
+      if (typeof img === "string") {
+        fileToSend = base64ToFile(img, `image_${index}.png`);
+      }
+
+      if (fileToSend instanceof File) {
+        formData.append("images[]", fileToSend);
+      }
     });
   }
 
-  if (video) {
+  if (video instanceof File) {
     formData.append("video", video);
   }
 
   setLoading(true);
-  setProgress(0);
 
   try {
-    const res = await api.post("/api/posts", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (e) =>
-        setProgress(Math.round((e.loaded * 100) / e.total)),
-    });
-
+    const res = await api.post("/api/posts", formData
+    );
     handlePostCreated?.(res.data.post);
-    showNotification("Uploaded successfully!", "success");
-
+    setShowVisibilityModal(false);
     setText("");
     setCroppedImages([]);
     setVideo(null);
-    setVideoPreview(null);
-    setShowVisibilityModal(false);
-    setProgress(0);
-    setOpen(null);
+    showNotification("Uploaded successfully!", "success");
   } catch (err) {
-    showNotification(
-      err.response?.data?.message || "Upload failed.",
-      "error"
-    );
+    console.log(err.response?.data);
+    showNotification(err.response?.data?.message || "Upload failed.");
   } finally {
     setLoading(false);
   }
 };
-
 
 
   return (
@@ -319,7 +295,7 @@ const submitPost = async () => {
             <img
               key={i}
               src={URL.createObjectURL(img)}
-              className="rounded-lg"
+              className="rounded-lg h-48 w-full"
             />
           ))}
       </div>
@@ -347,13 +323,13 @@ const submitPost = async () => {
       {/* POST BUTTON */}
       <div className="flex flex-row items-center justify-between mt-6">
    
-        <button
-        onClick={() => setShowVisibilityModal(true)}
-        disabled={loading}
-        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Next
-      </button>
+     <button
+      onClick={() => setShowVisibilityModal(true)}
+      disabled={loading}
+      className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
+    >
+      Next
+    </button>
 
         <button
        onClick={() => {
@@ -470,7 +446,6 @@ const submitPost = async () => {
   </div>
 )} 
 
-
 {showVisibilityModal && (
   <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
 
@@ -555,6 +530,7 @@ const submitPost = async () => {
     </div>
   </div>
 )}
+
 
           <Notification
             message={notify.message}
