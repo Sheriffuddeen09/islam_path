@@ -7,13 +7,15 @@ export default function PostFeedVideo({posts, setPosts, image, postComments, set
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
-  const fetchPosts = async () => {
+ 
+    const fetchPosts = async () => {
   setFeedLoading(true);
   try {
     const res = await api.get("/api/posts-get");
 
     const onlyVideoPosts = res.data.posts.filter(p =>
-      p.media?.some(m => m.type === "video")
+      p.media?.some(m => m.type === "video") &&
+      (!p.content || p.content.trim() === "")
     );
 
     setPosts(onlyVideoPosts);
@@ -23,6 +25,7 @@ export default function PostFeedVideo({posts, setPosts, image, postComments, set
     setFeedLoading(false);
   }
 };
+
 
 useEffect(() => {
   fetchPosts();

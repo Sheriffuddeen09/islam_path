@@ -278,12 +278,12 @@ const handleHidePost = async (postId) => {
         <Link to={`/profile/${user?.id}`}>
         <p className="font-bold text-white pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
         flex flex-col items-center justify-center">
-          {post.user.name?.[0]}
+          {post.user?.name?.[0]}
         </p>
         </Link>
         <div>
           <Link to={`/profile/${user.id}`}>
-          <p className="font-semibold">{post.user.name}</p>
+          <p className="font-semibold">{post.user?.name}</p>
           </Link>
           <p className="text-xs opacity-70">{post.created_at}</p>
         </div>
