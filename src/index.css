@@ -377,3 +377,12 @@ textarea {
     transform: scaleY(1.2);
   }
 }
+
+.react-tel-input .flag-dropdown {
+  background: white !important;
+  border-right: 1px solid #d1d5db !important;
+}
+
+.react-tel-input .form-control {
+  background: white !important;
+}

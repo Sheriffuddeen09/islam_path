@@ -6,7 +6,6 @@ export default function ImageGridLibrary({ media = [], postId }) {
   const total = media.length;
 
   if (!total) return null;
-//const getSrc = (img) => `http://localhost:8000/storage/posts/images/${img.path}`;
 
  const getSrc = (img) => `http://localhost:8000/storage/${img.path}`;
 

@@ -166,7 +166,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     
                     {/* Admin Choice Choose Notification */}
     
-            <div className="space-y-4">
+            <div className="space-y-4 lg:ml-64">
               {isloading
                 ? Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="animate-pulse h-16 bg-gray-200 mb-3 -translate-y-2 rounded-xl"></div>

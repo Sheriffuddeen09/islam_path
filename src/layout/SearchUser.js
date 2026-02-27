@@ -117,6 +117,11 @@ export default function SearchUser() {
           onClick={() => setSearchOpen(true)}
           className="cursor-pointer w-8 h-8 text-gray-400 block sm:hidden"
         />
+
+        <Search
+          onClick={() => setSearchOpen(true)}
+          className="cursor-pointer w-8 h-8 text-gray-400 md:block hidden lg:hidden"
+        />
       </div>
 
       {/* SEARCH MODAL */}

@@ -5,13 +5,22 @@ import PostFeed from "../post/PostFeed";
 export default function HomePage({posts, setPosts, image, setImage, postComments,
    setPostComments, loading, setLoading, setShowUsersPopup, showUsersPopup, emojiList, setEmojiList, 
     showEmoji, setShowEmoji, newComment, setNewComment, messageOpen, setMessageOpen, chats, setChats,
-    handleMessageOpen, activeChat, handleMessageOpenHeader, setActiveChat
+    handleMessageOpen, activeChat, handleMessageOpenHeader, setActiveChat, setUnreadCount, unreadCount,
+    friendCount, setFriendCount, homeCount, setHomeCount, videoCount, setVideoCount, fetchUnreadCount,
+    handleFriendClick, handleVideoClick, handleHomeClick
   }) {
 
 
   return (
     <div>
-      <SingleHeader handleMessageOpen={handleMessageOpen} messageOpen={messageOpen} 
+      <SingleHeader handleMessageOpen={handleMessageOpen} messageOpen={messageOpen} unreadCount={unreadCount} 
+      setUnreadCount={setUnreadCount} friendCount={friendCount} setFriendCount={setFriendCount}
+      homeCount={homeCount} setHomeCount={setHomeCount}
+      videoCount={videoCount} setVideoCount={setVideoCount}
+      fetchUnreadCount={fetchUnreadCount}
+      handleFriendClick={handleFriendClick}
+      handleHomeClick={handleHomeClick}
+      handleVideoClick={handleVideoClick}
       setMessageOpen={setMessageOpen} activeChat={activeChat} setActiveChat={setActiveChat}
       chats={chats} setChats={setChats} handleMessageOpenHeader={handleMessageOpenHeader} />
       <PostFeed posts={posts} setPosts={setPosts} 
@@ -24,7 +33,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       messageOpen={messageOpen}
       setMessageOpen={setMessageOpen}
       chats={chats}
-      setChats={setChats} />
+      setChats={setChats}
+       />
     </div>
   )
 }

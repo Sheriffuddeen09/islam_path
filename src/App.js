@@ -11,7 +11,7 @@ import TeacherOnboarding from "./Form/TeacherOnboarding";
 import AdminChoice from "./Form/AdminChoice";
 import GetMentor from "./pages/mentor/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
-import {  useState } from "react";
+import {  useEffect, useState } from "react";
 import ProtectedRoute from "./ProtectedRoute";
 import VideoPlayerId from "./pages/video/VideoPlayerId";
 import VideoPageApi from "./pages/video/VideoPageApi";
@@ -34,6 +34,8 @@ import PostVideoPageId from "./pages/post/PostVideoPageId";
 import PostTextPageId from "./pages/post/PostTextPageId";
 import QuranGrid from "./pages/homepageComponent/QuranGrid";
 import Friend from "./pages/friend/Friend";
+import PostId from "./pages/post/PostId";
+import api from "./Api/axios";
 
    
 function App() {
@@ -70,10 +72,75 @@ function App() {
       const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
       const [post, setPost] = useState(null);
 
+      const [friendCount, setFriendCount] = useState(0);
+      const [homeCount, setHomeCount] = useState(0);
+      const [videoCount, setVideoCount] = useState(0);
+      const [unreadCount, setUnreadCount] = useState(0);
       
 
+           // ================= FETCH FUNCTIONS =================
+      const fetchPostCounts = async () => {
+        const res = await api.get("/api/post-count");
+        setHomeCount(res.data.home_count);
+        setVideoCount(res.data.video_count);
+      };
 
-    
+      const fetchFriendCount = async () => {
+        const res = await api.get("/api/friend-request-count");
+        setFriendCount(res.data.count);
+      };
+
+      const fetchUnreadCount = async () => {
+        const res = await api.get("/api/messages/unread-count");
+        setUnreadCount(res.data.unread_senders);
+      };
+
+      // CLEAR ON PAGE LOAD
+      useEffect(() => {
+        const clearFriend = async () => {
+          await api.post("/api/friend-request-clear");
+          setFriendCount(0);
+        };
+
+        clearFriend();
+      }, []);
+
+      const handleFriendClick = async () => {
+        if (friendCount > 0) {
+          await api.post("/api/friend-request-clear");
+          setFriendCount(0);
+        }
+      };
+
+      const handleHomeClick = async () => {
+        if (homeCount > 0) {
+          await api.post("/api/clear-home-posts");
+          setHomeCount(0);
+        }
+      };
+
+      const handleVideoClick = async () => {
+          
+          if (videoCount > 0) {
+           await api.post("/api/clear-video-posts");
+          setVideoCount(0);
+        }
+        };
+
+
+      // FETCH + POLLING
+      useEffect(() => {
+        fetchPostCounts();
+        fetchUnreadCount();
+        fetchFriendCount();
+
+        const interval = setInterval(() => {
+          fetchUnreadCount();
+          fetchFriendCount();
+        }, 8000);
+
+        return () => clearInterval(interval);
+      }, []);
 
 
     const handleMessageOpen = (studentId) => {
@@ -82,11 +149,19 @@ function App() {
       setMessageOpen(true);
     };
 
-     const handleMessageOpenHeader = () => {
-      setActiveChat(null);
-      setMessageOpen(true);
-    };
 
+   const handleMessageOpenHeader = async () => {
+  setActiveChat(null);
+  setMessageOpen(true);
+
+  setUnreadCount(0);
+
+  try {
+    await api.post("/api/messages/mark-as-read");
+  } catch (error) {
+    console.log("Failed to mark messages as read");
+  }
+};
 
 
     // 🔥 This function receives the new video from AdminVideoForm
@@ -111,9 +186,30 @@ function App() {
           setChats={setChats}
           setActiveChat={setActiveChat}
           setMessageOpen={setMessageOpen} 
-          handleMessageOpenHeader={handleMessageOpenHeader} />}>
+          handleMessageOpenHeader={handleMessageOpenHeader}
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+          friendCount={friendCount} setFriendCount={setFriendCount}
+          homeCount={homeCount} setHomeCount={setHomeCount}
+          videoCount={videoCount} setVideoCount={setVideoCount}
+          fetchUnreadCount={fetchUnreadCount}
+          handleFriendClick={handleFriendClick}
+          handleHomeClick={handleHomeClick}
+          handleVideoClick={handleVideoClick}
+          />}>
 
       
+      <Route path="/post/:id" element={<PostId 
+        image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        messageOpen={messageOpen}
+        setMessageOpen={setMessageOpen}
+        chats={chats}
+        setChats={setChats}
+      />} />
 
       {/* Video */}
 
@@ -342,6 +438,14 @@ function App() {
         activeChat={activeChat}
         setActiveChat={setActiveChat}
         handleMessageOpenHeader={handleMessageOpenHeader}
+        unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+        friendCount={friendCount} setFriendCount={setFriendCount}
+        homeCount={homeCount} setHomeCount={setHomeCount}
+        videoCount={videoCount} setVideoCount={setVideoCount}
+        fetchUnreadCount={fetchUnreadCount}
+        handleFriendClick={handleFriendClick}
+        handleHomeClick={handleHomeClick}
+        handleVideoClick={handleVideoClick}
         
          />   
       } />
@@ -372,7 +476,18 @@ function LayoutWithHeader({
   setMessageOpen,
   chats, 
   setChats,
-  handleMessageOpenHeader
+  handleMessageOpenHeader,
+  unreadCount,
+  setUnreadCount,
+  friendCount,
+  setFriendCount,
+  homeCount,
+  setHomeCount,
+  videoCount, setVideoCount,
+  fetchUnreadCount,
+  handleFriendClick,
+  handleHomeClick,
+  handleVideoClick
 }) {
   return (
     <div>
@@ -385,6 +500,14 @@ function LayoutWithHeader({
         chats={chats}
         setChats={setChats}
         handleMessageOpenHeader={handleMessageOpenHeader}
+        unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+        friendCount={friendCount} setFriendCount={setFriendCount}
+        homeCount={homeCount} setHomeCount={setHomeCount}
+        videoCount={videoCount} setVideoCount={setVideoCount}
+        fetchUnreadCount={fetchUnreadCount}
+        handleFriendClick={handleFriendClick}
+        handleHomeClick={handleHomeClick}
+        handleVideoClick={handleVideoClick}
       />
 
       {/* 🔥 THIS IS REQUIRED */}

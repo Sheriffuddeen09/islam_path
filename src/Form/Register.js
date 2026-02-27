@@ -9,6 +9,8 @@ import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
 import TextSlider from "./TextSlider";
 import Notification from "./Notification";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 
 
@@ -208,70 +210,68 @@ const autoSentOtp = async () =>{
   setSteps(6);
 };
 
+console.log("Sending phone:", `+${phonenumber}`);
+
 const handleContactNext = async () => {
   const newErrors = {};
   setLoading(true);
 
   if (!email) newErrors.email = "Email is required";
-  if (!countryCode) newErrors.countryCode = "Country code is required";
   if (!location) newErrors.location = "Location is required";
-  if (!phonenumber) newErrors.phonenumber = "Phone number is required";
+
+  if (!phonenumber || phonenumber.length < 11) {
+      newErrors.phonenumber = "Enter valid phone number";
+    }
 
   if (Object.keys(newErrors).length > 0) {
+    setLoading(false);
     return setErrors(newErrors);
   }
 
   try {
-    
-    const emailCheck = await api.post("/api/check-email", {
-      email
-    });
+
+    const emailCheck = await api.post("/api/check-email", { email });
 
     if (emailCheck.data.exists) {
       setErrors({ email: "Email already exists. Please login." });
+      setLoading(false);
       return;
     }
 
-    // 🔥 Step 2: Check phone
     const phoneCheck = await api.post("/api/check-phone", {
-      phone: phonenumber
+      phone: phonenumber.slice(countryCode.length),
+      phone_country_code: `+${countryCode}`,
     });
 
     if (phoneCheck.data.exists) {
       setErrors({ phonenumber: "Phone number already exists." });
+      setLoading(false);
       return;
     }
 
-    // 🔥 Proceed to OTP step
     const sent = autoSentOtp();
-    if (sent) {
-      setSteps(4);
-    }
+    if (sent) setSteps(4);
 
   } catch (err) {
-  console.log(err);
+    console.log(err);
 
-  const apiErrors = err.response?.data?.errors;
+    const apiErrors = err.response?.data?.errors;
 
-  if (apiErrors?.email) {
-    setErrors(prev => ({
-      ...prev,
-      email: apiErrors.email[0],
-    }));
-  }
+    if (apiErrors?.email) {
+      setErrors(prev => ({ ...prev, email: apiErrors.email[0] }));
+    }
 
-  if (apiErrors?.phone) {
-    setErrors(prev => ({
-      ...prev,
-      phonenumber: apiErrors.phone[0], // ✅ map correctly
-    }));
-  }
-}
-  finally{
+    if (apiErrors?.phone) {
+      setErrors(prev => ({
+        ...prev,
+        phonenumber: apiErrors.phone[0],
+      }));
+    }
+
+  } finally {
     setLoading(false);
   }
 };
-
   
   const verifyOtp = async () =>{
 
@@ -348,13 +348,15 @@ const clearError = (field) =>{
 const handleRegister = async () => {
   setLoading(true);
 
+  const phoneWithoutCode = phonenumber.slice(countryCode.length);
+
   const payload = {
     first_name: firstName,
     last_name: lastName,
     dob,
     gender,
-    phone: phonenumber,
-    phone_country_code: countryCode,
+    phone: phoneWithoutCode,
+    phone_country_code: `+${countryCode}`,
     location,
     email,
     password,
@@ -365,31 +367,31 @@ const handleRegister = async () => {
 
   try {
     const res = await api.post("/api/register", payload);
-
-    // Redirect silently on success (no notification)
     navigate(res.data.redirect);
 
   } catch (err) {
-    // Laravel validation errors
+
     if (err.response?.status === 422) {
       const validationErrors = err.response.data.errors;
-      for (let field in validationErrors) {
-        showNotification(validationErrors[field][0]);
-        break; // show only first validation error
-      }
+
+      // Show first validation error
+      const firstError = Object.values(validationErrors)[0][0];
+      showNotification(firstError);
     }
-    // Laravel error message
+
     else if (err.response?.data?.message) {
       showNotification(err.response.data.message);
     }
-    // fallback error
+
     else {
       showNotification("Something went wrong. Try again.");
     }
+
   } finally {
     setLoading(false);
   }
 };
+
 
     return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -710,30 +712,34 @@ const handleRegister = async () => {
             </div>
             
             {/* Phone */}
-            <div className="relative mt-7 sm:px-4 py-3">
-              <label className="text-black absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">Phone Number</label>
-              <div className="flex gap-2">
-                <select
-                  value={countryCode}
-                  onChange={(e)=>{setCountryCode(e.target.value); clearError('countryCode')}}
-                  className="border rounded px-4 py-3 w-36 text-black"
-                >
-                  <option value="">+</option>
-                  <option value="+234">🇳🇬 +234</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+44">🇬🇧 +44</option>
-                </select>
+           <div className="relative mt-7 sm:px-4 py-3">
+            <label className="text-black z-50 absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">
+              Phone Number
+            </label>
 
-                <input
-                  value={phonenumber}
-                  onChange={(e)=>{setPhonenumber(e.target.value); clearError('phonenumber')}}
-                  className="flex-1 border rounded px-4 py-3 text-black w-36 sm:w-full"
-                  placeholder="Phone number"
-                />
-              </div>
-              {errors.countryCode && <p className="text-red-600 text-xs mt-1">{errors.countryCode}</p>}
-              {errors.phonenumber && <p className="text-red-600 text-xs mt-1">{errors.phonenumber}</p>}
-            </div>
+            <PhoneInput
+              country={"ng"}
+              value={phonenumber}
+              className='mt-1 bg-white'
+              onChange={(value, country) => {
+                setPhonenumber(value); // store full number
+                setCountryCode(country.dialCode); // optional
+                clearError("phonenumber");
+              }}
+              inputProps={{
+                required: true,
+              }}
+              containerClass="w-full"
+              inputClass="!w-full !h-[48px] !py-1 !bg-white !text-black !pl-14"
+              buttonClass="!bg-white !border-r !border-gray-300"
+            />
+
+            {errors.phonenumber && (
+              <p className="text-red-600 text-xs mt-1">
+                {errors.phonenumber}
+              </p>
+            )}
+          </div>
 
            
 

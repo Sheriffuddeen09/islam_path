@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
-import { Book, BookOpen, BookTemplateIcon, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2 } from "lucide-react";
+import { Bell, Book, BookOpen, BookTemplateIcon, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2 } from "lucide-react";
 import { useAuth } from './AuthProvider';
 import LiveClass from '../chat/LiveClass';
 import api from '../Api/axios';
@@ -10,32 +10,17 @@ import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
 
 function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
-  chats, setChats, handleMessageOpenHeader
+  chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, setFriendCount, homeCount, 
+  setHomeCount, videoCount, setVideoCount, fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick
 }) {
 
       const [menu, setMenu] = useState(false)
-      const [browse, setBrowse] = useState(false)
-      const [members, setMember] = useState(false)
-      const [content, setContent] = useState(false)
       const [dashboardToggle, setDashboardToggle] = useState(false)
       const homepage = useLocation().pathname
       
    const { isLoggedin, user } = useAuth()
-   const {currentUser} = useAuth()
 
-   const [unreadCount, setUnreadCount] = useState(0);
-     
-         
-    const fetchUnreadCount = async () => {
-      const res = await api.get("/api/messages/unread-count");
-      setUnreadCount(res.data.unread_senders);
-    };
 
-    useEffect(() => {
-      fetchUnreadCount();
-    }, []);
-
-   
     const dashboardLink =
   user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
 
@@ -127,31 +112,80 @@ console.log('currentUser', user)
                 </Link>
               </div>
             <div className=''> 
-              <div className='sm:gap-8 gap-3 font-bold inline-flex '> 
+              <div className='sm:gap-6 gap-3 font-bold inline-flex '> 
               
-                <Link to={'/'} className={`${homepage === '/' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
-                  transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
-                  
-                  <Home />
-                  Home
-                </Link>
+                <Link
+                to="/"
+                onClick={handleHomeClick}
+                className={`${
+                  homepage === "/" && !messageOpen
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }
+                sm:text-[13px] text-[8px]
+                rounded lg:p-2 px-1 py-2
+                flex flex-col items-center gap-1 relative`}
+              >
+                <Home />
+
+                {homeCount > 0 && (
+                  <span className="absolute top-5 right-1 bg-red-500 text-white
+                  text-[10px] px-1.5 rounded-full">
+                    {homeCount > 15 ? "15+" : homeCount}
+                  </span>
+                )}
+
+                Home
+              </Link>
                 {/* Friend */}
-                <Link to={'/friend'} className={`${homepage === '/friend' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
-                  transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
-                  
-                  <EggFried />
-                  Friend
-                </Link>
+                <Link
+                to="/friend"
+                onClick={handleFriendClick}
+                className={`${
+                  homepage === "/friend" && !messageOpen
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }
+                sm:text-[13px] text-[8px]
+                rounded lg:p-2 px-1 py-2
+                flex flex-col items-center gap-1 relative`}
+              >
+                <EggFried />
+
+                {friendCount > 0 && (
+                  <span className="absolute top-5 right-1 bg-red-500
+                  text-white text-[10px] px-1.5 rounded-full">
+                    {friendCount}
+                  </span>
+                )}
+
+                Friend
+              </Link>
                 {/* Message */}
-                <button onClick={handleMessageOpenHeader}  className={`${ messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
-                  transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center cursor-pointer gap-1`}> 
-                  
+                <button
+                  onClick={handleMessageOpenHeader}
+                  className={`${
+                    messageOpen
+                      ? "text-blue-600"
+                      : "text-gray-600 hover:text-gray-800"
+                  } sm:text-[13px] text-[8px]
+                  rounded lg:p-2 px-1 py-2
+                  flex flex-col items-center gap-1 relative`}
+                >
                   <MessageCircleIcon />
+
+                  {/* ✅ Notification badge */}
+                  {unreadCount > 0 && (
+                    <span className="absolute top-5 right-1 bg-red-500 text-white 
+                    text-[10px] px-1.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+
                   Message
                 </button>
-
                 {/* Get Mentor */}
-                <Link to={'/get-mentor'} className={`${homepage === '/get-mentor' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
+                <Link to={'/get-mentor'} className={`${homepage === '/get-mentor' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
                   transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                   
                   <BookOpen />
@@ -159,15 +193,39 @@ console.log('currentUser', user)
                 </Link>
 
                 {/* Video */}
-               <Link to={'/post/video'} className={`${homepage === '/post/video' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
-                  transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
+               <Link
+                to="/post/video"
+                onClick={handleVideoClick}
+                className={`${
+                  homepage === "/post/video" && !messageOpen
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }
+                sm:text-[13px] text-[8px]
+                rounded lg:p-2 px-1 py-2
+                flex flex-col items-center gap-1 relative`}
+              >
+                <PlaySquare />
+
+                {videoCount > 0 && (
+                  <span className="absolute top-5 right-1 bg-red-500 text-white
+                  text-[10px] px-1.5 rounded-full">
+                    {videoCount > 15 ? "15+" : videoCount}
+                  </span>
+                )}
+
+                Video
+              </Link>
+
+               <Link to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
+                  transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                   
-                  <PlaySquare />
-                  Video
+                  <Bell />
+                  Notification
                 </Link>
 
-                {/* Quran */}
-                <Link to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[11px]  rounded lg:p-2 px-1 py-2 
+                {/* Book */}
+                <Link to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
                   transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                   
                   <BookTemplateIcon />
@@ -184,7 +242,7 @@ console.log('currentUser', user)
               <div className="md:block hidden">
                   {check}
               </div>
-          </div>                
+          </div>                   
           </nav>
 
             {/* Mobile Menu */}

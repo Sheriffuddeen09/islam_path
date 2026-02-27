@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import { Lock } from "lucide-react";
 
+
 export default function MentorCard({filteredCourse, loadingId, requestStatus, sendLiveRequest, setLoadingId, setNotification
   , selectedTeacher, setSelectedTeacher, t, notification, setRequestStatus, user, authReady }) {
  
@@ -25,6 +26,8 @@ useEffect(() => {
       setBadges({ total: 0});
     });
 }, []);
+
+ const src = `${`http://localhost:8000`}/storage/${t.logo}`;
 
     const isOther = t.coursetitle_name?.toLowerCase() === "other";
     const displayTitle = isOther ? "Other" : t.coursetitle_name;
@@ -116,12 +119,12 @@ const handleWatchAd = async () => {
         <div
     key={t.id}
     className={`bg-white rounded-lg w-60 h-64 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform hover:scale-105 transition duration-300 
-flex flex-col mx-auto justify-center relative 
-${requestStatus[t.id] === "pending" || requestStatus[t.id] === "accepted" ? "hidden" : "block"}`}
-  >
+    flex flex-col mx-auto justify-center relative 
+    ${requestStatus[t.id] === "pending" || requestStatus[t.id] === "accepted" ? "hidden" : "block"}`}
+      >
           <img
-            src={t.logo || "/default-avatar.png"}
-            alt="Logo"
+            src={t.logo}
+            alt="Logo Image"
             className="w-24 h-24 object-cover rounded-full mb-3 mx-auto"
           />
 

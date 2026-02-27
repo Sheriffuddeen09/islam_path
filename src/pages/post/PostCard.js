@@ -272,7 +272,7 @@ const handleHidePost = async (postId) => {
                 )} 
   
       {/* USER */}
-      <div className="flex p-4 bg-gray-100 items-start justify-between">
+      <div className="flex p-4 bg-gray-50 items-start justify-between">
 
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
@@ -327,7 +327,7 @@ const handleHidePost = async (postId) => {
 </div>
 
       {/* IMAGES */}
-      <div className="px-1">
+      <div className="px-1 -mt-4">
     {post.media.some(m => m.type === "image") && (
       <ImageGrid
         media={post.media.filter(m => m.type === "image")}
