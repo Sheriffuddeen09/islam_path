@@ -12,7 +12,7 @@ export default function ReportComment() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await api.get("/api/reply/reports");
+        const res = await api.get("/api/comment/reports");
         setReports(res.data || []);
         toast.success(res.data.message || "Message reported successfully");
 

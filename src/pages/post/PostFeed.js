@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import api from "../../Api/axios";
-import SideBarRIght from "../homepageComponent/SideBarRIght";
+import SidebarRight from "../homepageComponent/SidebarRight";
 import SidebarLeft from "../homepageComponent/SideBarLeft";
 
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
@@ -53,7 +53,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 
-        {/* SideBarRIght */}
+        {/* SidebarRight */}
         <SidebarLeft />
     
     
@@ -82,19 +82,19 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
       </div>
      
       
-      <SideBarRIght />
+      <SidebarRight />
     </div>
     </div>
   );
 
   const ipadScreen = (
           <div className="md:block lg:hidden hidden">
-        <div className="flex flex-col lg:flex-row  items-end  mx-auto min-h-screen bg-white text-gray-800">
+        <div className="flex flex-col lg:flex-row  items-start ml-6  mx-auto min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 
-        {/* SideBarLeft */}
+        {/* SidebarRight */}
        
-    <SidebarLeft />
+    <SidebarRight />
     
       {
         posts.length === 0 && (

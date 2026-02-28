@@ -11,7 +11,8 @@ import SearchUser from './SearchUser';
 
 function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, 
-  handleMessageClick, videoCount, fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick
+  handleMessageClick, videoCount, fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick,
+  handleNotification, unreadNotification
 }) {
 
       const [menu, setMenu] = useState(false)
@@ -217,11 +218,25 @@ console.log('currentUser', user)
                 Video
               </Link>
 
-               <Link to={'/notifications'} className={`${homepage === '/notifications' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
-                  transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
-                  
-                  <Bell />
-                  Notification
+               <Link to={'/notifications'} 
+                               onClick={handleNotification}
+                               className={`${
+                                 homepage === "/notifications" && !messageOpen
+                                   ? "text-blue-600"
+                                   : "text-gray-600 hover:text-gray-800"
+                               }
+                               sm:text-[13px] text-[8px]
+                               rounded lg:p-2 px-1 py-2
+                               flex flex-col items-center gap-1 relative`}> 
+                                 
+                                 <Bell />
+                                  {unreadNotification > 0 && (
+                                 <span className="absolute top-4 right-2 bg-red-500 text-white
+                                 text-[10px] px-1.5 rounded-full">
+                                   {unreadNotification}
+                                 </span>
+                               )}
+                                 Notification
                 </Link>
 
                 {/* Book */}

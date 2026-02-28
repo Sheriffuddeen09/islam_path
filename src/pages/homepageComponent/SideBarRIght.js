@@ -2,7 +2,7 @@ import { useState } from "react";
 import { quranList } from "./QuranData";
 import { Link } from "react-router-dom";
 
-export default function SideBarRIght() {
+export default function SidebarRight() {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
   const [showMoreFemale, setShowMoreFemale] = useState(false);

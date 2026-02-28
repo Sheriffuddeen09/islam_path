@@ -77,6 +77,7 @@ function App() {
       const [homeCount, setHomeCount] = useState(0);
       const [videoCount, setVideoCount] = useState(0);
       const [unreadCount, setUnreadCount] = useState(0);
+      const [unreadNotification, setUnreadNotification] = useState(0);
       
 
            // ================= FETCH FUNCTIONS =================
@@ -94,6 +95,11 @@ function App() {
       const fetchUnreadCount = async () => {
         const res = await api.get("/api/messages/unread-count");
         setUnreadCount(res.data.message);
+      };
+
+      const fetchUnreadNotification = async () => {
+        const res = await api.get('/api/unread-notifications-count');
+        setUnreadNotification(res.data.notification);
       };
 
       // CLEAR ON PAGE LOAD
@@ -120,6 +126,14 @@ function App() {
         }
         };
 
+        const handleNotification = async () => {
+          
+          if (unreadNotification > 0) {
+           await api.post("/api/unread-notifications-clear");
+          setUnreadNotification(0);
+        }
+        };
+
         const handleMessageClick = async () => {
           await api.post("/api/messages/clear-unread");
           setUnreadCount(0);
@@ -130,6 +144,7 @@ function App() {
         fetchPostCounts();
         fetchUnreadCount();
         fetchFriendCount();
+        fetchUnreadNotification()
 
         const interval = setInterval(() => {
           fetchUnreadCount();
@@ -191,6 +206,9 @@ function App() {
           handleHomeClick={handleHomeClick}
           handleVideoClick={handleVideoClick}
           handleMessageClick={handleMessageClick}
+          handleNotification={handleNotification}
+          unreadNotification={unreadNotification}
+          setUnreadNotification={setUnreadNotification}
           />}>
 
       
@@ -234,7 +252,7 @@ function App() {
       } />
 
       <Route path="/notifications" element={
-          <Notifications />
+          <Notifications handleMessageOpen={handleMessageOpen} />
       } />
 
       <Route path="/report-list" element={
@@ -447,6 +465,9 @@ function App() {
         handleHomeClick={handleHomeClick}
         handleVideoClick={handleVideoClick}
         handleMessageClick={handleMessageClick}
+        handleNotification={handleNotification}
+        unreadNotification={unreadNotification}
+        setUnreadNotification={setUnreadNotification}
         
          />   
       } />
@@ -489,7 +510,10 @@ function LayoutWithHeader({
   handleFriendClick,
   handleHomeClick,
   handleVideoClick,
-  handleMessageClick
+  handleMessageClick,
+  handleNotification,
+  unreadNotification,
+  setUnreadNotification
 }) {
   return (
     <div>
@@ -511,6 +535,9 @@ function LayoutWithHeader({
         handleHomeClick={handleHomeClick}
         handleVideoClick={handleVideoClick}
         handleMessageClick={handleMessageClick}
+        handleNotification={handleNotification}
+        unreadNotification={unreadNotification}
+        setUnreadNotification={setUnreadNotification}
       />
 
       {/* 🔥 THIS IS REQUIRED */}

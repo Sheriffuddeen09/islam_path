@@ -4,10 +4,14 @@ import { FaThumbsUp, FaComment } from "react-icons/fa";
 import api from "../../Api/axios";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-const NotificationPage = () => {
+const NotificationPage = ({handleMessageOpen}) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -26,19 +30,50 @@ const NotificationPage = () => {
     fetchNotifications();
   }, []);
 
-  const handleClick = async (notification) => {
-    try {
-      await api.post(`/api/notifications/read/${notification.id}`);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
-      );
-      if (notification.redirect_url) navigate(notification.redirect_url);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  
 
-  const getMessage = (notification) => {
+  const handleClick = async (notification) => {
+  try {
+    // ✅ Mark as read
+    await api.post(`/api/notifications/read/${notification.id}`);
+
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id === notification.id ? { ...n, read: true } : n
+      )
+    );
+
+    // ✅ CASE 1: Block / Unblock (uses toggle)
+    if (
+      notification.type === "chat_blocked" ||
+      notification.type === "chat_unblocked"
+    ) {
+      const otherUserId = notification.data?.other_user_id;
+
+      if (otherUserId) {
+        handleMessageOpen(otherUserId); // 🔥 YOUR CHAT TOGGLE
+      }
+
+      return; // stop here
+    }
+
+    // ✅ CASE 2: Other notifications using URL
+    if (notification.redirect_url) {
+      const cleanUrl = notification.redirect_url.replace(
+        window.location.origin,
+        ""
+      );
+
+      navigate(cleanUrl);
+    }
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
+const getMessage = (notification) => {
     let data;
     try {
       data = JSON.parse(notification.data);
@@ -63,6 +98,13 @@ const NotificationPage = () => {
           return `${commenters[0]} and ${commenters[1]} commented on your post`;
         return `${commenters[0]} and ${commenters.length - 1} others commented on your post`;
       }
+
+      case "chat_blocked":
+        return `${data.blocked_by} blocked you`;
+
+      case "chat_unblocked":
+        return `${data.unblocked_by} unblocked you`;
+
       case "mention":
         return `You were mentioned by ${data.mentioned_by || ""}`;
       case "teacher_suggestion":
@@ -96,7 +138,7 @@ const NotificationPage = () => {
       // fallback to first letter
       return name.charAt(0).toUpperCase() || "U";
     } catch {
-      return "?";
+      return "U";
     }
   };
 
@@ -109,59 +151,77 @@ const NotificationPage = () => {
     );
 
   return (
-    <div className="max-w-md mx-auto mt-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-        Notifications
-      </h2>
-      <ul className="space-y-3">
-        {notifications.map((n) => {
-          const avatar = getAvatarOrInitial(n);
-          const isImage = avatar && avatar.includes("http"); // crude check for URL
-          return (
-            <li
-              key={n.id}
-              onClick={() => handleClick(n)}
-              className={`flex items-start p-4 rounded-lg shadow-sm cursor-pointer border transition-all duration-200 ${
-                n.read
-                  ? "bg-white border-gray-200 hover:shadow-md"
-                  : "bg-blue-50 border-blue-200 hover:shadow-md"
-              }`}
-            >
-              <div className="relative flex-shrink-0 mr-3">
-                {isImage ? (
-                  <img
-                    src={avatar}
-                    alt="avatar"
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+    <div className="container mx-auto lg:max-w-xl w-full flex-1 mt-6 px-4">
+  <h2 className="text-2xl font-bold mb-4 text-gray-800">Notifications</h2>
+  <ul className="space-y-3">
+    {notifications.map((n) => {
+      const avatar = getAvatarOrInitial(n);
+      const isImage = avatar && avatar.includes("http");
+      
+      // Fix redirect URL
+      let redirectUrl = "";
+      try {
+        const data = JSON.parse(n.data);
+        redirectUrl = n.redirect_url
+          ? n.redirect_url.replace(/^\\/, "") // remove escaped backslash
+          : "/";
+      } catch {
+        redirectUrl = "/";
+      }
+
+      return (
+        <li
+          key={n.id}
+          onClick={() => handleClick({ ...n, redirect_url: redirectUrl })}
+          className={`flex items-start p-4 rounded-lg shadow-sm cursor-pointer border transition-all duration-200 ${
+            n.read
+              ? "bg-white border-gray-200 hover:shadow-md"
+              : "bg-blue-50 border-blue-200 hover:shadow-md"
+          }`}
+        >
+          {/* Avatar */}
+          <div className="relative flex-shrink-0 mr-3">
+            {isImage ? (
+              <img
+                src={avatar}
+                alt="avatar"
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-lg">
+                {avatar}
+              </div>
+            )}
+
+            {/* Notification icon overlay */}
+            {(n.type === "post_reaction" || n.type === "post_comment") && (
+              <div className="absolute bottom-0 right-0 w-5 h-5 bg-white rounded-full flex items-center justify-center text-blue-500 border border-gray-200">
+                {n.type === "post_reaction" ? (
+                  <FaThumbsUp className="w-3 h-3" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-lg">
-                    {avatar}
-                  </div>
-                )}
-
-                {(n.type === "post_reaction" || n.type === "post_comment") && (
-                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px]">
-                    {n.type === "post_reaction" ? <FaThumbsUp /> : <FaComment />}
-                  </div>
+                  <FaComment className="w-3 h-3" />
                 )}
               </div>
+            )}
+          </div>
 
-              <div className="flex-1">
-                <p className="text-gray-800 font-medium">{getMessage(n)}</p>
-                <span className="text-xs text-gray-500 mt-1 block">
-                  {dayjs(n.created_at).fromNow()}
-                </span>
-              </div>
+          {/* Notification content */}
+          <div className="flex-1">
+            <p className="text-gray-800 font-medium">{getMessage(n)}</p>
+            <span className="text-xs text-gray-500 mt-1 block">
+              {dayjs.utc(n.created_at).local().fromNow()}
+            </span>
+          </div>
 
-              {!n.read && (
-                <span className="ml-3 w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+          {/* Unread badge */}
+          {!n.read && (
+            <span className="ml-3 w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+          )}
+        </li>
+      );
+    })}
+  </ul>
+</div>
   );
 };
 

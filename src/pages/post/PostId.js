@@ -5,7 +5,7 @@ import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import Notification from "../../Form/Notification";
 import SidebarLeft from "../homepageComponent/SideBarLeft";
-import SideBarRIght from "../homepageComponent/SideBarRIght";
+import SideBarRIght from "../homepageComponent/SidebarRight";
 
 export default function PostId({image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, chats,

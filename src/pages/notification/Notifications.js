@@ -1,24 +1,24 @@
-import SideBarRIght from "../homepageComponent/SideBarRIght";
+import SidebarRight from "../homepageComponent/SidebarRight";
 import NotificationPage from "./NotificationPage";
 
-export default function Notifications() {
+export default function Notifications({handleMessageOpen}) {
 
 
   const largeScreen = (
     <div className="block md:hidden lg:block">
-        <div className="flex flex-col lg:flex-row  items-center justify-  mx-auto min-h-screen bg-white text-gray-800">
+        <div className="flex flex-col lg:flex-row  items-ce justify-center  mx-auto min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 
-        {/* SideBarRIght
+        {/* SidebarRight
         <SidebarLeft />
      */}
     
-    <div className="flex-1 transition-all mx-auto p-4 mt-20 gap-3 flex flex-col items-center">
-     <NotificationPage />
+    <div className="flex-1 transition-all mx-auto p-4 mt-20 gap-3 flex flex-col">
+     <NotificationPage handleMessageOpen={handleMessageOpen} />
       </div>
      
       
-      <SideBarRIght />
+      <SidebarRight />
     </div>
     </div>
   );
@@ -30,11 +30,11 @@ export default function Notifications() {
 
         {/* SideBarLeft someone */}
        
-     <SideBarRIght />
+     <SidebarRight />
 
 
       <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
-      <NotificationPage />
+      <NotificationPage handleMessageOpen={handleMessageOpen} />
       </div>
       
     </div>

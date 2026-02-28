@@ -7,7 +7,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     showEmoji, setShowEmoji, newComment, setNewComment, messageOpen, setMessageOpen, chats, setChats,
     handleMessageOpen, activeChat, handleMessageOpenHeader, setActiveChat, setUnreadCount, unreadCount,
     friendCount, setFriendCount, homeCount, setHomeCount, videoCount, setVideoCount, fetchUnreadCount,
-    handleFriendClick, handleVideoClick, handleHomeClick, handleMessageClick
+    handleFriendClick, handleVideoClick, handleHomeClick, handleMessageClick, handleNotification, unreadNotification,
+    setUnreadNotification
   }) {
 
 
@@ -20,7 +21,9 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       fetchUnreadCount={fetchUnreadCount} handleMessageClick={handleMessageClick}
       handleFriendClick={handleFriendClick}
       handleHomeClick={handleHomeClick}
-      handleVideoClick={handleVideoClick}
+      handleVideoClick={handleVideoClick} handleNotification={handleNotification}
+      unreadNotification={unreadNotification}
+      setUnreadNotification={setUnreadNotification}
       setMessageOpen={setMessageOpen} activeChat={activeChat} setActiveChat={setActiveChat}
       chats={chats} setChats={setChats} handleMessageOpenHeader={handleMessageOpenHeader} />
       <PostFeed posts={posts} setPosts={setPosts} 
