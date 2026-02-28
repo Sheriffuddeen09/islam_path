@@ -7,7 +7,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     showEmoji, setShowEmoji, newComment, setNewComment, messageOpen, setMessageOpen, chats, setChats,
     handleMessageOpen, activeChat, handleMessageOpenHeader, setActiveChat, setUnreadCount, unreadCount,
     friendCount, setFriendCount, homeCount, setHomeCount, videoCount, setVideoCount, fetchUnreadCount,
-    handleFriendClick, handleVideoClick, handleHomeClick
+    handleFriendClick, handleVideoClick, handleHomeClick, handleMessageClick
   }) {
 
 
@@ -17,7 +17,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       setUnreadCount={setUnreadCount} friendCount={friendCount} setFriendCount={setFriendCount}
       homeCount={homeCount} setHomeCount={setHomeCount}
       videoCount={videoCount} setVideoCount={setVideoCount}
-      fetchUnreadCount={fetchUnreadCount}
+      fetchUnreadCount={fetchUnreadCount} handleMessageClick={handleMessageClick}
       handleFriendClick={handleFriendClick}
       handleHomeClick={handleHomeClick}
       handleVideoClick={handleVideoClick}

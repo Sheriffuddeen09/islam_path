@@ -271,7 +271,7 @@ useEffect(() => {
   return (
     <div className="flex ">
       {/* CHAT LIST */}
-      <div className="sm:w-80 w-full message overflow-x-auto h-80 no-scrollbar shadow-md scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 sm:w-96 fixed sm:right-96 right-0 rounded-bl-lg rounded-br-lg z-50 mt-5 bg-gray-900">
+      <div className="sm:w-80 w-full message overflow-x-auto h-80 no-scrollbar shadow-md scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 sm:w-96 fixed lg:right-96 md:right-36 right-0 rounded-bl-lg rounded-br-lg z-50 mt-5 bg-gray-900">
 
         {/* TOP FILTER */}
         <div className="flex gap-2 p-3 border-t bg-gray-900 z-10 relative">

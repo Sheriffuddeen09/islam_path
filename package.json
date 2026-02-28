@@ -28,6 +28,7 @@
     "axios": "^1.13.2",
     "browser-image-compression": "^2.0.2",
     "cropperjs": "^2.1.0",
+    "dayjs": "^1.11.19",
     "firebase": "^12.2.1",
     "framer-motion": "^12.26.2",
     "laravel-echo": "^2.2.6",

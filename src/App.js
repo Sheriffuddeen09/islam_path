@@ -36,6 +36,7 @@ import QuranGrid from "./pages/homepageComponent/QuranGrid";
 import Friend from "./pages/friend/Friend";
 import PostId from "./pages/post/PostId";
 import api from "./Api/axios";
+import Notifications from "./pages/notification/Notifications";
 
    
 function App() {
@@ -92,18 +93,10 @@ function App() {
 
       const fetchUnreadCount = async () => {
         const res = await api.get("/api/messages/unread-count");
-        setUnreadCount(res.data.unread_senders);
+        setUnreadCount(res.data.message);
       };
 
       // CLEAR ON PAGE LOAD
-      useEffect(() => {
-        const clearFriend = async () => {
-          await api.post("/api/friend-request-clear");
-          setFriendCount(0);
-        };
-
-        clearFriend();
-      }, []);
 
       const handleFriendClick = async () => {
         if (friendCount > 0) {
@@ -127,6 +120,10 @@ function App() {
         }
         };
 
+        const handleMessageClick = async () => {
+          await api.post("/api/messages/clear-unread");
+          setUnreadCount(0);
+        };
 
       // FETCH + POLLING
       useEffect(() => {
@@ -151,17 +148,15 @@ function App() {
 
 
    const handleMessageOpenHeader = async () => {
-  setActiveChat(null);
-  setMessageOpen(true);
+      setActiveChat(null);
+      setMessageOpen(true);
 
-  setUnreadCount(0);
-
-  try {
-    await api.post("/api/messages/mark-as-read");
-  } catch (error) {
-    console.log("Failed to mark messages as read");
-  }
-};
+      try {
+        await api.post("/api/messages/clear-unread");
+      } catch (error) {
+        console.log("Failed to mark messages as read");
+      }
+    };
 
 
     // 🔥 This function receives the new video from AdminVideoForm
@@ -195,6 +190,7 @@ function App() {
           handleFriendClick={handleFriendClick}
           handleHomeClick={handleHomeClick}
           handleVideoClick={handleVideoClick}
+          handleMessageClick={handleMessageClick}
           />}>
 
       
@@ -235,6 +231,10 @@ function App() {
 
       <Route path="/quran" element={
           <QuranGrid />
+      } />
+
+      <Route path="/notifications" element={
+          <Notifications />
       } />
 
       <Route path="/report-list" element={
@@ -446,6 +446,7 @@ function App() {
         handleFriendClick={handleFriendClick}
         handleHomeClick={handleHomeClick}
         handleVideoClick={handleVideoClick}
+        handleMessageClick={handleMessageClick}
         
          />   
       } />
@@ -487,7 +488,8 @@ function LayoutWithHeader({
   fetchUnreadCount,
   handleFriendClick,
   handleHomeClick,
-  handleVideoClick
+  handleVideoClick,
+  handleMessageClick
 }) {
   return (
     <div>
@@ -508,6 +510,7 @@ function LayoutWithHeader({
         handleFriendClick={handleFriendClick}
         handleHomeClick={handleHomeClick}
         handleVideoClick={handleVideoClick}
+        handleMessageClick={handleMessageClick}
       />
 
       {/* 🔥 THIS IS REQUIRED */}
