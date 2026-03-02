@@ -62,7 +62,7 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
     const toggleReaction = async (emoji) => {
     setLoadingEmoji(emoji); // 👈 only this emoji loads
     try {
-      const res = await api.post(`/api/posts/${reply.id}/reaction`, { emoji });
+      const res = await api.post(`/api/comments/${reply.id}/reaction`, { emoji });
   
       const apiReactions = res.data.reactions || {};
       const normalized = Object.entries(apiReactions).flatMap(([e, users]) =>
@@ -79,7 +79,7 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
   
   useEffect(() => {
     const loadReactions = async () => {
-      const res = await api.get(`/api/posts/${reply.id}/reactions`);
+      const res = await api.get(`/api/comments/${reply.id}/reactions`);
       setReactions(res.data.reactions || []);
     };
     loadReactions();

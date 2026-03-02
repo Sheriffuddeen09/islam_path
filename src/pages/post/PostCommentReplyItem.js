@@ -210,8 +210,8 @@ const contentEdit = (
 )
     return(
     
-        <div className="fixed px-2 inset-0 bg-white/80 flex sm:py-5 items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
+        <div className="fixed px-2 inset-0 bg-white/90 flex sm:py-5 items-center justify-center z-50">
+      <div className="bg-white rounded-xl w-full md:h-[570px]  sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
 
     <div>
     <div className="flex justify-around sm:justify-between items-center px-4 py-3 border-b">

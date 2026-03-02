@@ -84,7 +84,7 @@ const totalReactions = reactionArray.length;
   const toggleReaction = async (emoji) => {
   setLoadingEmoji(emoji); // 👈 only this emoji loads
   try {
-    const res = await api.post(`/api/posts/${comment.id}/reaction`, { emoji });
+    const res = await api.post(`/api/comments/${comment.id}/reaction`, { emoji });
 
     const apiReactions = res.data.reactions || {};
     const normalized = Object.entries(apiReactions).flatMap(([e, users]) =>
@@ -100,9 +100,9 @@ const totalReactions = reactionArray.length;
   }
 };
 
-useEffect(() => {
+  useEffect(() => {
   const loadReactions = async () => {
-    const res = await api.get(`/api/posts/${comment.id}/reactions`);
+    const res = await api.get(`/api/comments/${comment.id}/reactions`);
     setReactions(res.data.reactions || []);
   };
   loadReactions();

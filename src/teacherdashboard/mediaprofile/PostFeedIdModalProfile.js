@@ -1,25 +1,28 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import PostComment from "./PostComment";
 import api from "../../Api/axios";
-import { PostCommentInput } from "./PostCommentInput";
-import ImageFlex from "./ImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
-import PostOptionsId from "./PostOptionId";
+import ImageFlex from "../../pages/post/ImageFlex";
+import { PostCommentInput } from "../../pages/post/PostCommentInput";
+import PostComment from "../../pages/post/PostComment";
+import PostOptionsId from "../../pages/post/PostOptionId";
 
-export function PostFeedIdModal({ postId, post, onClose, user, total, others, setShowUsersPopup, me, 
-                                  counts, setShowReactions,
+
+export function PostFeedIdModalProfile({ postId, post, onClose, user, total, others,  me, 
+                                  counts, setShowReactions, currentUser, allUsers, getColor,
                                 showReactions, reactionList, toggleReaction, onLikeClick, myReaction, 
                                 focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef,
                                 image, setImage, loading, setLoading, newComment, setNewComment, emojiList, showEmoji,
-                                setShowEmoji, chats, firstUser
+                                setShowEmoji, chats, firstUser, showUsersPopup, setShowUsersPopup
                               }) {
 
   const [messageOpenShare, setMessageOpenShare] = useState(false)
   const [shares, setShares] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
+  //const [ showUsersPopup, setShowUsersPopup] = useState(false);
+  
 
 
   
@@ -142,7 +145,7 @@ const shareToChat = async (chatId) => {
             </div>
             </div>
             <div className="bg-gray-700 rounded-full">
-            <PostOptionsId 
+            <PostOptionsId
             post={post} 
             chats={chats}
             />
@@ -213,7 +216,7 @@ const shareToChat = async (chatId) => {
         className="font-semibold hover:underline"
         onClick={() => setShowUsersPopup(true)}
       >
-        {firstUser.name}
+        {firstUser?.name}
       </span>
     )}
 
@@ -252,26 +255,6 @@ const shareToChat = async (chatId) => {
             className="w-5 h-5 text-gray-600"
           >
             <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
-          </svg>
-      </p>
-
-      <p className="inline-flex gap-1 text-gray-800 items-center">
-      {post.reposts_count}
-           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-5 h-5 text-gray-600"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
-              3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865
-              a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
           </svg>
       </p>
       </div>
@@ -334,7 +317,7 @@ const shareToChat = async (chatId) => {
         </div>
 
         
-        <PostCommentInput 
+        <PostCommentInput
           newComment={newComment}
           loading={loading}
           setNewComment={setNewComment}
@@ -487,6 +470,41 @@ const shareToChat = async (chatId) => {
     </div>
   </div>
 )}
+
+{showUsersPopup && (
+  <div 
+    className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+    onClick={() => setShowUsersPopup(false)}
+  >
+    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-black py-3">User Likes</h1>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+  onClick={() =>setShowUsersPopup(false)}class="size-6 absolute right-4 top-2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+</svg>
+
+  {allUsers.map((user) => (
+    <Link
+      key={user.id}
+      to={`/profile/${user.id}`}   // 👈 profile route
+      className="flex items-center gap-2 text-sm hover:bg-gray-100 p-2 rounded transition"
+      onClick={() => setShowUsersPopup(false)} // close popup on click
+    >
+      <div
+        className={`w-8 h-8 rounded-full ${getColor(user.id)} flex items-center justify-center text-xl font-semibold text-white`}
+      >
+        {user.id === currentUser?.id
+          ? "Y"
+          : user.name?.charAt(0).toUpperCase()}
+      </div>
+
+      <span className="font-medium">
+        {user.id === currentUser?.id ? "You" : user.name}
+      </span>
+    </Link>
+  ))}
+</div>
+  </div>
+)}      
 
     </div>
   );

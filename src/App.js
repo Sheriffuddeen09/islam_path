@@ -37,6 +37,9 @@ import Friend from "./pages/friend/Friend";
 import PostId from "./pages/post/PostId";
 import api from "./Api/axios";
 import Notifications from "./pages/notification/Notifications";
+import ChatReportUser from "./report/ChatReportUser";
+import PostReportUser from "./report/PostReportUser";
+import CommentReportUser from "./report/CommentReportUser";
 
    
 function App() {
@@ -254,6 +257,12 @@ function App() {
       <Route path="/notifications" element={
           <Notifications handleMessageOpen={handleMessageOpen} />
       } />
+
+      <Route path="/chat/report/:chatId" element={<ChatReportUser />} />
+
+      <Route path="/post/report/:postId" element={<PostReportUser />} />
+
+      <Route path="/comment/report/:commentId" element={<CommentReportUser />} />
 
       <Route path="/report-list" element={
           <ReportList />

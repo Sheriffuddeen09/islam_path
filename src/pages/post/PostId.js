@@ -4,12 +4,11 @@ import { PostFeedId } from "./PostFeedId";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import Notification from "../../Form/Notification";
-import SidebarLeft from "../homepageComponent/SideBarLeft";
 import SideBarRIght from "../homepageComponent/SidebarRight";
 
 export default function PostId({image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, chats,
-  loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
+  loading, setLoading, setImage}) {
 
 
   const { id } = useParams();
@@ -19,10 +18,10 @@ export default function PostId({image, postComments, setPostComments, newComment
   const {user} = useAuth()
   const [counts, setCounts] = useState({});
   const [myReaction, setMyReaction] = useState(null);
-  const [postIdModal, setPostIdModal] = useState(null);
   const [showReactions, setShowReactions] = useState(false);
   const [reactionLoading, setReactionLoading] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
+  const [ showUsersPopup, setShowUsersPopup] = useState(false);
 
 
   useEffect(() => {
@@ -100,20 +99,25 @@ export default function PostId({image, postComments, setPostComments, newComment
       toggleReaction(emoji);
     };
   
-    useEffect(() => {
-    if (post?.reacted_users) {
-      setUsersPreview(post.reacted_users.slice(0, 6));
-    }
-  }, [post?.reacted_users]);
-  
+   
+   useEffect(() => {
+  if (!post?.id) return;   // 👈 important guard
 
-  useEffect(() => {
-  api.get(`/api/post/${post?.id}/reactions`).then(res => {
-    setCounts(res.data.counts || {});
-    setUsersPreview(res.data.users?.slice(0,6) || []);
-    setMyReaction(res.data.my_reaction || null);
-  });
-}, [post]);
+  const fetchReactions = async () => {
+    try {
+      const res = await api.get(`/api/post/${post.id}/reactions`);
+      setCounts(res.data.counts || {});
+      setUsersPreview(res.data.users || []);
+      setMyReaction(res.data.my_reaction || null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchReactions();
+}, [post?.id]);   // 👈 depend on id only
+    
+
 
   
 const showNotification = (msg) => {
@@ -134,13 +138,38 @@ const focusCommentInput = () => {
 
 const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
-const othersCount = usersPreview.filter(
-  (u) => u.id !== currentUser?.id
-).length;
 
-const me = usersPreview.find(
-  (u) => u.id === currentUser?.id
-);
+      const uniqueUsers = Array.from(
+        new Map(usersPreview.map((u) => [u.id, u])).values()
+      );
+
+      // Find me
+      const me = uniqueUsers.find(u => u.id === currentUser?.id);
+
+      // Remove me from list
+      const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
+
+      const firstUser = others[0];
+      const lastUser = others[others.length - 1];
+      const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
+
+      const allUsers = uniqueUsers; // 👈 this is your full popup list
+
+
+      
+        const colors = [
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+        ];
+
+        const getColor = (id) => colors[id % colors.length];
+
+
+
 
   if (!post) return (
       <div className="flex items-center justify-center h-screen">
@@ -156,14 +185,15 @@ const me = usersPreview.find(
         
         <div className="flex-1 transition-all mx-auto p-4 mt-14 gap-3 flex flex-col items-center">
           <PostFeedId 
-            total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 
+            total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
             image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
             showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
             user={user} counts={counts} setShowReactions={setShowReactions} 
             reactionLoading={reactionLoading}  setPostComments={setPostComments}
             showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
             toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
-            myReaction={myReaction} postId={post.id} post={post}
+            myReaction={myReaction} postId={post.id} post={post} allUsers={allUsers} firstUser={firstUser}
+            getColor={getColor}
             newComment={newComment} setNewComment={setNewComment}
             showEmoji={showEmoji} setShowEmoji={setShowEmoji}
             emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
@@ -183,10 +213,11 @@ const me = usersPreview.find(
     
           <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
           <PostFeedId 
-            total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 
+            total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
             image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
             showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
-            user={user} counts={counts} setShowReactions={setShowReactions} 
+            user={user} counts={counts} setShowReactions={setShowReactions} allUsers={allUsers} firstUser={firstUser}
+            getColor={getColor}
             reactionLoading={reactionLoading}  setPostComments={setPostComments}
             showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
             toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}

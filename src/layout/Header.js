@@ -231,7 +231,7 @@ console.log('currentUser', user)
                                  
                                  <Bell />
                                   {unreadNotification > 0 && (
-                                 <span className="absolute top-4 right-2 bg-red-500 text-white
+                                 <span className="absolute top-4 right-6 bg-red-500 text-white
                                  text-[10px] px-1.5 rounded-full">
                                    {unreadNotification}
                                  </span>

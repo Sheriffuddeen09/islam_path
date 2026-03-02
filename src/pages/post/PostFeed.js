@@ -89,7 +89,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
 
   const ipadScreen = (
           <div className="md:block lg:hidden hidden">
-        <div className="flex flex-col lg:flex-row  items-start ml-6  mx-auto min-h-screen bg-white text-gray-800">
+        <div className="flex flex-col items-start mx-auto min-h-screen bg-white text-gray-800">
         {/* Mobile Menu Button */}
 
         {/* SidebarRight */}
@@ -105,7 +105,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
       }
      
 
-      <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
+      <div className="flex-1 transition-all p-4 mt-20 gap-3 ml-4 relative">
       {posts.map(post => (
         <PostCard key={post.id} post={post} setPosts={setPosts} 
         image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}

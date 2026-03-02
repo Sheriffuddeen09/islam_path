@@ -1,5 +1,5 @@
 import PostOptions from "./PostOption";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 import { useEffect, useRef, useState } from "react";
 import Notification from "../../Form/Notification";
@@ -11,15 +11,16 @@ import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
-import UndoRepost from "./UndoRepost";
+
 
 
 export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
-  loading, setLoading, showUsersPopup, setShowUsersPopup, newComment, setNewComment, emojiList, setEmojiList,
+  loading, setLoading, newComment, setNewComment, emojiList, setEmojiList,
 showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
 
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
+  const [ showUsersPopup, setShowUsersPopup] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [counts, setCounts] = useState(post.reaction_counts || {});
@@ -106,13 +107,11 @@ const shareToChat = async (chatId) => {
   const showNotification = (msg) => {
     setNotify({ message: msg, type: "error" });
 
-      // Clear after 5 seconds
       setTimeout(() => {
         setNotify({ message: "", type: "" });
       }, 5000);
     };
 
-  const navigate = useNavigate();
   const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
 
   
@@ -175,19 +174,18 @@ const shareToChat = async (chatId) => {
     };
   
     useEffect(() => {
-    if (post.reacted_users) {
-      setUsersPreview(post.reacted_users.slice(0, 6));
-    }
-  }, [post.reacted_users]);
-  
+      const fetchReactions = async () => {
+        const res = await api.get(`/api/post/${post.id}/reactions`);
+        setCounts(res.data.counts || {});
+        setUsersPreview(res.data.users || []);
+        setMyReaction(res.data.my_reaction || null);
+      };
 
-  useEffect(() => {
-  api.get(`/api/post/${post.id}/reactions`).then(res => {
-    setCounts(res.data.counts || {});
-    setUsersPreview(res.data.users?.slice(0,6) || []);
-    setMyReaction(res.data.my_reaction || null);
-  });
-}, [post.id]);
+      fetchReactions();
+    }, [post.id]);
+
+    
+    console.log("usersPreview", usersPreview);
 
   
     // Render
@@ -196,18 +194,37 @@ const shareToChat = async (chatId) => {
 
 
  
-const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
-
-const othersCount = usersPreview.filter(
-  (u) => u.id !== currentUser?.id
-).length;
-
-const me = usersPreview.find(
-  (u) => u.id === currentUser?.id
-);
+    const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
 
+      const uniqueUsers = Array.from(
+        new Map(usersPreview.map((u) => [u.id, u])).values()
+      );
 
+      // Find me
+      const me = uniqueUsers.find(u => u.id === currentUser?.id);
+
+      // Remove me from list
+      const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
+
+      const firstUser = others[0];
+      const lastUser = others[others.length - 1];
+      const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
+
+      const allUsers = uniqueUsers; // 👈 this is your full popup list
+
+
+      
+        const colors = [
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+        ];
+
+        const getColor = (id) => colors[id % colors.length];
 
 const commentInputRef = useRef(null);
 
@@ -231,7 +248,7 @@ const handleHidePost = async (postId) => {
   return (
     <div
       className={`rounded-xl shadow md:w-96  mt-6 sm:mt-0 lg:w-[400px] w-full border`}
-      //ref={postRef}
+      // ref={postRef}
       >
       {post.is_repost && (
         <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
@@ -356,33 +373,47 @@ const handleHidePost = async (postId) => {
           <span key={emoji} className="text-xs -mr-2">{emoji}</span>
         ))}
         
+             
         {total > 0 && (
-      <div className="text-xs flex items-center gap-1 cursor-pointer">
-        {/* YOU */}
-        {me && (
-          <span
-            className="font-semibold hover:underline"
-            onClick={() => setShowUsersPopup(true)}
-          >
-            You
-          </span>
-        )}
+  <div className="text-xs flex items-center gap-1 cursor-pointer">
 
-        {/* AND */}
-        {me && othersCount > 0 && <span>and</span>}
-
-        {/* OTHERS Share*/}
-        {othersCount > 0 && (
-          <span
-            className="text-gray-500 hover:underline"
-            onClick={() => setShowUsersPopup(true)}
-          >
-            {othersCount} other{othersCount > 1 ? "s" : ""}
-          </span>
-        )}
-     
-      </div>
+    {/* YOU */}
+    {me && (
+      <>
+        <span
+          className="font-semibold hover:underline"
+          onClick={() => setShowUsersPopup(true)}
+        >
+          You
+        </span>
+        {total > 1 && <span>,</span>}
+      </>
     )}
+
+    {/* FIRST OTHER USER */}
+    {firstUser && (
+      <span
+        className="font-semibold hover:underline"
+        onClick={() => setShowUsersPopup(true)}
+      >
+        {firstUser.name}
+      </span>
+    )}
+
+    {/* REMAINING USERS COUNT */}
+    {others.length > 1 && (
+      <>
+        <span> and </span>
+        <span
+          className="font-semibold hover:underline"
+          onClick={() => setShowUsersPopup(true)}
+        >
+          {others.length - 1} other{others.length - 1 > 1 ? "s" : ""}
+        </span>
+      </>
+    )}
+  </div>
+)}
 
       </div>  
       </div>
@@ -485,7 +516,7 @@ const handleHidePost = async (postId) => {
         
                     {postIdModal && (
                   <PostFeedIdModal
-                   total={total} othersCount={othersCount} setShowUsersPopup={setShowUsersPopup} me={me} 
+                   total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
@@ -493,37 +524,14 @@ const handleHidePost = async (postId) => {
                     showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
                     toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
                     myReaction={myReaction} postId={post.id} post={postIdModal}
-                    onClose={() => setPostIdModal(null)}
+                    onClose={() => setPostIdModal(null)} firstUser={firstUser}
+                    allUsers={allUsers} getColor={getColor}
                     newComment={newComment} setNewComment={setNewComment}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji}
                     emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
                   />
                 )}
-               {showUsersPopup && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg w-80 p-4">
-            <h3 className="font-semibold mb-3">Likes</h3>
-
-            {usersPreview.map(u => (
-              <div key={u.id} className="flex justify-between text-sm py-1">
-                <Link to={`/profile/${u.id}`}>
-                  <span>
-                    {u.id === currentUser?.id ? "You" : u.name}
-                  </span>
-                </Link>
-              </div>
-            ))}
-
-            <button
-              className="mt-4 w-full text-sm text-blue-600"
-              onClick={() => setShowUsersPopup(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-      
+              
       {shares && (
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
@@ -661,6 +669,42 @@ const handleHidePost = async (postId) => {
     </div>
   </div>
 )}
+
+
+ {showUsersPopup && (
+  <div 
+    className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+    onClick={() => setShowUsersPopup(false)}
+  >
+    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-black py-3">User Likes</h1>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+  onClick={() =>setShowUsersPopup(false)}class="size-6 absolute right-4 top-2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+</svg>
+
+  {allUsers.map((user) => (
+    <Link
+      key={user.id}
+      to={`/profile/${user.id}`}   // 👈 profile route
+      className="flex items-center gap-2 text-sm hover:bg-gray-100 p-2 rounded transition"
+      onClick={() => setShowUsersPopup(false)} // close popup on click
+    >
+      <div
+        className={`w-8 h-8 rounded-full ${getColor(user.id)} flex items-center justify-center text-xl font-semibold text-white`}
+      >
+        {user.id === currentUser?.id
+          ? "Y"
+          : user.name?.charAt(0).toUpperCase()}
+      </div>
+
+      <span className="font-medium">
+        {user.id === currentUser?.id ? "You" : user.name}
+      </span>
+    </Link>
+  ))}
+</div>
+  </div>
+)}      
 
        <Notification
                   message={notify.message}
