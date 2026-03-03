@@ -104,7 +104,7 @@ useEffect(() => {
 
   const content = (
     <section className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-10">
+      <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl mt-10 p-10">
         <h1 className="sm:text-3xl text-lg font-bold text-gray-900 text-center mb-6">
           Choose How You Want to Contribute
         </h1>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../layout/AuthProvider";
 import MessageBubblePop from "./MessageModal";
 import { ForwardModal } from "./ForwardMessage";

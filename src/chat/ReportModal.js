@@ -12,9 +12,12 @@ export function ReportModal({ chat, onClose }) {
 
   // determine who is being reported
   const reportedUserId =
-    chat.teacher_id === authUser.id
-      ? chat.student_id
-      : chat.teacher_id;
+    chat.id === authUser.id
+      ? chat.user_two_id
+      : chat.user_one_id;
+
+      console.log('user chat id ', reportedUserId)
+      console.log('chat id ', chat)
 
   const submitReport = async () => {
     if (!reason) return;

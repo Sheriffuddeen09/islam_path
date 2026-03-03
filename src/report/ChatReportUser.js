@@ -32,7 +32,7 @@ const ChatReportUser = () => {
 
   return (
   <div className="min-h-screen bg-gray-50 py-16 px-4">
-    <div className="max-w-3xl mt-10 pt-10 mx-auto">
+    <div className="max-w-3xl mt-10 mx-auto">
 
       {/* Main Card */}
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">

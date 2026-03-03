@@ -144,7 +144,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     
            {user?.admin_choice === "arabic_teacher" &&
           !user?.teacher_profile_completed && (
-            <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg mb-4 flex items-center flex-row flex-wrap justify-between">
+            <div className="bg-red-100 lg:ml-64 border border-red-300 text-red-700 p-4 rounded-lg mb-4 flex items-center flex-row flex-wrap justify-between">
               
                 <div>
               <strong>You must complete your Teacher Profile!</strong>
