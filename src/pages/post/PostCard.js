@@ -247,7 +247,7 @@ const handleHidePost = async (postId) => {
 //
   return (
     <div
-      className={`rounded-xl shadow md:w-96  mt-6 sm:mt-0 lg:w-[400px] w-full border`}
+      className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt-6 sm:mt-0 lg:w-[400px] w-full border`}
       // ref={postRef}
       >
       {post.is_repost && (

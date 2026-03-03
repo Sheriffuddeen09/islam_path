@@ -105,11 +105,11 @@ export default function SearchUser() {
             onClick={() => setSearchOpen(true)}
             placeholder="Search"
             readOnly
-            className="border px-7 cursor-pointer focus:border-gray-300 outline-none text-black border-gray-400 h-9 w-60 rounded-lg"
+            className="border text-sm bg-gray-100 px-7 cursor-pointer focus:border-gray-100 outline-none text-black border-gray-100 h-10 w-64 rounded-full"
           />
           <Search
             onClick={() => setSearchOpen(true)}
-            className="cursor-pointer absolute left-1 top-2 w-5 h-5 text-gray-400"
+            className="cursor-pointer absolute left-2 top-3 w-5 h-4 text-gray-400"
           />
         </div>
 

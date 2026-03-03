@@ -22,7 +22,7 @@ export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, im
         </button >
 
 
-            <div className={`fixed bottom-64 left-10 gap-2 bg-white border p-2 rounded shadow z-50 ${emojiClick ? 'block' : 'hidden'}`}>
+            <div className={`fixed bottom-48 sm:left-96 left-10 gap-2 bg-white border p-2 rounded shadow z-50 ${emojiClick ? 'block' : 'hidden'}`}>
               {REPLY_EMOJIS.map(e => (
                 <button
                   key={e}

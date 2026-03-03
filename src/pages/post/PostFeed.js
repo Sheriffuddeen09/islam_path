@@ -105,7 +105,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
       }
      
 
-      <div className="flex-1 transition-all p-4 mt-20 gap-3 ml-4 relative">
+      <div className="flex-1 transition-all p-4 mt-20 gap-4 ml-4 relative">
       {posts.map(post => (
         <PostCard key={post.id} post={post} setPosts={setPosts} 
         image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}

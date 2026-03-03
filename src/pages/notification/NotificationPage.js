@@ -180,8 +180,10 @@ const NotificationPage = ({handleMessageOpen}) => {
                 {isImage ? (
                   <img src={avatar} alt="avatar" className="w-12 h-12 rounded-full object-cover" />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-lg">
-                    {avatar}
+                  <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-xl">
+                    {Array.isArray(n?.names)
+                      ? n.names[0]?.charAt(0)
+                      : n?.names?.charAt(0) || "U"}
                   </div>
                 )}
 
