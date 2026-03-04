@@ -112,7 +112,7 @@ console.log('currentUser', user)
           {/* Menu Top */}
           <div className='sm:hidden block'>
             
-            <nav className='flex flex-row py-1 justify-between items-center lg:mx-7'>
+            <nav className='flex flex-row py-1 px-3 justify-between items-center lg:mx-7'>
                   <Link className='text whitespace-nowrap font-bold text-2xl serif' to={'/'}>
                     Islam Path Knowledge   
                   </Link>
@@ -121,7 +121,7 @@ console.log('currentUser', user)
                   
                   <button
                       onClick={handlemenu}
-                      className="sm:hidden flex text-white bg-gray-800 p-0.5 rounded-full"
+                      className="sm:hidden flex text-black p-0.5 rounded-full"
                     >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +129,7 @@ console.log('currentUser', user)
                     viewBox="0 0 24 24"
                     strokeWidth="1.5"
                     stroke="currentColor"
-                    className="w-8 h-8 text-white"
+                    className="w-8 h-8 text-black"
                   >
                     <path
                       strokeLinecap="round"

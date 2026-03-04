@@ -13,11 +13,15 @@ dayjs.extend(timezone);
 
 const NotificationPage = ({handleMessageOpen}) => {
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
+      
+        setLoading(true);
+
       try {
         const { data } = await api.get("/api/page-notifications");
         setNotifications(data);
@@ -158,57 +162,67 @@ const NotificationPage = ({handleMessageOpen}) => {
     <div className="container mx-auto lg:max-w-xl w-full flex-1 mt-6 px-4">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Notifications</h2>
       <ul className="space-y-3">
-        {notifications.map((n) => {
-          const avatar = getAvatarOrInitial(n);
-          const isImage = avatar && avatar.includes("http");
+  {notifications.slice(0, visibleCount).map((n) => {
+    const avatar = getAvatarOrInitial(n);
+    const isImage = avatar && avatar.includes("http");
 
-          let redirectUrl = "/";
-          try {
-            redirectUrl = n.redirect_url ? n.redirect_url.replace(/^\\/, "") : "/";
-          } catch {}
+    let redirectUrl = "/";
+    try {
+      redirectUrl = n.redirect_url ? n.redirect_url.replace(/^\\/, "") : "/";
+    } catch {}
 
-          return (
-            <li
-              key={n.id}
-              onClick={() => handleClick({ ...n, redirect_url: redirectUrl })}
-              className={`flex items-start p-4 rounded-lg shadow-sm cursor-pointer border transition-all duration-200 ${
-                n.read ? "bg-white border-gray-200 hover:shadow-md" : "bg-blue-50 border-blue-200 hover:shadow-md"
-              }`}
-            >
-              {/* Avatar */}
-              <div className="relative flex-shrink-0 mr-3">
-                {isImage ? (
-                  <img src={avatar} alt="avatar" className="w-12 h-12 rounded-full object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-xl">
-                    {Array.isArray(n?.names)
-                      ? n.names[0]?.charAt(0)
-                      : n?.names?.charAt(0) || "U"}
-                  </div>
-                )}
+    return (
+      <li
+        key={n.id}
+        onClick={() => handleClick({ ...n, redirect_url: redirectUrl })}
+        className={`flex items-start p-4 rounded-lg shadow-sm cursor-pointer border transition-all duration-200 ${
+          n.read
+            ? "bg-white border-gray-200 hover:shadow-md"
+            : "bg-blue-50 border-blue-200 hover:shadow-md"
+        }`}
+      >
+        {/* Avatar */}
+        <div className="relative flex-shrink-0 mr-3">
+          {isImage ? (
+            <img
+              src={avatar}
+              alt="avatar"
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-xl">
+              {Array.isArray(n?.names)
+                ? n.names[0]?.charAt(0)
+                : n?.names?.charAt(0) || "U"}
+            </div>
+          )}
+        </div>
 
-                {/* Overlay icons */}
-                {(n.type === "post_reaction" || n.type === "post_comment") && (
-                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-white rounded-full flex items-center justify-center text-blue-500 border border-gray-200">
-                    {n.type === "post_reaction" ? <FaThumbsUp className="w-3 h-3" /> : <FaComment className="w-3 h-3" />}
-                  </div>
-                )}
-              </div>
+        {/* Notification content */}
+        <div className="flex-1">
+          <p className="text-gray-800 text-sm">{renderMessage(n)}</p>
+          <span className="text-xs text-gray-500 mt-1 block">
+            {n.created_at}
+          </span>
+        </div>
 
-              {/* Notification content */}
-              <div className="flex-1">
-                <p className="text-gray-800 text-sm">
-                  {renderMessage(n)}
-                </p>
-                <span className="text-xs text-gray-500 mt-1 block">{n.created_at}</span>
-              </div>
-
-              {/* Unread badge */}
-              {!n.read && <span className="ml-3 w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>}
-            </li>
-          );
-        })}
-      </ul>
+        {!n.read && (
+          <span className="ml-3 w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+        )}
+        </li>
+      );
+    })}
+  </ul>
+  {visibleCount < notifications.length && (
+  <div className="text-center mt-6">
+    <button
+      onClick={() => setVisibleCount((prev) => prev + 10)}
+      className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200"
+    >
+      Read More Notifications
+    </button>
+  </div>
+)}
     </div>
   );
 };

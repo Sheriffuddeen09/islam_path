@@ -37,8 +37,15 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
 const buildReplyBody = (baseText = "") => {
   if (!replyTo) return baseText;
-  const mention = `@${replyTo.name} `;
-  return baseText.startsWith(mention) ? baseText : mention + baseText;
+
+  const mention = `@${replyTo.name}`;
+
+  // If user deleted the mention, do NOT re-add it
+  if (!baseText.includes(mention)) {
+    return baseText;
+  }
+
+  return baseText;
 };
 
 
@@ -46,30 +53,41 @@ const sendTextReply = async () => {
   if (!replyText.trim()) return;
 
   setIsSubmitting(true);
-  const body = buildReplyBody(replyText);
-  await onReplyAdded(comment.id, body, null, null);
+
+  await onReplyAdded(comment.id, replyText, null, null);
+
   setReplyText("");
   setReplyTo(null);
   setIsSubmitting(false);
 };
 
+
 const sendImageReply = async (file) => {
   if (!file) return;
 
   setIsSubmitting(true);
-  const body = buildReplyBody(""); // 👈 still send mention in body
-  await onReplyAdded(comment.id, body, file, null);
-  setIsSubmitting(false);
-};
 
-const sendEmojiReply = async (emoji) => {
-  setIsSubmitting(true);
-  const body = buildReplyBody(emoji); // 👈 emoji + mention
-  await onReplyAdded(comment.id, body, null, emoji);
-  setEmojiClick(false);
+  await onReplyAdded(comment.id, replyText, file, null);
+
+  setReplyText("");
   setReplyTo(null);
   setIsSubmitting(false);
 };
+
+
+const sendEmojiReply = async (emoji) => {
+  setIsSubmitting(true);
+
+  await onReplyAdded(comment.id, replyText + emoji, null, emoji);
+
+  setEmojiClick(false);
+  setReplyText("");
+  setReplyTo(null);
+  setIsSubmitting(false);
+};
+
+
+
 
 
 //length
@@ -239,7 +257,7 @@ const contentEdit = (
     <div className="inline-flex gap-2 items-start">
       <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
         {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
-    <div className="bg-gray-50 sm:w-60 w-full flex-1 relative group  px-4 py-2 rounded-lg ">
+    <div className="bg-gray-50 sm:w-80 w-64 flex-1 relative group  px-4 py-2 rounded-lg ">
         <div className=" flex flex-row justify-between  items-start">
           <div>
           <button onClick={() => navigate(`/profile/${user.id}`)} className="text-black font-bold">
@@ -415,8 +433,8 @@ const contentEdit = (
           {/* Reply Input */}
 
           <PostReplyInput image={image} isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
-          sendTextReply={sendTextReply} setEmojiClick={setEmojiClick} sendEmojiReply={sendEmojiReply}
-          REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} />
+          sendTextReply={sendTextReply} setEmojiClick={setEmojiClick} sendEmojiReply={sendEmojiReply} setReplyTo={setReplyTo}
+          REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} replyTo={replyTo} />
            </div>
         </div>
 

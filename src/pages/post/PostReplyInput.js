@@ -1,5 +1,5 @@
 export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, image, sendTextReply, setEmojiClick, sendEmojiReply, 
-    REPLY_EMOJIS, emojiClick, replyText, setReplyText}) {
+    REPLY_EMOJIS, emojiClick, replyText, setReplyText, setReplyTo, replyTo}) {
 
 
     return(
@@ -7,7 +7,15 @@ export function PostReplyInput ({isSubmitting, replyInputRef, sendImageReply, im
             <textarea
               ref={replyInputRef}
               value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setReplyText(value);
+
+                // If mention removed from text, clear replyTo sendTextReply
+                if (replyTo && !value.includes(`@${replyTo.name}`)) {
+                  setReplyTo(null);
+                }
+              }}
               className="flex-1 px-4 py-8 text-black outline-0  border-2 border-gray-100 h-32 rounded"
               placeholder="Write a reply..."
               rows={4}

@@ -8,7 +8,10 @@ export default function SearchUser() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [recentSearches, setRecentSearches] = useState([]);
+  const [recentSearches, setRecentSearches] = useState(() => {
+  const saved = localStorage.getItem("recentSearches");
+  return saved ? JSON.parse(saved) : [];
+});
   const [loading, setLoading] = useState(false);
 
   /* ================================
@@ -66,21 +69,32 @@ export default function SearchUser() {
 
   }, [query]);
 
+  const loadRecentSearches = () => {
+  const saved = localStorage.getItem("recentSearches");
+  if (saved) {
+    setRecentSearches(JSON.parse(saved));
+  }
+};
+
+  useEffect(() => {
+  if (searchOpen) {
+    loadRecentSearches();
+  }
+}, [searchOpen]);
+
   /* ================================
      SAVE RECENT SEARCH
   ================================= */
+
+
   const handleRecentSearch = (user) => {
+  let updated = [user, ...recentSearches.filter(r => r.id !== user.id)];
+  updated = updated.slice(0, 10); // limit to 10
 
-    let updated = [
-      user,
-      ...recentSearches.filter(r => r.id !== user.id)
-    ];
+  setRecentSearches(updated);
+  localStorage.setItem("recentSearches", JSON.stringify(updated));
+};
 
-    updated = updated.slice(0, 5);
-
-    setRecentSearches(updated);
-    localStorage.setItem("recentSearches", JSON.stringify(updated));
-  };
 
   const removeRecent = (id) => {
     const updated = recentSearches.filter(r => r.id !== id);
@@ -96,33 +110,44 @@ export default function SearchUser() {
   /* ================================
      COMPONENT UI
   ================================= */
+
+  const openSearchModal = () => {
+  const saved = localStorage.getItem("recentSearches");
+  if (saved) {
+    setRecentSearches(JSON.parse(saved));
+  }
+  
+  setQuery(""); // reset input
+  setSearchOpen(true);
+};
+
   return (
     <>
       {/* SEARCH BUTTON */}
       <div>
-        <div className="relative lg:block hidden">
-          <input
-            onClick={() => setSearchOpen(true)}
-            placeholder="Search"
-            readOnly
-            className="border text-sm bg-gray-100 px-7 cursor-pointer focus:border-gray-100 outline-none text-black border-gray-100 h-10 w-64 rounded-full"
-          />
-          <Search
-            onClick={() => setSearchOpen(true)}
-            className="cursor-pointer absolute left-2 top-3 w-5 h-4 text-gray-400"
-          />
-        </div>
+  <div className="relative lg:block hidden">
+    <input
+      onClick={openSearchModal}
+      placeholder="Search"
+      readOnly
+      className="border text-sm bg-gray-100 px-7 cursor-pointer focus:border-gray-100 outline-none text-black border-gray-100 h-10 w-64 rounded-full"
+    />
+    <Search
+      onClick={openSearchModal}
+      className="cursor-pointer absolute left-2 top-3 w-5 h-4 text-gray-400"
+    />
+  </div>
 
-        <Search
-          onClick={() => setSearchOpen(true)}
-          className="cursor-pointer w-8 h-8 text-gray-400 block sm:hidden"
-        />
+  <Search
+    onClick={openSearchModal}
+    className="cursor-pointer w-6 h-6 text-gray-400 block sm:hidden"
+  />
 
-        <Search
-          onClick={() => setSearchOpen(true)}
-          className="cursor-pointer w-8 h-8 text-gray-400 md:block hidden lg:hidden"
-        />
-      </div>
+  <Search
+    onClick={openSearchModal}
+    className="cursor-pointer w-8 h-8 text-gray-400 md:block hidden lg:hidden"
+  />
+</div>
 
       {/* SEARCH MODAL */}
       {searchOpen && (
@@ -174,7 +199,7 @@ export default function SearchUser() {
                 <div className="p-4">
 
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-semibold text-gray-700">
+                    <h3 className="font-semibold text-black">
                       Recent Searches
                     </h3>
 

@@ -89,13 +89,23 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
   
   const isOwner = authUser?.user?.id === reply.user?.id;
 
-  const handleReplyToReply = (reply) => {
-  const name = `${reply.user.first_name} ${reply.user.last_name}`;
-  setReplyTo({ id: reply.user.id, name });
 
-  // Pre-fill input with mention
+const handleReplyToReply = (reply) => {
+  const user = reply.user ?? reply; // fallback if user is not nested
+
+  console.log("Full reply object:", reply);
+  console.log("reply.user:", reply.user);
+
+  if (!user?.first_name) {
+    console.warn("User data missing", reply);
+    return;
+  }
+
+  const name = `${user.first_name} ${user.last_name ?? ""}`;
+  const id = user.id ?? null;
+
+  setReplyTo({ id, name });
   setReplyText(`@${name} `);
-
   focusReplyInput();
 };
 
@@ -103,20 +113,19 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
   function renderWithMention(text) {
   if (!text) return null;
 
-  const parts = text.split(/(@\{[^}]+\}|@\w+)/g);
+  const parts = text.split(/(@\{[^}]+\}|@[a-zA-Z]+\s[a-zA-Z]+)/g);
 
   return parts.map((part, index) => {
     if (part.startsWith("@")) {
-      // Remove @{ } or @
       const clean = part.startsWith("@{")
-        ? part.slice(2, -1)   // @{olawale love} -> olawale love
-        : part.slice(1);      // @olawale -> olawale
+        ? part.slice(2, -1)
+        : part.slice(1);
 
       return (
         <button
           key={index}
           onClick={() => navigate(`/profile/${clean}`)}
-          className="text-blue-400 font-semibold hover:underline"
+          className="text-blue-600 font-bold hover:underline"
         >
           {part}
         </button>
@@ -151,7 +160,7 @@ const navigate = useNavigate()
 
         <div className="px-4 py-2">
     <div className="flex gap-2 items-start justify-end">
-    <div className="bg-gray-50 sm:w-60 w-full relative group  px-4 py-2 rounded-lg ">
+    <div className="bg-gray-50 sm:w-64 w-64 relative group  px-4 py-2 rounded-lg ">
         <div className=" flex flex-row justify-between  items-start">
         <button onClick={() => navigate(`/profile/${user.id}`)}
          className="text-black font-bold">{reply?.user?.first_name} {reply?.user?.last_name}
@@ -192,7 +201,7 @@ const navigate = useNavigate()
           
       ) : (
         <>
-          <button onClick={handleReplyToReply} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+          <button  onClick={() => handleReplyToReply(reply)} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
                     </svg>
@@ -239,7 +248,7 @@ const navigate = useNavigate()
             ) : (
               <>
                 <PostReplyCopyText reply={reply} />
-                <button onClick={handleReplyToReply} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
+                <button onClick={() => handleReplyToReply(reply)} className="whitespace-nowrap text-sm inline-flex hover:text-gray-800 items-center gap-2 p-1">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
                     </svg>
