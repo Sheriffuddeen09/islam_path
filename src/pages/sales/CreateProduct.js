@@ -11,7 +11,7 @@ export default function CreateProduct() {
   author: "",
   description: "",
   price: "",
-  currency: "USD",
+  currency: "$",
   stock: "",
   color: "",
   size: "",
@@ -271,10 +271,10 @@ useEffect(() => {
           onChange={(e) => setForm({ ...form, currency: e.target.value })}
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
         >
-          <option value="USD">USD ($)</option>
-          <option value="EUR">EUR (€)</option>
-          <option value="GBP">GBP (£)</option>
-          <option value="NGN">NGN (₦)</option>
+          <option value="$">$ (USD)</option>
+          <option value="€">€ (EUR)</option>
+          <option value="£">£ (GBP)</option>
+          <option value="₦">₦ (NGN)</option>
         </select>
       </div>
 

@@ -38,6 +38,7 @@ import Notifications from "./pages/notification/Notifications";
 import ChatReportUser from "./report/ChatReportUser";
 import PostReportUser from "./report/PostReportUser";
 import CommentReportUser from "./report/CommentReportUser";
+import ProductPage from "./pages/sales/Product";
 
    
 function App() {
@@ -270,6 +271,10 @@ function App() {
           <ReportChat />
       } />
 
+      <Route path="/online-sale" element={
+          <ProductPage />
+      } />
+
 
       <Route path="/friend" element={
           <Friend students={students} setStudents={setStudents} admins={admins} setAdmins={setAdmins}
@@ -278,7 +283,7 @@ function App() {
       } />
 
 
-      {/* profile */}
+      {/* profile  */}
       <Route path="/profile/:id" element={<ProfileRouter 
       requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
       chats={chats} 
