@@ -81,21 +81,21 @@ const shareToChat = async (chatId) => {
 
 
   
-   const showNotification = (msg) => {
-      setNotify({ message: msg, type: "error" });
-  
-        // Clear after 5 seconds
-        setTimeout(() => {
-          setNotify({ message: "", type: "" });
-        }, 5000);
-      };
+    const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
+
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
   
     const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
   
     
       const toggleReaction = async (emoji) => {
     if (!currentUser) {
-      showNotification("Please log in to react.");
+      showNotification("Please log in to react.", "error");
       return;
     }
   
@@ -138,7 +138,7 @@ const shareToChat = async (chatId) => {
       if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
       if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
     } catch (err) {
-      showNotification("Reaction error", err);
+      showNotification("Reaction error", "error");
     } finally {
       setReactionLoading(false);
       setShowReactions(false);
@@ -762,11 +762,13 @@ focusCommentInput()
 )}
 
 
- <Notification
-                  message={notify.message}
-                  type={notify.type}
-                  onClose={() => setNotify({ message: "", type: "" })}
-                />
+ {notify.message && (
+          <Notification
+            message={notify.message}
+            type={notify.type} // "success" = green, "error" = red
+            onClose={() => setNotify({ message: "", type: "" })}
+          />
+        )}
     </div>
   );
 }

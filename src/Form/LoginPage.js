@@ -1,6 +1,6 @@
-import {Home, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import dua_success from "./image/dua_success.png";
 import success from "./image/path_islam.png";
 import dua from "./image/dua.png";
@@ -49,14 +49,14 @@ export default function LoginPage() {
 
   const [notify, setNotify] = useState({ message: "", type: "" });
 
-const showNotification = (msg) => {
-  setNotify({ message: msg, type: "error" });
+const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
 
-  // Clear after 5 seconds
-  setTimeout(() => {
-    setNotify({ message: "", type: "" });
-  }, 5000);
-};
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
 
 // Clear error for a field
 const clearError = (field) => {
@@ -68,19 +68,19 @@ const loginUser = async () => {
 
   // Local validation
   if (!email) {
-    showNotification("Email is required");
+    showNotification("Email is required", "error");
     return;
   }
   if (!email.includes("@")) {
-    showNotification("Enter a valid email address");
+    showNotification("Enter a valid email address", "error");
     return;
   }
   if (!password) {
-    showNotification("Password is required");
+    showNotification("Password is required", "error");
     return;
   }
   if (password.length < 6) {
-    showNotification("Password must be at least 6 characters");
+    showNotification("Password must be at least 6 characters", "error");
     return;
   }
 
@@ -110,7 +110,7 @@ const loginUser = async () => {
     }
 
     // Unknown error
-    showNotification("Something went wrong. Please try again.");
+    showNotification("Something went wrong. Please try again.", "error");
   } finally {
     setLoading(false);
   }
@@ -299,11 +299,13 @@ const loginUser = async () => {
                 Create Account
               </Link>
             </p>
-            <Notification
-  message={notify.message}
-  type={notify.type}
-  onClose={() => setNotify({ message: "", type: "" })}
-/>
+            {notify.message && (
+              <Notification
+                message={notify.message}
+                type={notify.type} // "success" = green, "error" = red
+                onClose={() => setNotify({ message: "", type: "" })}
+              />
+            )}
 
     </div>
     </div>

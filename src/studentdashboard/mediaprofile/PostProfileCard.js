@@ -8,6 +8,7 @@ import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import { PostFeedIdModalProfile } from "../../teacherdashboard/mediaprofile/PostFeedIdModalProfile";
 import { Link } from "react-router-dom";
+import Notification from "../../Form/Notification";
 
 
 export default function PostProfileCard({ post, chats, image, setImage, postComments, 
@@ -28,7 +29,7 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
     const [counts, setCounts] = useState(post.reaction_counts || {});
     const [myReaction, setMyReaction] = useState(post.my_reaction || null);
     const [usersPreview, setUsersPreview] = useState([]); 
-    const [notify, setNotify] = useState({ message: "", type: "" });
+    const [notify, setNotify] = useState('');
     const [postIdModal, setPostIdModal] = useState(null);
     const [reactionLoading, setReactionLoading] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(false);
@@ -36,21 +37,21 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
     const {user} = useAuth()
     const [ showUsersPopup, setShowUsersPopup] = useState(false);
 
-     const showNotification = (msg) => {
-        setNotify({ message: msg, type: "error" });
-    
-          // Clear after 5 seconds
-          setTimeout(() => {
-            setNotify({ message: "", type: "" });
-          }, 5000);
-        };
+    const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
+
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
     
       const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
     
       
         const toggleReaction = async (emoji) => {
       if (!currentUser) {
-        showNotification("Please log in to react.");
+        showNotification("Please log in to react.", "error");
         return;
       }
     
@@ -93,7 +94,7 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
         if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
         if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
       } catch (err) {
-        showNotification("Reaction error", err);
+        showNotification("Reaction error", "error");
       } finally {
         setReactionLoading(false);
         setShowReactions(false);
@@ -735,6 +736,14 @@ const media = Array.isArray(post.media) ? post.media : [];
                     emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
                   />
                 )}
+
+                {notify.message && (
+          <Notification
+            message={notify.message}
+            type={notify.type} // "success" = green, "error" = red
+            onClose={() => setNotify({ message: "", type: "" })}
+          />
+        )}
     </div>
   );
 }

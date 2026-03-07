@@ -32,19 +32,19 @@ export default function CreatePost({handlePostCreated}) {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [notify, setNotify] = useState({ message: "", type: "" });
   const [showTrimModal, setShowTrimModal] = useState(false);
    const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [visibility, setVisibility] = useState("public");
+  const [notify, setNotify] = useState({ message: "", type: "" });
 
-  const showNotification = (msg) => {
-    setNotify({ message: msg, type: "error" });
+  const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
 
-      // Clear after 5 seconds
-      setTimeout(() => {
-        setNotify({ message: "", type: "" });
-      }, 5000);
-    };
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
 
 
   // VIDEO SELECT
@@ -67,8 +67,6 @@ const loadFFmpeg = async () => {
   setFfmpegReady(true);
 };
 
-// when i open this https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js it does not open but say{Couldn't find the requested file /dist/ffmpeg-core.js in @ffmpeg/core.}
-// when i open this it open https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.min.js
 
 useEffect(() => {
   if (videoPreview) {
@@ -76,32 +74,7 @@ useEffect(() => {
   }
 }, [videoPreview]);
 
-  // const applyVideoTrim = async () => {
-  //   const ffmpeg = ffmpegRef.current;
-
-  //   await ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
-
-  //   await ffmpeg.run(
-  //     "-ss", `${videoStart}`,
-  //     "-to", `${videoEnd}`,
-  //     "-i", "input.mp4",
-  //     "-c", "copy",
-  //     "output.mp4"
-  //   );
-
-  //   const data = ffmpeg.FS("readFile", "output.mp4");
-
-  //   const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-  //   const trimmedFile = new File([trimmedBlob], "trimmed.mp4", {
-  //     type: "video/mp4",
-  //   });
-
-  //   setVideo(trimmedFile);
-
-  //   // ✅ THIS is what shows preview above Post button
-  //   setVideoPreview(URL.createObjectURL(trimmedBlob));
-  // };
+ 
 
   const applyVideoTrim = async () => {
   const ffmpeg = ffmpegRef.current;
@@ -556,11 +529,13 @@ const submitPost = async () => {
   </div>
 )}
 
+          {notify.message && (
           <Notification
             message={notify.message}
-            type={notify.type}
+            type={notify.type} // "success" = green, "error" = red
             onClose={() => setNotify({ message: "", type: "" })}
           />
+        )}
         </div>
   );
 }

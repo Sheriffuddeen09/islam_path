@@ -70,14 +70,14 @@ export default function RegisterPage() {
 
   const [notify, setNotify] = useState({ message: "", type: "" });
 
-const showNotification = (msg) => {
-  setNotify({ message: msg, type: "error" });
+const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
 
-  // Clear after 5 seconds
-  setTimeout(() => {
-    setNotify({ message: "", type: "" });
-  }, 5000);
-};
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
 
 useEffect(() => {
   const msg = sessionStorage.getItem("notify_message");
@@ -384,7 +384,7 @@ const handleRegister = async () => {
     }
 
     else {
-      showNotification("Something went wrong. Try again.");
+      showNotification("Something went wrong. Try again.", "error");
     }
 
   } finally {
@@ -1020,11 +1020,13 @@ const handleRegister = async () => {
   )}
         </button>
 
-        <Notification
-  message={notify.message}
-  type={notify.type}
-  onClose={() => setNotify({ message: "", type: "" })}
-/>
+        {notify.message && (
+          <Notification
+            message={notify.message}
+            type={notify.type} // "success" = green, "error" = red
+            onClose={() => setNotify({ message: "", type: "" })}
+          />
+        )}
 
       </div>
     </div>

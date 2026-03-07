@@ -5,17 +5,23 @@ import { useAuth } from "../../layout/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../Api/axios";
 import DownloadImageFlex from "./DownloadImageFlex";
+import Notification from "../../Form/Notification";
+
 export default function Library({post, handleRemove, deleteLoading, downloading}){
 
 const [showMore, setShowMore] = useState(false);
-const [notification, setNotification] = useState("");
+const [notify, setNotify] = useState("");
 
 const {user} = useAuth()
 const [showImagePicker, setShowImagePicker] = useState(false);
 
-const showNotification = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 3000); // hide after 3s
+const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
+
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
   };
 
 const navigate = useNavigate()
@@ -53,10 +59,10 @@ const handleDownloadVideo = async () => {
     link.click();
     link.remove();
 
-    showNotification("Downloading video...");
+    showNotification("Downloading video...", "success" );
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download video!");
+    showNotification("Failed to download video!", "error");
   }
 };
 
@@ -248,6 +254,14 @@ const handleDownloadVideo = async () => {
               </div>
             </div>
           )}
+
+          {notify.message && (
+          <Notification
+            message={notify.message}
+            type={notify.type} // "success" = green, "error" = red
+            onClose={() => setNotify({ message: "", type: "" })}
+          />
+        )}
               
         </div>
     )

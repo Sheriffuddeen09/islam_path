@@ -13,8 +13,6 @@ import GetMentor from "./pages/mentor/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 import {  useEffect, useState } from "react";
 import ProtectedRoute from "./ProtectedRoute";
-import VideoPlayerId from "./pages/video/VideoPlayerId";
-import VideoPageApi from "./pages/video/VideoPageApi";
 import ProtectRoute from "./route/ProtectRouter";
 import ReportList from "./report/ReportList";
 import ReportChat from "./chat/ReportChat";
@@ -278,30 +276,6 @@ function App() {
           incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
            />
       } />
-
-       <Route
-          path="/video"
-          element={
-            <ProtectRoute allowedRoles={['admin', 'user']}>
-              <VideoPageApi setVideos={setVideos} videos={videos} 
-              chats={chats}
-              />
-            </ProtectRoute>
-          }
-        />
-
-      <Route
-          path="/video/:id"
-          element={
-            <ProtectRoute allowedRoles={['admin', 'user']}>
-              <VideoPlayerId 
-              chats={chats}
-              />
-            </ProtectRoute>
-          }
-        />
-
-        
 
 
       {/* profile */}

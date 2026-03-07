@@ -14,6 +14,7 @@ import ExamResults from "../exam/ExamResults";
 import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
 import PostLibrary from "../pages/post/PostLibrary";
+import CreateProduct from "../pages/sales/CreateProduct";
 
 export default function TeacherDashboardLayout({chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -82,6 +83,8 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
   // Menu items for Comment 1
   const teacherMenu = [
+    { id: 12, label: "Create Product" },
+
     { id: 5, label: "Student Request", showBadge: true },
     { id: 6, label: "Create Student Assignment" },
     { id: 7, label: "Create Student Examination" },
@@ -93,7 +96,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
   // Menu items for Comment 2
   const defaultMenu = [
-    { id: 5, label: "Create Content" },
+    { id: 5, label: "Create Product" },
     { id: 6, label: "Order" },
     { id: 7, label: "Sale History" },
   ];
@@ -343,6 +346,9 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         </div>
         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        </div>
+        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+        <CreateProduct pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
       </section>
     </div>

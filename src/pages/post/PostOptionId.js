@@ -5,12 +5,14 @@ import { PostReportModal } from "./report/PostReportModal";
 import DownloadImageFlex from "./DownloadImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
+import Notification from "../../Form/Notification";
 
 
 export default function PostOptionsId({ post,  chats }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState("");
+  const [notify, setNotify] = useState("");
   const [shares, setShares] = useState(false);
   const [openReport, setOpenReport] = useState(false)
   const [showImagePicker, setShowImagePicker] = useState(false);
@@ -27,10 +29,14 @@ export default function PostOptionsId({ post,  chats }) {
   const isOwner = authUser?.user?.id === post?.user?.id;
 
 
-  const showNotification = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 3000); // hide after 3s
-  };
+  const showNotification = (message, type = "success") => {
+      setNotify({ message, type });
+  
+      // Clear after 5 seconds
+      setTimeout(() => {
+        setNotify({ message: "", type: "" });
+      }, 5000);
+    };
 
    const handleDownloadVideo = async () => {
   try {
@@ -60,10 +66,10 @@ export default function PostOptionsId({ post,  chats }) {
     link.click();
     link.remove();
 
-    showNotification("Downloading video...");
+    showNotification("Downloading video...", "success");
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download video!");
+    showNotification("Failed to download video!", "error");
   }
 };
 
@@ -98,7 +104,7 @@ const downloadSingleImage = async (img) => {
     link.remove();
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download image");
+    showNotification("Failed to download image", "error");
   }
 };
 
@@ -108,10 +114,10 @@ const downloadSingleImage = async (img) => {
     try {
       setLoading("save");
       await api.post(`/api/post/${post.id}/save-to-library`);
-      showNotification("Saved to your library!");
+      showNotification("Saved to your library!", "success");
     } catch (err) {
       console.error(err);
-      showNotification("Failed to save to library!");
+      showNotification("Failed to save to library!", "error");
     } finally {
       setLoading("");
     }
@@ -464,7 +470,13 @@ const handleReport = () =>{
   </div>
 )}
 
-
+{notify.message && (
+          <Notification
+            message={notify.message}
+            type={notify.type} // "success" = green, "error" = red
+            onClose={() => setNotify({ message: "", type: "" })}
+          />
+        )}
     </div>
   );
 }

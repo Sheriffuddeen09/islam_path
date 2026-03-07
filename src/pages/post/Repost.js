@@ -13,9 +13,10 @@ export function Repost({ post, setPosts }) {
 
   console.log('user', user)
 
-  const showNotification = (msg, type = "error") => {
-    setNotify({ message: msg, type });
+   const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
 
+    // Clear after 5 seconds
     setTimeout(() => {
       setNotify({ message: "", type: "" });
     }, 5000);
@@ -69,11 +70,13 @@ export function Repost({ post, setPosts }) {
     </button>
       
       
-      <Notification
-        message={notify.message}
-        type={notify.type}
-        onClose={() => setNotify({ message: "", type: "" })}
-      />
+      {notify.message && (
+          <Notification
+            message={notify.message}
+            type={notify.type} // "success" = green, "error" = red
+            onClose={() => setNotify({ message: "", type: "" })}
+          />
+        )}
 
     {showModal && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">

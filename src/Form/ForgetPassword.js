@@ -37,14 +37,14 @@ export default function ForgotPassword() {
   
   const [notify, setNotify] = useState({ message: "", type: "" });
 
-const showNotification = (msg) => {
-  setNotify({ message: msg, type: "error" });
+const showNotification = (message, type = "success") => {
+    setNotify({ message, type });
 
-  // Clear after 5 seconds
-  setTimeout(() => {
-    setNotify({ message: "", type: "" });
-  }, 5000);
-};
+    // Clear after 5 seconds
+    setTimeout(() => {
+      setNotify({ message: "", type: "" });
+    }, 5000);
+  };
 
   const clearError = (field) => {
   setErrors(prev => ({ ...prev, [field]: '' }));
@@ -57,11 +57,11 @@ const handleSubmit = async (e) => {
 
   // Local validation
   if (!email) {
-    showNotification("Email is required");
+    showNotification("Email is required", "error");
     return;
   }
   if (!email.includes("@")) {
-    showNotification("Enter a valid email address");
+    showNotification("Enter a valid email address", "error" );
     return;
   }
 
@@ -71,7 +71,7 @@ const handleSubmit = async (e) => {
         "/api/forgot-password",
         { email }
       );
-   showNotification("Reset link delivered to your email");
+   showNotification("Reset link delivered to your email", "success");
     setEmail("");
 
   } catch (err) {
@@ -91,7 +91,7 @@ const handleSubmit = async (e) => {
     }
 
     // Unknown error
-    showNotification("Something went wrong. Please try again.");
+    showNotification("Something went wrong. Please try again.", "error");
   } finally {
     setIsLoading(false);
   }
