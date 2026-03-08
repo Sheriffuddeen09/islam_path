@@ -1,56 +1,71 @@
 import { useState } from "react";
 import InnerImageZoom from "react-inner-image-zoom";
+import "react-inner-image-zoom/lib/styles.min.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 
 export default function ProductGallery({ images }) {
 
-  const [active,setActive] = useState(0)
+  const baseURL = "http://localhost:8000/storage/";
+  const [active,setActive] = useState(0);
 
-  const baseURL = "http://localhost:8000/storage/"
+  if(!images || images.length === 0){
+    return <img src="/placeholder.png" alt="No product"/>
+  }
 
   return (
 
-    <div>
+    <div className="w-full overflow-hidden">
 
-      {/* ZOOM IMAGE */}
-      <InnerImageZoom
-        src={`${baseURL}${images[active].image_path}`}
-        zoomSrc={`${baseURL}${images[active].image_path}`}
-        zoomType="hover"
-        className="rounded"
-      />
+      {/* MAIN IMAGE */}
+        <div className="max-w-md">
 
+          <InnerImageZoom
+            src={`${baseURL}${images[active].image_path}`}
+            zoomSrc={`${baseURL}${images[active].image_path}`}
+            zoomType="hover"
+          />
+
+      </div>
       {/* THUMBNAILS */}
-      <Swiper
-        slidesPerView={4}
-        spaceBetween={10}
-        className="mt-4"
-      >
+      <div className="w-full min-w-0">
 
-        {images.map((img,i)=>{
+        <Swiper
+          spaceBetween={8}
+          slidesPerView="auto"
+          className="mt-4 w-full"
+        >
 
-          const url = `${baseURL}${img.image_path}`
+          {images.map((img,i)=>{
 
-          return (
+            const url = `${baseURL}${img.image_path}`;
 
-            <SwiperSlide key={img.id}>
+            return(
 
-              <img
-                src={url}
-                onClick={()=>setActive(i)}
-                className={`cursor-pointer h-20 w-full object-cover rounded border-2
-                ${active===i ? "border-orange-500":"border-gray-200"}`}
-              />
+              <SwiperSlide
+                key={img.id}
+                className="!w-20"
+              >
 
-            </SwiperSlide>
+                <img
+                  src={url}
+                  alt=""
+                  onClick={()=>setActive(i)}
+                  className={`w-28 h-24 object-cover rounded cursor-pointer border-2
+                  ${active === i ? "border-orange-500":"border-gray-200"}`}
+                />
 
-          )
+              </SwiperSlide>
 
-        })}
+            )
 
-      </Swiper>
+          })}
+
+        </Swiper>
+
+      </div>
 
     </div>
+
   )
 }

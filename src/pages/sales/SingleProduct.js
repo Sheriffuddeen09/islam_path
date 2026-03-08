@@ -7,6 +7,7 @@ import ProductVariants from "./ProductVariants"
 import ProductReviews from "./ProductReviews"
 import RelatedProducts from "./RelatedProducts"
 import ProductSkeleton from "./ProductSkeleton"
+import { useCart } from "./cart/CartContext";
 
 
 export default function SingleProduct() {
@@ -88,44 +89,36 @@ export default function SingleProduct() {
 },[product])
 
 
-  if (!product) return <div className="p-10">Loading...</div>;
+const galleryImages = product
+  ? [
+      product.front_image,
+      product.back_image,
+      product.side_image,
+      ...(product.images?.map((img) => img.image_path) || []),
+    ]
+      .filter(Boolean)
+      .map((path, index) => ({
+        id: index,
+        image_path: path,
+      }))
+  : [];
+
+
+  if (!product) return <ProductSkeleton />;
+
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto sm:p-6 p-2">
 
       {/* TOP SECTION */}
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid mt-14 sm:mt-16 md:grid-cols-3 gap-8">
 
         {/* LEFT SIDE */}
         <div className="md:col-span-2">
 
           {/* Main Image */}
-          <img
-            src={mainImage}
-            alt={product.title}
-            className="w-full h-[400px] object-cover rounded-lg"
-          />
 
-          {/* Thumbnails */}
-          <div className="flex gap-3 mt-4 flex-wrap">
-            {product.images?.map((img) => {
-              const imageUrl = `http://localhost:8000/storage/${img.image_path}`;
-
-              return (
-                <img
-                  key={img.id}
-                  src={imageUrl}
-                  alt=""
-                  onClick={() => setMainImage(imageUrl)}
-                  className={`w-24 h-24 object-cover rounded cursor-pointer border-2 ${
-                    mainImage === imageUrl
-                      ? "border-orange-500"
-                      : "border-gray-200"
-                  }`}
-                />
-              );
-            })}
-          </div>
+          <ProductGallery images={galleryImages} />
 
           {/* PRODUCT TITLE */}
           <h1 className="text-2xl font-bold mt-6">{product.title}</h1>

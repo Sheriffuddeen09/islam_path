@@ -386,3 +386,14 @@ textarea {
 .react-tel-input .form-control {
   background: white !important;
 }
+
+
+.iiz {
+  width: 100% !important;
+  display: block !important;
+}
+
+.iiz img {
+  width: 100% !important;
+  height: auto !important;
+}

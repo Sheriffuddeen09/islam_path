@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaHeart, FaStar } from "react-icons/fa";
 import api from "../../Api/axios";
 import { useCart } from "./cart/CartContext";
+import { Link } from "react-router-dom";
 
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
@@ -46,8 +47,11 @@ export default function ProductPage() {
   return (
     <div className="flex flex-col md:flex-row pt-20 min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-white p-6 shadow-lg sm:block hidden">
-        <h2 className="text-xl font-bold mb-4">Search & Filters</h2>
+      <aside className="w-full md:w-64 bg-white p-6 shadow-lg sm:block hidden 
+       h-[85vh] w-80 bg-white shadow-md p-4 z-40
+      overflow-y-auto overflow-x-hidden
+      scrollbar-thin scrollbar-thumb-gray-400">
+        <h2 className="text-xl font-bold text-black mb-4 text-center">Search & Filters</h2>
 
         <input
           type="text"
@@ -57,18 +61,35 @@ export default function ProductPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="border p-2 rounded-lg w-full mb-4"
-        >
-          <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+       <ul className="space-y-4 mb-">
+            <li
+              onClick={() => setSelectedCategory(null)}
+              style={{
+                  margin: 5
+                }}
+              className={`cursor-pointer p-2 text-sm rounded-lg mb-5 ${
+                !selectedCategory
+                  ? "bg-blue-500 text-white hover:bg-gray-100 hover:text-black font-semibold"
+                  : "hover:bg-gray-200 bg-transparent text-black font-semibold"
+              }`}
+            >
+              All Categories
+            </li>
+
+            {categories.map((cat) => (
+              <li
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)} style={{
+                  margin: 5
+                }}
+                className={`cursor-pointer px-2 py-2 -my-3 space-y-0 rounded-lg capitalize ${
+                  selectedCategory === cat.id ? "bg-blue-500 text-white" : "hover:text-gray-800 hover:bg-gray-200 text-black font-semibold"
+                }`}
+              >
+                {cat.name}
+              </li>
+            ))}
+          </ul>
       </aside>
 
       {/* Products */}
@@ -100,6 +121,7 @@ export default function ProductPage() {
                 )}
 
                 {/* Product Image */}
+                <Link to={`/product/${product.id}`}>
                 <img
                   src={firstImage}
                   alt={product.title}
@@ -109,7 +131,7 @@ export default function ProductPage() {
                 {/* Product Info */}
                 <h3 className="font-semibold text-gray-800 mx-auto text-center">{product.title}</h3>
                 <p className="text-gray-600 text-sm mx-auto text-center font-semibold">{product.currency} {product.price}</p>
-
+                </Link>
                 {/* Add to cart */}
                 <button
                   className={`mt-2 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition ${

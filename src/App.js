@@ -39,6 +39,7 @@ import ChatReportUser from "./report/ChatReportUser";
 import PostReportUser from "./report/PostReportUser";
 import CommentReportUser from "./report/CommentReportUser";
 import ProductPage from "./pages/sales/Product";
+import SingleProduct from "./pages/sales/SingleProduct";
 
    
 function App() {
@@ -214,7 +215,7 @@ function App() {
           />}>
 
       
-      <Route path="/post/:id" element={<PostId 
+      <Route path="/post//" element={<PostId 
         image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -275,6 +276,10 @@ function App() {
           <ProductPage />
       } />
 
+      <Route path="/product/:id" element={
+          <SingleProduct />
+      } />
+
 
       <Route path="/friend" element={
           <Friend students={students} setStudents={setStudents} admins={admins} setAdmins={setAdmins}
@@ -284,7 +289,7 @@ function App() {
 
 
       {/* profile  */}
-      <Route path="/profile/:id" element={<ProfileRouter 
+      <Route path="/profile//" element={<ProfileRouter 
       requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
       chats={chats} 
       image={image} setImage={setImage}
@@ -395,7 +400,7 @@ function App() {
             </ProtectedRoute>
           }
       />
-      <Route path="/post/image/:id" element={<PostImagePageId image={image} setImage={setImage}
+      <Route path="/post/image//" element={<PostImagePageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -405,7 +410,7 @@ function App() {
         chats={chats}
         />} />
 
-        <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}
+        <Route path="/post/video//" element={<PostVideoPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -416,7 +421,7 @@ function App() {
 
         />} />
 
-         <Route path="/post/text/:id" element={<PostTextPageId image={image} setImage={setImage}
+         <Route path="/post/text//" element={<PostTextPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
