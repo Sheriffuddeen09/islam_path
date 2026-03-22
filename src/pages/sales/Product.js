@@ -63,8 +63,17 @@ export default function ProductPage() {
 
    if (loadingProduct)
     return (
-      <div className="flex items-center mt-5 justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-t-4 border-blue-500 border-solid"></div>
+      <div className="grid grid-cols-1 mt-10 md:grid-cols-4 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="bg-white p-4 rounded-lg shadow animate-pulse"
+          >
+            <div className="h-40 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+          </div>
+        ))}
       </div>
     );
 

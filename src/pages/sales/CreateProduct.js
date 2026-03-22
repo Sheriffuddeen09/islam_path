@@ -13,9 +13,6 @@ export default function CreateProduct() {
   price: "",
   currency: "",
   stock: "",
-  color: "",
-  size: "",
-  weight: "",
   discount:0,
   charges:5,
   // company info
@@ -202,7 +199,7 @@ const updateField = (index, field, value, type) => {
     if (back instanceof File) data.append("back_image", back);
     if (side instanceof File) data.append("side_image", side);
 
-    if (newSubcategory) {
+    if (newSubcategory && selectedParent?.id) {
       data.append("new_subcategory", newSubcategory);
       data.append("parent_id", selectedParent.id);
     }
@@ -242,9 +239,6 @@ const updateField = (index, field, value, type) => {
       price: "",
       currency: "",
       stock: "",
-      color: "",
-      size: "",
-      weight: "",
       delivery_time: "",
       sale_type: "",
     });
@@ -449,6 +443,7 @@ const isGeneral =
           onChange={(e) => setForm({ ...form, currency: e.target.value })}
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
         >
+          <option value="">Currency</option>
           <option value="USD">$</option>
           <option value="EUR">€</option>
           <option value="GBP">£</option>
@@ -563,31 +558,6 @@ const isGeneral =
 
           
 
-
-          {/* Clothes/Shoe Fields form.category_slug === "books"*/}
-          { isGeneral || "electronic"  && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <input
-                placeholder="Size"
-                className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
-                value={form.size}
-                onChange={e => setForm({ ...form, size: e.target.value })}
-              />
-              <input
-                placeholder="Color"
-                className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
-                value={form.color}
-                onChange={e => setForm({ ...form, color: e.target.value })}
-              />
-              <input
-                placeholder="Weight"
-                className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
-                value={form.weight}
-                onChange={e => setForm({ ...form, weight: e.target.value })}
-              />
-              
-            </div>
-          )}
 
           {/* Images (Front/Back/Side) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

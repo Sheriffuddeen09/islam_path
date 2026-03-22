@@ -1,1 +1,206 @@
-the currency is returning null, 
+the loading should show the categories side bar as skeleton and the categories is not working when i click on it 
+  // Filter products
+  const filteredProducts = products.filter((p) => {
+    const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
+    const matchCategory = selectedCategory
+      ? p.category_id === parseInt(selectedCategory)
+      : true;
+    return matchSearch && matchCategory;
+  });
+
+
+   if (loadingProduct)
+    return (
+      <div className="grid grid-cols-1 mt-10 md:grid-cols-4 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="bg-white p-4 rounded-lg shadow animate-pulse"
+          >
+            <div className="h-40 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+          </div>
+        ))}
+      </div>
+    );
+
+  return (
+    <div className="flex flex-col md:flex-row pt-20 min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <aside className="w-full md:w-64 bg-white p-6 shadow-lg sm:block hidden 
+       h-[85vh] w-80 bg-white shadow-md p-4 z-40
+      overflow-y-auto overflow-x-hidden
+      scrollbar-thin scrollbar-thumb-gray-400">
+        <h2 className="text-xl font-bold text-black mb-4 text-center">Search & Filters</h2>
+
+        <input
+          type="text"
+          placeholder="Search products..."
+          className="border p-2 rounded-lg w-full mb-4"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+       <ul className="space-y-4 mb-">
+            <li
+              onClick={() => setSelectedCategory(null)}
+              style={{
+                  margin: 5
+                }}
+              className={`cursor-pointer p-2 text-sm rounded-lg mb-5 ${
+                !selectedCategory
+                  ? "bg-blue-500 text-white hover:bg-gray-100 hover:text-black font-semibold"
+                  : "hover:bg-gray-200 bg-transparent text-black font-semibold"
+              }`}
+            >
+              All Categories
+            </li>
+
+            {categories.map((cat) => (
+              <li
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)} style={{
+                  margin: 5
+                }}
+                className={`cursor-pointer px-2 py-2 -my-3 space-y-0 rounded-lg capitalize ${
+                  selectedCategory === cat.id ? "bg-blue-500 text-white" : "hover:text-gray-800 hover:bg-gray-200 text-black font-semibold"
+                }`}
+              >
+                {cat.name}
+              </li>
+            ))}
+          </ul>
+      </aside>
+
+      {/* Products */}
+      <section className="flex-1 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => {
+            
+            const firstImage = product.images?.[0]?.image_path
+            ? `http://localhost:8000/storage/${product.images[0].image_path}`
+            : "/placeholder.png";
+            const symbol = symbols[product.currency] || product.currency;
+
+            return (
+              <div
+                key={product.id}
+                className="relative bg-white p-2 rounded-lg shadow hover:shadow-lg transition group"
+              >
+                {/* Discount badge */}
+                {product.discount > 0 && (
+                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                    {product.discount}%
+                  </span>
+                )}
+
+                {/* Product Image */}
+                <Link to={`/product/${product.id}`}>
+                <img
+                  src={firstImage}
+                  alt={product.title}
+                  className="sm:h-48 h-60 w-full text-black sm:object-cover rounded-lg mb-2"
+                />
+
+                {/* Product Info */}
+                {/* Product Info */}
+    <h3 className="font-semibold text-gray-800 mx-auto text-center">{product.title}</h3>
+    
+    {product.stock > 0 ? (
+  <div className="mt-2">
+    <div className="relative w-full h-2 bg-gray-200 rounded">
+      {/* Stock fill */}
+          <div
+            className={`h-2 rounded ${
+              product.stock <= 5
+                ? "bg-red-500"
+                : product.stock < 50
+                ? "bg-blue-500"
+                : "bg-green-500"
+            }`}
+            style={{
+              width: `${Math.min(product.stock, 50) * 2}%` // cap at 100% for stock >=50
+            }}
+          ></div>
+        </div>
+        {/* Stock text */}
+        <p className="text-sm text-center mt-1 font-medium">
+          {product.stock <= 5
+            ? `Only ${product.stock} left!`
+            : `In stock: ${product.stock}`}
+        </p>
+      </div>
+    ) : (
+      <p className="text-sm text-center mt-1 font-medium text-gray-500">
+        Out of Stock
+      </p>
+    )}
+
+      <div className="flex justify-center items-center gap-2">
+        {product.discount > 0 ? (
+          <>
+            <span className="text-gray-400 line-through text-sm">
+              {symbol}{product.price}
+            </span>
+            <span className="text-gray-800 font-semibold text-sm">
+              {symbol}{(product.price - (product.price * product.discount) / 100).toFixed(2)}
+            </span>
+          </>
+        ) : (
+          <span className="text-gray-800 font-semibold text-sm">
+            {symbol}{product.price}
+          </span>
+        )}
+      </div>
+                </Link>
+                {/* Add to cart */}
+                <button
+              className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={product.stock <= 0 || loading}
+              onClick={() => addToCart(product)}
+            >
+              {loading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              ) : (
+                "Add to Cart"
+              )}
+            </button>
+
+                {/* Hover actions */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex flex-col gap-2">
+                  <button
+                    onClick={() => console.log("Add to wishlist", product.id)}
+                    className="bg-gray-800 p-2 rounded shadow hover:bg-gray-600"
+                  >
+                    <FaHeart className="text-white mx-auto" />
+                  </button>
+                  <div className="bg-gray-800 px-2 py-1 rounded shadow flex items-center gap-1">
+                    <FaStar className="text-yellow-400 text-sm" />
+                    <span className="text-sm text-white font-medium">{product.review_total || 0}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}

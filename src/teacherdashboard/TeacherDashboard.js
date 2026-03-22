@@ -15,6 +15,7 @@ import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
 import PostLibrary from "../pages/post/PostLibrary";
 import CreateProduct from "../pages/sales/CreateProduct";
+import MyProducts from "../pages/sales/MyProduct";
 
 export default function TeacherDashboardLayout({chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -96,8 +97,9 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
   // Menu items for Comment 2
   const defaultMenu = [
     { id: 21, label: "Create Product" },
-    { id: 22, label: "Order" },
-    { id: 23, label: "Sale History" },
+    { id: 22, label: "Product List" },
+    { id: 23, label: "Order" },
+    { id: 24, label: "Sale History" },
   ];
 
   // Choose which menu
@@ -347,7 +349,10 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
-        <CreateProduct pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        <CreateProduct  />
+        </div>
+        <div className={`${visible === 22 ? 'block' : 'hidden'}`}>
+        <MyProducts   />
         </div>
       </section>
     </div>
