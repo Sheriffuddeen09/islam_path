@@ -8,6 +8,7 @@ import ProductReviews from "./ProductReviews"
 import RelatedProducts from "./RelatedProducts"
 import ProductSkeleton from "./ProductSkeleton"
 import { useCart } from "./cart/CartContext";
+import { Star } from "lucide-react";
 
 
 export default function SingleProduct() {
@@ -118,10 +119,55 @@ const galleryImages = product
 
           {/* Main Image */}
 
-          <ProductGallery images={galleryImages} />
+          <ProductGallery images={galleryImages} product={product} />
+
+          <div className="sm:hidden flex mt-6 px-2 flex-col gap-3">
+
+              {/* TITLE */}
+              <h1 className="text-2xl font-semibold text-gray-900 leading-tight">
+                {product.title}
+              </h1>
+
+              {/* RATING */}
+              <div className="flex items-center gap-2">
+
+                {/* 5 Stars */}
+                <div className="flex text-orange-500">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={18} fill="currentColor" />
+                  ))}
+                </div>
+
+                {/* REVIEW COUNT */}
+                <span className="text-gray-600 whitespace-nowrap text-sm">
+                  ({product.review_total} reviews)
+                </span>
+
+              </div>
+
+              {/* PRICE */}
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-black">
+                  {product.currency} {product.price}
+                </span>
+              </div>
+
+              {/* EXTRA UI (optional but looks better) */}
+              <div className="border-t-2 py-3 whitespace-nowrap px-2 text-sm text-gray-600">
+                <p>✔ Track Product</p>
+                <p>✔ Secure checkout</p>
+                <p>✔ 30-day return policy</p>
+              </div>
+
+              <button
+                onClick={()=>addToCart(product)}
+                className="mt-6 w-full bg-black text-white py-3 rounded hover:bg-orange-600"
+              >
+                Add To Cart
+              </button>
+          </div>
 
           {/* PRODUCT TITLE */}
-          <h1 className="text-2xl font-bold mt-6">{product.title}</h1>
 
           <p className="text-gray-600 mt-2">{product.description}</p>
 
@@ -209,42 +255,51 @@ const galleryImages = product
 
 
         {/* RIGHT SIDEBAR */}
-        <div className="border p-5 rounded-lg h-fit bg-gray-50">
+      <div className="border p-6 rounded-lg h-full sm:h-[530px] bg-gray-900 text-white flex flex-col justify-between shadow-lg">
+      
+      {/* PRODUCT DETAILS */}
+      <div>
+        <h2 className="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">
+          Product Details
+        </h2>
 
-          <h2 className="text-lg font-semibold mb-4">
-            Product Details
-          </h2>
-
-          <div className="space-y-3 text-sm">
-
-            <p><b>Location:</b> {product.location}</p>
-
-            <p><b>Brand:</b> {product.brand}</p>
-
-            <p>
-              <b>Availability:</b>{" "}
+        <div className="space-y-4 text-sm">
+          <p>
+            <span className="font-semibold">Location:</span> {product.location || "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Brand:</span> {product.brand || "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Availability:</span>{" "}
+            <span className={product.stock > 0 ? "text-green-400" : "text-red-500"}>
               {product.stock > 0 ? "In Stock" : "Out of Stock"}
-            </p>
-
-            <p><b>Stock:</b> {product.stock}</p>
-
-            <p><b>Delivery Time:</b> {product.delivery_time}</p>
-
-            <p><b>Company Type:</b> {product.company_type}</p>
-
-            <p><b>Delivery Method:</b> {product.delivery_method}</p>
-
-          </div>
-
-          {/* Add To Cart */}
-          <button
-            onClick={()=>addToCart(product)}
-            className="mt-6 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
-          >
-            Add To Cart
-          </button>
-
+            </span>
+          </p>
+          <p>
+            <span className="font-semibold">Stock:</span> {product.stock}
+          </p>
+          <p>
+            <span className="font-semibold">Delivery Time:</span> {product.delivery_time || "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Company Type:</span> {product.company_type || "-"}
+          </p>
+          <p>
+            <span className="font-semibold">Delivery Method:</span> {product.delivery_method || "-"}
+          </p>
         </div>
+      </div>
+
+      {/* ADD TO CART BUTTON */}
+      <button
+        onClick={() => addToCart(product)}
+        className="mt-6 w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all"
+      >
+        Add To Wishlist
+      </button>
+
+    </div>
 
       </div>
     </div>

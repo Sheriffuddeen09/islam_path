@@ -33,17 +33,10 @@ export default function AdminChoice({setChoice, setCurrentUser, setIsLoading, se
 
   
   const options = [
-  {
-    id: "sell_online_content",
-    title: "Sell Your Courses",
-    emoji: "💼",
-    bg: "bg-green-100",
-    text: "text-green-600",
-    hoverBg: "group-hover:bg-green-600",
-  },
+  
   {
     id: "create_free_content",
-    title: "Create Free Content",
+    title: "Become an Online Seller",
     emoji: "🎁",
     bg: "bg-blue-100",
     text: "text-blue-600",
@@ -112,7 +105,7 @@ useEffect(() => {
           Select an option to begin setting up your admin journey.
         </p>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {options.map((opt) => (
             <div
               key={opt.id}

@@ -83,7 +83,6 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
   // Menu items for Comment 1
   const teacherMenu = [
-    { id: 12, label: "Create Product" },
 
     { id: 5, label: "Student Request", showBadge: true },
     { id: 6, label: "Create Student Assignment" },
@@ -96,9 +95,9 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
   // Menu items for Comment 2
   const defaultMenu = [
-    { id: 5, label: "Create Product" },
-    { id: 6, label: "Order" },
-    { id: 7, label: "Sale History" },
+    { id: 21, label: "Create Product" },
+    { id: 22, label: "Order" },
+    { id: 23, label: "Sale History" },
   ];
 
   // Choose which menu
@@ -124,7 +123,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
           ✕
         </button>
 
-        <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
+        <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 m 5">
           <span className="text-purple-600">Islam Path</span>
           <span>Of Knowledge</span>
         </div>
@@ -347,7 +346,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
         <CreateProduct pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
       </section>

@@ -11,25 +11,28 @@ export default function CreateProduct() {
   author: "",
   description: "",
   price: "",
-  currency: "$",
+  currency: "",
   stock: "",
   color: "",
   size: "",
   weight: "",
   discount:0,
-  charge:5,
+  charges:5,
   // company info
   company_type: "",
   brand_name: "",
   location: "",
   delivery_time: "",
   delivery_method: "",
-  company_availability: "",
+  company_available: "",
 
   // book fields
-  sales_type: "",
+  sale_type: "",
   downloadable: "",
-  is_digital: false
+  is_digital: false,
+  delivery_price: "",
+  category_id: "",
+  category_slug: "",
 });
 
 
@@ -42,7 +45,55 @@ export default function CreateProduct() {
   const [pdf, setPdf] = useState(null);
   const [loading, setLoading] = useState(false);
   const [notify, setNotify] = useState({ message: "", type: "" });
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]); // fetched from backend
+  const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [newParent, setNewParent] = useState("");
+  const [newSubcategory, setNewSubcategory] = useState("");
+ 
+
+  const [keyFeatures, setKeyFeatures] = useState([
+    { key: "", value: "" }
+  ]);
+
+  const [specifications, setSpecifications] = useState([
+    { key: "", value: "" }
+  ]);
+
+  // Add field
+const addField = (type) => {
+  if (type === "features") {
+    setKeyFeatures([...keyFeatures, { key: "", value: "" }]);
+  } else {
+    setSpecifications([...specifications, { key: "", value: "" }]);
+  }
+};
+
+// Remove field
+const removeField = (index, type) => {
+  if (type === "features") {
+    const updated = [...keyFeatures];
+    updated.splice(index, 1);
+    setKeyFeatures(updated);
+  } else {
+    const updated = [...specifications];
+    updated.splice(index, 1);
+    setSpecifications(updated);
+  }
+};
+
+// Update field
+const updateField = (index, field, value, type) => {
+  if (type === "features") {
+    const updated = [...keyFeatures];
+    updated[index][field] = value;
+    setKeyFeatures(updated);
+  } else {
+    const updated = [...specifications];
+    updated[index][field] = value;
+    setSpecifications(updated);
+  }
+};
 
   const showNotification = (message, type = "success") => {
     setNotify({ message, type });
@@ -58,7 +109,7 @@ export default function CreateProduct() {
       const price = Number(form.price) || 0;
       const qty = Number(form.quantity) || 0;
       const discount = Number(form.discount) || 0;
-      const chargePercent = Number(form.charge) || 0;
+      const chargePercent = Number(form.charges) || 0;
 
       const subtotal = price * qty;
 
@@ -116,14 +167,45 @@ export default function CreateProduct() {
     });
 
     // Force correct data types
-    data.set("currency", String(form.currency || "USD"));
+    data.set("currency", String(form.currency));
     data.set("quantity", parseInt(form.quantity || 1));
     data.set("total_price", parseFloat(form.total_price || 0));
+
+    // Convert array → object
+    const featuresObject = {};
+    keyFeatures.forEach(item => {
+      if (item.key) featuresObject[item.key] = item.value;
+    });
+
+    const specsObject = {};
+    specifications.forEach(item => {
+      if (item.key) specsObject[item.key] = item.value;
+    });
+
+    // Append to FormData
+    keyFeatures.forEach((item, index) => {
+        if (item.key && item.value) {
+          data.append(`key_features[${index}][key]`, item.key);
+          data.append(`key_features[${index}][value]`, item.value);
+        }
+      });
+
+      specifications.forEach((item, index) => {
+        if (item.key && item.value) {
+          data.append(`specifications[${index}][key]`, item.key);
+          data.append(`specifications[${index}][value]`, item.value);
+        }
+      });
 
     // Images
     if (front instanceof File) data.append("front_image", front);
     if (back instanceof File) data.append("back_image", back);
     if (side instanceof File) data.append("side_image", side);
+
+    if (newSubcategory) {
+      data.append("new_subcategory", newSubcategory);
+      data.append("parent_id", selectedParent.id);
+    }
 
     // PDF
     if (pdf instanceof File) {
@@ -131,7 +213,7 @@ export default function CreateProduct() {
     }
 
     if (pdf) {
-      data.append("is_digital", 1);
+      data.append("is_digital", form.is_digital ? 1 : 0);
     } else {
       data.append("is_digital", 0);
     }
@@ -158,13 +240,13 @@ export default function CreateProduct() {
       author: "",
       description: "",
       price: "",
-      currency: "USD",
+      currency: "",
       stock: "",
       color: "",
       size: "",
       weight: "",
       delivery_time: "",
-      sales_type: "",
+      sale_type: "",
     });
 
     setFront(null);
@@ -192,6 +274,33 @@ useEffect(() => {
 }, []);
 
 
+const slugSort = selectedParent?.slug;
+console.log("slug:", slugSort);
+
+
+const toSlug = (text) =>
+  text
+    ?.toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+
+const slug =
+  selectedChild?.slug ||
+  selectedParent?.slug ||
+  toSlug(newSubcategory) ||
+  toSlug(newParent);
+
+console.log("slug:", slug);
+
+
+  const parentSlug =
+  selectedParent?.slug || toSlug(newParent);
+
+const isGeneral =
+  ["clothes", "accessory", "house-accessory", "others"].includes(parentSlug)
+  || newParent; // 👈 ANY new category auto included
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 sm:p-8 lg:ml-64">
@@ -203,61 +312,130 @@ useEffect(() => {
   <form onSubmit={submit} className="space-y-6">
 
     {/* Product Type */}
-        <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1">
-        Product Category
-      </label>
+     <div>
+  <label className="block text-sm font-semibold text-gray-700 mb-1">
+    Product Category
+  </label>
 
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* ---------------- Parent Category ---------------- */}
+    <div className="flex flex-col">
       <select
-          value={form.category_id}
-          onChange={(e) => {
-            if (!categories || categories.length === 0) return; // Guard
-            const cat = categories.find(c => c.id == e.target.value);
-            if (!cat) return; // Guard again
+        className="border p-3 rounded-lg w-full text-base" // match input height
+        value={selectedParent?.id || (newParent ? "new" : "")}
+        onChange={(e) => {
+          if (e.target.value === "new") {
+            setSelectedParent(null);
+            setSelectedChild(null);
+            setForm({ ...form, category_id: "", category_slug: "" });
+            return;
+          }
 
-            setForm({
-              ...form,
-              category_id: cat.id,
-              category_slug: cat.slug
-            });
-          }}
-          className="border p-3 rounded-lg w-full"
-        >
-          <option value="">Select Category</option>
-          {categories && categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-          ))}
-        </select>
-                  
+          const parent = categories?.find((c) => c.id == e.target.value);
+          setSelectedParent(parent || null);
+          setSelectedChild(null);
+
+          setForm({ ...form, category_id: "", category_slug: parent?.slug || "" });
+        }}
+      >
+        <option value="">Select Category</option>
+        {categories?.map((cat) => (
+          <option key={cat.id} value={cat.id}>
+            {cat.name}
+          </option>
+        ))}
+        <option value="new">+ Add New Parent</option>
+      </select>
+
+      {/* Input for adding new parent */}
+      {!selectedParent && (
+        <input
+          type="text"
+          placeholder="Add new parent category (e.g Electronics)"
+          className="border p-3 rounded-lg w-full mt-2 text-base"
+          value={newParent}
+          onChange={(e) => setNewParent(e.target.value)}
+        />
+      )}
     </div>
 
-    
-    {/* Product Title */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* ---------------- Child Category ---------------- */}
+    <div className="flex flex-col">
+      {(selectedParent || newParent) && (
+        <>
+          <select
+            className="border p-3 rounded-lg w-full text-base"
+            value={selectedChild?.id || (newSubcategory ? "new" : "")}
+            onChange={(e) => {
+              if (e.target.value === "new") {
+                setSelectedChild(null);
+                setForm({ ...form, category_id: "" });
+                return;
+              }
+
+              const child = selectedParent?.children?.find(
+                (c) => c.id == e.target.value
+              );
+
+              setSelectedChild(child);
+              setForm({
+                ...form,
+                category_id: child?.id,
+                category_slug: child?.slug,
+              });
+            }}
+          >
+            <option value="">Select Subcategory</option>
+            {selectedParent?.children?.map((child) => (
+              <option key={child.id} value={child.id}>
+                {child.name}
+              </option>
+            ))}
+            <option value="new">+ Add New Subcategory</option>
+          </select>
+
+          {/* Input for adding new subcategory */}
+          {!selectedChild && (
+            <input
+              type="text"
+              placeholder="Add new subcategory (e.g Smart TV)"
+              className="border p-3 rounded-lg w-full mt-2 text-base"
+              value={newSubcategory}
+              onChange={(e) => setNewSubcategory(e.target.value)}
+            />
+          )}
+        </>
+      )}
+    </div>
+  </div>
+
+  {/* ---------------- Product Title & Stock  ---------------- */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
     <div>
       <label className="block text-sm font-semibold text-gray-700 mb-1">
         Product Title
       </label>
       <input
         placeholder="Enter product title"
-        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
+        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base"
         value={form.title}
-        onChange={e => setForm({ ...form, title: e.target.value })}
+        onChange={(e) => setForm({ ...form, title: e.target.value })}
       />
     </div>
     <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
-          Stock
-        </label>
-    <input
-                placeholder="Stock"
-                type="number"
-                className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
-                value={form.stock}
-                onChange={e => setForm({ ...form, stock: e.target.value })}
-              />
+      <label className="block text-sm font-semibold text-gray-700 mb-1">
+        Stock
+      </label>
+      <input
+        placeholder="Stock"
+        type="number"
+        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base"
+        value={form.stock}
+        onChange={(e) => setForm({ ...form, stock: e.target.value })}
+      />
     </div>
-    </div>
+  </div>
+</div>
 
     {/* Currency, Price, Quantity */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -271,10 +449,10 @@ useEffect(() => {
           onChange={(e) => setForm({ ...form, currency: e.target.value })}
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
         >
-          <option value="$">$ (USD)</option>
-          <option value="€">€ (EUR)</option>
-          <option value="£">£ (GBP)</option>
-          <option value="₦">₦ (NGN)</option>
+          <option value="USD">$</option>
+          <option value="EUR">€</option>
+          <option value="GBP">£</option>
+          <option value="NGN">₦</option>
         </select>
       </div>
 
@@ -316,7 +494,7 @@ useEffect(() => {
         <input
           type="number"
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full bg-gray-100"
-          value={form.charge}
+          value={form.charges}
           disabled
         />
       </div>
@@ -338,7 +516,7 @@ useEffect(() => {
     </div>
 
           {/* Book Fields */}
-          {form.category_slug === "books" && (
+          {slug === "islamic-content" && (
             <>
               <input
                 placeholder="Author"
@@ -383,9 +561,11 @@ useEffect(() => {
             </>
           )}
 
+          
+
+
           {/* Clothes/Shoe Fields form.category_slug === "books"*/}
-          {(form.category_slug === "clothes" || form.category_slug === "shoe" ||
-           form.category_slug === "watch" || form.category_slug === "shoe") && (
+          { isGeneral || "electronic"  && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input
                 placeholder="Size"
@@ -473,14 +653,15 @@ useEffect(() => {
         </form>
         )}
 
-        {step===2 && (
+        {step === 2 && (
 
+        
           <div className="space-y-6">
 
           <h3 className="text-xl font-bold border-b pb-2">
           Company / Delivery Information
           </h3>
-
+        
 
           <input
           placeholder="Brand Name"
@@ -497,24 +678,161 @@ useEffect(() => {
           onChange={e=>setForm({...form,location:e.target.value})}
           />
 
-
-
+          
           <select
           className="border p-3 rounded-lg w-full"
-          value={form.company_availability}
-          onChange={e=>setForm({...form,company_availability:e.target.value})}
+          value={form.company_available}
+          onChange={e=>setForm({...form,company_available:e.target.value})}
           >
           <option value="">Product Availability</option>
           <option value="available">Available</option>
           <option value="out_of_stock">Out of Stock</option>
           </select>
 
+        
 
+          {slugSort === "electronic" && (
+       <>
+
+          <select
+          className="border p-3 rounded-lg w-full"
+          value={form.company_type}
+          onChange={e=>setForm({...form, company_type:e.target.value})}
+          >
+          <option value="">Company Type</option>
+          <option value="manufacturer">Manufacturer</option>
+          <option value="reseller">Reseller</option>
+          </select>
+
+
+          <input
+          placeholder="Delivery Time (2-5 days)"
+          className="border p-3 rounded-lg w-full"
+          value={form.delivery_time}
+          onChange={e=>setForm({...form, delivery_time:e.target.value})}
+          />
+
+
+          <select
+          className="border p-3 rounded-lg w-full"
+          value={form.delivery_method}
+          onChange={e =>
+            setForm({
+              ...form,
+              delivery_method: e.target.value,
+              delivery_price: "" // reset when changed
+            })
+          }
+        >
+          <option value="">Delivery Method</option>
+          <option value="courier">Door Delivery</option>
+          <option value="pickup">Pickup Station</option>
+        </select>
+
+        {/* ✅ SHOW DELIVERY PRICE */}
+        {form.delivery_method && form.delivery_method !== "pickup" && (
+          <input
+            type="number"
+            placeholder="Delivery Price (₦)"
+            className="border p-3 rounded-lg w-full"
+            value={form.delivery_price}
+            onChange={e =>
+              setForm({ ...form, delivery_price: e.target.value })
+            }
+          />
+        )}
+
+    {/* KEY FEATURES */}
+    <div className="bg-white p-4 rounded-xl shadow space-y-3">
+      <h2 className="font-bold text-lg">Key Features</h2>
+
+      {keyFeatures.map((item, index) => (
+        <div key={index} className="flex gap-2">
+          <input
+            placeholder="Key (e.g Model)"
+            className="border p-2 w-1/2 rounded"
+            value={item.key}
+            onChange={(e) =>
+              updateField(index, "key", e.target.value, "features")
+            }
+          />
+
+          <input
+            placeholder="Value (e.g LP Smart TV)"
+            className="border p-2 w-1/2 rounded"
+            value={item.value}
+            onChange={(e) =>
+              updateField(index, "value", e.target.value, "features")
+            }
+          />
+
+          <button
+            type="button"
+            onClick={() => removeField(index, "features")}
+            className="bg-red-500 text-white px-2 rounded"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => addField("features")}
+        className="bg-black text-white px-4 py-2 rounded"
+      >
+        + Add More Features
+      </button>
+    </div>
+
+    {/* SPECIFICATIONS */}
+    <div className="bg-white p-4 rounded-xl shadow space-y-3 mt-5">
+      <h2 className="font-bold text-lg">Specifications</h2>
+
+      {specifications.map((item, index) => (
+        <div key={index} className="flex gap-2">
+          <input
+            placeholder="Key (e.g SKU)"
+            className="border p-2 w-1/2 rounded"
+            value={item.key}
+            onChange={(e) =>
+              updateField(index, "key", e.target.value, "specs")
+            }
+          />
+
+          <input
+            placeholder="Value"
+            className="border p-2 w-1/2 rounded"
+            value={item.value}
+            onChange={(e) =>
+              updateField(index, "value", e.target.value, "specs")
+            }
+          />
+
+          <button
+            type="button"
+            onClick={() => removeField(index, "specs")}
+            className="bg-red-500 text-white px-2 rounded"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => addField("specs")}
+        className="bg-black text-white px-4 py-2 rounded"
+      >
+        + Add More Specifications
+      </button>
+    </div>
+  </>
+)}
 
           {/* CLOTHES / SHOES */}
 
-          {(form.category_slug === "clothes" || form.category_slug === "shoe" ||
-           form.category_slug === "watch" || form.category_slug === "shoe") && (
+         {isGeneral && (
 
           <>
 
@@ -540,36 +858,94 @@ useEffect(() => {
           <select
           className="border p-3 rounded-lg w-full"
           value={form.delivery_method}
-          onChange={e=>setForm({...form,delivery_method:e.target.value})}
-          >
+          onChange={e =>
+            setForm({
+              ...form,
+              delivery_method: e.target.value,
+              delivery_price: "" // reset when changed
+            })
+          }
+        >
           <option value="">Delivery Method</option>
-          <option value="courier">Courier</option>
-          <option value="pickup">Pickup</option>
-          <option value="shipping">Shipping</option>
-          </select>
+          <option value="courier">Door Delivery</option>
+          <option value="pickup">Pickup Station</option>
+        </select>
+
+        {/* ✅ SHOW DELIVERY PRICE */}
+        {form.delivery_method && form.delivery_method !== "pickup" && (
+          <input
+            type="number"
+            placeholder="Delivery Price (₦)"
+            className="border p-3 rounded-lg w-full"
+            value={form.delivery_price}
+            onChange={e =>
+              setForm({ ...form, delivery_price: e.target.value })
+            }
+          />
+        )}
+          {/* SPECIFICATIONS */}
+    <div className="bg-white p-4 rounded-xl shadow space-y-3 mt-5">
+      <h2 className="font-bold text-lg">Specifications</h2>
+
+      {specifications.map((item, index) => (
+        <div key={index} className="flex gap-2">
+          <input
+            placeholder="Key (e.g SKU)"
+            className="border p-2 w-1/2 rounded"
+            value={item.key}
+            onChange={(e) =>
+              updateField(index, "key", e.target.value, "specs")
+            }
+          />
+
+          <input
+            placeholder="Value"
+            className="border p-2 w-1/2 rounded"
+            value={item.value}
+            onChange={(e) =>
+              updateField(index, "value", e.target.value, "specs")
+            }
+          />
+
+          <button
+            type="button"
+            onClick={() => removeField(index, "specs")}
+            className="bg-red-500 text-white px-2 rounded"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => addField("specs")}
+        className="bg-black text-white px-4 py-2 rounded"
+      >
+        + Add More Specifications
+      </button>
+    </div>
 
           </>
 
           )}
 
 
-
-
           {/* BOOK upload */}
 
-          {form.category_slug === "books" && (
+          {slugSort === "islamic-content" && (
 
           <>
 
           <select
-          value={form.sales_type}
+          value={form.sale_type}
           className="border p-3 rounded-lg w-full"
           onChange={(e) => {
             const value = e.target.value;
 
             setForm(prev => ({
               ...prev,
-              sales_type: value,
+              sale_type: value,
               delivery_time:
                 value === "online" && prev.downloadable === "yes"
                   ? "Downloadable Book"
@@ -579,7 +955,7 @@ useEffect(() => {
         >
           <option value="">Sales Type</option>
           <option value="online">Online</option>
-          <option value="delivery">Delivery</option>
+          <option value="physical">Delivery</option>
           </select>
 
 
@@ -598,26 +974,91 @@ useEffect(() => {
           placeholder="Delivery Time (2-5 days)"
           className="border p-3 rounded-lg w-full"
           value={
-            form.sales_type === "online" && form.downloadable === "yes"
+            form.sale_type === "online" && form.downloadable === "yes"
               ? "Downloadable Book"
               : form.delivery_time
           }
           onChange={e =>
             setForm({ ...form, delivery_time: e.target.value })
           }
-          disabled={form.sales_type === "online" && form.downloadable === "yes"}
+          disabled={form.sale_type === "online" && form.downloadable === "yes"}
         />
 
 
           <select
           className="border p-3 rounded-lg w-full"
           value={form.delivery_method}
-          onChange={e=>setForm({...form,delivery_method:e.target.value})}
+          onChange={e =>
+            setForm({
+              ...form,
+              delivery_method: e.target.value,
+              delivery_price: "" // reset when changed
+            })
+          }
+        >
+          <option value="">Delivery Method</option>
+          <option value="courier">Door Delivery</option>
+          <option value="pickup">Pickup Station</option>
+          <option value="pickup">Online Download</option>
+        </select>
+
+        {/* ✅ SHOW DELIVERY PRICE */}
+        {form.delivery_method && form.delivery_method !== "pickup" && (
+          <input
+            type="number"
+            placeholder="Delivery Price (₦)"
+            className="border p-3 rounded-lg w-full"
+            value={form.delivery_price}
+            onChange={e =>
+              setForm({ ...form, delivery_price: e.target.value })
+            }
+          />
+        )}
+
+
+          {/* SPECIFICATIONS */}
+    <div className="bg-white p-4 rounded-xl shadow space-y-3 mt-5">
+      <h2 className="font-bold text-lg">Specifications</h2>
+
+      {specifications.map((item, index) => (
+        <div key={index} className="flex gap-2">
+          <input
+            placeholder="Key (e.g SKU)"
+            className="border p-2 w-1/2 rounded"
+            value={item.key}
+            onChange={(e) =>
+              updateField(index, "key", e.target.value, "specs")
+            }
+          />
+
+          <input
+            placeholder="Value"
+            className="border p-2 w-1/2 rounded"
+            value={item.value}
+            onChange={(e) =>
+              updateField(index, "value", e.target.value, "specs")
+            }
+          />
+
+          <button
+            type="button"
+            onClick={() => removeField(index, "specs")}
+            className="bg-red-500 text-white px-2 rounded"
           >
-          <option value="">Means of Delivery</option>
-          <option value="download">Download</option>
-          <option value="shipping">Shipping</option>
-          </select>
+            ✕
+          </button>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => addField("specs")}
+        className="bg-black text-white px-4 py-2 rounded"
+      >
+        + Add More Specifications
+      </button>
+    </div>
+
 
           </>
 
@@ -660,7 +1101,7 @@ useEffect(() => {
         fill="currentColor"
         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
       ></path>
-    </svg> Creating Product</p> : "Create Product"}
+    </svg> Creating</p> : "Create Product"}
           </button>
 
           </div>

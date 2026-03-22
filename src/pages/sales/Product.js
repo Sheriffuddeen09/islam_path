@@ -9,31 +9,47 @@ export default function ProductPage() {
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const { addToCart } = useCart();
+  const [loadingProduct, setLoadingProduct] = useState(true);
+
+  const { addToCart, loading } = useCart();
 
   // Fetch products and categories
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await api.get("/api/products");
-        setProducts(res.data.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  const fetchProducts = async () => {
+    try {
+      setLoadingProduct(true);
+      const res = await api.get("/api/products");
+      setProducts(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingProduct(false);
+    }
+  };
 
-    const fetchCategories = async () => {
-      try {
-        const res = await api.get("/api/categories");
-        setCategories(res.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get("/api/categories");
+      setCategories(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    fetchProducts();
-    fetchCategories();
-  }, []);
+  fetchProducts();
+  fetchCategories();
+}, []);
+
+
+
+  const symbols = {
+  USD: "$",
+  NGN: "₦",
+  EUR: "€",
+  GBP: "£",
+};
+
+//
 
   // Filter products
   const filteredProducts = products.filter((p) => {
@@ -43,6 +59,14 @@ export default function ProductPage() {
       : true;
     return matchSearch && matchCategory;
   });
+
+
+   if (loadingProduct)
+    return (
+      <div className="flex items-center mt-5 justify-center">
+        <div className="animate-spin rounded-full h-6 w-6 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
 
   return (
     <div className="flex flex-col md:flex-row pt-20 min-h-screen bg-gray-100">
@@ -100,24 +124,18 @@ export default function ProductPage() {
             const firstImage = product.images?.[0]?.image_path
             ? `http://localhost:8000/storage/${product.images[0].image_path}`
             : "/placeholder.png";
+            const symbol = symbols[product.currency] || product.currency;
 
             return (
               <div
                 key={product.id}
-                className="relative bg-white p-4 rounded-lg shadow hover:shadow-lg transition group"
+                className="relative bg-white p-2 rounded-lg shadow hover:shadow-lg transition group"
               >
                 {/* Discount badge */}
                 {product.discount > 0 && (
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                    -{product.discount}%
+                    {product.discount}%
                   </span>
-                )}
-
-                {/* Out of stock overlay */}
-                {product.stock <= 0 && (
-                  <div className="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center text-white font-bold text-lg z-10 rounded-lg">
-                    Out of Stock
-                  </div>
                 )}
 
                 {/* Product Image */}
@@ -129,19 +147,89 @@ export default function ProductPage() {
                 />
 
                 {/* Product Info */}
-                <h3 className="font-semibold text-gray-800 mx-auto text-center">{product.title}</h3>
-                <p className="text-gray-600 text-sm mx-auto text-center font-semibold">{product.currency} {product.price}</p>
+                {/* Product Info */}
+    <h3 className="font-semibold text-gray-800 mx-auto text-center">{product.title}</h3>
+    
+    {product.stock > 0 ? (
+  <div className="mt-2">
+    <div className="relative w-full h-2 bg-gray-200 rounded">
+      {/* Stock fill */}
+          <div
+            className={`h-2 rounded ${
+              product.stock <= 5
+                ? "bg-red-500"
+                : product.stock < 50
+                ? "bg-blue-500"
+                : "bg-green-500"
+            }`}
+            style={{
+              width: `${Math.min(product.stock, 50) * 2}%` // cap at 100% for stock >=50
+            }}
+          ></div>
+        </div>
+        {/* Stock text */}
+        <p className="text-sm text-center mt-1 font-medium">
+          {product.stock <= 5
+            ? `Only ${product.stock} left!`
+            : `In stock: ${product.stock}`}
+        </p>
+      </div>
+    ) : (
+      <p className="text-sm text-center mt-1 font-medium text-gray-500">
+        Out of Stock
+      </p>
+    )}
+
+      <div className="flex justify-center items-center gap-2">
+        {product.discount > 0 ? (
+          <>
+            <span className="text-gray-400 line-through text-sm">
+              {symbol}{product.price}
+            </span>
+            <span className="text-gray-800 font-semibold text-sm">
+              {symbol}{(product.price - (product.price * product.discount) / 100).toFixed(2)}
+            </span>
+          </>
+        ) : (
+          <span className="text-gray-800 font-semibold text-sm">
+            {symbol}{product.price}
+          </span>
+        )}
+      </div>
                 </Link>
                 {/* Add to cart */}
                 <button
-                  className={`mt-2 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition ${
-                    product.stock <= 0 ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={product.stock <= 0}
-                  onClick={()=>addToCart(product)}
+              className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={product.stock <= 0 || loading}
+              onClick={() => addToCart(product)}
+            >
+              {loading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
                 >
-                  Add to Cart
-                </button>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              ) : (
+                "Add to Cart"
+              )}
+            </button>
 
                 {/* Hover actions */}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex flex-col gap-2">
