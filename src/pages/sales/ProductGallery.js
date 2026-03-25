@@ -10,7 +10,7 @@ import { useCart } from "./cart/CartContext";
 export default function ProductGallery({ images, product }) {
 
    const { addToCart, loading } = useCart();
-
+   const [showPreview, setShowPreview] = useState(false);
 
   const baseURL = "http://localhost:8000/storage/";
   const [active,setActive] = useState(0);
@@ -111,43 +111,73 @@ export default function ProductGallery({ images, product }) {
 
       </div>
       {/* THUMBNAILS */}
-      <div className="w-full min-w-0">
+     <div className="w-80 sm:w-96 mx-auto sm:mx-0 no-scrollbar overflow-x-auto mt-4">
+  <div className="flex gap-2 w-max">
+    {images.map((img, i) => {
+      const url = `${baseURL}${img.image_path}`;
 
-        <Swiper
-          spaceBetween={8}
-          slidesPerView="auto"
-          className="mt-4 w-full"
-        >
+      return (
+        <img
+          key={img.id}
+          src={url}
+          alt=""
+          onClick={() => {
+            setActive(i);
+            setShowPreview(true);
+          }}
+          className={`w-20 h-20 object-cover rounded cursor-pointer border-2 transition
+          ${active === i ? "border-orange-500" : "border-gray-200"}`}
+        />
+      );
+    })}
+  </div>
+</div>
 
-          {images.map((img,i)=>{
+{showPreview && (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
 
-            const url = `${baseURL}${img.image_path}`;
+    {/* Close Button */}
+    <button
+      onClick={() => setShowPreview(false)}
+      className="absolute top-5 right-5 text-white text-3xl font-bold hover:text-gray-300"
+    >
+      ✕
+    </button>
 
-            return(
+    {/* Previous Button */}
+    {active > 0 && (
+      <button
+        onClick={() => setActive((prev) => prev - 1)}
+        className="absolute left-5 text-white text-3xl bg-black/50 p-1 rounded-full hover:bg-black/70"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
 
-              <SwiperSlide
-                key={img.id}
-                className="!w-20"
-              >
+      </button>
+    )}
 
-                <img
-                  src={url}
-                  alt=""
-                  onClick={()=>setActive(i)}
-                  className={`w-28 h-24 object-cover rounded cursor-pointer border-2
-                  ${active === i ? "border-orange-500":"border-gray-200"}`}
-                />
+    {/* Image */}
+    <img
+      src={`${baseURL}${images[active]?.image_path}`}
+      className="max-w-[90%] max-h-[80%] rounded-lg shadow-lg transition"
+    />
 
-              </SwiperSlide>
+    {/* Next Button */}
+    {active < images.length - 1 && (
+      <button
+        onClick={() => setActive((prev) => prev + 1)}
+        className="absolute right-6 text-white text-3xl bg-black/50 p-1 rounded-full hover:bg-black/70"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
 
-            )
+      </button>
+    )}
 
-          })}
-
-        </Swiper>
-
-      </div>
-
+  </div>
+)}
     </div>
 
   )

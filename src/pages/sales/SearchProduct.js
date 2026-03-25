@@ -1,13 +1,16 @@
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../Api/axios";
+import api from "../../Api/axios";
 
-export default function SearchUser() {
+export default function SearchProduct() {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState({
+  products: [],
+  categories: [],
+    });
   const [recentSearches, setRecentSearches] = useState(() => {
   const saved = localStorage.getItem("recentSearches");
   return saved ? JSON.parse(saved) : [];
@@ -35,25 +38,34 @@ export default function SearchUser() {
 
     return () => window.removeEventListener("keydown", handleEsc);
   }, [searchOpen]);
+  
+  
   useEffect(() => {
+  if (!query.trim()) {
+    setResults({ products: [], categories: [] });
+    return;
+  }
 
-    if (!query.trim()) {
-      setResults([]);
-      return;
+  const delay = setTimeout(async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/api/search?q=${query}`);
+
+      setResults({
+        products: res.data.products || [],
+        categories: res.data.categories || [],
+      });
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    const delay = setTimeout(async () => {
-      try {
-        setLoading(true);
-        const res = await api.get(`/api/search-users?q=${query}`);
-        setResults(res.data.users || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }, 500);
-    return () => clearTimeout(delay);
-  }, [query]);
+  }, 500);
+
+  return () => clearTimeout(delay);
+}, [query]);
+
 
   const loadRecentSearches = () => {
   const saved = localStorage.getItem("recentSearches");
@@ -67,6 +79,16 @@ export default function SearchUser() {
     loadRecentSearches();
   }
 }, [searchOpen]);
+
+const handleCategoryClick = (cat) => {
+  // switch category globally (important)
+  window.dispatchEvent(
+    new CustomEvent("selectCategory", { detail: cat })
+  );
+
+  setSearchOpen(false);
+  setQuery("");
+};
 
   const handleRecentSearch = (user) => {
   let updated = [user, ...recentSearches.filter(r => r.id !== user.id)];
@@ -99,35 +121,20 @@ export default function SearchUser() {
   return (
     <>
       <div>
-  <div className="relative lg:block hidden">
-    <input
-      onClick={openSearchModal}
-      placeholder="Search"
-      readOnly
-      className="border text-sm bg-gray-100 px-7 cursor-pointer focus:border-gray-100 outline-none text-black border-gray-100 h-10 w-64 rounded-full"
-    />
-    <Search
-      onClick={openSearchModal}
-      className="cursor-pointer absolute left-2 top-3 w-5 h-4 text-gray-400"
-    />
-  </div>
-  <Search
-    onClick={openSearchModal}
-    className="cursor-pointer w-6 h-6 text-gray-400 block sm:hidden"
-  />
-  <Search
-    onClick={openSearchModal}
-    className="cursor-pointer w-8 h-8 text-gray-400 md:block hidden lg:hidden"
-  />
-</div>
+        <input
+            type="text"
+            placeholder="Search products..."
+            className="border p-2 rounded-lg w-full mb-4"
+             onClick={openSearchModal}
+        />
+      </div>
 
       {searchOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex flex-col"
+        <div className="fixed right-0 top-0 bg-white h-full backdrop-blur-sm z-[9999] w-full flex flex-col"
           onClick={() => setSearchOpen(false)}
         >
-          <div
-            className="bg-white w-full h-full flex flex-col"
+        <div className="relative bg-white h-full shadow-lg p-4 overflow-y-auto z-[10000] 
+        animate-slideIn w-full h-full flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b relative shadow-sm">
@@ -215,52 +222,65 @@ export default function SearchUser() {
                   ))}
                 </div>
               )}
+              
               {query && (
-                <>
-                  {loading && (
-                    <p className="text-center text-gray-500 mt-6">
-                      Searching...
-                    </p>
-                  )}
-                  {!loading && results.length === 0 && (
-                    <p className="text-center text-gray-500 mt-6">
-                      No users found
-                    </p>
-                  )}
-                  {!loading && results.map((r) => (
-                    <Link
-                      to={`/profile/${r.id}`}
-                      key={r.id}
-                      onClick={() => {
-                        handleRecentSearch(r);
-                        setSearchOpen(false);
-                      }}
-                      className="flex items-center gap-4 p-4 border-b 
-                      hover:bg-gray-50 transition duration-200 group"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                        {r.image ? (
-                          <img
-                            src={r.image}
-                            alt={r.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-500 text-lg font-bold">
-                            {r.name?.charAt(0)}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-black group-hover:text-blue-600">
-                          {r.name}
-                        </p>
-                        <p className="text-xs text-gray-500">{r.role}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </>
-              )}
+  <>
+    {loading && (
+      <p className="text-center text-gray-500 mt-6">Searching...</p>
+    )}
+
+    {!loading &&
+      results.products.length === 0 &&
+      results.categories.length === 0 && (
+        <p className="text-center text-gray-500 mt-6">
+          No results found
+        </p>
+      )}
+
+    {/* ✅ CATEGORY RESULTS */}
+    {results.categories.length > 0 && (
+      <div className="p-3">
+        <p className="text-xs text-gray-400 mb-2">Categories</p>
+
+        {results.categories.map((cat) => (
+          <div
+            key={cat.id}
+            onClick={() => handleCategoryClick(cat)}
+            className="p-3 hover:bg-gray-100 cursor-pointer rounded-lg"
+          >
+            <p className="font-semibold text-black">{cat.name}</p>
+            <p className="text-xs text-gray-500">
+              {cat.type === "parent" ? "Category" : "Sub Category"}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* ✅ PRODUCT RESULTS */}
+    {results.products.length > 0 && (
+      <div className="p-3">
+        <p className="text-xs text-gray-400 mb-2">Products</p>
+
+        {results.products.map((p) => (
+          <Link
+            to={`/product/${p.id}`}
+            key={p.id}
+            onClick={() => setSearchOpen(false)}
+            className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
+          >
+            <img
+              src={p.image}
+              className="w-12 h-12 object-cover rounded"
+            />
+            <p className="font-medium text-black">{p.title}</p>
+          </Link>
+        ))}
+      </div>
+    )}
+  </>
+)}
+
             </div>
           </div>
         </div>

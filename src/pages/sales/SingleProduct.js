@@ -164,7 +164,7 @@ const keyFeaturesRef = useRef(null);
     <div className="max-w-7xl mx-auto sm:p-6 p-2">
 
       {/* TOP SECTION */}
-      <div className="grid mt-14 sm:mt-16 md:grid-cols-3 gap-8 lg:gap-28">
+      <div className="grid mt-16 py-2 md:grid-cols-3 gap-8 lg:gap-28">
 
         {/* LEFT SIDE */}
         <div className="md:col-span-2">
@@ -253,6 +253,85 @@ const keyFeaturesRef = useRef(null);
   <h2 className="text-2xl font-bold mb-3 text-gray-800">Product Description</h2>
   <p className="text-gray-700 leading-relaxed text-base">{product.description || "No description available."}</p>
 </div>
+
+<div className="border p-6 sm:hidden block mt-4 rounded-lg bg-white text-gray-900 sm:w-80 w-full flex flex-col justify-between shadow-2xl">
+      
+      {/* PRODUCT DETAILS MOBILE VIEW */}
+      <div>
+        <h2 className="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">
+          Product Details
+        </h2>
+
+        <div className="space-y-4 text-sm">
+          <p>
+            <span className="font-semibold">Location:</span> {product.location || "No Available"}
+          </p>
+          <p>
+            <span className="font-semibold">Brand:</span> {product.brand_name || "No Available"}
+          </p>
+          <p>
+            <span className="font-semibold">Availability: </span>
+            <span className={product.stock > 0 ? "text-green-400" : "text-red-500"}>
+              {product.stock > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </p>
+          <p>
+            <span className="font-semibold">Stock:</span> {product.stock}
+          </p>
+          <p>
+            <span className="font-semibold">Delivery Day:</span> {product.delivery_time || "-"}
+          </p>
+          
+          <p>
+            <span className="font-semibold">Company Type:</span> {product.company_type || "-"}
+          </p>
+          <p className="capitalize">
+            <span className="font-semibold capitalise">Delivery Method:</span> {product.delivery_method ? product.delivery_method.replace("_", " ") : "Not Available"}
+          </p>
+          <p>
+            <span className="font-semibold">Delivery Price:</span>{" "}
+            {product.delivery_price ? (
+              <>
+                {formatCurrency(product.delivery_price, product.currency || "NGN")}
+              </>
+            ) : (
+              "-"
+            )}
+          </p>
+        </div>
+      </div>
+
+
+      <div className="space-y-2 mt-16">
+      {product.specifications?.length > 0 && (
+        <button
+          onClick={() => specificationsRef.current.scrollIntoView({ behavior: "smooth" })}
+          className=" px-6 text-left px-3 py-2 border-2 round rounded-md text-gray-800 font-medium transition"
+        >
+          Specifications Details
+        </button>
+      )}
+      {product.key_features?.length > 0 && (
+        <button
+          onClick={() => keyFeaturesRef.current.scrollIntoView({ behavior: "smooth" })}
+          className=" px-6 text-left px-3 py-2 border-2 round rounded-md text-gray-800 font-medium transition"
+        >
+          Key Features Details
+        </button>
+      )}
+    </div>
+
+      {/* ADD TO CART BUTTON  {key.replace("_", " ")}*/}
+      
+      <button
+        onClick={() => addToCart(product)}
+        className="mt-6 w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all"
+      >
+        Add To Wishlist
+      </button>
+
+    </div>
+
 
 {/* SPECIFICATIONS */}
 {product.specifications && product.specifications.length > 0 && (
@@ -416,7 +495,7 @@ const keyFeaturesRef = useRef(null);
 
 
         {/* RIGHT SIDEBAR */}
-      <div className="border p-6  rounded-lg h-full sm:h-[530px] bg-white text-gray-900 sm:w-80 w-full flex flex-col justify-between shadow-lg">
+      <div className="border p-6 sm:block hidden rounded-lg h-full sm:h-[530px] bg-white text-gray-900 sm:w-80 w-full flex flex-col justify-between shadow-lg">
       
       {/* PRODUCT DETAILS */}
       <div>

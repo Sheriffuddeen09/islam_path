@@ -103,7 +103,7 @@ console.log('currentUser', user)
 
     return (
       <>
-        <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-2 sm:py-2 py-2 sm:mb-6 ">
+        <header className="z-10 bg-white  fixed w-full z-10 border-b- shadow px-2 sm:py-2 py-2 sm:mb-6 ">
         
 
           <nav className='flex flex-row justify-between items-center '>
