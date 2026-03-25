@@ -199,11 +199,20 @@ const updateField = (index, field, value, type) => {
     if (back instanceof File) data.append("back_image", back);
     if (side instanceof File) data.append("side_image", side);
 
-    if (newSubcategory && selectedParent?.id) {
-      data.append("new_subcategory", newSubcategory);
-      data.append("parent_id", selectedParent.id);
+     if (newParent) data.append("new_parent", newParent);
+    if (newSubcategory) data.append("new_subcategory", newSubcategory);
+    if (selectedParent?.id) data.append("parent_id", selectedParent.id);
+    if (selectedChild?.id) data.append("category_id", selectedChild.id);
+
+    if (!form.category_id && !newSubcategory) {
+      showNotification("Please select a category", "error");
+      setLoading(false);
+      return;
     }
 
+    if (form.category_id) {
+        data.append("category_id", form.category_id);
+      }
     // PDF
     if (pdf instanceof File) {
       data.append("pdf_file", pdf);
@@ -222,12 +231,14 @@ const updateField = (index, field, value, type) => {
       }
     });
 
+   await api.get("/sanctum/csrf-cookie", { withCredentials: true });
+
     await api.post("/api/products", data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      withCredentials: true, // important
+      headers: { "Content-Type": "multipart/form-data" }, // no Authorization
     });
 
+    
     showNotification("Product created successfully!", "success");
 
     // Reset form properly
@@ -676,7 +687,7 @@ const isGeneral =
 
 
           <input
-          placeholder="Delivery Time (2-5 days)"
+          placeholder="Delivery Day (2-5 days)"
           className="border p-3 rounded-lg w-full"
           value={form.delivery_time}
           onChange={e=>setForm({...form, delivery_time:e.target.value})}
@@ -695,7 +706,7 @@ const isGeneral =
           }
         >
           <option value="">Delivery Method</option>
-          <option value="courier">Door Delivery</option>
+          <option value="door_delivery">Door Delivery</option>
           <option value="pickup">Pickup Station</option>
         </select>
 
@@ -802,7 +813,7 @@ const isGeneral =
 
           {/* CLOTHES / SHOES */}
 
-         {isGeneral && (
+         {slugSort !== "electronic" && slugSort !== "islamic-content"   && (
 
           <>
 
@@ -837,7 +848,7 @@ const isGeneral =
           }
         >
           <option value="">Delivery Method</option>
-          <option value="courier">Door Delivery</option>
+          <option value="door_delivery">Door Delivery</option>
           <option value="pickup">Pickup Station</option>
         </select>
 
@@ -924,8 +935,8 @@ const isGeneral =
           }}
         >
           <option value="">Sales Type</option>
-          <option value="online">Online</option>
-          <option value="physical">Delivery</option>
+          <option value="online">Online Download</option>
+          <option value="physical">Physical Delivery</option>
           </select>
 
 
@@ -967,7 +978,7 @@ const isGeneral =
           }
         >
           <option value="">Delivery Method</option>
-          <option value="courier">Door Delivery</option>
+          <option value="door_delivery">Door Delivery</option>
           <option value="pickup">Pickup Station</option>
           <option value="pickup">Online Download</option>
         </select>
