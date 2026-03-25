@@ -81,6 +81,12 @@ function App() {
       const [videoCount, setVideoCount] = useState(0);
       const [unreadCount, setUnreadCount] = useState(0);
       const [unreadNotification, setUnreadNotification] = useState(0);
+
+
+      // Product
+
+        const [products, setProducts] = useState([]);
+      
       
 
            // ================= FETCH FUNCTIONS =================
@@ -273,11 +279,11 @@ function App() {
       } />
 
       <Route path="/online-sale" element={
-          <ProductPage />
+          <ProductPage products={products} setProducts={setProducts} />
       } />
 
       <Route path="/product/:id" element={
-          <SingleProduct />
+          <SingleProduct products={products} setProducts={setProducts} />
       } />
 
 

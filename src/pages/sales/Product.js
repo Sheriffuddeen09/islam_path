@@ -8,8 +8,7 @@ import api from "../../Api/axios";
 import { useCart } from "./cart/CartContext";
 import { FaHeart, FaStar } from "react-icons/fa";
 
-export default function ProductPage() {
-  const [products, setProducts] = useState([]);
+export default function ProductPage({products, setProducts}) {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);

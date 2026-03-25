@@ -2,9 +2,9 @@ import { useEffect,useState } from "react";
 import api from "../../Api/axios";
 import { Link } from "react-router-dom";
 
-export default function RecentlyViewed(){
+export default function RecentlyViewed({products, setProducts}){
 
-  const [products,setProducts] = useState([])
+
 
   useEffect(()=>{
 
@@ -29,9 +29,9 @@ export default function RecentlyViewed(){
 
   return(
 
-    <div className="mt-16">
+    <div className="mt-8">
 
-      <h2 className="text-2xl font-bold mb-6">
+      <h2 className="text-2xl font-bold mb-4 px-2 text-black">
         Recently Viewed
       </h2>
 
@@ -58,7 +58,7 @@ export default function RecentlyViewed(){
                 className="h-40 w-full object-cover"
               />
 
-              <h3 className="mt-2 font-medium">
+              <h3 className="mt-2 font-medium text-black">
                 {p.title}
               </h3>
 
