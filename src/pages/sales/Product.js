@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay } from "swiper/modules";
+import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import api from "../../Api/axios";
@@ -9,17 +9,17 @@ import { useCart } from "./cart/CartContext";
 import { FaHeart, FaStar } from "react-icons/fa";
 import SearchProduct from "./SearchProduct";
 import { Search } from "lucide-react";
+import { useWishlist } from "./cart/WishlistContext";
 
 export default function ProductPage({products, setProducts}) {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const { addToCart, loading: cartLoading } = useCart();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showFilter, setShowFilter] = useState(false);
   const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
-
+  const { addToWishlist, loading: wishlistLoading } = useWishlist()
 
   useEffect(() => {
   const handleCategorySelect = (e) => {
@@ -304,10 +304,12 @@ const openSearchModal = () => {
       symbols={symbols}
       addToCart={addToCart}
       cartLoading={cartLoading}
+      wishlistLoading={wishlistLoading}
+      addToWishlist={addToWishlist}
     />
   ) : (
       <>
-        {/* ===== HOMEPAGE ===== */}
+        {/* ===== HOMEPAGE cart ===== */}
 
         {/* Banner */}
         {bannerProducts.length > 0 && (
@@ -384,12 +386,12 @@ const openSearchModal = () => {
 
         {/* Flash Sales */}
         {flashSales.length > 0 && (
-          <Section title="🔥 Flash Sales" products={flashSales} {...{ symbols, addToCart, cartLoading }} />
+          <Section title="🔥 Flash Sales" products={flashSales} {...{ symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }} />
         )}
 
         {/* Top Selling */}
         {topSelling.length > 0 && (
-          <Section title="⭐ Top Selling" products={topSelling} {...{ symbols, addToCart, cartLoading }} />
+          <Section title="⭐ Top Selling" products={topSelling} {...{ symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }} />
         )}
 
         {/* Category Sections */}
@@ -405,6 +407,8 @@ const openSearchModal = () => {
               symbols={symbols}
               addToCart={addToCart}
               cartLoading={cartLoading}
+              addToWishlist={addToWishlist} 
+              wishlistLoading={wishlistLoading}
             />
           );
         })}
@@ -452,7 +456,7 @@ const getCategoryColor = (title) => {
 };
 
 // ===== Section Component =====
-const Section = ({ title, products, symbols, addToCart, cartLoading }) => (
+const Section = ({ title, products, symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }) => (
 
   
   <div className="mb-10 mx-auto">
@@ -478,7 +482,9 @@ const Section = ({ title, products, symbols, addToCart, cartLoading }) => (
     >
       {products.map((p) => (
         <SwiperSlide key={p.id}>
-          <ProductCard product={p} symbols={symbols} addToCart={addToCart} cartLoading={cartLoading} />
+          <ProductCard product={p} symbols={symbols} 
+          addToCart={addToCart} cartLoading={cartLoading}
+          addToWishlist={addToWishlist} wishlistLoading={wishlistLoading} />
         </SwiperSlide>
       ))}
     </Swiper>
@@ -486,7 +492,7 @@ const Section = ({ title, products, symbols, addToCart, cartLoading }) => (
 );
 
 // ===== Product Card =====
-const ProductCard = ({ product, symbols, addToCart, cartLoading }) => {
+const ProductCard = ({ product, symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }) => {
   const [hover, setHover] = useState(false);
   const cardRef = useRef(null);
   const [width, setWidth] = useState(0);
@@ -527,24 +533,75 @@ const ProductCard = ({ product, symbols, addToCart, cartLoading }) => {
       </Link>
 
       <button
-        onClick={() => addToCart(product)}
-        disabled={cartLoading}
-        className="mt-2 w-full p-3 bg-orange-600 text-white font-bold rounded text-sm hover:bg-orange-700"
-      >
-        Add to Cart
-      </button>
+              className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+                product.stock <= 0 || cartLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={product.stock <= 0 || cartLoading}
+              onClick={() => addToCart(product)}
+            >
+              {cartLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              ) : (
+                "Add to Cart"
+              )}
+            </button>
 
-      {/* Hover Preview */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex flex-col gap-2">
+
+      {/* Hover Preview total */}
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition flex flex-col gap-2">
         <button
-          onClick={() => console.log("Add to wishlist", product.id)}
-          className="bg-gray-800 p-2 rounded shadow hover:bg-gray-600"
+          className={`bg-gray-800 p-2 rounded shadow hover:bg-gray-600  ${
+          product.stock <= 0 || wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+          disabled={product.stock <= 0 || wishlistLoading}
+          onClick={() => addToWishlist(product)}
         >
-          <FaHeart className="text-white mx-auto" />
-        </button>
+           {wishlistLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              ) : (
+              <FaHeart className="text-white mx-auto" />
+            )}
+            </button>
         <div className="bg-gray-800 px-2 py-1 rounded shadow flex items-center gap-1">
           <FaStar className="text-yellow-400 text-sm" />
-          <span className="text-sm text-white font-medium">{product.review_total || 0}</span>
+          <span className="text-sm text-white font-medium">{product.reviews_count || 0}</span>
         </div>
       </div>
     </div>

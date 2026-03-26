@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import AuthProvider from './layout/AuthProvider';
 import { CartProvider } from './pages/sales/cart/CartContext';
+import { WishlistProvider } from './pages/sales/cart/WishlistContext';
 const queryclient = new QueryClient()
 const clientId = "YOUR_GOOGLE_CLIENT_ID";
 
@@ -16,6 +17,7 @@ root.render(
   <React.StrictMode>
     <Router >
       <CartProvider>
+      <WishlistProvider>
     <Routes>
     <Route path='/*' element={
     <QueryClientProvider client={queryclient}>
@@ -28,6 +30,7 @@ root.render(
       }
        />
     </Routes>
+    </WishlistProvider>
     </CartProvider>
     </Router>
   </React.StrictMode>

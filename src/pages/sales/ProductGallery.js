@@ -1,7 +1,6 @@
 import { useState } from "react";
 import InnerImageZoom from "react-inner-image-zoom";
 import "react-inner-image-zoom/lib/styles.min.css";
-import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Star } from "lucide-react";
 import { useCart } from "./cart/CartContext";
@@ -54,7 +53,7 @@ export default function ProductGallery({ images, product }) {
 
       {/* REVIEW COUNT */}
       <span className="text-gray-600 whitespace-nowrap text-sm">
-        ({product.review_total} reviews)
+        ({product.reviews_count} reviews)
       </span>
 
     </div>
@@ -74,7 +73,7 @@ export default function ProductGallery({ images, product }) {
     </div>
 
      <button
-              className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+              className={`mt-2 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
                 product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={product.stock <= 0 || loading}
@@ -106,7 +105,7 @@ export default function ProductGallery({ images, product }) {
               )}
             </button>
 
-</div>
+      </div>
 
 
       </div>

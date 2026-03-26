@@ -8,6 +8,7 @@ import RelatedProducts from "./RelatedProducts"
 import ProductSkeleton from "./ProductSkeleton"
 import { useCart } from "./cart/CartContext";
 import { Star } from "lucide-react";
+import { useWishlist } from "./cart/WishlistContext";
 
 
 export default function SingleProduct({products, setProducts}) {
@@ -23,6 +24,8 @@ export default function SingleProduct({products, setProducts}) {
   const [submitting, setSubmitting] = useState(false);
 
   const { addToCart, loading } = useCart();
+  const { addToWishlist, loading: wishlistLoading } = useWishlist()
+  
 
   useEffect(() => {
     fetchProduct();
@@ -192,7 +195,7 @@ const keyFeaturesRef = useRef(null);
 
                 {/* REVIEW COUNT */}
                 <span className="text-gray-600 whitespace-nowrap text-sm">
-                  ({product.review_total} reviews)
+                  ({product.reviews_count} reviews)
                 </span>
 
               </div>
@@ -212,7 +215,7 @@ const keyFeaturesRef = useRef(null);
               </div>
 
                <button
-              className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+              className={`mt-2 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
                 product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={product.stock <= 0 || loading}
@@ -324,11 +327,39 @@ const keyFeaturesRef = useRef(null);
       {/* ADD TO CART BUTTON  {key.replace("_", " ")}*/}
       
       <button
-        onClick={() => addToCart(product)}
-        className="mt-6 w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all"
-      >
-        Add To Wishlist
-      </button>
+              className={`mt-6 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={product.stock <= 0 || loading}
+              onClick={() => addToWishlist(product)}
+            >
+              {wishlistLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              ) : (
+                "Add to Wishlist"
+              )}
+            </button>
+
+      
 
     </div>
 
@@ -565,11 +596,37 @@ const keyFeaturesRef = useRef(null);
       {/* ADD TO CART BUTTON  {key.replace("_", " ")}*/}
       
       <button
-        onClick={() => addToCart(product)}
-        className="mt-6 w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all"
-      >
-        Add To Wishlist
-      </button>
+              className={`mt-6 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
+                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={product.stock <= 0 || loading}
+              onClick={() => addToWishlist(product)}
+            >
+              {wishlistLoading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              ) : (
+                "Add to Wishlist"
+              )}
+            </button>
 
     </div>
 
