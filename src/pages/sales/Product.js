@@ -8,6 +8,7 @@ import api from "../../Api/axios";
 import { useCart } from "./cart/CartContext";
 import { FaHeart, FaStar } from "react-icons/fa";
 import SearchProduct from "./SearchProduct";
+import { Search } from "lucide-react";
 
 export default function ProductPage({products, setProducts}) {
   const [categories, setCategories] = useState([]);
@@ -80,6 +81,14 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [bannerProducts]);
 
+const [searchOpen, setSearchOpen] = useState(false);
+const [query, setQuery] = useState("");
+
+const openSearchModal = () => {
+    setQuery("");
+    setSearchOpen(true);
+  };
+
   return (
     <div className="pt-20 bg-gray-100 min-h-screen">
       <div className="flex px-4 md:px-2">
@@ -87,7 +96,20 @@ useEffect(() => {
         <aside className="w-64 bg-white shadow p-4 hidden md:block sticky scrollbar-thin top-20 h-[calc(100vh-80px)] overflow-y-auto">
           <h2 className="text-xl font-bold text-black mb-4 text-center">Search & Filters</h2>
           
-          <SearchProduct />
+          <div className="relative w-full mb-4">
+        <input
+          type="text"
+          placeholder="Search products..."
+          readOnly
+          onClick={openSearchModal}
+          className="border p-2 rounded-lg w-full cursor-pointer bg-gray-100 text-black"
+        />
+        <Search
+          onClick={openSearchModal}
+          className="absolute right-2 top-2 w-5 h-5 text-gray-400 cursor-pointer"
+        />
+      </div>
+         
 
           {loading ? (
             <div className="space-y-2">
@@ -139,11 +161,13 @@ useEffect(() => {
         {/* ===== Main Content ===== */}
         <section className="flex-1 ml-0 md:ml-6">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 justify-items-center md:justify-items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => (
-               <div key={i} className="bg-white p-4 rounded-lg shadow animate-pulse">
+               <div key={i} className="bg-white sm:p-4 p-2 rounded-lg shadow animate-pulse">
                 <div className="h-40 bg-gray-300 rounded mb-2"></div>
                 <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                <div className="h-2 bg-gray-300 rounded w-1/2 mb-2"></div>
                 <div className="h-4 bg-gray-300 rounded w-1/2"></div>
               </div>
               ))}
@@ -186,7 +210,7 @@ useEffect(() => {
       
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">Search & Filters</h2>
+        <h2 className="text-lg font-bold text-black">Search & Filters</h2>
         <button
           onClick={() => setShowFilter(false)}
           className="text-black text-xl"
@@ -196,13 +220,19 @@ useEffect(() => {
       </div>
 
       {/* SEARCH */}
-      <input
-        type="text"
-        placeholder="Search products..."
-        className="border p-2 rounded-lg w-full mb-4"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className="relative w-full mb-4">
+        <input
+          type="text"
+          placeholder="Search products..."
+          readOnly
+          onClick={openSearchModal}
+          className="border p-2 rounded-lg w-full cursor-pointer bg-gray-100 text-black"
+        />
+        <Search
+          onClick={openSearchModal}
+          className="absolute right-2 top-2 w-5 h-5 text-gray-400 cursor-pointer"
+        />
+      </div>
 
       {/* CATEGORY LIST */}
       {loading ? (
@@ -234,7 +264,7 @@ useEffect(() => {
                   setSelectedCategory(cat);
                   setShowFilter(false);
                 }}
-                className={`font-bold cursor-pointer p-2 mt-2 rounded ${
+                className={`font-bold text-[17px] cursor-pointer p-2 mt-2 rounded ${
                   selectedCategory?.name === cat.name
                     ? "bg-gray-900 text-white"
                     : "hover:bg-gray-200 text-gray-800"
@@ -250,7 +280,7 @@ useEffect(() => {
                     setSelectedCategory(child);
                     setShowFilter(false);
                   }}
-                  className={`cursor-pointer p-1 rounded pl-6 my-1 ${
+                  className={`cursor-pointer font-semibold p-1 rounded pl-6 my-1 ${
                     selectedCategory?.id === child.id
                       ? "bg-gray-900 text-white text-sm"
                       : "hover:bg-gray-100 text-blue-800 text-sm"
@@ -327,7 +357,7 @@ useEffect(() => {
                   ? `http://localhost:8000/storage/${p.images[0].image_path}`
                   : "/placeholder.png"
               }
-              className="w-full h-60 md:h-80 object-contain rounded"
+              className="w-full h-60 md:h-80 sm:object-contain object-cover rounded"
             />
           </Link>
         </div>
@@ -381,27 +411,24 @@ useEffect(() => {
       </>
     )}
   </>
-              {/* ===== Category Sections ===== */}
-              {!selectedCategory
-                ? categories.map((cat) => {
-                    const catProducts = getCategoryProducts(cat);
-                    if (!catProducts.length) return null;
-                    return (
-                      <Section
-                        key={cat.id}
-                        title={cat.name}
-                        products={catProducts}
-                        symbols={symbols}
-                        addToCart={addToCart}
-                        cartLoading={cartLoading}
-                      />
-                    );
-                  })
-                : null}
             </>
           )}
         </section>
       </div>
+      {searchOpen && (
+        <div
+          className="fixed top-0 w-full h-full z-[9999] flex flex-1 items- bg-black/30 backdrop-blur-sm">
+              <SearchProduct
+                  onCategorySelect={(category) => {
+                  setSelectedCategory(category);
+                }}
+                query={query}
+                searchOpen={searchOpen}
+                setSearchOpen={setSearchOpen}
+                setQuery={setQuery}
+          />
+          </div>
+              )}
     </div>
   );
 }
@@ -428,7 +455,7 @@ const getCategoryColor = (title) => {
 const Section = ({ title, products, symbols, addToCart, cartLoading }) => (
 
   
-  <div className="mb-10">
+  <div className="mb-10 mx-auto">
     <div
       className={`flex justify-between items-center mt-4 mb-3 p-3 rounded-lg shadow text-white ${getCategoryColor(title)}`}
     >
@@ -474,7 +501,7 @@ const ProductCard = ({ product, symbols, addToCart, cartLoading }) => {
   return (
     <div
       ref={cardRef}
-      className="bg-white rounded shadow-sm hover:shadow-md mx-auto sm:w-60 w-80 transition px-2 py-4 group relative"
+      className="bg-white rounded shadow-sm hover:shadow-md mx-auto sm:w-60 w-44 transition px-2 py-2 group relative"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -485,7 +512,7 @@ const ProductCard = ({ product, symbols, addToCart, cartLoading }) => {
       )}
 
       <Link to={`/product/${product.id}`}>
-        <img src={img} loading="lazy" className="h-52 w-full object-cover rounded" />
+        <img src={img} loading="lazy" className="h-28 sm:h-52 w-full object-cover rounded" />
         <h3 className="text-sm mt-2 text-gray-800 line-clamp-2">{product.title}</h3>
         <div className="mt-1 text-gray-800">
           {product.discount > 0 ? (

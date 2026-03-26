@@ -1,70 +1,88 @@
 import React, { useState } from "react";
-import { Button, Modal } from "react-bootstrap";
-import { apiFetchs } from "../Api/axios";
+import { Trash2, X, Loader2 } from "lucide-react";
+import api from "../../../Api/axios";
+import Toast from "./Toast";
 
-const CartDeleteId = ({ cartId, handleRemoveItem }) => {
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
-
+const CartDelete = ({ cartId, handleRemoveItem }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ loading state
 
   const handleDelete = async () => {
     try {
-      const response = await apiFetchs.delete(`/cart/items/${cartId}/`);
-      console.log("Item deleted successfully");
-      handleRemoveItem(response.data)
+      setLoading(true); 
+      const response = await api.delete(`/api/cart/${cartId}`);
+
+      handleRemoveItem(response.data);
+      setShowModal(false);
+
+      // ✅ show toast
+      setShowToast(true);
+
+      // auto hide after 3s
+      setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
       console.error("Failed to delete item:", error.message);
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
   return (
     <>
-      {/* Button that triggers the confirmation modal */}
-      <div className="delete-button-wrapper">
-        <Button style={{ backgroundColor: "transparent", border:"none" }} onClick={() => setShowModal(true)}>
-          <div className="" title="Delete Reply">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-6"
-              style={{ width: "18px", height: "18px", color: "black" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M14.74 9L14.394 18m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166M4.772 5.79a48.108 48.108 0 0 0-3.478-.397M18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"
-              />
-            </svg>
-          </div>
-        </Button>
-      </div>
+      {/* Delete Button */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="p-1 hover:bg-gray-100 rounded"
+      >
+        <Trash2 className="w-5 h-5 text-black" />
+      </button>
 
-      {/* Modal for confirming deletion */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Body className="bg-light rounded translate" style={{ height: "300px" }}>
-          <div
-            className="d-flex"
-            style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", margin: "90px 0px 20px 0px" }}
-          >
-            <h4 className="text-center mb-4">Are you sure you want to delete this Cart Item?</h4>
-            <div
-              className="d-flex justify-content-between gap-20 mt-10"
-              style={{ display: "flex", justifyContent: "space-between" }}
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+          <div className="bg-white w-[90%] max-w-sm rounded-xl p-6 shadow-lg relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-3"
             >
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+
+            <h3 className="text-lg font-bold text-center mb-4">
+              Delete Cart Item
+            </h3>
+
+            <p className="text-gray-600 text-center mb-6">
+              Are you sure you want to delete this item?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full py-2 bg-gray-200 rounded-lg"
+                disabled={loading} // disable while loading
+              >
                 Cancel
-              </Button>
-              <Button variant="danger" onClick={handleDelete}>
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="w-full py-2 bg-red-600 text-white rounded-lg flex items-center justify-center gap-2"
+                disabled={loading} // disable while loading
+              >
+                {loading && <Loader2 className="w-5 h-5 animate-spin" />}
                 Delete
-              </Button>
+              </button>
             </div>
           </div>
-        </Modal.Body>
-      </Modal>
+        </div>
+      )}
+
+      {/* ✅ Toast */}
+      <Toast message="Item removed from cart 🛒" show={showToast} />
     </>
   );
 };
 
-export default CartDeleteId;
+export default CartDelete;

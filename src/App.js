@@ -40,6 +40,7 @@ import PostReportUser from "./report/PostReportUser";
 import CommentReportUser from "./report/CommentReportUser";
 import ProductPage from "./pages/sales/Product";
 import SingleProduct from "./pages/sales/SingleProduct";
+import CartPage from "./pages/sales/cart/CartPage";
 
    
 function App() {
@@ -86,6 +87,8 @@ function App() {
       // Product
 
         const [products, setProducts] = useState([]);
+        const [cart, setCart] = useState([]);
+        const [cartLoading, setCartLoading] = useState(false)
       
       
 
@@ -192,6 +195,24 @@ function App() {
       setPosts((prev) => [newPost, ...prev]); // Update UI instantly
     };
 
+
+    const fetchCart = async () => {
+  try {
+    setCartLoading(true);
+
+    const res = await api.get("/api/cart");
+
+    setCart(res.data.cart);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setCartLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchCart();
+}, []);
   
   return (
     <div className="">
@@ -286,6 +307,9 @@ function App() {
           <SingleProduct products={products} setProducts={setProducts} />
       } />
 
+       <Route path="/cart" element={
+          <CartPage cart={cart} setCart={setCart} loading={cartLoading} />
+      } />
 
       <Route path="/friend" element={
           <Friend students={students} setStudents={setStudents} admins={admins} setAdmins={setAdmins}

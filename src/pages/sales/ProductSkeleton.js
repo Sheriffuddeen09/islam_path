@@ -1,6 +1,6 @@
 export default function ProductSkeleton() {
   return (
-    <div className="animate-pulse grid mt-16 md:grid-cols-3 gap-8 p-6">
+    <div className="animate-pulse grid pt-20 pb-6 md:grid-cols-3 px-2 gap-8">
 
       <div className="md:col-span-2">
         <div className="bg-gray-300 h-[400px] rounded"></div>
