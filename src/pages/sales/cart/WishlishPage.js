@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
 import CartDelete from "./CartDelete";
 import Toast from "./Toast";
+import CheckoutModal from "./CheckoutPage";
 
 // ReadMore component
 const ReadMore = ({ text, maxWords = 8 }) => {
@@ -27,6 +28,8 @@ const WishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState("");
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  
 
   // FETCH WISHLIST
   const fetchWishlist = async () => {
@@ -271,12 +274,12 @@ const moveToCart = async (item) => {
                 </span>
               </div>
           
-              <Link
-                to="/checkout"
+              <button
+                onClick={() => setCheckoutOpen(true)}
                 className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
               >
                 Proceed to Checkout
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -290,6 +293,12 @@ const moveToCart = async (item) => {
       )}
 
       {toastMessage && <Toast show={true} message={toastMessage} />}
+
+       <CheckoutModal
+          open={checkoutOpen}
+          setOpen={setCheckoutOpen}
+          cart={wishlist}
+        />
     </section>
   );
 };

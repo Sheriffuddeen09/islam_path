@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../Api/axios";
 import CartDelete from "./CartDelete";
+import CheckoutModal from "./CheckoutPage";
 
 
 const ReadMore = ({ text, maxWords = 12 }) => {
@@ -24,6 +25,8 @@ const ReadMore = ({ text, maxWords = 12 }) => {
 const CartPage = () => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
 
   // FETCH CART
   const fetchCart = async () => {
@@ -233,12 +236,13 @@ const CartPage = () => {
       </span>
     </div>
 
-    <Link
-      to="/checkout"
+
+    <button
+      onClick={() => setCheckoutOpen(true)}
       className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
     >
       Proceed to Checkout
-    </Link>
+    </button>
   </div>
 </div>
         </div>
@@ -254,6 +258,12 @@ const CartPage = () => {
       </Link>
     </p>
       )}
+
+      <CheckoutModal
+        open={checkoutOpen}
+        setOpen={setCheckoutOpen}
+        cart={cart}
+      />
     </section>
   );
 };
