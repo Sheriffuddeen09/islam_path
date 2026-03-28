@@ -1,7 +1,6 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import api from "../Api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
-import logo from './image/favicon.png'
 
 const AuthContext = createContext(null);
 

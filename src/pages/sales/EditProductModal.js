@@ -135,13 +135,7 @@ useEffect(() => {
       ]
      },
     { key: "location", label: "Location", type: "text" },
-    { key: "delivery_time", label: "Delivery Day", type: "text" },
-    { key: "delivery_method", label: "Delivery Method", type: "select",
-      options: [
-        { label: "Pickup Station", value: "pickup" },
-        { label: "Door Delivery", value: "door_delivery" }
-      ]
-    },
+    { key: "delivery_method", label: "Delivery Method (Shipping, Courier, or Pickup Station)", type: "text" },
     {
       key: "downloadable",
       label: "Downloadable",
@@ -204,87 +198,83 @@ useEffect(() => {
         <h2 className="text-xl font-bold">Edit Product</h2>
 
         {fields.map((field) => {
-  const value = selected?.[field.key] ?? ""; // ✅ fallback
+        const value = selected?.[field.key] ?? "";
 
-  // ❌ Only hide when explicitly null (not undefined)
-  if (selected?.[field.key] === null) return null;
+        // ❌ hide if null
+        if (selected?.[field.key] === null) return null;
 
-  // downloadable logic
-  if (
-    selected?.downloadable === "no" &&
-    ["downloadable", "sale_type"].includes(field.key)
-  ) {
-    return null;
-  }
-
-  if (field.type === "textarea") {
-    return (
-      <div key={field.key}>
-        <label className="block font-medium">{field.label}</label>
-        <textarea
-          value={value}
-          onChange={(e) =>
-            setSelected({ ...selected, [field.key]: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-    );
-  }
-
-  if (field.type === "select") {
-  return (
-    <div key={field.key}>
-      <label className="block font-medium">{field.label}</label>
-
-      <select
-        value={selected[field.key] || ""}
-        onChange={(e) =>
-          setSelected({ ...selected, [field.key]: e.target.value })
+        // ✅ hide downloadable + sale_type when NOT downloadable
+        if (
+          selected?.downloadable === "no" &&
+          ["downloadable", "sale_type"].includes(field.key)
+        ) {
+          return null;
         }
-        className="w-full border p-2 rounded"
-      >
-        <option value="">Select {field.label}</option>
 
-        {field.options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-  
-  return (
-    <div key={field.key}>
-      <label className="block font-medium">{field.label}</label>
-      <input
-        type={field.type}
-        value={value}
-        onChange={(e) =>
-          setSelected({ ...selected, [field.key]: e.target.value })
+        // ✅ NEW: hide delivery_method when downloadable is YES
+        if (
+          selected?.downloadable === "yes" &&
+          field.key === "delivery_method"
+        ) {
+          return null;
         }
-        className="w-full border p-2 rounded"
-      />
-    </div>
-  );
-})}
 
-        {selected?.delivery_method === "door_delivery" && (
-          <div>
-            <label className="block font-medium">Delivery Price</label>
+        // textarea
+        if (field.type === "textarea") {
+          return (
+            <div key={field.key}>
+              <label className="block font-medium">{field.label}</label>
+              <textarea
+                value={value}
+                onChange={(e) =>
+                  setSelected({ ...selected, [field.key]: e.target.value })
+                }
+                className="w-full border p-2 rounded"
+              />
+            </div>
+          );
+        }
+
+        // select
+        if (field.type === "select") {
+          return (
+            <div key={field.key}>
+              <label className="block font-medium">{field.label}</label>
+
+              <select
+                value={selected[field.key] || ""}
+                onChange={(e) =>
+                  setSelected({ ...selected, [field.key]: e.target.value })
+                }
+                className="w-full border p-2 rounded"
+              >
+                <option value="">Select {field.label}</option>
+
+                {field.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          );
+        }
+
+        // input
+        return (
+          <div key={field.key}>
+            <label className="block font-medium">{field.label}</label>
             <input
-              type="text"
-              value={selected.delivery_price || ""}
+              type={field.type}
+              value={value}
               onChange={(e) =>
-                setSelected({ ...selected, delivery_price: e.target.value })
+                setSelected({ ...selected, [field.key]: e.target.value })
               }
               className="w-full border p-2 rounded"
             />
           </div>
-        )}
+        );
+      })}
 
        {keyFeatures.length > 0 && (
         <div>

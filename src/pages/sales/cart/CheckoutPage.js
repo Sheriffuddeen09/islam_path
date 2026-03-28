@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
-import { GoogleMap, LoadScript, Autocomplete } from "@react-google-maps/api";
 import api from "../../../Api/axios";
+import PaymentStep from "../order/OrderSteps";
+import {useAuth} from './../../../layout/AuthProvider'
 
 const CheckoutModal = ({ open, setOpen, cart }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [autocomplete, setAutocomplete] = useState(null);
+
+  const {user} = useAuth()
 
   const [form, setForm] = useState({
     first_name: "",
@@ -42,45 +44,7 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
     }
   }, [open]);
 
-  const paymentOptions = [
-  {
-    id: "cod",
-    title: "Cash on Delivery",
-    desc: "Pay when your order arrives at your doorstep.",
-    emoji: "💵",
-    bg: "bg-yellow-100",
-    text: "text-yellow-600",
-    hoverBg: "group-hover:bg-yellow-500",
-  },
-  {
-    id: "paypal",
-    title: "Paypal",
-    desc: "Secure online payment with your card or bank.",
-    emoji: "💳",
-    bg: "bg-green-100",
-    text: "text-green-600",
-    hoverBg: "group-hover:bg-green-500",
-  },
-  {
-    id: "stripe",
-    title: "Stripe",
-    desc: "Pay globally using Stripe payment gateway.",
-    emoji: "🌐",
-    bg: "bg-purple-100",
-    text: "text-purple-600",
-    hoverBg: "group-hover:bg-purple-500",
-  },
-  {
-    id: "card",
-    title: "Debit / Credit Card",
-    desc: "Pay securely using Visa, MasterCard or Verve.",
-    emoji: "🏦",
-    bg: "bg-blue-100",
-    text: "text-blue-600",
-    hoverBg: "group-hover:bg-blue-500",
-  },
-];
-
+  
   // ✅ TOTALS
   const subtotal = cart.reduce(
     (t, i) => t + i.product.price * i.quantity,
@@ -99,7 +63,45 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
 
   const total = subtotal + delivery - discount;
 
-  // ✅ SUBMIT ORDER
+  // ✅ ORDER
+
+  const orderData = {
+  user_id: user?.id, // ✅ from API user
+
+  first_name: form.first_name,
+  last_name: form.last_name,
+  email: form.email,
+  phone: form.phone,
+
+  address: form.address,
+  city: form.city,
+  state: form.state,
+  zip: form.zip,
+
+  payment_method: form.payment_method,
+
+  // ✅ CALCULATIONS
+  subtotal: cart.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  ),
+
+  delivery_price: 1500, // ✅ you can change or make dynamic
+  discount: 0,
+
+  total_price:
+    cart.reduce((acc, item) => acc + item.price * item.quantity, 0) +
+    1500,
+
+  // ✅ ITEMS
+  items: cart.map((item) => ({
+    product_id: item.id,
+    name: item.title,
+    price: item.price,
+    quantity: item.quantity,
+  })),
+};
+
   const handleCheckout = async () => {
     try {
       setLoading(true);
@@ -419,65 +421,7 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
           <>
             <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-8 mt-6">
 
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
-                Payment Method
-            </h2>
-
-            <p className="text-center text-gray-500 mb-8 text-sm">
-                Choose how you want to pay for your order
-            </p>
-
-            <div className="grid md:grid-cols-2 gap-6">
-                {paymentOptions.map((opt) => (
-                <div
-                    key={opt.id}
-                    onClick={() =>
-                    setForm({ ...form, payment_method: opt.id })
-                    }
-                    className={`p-6 rounded-xl border cursor-pointer transition-all duration-300 ${
-                    form.payment_method === opt.id
-                        ? "shadow-2xl scale-105 border-blue-500"
-                        : "border-gray-200 hover:shadow-xl hover:-translate-y-2"
-                    } group bg-white`}
-                >
-                    <div className="text-center">
-
-                    {/* ICON */}
-                    <div
-                        className={`w-16 h-16 mx-auto flex items-center justify-center rounded-full mb-4 text-3xl ${opt.bg} ${opt.text} ${opt.hoverBg} group-hover:text-white transition`}
-                    >
-                        {opt.emoji}
-                    </div>
-
-                    {/* TITLE */}
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {opt.title}
-                    </h3>
-
-                    {/* DESCRIPTION */}
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                        {opt.desc}
-                    </p>
-                    </div>
-                </div>
-                ))}
-            </div>
-
-            {/* BUTTON */}
-            <div className="text-center mt-10">
-                <button
-                disabled={!form.payment_method}
-                onClick={handleCheckout}
-                className={`px-8 py-3 rounded-full font-semibold text-lg shadow-md transition-all ${
-                    form.payment_method
-                    ? "bg-blue-600 text-white hover:bg-blue-700 hover:scale-105"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-                >
-                {loading && <Loader2 className="animate-spin w-4 h-4" />}
-                Continue Payment →
-                </button>
-            </div>
+            <PaymentStep form={form} setForm={setForm} orderData={orderData} setStep={setStep} />
             </div>
           </>
         )}

@@ -687,41 +687,12 @@ const isGeneral =
 
 
           <input
-          placeholder="Delivery Day (2-5 days)"
+          placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
           className="border p-3 rounded-lg w-full"
-          value={form.delivery_time}
+          value={form.delivery_method}
           onChange={e=>setForm({...form, delivery_time:e.target.value})}
           />
 
-
-          <select
-          className="border p-3 rounded-lg w-full"
-          value={form.delivery_method}
-          onChange={e =>
-            setForm({
-              ...form,
-              delivery_method: e.target.value,
-              delivery_price: "" // reset when changed
-            })
-          }
-        >
-          <option value="">Delivery Method</option>
-          <option value="door_delivery">Door Delivery</option>
-          <option value="pickup">Pickup Station</option>
-        </select>
-
-        {/* ✅ SHOW DELIVERY PRICE */}
-        {form.delivery_method && form.delivery_method !== "pickup" && (
-          <input
-            type="number"
-            placeholder="Delivery Price (₦)"
-            className="border p-3 rounded-lg w-full"
-            value={form.delivery_price}
-            onChange={e =>
-              setForm({ ...form, delivery_price: e.target.value })
-            }
-          />
-        )}
 
     {/* KEY FEATURES */}
     <div className="bg-white p-4 rounded-xl shadow space-y-3">
@@ -829,42 +800,13 @@ const isGeneral =
 
 
           <input
-          placeholder="Delivery Time (2-5 days)"
-          className="border p-3 rounded-lg w-full"
-          value={form.delivery_time}
-          onChange={e=>setForm({...form,delivery_time:e.target.value})}
-          />
-
-
-          <select
+          placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
           className="border p-3 rounded-lg w-full"
           value={form.delivery_method}
-          onChange={e =>
-            setForm({
-              ...form,
-              delivery_method: e.target.value,
-              delivery_price: "" // reset when changed
-            })
-          }
-        >
-          <option value="">Delivery Method</option>
-          <option value="door_delivery">Door Delivery</option>
-          <option value="pickup">Pickup Station</option>
-        </select>
-
-        {/* ✅ SHOW DELIVERY PRICE */}
-        {form.delivery_method && form.delivery_method !== "pickup" && (
-          <input
-            type="number"
-            placeholder="Delivery Price (₦)"
-            className="border p-3 rounded-lg w-full"
-            value={form.delivery_price}
-            onChange={e =>
-              setForm({ ...form, delivery_price: e.target.value })
-            }
+          onChange={e=>setForm({...form, delivery_time:e.target.value})}
           />
-        )}
-          {/* SPECIFICATIONS */}
+          
+    {/* SPECIFICATIONS */}
     <div className="bg-white p-4 rounded-xl shadow space-y-3 mt-5">
       <h2 className="font-bold text-lg">Specifications</h2>
 
@@ -919,79 +861,57 @@ const isGeneral =
           <>
 
           <select
-          value={form.sale_type}
-          className="border p-3 rounded-lg w-full"
-          onChange={(e) => {
-            const value = e.target.value;
+            value={form.sale_type}
+            className="border p-3 rounded-lg w-full"
+            onChange={(e) => {
+              const value = e.target.value;
 
-            setForm(prev => ({
-              ...prev,
-              sale_type: value,
-              delivery_time:
-                value === "online" && prev.downloadable === "yes"
-                  ? "Downloadable Book"
-                  : prev.delivery_time
-            }));
-          }}
-        >
-          <option value="">Sales Type</option>
-          <option value="online">Online Download</option>
-          <option value="physical">Physical Delivery</option>
+              setForm((prev) => ({
+                ...prev,
+                sale_type: value,
+                delivery_method:
+                  value === "online" && prev.downloadable === "yes"
+                    ? "Downloadable Book"
+                    : prev.delivery_method,
+              }));
+            }}
+          >
+            <option value="">Sales Type</option>
+            <option value="online">Online Download</option>
+            <option value="physical">Physical Delivery</option>
           </select>
 
 
           <select
           className="border p-3 rounded-lg w-full"
           value={form.downloadable}
-          onChange={e=>setForm({...form,downloadable:e.target.value})}
-          >
+          onChange={(e) => {
+            const value = e.target.value;
+
+            setForm((prev) => ({
+              ...prev,
+              downloadable: value,
+
+              // ✅ clear delivery when downloadable
+              ...(value === "yes" && { delivery_method: "" }),
+            }));
+          }}
+        >
           <option value="">Downloadable</option>
           <option value="yes">Yes</option>
           <option value="no">Physical Book</option>
-          </select>
-
-
-         <input
-          placeholder="Delivery Time (2-5 days)"
-          className="border p-3 rounded-lg w-full"
-          value={
-            form.sale_type === "online" && form.downloadable === "yes"
-              ? "Downloadable Book"
-              : form.delivery_time
-          }
-          onChange={e =>
-            setForm({ ...form, delivery_time: e.target.value })
-          }
-          disabled={form.sale_type === "online" && form.downloadable === "yes"}
-        />
-
-
-          <select
-          className="border p-3 rounded-lg w-full"
-          value={form.delivery_method}
-          onChange={e =>
-            setForm({
-              ...form,
-              delivery_method: e.target.value,
-              delivery_price: "" // reset when changed
-            })
-          }
-        >
-          <option value="">Delivery Method</option>
-          <option value="door_delivery">Door Delivery</option>
-          <option value="pickup">Pickup Station</option>
-          <option value="pickup">Online Download</option>
         </select>
 
+
         {/* ✅ SHOW DELIVERY PRICE */}
-        {form.delivery_method && form.delivery_method !== "pickup" && (
+        
+          {form.downloadable !== "yes" && (
           <input
-            type="number"
-            placeholder="Delivery Price (₦)"
+            placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
             className="border p-3 rounded-lg w-full"
-            value={form.delivery_price}
-            onChange={e =>
-              setForm({ ...form, delivery_price: e.target.value })
+            value={form.delivery_method}
+            onChange={(e) =>
+              setForm({ ...form, delivery_method: e.target.value })
             }
           />
         )}

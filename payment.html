@@ -1,0 +1,75 @@
+# 🧩 5. PAYSTACK PUBLIC KEY 🔑
+
+### How to get it:
+1. Go to 👉 [https://dashboard.paystack.com](https://dashboard.paystack.com)
+2. Create account
+3. Go to:
+   **Settings → API Keys & Webhooks**
+You’ll see:
+Public Key → pk_test_xxxxx
+Secret Key → sk_test_xxxxx
+👉 Use:
+publicKey: "pk_test_xxxxx"
+
+
+# 🧩 7. WHERE TO GET STRIPE KEYS 🔑
+
+Go to 👉 [https://dashboard.stripe.com](https://dashboard.stripe.com)
+Publishable key → pk_test_xxx
+Secret key → sk_test_xxx
+
+
+# 🧩 8. PAYPAL CLIENT ID
+
+Go to 👉 [https://developer.paypal.com](https://developer.paypal.com)
+
+Create app → get:
+Client ID
+Secret
+
+# 🧩 10. WEBHOOK (VERY IMPORTANT FOR SECURITY)
+
+GET WEBHOOK SECRET
+
+Go to Stripe Dashboard:
+
+👉 Developers → Webhooks → Add endpoint
+
+https://yourdomain.com/api/stripe/webhook
+
+Then copy:
+
+Signing secret → whsec_xxxxx
+✅ STEP 4: ADD TO .env
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+
+Go to your Paystack dashboard:
+
+👉 Settings → API & Webhooks
+
+Set webhook URL:
+
+https://yourdomain.com/api/paystack/webhook
+
+
+# 🧩 13. ORDER HISTORY (FRONTEND)
+
+```jsx
+useEffect(() => {
+  axios.get("/api/orders").then(res => setOrders(res.data));
+}, []);
+```
+
+
+work in full component laravel with react
+"
+👉 "add seller notification system"
+👉 "split order per seller (advanced Jumia logic)"
+"build seller earnings dashboard UI"
+👉 "build admin payout system UI"
+👉 "add refund + dispute system"
+seller_payment_methods
+- bank_name
+- account_number
+- paypal_email
+- stripe_account_id
