@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState} from "react";
 import api from "../../../Api/axios";
-import Notification from "../../../Form/Notification";
+import Notification from "../../../notification/Notification";
+import { useAuth } from "../../../layout/AuthProvider";
 
 
 const WishlistContext = createContext();
@@ -8,7 +9,9 @@ const WishlistContext = createContext();
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const [notify, setNotify] = useState({ message: "", type: "" });
-  const [loading, setLoading] = useState(false); // ✅ Loading state
+  const [loadingId, setLoadingId] = useState(null); // ✅ Loading state
+
+  const authUser = useAuth()
   
     const showNotification = (message, type = "success") => {
       setNotify({ message, type });
@@ -20,10 +23,16 @@ export const WishlistProvider = ({ children }) => {
     };
   
     const addToWishlist = async (product) => {
+
+      if (product.user_id === authUser?.id) {
+        showNotification("You cannot buy your own product", "error");
+        return;
+      }
+
       if (product.stock <= 0) return; 
   
       try {
-        setLoading(true); // start loading
+        setLoadingId(product.id); // start loading
         const res = await api.post("/api/wishlist", {
           product_id: product.id,
           quantity: 1,
@@ -35,7 +44,7 @@ export const WishlistProvider = ({ children }) => {
         console.error(err);
         showNotification("Failed to add product to Wishlist", "error");
       } finally {
-        setLoading(false); // stop loading
+        setLoadingId(false); // stop loading
       }
     };
 
@@ -44,7 +53,7 @@ export const WishlistProvider = ({ children }) => {
   const content = (
     <WishlistContext.Provider
       value={{
-        loading,
+        loadingId,
         addToWishlist,
         wishlist
       }}

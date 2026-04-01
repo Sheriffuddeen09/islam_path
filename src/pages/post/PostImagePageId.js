@@ -5,7 +5,7 @@ import PostComment from "./PostComment";
 import ReplyImageSlider from "./ReplyImageSlider";
 import PostOptions from "./PostOption";
 import { useAuth } from "../../layout/AuthProvider";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import { PostCommentInput } from "./PostCommentInput";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";

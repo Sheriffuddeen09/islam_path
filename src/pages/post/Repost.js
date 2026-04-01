@@ -1,6 +1,6 @@
 import { useState } from "react";
 import api from "../../Api/axios";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import { useAuth } from "../../layout/AuthProvider";
 
 export function Repost({ post, setPosts }) {

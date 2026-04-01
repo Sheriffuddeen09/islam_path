@@ -4,7 +4,7 @@ import api from "../../Api/axios";
 import PostComment from "./PostComment";
 import logo from '../../layout/image/favicon.png'
 import { useAuth } from "../../layout/AuthProvider";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import { PostCommentInput } from "./PostCommentInput";
 import PostOptionsId from "./PostOptionId";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";

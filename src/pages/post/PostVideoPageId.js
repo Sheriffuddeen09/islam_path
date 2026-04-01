@@ -5,7 +5,7 @@ import PostComment from "./PostComment";
 import logo from '../../layout/image/favicon.png'
 import PostOptions from "./PostOption";
 import { useAuth } from "../../layout/AuthProvider";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import { PostCommentInput } from "./PostCommentInput";
 import { useSwipeable } from "react-swipeable";
 import PostOptionsId from "./PostOptionId";

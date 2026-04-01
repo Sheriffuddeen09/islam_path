@@ -2,7 +2,7 @@ import PostOptions from "./PostOption";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 import { useEffect, useRef, useState } from "react";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import api from "../../Api/axios"; 
 import { PostFeedIdModal } from "./PostFeedIdModal";
 import {toast} from "react-hot-toast"

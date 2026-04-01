@@ -7,7 +7,7 @@ import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
 
 import TextSlider from "./TextSlider";
-import Notification from "./Notification";
+import Notification from "../notification/Notification";
 
 
 const texts = [

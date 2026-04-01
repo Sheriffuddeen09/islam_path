@@ -22,7 +22,7 @@ const ReadMore = ({ text, maxWords = 12 }) => {
   );
 };
 
-const CartPage = () => {
+const CartPage = ({savedCount, setSavedCount}) => {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -62,7 +62,10 @@ const CartPage = () => {
     }
   };
 
-  // REMOVE ITEM
+  // REMOVE ITEM replace
+
+  console.log("PRODUCT:", cart);
+
   const handleRemoveItem = (updatedCart) => {
     setCart(updatedCart.cart);
   };
@@ -79,12 +82,27 @@ const CartPage = () => {
   return (
     <section className="cart py-10 px-2 md:px-4 lg:px-6">
       {loading ? (
-        <div className="flex flex-col gap-4 mt-14 animate-pulse">
-          {[...Array(3)].map((_, idx) => (
+        <div className="flex flex-col gap-2 mt-14 animate-pulse">
+          {[...Array(2)].map((_, idx) => (
             <>
-            <div key={idx} className="h-24 bg-gray-200 rounded-lg" />
-            <div key={idx} className="h-10 bg-gray-200 rounded-lg" />
-            <div key={idx} className="h-6 bg-gray-200 rounded-lg" />
+                <div className="flex flex-row flex-wrap gap-3 px-5 w-full">
+                  <div className="w-full flex-1">
+                    <div key={idx} className="h-24 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-12 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-8 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-6 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-3 mb-1 bg-gray-200 rounded-lg" />
+                  </div>
+
+                  <div className="w-80">
+                    <div key={idx} className="h-24 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-12 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-8 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-6 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-3 mb-1 bg-gray-200 rounded-lg" />
+                  </div>
+                </div>
+
             </>
           ))}
         </div>
@@ -195,30 +213,24 @@ const CartPage = () => {
     <div className="bg-gray-50 rounded p-4 mb-4">
       <div className="flex justify-between mb-2">
         <span className="text-sm font-bold">Subtotal</span>
-        <span>
+        <span className="text-xs font-semibold">
           ₦{calculateTotalPrice().toFixed(2)}
         </span>
       </div>
 
       <div className="flex justify-between mb-2 capitalize">
         <span className="text-sm font-bold"> Delivery Method</span>
-        <span>
+        <span className="text-xs font-semibold">
           {cart.length > 0
-            ? [...new Set(cart.map(item => item.product.delivery_method.replace("_", " ")))].join(", ")
+            ? [...new Set(cart.map(item => item.product.delivery_method?.replace("_", " ")))].join(", ")
             : "Pick Up Station"}
         </span>
       </div>
 
-      <div className="flex justify-between mb-2">
-        <span className="text-sm font-bold">Estimated Delivery</span>
-        <span>
-          ₦{cart.length > 0 ? cart.reduce((sum, item) => sum + (item.product.delivery_price || 0), 0) : "No Payment"}
-        </span>
-      </div>
 
       <div className="flex justify-between">
         <span className="text-sm font-bold">Estimated Discount</span>
-        <span>
+        <span className="text-xs font-semibold">
           ₦{cart.length > 0 ? cart.reduce((sum, item) => sum + (item.product.discount || 0), 0) : "No Discount Available"}
         </span>
       </div>
@@ -263,6 +275,7 @@ const CartPage = () => {
         open={checkoutOpen}
         setOpen={setCheckoutOpen}
         cart={cart}
+        savedCount={savedCount} setSavedCount={setSavedCount}
       />
     </section>
   );

@@ -5,7 +5,7 @@ import { useAuth } from "../../layout/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../Api/axios";
 import DownloadImageFlex from "./DownloadImageFlex";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 
 export default function Library({post, handleRemove, deleteLoading, downloading}){
 

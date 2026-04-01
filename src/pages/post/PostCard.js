@@ -2,7 +2,7 @@ import PostOptions from "./PostOption";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 import { useEffect, useRef, useState } from "react";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import api from "../../Api/axios"; 
 import ImageGrid from "./ImageGrid";
 import { PostFeedIdModal } from "./PostFeedIdModal";

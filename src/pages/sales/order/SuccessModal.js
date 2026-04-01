@@ -1,6 +1,7 @@
 import React from "react";
 import { CheckCircle, ShoppingCart, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../layout/AuthProvider";
 
 export default function SuccessModal({
   onClose,
@@ -9,12 +10,18 @@ export default function SuccessModal({
 }) {
   const navigate = useNavigate();
 
+  const {user} = useAuth()
+
+   const dashboardLink =
+  user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
+
+
   const config = {
     order: {
       title: "Order Successful 🎉",
       icon: <ShoppingCart className="text-green-600 w-10 h-10" />,
       primaryBtn: "View Orders",
-      primaryRoute: "/orders",
+      primaryRoute: dashboardLink,
       secondaryBtn: "Continue Shopping",
       secondaryRoute: "/online-sale",
     },
@@ -22,9 +29,9 @@ export default function SuccessModal({
       title: "Saved Successfully 💾",
       icon: <Save className="text-blue-600 w-10 h-10" />,
       primaryBtn: "View Drafts",
-      primaryRoute: "/drafts",
-      secondaryBtn: "Continue Editing",
-      secondaryRoute: "/dashboard",
+      primaryRoute: dashboardLink,
+      secondaryBtn: "Continue Shopping",
+      secondaryRoute: "/online-sale",
     }
   };
 

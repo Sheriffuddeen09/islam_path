@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import api from "../Api/axios";
 
 import { useNavigate } from "react-router-dom";
-import Notification from "./Notification";
+import Notification from "../notification/Notification";
 
 export default function TeacherOnboarding({onProfileCompleted}) {
   const [specialization, setSpecialization] = useState("");

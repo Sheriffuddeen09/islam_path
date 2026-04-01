@@ -8,7 +8,7 @@ import dua from "./image/dua.png";
 import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
 import TextSlider from "./TextSlider";
-import Notification from "./Notification";
+import Notification from "../notification/Notification";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
@@ -1020,13 +1020,13 @@ const handleRegister = async () => {
   )}
         </button>
 
-        {notify.message && (
+        {/* {notify.message && (
           <Notification
             message={notify.message}
             type={notify.type} // "success" = green, "error" = red
             onClose={() => setNotify({ message: "", type: "" })}
           />
-        )}
+        )} */}
 
       </div>
     </div>

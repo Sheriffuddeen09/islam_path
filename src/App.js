@@ -87,6 +87,8 @@ function App() {
 
       // Product
         const [products, setProducts] = useState([]);
+        const [savedCount, setSavedCount] = useState(0);
+        
       
       
 
@@ -280,7 +282,9 @@ function App() {
       } />
 
       <Route path="/online-sale" element={
-          <ProductPage products={products} setProducts={setProducts} />
+          <ProductPage products={products} setProducts={setProducts} 
+          savedCount={savedCount} setSavedCount={setSavedCount}
+          />
       } />
 
       <Route path="/product/:id" element={
@@ -288,11 +292,11 @@ function App() {
       } />
 
        <Route path="/cart" element={
-          <CartPage />
+          <CartPage savedCount={savedCount} setSavedCount={setSavedCount} />
       } />
 
       <Route path="/wishlist" element={
-          <WishlistPage />
+          <WishlistPage savedCount={savedCount} setSavedCount={setSavedCount} />
       } />
 
       <Route path="/friend" element={
@@ -394,6 +398,7 @@ function App() {
           newComment={newComment} setNewComment={setNewComment}
           showEmoji={showEmoji} setShowEmoji={setShowEmoji}
           emojiList={emojiList} setEmojiList={setEmojiList}
+          savedCount={savedCount} setSavedCount={setSavedCount}
           />
         </ProtectedRoute>
       } />
@@ -410,6 +415,7 @@ function App() {
               newComment={newComment} setNewComment={setNewComment}
               showEmoji={showEmoji} setShowEmoji={setShowEmoji}
               emojiList={emojiList} setEmojiList={setEmojiList}
+              savedCount={savedCount} setSavedCount={setSavedCount}
                />
             </ProtectedRoute>
           }

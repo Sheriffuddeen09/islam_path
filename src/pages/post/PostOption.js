@@ -5,7 +5,7 @@ import { PostReportModal } from "./report/PostReportModal";
 import DownloadImageFlex from "./DownloadImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 
 
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Trash2, X, Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
-import Toast from "./Toast";
+import Toast from "../../../notification/Toast";
 
 const CartDelete = ({ cartId, handleRemoveItem }) => {
   const [showModal, setShowModal] = useState(false);

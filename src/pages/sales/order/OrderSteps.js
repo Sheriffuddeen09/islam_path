@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../Api/axios";
 import SuccessModal from "./SuccessModal";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useAuth } from "../../../layout/AuthProvider";
+import { v4 as uuidv4 } from "uuid";
 
-export default function OrderStep({ form, setForm, orderData, setStep }) {
+export default function OrderSteps({ form, setForm, orderData, setStep, setSavedCount }) {
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [showAd, setShowAd] = useState(false);
   const [adFinished, setAdFinished] = useState(false);
@@ -15,10 +18,8 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
   message: ""
 });
 
-  // 🔥 SWITCH MODE HERE
   const USE_REAL_ADS = false; // 👉 change to true later
 
-  // 🔥 FAKE ADS (TEST)
   const ads = [
     "https://via.placeholder.com/400x200?text=Ad+1",
     "https://via.placeholder.com/400x200?text=Ad+2",
@@ -26,9 +27,11 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
   ];
   const [currentAd, setCurrentAd] = useState(0);
 
+  const {user} = useAuth()
+
   const showNotify = (type, message) => {
-    setNotification({ type, message });
-    setTimeout(() => setNotification(null), 3000);
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const paymentOptions = [
@@ -48,9 +51,7 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
     }
   ];
 
-  // =========================
-  // 🔥 OPEN AD
-  // =========================
+ 
   const handleCheckout = () => {
     if (!form.payment_method) {
       showNotify("error", "Please select an option");
@@ -93,48 +94,81 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
   // 🔥 AFTER AD
   // =========================
   const handleAfterAd = async () => {
-    setShowAd(false);
-    setLoading(true);
 
-    try {
-      if (form.payment_method === "save") {
-        await axios.post("/api/product/save-draft", {
-          ...orderData,
-          status: "draft",
-        });
+  if (loading) return;
+  setShowAd(false);
+  setLoading(true);
+
+  try {
+    if (form.payment_method === "save") {
+
+      const res = await api.post("/api/product/save-draft", {
+        ...orderData,
+        user_id: user?.id,
+        status: "draft",
+      });
+
+      if (res.data.success) {
+        setSavedCount((prev) => prev + 1);
 
         setSuccess({
           show: true,
           type: "save",
-          message: "Your product has been saved as draft."
+          message: res.data.message || "Saved successfully",
         });
       }
+    }
 
-      if (form.payment_method === "order") {
-        await axios.post("/api/order/create", {
-          ...orderData,
-          status: "pending",
-        });
+    if (form.payment_method === "order") {
 
-       setSuccess({
+      const order_token = Date.now() + "-" + user?.id;
+
+      const res = await api.post("/api/order/create", {
+        ...orderData,
+         order_token,
+        status: "pending",
+      });
+
+      if (res.data.success) {
+        setSuccess({
           show: true,
           type: "order",
-          message: "Your order has been sent to the seller!"
+          message: res.data.message || "Order sent!",
         });
       }
-
-    } catch (err) {
-      console.error(err);
-      showNotify("error", "Action failed");
-    } finally {
-      setLoading(false);
-      setAdFinished(false);
     }
-  };
+
+  } catch (err) {
+    console.log(err);
+
+    // 🔥 HANDLE API ERROR MESSAGE
+    if (err.response) {
+      const message = err.response.data.message;
+
+      showNotify("error", message || "Something went wrong");
+    } else {
+      showNotify("error", "Network error");
+    }
+
+  } finally {
+    setLoading(false);
+    setAdFinished(false);
+  }
+};
+
 
   return (
     <>
       {/* 🔔 NOTIFICATION */}
+      {toast && (
+        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
+          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
+        `}>
+          {toast.message}
+        </div>
+      )}
+
+      
      {success.show && (
         <SuccessModal
           type={success.type}
@@ -146,7 +180,7 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
       )}
 
       {/* MAIN UI */}
-      <div className="max-w-5xl mx-auto bg-white p-8 rounded-3xl shadow-xl">
+      <div className="max-w-5xl mx-auto text-black bg-white p-8 z-50 rounded-3xl shadow-xl">
         <h2 className="text-3xl font-bold text-center mb-6">
           Choose Action
         </h2>
@@ -158,12 +192,13 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
               onClick={() =>
                 setForm({ ...form, payment_method: opt.id })
               }
-              className={`cursor-pointer p-6 rounded-2xl border transition ${
+              className={`cursor-pointer relative p-6 rounded-2xl border transition ${
                 form.payment_method === opt.id
                   ? "border-blue-600 scale-105 shadow-xl"
                   : "hover:shadow-lg"
               }`}
             >
+              <CheckCircle className={`absolute top-5 right-4 text-blue-800 ${form.payment_method === opt.id ? "block" : "hidden"}`} />
               <div className={`h-16 w-16 flex items-center justify-center text-white text-2xl rounded-full bg-gradient-to-r ${opt.color}`}>
                 {opt.emoji}
               </div>
@@ -184,12 +219,30 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
 
           <button
             onClick={handleCheckout}
-            disabled={loading}
             className={`flex-1 py-3 rounded-xl text-white flex justify-center items-center
-              ${loading ? "bg-gray-400" : "bg-blue-600"}
+              ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600"}
             `}
           >
-            {loading ? "Processing..." : "Continue →"}
+            {loading ? <p className="inline-flex items-center sm:gap-4 gap-1 "><svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg> Processing</p> : "Continue →"}
           </button>
         </div>
       </div>
@@ -220,14 +273,6 @@ export default function OrderStep({ form, setForm, orderData, setStep }) {
             )}
 
             <div className="p-4 text-center space-y-3">
-              <h2 className="font-bold">Sponsored Ad</h2>
-
-              {!adFinished && (
-                <p className="text-sm text-gray-500">
-                  Skip in {countdown}s...
-                </p>
-              )}
-
               <div className="flex justify-center gap-3">
                 {adFinished && (
                   <button

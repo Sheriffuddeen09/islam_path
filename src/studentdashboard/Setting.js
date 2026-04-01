@@ -3,7 +3,7 @@ import api from "../Api/axios";
 import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut } from "lucide-react";
 
 
-export default function Setting({handleEdit}) {
+export default function Setting() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -17,8 +17,6 @@ export default function Setting({handleEdit}) {
   type: "", // "success" | "error"
   message: "",
 });
-  const [teacher, setTeacher] = useState(null)
-
 
   const [error, setError] = useState("");
 
@@ -45,30 +43,6 @@ export default function Setting({handleEdit}) {
     }
   }
 
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get("/api/teacher-single");
-
-        if (!res.data.status) {
-          setError(res.data.message);
-        } else {
-          setTeacher(res.data.teacher);
-        }
-      } catch (err) {
-        if (err.response?.status === 403) {
-          setError("Teacher profile not completed");
-        } else {
-          setError("Failed to load profile");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
 
 const handleOpenVisibility = () =>{
 

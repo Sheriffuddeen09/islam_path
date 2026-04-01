@@ -10,9 +10,13 @@ import ExamLibrary from "../exam/ExamLibrary";
 import Setting from "./Setting";
 import CreatePost from "../pages/post/CreatePost";
 import PostLibrary from "../pages/post/PostLibrary";
+import Order from "../pages/sales/order/Order";
+import SaveOrder from "../pages/sales/order/SaveOrder";
+import { useAuth } from "../layout/AuthProvider";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated, handleMessageOpen}){
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
+         handleMessageOpen, savedCount, setSavedCount}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -20,7 +24,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         
    const [pendingRequests, setPendingRequests] = useState(0);
     
-  
+    const {user} = useAuth()
     
     
       useEffect(() => {
@@ -41,10 +45,23 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
             setVisible(id)
           }
       
-           const handleSidebarOpen = () => {
+          const handleOpenModel = () =>{
             setSidebarOpen(!sidebarOpen)
+            console.log('click button')
           }
       
+        const fetchSavedCount = async () => {
+          try {
+            const res = await api.get(`/api/saved-products/count/${user?.id}`);
+            setSavedCount(res.data.count);
+          } catch (err) {
+            console.log(err);
+          }
+        };
+
+        useEffect(() => {
+          if (user?.id) fetchSavedCount();
+        }, [user]);
       
         const menu = [
         { id: 5, label: "Teacher Request", showBadge: true },
@@ -52,23 +69,25 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         { id: 7, label: "View Continue Examination" },
         { id: 8, label: "View Assignment Result" },
         { id: 9, label: "View Examination Result" },
+        { id: 10, label: "Product Order" },
+        { id: 11, label: "Saved Order", showcount: true },
       ];
       
-
+      const handleMenuClick = async (item) => {
+        if (item.label === "Saved Order") {
+          try {
+            await api.post(`/saved-products/clear/${user.id}`);
+            setSavedCount(0); // update UI after backend success
+          } catch (err) {
+            console.error(err);
+          }
+        }
+        };
 
   return (
 
     <div className="flex min-h-screen bg-gray-100 text-gray-800">
        
-             {/* ---------------- MOBILE MENU BUTTON ---------------- */}
-             <button
-               className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow"
-               onClick={handleSidebarOpen}
-             >
-               ☰
-             </button>
-       
-             {/* ---------------------- SIDEBAR ---------------------- */}
              {/* Desktop: always visible. Mobile: slide-in */}
             <aside
          className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
@@ -79,12 +98,6 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
        >
                {/* CLOSE BUTTON (Mobile Only) */}
-               <button
-                 className="lg:hidden absolute top-4 right-4 text-xl"
-                 onClick={handleSidebarOpen}
-               >
-                 ✕
-               </button>
        
        
                <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
@@ -130,7 +143,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                  {menu.map(item => (
                    <li
                      key={item.id}
-                     onClick={() => {setVisible(item.id); handleSidebarOpen()}}
+                     onClick={() => setVisible(item.id)}
                      className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                        
                        ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -140,6 +153,12 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                       {item.showBadge && pendingRequests > 0 && (
                        <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                          {pendingRequests}
+                       </span>
+                     )}
+
+                     {item.showcount && savedCount > 0 && (
+                       <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                         {savedCount}
                        </span>
                      )}
                     
@@ -152,63 +171,64 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
 
               {/* Mobile View */}
                  
-                       <button
-                         className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow"
-                         onClick={handleSidebarOpen}
-                       >
-                         ☰
-                       </button>
-                 
-                       {/* ---------------------- SIDEBAR ---------------------- */}
-                       {/* Desktop: always visible. Mobile: slide-in */}
-                     <aside
-                   className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
-                     transform transition-transform duration-300
-                     ${sidebarOpen ? " block" : "hidden"}
-                     lg:translate-x-0
-                     overflow-y-auto overflow-x-hidden
-                     scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-                 >
-                         {/* CLOSE BUTTON (Mobile Only) */}
-                         <button
-                           className="lg:hidden absolute top-4 right-4 text-xl"
-                           onClick={handleSidebarOpen}
-                         >
-                           ✕
-                         </button>
-                 
-                         <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
-                           <span className="text-purple-600">Islam Path</span>
-                           <span>Of Knowledge</span>
-                         </div>
-                 
-                         <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
-                         <ul className="space-y-2">
-                           <li onClick={() => {handleVisible(1);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                              === 1 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
-                             Dashboard
-                           </li>
-                           <Link to="/">
-                           <li  className={`p-2 rounded-lg hover:bg-gray-200 mt-2 hover:text-gray-600 text-sm font-semibold cursor-pointer `}>
-                             Home Page
-                           </li>
-                           </Link>
-                           <li onClick={() => {handleVisible(2);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                              === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                           }`}>
-                             Library
-                           </li>
-                            <li onClick={() => {handleVisible(3);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                              === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                           }`}>
-                             Create Post
-                           </li>
-                           <li onClick={() => {handleVisible(4);  handleSidebarOpen()}} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                              === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                           }`}>
-                             Setting
-                           </li>
-                         </ul>
+      <button
+        className={`lg:hidden fixed top-10 right-4 z-50 bg-white p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
+        onClick={handleOpenModel}
+      >
+        ☰
+      </button>
+
+      {/* ---------------------- SIDEBAR ---------------------- */}
+      {/* Desktop: always visible. Mobile: slide-in */}
+                  <aside
+                className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
+                  transform transition-transform duration-300
+                  ${sidebarOpen ? " block" : "hidden"}
+                  lg:translate-x-0
+                  overflow-y-auto overflow-x-hidden
+                  scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+              >
+                      {/* CLOSE BUTTON (Mobile Only) */}
+                      <button
+                        className="lg:hidden absolute top-7 right-2 text-xl"
+                        onClick={handleOpenModel}
+                      >
+                        ✕
+                      </button>
+
+                      <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-4">
+                        <span className="text-purple-600">Islam Path</span>
+                        <span>Of Knowledge</span>
+                      </div>
+
+                      <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
+                      <ul className="space-y-2">
+                        <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+                          === 1 ? "bg-gray-900 text-white hover:text-gray-100 " : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
+                          Dashboard
+                        </li>
+                        <Link to="/">
+                        <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer `}>
+                          Home Page
+                        </li>
+                        </Link>
+                      
+                        <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+                          === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                        }`}>
+                          Library
+                        </li>
+                        <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+                          === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                        }`}>
+                          Create Post
+                        </li>
+                        <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
+                          === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
+                        }`}>
+                          Setting
+                        </li>
+                      </ul>
                        {/* Actual Menu */}
                        <div className= "">
                          <h3 className="text-xs text-blue-800 font-bold mt-6 mb-2">SET SECTION</h3>
@@ -217,7 +237,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                            {menu.map(item => (
                              <li
                                key={item.id}
-                               onClick={() => {setVisible(item.id); handleSidebarOpen()}}
+                               onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item)}}
                                className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                                  
                                  ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -229,13 +249,18 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                                    {pendingRequests}
                                  </span>
                                )}  
+                               {item.showcount && savedCount > 0 && (
+                                  <span onClick={handleMenuClick} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                    {savedCount}
+                                  </span>
+                                )}
                              </li>
                            ))}
                          </ul>
                        </div>
                  
                        </aside>
-                 
+                
                
                        {/* ---------------------- MAIN CONTENT ---------------------- */}
                        <section className="flex-1 sm:p-6 p-2 transition-all">
@@ -273,6 +298,12 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                          </div> 
                          <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
                          <ExamResults  />
+                         </div> 
+                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+                         <Order  />
+                         </div> 
+                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+                         <SaveOrder  />
                          </div> 
                        </section>
        

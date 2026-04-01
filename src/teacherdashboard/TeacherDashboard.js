@@ -16,10 +16,13 @@ import CreatePost from "../pages/post/CreatePost";
 import PostLibrary from "../pages/post/PostLibrary";
 import CreateProduct from "../pages/sales/CreateProduct";
 import MyProducts from "../pages/sales/MyProduct";
+import Order from "../pages/sales/order/Order";
+import SaveOrder from "../pages/sales/order/SaveOrder";
 
 export default function TeacherDashboardLayout({chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, 
+        savedCount, setSavedCount
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -28,6 +31,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
   const [pendingCount, setPendingCount] = useState(0);
 
    const [editingTeacher, setEditingTeacher] = useState(null);
+   
   
     // 🔹 Open modal
     const handleEdit = (teacher) => setEditingTeacher(teacher);
@@ -82,7 +86,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
  const isTeacher = savedChoice === "arabic_teacher";
 
 
-  // Menu items for Comment 1
+  // Menu items for Comment 1  
   const teacherMenu = [
 
     { id: 5, label: "Student Request", showBadge: true },
@@ -92,6 +96,8 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
     { id: 9, label: "View Examination" },
     { id: 10, label: "View Assignment Result" },
     { id: 11, label: "View Examination Result" },
+    { id: 12, label: "Product Order" },
+    { id: 13, label: "Saved Order" },
   ];
 
   // Menu items for Comment 2
@@ -99,7 +105,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
     { id: 21, label: "Create Product" },
     { id: 22, label: "Product List" },
     { id: 23, label: "Order" },
-    { id: 24, label: "Sale History" },
+    { id: 24, label: "Saved Order" },
   ];
 
   // Choose which menu
@@ -203,7 +209,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
       {/* ---------------- MOBILE MENU BUTTON ---------------- */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow"
+        className={`lg:hidden fixed top-10 right-4 z-50 bg-white p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
         onClick={handleOpenModel}
       >
         ☰
@@ -221,13 +227,13 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 >
         {/* CLOSE BUTTON (Mobile Only) */}
         <button
-          className="lg:hidden absolute top-4 right-4 text-xl"
+          className="lg:hidden absolute top-7 right-2 text-xl"
           onClick={handleOpenModel}
         >
           ✕
         </button>
 
-        <div className="text-xl whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
+        <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-4">
           <span className="text-purple-600">Islam Path</span>
           <span>Of Knowledge</span>
         </div>
@@ -348,12 +354,24 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
+        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+        <Order  />
+        </div> 
+        <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
+        <SaveOrder  />
+        </div> 
         <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
         <CreateProduct  />
         </div>
         <div className={`${visible === 22 ? 'block' : 'hidden'}`}>
         <MyProducts   />
         </div>
+        <div className={`${visible === 23 ? 'block' : 'hidden'}`}>
+        <Order   />
+        </div>
+          <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
+          <SaveOrder  />
+          </div> 
       </section>
     </div>
   );

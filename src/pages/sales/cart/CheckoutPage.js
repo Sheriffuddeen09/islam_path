@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
-import PaymentStep from "../order/OrderSteps";
+import OrderSteps from "../order/OrderSteps";
 import {useAuth} from './../../../layout/AuthProvider'
 
-const CheckoutModal = ({ open, setOpen, cart }) => {
+const CheckoutModal = ({ open, setOpen, cart, setSavedCount}) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -46,27 +46,28 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
 
   
   // ✅ TOTALS
-  const subtotal = cart.reduce(
-    (t, i) => t + i.product.price * i.quantity,
-    0
-  );
-
-  const delivery = cart.reduce(
-    (t, i) => t + (i.product.delivery_price || 0),
-    0
-  );
+ 
 
   const discount = cart.reduce(
     (t, i) => t + (i.product.discount || 0),
     0
   );
 
-  const total = subtotal + delivery - discount;
+const safeCart = cart || [];
 
-  // ✅ ORDER
+const subtotal = cart.reduce((acc, item) => {
+  const price = Number(item.product?.price || 0);
+  const qty = Number(item.quantity || 1);
+  return acc + price * qty;
+}, 0);
 
-  const orderData = {
-  user_id: user?.id, // ✅ from API user
+const discountValue = Number(discount || 0);
+
+const total = subtotal - discountValue;
+
+
+const orderData = {
+  user_id: user?.id,
 
   first_name: form.first_name,
   last_name: form.last_name,
@@ -80,45 +81,21 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
 
   payment_method: form.payment_method,
 
-  // ✅ CALCULATIONS
-  subtotal: cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  ),
-
-  delivery_price: 1500, // ✅ you can change or make dynamic
+  // ✅ SAFE CALCULATIONS
+  subtotal: subtotal,
   discount: 0,
+  total_price: subtotal,
 
-  total_price:
-    cart.reduce((acc, item) => acc + item.price * item.quantity, 0) +
-    1500,
-
-  // ✅ ITEMS
-  items: cart.map((item) => ({
+  // ✅ FIX ITEMS (ADD PRICE!)
+  items: safeCart.map((item) => ({
     product_id: item.id,
     name: item.title,
-    price: item.price,
-    quantity: item.quantity,
+    price: Number(item.price || item.amount || 0),
+    quantity: Number(item.quantity || 1),
   })),
 };
 
-  const handleCheckout = async () => {
-    try {
-      setLoading(true);
 
-      await api.post("/api/checkout", {
-        ...form,
-        cart,
-      });
-
-      alert("✅ Order placed successfully");
-      setOpen(false);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!open) return null;
 
@@ -127,9 +104,7 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
       <div className="overflow-y-auto h-[560px] sm:h-[600px] no-scrollbar w-[95%] max-w-3xl rounded-xl shadow-lg sm:p-6 relative">
 
         {/* CLOSE */}
-        <button onClick={() => setOpen(false)} className="absolute text-black sm:right-28 right-4 rounded-full sm:top-8 top-4">
-          <X />
-        </button>
+        
 
         {step === 1 && (
         <div className="bg-white w-full max-w-xl mx-auto rounded-2xl shadow-xl p-6">
@@ -328,10 +303,6 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
       <span className="font-medium text-gray-800">₦{subtotal}</span>
     </div>
 
-    <div className="flex justify-between">
-      <span>Delivery Fee</span>
-      <span className="text-gray-800">₦{delivery}</span>
-    </div>
 
     <div className="flex justify-between">
       <span>Discount</span>
@@ -421,7 +392,8 @@ const CheckoutModal = ({ open, setOpen, cart }) => {
           <>
             <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-8 mt-6">
 
-            <PaymentStep form={form} setForm={setForm} orderData={orderData} setStep={setStep} />
+            <OrderSteps form={form} setForm={setForm} orderData={orderData} setStep={setStep}
+             setSavedCount={setSavedCount} />
             </div>
           </>
         )}

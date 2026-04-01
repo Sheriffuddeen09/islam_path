@@ -1,4 +1,4 @@
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import api from "../../Api/axios";
 import imagePost from './image/image.jpg'
 import videoPost from './image/video.png'

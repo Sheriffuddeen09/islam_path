@@ -1,13 +1,17 @@
 import { createContext, useContext, useState } from "react";
-import Notification from "../../../Form/Notification";
+import Notification from "../../../notification/Notification";
 import api from "../../../Api/axios";
+import { useAuth } from "../../../layout/AuthProvider";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [notify, setNotify] = useState({ message: "", type: "" });
-  const [loading, setLoading] = useState(false); // ✅ Loading state
+  const [loadingId, setLoadingId] = useState(null); // ✅ Loading state
+
+  const authUser = useAuth()
+  
 
   const showNotification = (message, type = "success") => {
     setNotify({ message, type });
@@ -19,10 +23,15 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (product) => {
+
+    if (product.user_id === authUser?.id) {
+    showNotification("You cannot buy your own product", "error");
+    return;
+  }
     if (product.stock <= 0) return; // prevent adding out-of-stock items
 
     try {
-      setLoading(true); // start loading
+      setLoadingId(product.id); // start loading
       const res = await api.post("/api/cart", {
         product_id: product.id,
         quantity: 1,
@@ -34,12 +43,12 @@ export const CartProvider = ({ children }) => {
       console.error(err);
       showNotification("Failed to add product to cart", "error");
     } finally {
-      setLoading(false); // stop loading
+      setLoadingId(false); // stop loading
     }
   };
 
   const content = (
-    <CartContext.Provider value={{ cart, addToCart, loading }}>
+    <CartContext.Provider value={{ cart, addToCart, loadingId }}>
       {children}
     </CartContext.Provider>
   );

@@ -9,7 +9,7 @@ import ImageSlider from "./ImageSlider";
 import api from "../Api/axios";
 import logos from './image/favicon.png'
 import TextSlider from "./TextSlider";
-import Notification from "./Notification";
+import Notification from "../notification/Notification";
 
 
 

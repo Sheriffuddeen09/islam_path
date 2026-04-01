@@ -9,6 +9,7 @@ import ProductSkeleton from "./ProductSkeleton"
 import { useCart } from "./cart/CartContext";
 import { Star } from "lucide-react";
 import { useWishlist } from "./cart/WishlistContext";
+import { useAuth } from "../../layout/AuthProvider";
 
 
 export default function SingleProduct({products, setProducts}) {
@@ -25,6 +26,8 @@ export default function SingleProduct({products, setProducts}) {
 
   const { addToCart, loading } = useCart();
   const { addToWishlist, loading: wishlistLoading } = useWishlist()
+
+  const authUser = useAuth()
   
 
   useEffect(() => {
@@ -147,8 +150,8 @@ function formatCurrency(amount, currency) {
   const rate = conversionRates[currency] || 1;
   const convertedAmount = amount * rate;
 
-  // Use Intl.NumberFormat for proper formatting
-  return new Intl.NumberFormat("en-US", {
+  // Use Intl.NumberFormat for proper formatting user_id
+  return new Intl.NumberFormat("en-US", { 
     style: "currency",
     currency: currency,
     minimumFractionDigits: 2,
@@ -159,6 +162,8 @@ function formatCurrency(amount, currency) {
 
 const specificationsRef = useRef(null);
 const keyFeaturesRef = useRef(null);
+
+const isOwner = product?.user_id === authUser?.user?.id;
 
   if (!product) return <ProductSkeleton />;
 
@@ -174,7 +179,7 @@ const keyFeaturesRef = useRef(null);
 
           {/* Main Image */}
 
-          <ProductGallery images={galleryImages} product={product} />
+          <ProductGallery images={galleryImages} product={product} isOwner={isOwner} />
 
           <div className="sm:hidden flex mt-6 px-2 flex-col gap-3">
 
@@ -215,38 +220,42 @@ const keyFeaturesRef = useRef(null);
               </div>
 
                <button
-              className={`mt-2 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
-                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              disabled={product.stock <= 0 || loading}
-              onClick={() => addToCart(product)}
+          className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold transition flex items-center justify-center
+            ${
+              product.stock <= 0 || loading || isOwner
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-orange-700"
+            }`}
+          disabled={product.stock <= 0 || loading || isOwner}
+          onClick={() => addToCart(product)}
+        >
+          {isOwner ? (
+            "Your Product"
+          ) : loading ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              {loading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-              ) : (
-                "Add to Cart"
-              )}
-            </button>
-
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+          ) : (
+            "Add to Cart"
+          )}
+        </button>
           </div>
 
           {/* PRODUCT TITLE */}
@@ -281,26 +290,37 @@ const keyFeaturesRef = useRef(null);
           <p>
             <span className="font-semibold">Stock:</span> {product.stock}
           </p>
-          <p>
-            <span className="font-semibold">Delivery Day:</span> {product.delivery_time || "-"}
-          </p>
           
-          <p>
-            <span className="font-semibold">Company Type:</span> {product.company_type || "-"}
-          </p>
+          {
+            product.company_type && (
+            <p>
+              <span className="font-semibold">Company Type:</span> {product.company_type || "-"}
+            </p>
+            )
+          }
+          {product.sale_type && (
+            <p className="capitalize">
+              <span className="font-semibold">Sale Type:</span>{" "}
+              {product.sale_type === "online"
+                ? "Online Download"
+                : product.sale_type.replace("_", " ")}
+            </p>
+          )}
+          {
+            product.downloadable && (
+            <p className="capitalize">
+            <span className="font-semibold capitalise">Downloadable:</span> {product.downloadable ? product.downloadable.replace("_", " ") : "Not Available"}
+            </p>
+            )
+          }
+          {
+            product.delivery_method && (
           <p className="capitalize">
             <span className="font-semibold capitalise">Delivery Method:</span> {product.delivery_method ? product.delivery_method.replace("_", " ") : "Not Available"}
           </p>
-          <p>
-            <span className="font-semibold">Delivery Price:</span>{" "}
-            {product.delivery_price ? (
-              <>
-                {formatCurrency(product.delivery_price, product.currency || "NGN")}
-              </>
-            ) : (
-              "-"
-            )}
-          </p>
+            )
+          }
+      
         </div>
       </div>
 
@@ -327,38 +347,42 @@ const keyFeaturesRef = useRef(null);
       {/* ADD TO CART BUTTON  {key.replace("_", " ")}*/}
       
       <button
-              className={`mt-6 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
-                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              disabled={product.stock <= 0 || loading}
-              onClick={() => addToWishlist(product)}
-            >
-              {wishlistLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-              ) : (
-                "Add to Wishlist"
-              )}
-            </button>
-
+      className={`bg-gray-800 p-2 rounded shadow mt-10 transition
+        ${
+          product.stock <= 0 || wishlistLoading || isOwner
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-gray-600"
+        }`}
+      disabled={product.stock <= 0 || wishlistLoading || isOwner}
+      onClick={() => addToWishlist(product)}
+    >
+      {isOwner ? (
+        <span className="text-sm px-4 text-white">Your Product</span>
+      ) : wishlistLoading ? (
+        <svg
+          className="animate-spin h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          ></path>
+        </svg>
+      ) : (
+        "Add To Wishlist"
+      )}
+    </button>
       
 
     </div>
@@ -550,26 +574,36 @@ const keyFeaturesRef = useRef(null);
           <p>
             <span className="font-semibold">Stock:</span> {product.stock}
           </p>
-          <p>
-            <span className="font-semibold">Delivery Day:</span> {product.delivery_time || "-"}
-          </p>
-          
-          <p>
-            <span className="font-semibold">Company Type:</span> {product.company_type || "-"}
-          </p>
+          {
+            product.company_type && (
+            <p>
+              <span className="font-semibold">Company Type:</span> {product.company_type || "-"}
+            </p>
+            )
+          }
+          {product.sale_type && (
+            <p className="capitalize">
+              <span className="font-semibold">Sale Type:</span>{" "}
+              {product.sale_type === "online"
+                ? "Online Download"
+                : product.sale_type.replace("_", " ")}
+            </p>
+          )}
+          {
+            product.downloadable && (
+            <p className="capitalize">
+            <span className="font-semibold capitalise">Downloadable:</span> {product.downloadable ? product.downloadable.replace("_", " ") : "Not Available"}
+            </p>
+            )
+          }
+          {
+            product.delivery_method && (
           <p className="capitalize">
             <span className="font-semibold capitalise">Delivery Method:</span> {product.delivery_method ? product.delivery_method.replace("_", " ") : "Not Available"}
           </p>
-          <p>
-            <span className="font-semibold">Delivery Price:</span>{" "}
-            {product.delivery_price ? (
-              <>
-                {formatCurrency(product.delivery_price, product.currency || "NGN")}
-              </>
-            ) : (
-              "-"
-            )}
-          </p>
+            )
+          }
+      
         </div>
       </div>
 
@@ -596,38 +630,42 @@ const keyFeaturesRef = useRef(null);
       {/* ADD TO CART BUTTON  {key.replace("_", " ")}*/}
       
       <button
-              className={`mt-6 w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
-                product.stock <= 0 || loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              disabled={product.stock <= 0 || loading}
-              onClick={() => addToWishlist(product)}
-            >
-              {wishlistLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-              ) : (
-                "Add to Wishlist"
-              )}
-            </button>
-
+  className={`bg-gray-800 p-2 rounded shadow mt-10 transition
+    ${
+      product.stock <= 0 || wishlistLoading || isOwner
+        ? "opacity-50 cursor-not-allowed"
+        : "hover:bg-gray-600"
+    }`}
+  disabled={product.stock <= 0 || wishlistLoading || isOwner}
+  onClick={() => addToWishlist(product)}
+>
+  {isOwner ? (
+    <span className="text-sm px-4 text-white">Your Product</span>
+  ) : wishlistLoading ? (
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v8H4z"
+      ></path>
+    </svg>
+  ) : (
+   " Add To Wishlist "
+  )}
+</button>
     </div>
 
       </div>

@@ -8,7 +8,7 @@ import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import { PostFeedIdModalProfile } from "./PostFeedIdModalProfile";
 import { Link } from "react-router-dom";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 
 
 export default function PostProfileCard({ post, chats, image, setImage, postComments, 

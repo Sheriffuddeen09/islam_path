@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { PostFeedId } from "./PostFeedId";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import SideBarRIght from "../homepageComponent/SidebarRight";
 
 export default function PostId({image, postComments, setPostComments, newComment, setNewComment,

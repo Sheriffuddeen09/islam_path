@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
 import CartDelete from "./CartDelete";
-import Toast from "./Toast";
+import Toast from "../../../notification/Toast"
 import CheckoutModal from "./CheckoutPage";
 
-// ReadMore component
+// ReadMore component replace
 const ReadMore = ({ text, maxWords = 8 }) => {
   const words = text.split(" ");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -24,7 +24,7 @@ const ReadMore = ({ text, maxWords = 8 }) => {
   );
 };
 
-const WishlistPage = () => {
+const WishlistPage = ({savedCount, setSavedCount}) => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState("");
@@ -99,19 +99,34 @@ const moveToCart = async (item) => {
   };
 
   return (
-    <section className="wishlist py-10 px-4 md:px-8 lg:px-16">
+    <section className="wishlist py-10 px-4 md:px-4 lg:px-6">
       {loading ? (
         <div className="flex flex-col gap-4 mt-14 animate-pulse">
-          {[...Array(3)].map((_, idx) => (
+         {[...Array(2)].map((_, idx) => (
             <>
-            <div key={idx} className="h-24 bg-gray-200 rounded-lg" />
-            <div key={idx} className="h-10 bg-gray-200 rounded-lg" />
-            <div key={idx} className="h-6 bg-gray-200 rounded-lg" />
+                <div className="flex flex-row flex-wrap gap-3 px-5 w-full">
+                  <div className="w-full flex-1">
+                    <div key={idx} className="h-24 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-12 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-8 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-6 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-3 mb-1 bg-gray-200 rounded-lg" />
+                  </div>
+
+                  <div className="w-80">
+                    <div key={idx} className="h-24 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-12 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-8 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-6 mb-1 bg-gray-200 rounded-lg" />
+                    <div key={idx} className="h-3 mb-1 bg-gray-200 rounded-lg" />
+                  </div>
+                </div>
+
             </>
           ))}
         </div>
       ) : wishlist.length > 0 ? (
-        <div className="flex flex-col mt-14 lg:flex-row gap-8">
+        <div className="flex flex-col mt-14 lg:flex-row gap-6">
           {/* LEFT TABLE / CARDS */}
           <div className="flex-1">
             <div className="bg-white shadow-md rounded-lg py-3 md:p-6 border-green-800 rounded border-t-2 sm:border-b-2 ">
@@ -130,7 +145,7 @@ const moveToCart = async (item) => {
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Product Description</th>
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Quantity</th>
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Subtotal</th>
-                      <th className="px-4 py-4 whitespace-nowrap text-sm">Move to Cart</th>
+                      <th className="px-4 py-4 whitespace-nowrap text-sm">To Cart</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -174,7 +189,7 @@ const moveToCart = async (item) => {
                                 >
                                 -
                                 </button>
-                            <input
+                            {/* <input
                               type="number"
                               value={item.quantity}
                               min={1}
@@ -182,7 +197,7 @@ const moveToCart = async (item) => {
                                 updateQuantity(item, parseInt(e.target.value))
                               }
                               className="w-12 text-center border rounded"
-                            />
+                            /> */}
                             <button
                             onClick={() => updateQuantity(item, item.quantity + 1)}
                             className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
@@ -202,15 +217,15 @@ const moveToCart = async (item) => {
                         <td className="px-4 py-2">
                           <button
                           onClick={() => moveToCart(item)}
-                          className="bg-blue-600 text-white px-2 py-2 rounded hover:bg-blue-700 mt-2"
+                          className="bg-blue-600 text-white text-sm px-2 py-2 rounded hover:bg-blue-700 mt-2"
                           disabled={loadingMove[item.id] === "cart"}>
                           {loadingMove[item.id] === "cart" ?
                           <p className="inline-flex items-center gap-2"> 
                           <Loader2 className="w-4 h-4 animate-spin mx-auto" /> 
-                          Adding
+                          Add
                           </p>
                           : <p className="inline-flex items-center gap-2"> 
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                           </svg>
                           Add </p>}
@@ -226,41 +241,35 @@ const moveToCart = async (item) => {
           </div>
 
           {/* RIGHT SIDEBAR */}
-          <div className="w-full lg:w-1/3">
+          <div className="w-full lg:w-96">
             <div className="bg-white shadow border-green-800 rounded sm:border-t-2 border-b-2 text-black rounded-lg p-6 md:p-8">
               <h2 className="text-xl font-semibold mb-4">Wishlist Totals</h2>
           
               <div className="bg-gray-50 rounded p-4 mb-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-bold">Subtotal</span>
-                  <span>
-                    ₦{calculateTotalPrice().toFixed(2)}
-                  </span>
-                </div>
-          
-                <div className="flex justify-between mb-2 capitalize">
-                  <span className="text-sm font-bold"> Delivery Method</span>
-                  <span>
-                    {wishlist.length > 0
-                      ? [...new Set(wishlist.map(item => item.product.delivery_method.replace("_", " ")))].join(", ")
-                      : "Pick Up Station"}
-                  </span>
-                </div>
-          
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-bold">Estimated Delivery</span>
-                  <span>
-                    ₦{wishlist.length > 0 ? wishlist.reduce((sum, item) => sum + (item.product.delivery_price || 0), 0) : "No Payment"}
-                  </span>
-                </div>
-          
-                <div className="flex justify-between">
-                  <span className="text-sm font-bold">Estimated Discount</span>
-                  <span>
-                    ₦{wishlist.length > 0 ? wishlist.reduce((sum, item) => sum + (item.product.discount || 0), 0) : "No Discount Available"}
-                  </span>
-                </div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm font-bold">Subtotal</span>
+                <span className="text-xs font-semibold">
+                  ₦{calculateTotalPrice().toFixed(2)}
+                </span>
               </div>
+
+      <div className="flex justify-between mb-2 capitalize">
+        <span className="text-sm font-bold"> Delivery Method</span>
+        <span className="text-xs font-semibold">
+          {wishlist.length > 0
+            ? [...new Set(wishlist.map(item => item.product.delivery_method?.replace("_", " ")))].join(", ")
+            : "Pick Up Station"}
+        </span>
+      </div>
+
+
+      <div className="flex justify-between">
+        <span className="text-sm font-bold">Estimated Discount</span>
+        <span className="text-xs font-semibold">
+          ₦{wishlist.length > 0 ? wishlist.reduce((sum, item) => sum + (item.product.discount || 0), 0) : "No Discount Available"}
+        </span>
+      </div>
+    </div>
           
               <div className="bg-gray-50 rounded p-4 mb-4 font-bold flex justify-between">
                 <span>Total</span>
@@ -298,6 +307,7 @@ const moveToCart = async (item) => {
           open={checkoutOpen}
           setOpen={setCheckoutOpen}
           cart={wishlist}
+          savedCount={savedCount} setSavedCount={setSavedCount}
         />
     </section>
   );

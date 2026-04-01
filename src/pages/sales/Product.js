@@ -8,18 +8,22 @@ import api from "../../Api/axios";
 import { useCart } from "./cart/CartContext";
 import { FaHeart, FaStar } from "react-icons/fa";
 import SearchProduct from "./SearchProduct";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useWishlist } from "./cart/WishlistContext";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function ProductPage({products, setProducts}) {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart, loading: cartLoading } = useCart();
+  const { addToCart, loadingId: cartLoadingId } = useCart();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showFilter, setShowFilter] = useState(false);
   const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
-  const { addToWishlist, loading: wishlistLoading } = useWishlist()
+  const { addToWishlist, loadingId: wishlistLoadingId } = useWishlist()
+
+    const authUser = useAuth()
+  
 
   useEffect(() => {
   const handleCategorySelect = (e) => {
@@ -49,8 +53,25 @@ export default function ProductPage({products, setProducts}) {
     fetchData();
   }, []);
 
-  const getRandomProducts = (arr, count = 5) => [...arr].sort(() => 0.5 - Math.random()).slice(0, count);
+  const getSeed = () => {
+  const now = new Date();
+  const days = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
+  return Math.floor(days / 5); // changes every 5 days
+};
 
+const shuffleWithSeed = (array, seed) => {
+  let arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = (seed + i) % arr.length;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+const getRandomProducts = (arr, count = 5) => {
+  const seed = getSeed();
+  return shuffleWithSeed(arr, seed).slice(0, count);
+};
   const getCategoryProducts = (category) => {
     if (!category) return products;
     const collectChildIds = (cat) => {
@@ -65,9 +86,20 @@ export default function ProductPage({products, setProducts}) {
   // Use filtered products if a category is selected, otherwise all products
   const sourceProducts = selectedCategory ? getCategoryProducts(selectedCategory) : products;
 
-  const flashSales = getRandomProducts(sourceProducts.filter((p) => p.discount > 0), 10);
-  const topSelling = getRandomProducts([...sourceProducts].sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0)), 10);
-  const bannerProducts = getRandomProducts(sourceProducts, 5);
+  const flashSaleSource = sourceProducts.filter((p) => p.discount > 0);
+  const topSellingSource = [...sourceProducts].sort(
+    (a, b) => (b.sales_count || 0) - (a.sales_count || 0)
+  );
+
+  const flashSales =
+  flashSaleSource.length > 12
+    ? getRandomProducts(flashSaleSource, 10)
+    : [];
+
+const topSelling =
+  topSellingSource.length > 12
+    ? getRandomProducts(topSellingSource, 10)
+    : [];  const bannerProducts = getRandomProducts(sourceProducts, 5);
 
 useEffect(() => {
   if (!bannerProducts.length) return;
@@ -91,9 +123,9 @@ const openSearchModal = () => {
 
   return (
     <div className="pt-20 bg-gray-100 min-h-screen">
-      <div className="flex px-4 md:px-2">
+      <div className="flex px-2 md:px-2">
         {/* ===== Sidebar z- ===== */}
-        <aside className="w-64 bg-white shadow p-4 hidden md:block sticky scrollbar-thin top-20 h-[calc(100vh-80px)] overflow-y-auto">
+        <aside className="w-64 bg-white shadow p-4 hidden md:block sticky scrollbar-thin top-20 h-[calc(100vh-80px)] overflow-y-auto no-scrollbar">
           <h2 className="text-xl font-bold text-black mb-4 text-center">Search & Filters</h2>
           
           <div className="relative w-full mb-4">
@@ -159,9 +191,9 @@ const openSearchModal = () => {
         </aside>
 
         {/* ===== Main Content ===== */}
-        <section className="flex-1 ml-0 md:ml-6">
+        <section className="flex-1 ml-0  md:mx-4">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 mt-2 md:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => (
                <div key={i} className="bg-white sm:p-4 p-2 rounded-lg shadow animate-pulse">
                 <div className="h-40 bg-gray-300 rounded mb-2"></div>
@@ -297,145 +329,188 @@ const openSearchModal = () => {
   </div>
 )}
 
-  {selectedCategory ? (
-    <Section
-      title={selectedCategory.name}
-      products={sourceProducts}
-      symbols={symbols}
-      addToCart={addToCart}
-      cartLoading={cartLoading}
-      wishlistLoading={wishlistLoading}
-      addToWishlist={addToWishlist}
-    />
-  ) : (
-      <>
-        {/* ===== HOMEPAGE cart ===== */}
+    {selectedCategory ? (
+      <Section
+        title={selectedCategory.name}
+        products={sourceProducts}
+        symbols={symbols}
+        addToCart={addToCart}
+        cartLoadingId={cartLoadingId}
+        wishlistLoadingId={wishlistLoadingId}
+        addToWishlist={addToWishlist}
+      />
+    ) : (
+        <>
+     {bannerProducts.length > 0 && (
+    <div className="mb-6 mt-4 rounded-lg relative overflow-hidden group">
 
-        {/* Banner */}
-        {bannerProducts.length > 0 && (
-  <div className="mb-6 mt-4 rounded-lg relative overflow-hidden group">
+  
+      <div
+  className="flex transition-transform duration-700 ease-in-out"
+  style={{
+    transform: `translateX(-${currentSlide * 100}%)`,
+  }}
+>
+  {bannerProducts.map((p) => {
+    const shortDesc =
+      p.description?.split(" ").slice(0, 20).join(" ") + "..."; // ~100 words max
 
-    {/* Left Arrow */}
-<button
-  onClick={() =>
-    setCurrentSlide((prev) =>
-      prev === 0 ? bannerProducts.length - 1 : prev - 1
-    )
-  }
-   className="absolute left-5 text-white top-1/2 -translate-y-1/2 text-3xl bg-black/50 p-1 rounded-full hover:bg-black/70"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-      </svg>
-</button>
+      const isOwner = p.user_id === authUser.user?.id;
+      const isLoading = cartLoadingId === p.id;
 
-{/* Right Arrow */}
-<button
-  onClick={() =>
-    setCurrentSlide((prev) =>
-      prev === bannerProducts.length - 1 ? 0 : prev + 1
-    )
-  }
-   className="absolute right-6 text-white top-1/2 -translate-y-1/2 text-3xl bg-black/50 p-1 rounded-full hover:bg-black/70"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-      </svg>
-</button>
+    return (
+      <div key={p.id} className="min-w-full px-1">
+          <div className="relative h-72 md:h-96 rounded-2xl  overflow-hidden shadow-lg group">
 
-    {/* Slides */}
-    <div
-      className="flex transition-transform duration-700 ease-in-out"
-      style={{
-        transform: `translateX(-${currentSlide * 100}%)`,
-      }}
-    >
-      {bannerProducts.map((p) => (
-        <div key={p.id} className="min-w-full">
-          <Link to={`/product/${p.id}`}>
+          <button
+    onClick={() =>
+      setCurrentSlide((prev) =>
+        prev === 0 ? bannerProducts.length - 1 : prev - 1
+      )
+    }
+    className="absolute left-2 text-white top-1/2 z-50  text-3xl bg-black/50 p-1 rounded-full hover:bg-black/70"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+  </button>
+
+  <button
+    onClick={() =>
+      setCurrentSlide((prev) =>
+        prev === bannerProducts.length - 1 ? 0 : prev + 1
+      )
+    }
+    className="absolute right-3 text-white top-1/2  z-50 text-3xl bg-black/50 p-1 rounded-full hover:bg-black/70"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+  </button>
+
+
             <img
               src={
                 p.images?.[0]?.image_path
                   ? `http://localhost:8000/storage/${p.images[0].image_path}`
                   : "/placeholder.png"
               }
-              className="w-full h-60 md:h-80 sm:object-contain object-cover rounded"
+              className="absolute inset-0 w-full h-full flex-1 group-hover:scale-105 transition duration-700"
             />
-          </Link>
-        </div>
-      ))}
-    </div>
 
-    {/* Dots */}
-    <div className="absolute bottom-4 left-1/2 transform bg-white px-2 py-1 rounded bg-opacity-30 -translate-x-1/2 flex gap-2">
-      {bannerProducts.map((_, index) => (
-        <button
-          key={index}
-          onClick={() => setCurrentSlide(index)}
-          className={`w-2 h-2 rounded-full transition ${
-            currentSlide === index
-              ? "bg-black scale-110"
-              : "bg-white"
-          }`}
-        ></button>
-      ))}
-    </div>
+             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent"></div>
 
-  </div>
-)}
-
-        {/* Flash Sales */}
-        {flashSales.length > 0 && (
-          <Section title="🔥 Flash Sales" products={flashSales} {...{ symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }} />
-        )}
-
-        {/* Top Selling */}
-        {topSelling.length > 0 && (
-          <Section title="⭐ Top Selling" products={topSelling} {...{ symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }} />
-        )}
-
-        {/* Category Sections */}
-        {categories.map((cat) => {
-          const catProducts = getCategoryProducts(cat);
-          if (!catProducts.length) return null;
-
-          return (
-            <Section
-              key={cat.id}
-              title={cat.name}
-              products={catProducts}
-              symbols={symbols}
-              addToCart={addToCart}
-              cartLoading={cartLoading}
-              addToWishlist={addToWishlist} 
-              wishlistLoading={wishlistLoading}
-            />
-          );
-        })}
-      </>
-    )}
-  </>
-            </>
-          )}
-        </section>
-      </div>
-      {searchOpen && (
-        <div
-          className="fixed top-0 w-full h-full z-[9999] flex flex-1 items- bg-black/30 backdrop-blur-sm">
-              <SearchProduct
-                  onCategorySelect={(category) => {
-                  setSelectedCategory(category);
-                }}
-                query={query}
-                searchOpen={searchOpen}
-                setSearchOpen={setSearchOpen}
-                setQuery={setQuery}
-          />
-          </div>
+            <div className="absolute z-10 sm:p-10 p-5 text-white">
+              {p.discount > 0 && (
+                <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full w-fit mb-5 shadow">
+                  🔥 {p.discount}% OFF
+                </span>
               )}
+
+              <h2 className="text-2xl md:text-4xl font-bold leading-tight mt-3 mb-3">
+                {p.title}
+              </h2>
+
+              <p className="text-sm md:text-base font-bold w-80 text-gray-200 mb-2 line-clamp-3">
+                {shortDesc}
+              </p>
+
+              <p
+                className={`text-sm mb-2 font-semibold ${
+                  p.stock > 0 ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {p.stock > 0
+                  ? `✔ In Stock (${p.stock})`
+                  : "✖ Out of Stock"}
+              </p>
+
+             
+              <div className=" gap-3">
+               
+                <button
+                  onClick={() => addToCart(p)}
+                  className={`mt-2 bg-white px-3 text-black py-2 rounded-lg font-semibold transition inline-flex items-center gap-2
+                    ${
+                      p.stock <= 0 || isLoading || isOwner
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-100"
+                    }`}
+                  disabled={p.stock <= 0 || isLoading || isOwner}
+                >
+                  {isOwner
+                    ? "Your Product"
+                    : isLoading
+                    ? <span className="flex items-center gap-2"><Loader2 /> Ordering...</span>
+                    : "Order Now"}
+                </button>
+                <Link to={`/product/${p.id}`}> 
+                <button className="border border-white px-5 py-2 translate-x-3 rounded-lg hover:bg-white hover:text-black transition">
+                  View Details
+                </button>
+               </Link> 
+
+              </div>
+            </div>
+          </div>
+      </div>
+    );
+  })}
+</div>
+
+
     </div>
-  );
-}
+  )} 
+
+          {flashSales.length > 0 && (
+            <Section title="🔥 Flash Sales" products={flashSales} {...{ symbols, addToCart, cartLoadingId, addToWishlist, wishlistLoadingId }} />
+          )}
+
+          {topSelling.length > 0 && (
+            <Section title="⭐ Top Selling" products={topSelling} {...{ symbols, addToCart, cartLoadingId, addToWishlist, wishlistLoadingId }} />
+          )}
+
+          {categories.map((cat) => {
+            const catProducts = getCategoryProducts(cat);
+            if (!catProducts.length) return null;
+
+            return (
+              <Section
+                key={cat.id}
+                title={cat.name}
+                products={catProducts}
+                symbols={symbols}
+                addToCart={addToCart}
+                cartLoadingId={cartLoadingId}
+                addToWishlist={addToWishlist} 
+                wishlistLoadingId={wishlistLoadingId}
+              />
+            );
+          })}
+        </>
+      )}
+    </> 
+              </>
+            )}
+          </section>
+        </div>
+        {searchOpen && (
+          <div
+            className="fixed top-0 w-full h-full z-[9999] flex flex-1 items- bg-black/30 backdrop-blur-sm">
+                <SearchProduct
+                    onCategorySelect={(category) => {
+                    setSelectedCategory(category);
+                  }}
+                  query={query}
+                  searchOpen={searchOpen}
+                  setSearchOpen={setSearchOpen}
+                  setQuery={setQuery}
+            />
+            </div>
+                )}
+      </div>
+    );
+  }
 const getCategoryColor = (title) => {
   switch (title.toLowerCase()) {
     case "electronic":
@@ -456,46 +531,128 @@ const getCategoryColor = (title) => {
 };
 
 // ===== Section Component =====
-const Section = ({ title, products, symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }) => (
 
+const Section = ({
+  title,
+  products,
+  symbols,
+  addToCart,
+  cartLoadingId,
+  addToWishlist,
+  wishlistLoadingId,
+  isScrollable = false,
+}) => {
+  const ITEMS_PER_PAGE = isScrollable ? 8 : products.length;
+  const [page, setPage] = useState(0);
   
-  <div className="mb-10 mx-auto">
-    <div
-      className={`flex justify-between items-center mt-4 mb-3 p-3 rounded-lg shadow text-white ${getCategoryColor(title)}`}
-    >
-      <h2 className="text-lg font-bold">{title}</h2>
-      <button className="text-white text-sm font-semibold hover:underline">
-        See More
-      </button>
+
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+
+  return (
+    <div className="mb-10 mx-auto">
+       <div
+        className={`flex justify-between items-center  mt-4 mb-3 p-3 rounded-lg shadow text-white ${getCategoryColor(
+          title
+        )}`}
+      >
+        <h2 className="text-lg font-bold">{title}</h2>
+
+        <div className="flex items-center gap-2">
+          {isScrollable && page > 0 && (
+            <button
+              onClick={() => setPage((prev) => prev - 1)}
+              className="bg-white text-black px-2 py-1 rounded hover:bg-gray-200"
+            >
+              ◀
+            </button>
+          )}
+
+          {isScrollable && page < totalPages - 1 && (
+            <button
+              onClick={() => setPage((prev) => prev + 1)}
+              className="bg-white text-black px-2 py-1 rounded hover:bg-gray-200"
+            >
+              ▶
+            </button>
+          )}
+
+          <button className="text-white text-sm font-semibold hover:underline">
+            See More
+          </button>
+        </div>
+      </div>
+
+      {isScrollable ? (
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{
+              width: `${totalPages * 100}%`,
+              transform: `translateX(-${page * (100 / totalPages)}%)`,
+            }}
+          >
+            {Array.from({ length: totalPages }).map((_, i) => {
+              const start = i * ITEMS_PER_PAGE;
+              const slice = products.slice(start, start + ITEMS_PER_PAGE);
+
+              return (
+                <div
+                  key={i}
+                  className="w-full grid grid-cols-1 sm:grid-cols-4 gap- px-1"
+                >
+                  {slice.map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      symbols={symbols}
+                      addToCart={addToCart}
+                      cartLoadingId={cartLoadingId}
+                      addToWishlist={addToWishlist}
+                      wishlistLoadingId={wishlistLoadingId}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {products.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              symbols={symbols}
+              addToCart={addToCart}
+              cartLoadingId={cartLoadingId}
+              addToWishlist={addToWishlist}
+              wishlistLoadingId={wishlistLoadingId}
+            />
+          ))}
+        </div>
+      )} 
     </div>
-    <Swiper
-      modules={[Navigation]}
-      slidesPerView={2}
-      spaceBetween={10}
-      navigation
-      breakpoints={{
-        640: { slidesPerView: 2 },
-        768: { slidesPerView: 3 },
-        1024: { slidesPerView: 4 },
-        1280: { slidesPerView: 6 },
-      }}
-    >
-      {products.map((p) => (
-        <SwiperSlide key={p.id}>
-          <ProductCard product={p} symbols={symbols} 
-          addToCart={addToCart} cartLoading={cartLoading}
-          addToWishlist={addToWishlist} wishlistLoading={wishlistLoading} />
-        </SwiperSlide>
-      ))}
-    </Swiper>
-  </div>
-);
+  );
+};
+
 
 // ===== Product Card =====
-const ProductCard = ({ product, symbols, addToCart, cartLoading, addToWishlist, wishlistLoading }) => {
+const ProductCard = ({ product, symbols, addToCart, cartLoadingId, addToWishlist, wishlistLoadingId }) => {
   const [hover, setHover] = useState(false);
   const cardRef = useRef(null);
   const [width, setWidth] = useState(0);
+
+  const isLoading = cartLoadingId === product.id;
+  const isWishlistLoading = wishlistLoadingId === product.id;
+
+  const authUser = useAuth()
+
+  console.log("user Product", authUser)
+  
+
+  const isOwner = product.user_id === authUser.user?.id;
+
+
 
   useEffect(() => {
     if (cardRef.current) setWidth(cardRef.current.offsetWidth);
@@ -507,7 +664,7 @@ const ProductCard = ({ product, symbols, addToCart, cartLoading, addToWishlist, 
   return (
     <div
       ref={cardRef}
-      className="bg-white rounded shadow-sm hover:shadow-md mx-auto sm:w-60 w-44 transition px-2 py-2 group relative"
+      className="bg-white rounded shadow-sm hover:shadow-md mx-auto sm:w-60 w-full transition px-4 py-3 group relative"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -518,14 +675,14 @@ const ProductCard = ({ product, symbols, addToCart, cartLoading, addToWishlist, 
       )}
 
       <Link to={`/product/${product.id}`}>
-        <img src={img} loading="lazy" className="h-28 sm:h-52 w-full object-cover rounded" />
+        <img src={img} loading="lazy" className="h-64 sm:h-52 w-full sm:object-cover rounded" />
         <h3 className="text-sm mt-2 text-gray-800 line-clamp-2">{product.title}</h3>
         <div className="mt-1 text-gray-800">
           {product.discount > 0 ? (
-            <>
-              <span className="line-through text-gray-400 text-xs">{symbol}{product.price}</span>
+            <div className="inline-flex items-center gap-3">
+              <span className="line-through text-gray-400 text-sm">{symbol}{product.price}</span>
               <div className="font-bold">{symbol}{(product.price - (product.price * product.discount) / 100).toFixed(2)}</div>
-            </>
+            </div>
           ) : (
             <span className="font-bold">{symbol}{product.price}</span>
           )}
@@ -533,72 +690,82 @@ const ProductCard = ({ product, symbols, addToCart, cartLoading, addToWishlist, 
       </Link>
 
       <button
-              className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition flex items-center justify-center ${
-                product.stock <= 0 || cartLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              disabled={product.stock <= 0 || cartLoading}
-              onClick={() => addToCart(product)}
-            >
-              {cartLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-              ) : (
-                "Add to Cart"
-              )}
-            </button>
-
+        className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold transition flex items-center justify-center
+          ${
+            product.stock <= 0 || isLoading || isOwner
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-orange-700"
+          }`}
+        disabled={product.stock <= 0 || isLoading || isOwner}
+        onClick={() => addToCart(product)}
+      >
+        {isOwner ? (
+          "Your Product"
+        ) : isLoading ? (
+          <svg
+            className="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8H4z"
+            ></path>
+          </svg>
+        ) : (
+          "Add to Cart"
+        )}
+      </button>
 
       {/* Hover Preview total */}
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition flex flex-col gap-2">
         <button
-          className={`bg-gray-800 p-2 rounded shadow hover:bg-gray-600  ${
-          product.stock <= 0 || wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={product.stock <= 0 || wishlistLoading}
+          className={`bg-gray-800 p-2 rounded shadow transition
+            ${
+              product.stock <= 0 || isWishlistLoading || isOwner
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-600"
+            }`}
+          disabled={product.stock <= 0 || isWishlistLoading || isOwner}
           onClick={() => addToWishlist(product)}
         >
-           {wishlistLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  ></path>
-                </svg>
-              ) : (
-              <FaHeart className="text-white mx-auto" />
-            )}
-            </button>
+          {isOwner ? (
+            <span className="text-xs text-white">You</span>
+          ) : isWishlistLoading ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+          ) : (
+            <FaHeart className="text-white mx-auto" />
+          )}
+        </button>
         <div className="bg-gray-800 px-2 py-1 rounded shadow flex items-center gap-1">
           <FaStar className="text-yellow-400 text-sm" />
           <span className="text-sm text-white font-medium">{product.reviews_count || 0}</span>

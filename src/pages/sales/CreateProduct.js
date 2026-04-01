@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import Notification from "../../Form/Notification";
+import Notification from "../../notification/Notification";
 import api from "../../Api/axios";
 
 export default function CreateProduct() {
@@ -433,7 +433,7 @@ const isGeneral =
       </label>
       <input
         placeholder="Stock"
-        type="number"
+        type="text"
         className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base"
         value={form.stock}
         onChange={(e) => setForm({ ...form, stock: e.target.value })}
@@ -467,7 +467,7 @@ const isGeneral =
           Price
         </label>
         <input
-          type="number"
+          type="text"
           placeholder="Product price"
           value={form.price}
           onChange={e => setForm({ ...form, price: e.target.value })}
@@ -485,7 +485,7 @@ const isGeneral =
           Discount (%)
         </label>
         <input
-          type="number"
+          type="text"
           placeholder="Discount percentage"
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
           value={form.discount}
@@ -498,7 +498,7 @@ const isGeneral =
           Platform Charge (5%)
         </label>
         <input
-          type="number"
+          type="text"
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full bg-gray-100"
           value={form.charges}
           disabled
@@ -522,7 +522,7 @@ const isGeneral =
     </div>
 
           {/* Book Fields */}
-          {slug === "islamic-content" && (
+          {selectedParent?.slug === "islamic-content" && (
             <>
               <input
                 placeholder="Author"
@@ -532,7 +532,7 @@ const isGeneral =
               />
 
               {/* PDF Drag & Drop */}
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <label className="block mb-2 font-medium text-gray-700">Upload PDF</label>
                 <div
                   {...getPdfRootProps()}
@@ -563,7 +563,7 @@ const isGeneral =
                     <p className="text-gray-500 font-medium">Drag & drop a PDF here, or click to select</p>
                   )}
                 </div>
-              </div>
+              </div> */}
             </>
           )}
 
@@ -878,7 +878,7 @@ const isGeneral =
           >
             <option value="">Sales Type</option>
             <option value="online">Online Download</option>
-            <option value="physical">Physical Delivery</option>
+            <option value="physical">Physical Book</option>
           </select>
 
 
@@ -899,7 +899,7 @@ const isGeneral =
         >
           <option value="">Downloadable</option>
           <option value="yes">Yes</option>
-          <option value="no">Physical Book</option>
+          <option value="no">No</option>
         </select>
 
 
