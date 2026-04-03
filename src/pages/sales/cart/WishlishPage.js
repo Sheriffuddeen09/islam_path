@@ -30,6 +30,8 @@ const WishlistPage = ({savedCount, setSavedCount}) => {
   const [toastMessage, setToastMessage] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   
+  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+
 
   // FETCH WISHLIST
   const fetchWishlist = async () => {
@@ -90,14 +92,6 @@ const moveToCart = async (item) => {
   };
 
 
-  // CALCULATE TOTAL PRICE
-  const calculateTotalPrice = () => {
-    return wishlist.reduce(
-      (total, item) => total + (parseFloat(item.product.price) || 0) * item.quantity,
-      0
-    );
-  };
-
   return (
     <section className="wishlist py-10 px-4 md:px-4 lg:px-6">
       {loading ? (
@@ -149,7 +143,9 @@ const moveToCart = async (item) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {wishlist.map((item) => (
+                    {wishlist.map((item) => {
+                      const symbol = symbols[item.product.currency] || item.product.currency;
+                      return (
                       <tr key={item.id} className="border-b text-black">
                         <td className="px-4 py-2">
                           <CartDelete
@@ -172,7 +168,7 @@ const moveToCart = async (item) => {
                           {item.product.title}
                         </td>
                         <td className="px-4 py-2">
-                          ₦{(parseFloat(item.product.price) || 0).toFixed(2)}
+                          {symbol}{(parseFloat(item.product.price) || 0).toFixed(2)}
                         </td>
                         <td className="px-2 py-2 text-xs font-semibold">
                           <ReadMore
@@ -189,15 +185,7 @@ const moveToCart = async (item) => {
                                 >
                                 -
                                 </button>
-                            {/* <input
-                              type="number"
-                              value={item.quantity}
-                              min={1}
-                              onChange={(e) =>
-                                updateQuantity(item, parseInt(e.target.value))
-                              }
-                              className="w-12 text-center border rounded"
-                            /> */}
+                           
                             <button
                             onClick={() => updateQuantity(item, item.quantity + 1)}
                             className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
@@ -208,7 +196,7 @@ const moveToCart = async (item) => {
                           </div>
                         </td>
                         <td className="px-4 py-2">
-                          ₦
+                          {symbol}
                           {(
                             (parseFloat(item.product.price) || 0) *
                             item.quantity
@@ -232,63 +220,11 @@ const moveToCart = async (item) => {
                         </button>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
 
-            </div>
-          </div>
-
-          {/* RIGHT SIDEBAR */}
-          <div className="w-full lg:w-96">
-            <div className="bg-white shadow border-green-800 rounded sm:border-t-2 border-b-2 text-black rounded-lg p-6 md:p-8">
-              <h2 className="text-xl font-semibold mb-4">Wishlist Totals</h2>
-          
-              <div className="bg-gray-50 rounded p-4 mb-4">
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold">Subtotal</span>
-                <span className="text-xs font-semibold">
-                  ₦{calculateTotalPrice().toFixed(2)}
-                </span>
-              </div>
-
-      <div className="flex justify-between mb-2 capitalize">
-        <span className="text-sm font-bold"> Delivery Method</span>
-        <span className="text-xs font-semibold">
-          {wishlist.length > 0
-            ? [...new Set(wishlist.map(item => item.product.delivery_method?.replace("_", " ")))].join(", ")
-            : "Pick Up Station"}
-        </span>
-      </div>
-
-
-      <div className="flex justify-between">
-        <span className="text-sm font-bold">Estimated Discount</span>
-        <span className="text-xs font-semibold">
-          ₦{wishlist.length > 0 ? wishlist.reduce((sum, item) => sum + (item.product.discount || 0), 0) : "No Discount Available"}
-        </span>
-      </div>
-    </div>
-          
-              <div className="bg-gray-50 rounded p-4 mb-4 font-bold flex justify-between">
-                <span>Total</span>
-                <span>
-                  ₦{wishlist.length > 0
-                    ? (wishlist.reduce((sum, item) => sum + ((item.product.price || 0) * item.quantity), 0)
-                       + wishlist.reduce((sum, item) => sum + (item.product.delivery_price || 0), 0)
-                       - wishlist.reduce((sum, item) => sum + (item.product.discount || 0), 0)
-                      ).toFixed(2)
-                    : 0}
-                </span>
-              </div>
-          
-              <button
-                onClick={() => setCheckoutOpen(true)}
-                className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-              >
-                Proceed to Checkout
-              </button>
             </div>
           </div>
         </div>

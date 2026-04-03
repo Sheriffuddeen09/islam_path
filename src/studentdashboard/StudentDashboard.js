@@ -143,7 +143,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                  {menu.map(item => (
                    <li
                      key={item.id}
-                     onClick={() => setVisible(item.id)}
+                     onClick={() => {setVisible(item.id); handleMenuClick(item);}}
                      className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                        
                        ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -157,7 +157,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                      )}
 
                      {item.showcount && savedCount > 0 && (
-                       <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                       <span onClick={() => handleMenuClick(item)} className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                          {savedCount}
                        </span>
                      )}
@@ -250,7 +250,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                                  </span>
                                )}  
                                {item.showcount && savedCount > 0 && (
-                                  <span onClick={handleMenuClick} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                  <span onClick={() => handleMenuClick(item)} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                                     {savedCount}
                                   </span>
                                 )}

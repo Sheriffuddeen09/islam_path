@@ -97,7 +97,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
     { id: 10, label: "View Assignment Result" },
     { id: 11, label: "View Examination Result" },
     { id: 12, label: "Product Order" },
-    { id: 13, label: "Saved Order" },
+    { id: 13, label: "Saved Order", showcount: true  },
   ];
 
   // Menu items for Comment 2
@@ -105,11 +105,23 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
     { id: 21, label: "Create Product" },
     { id: 22, label: "Product List" },
     { id: 23, label: "Order" },
-    { id: 24, label: "Saved Order" },
+    { id: 24, label: "Saved Order", showcount: true },
   ];
 
   // Choose which menu
   const menu = isTeacher ? teacherMenu : defaultMenu;
+
+  const handleMenuClick = async (item) => {
+          if (item.label === "Saved Order") {
+            try {
+              await api.post(`/saved-products/clear/${user.id}`);
+              setSavedCount(0); // update UI after backend success
+            } catch (err) {
+              console.error(err);
+            }
+          }
+          };
+  
 
 
 
@@ -187,7 +199,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => {setVisible(item.id); handleOpenModel()}}
+              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item)}}
               className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                 hover:bg-gray-900 hover:text-gray-200 
                 ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -197,6 +209,12 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
               {item.showBadge && pendingCount > 0 && (
                 <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {pendingCount}
+                </span>
+              )}
+
+              {item.showcount && savedCount > 0 && (
+                <span onClick={() =>handleMenuClick(item)} className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {savedCount}
                 </span>
               )}
             </li>
@@ -287,7 +305,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => {setVisible(item.id); handleOpenModel()}}
+              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item)}}
               className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                 hover:bg-gray-900 hover:text-gray-200 
                 ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -297,6 +315,12 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
               {item.showBadge && pendingCount > 0 && (
                 <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {pendingCount}
+                </span>
+              )}
+
+               {item.showcount && savedCount > 0 && (
+                <span onClick={() =>handleMenuClick(item)} className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {savedCount}
                 </span>
               )}
             </li>

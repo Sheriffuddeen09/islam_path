@@ -27,6 +27,27 @@ const CartPage = ({savedCount, setSavedCount}) => {
   const [loading, setLoading] = useState(true);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+
+  const currency = cart[0]?.product?.currency || "NGN";
+  const symbol = symbols[currency] || currency; 
+
+  const subtotal = cart.reduce(
+  (sum, item) => sum + ((item.product.price || 0) * item.quantity),
+  0
+);
+
+const delivery = cart.reduce(
+  (sum, item) => sum + (item.product.delivery_price || 0),
+  0
+);
+
+const discount = cart.reduce(
+  (sum, item) => sum + (item.product.discount || 0),
+  0
+);
+
+const total = subtotal + delivery - discount;
 
   // FETCH CART
   const fetchCart = async () => {
@@ -128,7 +149,11 @@ const CartPage = ({savedCount, setSavedCount}) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {cart.map((item) => (
+                    {cart.map((item) => 
+                    {
+                      const symbol = symbols[item.product.currency] || item.product.currency;
+                    return (
+                      
                       <tr key={item.id} className="border-b py-2 my-3 text-black">
                         <td className="px-4 py-2">
                           <CartDelete
@@ -151,8 +176,8 @@ const CartPage = ({savedCount, setSavedCount}) => {
                         <td className="px-4 py-2 text-sm font-semibold">
                          {item.product.title}
                         </td>
-                        <td className="px-4 py-2">
-                          ₦{(parseFloat(item.product.price) || 0).toFixed(2)}
+                        <td className="px-4 py-2 whitespace-nowrap">
+                         {symbol} {(parseFloat(item.product.price) || 0).toFixed(2)}
                         </td>
                         <td className="px-2 py-2 text-xs font-semibold">
                           <ReadMore
@@ -190,14 +215,15 @@ const CartPage = ({savedCount, setSavedCount}) => {
                           </div>
                         </td>
                         <td className="px-4 py-2">
-                          ₦
+                          {symbol}
                           {(
                             (parseFloat(item.product.price) || 0) *
                             item.quantity
                           ).toFixed(2)}
                         </td>
                       </tr>
-                    ))}
+                    )})}
+                    
                   </tbody>
                 </table>
               </div>
@@ -207,48 +233,48 @@ const CartPage = ({savedCount, setSavedCount}) => {
 
           {/* RIGHT SIDEBAR */}
           <div className="w-full lg:w-1/3">
-  <div className="bg-white shadow border-blue-800 rounded sm:border-t-2 border-b-2 text-black rounded-lg p-6 md:p-8">
-    <h2 className="text-xl font-semibold mb-4">Cart Totals</h2>
+          <div className="bg-white shadow border-blue-800 rounded sm:border-t-2 border-b-2 text-black p-6 md:p-8">
+          <h2 className="text-xl font-semibold mb-4">Cart Totals</h2>
 
-    <div className="bg-gray-50 rounded p-4 mb-4">
-      <div className="flex justify-between mb-2">
-        <span className="text-sm font-bold">Subtotal</span>
-        <span className="text-xs font-semibold">
-          ₦{calculateTotalPrice().toFixed(2)}
-        </span>
-      </div>
+          <div className="bg-gray-50 rounded p-4 mb-4">
 
-      <div className="flex justify-between mb-2 capitalize">
-        <span className="text-sm font-bold"> Delivery Method</span>
-        <span className="text-xs font-semibold">
-          {cart.length > 0
-            ? [...new Set(cart.map(item => item.product.delivery_method?.replace("_", " ")))].join(", ")
-            : "Pick Up Station"}
-        </span>
-      </div>
+            {/* SUBTOTAL */}
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-bold">Subtotal</span>
+              <span className="text-xs font-semibold">
+                {symbol}{subtotal.toFixed(2)}
+              </span>
+            </div>
 
+            {/* DELIVERY */}
+            <div className="flex justify-between mb-2 capitalize">
+              <span className="text-sm font-bold">Delivery Method</span>
+              <span className="text-xs font-semibold">
+                {cart.length > 0
+                  ? [...new Set(cart.map(item =>
+                      item.product.delivery_method?.replace("_", " ")
+                    ))].join(", ")
+                  : "Pick Up Station"}
+              </span>
+            </div>
 
-      <div className="flex justify-between">
-        <span className="text-sm font-bold">Estimated Discount</span>
-        <span className="text-xs font-semibold">
-          ₦{cart.length > 0 ? cart.reduce((sum, item) => sum + (item.product.discount || 0), 0) : "No Discount Available"}
-        </span>
-      </div>
-    </div>
+            {/* DISCOUNT */}
+            <div className="flex justify-between">
+              <span className="text-sm font-bold">Estimated Discount</span>
+              <span className="text-xs font-semibold text-red-500">
+                -{symbol}{discount.toFixed(2)}
+              </span>
+            </div>
 
-    <div className="bg-gray-50 rounded p-4 mb-4 font-bold flex justify-between">
-      <span>Total</span>
-      <span>
-        ₦{cart.length > 0
-          ? (cart.reduce((sum, item) => sum + ((item.product.price || 0) * item.quantity), 0)
-             + cart.reduce((sum, item) => sum + (item.product.delivery_price || 0), 0)
-             - cart.reduce((sum, item) => sum + (item.product.discount || 0), 0)
-            ).toFixed(2)
-          : 0}
-      </span>
-    </div>
+          </div>
 
-
+          {/* TOTAL */}
+          <div className="bg-gray-50 rounded p-4 mb-4 font-bold flex justify-between">
+            <span>Total</span>
+            <span className="text-green-700">
+              {symbol}{total.toFixed(2)}
+            </span>
+          </div>
     <button
       onClick={() => setCheckoutOpen(true)}
       className="block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"

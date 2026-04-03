@@ -434,3 +434,8 @@ textarea {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
 }
+
+.dots {
+  list-style-type: disc;
+  padding-left: 20px;
+}

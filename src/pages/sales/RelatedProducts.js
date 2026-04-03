@@ -4,6 +4,9 @@ export default function RelatedProducts({ products }) {
   // If no products, return null (hide component)
   if (!products || products.length === 0) return null;
 
+  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+
+
   return (
     <div className="mt-10">
       <h2 className="text-2xl px-2 font-bold mb-4 text-black">
@@ -12,6 +15,9 @@ export default function RelatedProducts({ products }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {products.map((p) => {
+          
+          const symbol = symbols[p.currency] || p.currency;
+
           const img = p.images?.[0];
           const url = img
             ? `http://localhost:8000/storage/${img.image_path}`
@@ -29,7 +35,7 @@ export default function RelatedProducts({ products }) {
               />
 
               <h3 className="font-medium text-gray-800">{p.title}</h3>
-              <p className="text-gray-500">${p.price}</p>
+              <p className="text-gray-500">{symbol} {p.price}</p>
             </Link>
           );
         })}

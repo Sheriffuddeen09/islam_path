@@ -29,6 +29,8 @@ export default function SingleProduct({products, setProducts}) {
 
   const authUser = useAuth()
   
+  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+
 
   useEffect(() => {
     fetchProduct();
@@ -167,6 +169,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
   if (!product) return <ProductSkeleton />;
 
+  const symbol = symbols[product.currency] || product.currency;
 
   return (
     <div className="max-w-7xl mx-auto sm:p-6 p-2">
@@ -208,7 +211,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
               {/* PRICE */}
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-black">
-                  {product.currency} {product.price}
+                  {symbol} {product.price}
                 </span>
               </div>
 

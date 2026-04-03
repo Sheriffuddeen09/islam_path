@@ -42,14 +42,6 @@ export default function SuccessModal({
 
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center relative">
 
-        {/* CLOSE */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
-
         {/* ICON */}
         <div className="flex justify-center mb-4">
           <div className="bg-green-100 p-4 rounded-full animate-bounce">

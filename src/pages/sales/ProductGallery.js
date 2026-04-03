@@ -14,6 +14,11 @@ export default function ProductGallery({ images, isOwner, product }) {
   const baseURL = "http://localhost:8000/storage/";
   const [active,setActive] = useState(0);
 
+   const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+
+  const symbol = symbols[product.currency] || product.currency;
+
+
   if(!images || images.length === 0){
     return <img src="/placeholder.png" alt="No product"/>
   }
@@ -61,7 +66,7 @@ export default function ProductGallery({ images, isOwner, product }) {
     {/* PRICE */}
     <div className="flex items-center gap-2">
       <span className="text-2xl font-bold text-black">
-        {product.currency} {product.price}
+        {symbol} {product.price}
       </span>
     </div>
 

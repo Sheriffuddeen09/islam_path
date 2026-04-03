@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 export default function RecentlyViewed({products, setProducts}){
 
 
+  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
 
   useEffect(()=>{
 
@@ -39,6 +40,8 @@ export default function RecentlyViewed({products, setProducts}){
 
         {products.map((p)=>{
 
+        const symbol = symbols[p.currency] || p.currency;
+
           const img = p.images?.[0]
 
           const url = img
@@ -60,6 +63,10 @@ export default function RecentlyViewed({products, setProducts}){
 
               <h3 className="mt-2 font-medium text-black">
                 {p.title}
+              </h3>
+
+              <h3 className="mt-2 font-medium text-black">
+                {symbol} {p.price}
               </h3>
 
             </Link>

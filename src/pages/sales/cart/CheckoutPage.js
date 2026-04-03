@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { X, Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
 import OrderSteps from "../order/OrderSteps";
 import {useAuth} from './../../../layout/AuthProvider'
@@ -47,6 +46,16 @@ const CheckoutModal = ({ open, setOpen, cart, setSavedCount}) => {
   
   // ✅ TOTALS
  
+ const symbols = {
+  NGN: "₦",
+  USD: "$",
+  GBP: "£",
+  EUR: "€",
+};
+
+const currency = cart[0]?.product?.currency || "";
+const symbol = symbols[currency] || currency;
+
 
   const discount = cart.reduce(
     (t, i) => t + (i.product.discount || 0),
@@ -55,7 +64,9 @@ const CheckoutModal = ({ open, setOpen, cart, setSavedCount}) => {
 
 const safeCart = cart || [];
 
-const subtotal = cart.reduce((acc, item) => {
+console.log('Cart Product', cart)
+
+const subtotal = safeCart.reduce((acc, item) => {
   const price = Number(item.product?.price || 0);
   const qty = Number(item.quantity || 1);
   return acc + price * qty;
@@ -88,11 +99,21 @@ const orderData = {
 
   // ✅ FIX ITEMS (ADD PRICE!)
   items: safeCart.map((item) => ({
-    product_id: item.id,
-    name: item.title,
-    price: Number(item.price || item.amount || 0),
-    quantity: Number(item.quantity || 1),
-  })),
+  product_id: item.product?.id,
+  name: item.product?.title,
+  price: Number(item.product?.price || 0),
+  quantity: Number(item.quantity || 1),
+
+  // ✅ IMAGE (first image)
+  image: item.product?.images?.[0]?.image_path
+    ? `http://localhost:8000/storage/${item.product.images[0].image_path}`
+    : null,
+
+  // ✅ SHORT DESCRIPTION (max ~100 words)
+  description: item.product?.description
+    ? item.product.description.split(" ").slice(0, 20).join(" ") + "..."
+    : "",
+}))
 };
 
 
@@ -280,7 +301,9 @@ const orderData = {
             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
             <div className="max-h-[300px] overflow-y-auto no-scrollbar">
-              {cart.map((item) => (
+              {cart.map((item) => {
+                const symbol = symbols[item.currency] || item.currency;
+                return (
                 <div key={item.id} className="flex gap-3 mb-4 p-3 border rounded shadow border-gray-200 shadow-b pb-2">
                   <img
                     src={`http://localhost:8000/storage/${item.product.images[0]?.image_path}`}
@@ -289,31 +312,41 @@ const orderData = {
                   <div className="flex-1">
                     <p className="font-semibold text-sm mb-2">{item.product.title}</p>
                     <p className="font-semibold text-sm mb-2">Quantity: {item.quantity}</p>
-                    <p className="font-semibold text-sm mb-2">Price: ₦{item.product.price}</p>
+                    <p className="font-semibold text-sm mb-2">Price: {symbol}{item.product.price}</p>
                     <p className="font-semibold text-sm">{item.product.description}</p>
 
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
            <div className="space-y-2 text-sm text-gray-600">
-    <div className="flex justify-between">
-      <span>Subtotal</span>
-      <span className="font-medium text-gray-800">₦{subtotal}</span>
-    </div>
 
+              {/* SUBTOTAL */}
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span className="font-medium text-gray-800">
+                  {symbol}{subtotal.toFixed(2)}
+                </span>
+              </div>
 
-    <div className="flex justify-between">
-      <span>Discount</span>
-      <span className="text-green-600">-₦{discount}</span>
-    </div>
+              {/* DISCOUNT */}
+              <div className="flex justify-between">
+                <span>Discount</span>
+                <span className="text-red-600">
+                  -{symbol}{discount.toFixed(2)}
+                </span>
+              </div>
 
-    <div className="border-t pt-3 flex justify-between font-semibold text-gray-900 text-base">
-      <span>Total</span>
-      <span>₦{total}</span>
-    </div>
-  </div>
+              {/* TOTAL */}
+              <div className="border-t pt-3 flex justify-between font-semibold text-gray-900 text-base">
+                <span>Total</span>
+                <span className="text-green-700">
+                  {symbol}{total.toFixed(2)}
+                </span>
+              </div>
+
+            </div>
 
   {/* 🚚 DELIVERY INFO */}
   <div className="mt-6 bg-gray-50 rounded-lg p-4 border">
@@ -393,7 +426,7 @@ const orderData = {
             <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-8 mt-6">
 
             <OrderSteps form={form} setForm={setForm} orderData={orderData} setStep={setStep}
-             setSavedCount={setSavedCount} />
+             setSavedCount={setSavedCount} cart={cart}/>
             </div>
           </>
         )}

@@ -5,7 +5,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { useAuth } from "../../../layout/AuthProvider";
 import { v4 as uuidv4 } from "uuid";
 
-export default function OrderSteps({ form, setForm, orderData, setStep, setSavedCount }) {
+export default function OrderSteps({ form, setForm, orderData, setStep, setSavedCount, cart }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -17,6 +17,9 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
   type: "order",
   message: ""
 });
+
+  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+
 
   const USE_REAL_ADS = false; // 👉 change to true later
 
@@ -90,72 +93,81 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
     return () => clearInterval(interval);
   }, [showAd]);
 
-  // =========================
-  // 🔥 AFTER AD
-  // =========================
-  const handleAfterAd = async () => {
+        const handleAfterAd = async () => {
 
-  if (loading) return;
-  setShowAd(false);
-  setLoading(true);
+        if (loading) return;
+        setShowAd(false);
+        setLoading(true);
 
-  try {
-    if (form.payment_method === "save") {
+        try {
 
-      const res = await api.post("/api/product/save-draft", {
-        ...orderData,
-        user_id: user?.id,
-        status: "draft",
-      });
+          let res;
 
-      if (res.data.success) {
-        setSavedCount((prev) => prev + 1);
+          if (form.payment_method === "save") {
+            res = await api.post("/api/product/save-draft", {
+              ...orderData,
+              user_id: user?.id,
+              status: "draft",
+            });
 
-        setSuccess({
-          show: true,
-          type: "save",
-          message: res.data.message || "Saved successfully",
-        });
-      }
-    }
+            if (res.data.success) {
+              setSavedCount((prev) => prev + 1);
 
-    if (form.payment_method === "order") {
+              setSuccess({
+                show: true,
+                type: "save",
+                message: res.data.message || "Saved successfully",
+              });
+            }
+          }
 
-      const order_token = Date.now() + "-" + user?.id;
+          if (form.payment_method === "order") {
+            const order_token = Date.now() + "-" + user?.id;
 
-      const res = await api.post("/api/order/create", {
-        ...orderData,
-         order_token,
-        status: "pending",
-      });
+            res = await api.post("/api/order/create", {
+              ...orderData,
+              order_token,
+              status: "pending",
+            });
 
-      if (res.data.success) {
-        setSuccess({
-          show: true,
-          type: "order",
-          message: res.data.message || "Order sent!",
-        });
-      }
-    }
+            if (res.data.success) {
+              setSuccess({
+                show: true,
+                type: "order",
+                message: res.data.message || "Order sent!",
+              });
+            }
+          }
 
-  } catch (err) {
-    console.log(err);
+         
+          if (res?.data?.success) {
+              try {
+                if (Array.isArray(cart)) {
+                  await Promise.all(
+                    cart.map((item) => api.delete(`/api/cart/${item.id}`))
+                  );
+                } else if (cart?.id) {
+                  await api.delete(`/api/cart/${cart.id}`);
+                }
+              } catch (e) {
+                console.log("Cart clear failed", e);
+              }
+            }
 
-    // 🔥 HANDLE API ERROR MESSAGE
-    if (err.response) {
-      const message = err.response.data.message;
+        } catch (err) {
+          console.log(err);
 
-      showNotify("error", message || "Something went wrong");
-    } else {
-      showNotify("error", "Network error");
-    }
+          if (err.response) {
+            showNotify("error", err.response.data.message || "Something went wrong");
+          } else {
+            showNotify("error", "Network error");
+          }
 
-  } finally {
-    setLoading(false);
-    setAdFinished(false);
-  }
-};
-
+        } finally {
+          setLoading(false);
+          setAdFinished(false);
+        }
+      };
 
   return (
     <>
