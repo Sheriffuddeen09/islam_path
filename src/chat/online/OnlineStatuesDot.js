@@ -12,9 +12,9 @@ export default function UserStatus({user}) {
         }`}
       ></span>
 
-      <p className="text-xs text-gray-500">
+      {/* <p className="text-xs text-gray-500">
         {online ? "" : lastSeen ? `Last seen ${lastSeen}` : ""}
-      </p>
+      </p> */}
 
     </div>
   );

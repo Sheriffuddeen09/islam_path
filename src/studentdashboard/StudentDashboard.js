@@ -23,8 +23,11 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
    const [visible, setVisible] = useState(1)
         
    const [pendingRequests, setPendingRequests] = useState(0);
+
+
+   const { user } = useAuth();
+  
     
-    const {user} = useAuth()
     
     
       useEffect(() => {
@@ -69,7 +72,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         { id: 7, label: "View Continue Examination" },
         { id: 8, label: "View Assignment Result" },
         { id: 9, label: "View Examination Result" },
-        { id: 10, label: "Product Order" },
+        { id: 10, label: "Product Order", ordershow: true },
         { id: 11, label: "Saved Order", showcount: true },
       ];
       
@@ -161,6 +164,8 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                          {savedCount}
                        </span>
                      )}
+
+                    
                     
                    </li>
                  ))}
@@ -237,7 +242,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                            {menu.map(item => (
                              <li
                                key={item.id}
-                               onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item)}}
+                               onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item);}}
                                className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
                                  
                                  ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -254,7 +259,8 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                                     {savedCount}
                                   </span>
                                 )}
-                             </li>
+                              
+                              </li>
                            ))}
                          </ul>
                        </div>

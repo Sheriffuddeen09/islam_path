@@ -18,10 +18,11 @@ import CreateProduct from "../pages/sales/CreateProduct";
 import MyProducts from "../pages/sales/MyProduct";
 import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
+import { useAuth } from "../layout/AuthProvider";
 
 export default function TeacherDashboardLayout({chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, 
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,  orderCount, setOrderCount,
         savedCount, setSavedCount
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -31,6 +32,41 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
   const [pendingCount, setPendingCount] = useState(0);
 
    const [editingTeacher, setEditingTeacher] = useState(null);
+
+   
+      const { currentUser } = useAuth();
+       const authUserId = currentUser?.id;
+   
+      const fetchOrderCount = async () => {
+     try {
+       const res = await api.get("/api/orders/count", {
+         params: { user_id: authUserId }
+       });
+   
+       if (res.data.success) {
+         setOrderCount(res.data.count);
+       }
+     } catch (err) {
+       console.log(err);
+     }
+   };
+   
+   useEffect(() => {
+     fetchOrderCount();
+   }, []);
+   
+   
+   const handleClearOrderCount = async () => {
+     try {
+       await api.post("/api/orders/seen", {
+         user_id: authUserId,
+       });
+   
+       setOrderCount(0); // 🔥 instant UI update
+     } catch (err) {
+       console.log(err);
+     }
+   };
    
   
     // 🔹 Open modal
@@ -104,23 +140,41 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
   const defaultMenu = [
     { id: 21, label: "Create Product" },
     { id: 22, label: "Product List" },
-    { id: 23, label: "Order" },
-    { id: 24, label: "Saved Order", showcount: true },
+    { id: 23, label: "Promote Product" },
+    { id: 24, label: "Product Order", ordershow: true },
+    { id: 25, label: "Saved Order", showcount: true },
   ];
 
   // Choose which menu
   const menu = isTeacher ? teacherMenu : defaultMenu;
 
-  const handleMenuClick = async (item) => {
-          if (item.label === "Saved Order") {
-            try {
-              await api.post(`/saved-products/clear/${user.id}`);
-              setSavedCount(0); // update UI after backend success
-            } catch (err) {
-              console.error(err);
-            }
+
+
+  const fetchSavedCount = async () => {
+          try {
+            const res = await api.get(`/api/saved-products/count/${user?.id}`);
+            setSavedCount(res.data.count);
+          } catch (err) {
+            console.log(err);
           }
-          };
+        };
+
+        useEffect(() => {
+          if (user?.id) fetchSavedCount();
+        }, [user]);
+
+
+
+  const handleMenuClick = async (item) => {
+    if (item.label === "Saved Order") {
+      try {
+        await api.post(`/saved-products/clear/${user.id}`);
+        setSavedCount(0); // update UI after backend success
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    };
   
 
 
@@ -199,7 +253,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item)}}
+              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item); handleClearOrderCount(item)}}
               className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                 hover:bg-gray-900 hover:text-gray-200 
                 ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -217,6 +271,12 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
                   {savedCount}
                 </span>
               )}
+
+               {item.ordershow && orderCount > 0 && (
+                  <span onClick={() => handleClearOrderCount(item)} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {orderCount}
+                  </span>
+                )}
             </li>
           ))}
         </ul>
@@ -305,7 +365,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item)}}
+              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item); handleClearOrderCount(item)}}
               className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                 hover:bg-gray-900 hover:text-gray-200 
                 ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
@@ -323,6 +383,12 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
                   {savedCount}
                 </span>
               )}
+
+               {item.ordershow && orderCount > 0 && (
+                    <span onClick={() => handleClearOrderCount(item)} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {orderCount}
+                    </span>
+                  )}
             </li>
           ))}
         </ul>
@@ -390,10 +456,10 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         <div className={`${visible === 22 ? 'block' : 'hidden'}`}>
         <MyProducts   />
         </div>
-        <div className={`${visible === 23 ? 'block' : 'hidden'}`}>
-        <Order   />
+        <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
+        <Order  setOrderCount={setOrderCount} />
         </div>
-          <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
+          <div className={`${visible === 25 ? 'block' : 'hidden'}`}>
           <SaveOrder  />
           </div> 
       </section>

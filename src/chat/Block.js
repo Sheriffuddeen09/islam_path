@@ -1,4 +1,4 @@
-import { Unlock, UserX } from "lucide-react";
+import { Loader2, Unlock, UserX } from "lucide-react";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import api from "../Api/axios";
@@ -72,33 +72,16 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
         <button 
           onClick={handleBlock}
           disabled={loading}
-          className="px-3 py-2 inline-flex gap-2 items-center text-sm font-bold bg-red-600 text-white rounded hover:bg-red-700"
+          className="px-3 py-2 inline-flex gap-2 items-center text-sm font-bold text-green-800 rounded hover:text-green-700 text-sm"
          
         >
-          <UserX className="w-4 h-4" />
           {
             loading 
             ? 
-                <svg
-      className="animate-spin h-5 w-5 text-white mx-auto"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="text-blue-900"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
+            <p className="inline-flex gap-2 items-center text-sm font-bold text-green-800 rounded hover:text-green-700">
+               <Loader2 /> Blocking
+            </p>
+
             :
           "Block"
           }
@@ -115,33 +98,14 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
           <button
              onClick={handleUnblock}
             disabled={loading}
-            className="px-3 py-2 inline-flex gap-2 items-center text-sm font-bold bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-3 py-2 inline-flex gap-2 items-center text-sm font-bold text-green-800 rounded hover:text-green-700"
           >
-            <Unlock className="w-4 h-4" />
-            
             {
             loading 
             ? 
-                <svg
-      className="animate-spin h-5 w-5 text-white mx-auto"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
+                 <p className="inline-flex gap-2 items-center text-sm font-bold text-green-800 rounded hover:text-green-700">
+                <Loader2 /> Unblocking
+            </p>
             :
             "Unblock"
   }

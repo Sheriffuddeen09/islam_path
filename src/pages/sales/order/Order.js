@@ -3,7 +3,7 @@ import api from "../../../Api/axios";
 import { useAuth } from "../../../layout/AuthProvider";
 import { useEffect, useState } from "react";
 
-const OrdersPage = () => {
+const OrdersPage = ({setOrderCount}) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -44,6 +44,8 @@ const OrdersPage = () => {
 
       if (res.data.success) {
         setOrders(res.data.orders);
+
+        // setOrderCount(res.data.count || 0);
       }
     } catch (error) {
       setToast({ type: "error", message: "Failed to fetch orders" });
@@ -183,7 +185,7 @@ const OrdersPage = () => {
                   {/* ✅ ONE MESSAGE BUTTON */}
                   {!isBuyer && sellerId && (
                 order.status === "cancelled" ? (
-                  <button className="bg-red-700 text-white px-3 py-2 text-sm rounded whitespace-nowrap font-bold cursor-not-allowed">
+                  <button className="text-red-700 px-3 py-2 text-sm rounded whitespace-nowrap font-bold cursor-not-allowed">
                     Order Cancelled
                   </button>
                 ) : activeChats.includes(order.id) ? (
@@ -193,7 +195,7 @@ const OrdersPage = () => {
                 ) : (
                   <button
                     onClick={() => handleMessageSeller(sellerId, order.id)}
-                    className="bg-blue-600 text-white px-3 py-2 text-sm rounded font-bold"
+                    className="bg-blue-800 text-white px-3 py-2 text-sm rounded font-bold"
                   >
                     {chatLoading === order.id ? "Loading..." : "Message"}
                   </button>
@@ -216,9 +218,9 @@ const OrdersPage = () => {
                         order.status === "cancelled"
                           ? "bg-red-700 hidden cursor-not-allowed"
                           : order.chat_created
-                          ? "bg-green-600 cursor-not-allowed"
+                          ? "bg-green-700 cursor-not-allowed"
                           : order.status === "pending"
-                          ? "bg-blue-500 hover:bg-red-600 cursor-not-allowed"
+                          ? "bg-blue-700 hover:bg-red-600 cursor-not-allowed"
                           : order.status === "active"
                           ? "bg-gray-400 cursor-not-allowed"
                           : "hidden"
@@ -245,7 +247,7 @@ const OrdersPage = () => {
                           setShowDeleteModal(true);
                         }}
                       disabled={deletingId === order.id}
-                      className="px-3 py-2 text-sm rounded font-bold bg-red-500 text-white">
+                      className="px-3 py-2 text-sm rounded font-bold bg-red-700 hover:bg-red-800 text-white">
                     Delete
                   </button>
 
@@ -336,7 +338,7 @@ const OrdersPage = () => {
 
                   {/* ✅ CANCELLED */}
                   {order.status === "cancelled" && (
-                    <span className="px-3 py-2 text-sm font-bold text-red-600 whitespace-nowrap">
+                    <span className="px-3 py-3 text-sm font-bold text-red-600 whitespace-nowrap">
                       Order Cancelled
                     </span>
                   )}
@@ -347,7 +349,7 @@ const OrdersPage = () => {
                   setSelectedOrder(order);
                   setShowModal(true);
                 }}
-                className="text-sm bg-gray-900 text-white px-2 py-2 rounded whitespace-nowrap"
+                className="text-sm bg-gray-900 hover:bg-gray-800 text-white px-2 py-3 rounded whitespace-nowrap"
               >
                 View Details
               </button>
@@ -374,7 +376,7 @@ const OrdersPage = () => {
     <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6">
 
       {/* HEADER */}
-      <h2 className="text-lg font-bold mb-3 text-red-600">
+      <h2 className="text-lg font-bold mb-3 text-center text-red-600">
         Delete Order
       </h2>
 
@@ -390,7 +392,7 @@ const OrdersPage = () => {
         <button
           onClick={() => setShowDeleteModal(false)}
           disabled={deletingId === selectedOrderId}
-          className="px-4 py-2 rounded bg-gray-200 text-gray-700"
+          className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 text-white"
         >
           Cancel
         </button>
@@ -399,7 +401,7 @@ const OrdersPage = () => {
         <button
           onClick={() => handleDelete(selectedOrderId)}
           disabled={deletingId === selectedOrderId}
-          className="px-4 py-2 rounded bg-red-500 text-white flex items-center gap-2"
+          className="px-4 py-2 rounded bg-red-700 hover:bg-red-800 text-white flex items-center gap-2"
         >
           {deletingId === selectedOrderId ? (
             <>
@@ -434,7 +436,7 @@ const OrdersPage = () => {
         {/* CLOSE */}
         <button
           onClick={() => setShowCancelModal(false)}
-          className="px-4 py-2 text-sm bg-gray-200 rounded"
+          className="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 rounded text-white"
         >
           No
         </button>
@@ -445,7 +447,7 @@ const OrdersPage = () => {
             await handleCancel(selectedOrderId);
             setShowCancelModal(false);
           }}
-          className="px-4 py-2 text-sm bg-red-500 text-white rounded"
+          className="px-4 py-2 text-sm bg-red-700 over:bg-red-800 text-white rounded"
         >
           {
             cancelingId ? <Loader2 /> : "Yes, Cancel"

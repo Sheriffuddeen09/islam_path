@@ -42,6 +42,7 @@ import ProductPage from "./pages/sales/Product";
 import SingleProduct from "./pages/sales/SingleProduct";
 import CartPage from "./pages/sales/cart/CartPage";
 import WishlistPage from "./pages/sales/cart/WishlishPage";
+import ChatPage from "./chat/chatbox/Chatpage";
 
    
 function App() {
@@ -88,6 +89,8 @@ function App() {
       // Product
         const [products, setProducts] = useState([]);
         const [savedCount, setSavedCount] = useState(0);
+        const [orderCount, setOrderCount] = useState(0);
+        
         
       
       
@@ -382,6 +385,16 @@ function App() {
           element={<TeacherOnboarding onProfileCompleted={setUser} />} 
         />
 
+      <Route 
+          path="/chat" 
+          element={
+      <ChatPage
+      chats={chats}
+      setChats={setChats}
+      activeChat={activeChat}
+      setActiveChat={setActiveChat}
+    />
+          } />
       <Route path="/admin/choose-choice" element={
           <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
           currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
@@ -399,6 +412,7 @@ function App() {
           showEmoji={showEmoji} setShowEmoji={setShowEmoji}
           emojiList={emojiList} setEmojiList={setEmojiList}
           savedCount={savedCount} setSavedCount={setSavedCount}
+          orderCount={orderCount} setOrderCount={setOrderCount}
           />
         </ProtectedRoute>
       } />
