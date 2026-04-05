@@ -2,7 +2,7 @@ import React, { useRef, useState, useMemo, useEffect } from "react";
 import ChatList from "./ChatList";
 import MessageBox from "./MessageBox";
 import ActiveUsers from "./ActiveUsers";
-import { ChatSkeleton } from "./ChatSkeleton";
+import { UserSkeleton } from "./UserSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import { initEcho } from "../../echo";
@@ -19,6 +19,8 @@ export default function ChatPage({chats, setChats, activeChat, setActiveChat}) {
   const [toast, setToast] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [disappearingOn, setDisappearingOn] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+
 
 
   const showToast = (message, type = "success") => {
@@ -161,7 +163,7 @@ useEffect(() => {
 
   if (loadingUser)
     return (
-     <ChatSkeleton />
+     <UserSkeleton />
     );
 
 
@@ -200,12 +202,14 @@ useEffect(() => {
         disappearingOn={disappearingOn}
         setDisappearingOn ={setDisappearingOn}
         setMessages={setMessages}
+        isTyping={isTyping}
+        setIsTyping={setIsTyping}
       />
    
       </div>
 
       {/* RIGHT */}
-      <div className="w-80 border-l bg-white hidden lg:block">
+      <div className="w-80 border-l bg-white block">
         <ActiveUsers chats={chats} activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats}
         openChat={openChat} setDisappearingOn={setDisappearingOn} setMessages={setMessages}  />
       </div>

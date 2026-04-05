@@ -6,6 +6,11 @@ import UserStatus from "../online/OnlineStatuesDot";
 import { Link } from "react-router-dom";
 import BlockButton from "../Block";
 import { ReportModal } from "../ReportModal";
+import api from "../../Api/axios";
+
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:8000");
 
 export default function ActiveUsers({
   activeChat,
@@ -14,8 +19,6 @@ export default function ActiveUsers({
   setChats,
   chats,
   openChat, 
-  disappearingOn, 
-  setDisappearingOn,
   setMessages
 }) {
 
@@ -28,8 +31,24 @@ export default function ActiveUsers({
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [disappearTime, setDisappearTime] = useState("off");
+
+
   const user = activeChat?.other_user || {};
   const {user: authUser} = useAuth()
+
+  const chatId = activeChat?.id;
+
+  useEffect(() => {
+  socket.on("message-deleted", (data) => {
+    setMessages(prev =>
+      prev.filter(msg => msg.id !== data.messageId)
+    );
+  });
+
+  return () => socket.disconnect();
+}, []);
 
   // 🔥 animation trigger when chat changes
   useEffect(() => {
@@ -45,36 +64,15 @@ export default function ActiveUsers({
     setTimeout(() => setCopiedField(null), 1500);
   };
 
-  useEffect(() => {
-  if (!activeChat) return;
+  
 
-  const saved = localStorage.getItem(`disappear_${activeChat.id}`);
-  setDisappearingOn(saved === "true");
-}, [activeChat]);
-
-useEffect(() => {
-  if (!activeChat) return;
-
-  localStorage.setItem(
-    `disappear_${activeChat.id}`,
-    disappearingOn
-  );
-}, [disappearingOn, activeChat]);
-
-useEffect(() => {
-  if (!disappearingOn) return;
-
-  const interval = setInterval(() => {
-    setMessages(prev =>
-      prev.filter(msg => {
-        const created = new Date(msg.created_at).getTime();
-        return Date.now() - created < 60000; // 1 min
-      })
-    );
-  }, 5000);
-
-  return () => clearInterval(interval);
-}, [disappearingOn]);
+const options = [
+  { label: "Off", value: "off", seconds: 0  },
+  { label: "1 Minute", value: "1m", seconds: 60 },
+  { label: "1 Hour", value: "1h", seconds: 3600 },
+  { label: "1 Day", value: "1d", seconds: 86400 },
+  { label: "7 Days", value: "7d", seconds: 604800 },
+];
 
 
    const colors = [
@@ -173,43 +171,23 @@ useEffect(() => {
         <Link to={`/profile/${user.id}`}>
         <ActionButton icon={<UserCircle size={24} />} label="View Profile" />
         </Link>
-        <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 rounded-lg transition">
+        
+      <div className="relative flex flex-col px-6 pt-3 border-b pb-2">
 
-  {/* LEFT SIDE */}
-  <div className="flex items-center gap-3">
-    <MessageCircle size={20} />
-    <span className="font-medium text-sm">
-      Disappearing Messages
-    </span>
-  </div>
+        {/* BUTTON */}
+        <button  className="font-semibold text-sm inline-flex gap-2 items-center"
+        onClick={() => setShowDropdown(!showDropdown)}>
+          <MessageCircle size={20} />
+          Disappear Message"
+        </button>
 
-  {/* RIGHT SIDE TOGGLE */}
-  <label className="relative inline-flex items-center cursor-pointer">
-
-    {/* INPUT */}
-    <input
-      type="checkbox"
-      className="sr-only peer"
-      checked={disappearingOn}
-      onChange={() => setDisappearingOn(prev => !prev)}
-    />
-
-    {/* TRACK */}
-    <div className="
-      w-11 h-6 bg-gray-300 peer-checked:bg-blue-500
-      rounded-full transition-colors duration-300
-    "></div>
-
-    {/* CIRCLE */}
-    <div className="
-      absolute left-1 top-1
-      w-4 h-4 bg-white rounded-full shadow-md
-      transition-transform duration-300
-      peer-checked:translate-x-5
-    "></div>
-
-  </label>
-</div>
+        {/* STATUS TEXT (UNDER BUTTON) */}
+        <div className="text-xs text-gray-800 mt-1 ml-7">
+          {options.find(o => o.value === disappearTime)?.label || "Off"}
+        </div>
+    </div>
+        
+        
         <ActionButton icon={<MessageCircleHeart size={20} />} label="Create Group Chat" />
 
         <ActionButton icon={<Shield size={20} />} label="Verify Two-Step" />
@@ -294,6 +272,35 @@ useEffect(() => {
 
     </div>
 
+  </ModalOverlay>
+)}
+
+{showDropdown && (
+  <ModalOverlay onClose={() => setShowDropdown(false)}>
+
+    <div className="bg-white w-72 text-black text-sm p-6 rounded-xl shadow-lg animate-scaleIn">
+
+    {options.map(opt => (
+      <div
+        key={opt.value}
+        onClick={async () => {
+          setDisappearTime(opt.value);
+          setShowDropdown(false);
+
+          await api.post(`/api/chat/${chatId}/disappearing`, {
+            time: opt.seconds,
+            label: opt.value,
+            enabled: opt.value !== "off",
+          });
+        }}
+        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+      >
+        {opt.label}
+      </div>
+    ))}
+
+  </div>
+ 
   </ModalOverlay>
 )}
 

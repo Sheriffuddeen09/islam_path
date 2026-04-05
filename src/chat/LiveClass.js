@@ -73,7 +73,7 @@ const closeReport = () => {
       .finally(() => setLoadingUser(false));
   }, []);
 
-  // ================= FETCH CHATS =================
+  // ================= FETCH CHATS mark-seen =================
   const fetchChats = async () => {
   if (!authUser) return;
 

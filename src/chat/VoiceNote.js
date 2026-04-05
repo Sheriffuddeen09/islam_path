@@ -7,6 +7,7 @@ export default function VoiceNote({ chatId, onNewMessage }) {
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(0);
+  
   const [audioUrl, setAudioUrl] = useState(null);
 
   const mediaRecorderRef = useRef(null);
