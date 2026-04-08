@@ -11,281 +11,32 @@
     setTimeout(() => setToast(null), 3000);
   };
 
-
-
-  separate the input add voice note and emoji inside the input and if its click it should hide the input has it was in picture, when i submit text message or emoji, or voice note it should submit immediately without loading but when it submit the message should clock icon as loading if it send it should check icon. const react = async (messageId, emoji) => { 
-  const { data } = await api.post("/api/messages/react", {
-    message_id: messageId,
-    emoji,
-  });
-
-  setMessages(prev =>
-    prev.map(m => (m.id === data.id ? data : m))
-  );
-
-  setShowReactions(null);
-};const scrollToMessage = (id) => {
-  const el = document.getElementById(`message-${id}`);
-  if (!el) return;
-
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  el.classList.add("reply-highlight");
-  setTimeout(() => {
-    el.classList.remove("reply-highlight");
-  }, 1200);
-};  const renderReply = (
-  <div>
-      {message.replied_message && (
-  <div
-    className="mb-2 p-2 rounded bg-black/30 border-l-4 border-blue-400 text-xs cursor-pointer hover:bg-black/40 transition"
-    onClick={() => scrollToMessage(message.replied_message.id)}
-  >
-    <p className="font-semibold text-blue-300">
-      {message.replied_message.sender.first_name}
-    </p>
-
-    {/* TEXT */}
-    {message.replied_message.type === "text" && (
-      <p className="truncate opacity-80">
-        {message.replied_message.message}
-      </p>
-    )}
-
-    {/* IMAGE */}
-    {message.replied_message.type === "image" && (
-      <div className="flex items-center gap-2 opacity-80">
-        <span>🖼</span>
-        <span>Photo</span>
-      </div>
-    )}
-
-    {/* VOICE / AUDIO */}
-    {(message.replied_message.type === "voice" ||
-      message.replied_message.type === "audio") && (
-      <div className="flex items-center gap-2 opacity-80">
-        <span>🎤</span>
-        <span>Voice message</span>
-      </div>
-    )}
-
-    {/* VIDEO */}
-    {message.replied_message.type === "video" && (
-      <div className="flex items-center gap-2 opacity-80">
-        <span>🎥</span>
-        <span>Video</span>
-      </div>
-    )}
-
-    {/* FILE */}
-    {message.replied_message.type === "file" && (
-      <div className="flex items-center gap-2 opacity-80">
-        <span>📎</span>
-        <span>File</span>
-      </div>
-    )}
-  </div>
-)}
-</div>
-    );
-
-    const emojiarray = (
-      <div className="">
-      {message.reactions?.length > 0 && (
-  <div className="flex gap-1 mt-1 bg-black/30 text-white rounded-full px-2 py-0.5 text-xs relative">
-    {Object.entries(
-      message.reactions.reduce((acc, r) => {
-        acc[r.emoji] = (acc[r.emoji] || 0) + 1;
-        return acc;
-      }, {})
-    ).map(([emoji, count]) => (
-      <span key={emoji}>
-        {emoji}
-      </span>
-    ))}
-    
-  </div>
-)}
-  const sendVoice = async () => {
-  if (!audioChunksRef.current.length) return; // no audio to send
-
-  // Stop recording if still active
-  if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-    mediaRecorderRef.current.stop();
-    mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
-  }
-
-  const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-  const form = new FormData();
-  form.append("chat_id", chatId);
-  form.append("voice", blob, `voice-${Date.now()}.webm`);
-
-  setLoading(true)
-  try {
-    const res = await api.post("/api/messages/voice", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    // Add message to UI
-    if (onNewMessage && res.data.message) {
-    onNewMessage(res.data.message);
-  }
-
-    // Clear recording state safely
-    cancelRecording();
-  } catch (err) {
-    toast.error("Voice upload failed", err);
-  }
-  finally{
-    setLoading(false)
-  }
-};
-
- const sendMessage = async () => {
-  if (sending) return;
-  if (!text.trim() && !file) return;
-
-  const form = new FormData();
-  form.append("chat_id", chatId);
-
-  let messageType = "text";
-
-  if (file) {
-    if (!(file instanceof File)) {
-      toast.error("Invalid file selected");
-      return;
-    }
-
-    if (file.type.startsWith("image/")) messageType = "image";
-    else if (file.type.startsWith("audio/")) messageType = "voice";
-    else if (file.type.startsWith("video/")) messageType = "video";
-    else messageType = "file";
-
-    form.append("file", file); // ✅ ALWAYS FROM STATE
-  }
-
-  form.append("type", messageType);
-  if (text.trim()) form.append("message", text);
-
-  try {
-    setSending(true);
-    const { data } = await api.post("/api/messages", form, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
-
-    setText("");
-    setFile(null);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-
-    if (onSend) onSend(data);
-
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Upload failed");
-  } finally {
-    setSending(false);
-  }
-};
-
-
- import React, { useRef, useEffect } from "react"; 
-import { useNavigate } from "react-router-dom";
-import { ChatSkeleton } from "./ChatSkeleton";
-import MessageItem from "./MessageItem";
-
-export default function MessageBox({
-  activeChat,
-  messages,
-  authUser,
-  sendMessage,
-  loadingMessages, disappearingOn, setMessages
-}) {
-  const bottomRef = useRef();
-  const navigate = useNavigate()
-
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  if (!activeChat) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-gray-400">
-        Select a chat
-      </div>
-    );
-  }
-
-
-  return (
-    <div className="flex flex-col h-full text-black">
-
-      {/* HEADER */}
-      <div className="p-4 border-b flex justify-between items-center bg-white">
-        <div className="inline-flex gap-6 items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-          stroke="currentColor" class="size-6 cursor-pointer" onClick={() =>navigate('/')}>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-        </svg>
-          <h3 className="font-bold text-lg">
-          {activeChat.other_user?.first_name} {activeChat.other_user?.last_name}
-        </h3>
-        </div>
-        
-
-        <div className="flex gap-3">
-          📹 📞
-        </div>
-      </div>
-
-      {/* MESSAGES */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
-
-        {/* 🔥 LOADING SKELETON */}
-        {loadingMessages ? (
-          <ChatSkeleton type="messages" />
-        ) : messages.length === 0 ? (
-          <div className="text-center text-gray-400 mt-10">
-            No messages yet
-          </div>
-        ) : (
-          messages.map(msg => {
-          const isMine = msg.sender_id === authUser.id;
-
-          return (
-            <MessageItem
-              key={msg.id}
-              msg={msg}
-              isMine={isMine}
-              disappearingOn={disappearingOn}
-              authUser={authUser}
-              setMessages={setMessages}
-              
-            />
-          );
-        })
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-      {/* INPUT */}
-      <div className="p-3 border-t flex gap-2 bg-white">
-        <input
-          type="text"
-          placeholder="Type a message..."
-          className="flex-1 border rounded-full px-4 py-2"
-        />
-
-        <button
-          onClick={sendMessage}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full"
-        >
-          Send
-        </button>
-      </div>
-
-    </div>
-  );
-}
+  
+{
+        "id": 15,
+        "chat_id": 1,
+        "sender_id": 2,
+        "type": "voice",
+        "file": "voices\/A7Xg0gnURtJnkzLGPld8UsdMnq61oRgMOHVzf6c4.webm",
+        "created_at": "2026-04-07T03:06:36.000000Z",
+        "updated_at": "2026-04-07T03:06:36.000000Z",
+        "seen_at": null,
+        "delivered_at": null,
+        "message": null,
+        "edited": false,
+        "replied_to": null,
+        "is_read": 0,
+        "body": null,
+        "forwarded_from": null,
+        "receiver_id": null,
+        "disappear_at": null,
+        "expires_at": null,
+        "sender": {
+            "id": 2,
+            "first_name": "Odukoya",
+            "last_name": "Sheriff",
+            "role": "admin"
+        },
+        "reactions": [],
+        "replied_message": null
+    },

@@ -6,6 +6,7 @@ import toast, {Toaster} from "react-hot-toast";
 
 export default function MessageBubblePop({ open, setOpen, message, user, authUser, currentUserId, isMe, setMessages, activeChat, chat }) {
   const [openDelete, setOpenDelete] = useState(false);
+  
   const [editingMessage, setEditingMessage] = useState(null);
   const [clearMessage, setClearMessage] = useState(null);
 

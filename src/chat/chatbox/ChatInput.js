@@ -3,7 +3,7 @@ import EmojiPicker from "emoji-picker-react";
 import api from "../../Api/axios";
 import VoiceWave from "./VoiceWave";
 
-export default function ChatInput({ chatId, authUser, setMessages, setIsTyping, bottomRef }) {
+export default function ChatInput({ chatId, authUser, setMessages, setIsTyping, bottomRef, replyingTo, setReplyingTo }) {
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -22,6 +22,14 @@ export default function ChatInput({ chatId, authUser, setMessages, setIsTyping, 
   const timerRef = useRef(null)
 
   const pausedRef = useRef(false);
+  
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (replyingTo && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [replyingTo]);
 
   const startTimer = () => {
   clearInterval(timerRef.current);
@@ -62,6 +70,132 @@ const resumeRecording = () => {
   setPaused(false);
 };
 
+
+const normalizeMessage = (msg) => {
+  return {
+    ...msg,
+
+    // ALWAYS prefer server file first
+    file_url: msg.file
+      ? `${"http://localhost:8000"}/${msg.file}`
+      : msg.file_url || msg.local || null,
+
+    // prevent missing date crash
+    created_at: msg.created_at || new Date().toISOString(),
+  };
+};
+
+const sendText = async () => {
+    if (!text.trim()) return;
+    const tempId = Date.now();
+    const tempMessage = {
+      id: tempId,
+      message: text,
+      type: "text",
+      sender_id: authUser.id,
+      status: "sending",
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, tempMessage]);
+    setText("");
+    try {
+      const { data } = await api.post("/api/messages", {
+        chat_id: chatId,
+        message: tempMessage.message,
+        type: "text",
+        replied_to: replyingTo ? replyingTo.id : null,
+      });
+      setMessages(prev =>
+        prev.map(m => (m.id === tempId ? { ...data, status: "sent" } : m))
+      );
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+      
+      setReplyingTo(null);
+    } catch {
+      setMessages(prev =>
+        prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
+      );
+    }
+  };
+
+  
+const stopRecording = async () => {
+  const recorder = mediaRecorderRef.current;
+  if (!recorder) return;
+
+  clearInterval(timerRef.current);
+  setPaused(false);
+  setRecording(false);
+
+  recorder.stop();
+
+  recorder.onstop = async () => {
+    const blob = new Blob(audioChunksRef.current, {
+      type: "audio/webm",
+    });
+
+    if (!blob || blob.size === 0) {
+      console.error("Empty audio blob");
+      return;
+    }
+
+    const tempId = Date.now();
+
+    const tempMessage = {
+      id: tempId,
+      type: "voice",
+      sender_id: authUser.id,
+      status: "sending",
+      local: URL.createObjectURL(blob),
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+
+    const form = new FormData();
+    form.append("chat_id", chatId);
+    form.append("voice", blob, "voice.webm");
+
+    if (replyingTo?.id) {
+      form.append("replied_to", replyingTo.id);
+    }
+
+    try {
+      const res = await api.post("/api/messages/voice", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId
+            ? { ...res.data.message, status: "sent" }
+            : m
+        )
+      );
+
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+
+      setReplyingTo(null);
+    } catch (err) {
+      console.log(err?.response?.data);
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId ? { ...m, status: "failed" } : m
+        )
+      );
+    }
+  };
+
+  recorder.stream.getTracks().forEach((t) => t.stop());
+};
+
   const sendFile = async () => {
   if (!file) return;
 
@@ -73,43 +207,56 @@ const resumeRecording = () => {
   else if (file.type.startsWith("audio/")) type = "voice";
 
   const tempMessage = {
-    id: tempId,
-    type,
-    sender_id: authUser.id,
-    status: "sending",
-    local: previewUrl,
-    file_name: file.name,
-  };
+      id: tempId,
+      type,
+      sender_id: authUser.id,
+      status: "sending",
+      local: previewUrl,
+      file_name: file.name,
+      created_at: new Date().toISOString(), // ✅ FIX INVALID DATE
+    };
 
-  setMessages(prev => [...prev, tempMessage]);
-
-  setTimeout(() => {
-          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 50);
+  setMessages((prev) => [...prev, tempMessage]);
 
   const form = new FormData();
   form.append("chat_id", chatId);
-  form.append("file", file);
+  form.append("file", file, file.name); // ✅ IMPORTANT
   form.append("type", type);
 
+  if (replyingTo?.id) {
+    form.append("replied_to", replyingTo.id);
+  }
+
   try {
-    const res = await api.post("/api/messages", form);
+    const res = await api.post("/api/messages", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    setMessages(prev =>
-      prev.map(m =>
-        m.id === tempId ? { ...res.data, status: "sent" } : m
-      )
-    );
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId
+            ? normalizeMessage({
+                ...m,                  // 👈 KEEP temp data (local preview)
+                ...res.data.message,  // 👈 overwrite with server
+                status: "sent",
+              })
+            : m
+        )
+      );
 
-  } catch {
-    setMessages(prev =>
-      prev.map(m =>
+    setReplyingTo(null);
+  } catch (err) {
+    console.log(err?.response?.data);
+
+    setMessages((prev) =>
+      prev.map((m) =>
         m.id === tempId ? { ...m, status: "failed" } : m
       )
     );
   }
 
-  // ✅ FULL CLEANUP (IMPORTANT)
   setShowPreview(false);
   setFile(null);
   setPreviewUrl(null);
@@ -118,6 +265,7 @@ const resumeRecording = () => {
     fileInputRef.current.value = "";
   }
 };
+
 
   useEffect(() => {
   if (!text) return;
@@ -131,14 +279,6 @@ const resumeRecording = () => {
   return () => clearTimeout(timeout);
 }, [text]);
 
-    useEffect(() => {
-    window.Echo.private(`chat.${chatId}`)
-        .listen("UserTyping", () => {
-        setIsTyping(true);
-
-        setTimeout(() => setIsTyping(false), 2000);
-        });
-    }, []);
 
 
   // ================= EMOJI
@@ -147,44 +287,7 @@ const resumeRecording = () => {
   };
 
   // ================= TEXT SEND
-  const sendText = async () => {
-    if (!text.trim()) return;
-
-    const tempId = Date.now();
-
-    const tempMessage = {
-      id: tempId,
-      message: text,
-      type: "text",
-      sender_id: authUser.id,
-      status: "sending",
-    };
-
-    setMessages(prev => [...prev, tempMessage]);
-    setText("");
-
-    try {
-      const { data } = await api.post("/api/messages", {
-        chat_id: chatId,
-        message: tempMessage.message,
-        type: "text",
-      });
-
-      setMessages(prev =>
-        prev.map(m => (m.id === tempId ? { ...data, status: "sent" } : m))
-      );
-
-      setTimeout(() => {
-          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 50);
-
-    } catch {
-      setMessages(prev =>
-        prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
-      );
-    }
-  };
-
+  
   // ================= FILE PICK
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
@@ -243,58 +346,7 @@ const resumeRecording = () => {
   };
 
   // ================= VOICE SEND
-  const stopRecording = async () => {
-    const recorder = mediaRecorderRef.current;
-
-  if (!recorder) return;
-
-  // ✅ CLEAR TIMER ALWAYS
-  clearInterval(timerRef.current);
-
-  setPaused(false);
-  setRecording(false);
-
-  recorder.stop();
-  recorder.stream.getTracks().forEach(t => t.stop());
-
-    const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-    const tempId = Date.now();
-
-    const tempMessage = {
-      id: tempId,
-      type: "voice",
-      sender_id: authUser.id,
-      status: "sending",
-      local: URL.createObjectURL(blob),
-    };
-
-    setMessages(prev => [...prev, tempMessage]);
-
-    const form = new FormData();
-    form.append("chat_id", chatId);
-    form.append("voice", blob);
-
-    try {
-      const res = await api.post("/api/messages/voice", form);
-
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === tempId ? { ...res.data.message, status: "sent" } : m
-        )
-      );
-
-      setTimeout(() => {
-          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 50);
-
-    } catch {
-      setMessages(prev =>
-        prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
-      );
-    }
-  };
-
+  
   const formatTime = (sec) => {
   const m = String(Math.floor(sec / 60)).padStart(2, "0");
   const s = String(sec % 60).padStart(2, "0");
@@ -304,6 +356,37 @@ const resumeRecording = () => {
   
   return (
     <>
+   {replyingTo && (
+  <div className="bg-black/90 py-2 px-4 rounded mb-2 flex justify-between items-center">
+    <div className="text-xs">
+      <p className="text-white text-sm mb-2 font-semibold">
+      Replying to{" "}
+      {replyingTo?.sender_id === authUser.id
+        ? "You"
+        : replyingTo?.sender?.first_name || "User"}
+    </p>
+
+      <p className="truncate opacity-80 text-white">
+        {replyingTo?.type === "text"
+          ? replyingTo?.message
+          : replyingTo?.type === "image"
+          ? "🖼 Photo"
+          : replyingTo?.type === "voice"
+          ? "🎤 Voice message"
+          : replyingTo?.type === "file"
+          ? "📄 File"
+          : replyingTo?.type}
+      </p>
+    </div>
+
+    <button
+      onClick={() => setReplyingTo(null)}
+      className="text-red-400 text-sm"
+    >
+      ✕
+    </button>
+  </div>
+)}
     {!recording && (
     <div className="px w-full bg-white gap-3 flex items-center flex-row">
        
@@ -343,6 +426,7 @@ const resumeRecording = () => {
    
       <div className="relative w-full ">
        <input
+              ref={textareaRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
               className="flex-1 border bg-white shadow text-black relative w-full px-4 rounded-full py-3 relative"

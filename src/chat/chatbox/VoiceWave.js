@@ -7,7 +7,7 @@ export default function VoiceWave({ active }) {
     if (!active) return;
 
     const interval = setInterval(() => {
-      const newBars = Array.from({ length: 50 }, () =>
+      const newBars = Array.from({ length: 15 }, () =>
         Math.floor(Math.random() * 20) + 5
       );
       setBars(newBars);

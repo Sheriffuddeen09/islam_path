@@ -14,12 +14,13 @@ const socket = io("http://localhost:8000");
 
 export default function ActiveUsers({
   activeChat,
-  loadingChatInfo, // 👈 NEW PROP
+  loadingChats, // 👈 NEW PROP
   setActiveChat,
   setChats,
   chats,
   openChat, 
-  setMessages
+  setMessages,
+  onBack
 }) {
 
   const [copiedField, setCopiedField] = useState(null);
@@ -105,7 +106,7 @@ const options = [
 }, [searchTerm, chats]);
 
   // 🔥 LOADING STATE
-  if (loadingChatInfo) {
+  if (loadingChats) {
   return (
     <div className="h-full bg-white transition-all duration-300">
       <ChatSkeleton type="info" />
@@ -129,9 +130,17 @@ const options = [
     >
 
       {/* HEADER */}
-      <div className="p-4 border-b font-bold flex items-center gap-2 text-black text-xl ">
+      <div className="flex flex-row justify-between px-3 items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
+          stroke="currentColor" class="size-6 cursor-pointer text-black lg:hidden" onClick={onBack}>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+
+         <div className="p-4 border-b font-bold flex items-center gap-2 text-black text-xl ">
         <UserCircle size={24} /> User's Info
       </div>
+      </div>
+     
 
       {/* PROFILE */}
       <div className="flex flex-col items-center p-4 border-b bg-white transition-all duration-300">
@@ -145,7 +154,7 @@ const options = [
               </div>
 
         <h2 className="font-semibold text-lg font-bold inline-flex gap-2 items-center text-black font-bold">
-          <UserStatus user={authUser} /> {user.first_name || "User"} {user.last_name || ""}
+          <UserStatus user={activeChat?.other_user} /> {user.first_name || "User"} {user.last_name || ""}
         </h2>
 
         
@@ -166,7 +175,7 @@ const options = [
           {/* Disappearing Message */}
 
       {/* ACTIONS */}
-      <div className="flex-1 overflow-y-auto pb-2 space-y-0 text-black font-semibold border-b-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pb-2 space-y-0 text-black font-semibold border-b-2">
 
         <Link to={`/profile/${user.id}`}>
         <ActionButton icon={<UserCircle size={24} />} label="View Profile" />
@@ -175,10 +184,10 @@ const options = [
       <div className="relative flex flex-col px-6 pt-3 border-b pb-2">
 
         {/* BUTTON */}
-        <button  className="font-semibold text-sm inline-flex gap-2 items-center"
+        <button  className="font-semibold text-black inline-flex gap-2 items-center"
         onClick={() => setShowDropdown(!showDropdown)}>
           <MessageCircle size={20} />
-          Disappear Message"
+          Disappear Message
         </button>
 
         {/* STATUS TEXT (UNDER BUTTON) */}

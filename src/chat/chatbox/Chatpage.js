@@ -7,118 +7,96 @@ import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import { initEcho } from "../../echo";
 
-
-export default function ChatPage({chats, setChats, activeChat, setActiveChat}) {
-
+export default function ChatPage({
+  chats,
+  setChats,
+  activeChat,
+  setActiveChat
+}) {
   const { user: authUser } = useAuth();
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [loadingChats, setLoadingChats] = useState(true);
+
   const [messages, setMessages] = useState([]);
-  const [chatFilter, setChatFilter] = useState("all"); // all | unread
-  const fetchedOnce = useRef(false);
-  const [toast, setToast] = useState(false)
+  const [chatFilter, setChatFilter] = useState("all");
+  const [loadingChats, setLoadingChats] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [disappearingOn, setDisappearingOn] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
 
 
+  // ================= RESPONSIVE STATE =================
+  const [showList, setShowList] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
+
+  const chatId = activeChat?.id;
+  const bottomRef = useRef(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-
-  useEffect(() => {
-    api.get("/api/me")
-      .finally(() => setLoadingUser(false));
-  }, []);
+  // ================= FETCH CHATS =================
   const fetchChats = async () => {
-  if (!authUser) return;
-  try {
-    setLoadingChats(true);
-    const res = await api.get("/api/chats");
-    const normalized = res.data.map(chat => ({
-      ...chat,
-      unread_count: Number(chat.unread_count || 0),
-      latest_message: chat.latest_message || null,
-      block_info: chat.block_info
-        ? {
-            ...chat.block_info,
-            blocked_by_me: chat.block_info.blocker_id === authUser.id,
-            blocked_me: chat.block_info.blocked_id === authUser.id,
-          }
-        : null,
-    }));
-    setChats(normalized);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoadingChats(false);
-  }
-};
-  useEffect(() => {
-    if (!authUser || fetchedOnce.current) return;
-    fetchedOnce.current = true;
-    fetchChats();
-    const interval = setInterval(fetchChats, 10000);
-    return () => clearInterval(interval);
-  }, [authUser]);
-  
+    if (!authUser) return;
 
-  useEffect(() => {
-  if (!authUser) return;
-  const echo = initEcho();
-  const channel = echo.private(`chat.${authUser.id}`);
-  channel.listen("NewMessage", (e) => {
-    setChats(prev =>
-      prev.map(c => {
-        if (c.id !== e.message.chat_id) return c;
-        const isActive = activeChat?.id === c.id;
-        return {
-          ...c,
-          latest_message: e.message,
-          unread_count: !isActive && e.message.sender_id !== authUser.id
-            ? (c.unread_count || 0) + 1
-            : c.unread_count
-        };
-      })
-    );
-    if (activeChat?.id === e.message.chat_id) {
-      setMessages(prev => [...prev, e.message]);
-      api.post(`/api/chats/${activeChat.id}/seen`).catch(() => {});
-    }
-  });
-  channel.listen("MessageSeen", (e) => {
-    setChats(prev =>
-      prev.map(c =>
-        c.id === e.message.chat_id
+    try {
+      setLoadingChats(true);
+      const res = await api.get("/api/chats");
+
+      const normalized = res.data.map(chat => ({
+        ...chat,
+        unread_count: Number(chat.unread_count || 0),
+        latest_message: chat.latest_message || null,
+        block_info: chat.block_info
           ? {
-              ...c,
-              latest_message: {
-                ...c.latest_message,
-                seen_at: e.message.seen_at
-              }
+              ...chat.block_info,
+              blocked_by_me: chat.block_info.blocker_id === authUser.id,
+              blocked_me: chat.block_info.blocked_id === authUser.id
             }
-          : c
-      )
-    );
-  });
-  return () => echo.leave(`chat.${authUser.id}`);
-}, [authUser, activeChat]);
+          : null
+      }));
 
-  const openChat = async (chat) => {
+      setChats(normalized);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!authUser) return;
+    fetchChats();
+  }, [authUser]);
+
+  // ================= OPEN CHAT =================
+
+  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsLargeScreen(window.innerWidth >= 1024);
+  };
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+
+ const openChat = async (chat) => {
   if (chat.block_info?.blocked_me) {
-    showToast("You have been blocked in this chat");
+    showToast("You have been blocked in this chat", "error");
     return;
   }
 
   setActiveChat(chat);
 
-  // 🔥 SAVE CHAT ID
-  localStorage.setItem("lastChatId", chat.id);
+  // 📱 ONLY MOBILE/IPAD hides list
+  if (!isLargeScreen) {
+    setShowList(false);
+  }
 
-  setLoadingMessages(true);
+  localStorage.setItem("lastChatId", chat.id);
 
   setChats(prev =>
     prev.map(c =>
@@ -127,92 +105,136 @@ export default function ChatPage({chats, setChats, activeChat, setActiveChat}) {
   );
 
   try {
+    setLoadingMessages(true);
     const res = await api.get(`/api/chats/${chat.id}/messages`);
     setMessages(res.data || []);
-    await api.post(`/api/chats/${chat.id}/seen`);
-  } catch (e) {
-    console.error(e);
   } finally {
     setLoadingMessages(false);
   }
 };
 
-
-const restoredRef = useRef(false);
-
 useEffect(() => {
+    if (!loadingMessages && messages.length) {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView();
+      }, 100);
+    }
+  }, [chatId]);
+
+  // ================= RESTORE LAST CHAT =================
+  const restoredRef = useRef(false);
+
+  useEffect(() => {
   if (!chats.length || restoredRef.current) return;
 
-  const lastChatId = localStorage.getItem("lastChatId");
+  // ❌ BLOCK AUTO-RESTORE ON MOBILE / IPAD
+  if (!isLargeScreen) return;
 
+  const lastChatId = localStorage.getItem("lastChatId");
   if (!lastChatId) return;
 
-  const foundChat = chats.find(c => c.id === Number(lastChatId));
+  const found = chats.find(c => c.id === Number(lastChatId));
 
-  if (foundChat) {
+  if (found) {
     restoredRef.current = true;
-    openChat(foundChat);
+    openChat(found);
   }
 }, [chats]);
 
+  // ================= UNREAD TOTAL =================
   const unreadTotal = useMemo(
     () => chats.reduce((sum, c) => sum + (c.unread_count || 0), 0),
     [chats]
   );
-  
 
-  if (loadingUser)
-    return (
-     <UserSkeleton />
-    );
+  // ================= LOADING =================
+  if (loadingChats) return <UserSkeleton />;
 
-
+  // ================= UI =================
   return (
-    <div className="h-screen flex bg-white pt-20">
+    <div className="h-screen flex bg-gray-900 ">
 
-    {toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
+      {/* ================= TOAST pt-20================= */}
+      {/* {toast && (
+        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl text-white z-50
           ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
         `}>
           {toast.message}
         </div>
-      )}
+      )} */}
 
-      
-
-      {/* LEFT */}
-      <div className="w-80 border-r bg-white">
-        <ChatList chats={chats}  openChat={openChat}
-          loadingChats={loadingChats}
+      {/* ================= CHAT LIST ================= */}
+      <div className={`
+        border-r bg-white pt-3
+        w-full lg:w-80
+        ${showList ? "block" : "hidden lg:block"}
+      `}>
+        <ChatList
+          chats={chats}
+          openChat={openChat}
           chatFilter={chatFilter}
           setChatFilter={setChatFilter}
           unreadTotal={unreadTotal}
-          activeChat ={activeChat}
-          disappearingOn={disappearingOn}
-          setDisappearingOn ={setDisappearingOn} />
+          activeChat={activeChat}
+          setChats={setChats}
+          loadingChats={loadingChats}
+        />
       </div>
 
-      {/* MIDDLE */}
-      <div className="flex-1 flex flex-col">
+      {/* ================= MESSAGE BOX ================= */}
+      <div className={`
+        flex-1 flex flex-col
+        ${showList ? "hidden lg:flex" : "flex"}
+      `}>
         <MessageBox
-        activeChat={activeChat}
-        messages={messages}
-        authUser={authUser}
-        loadingMessages={loadingMessages}
-        disappearingOn={disappearingOn}
-        setDisappearingOn ={setDisappearingOn}
-        setMessages={setMessages}
-        isTyping={isTyping}
-        setIsTyping={setIsTyping}
-      />
-   
+          activeChat={activeChat}
+          messages={messages}
+          setMessages={setMessages}
+          authUser={authUser}
+          loadingMessages={loadingMessages}
+          isTyping={isTyping}
+          setIsTyping={setIsTyping}
+          onHeaderClick={() => setShowProfile(true)}
+          onBack={() => setShowList(true)}
+          chatId={chatId}
+          bottomRef={bottomRef}
+          setToast={setToast}
+          setActiveChat={setActiveChat}
+          chats={chats}
+          replyingTo={replyingTo}
+          setReplyingTo={setReplyingTo}
+        />
       </div>
 
-      {/* RIGHT */}
-      <div className="w-80 border-l bg-white block">
-        <ActiveUsers chats={chats} activeChat={activeChat} setActiveChat={setActiveChat} setChats={setChats}
-        openChat={openChat} setDisappearingOn={setDisappearingOn} setMessages={setMessages}  />
+      {/* ================= ACTIVE USERS (DESKTOP ONLY) ================= */}
+      <div className="hidden lg:block lg:w-80 border-l bg-white">
+        <ActiveUsers
+          chats={chats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          setChats={setChats}
+          openChat={openChat}
+          loadingChats={loadingChats}
+          setMessages={setMessages}
+          onBack={() => setShowProfile(false)}
+        />
       </div>
+
+      {/* ================= PROFILE MODAL ================= */}
+      {showProfile && activeChat && (
+        <div className="fixed inset-0 bg-black/50 z-50">
+          <ActiveUsers
+          chats={chats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          setChats={setChats}
+          openChat={openChat}
+          loadingChats={loadingChats}
+          setMessages={setMessages}
+          onBack={() => setShowProfile(false)}
+        />
+        </div>
+      )}
 
     </div>
   );

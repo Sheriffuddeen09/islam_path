@@ -4,9 +4,9 @@ export function UserSkeleton({ type = "list" }) {
   // 🔹 CHAT LIST SKELETON
   if (type === "list") {
     return (
-      <div className="sm:p-10 p-4 space-y-4 animate-pulse">
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="flex gap-3 items-center mt-10">
+      <div className="sm:py-3 px-6 py-3 space-y-4 animate-pulse">
+        {[1, 2, 3, 4, 5, 6, 7].map(i => (
+          <div key={i} className="flex flex-wrap gap-3 items-center mt-10">
 
             <div className="w-12 h-12 bg-gray-300 rounded-full" />
 

@@ -1,4 +1,4 @@
-export default function ReactionPopup({ onReact }) {
+export default function ReactionPopup({ onReact, onClose }) {
   const emojis = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
 
   return (
@@ -7,7 +7,7 @@ export default function ReactionPopup({ onReact }) {
         <span
           key={e}
           className="cursor-pointer text-lg"
-          onClick={() => onReact(e)}
+          onClick={() => {onReact(e); onClose()}}
         >
           {e}
         </span>

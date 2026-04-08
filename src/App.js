@@ -385,16 +385,7 @@ function App() {
           element={<TeacherOnboarding onProfileCompleted={setUser} />} 
         />
 
-      <Route 
-          path="/chat" 
-          element={
-      <ChatPage
-      chats={chats}
-      setChats={setChats}
-      activeChat={activeChat}
-      setActiveChat={setActiveChat}
-    />
-          } />
+      
       <Route path="/admin/choose-choice" element={
           <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
           currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
@@ -416,6 +407,17 @@ function App() {
           />
         </ProtectedRoute>
       } />
+
+      <Route 
+          path="/chat" 
+          element={
+      <ChatPage
+      chats={chats}
+      setChats={setChats}
+      activeChat={activeChat}
+      setActiveChat={setActiveChat}
+    />
+          } />
 
       <Route
           path="/student/dashboard"

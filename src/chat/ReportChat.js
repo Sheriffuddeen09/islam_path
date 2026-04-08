@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import { Loader2 } from "lucide-react";
-import Navbar from '../layout/Header';
 import toast, { Toaster } from "react-hot-toast";
 
 

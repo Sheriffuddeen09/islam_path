@@ -3,6 +3,7 @@ import { Check, CheckCheck } from "lucide-react";
 import { ChatSkeleton } from "./ChatSkeleton";
 import UserStatus from "../online/OnlineStatuesDot";
 import { useAuth } from "../../layout/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 export default function ChatList({
   chats = [],
@@ -64,11 +65,17 @@ export default function ChatList({
     return chats;
   }, [chatFilter, chats]);
 
+  const navigate = useNavigate()
+
   return (
     <div className="h-full flex flex-col bg-white">
 
       {/* HEADER */}
-      <div className="p-4 font-bold text-lg border-b flex justify-between items-center text-black">
+      <div className="p-4 font-bold text-lg border-b inline-flex gap-3 items-center text-black">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+        stroke-width="1.5" stroke="currentColor" class="size-6" onClick={() =>navigate('/')}>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
         Messages
         {unreadTotal > 0 && (
           <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">

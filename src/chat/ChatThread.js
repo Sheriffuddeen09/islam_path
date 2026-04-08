@@ -4,11 +4,12 @@ import logo from "../layout/image/favicon.png";
 import { useEffect, useRef, useState } from "react";
 import api from "../Api/axios";
 
-export default function ChatThread({ chats, chatId, setReplyingTo, replyingTo, messages, loading, setMessages, setActiveChat, activeChat, setChats, chat }) {
+export default function ChatThread({ chats, chatId, setReplyingTo, replyingTo, messages, loading, setMessages, 
+                                     setActiveChat, activeChat, setChats, chat }) {
   const typing = useTyping(chatId);
   const bottomRef = useRef(null);
-  const [selectedMessages, setSelectedMessages] = useState([]);
   const [forwardModalOpen, setForwardModalOpen] = useState(false);
+  const [selectedMessages, setSelectedMessages] = useState([]);
 
 function toggleSelect(msg) {
   setSelectedMessages(prev =>
@@ -17,6 +18,7 @@ function toggleSelect(msg) {
       : [...prev, msg]
   );
 }
+
 
 const [users, setUsers] = useState([]);
 
@@ -33,14 +35,12 @@ useEffect(() => {
   fetchUsers();
 }, []);
 
-  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
     if (!loading && messages?.length) {
       bottomRef.current?.scrollIntoView({ behavior: "auto" });
     }
   }, [chatId, messages, loading]);
 
-  /* ================= LOADING ================= */
   if (loading) {
     return (
       <div className="flex-1 overflow-y-auto p-4 h-[360px]">
