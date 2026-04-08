@@ -392,9 +392,9 @@ console.log("selectedMessages:", selectedMessages);
           <p className="text-sm">{msg.message}</p>
         )}
 
-        {/* IMAGE */}
+        {/* IMAGE /storage/${msg.file} */}
         {msg.type === "image" && (
-        <img src={msg.file_url || msg.local} 
+        <img src={`/storage/${msg.file_url || msg.local}`} 
 
             className="w-40 rounded cursor-pointer"
             onClick={(e) => {
@@ -410,7 +410,7 @@ console.log("selectedMessages:", selectedMessages);
         {/* VIDEO */}
         {msg.type === "video" && (
           <video
-            src={msg.local || msg.file_url}
+            src={`/storage/${msg.file_url || msg.local}`}
             className="w-40 rounded cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
@@ -423,7 +423,7 @@ console.log("selectedMessages:", selectedMessages);
         )}
 
         {msg.type === "file" && (
-          <a href={msg.file_url} target="_blank" className="text-blue-500 underline">
+          <a href={`/storage/${msg.file_url || msg.local}`} target="_blank" className="text-blue-500 underline">
             📄 {msg.file_name || "Download file"}
           </a>
         )}
