@@ -9,7 +9,10 @@ export default function VoiceUI({ msg, isMine }) {
   const [speed, setSpeed] = useState(1);
   const [showSpeed, setShowSpeed] = useState(false);
 
-  const audioSrc = msg.voice_url || msg.local || "";
+  const audioSrc =
+  msg.voice_url ||
+  msg.local ||
+  (msg.file ? `/storage/${msg.file}` : "");
 
   const colors = [
     "bg-orange-500",
