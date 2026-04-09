@@ -271,10 +271,22 @@ const stopRecording = async () => {
 
   files.forEach((file, i) => {
   const isImage = file.type.startsWith("image/");
+  const isVideo = file.type.startsWith("video/");
 
+  // 🖼 IMAGE → CROPPED
   if (isImage && croppedImages[i]) {
-    form.append("files[]", croppedImages[i]); // ONLY that image
-  } else {
+    form.append("files[]", croppedImages[i]);
+  }
+
+  // 🎬 VIDEO → SEND WITH TRIM DATA
+  else if (isVideo && trimMap[i]) {
+    form.append("files[]", file);
+    form.append("trim_start[]", trimMap[i].start);
+    form.append("trim_end[]", trimMap[i].end);
+  }
+
+  // 📁 NORMAL FILE
+  else {
     form.append("files[]", file);
   }
 
@@ -662,6 +674,10 @@ const handleFileChange = (e) => {
     sendFile(selectedFiles); // 👈 pass only selected
     setShowPreview(false);
   }}
+  setDurationMap={setDurationMap}
+  durationMap={durationMap}
+  trimMap={trimMap}
+  setTrimMap={setTrimMap}
 />
 
     </> 

@@ -12,17 +12,16 @@ export default function MediaPreviewModal({
   onClose,
   onSend,
   crop,setCrop, cropAppliedMap, setCroppedAreaPixels, setCroppedImages, croppedImages, selected, setCropAppliedMap,
-  croppedAreaPixels, zoomMap, setZoomMap
+  croppedAreaPixels, zoomMap, setZoomMap, setTrimMap, setDurationMap, trimMap, durationMap
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
  
 
   const [showEmoji, setShowEmoji] = useState(false);
-  const [isTrimApplied, setIsTrimApplied] = useState(false);
   const videoRef = useRef(null);
 
   // 🔥 STORE PER FILE SETTINGS image
-  const [trimMap, setTrimMap] = useState({});
+
 
   const [duration, setDuration] = useState(0);
   const [trim, setTrim] = useState({ start: 0, end: 5 });
@@ -35,6 +34,9 @@ export default function MediaPreviewModal({
     setCaption((prev) => prev + emojiData.emoji);
     setShowEmoji(false);
   };
+
+  const currentTrim = trimMap[activeIndex] ?? { start: 0, end: 0 };
+  const currentDuration = durationMap[activeIndex] ?? 0;
 
 
  const getCroppedImg = async (imageSrc, croppedAreaPixels) => {
@@ -68,10 +70,6 @@ export default function MediaPreviewModal({
     }, "image/jpeg");
   });
 };
-
-  // -------------------------
-  // 🖼 CROP COMPLETE
-  // -------------------------
   const onCropComplete = (_, areaPixels) => {
   setCroppedAreaPixels(areaPixels);
 };
@@ -97,13 +95,28 @@ export default function MediaPreviewModal({
   // -------------------------
   // 🎥 TRIM APPLY
   // -------------------------
-  const handleApplyTrim = () => {
-    setIsTrimApplied(true);
+  <video
+  ref={videoRef}
+  src={activeUrl}
+  controls
+  className="max-h-[50vh]"
+  onLoadedMetadata={(e) => {
+    const dur = e.target.duration;
 
-    if (videoRef.current) {
-      videoRef.current.currentTime = trim.start;
-    }
-  };
+    setDurationMap((prev) => ({
+      ...prev,
+      [activeIndex]: dur,
+    }));
+
+    setTrimMap((prev) => ({
+      ...prev,
+      [activeIndex]: {
+        start: 0,
+        end: Math.min(5, dur),
+      },
+    }));
+  }}
+/>
 
   // 🔥 SYNC VIDEO PREVIEW WITH TRIM
   const handleActiveImageChange = (index) => {
@@ -179,20 +192,16 @@ console.log("current image:", previewUrls?.[activeIndex]);
     {/* 🔍 ZOOM SLIDER */}
     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-white/80 px-3 py-1 rounded">
     <div className="inline-flex items-center gap-2">
-      <input
-        type="range"
-        min={1}
-        max={3}
-        step={0.1}
-        value={zoomMap[activeIndex] ?? 1}
-        onChange={(e) =>
-          setZoomMap((prev) => ({
-            ...prev,
-            [activeIndex]: Number(e.target.value),
-          }))
-        }
-        className="w-64 h-1 rounded-full"
-      />
+      <input type="range" 
+      min={1} 
+      max={3} step={0.1} 
+      value={zoomMap[activeIndex] ?? 1} 
+      onChange={(e) => setZoomMap((prev) => 
+      ({ ...prev, 
+        [activeIndex]: Number(e.target.value), 
+      })) } 
+      className="w-64 h-1 rounded-full"
+       />
     </div>
 
     {/* ✅ APPLY CROP BUTTON */}
@@ -210,7 +219,7 @@ console.log("current image:", previewUrls?.[activeIndex]);
 
         {/* ================= VIDEO ================= */}
         {/* 🎥 VIDEO */}
-{activeFile?.type.startsWith("video/") && (
+  {activeFile?.type.startsWith("video/") && (
   <div className="w-full flex flex-col items-center text-white">
 
     {/* VIDEO PREVIEW */}
@@ -244,40 +253,61 @@ console.log("current image:", previewUrls?.[activeIndex]);
         <input
           type="range"
           min={0}
-          max={duration}
+          max={currentDuration}
           step={0.1}
-          value={trim.start}
+          value={currentTrim.start}
           onChange={(e) => {
-            const value = Math.min(Number(e.target.value), trim.end - 0.5);
-            setTrim((prev) => ({ ...prev, start: value }));
+            const value = Math.min(
+              Number(e.target.value),
+              currentTrim.end - 0.5
+            );
+
+            setTrimMap((prev) => ({
+              ...prev,
+              [activeIndex]: {
+                ...currentTrim,
+                start: value,
+              },
+            }));
           }}
-          className="absolute w-full h-12 bg-transparent appearance-none z-20"
         />
 
         {/* RIGHT HANDLE */}
         <input
           type="range"
           min={0}
-          max={duration}
+          max={currentDuration}
           step={0.1}
-          value={trim.end}
+          value={currentTrim.end}
           onChange={(e) => {
-            const value = Math.max(Number(e.target.value), trim.start + 0.5);
-            setTrim((prev) => ({ ...prev, end: value }));
+            const value = Math.max(
+              Number(e.target.value),
+              currentTrim.start + 0.5
+            );
+
+            setTrimMap((prev) => ({
+              ...prev,
+              [activeIndex]: {
+                ...currentTrim,
+                end: value,
+              },
+            }));
           }}
-          className="absolute w-full h-12 bg-transparent appearance-none z-10"
         />
 
         {/* 🎯 CUSTOM HANDLES VISUAL */}
         <div
           className="absolute top-0 w-2 h-full bg-white"
-          style={{ left: `${(trim.start / duration) * 100}%` }}
+          style={{
+            left: `${(currentTrim.start / currentDuration) * 100}%`,
+            width: `${((currentTrim.end - currentTrim.start) / currentDuration) * 100}%`,
+          }}
         />
 
-        <div
+        {/* <div
           className="absolute top-0 w-2 h-full bg-white"
           style={{ left: `${(trim.end / duration) * 100}%` }}
-        />
+        /> */}
       </div>
 
       {/* TIME LABEL */}
