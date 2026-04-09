@@ -7,8 +7,6 @@ import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
 import { Check, CheckCheck } from "lucide-react";
 import Linkify from "linkify-react";
 import DocumentMessage from "./DocumentMessage";
-import MediaMessage from "./MediaMessage";
-import MediaPreview from "./MediaPreview";
 
 export default function MessageItem({
   msg, authUser,
@@ -24,9 +22,9 @@ export default function MessageItem({
   const [showReactions, setShowReactions] = useState(null);
   const [isPinned, setIsPinned] = useState(!!msg.is_pinned);
   const [preview, setPreview] = useState({
-    items: [],
-    index: 0,
-  });
+  items: [],
+  index: 0,
+});
   const [showMenuId, setShowMenuId] = useState(null);
   const [showMore, setShowMore] = useState(false);
 
@@ -230,11 +228,118 @@ export default function MessageItem({
 console.log("forwardMode:", forwardMode);
 console.log("selectedMessages:", selectedMessages);
 
+const getUrl = (file) => {
+  return `http://localhost:8000/storage/${file.file_url || file.file}`;
+};
+
+const files = msg.files || [msg];
+const count = files.length;
+
+const openPreview = (items, index) => {
+  setPreview({
+    items: items.map((f) => ({
+      type: msg.type,
+      url: getUrl(f),
+    })),
+    index,
+  });
+};
+
+const next = () => {
+  setPreview((p) => ({
+    ...p,
+    index: (p.index + 1) % p.items.length,
+  }));
+};
+
+const prev = () => {
+  setPreview((p) => ({
+    ...p,
+    index: (p.index - 1 + p.items.length) % p.items.length,
+  }));
+};
+
+function MediaItem({ file, i }) {
+
+  
+
+  return (
+    <div
+      onClick={() => openPreview(files, i)}
+      className="cursor-pointer"
+    >
+      {msg.type === "image" ? (
+        <img
+          src={getUrl(file)}
+          className="w-full h-28 object-cover"
+        />
+      ) : (
+        <div className="relative">
+          <video
+            src={getUrl(file)}
+            className="w-full h-28 object-cover"
+          />
+
+          {/* play icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-black/50 text-white p-2 rounded-full">
+              ▶
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
   return (
   <>
-    {preview?.items.length > 0 && (
-  <MediaPreview preview={preview} setPreview={setPreview} />
+    {preview.items.length > 0 && (
+  <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+
+    {/* CLOSE */}
+    <button
+      className="absolute top-5 right-5 text-white text-2xl"
+      onClick={() => setPreview({ items: [], index: 0 })}
+    >
+      ✕
+    </button>
+
+    {/* PREV */}
+    <button
+      onClick={prev}
+      className="absolute left-5 text-white text-3xl"
+    >
+      ‹
+    </button>
+
+    {/* MEDIA */}
+    {preview.items[preview.index].type === "image" ? (
+      <img
+        src={preview.items[preview.index].url}
+        className="max-h-[90vh] max-w-[90vw] object-contain"
+      />
+    ) : (
+      <video
+        src={preview.items[preview.index].url}
+        controls
+        autoPlay
+        className="max-h-[90vh] max-w-[90vw]"
+      />
+    )}
+
+    {/* NEXT */}
+    <button
+      onClick={next}
+      className="absolute right-5 text-white text-3xl"
+    >
+      ›
+    </button>
+
+  </div>
 )}
+
+
     <div
       className={`flex cursor-pointer ${isMine ? "justify-end" : "justify-start"}
       ${isSelected
@@ -347,7 +452,67 @@ console.log("selectedMessages:", selectedMessages);
           </Linkify>
         )}
 
-       <MediaMessage msg={msg} setPreview={setPreview} />
+       {/* Media */}
+
+        <div className="max-w-xs">
+
+  {/* 1 ITEM */}
+  {count === 1 && (
+    <div
+      onClick={() => openPreview(files, 0)}
+      className="rounded-xl overflow-hidden"
+    >
+      {msg.type === "image" ? (
+        <img src={getUrl(files[0])} className="w-full h-48 object-cover" />
+      ) : (
+        <video src={getUrl(files[0])} className="w-full h-48 object-cover" />
+      )}
+    </div>
+  )}
+
+  {/* 2 ITEMS → SIMPLE GRID */}
+  {count === 2 && (
+    <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+      {files.map((file, i) => (
+        <MediaItem file={file} i={i} key={i} />
+      ))}
+    </div>
+  )}
+
+  {/* 3+ ITEMS → WHATSAPP STYLE LAYOUT */}
+  {count >= 3 && (
+    <div className="grid grid-cols-2 grid-rows-2 gap-1 rounded-xl overflow-hidden">
+
+      {/* TOP BIG */}
+      <div className="col-span-2">
+        <MediaItem file={files[0]} i={0} />
+      </div>
+
+      {/* BOTTOM LEFT */}
+      <div>
+        <MediaItem file={files[1]} i={1} />
+      </div>
+
+      {/* BOTTOM RIGHT (or +N overlay) */}
+      <div className="relative">
+        <MediaItem file={files[2]} i={2} />
+
+        {count > 3 && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xl font-bold">
+            +{count - 3}
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+
+  {/* MESSAGE */}
+  {msg.message && (
+    <p className="text-sm mt-1 break-words">{msg.message}</p>
+  )}
+
+</div>
+
 
         {msg.type === "audio" && (
           <VoiceUI msg={msg} isMine={isMine} />
@@ -411,5 +576,7 @@ console.log("selectedMessages:", selectedMessages);
     />
   </>
 );
+
+
   }
   

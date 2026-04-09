@@ -526,6 +526,7 @@ const listToRender =
           bottomRef={bottomRef}
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
+          activeChat={activeChat}
         />
       </div>
 

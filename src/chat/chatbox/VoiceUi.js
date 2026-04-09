@@ -9,10 +9,11 @@ export default function VoiceUI({ msg, isMine }) {
   const [speed, setSpeed] = useState(1);
   const [showSpeed, setShowSpeed] = useState(false);
 
-  const audioSrc =
-  msg.voice_url ||
-  msg.local ||
-  (msg.file ? `/storage/${msg.file}` : "");
+  const audioSrc = msg.voice_url
+  ? msg.voice_url
+  : msg.file
+  ? `http://localhost:8000/storage/${msg.file}`
+  : msg.local || null;
 
   const colors = [
     "bg-orange-500",
@@ -28,11 +29,13 @@ export default function VoiceUI({ msg, isMine }) {
   const getInitial = (name = "") =>
     name ? name.charAt(0).toUpperCase() : "?";
 
+  
   // 🔥 FORCE AUDIO RELOAD WHEN SRC CHANGES
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !audioSrc) return;
 
+    audio.src = audioSrc;
     audio.pause();
     audio.load(); // critical
 
@@ -40,6 +43,8 @@ export default function VoiceUI({ msg, isMine }) {
     setCurrentTime(0);
     setDuration(0);
   }, [audioSrc]);
+
+  
 
   // 🔥 PLAY / PAUSE
   const togglePlay = async () => {
@@ -68,13 +73,19 @@ export default function VoiceUI({ msg, isMine }) {
 
   // 🔥 METADATA FIXED
   const onLoadedMetadata = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const audio = audioRef.current;
+  if (!audio) return;
 
-    if (isFinite(audio.duration)) {
+  const tryGetDuration = () => {
+    if (audio.duration && isFinite(audio.duration)) {
       setDuration(audio.duration);
+    } else {
+      setTimeout(tryGetDuration, 200);
     }
   };
+
+  tryGetDuration();
+};
 
   // 🔥 PLAY STATE SYNC
   useEffect(() => {
@@ -93,6 +104,7 @@ export default function VoiceUI({ msg, isMine }) {
     };
   }, []);
 
+
   // 🔥 SPEED CONTROL
   useEffect(() => {
     if (audioRef.current) {
@@ -101,11 +113,33 @@ export default function VoiceUI({ msg, isMine }) {
   }, [speed]);
 
   const format = (t) => {
-    if (!t || !isFinite(t)) return "0:00";
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60);
-    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  if (!t || !isFinite(t) || t === Infinity || t <= 0) return "0:00";
+
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+
+  return `${m}:${s < 10 ? "0" : ""}${s}`;
+};
+
+useEffect(() => {
+  const audio = audioRef.current;
+  if (!audio) return;
+
+  const fixDuration = () => {
+    const d = audio.duration;
+
+    if (isFinite(d) && d > 0) {
+      setDuration(d);
+    } else if (d === Infinity) {
+      console.warn("Invalid audio format detected");
+      setDuration(0);
+    } else {
+      setTimeout(fixDuration, 200);
+    }
   };
+
+  fixDuration();
+}, [audioSrc]);
 
   const progress = duration ? (currentTime / duration) * 100 : 0;
 
@@ -120,7 +154,7 @@ export default function VoiceUI({ msg, isMine }) {
         {/* Avatar */}
         {!playing && (
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${getColor(
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl text-white font-bold ${getColor(
               msg.sender?.first_name || "U"
             )}`}
           >
@@ -162,7 +196,11 @@ export default function VoiceUI({ msg, isMine }) {
           onClick={togglePlay}
           className="w-10 h-10 flex items-center justify-center"
         >
-          {playing ? "⏸" : "▶"}
+          {playing ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+              </svg> :  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+              </svg>}
         </button>
 
         {/* Waveform */}
@@ -191,21 +229,23 @@ export default function VoiceUI({ msg, isMine }) {
       </div>
 
       {/* AUDIO */}
-      <audio
-        ref={audioRef}
-        src={audioSrc}
-        preload="auto"
-        onTimeUpdate={onTimeUpdate}
-        onLoadedMetadata={onLoadedMetadata}
-        onEnded={() => {
-          const audio = audioRef.current;
-          if (!audio) return;
+      {audioSrc && (
+        <audio
+          ref={audioRef}
+          src={audioSrc}
+          preload="metadata"
+          onTimeUpdate={onTimeUpdate}
+          onLoadedMetadata={onLoadedMetadata}
+          onEnded={() => {
+            const audio = audioRef.current;
+            if (!audio) return;
 
-          audio.currentTime = 0;
-          setPlaying(false);
-          setCurrentTime(0);
-        }}
-      />
+            audio.currentTime = 0;
+            setPlaying(false);
+            setCurrentTime(0);
+          }}
+        />
+      )}
     </div>
   );
 }

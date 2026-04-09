@@ -1,31 +1,4 @@
-{toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
-          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
-        `}>
-          {toast.message}
-        </div>
-      )}
-
-      const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
- when i send the image or video that is more than 2 it was in grid but when  i reload it become one one import MediaGrid from "./MediaGrid";
-
-export default function MediaMessage({ msg, setPreview }) {
-  if (!msg.type || (msg.type !== "image" && msg.type !== "video")) return null;
-
-  return (
-    <div className="max-w-xs">
-      <MediaGrid msg={msg} setPreview={setPreview} />
-
-      {msg.message && (
-        <p className="text-sm mt-1 break-words">{msg.message}</p>
-      )}
-    </div>
-  );
-} import MediaItem from './MediaItem' 
+import MediaItem from './MediaItem'
 
 export default function MediaGrid({ msg, setPreview }) {
   const files = msg.files || [msg];
@@ -37,7 +10,7 @@ export default function MediaGrid({ msg, setPreview }) {
   const getUrl = (f) => {
     if (f.file_url?.startsWith("blob:")) return f.file_url;
     if (f.file?.startsWith("blob:")) return f.file;
-    return http://localhost:8000/storage/${f.file_url || f.file};
+    return `http://localhost:8000/storage/${f.file_url || f.file}`;
   };
 
   const openPreview = (index) => {
@@ -120,40 +93,4 @@ export default function MediaGrid({ msg, setPreview }) {
     </div>
   </div>
 );
-}  export default function MediaItem({ file, index, openPreview, big = false }) {
-  const getUrl = (f) => {
-    if (f.file_url?.startsWith("blob:")) return f.file_url;
-    if (f.file?.startsWith("blob:")) return f.file;
-    return http://localhost:8000/storage/${f.file_url || f.file};
-  };
-
-  const url = getUrl(file);
-  const isVideo = file.type === "video";
-
-  return (
-    <div
-      className="relative cursor-pointer w-full h-full"
-      onClick={() => openPreview(index)}
-    >
-      {isVideo ? (
-        <video
-          src={url}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <img
-          src={url}
-          className="w-full h-full object-cover"
-        />
-      )}
-
-      {isVideo && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-black/50 text-white p-2 rounded-full">
-            ▶
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
