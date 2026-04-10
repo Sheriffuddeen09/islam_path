@@ -36,6 +36,8 @@ export default function ChatInput({ chatId, authUser, setMessages, activeChat, b
   
   const [trimMap, setTrimMap] = useState({});
   const [durationMap, setDurationMap] = useState({});
+  const [trimAppliedMap, setTrimAppliedMap] = useState({});
+  const [dragType, setDragType] = useState(null); // "left" | "right" | "move"
 
   const [toast, setToast] = useState(false)
 
@@ -276,18 +278,20 @@ const stopRecording = async () => {
   // 🖼 IMAGE → CROPPED
   if (isImage && croppedImages[i]) {
     form.append("files[]", croppedImages[i]);
+  } else {
+    form.append("files[]", file);
   }
 
-  // 🎬 VIDEO → SEND WITH TRIM DATA
-  else if (isVideo && trimMap[i]) {
-    form.append("files[]", file);
-    form.append("trim_start[]", trimMap[i].start);
-    form.append("trim_end[]", trimMap[i].end);
-  }
+  // 🔥 ALWAYS SEND TRIM (even if not trimmed)
+  if (isVideo) {
+    const trim = trimMap[i] || { start: 0, end: 0 };
 
-  // 📁 NORMAL FILE
-  else {
-    form.append("files[]", file);
+    form.append("trim_start[]", trim.start);
+    form.append("trim_end[]", trim.end);
+  } else {
+    // keep array alignment
+    form.append("trim_start[]", 0);
+    form.append("trim_end[]", 0);
   }
 
   form.append("types[]", getType(file));
@@ -309,8 +313,6 @@ const stopRecording = async () => {
     });
 
     const serverMessages = res.data.messages;
-
-    // 🔥 GROUP SERVER RESPONSE INTO ONE MESSAGE
     const grouped = {
       ...serverMessages[0],
       files: serverMessages.map((m) => ({
@@ -321,18 +323,13 @@ const stopRecording = async () => {
       })),
       status: "sent",
     };
-
-    // ✅ REPLACE TEMP MESSAGE
     setMessages((prev) =>
       prev.map((m) => (m.id === tempId ? grouped : m))
     );
-
     setReplyingTo(null);
-
   } catch (err) {
     console.error(err);
     showToast(err);
-    // ❌ MARK FAILED
     setMessages((prev) =>
       prev.map((m) =>
         m.id === tempId ? { ...m, status: "failed" } : m
@@ -340,9 +337,6 @@ const stopRecording = async () => {
     );
   }
 
-  // -------------------------
-  // 🧹 RESET UI
-  // -------------------------
   setShowPreview(false);
   setFiles([]);
   setPreviewUrls([]);
@@ -353,6 +347,9 @@ const stopRecording = async () => {
   setZoomMap({});
   setCroppedAreaPixels(null);
   setSelected([]);
+  setTrimMap({});
+  setDurationMap({});
+  setTrimAppliedMap({});
 
   if (fileInputRef.current) {
     fileInputRef.current.value = "";
@@ -678,6 +675,10 @@ const handleFileChange = (e) => {
   durationMap={durationMap}
   trimMap={trimMap}
   setTrimMap={setTrimMap}
+  dragType={dragType}
+  setDragType={setDragType}
+  trimAppliedMap={trimAppliedMap}
+  setTrimAppliedMap={setTrimAppliedMap}
 />
 
     </> 
