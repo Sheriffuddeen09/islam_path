@@ -2,98 +2,179 @@ import { useEffect, useRef, useState } from "react";
 
 export default function VoiceUI({ msg, isMine }) {
   const audioRef = useRef(null);
-
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [showSpeed, setShowSpeed] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+
+  const seekRef = useRef(null);
+
+  const log = (...args) => {
+    console.log("🎧 VOICE DEBUG:", ...args);
+  };
+
+  const seek = (clientX) => {
+    log("SEEK MOVE TRIGGERED", { clientX });
+
+    const container = seekRef.current;
+    const audio = audioRef.current;
+
+    if (!container || !audio) {
+      log("❌ seek aborted: missing refs");
+      return;
+    }
+
+    if (!isFinite(duration) || duration <= 0) {
+      log("❌ seek aborted: invalid duration", duration);
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+
+    const percent = (clientX - rect.left) / rect.width;
+    log("percent raw", percent);
+
+    if (!isFinite(percent)) {
+      log("❌ invalid percent");
+      return;
+    }
+
+    const clampedPercent = Math.max(0, Math.min(1, percent));
+    const newTime = clampedPercent * duration;
+
+    log("seek computed", {
+      clampedPercent,
+      newTime,
+      currentTime: audio.currentTime,
+      duration,
+    });
+
+    if (!isFinite(newTime)) {
+      log("❌ invalid newTime");
+      return;
+    }
+
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+
+    log("✅ audio.currentTime SET", audio.currentTime);
+
+    if (audio.paused) {
+      audio.play().catch((err) => {
+        log("❌ play failed", err);
+      });
+    }
+  };
+
+  useEffect(() => {
+    const move = (e) => {
+      if (!isSeeking) return;
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+
+      log("DRAG MOVE", { clientX, isSeeking });
+
+      seek(clientX);
+    };
+
+    const up = () => {
+      log("🟢 SEEK END");
+      setIsSeeking(false);
+    };
+
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchmove", move);
+    window.addEventListener("touchend", up);
+
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    };
+  }, [isSeeking]);
 
   const audioSrc = msg.voice_url
-  ? msg.voice_url
-  : msg.file
-  ? `http://localhost:8000/storage/${msg.file}`
-  : msg.local || null;
+    ? msg.voice_url
+    : msg.file
+    ? `http://localhost:8000/storage/${msg.file}`
+    : msg.local || null;
 
-  const colors = [
-    "bg-orange-500",
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-purple-500",
-    "bg-pink-500",
-  ];
-
-  const getColor = (name = "") =>
-    colors[name.charCodeAt(0) % colors.length] || "bg-gray-500";
-
-  const getInitial = (name = "") =>
-    name ? name.charAt(0).toUpperCase() : "?";
-
-  
-  // 🔥 FORCE AUDIO RELOAD WHEN SRC CHANGES
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !audioSrc) return;
 
+    log("🔄 AUDIO SOURCE CHANGE", audioSrc);
+
     audio.src = audioSrc;
     audio.pause();
-    audio.load(); // critical
+    audio.load();
 
     setPlaying(false);
     setCurrentTime(0);
     setDuration(0);
   }, [audioSrc]);
 
-  
-
-  // 🔥 PLAY / PAUSE
   const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    log("▶ PLAY TOGGLE CLICKED");
+
     try {
-      if (audio.ended) {
-        audio.currentTime = 0;
-      }
+      if (audio.ended) audio.currentTime = 0;
 
       if (audio.paused) {
         await audio.play();
+        log("▶ PLAYING");
       } else {
         audio.pause();
+        log("⏸ PAUSED");
       }
     } catch (err) {
-      console.log("Audio error:", err);
+      log("❌ PLAY ERROR", err);
     }
   };
 
-  // 🔥 TIME UPDATE
   const onTimeUpdate = () => {
-    setCurrentTime(audioRef.current?.currentTime || 0);
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    log("⏱ TIME UPDATE", {
+      currentTime: audio.currentTime,
+      isSeeking,
+    });
+
+    setCurrentTime(audio.currentTime);
   };
 
-  // 🔥 METADATA FIXED
   const onLoadedMetadata = () => {
-  const audio = audioRef.current;
-  if (!audio) return;
+    const audio = audioRef.current;
 
-  const tryGetDuration = () => {
-    if (audio.duration && isFinite(audio.duration)) {
-      setDuration(audio.duration);
+    if (!audio) return;
+
+    log("📦 METADATA LOADED", audio.duration);
+
+    const d = audio.duration;
+
+    if (isFinite(d) && d > 0) {
+      setDuration(d);
     } else {
-      setTimeout(tryGetDuration, 200);
+      log("❌ INVALID DURATION", d);
+      setDuration(0);
     }
   };
 
-  tryGetDuration();
-};
-
-  // 🔥 PLAY STATE SYNC
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
+    const onPlay = () => log("🟢 AUDIO PLAY EVENT");
+    const onPause = () => log("🔴 AUDIO PAUSE EVENT");
 
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
@@ -104,131 +185,64 @@ export default function VoiceUI({ msg, isMine }) {
     };
   }, []);
 
-
-  // 🔥 SPEED CONTROL
   useEffect(() => {
     if (audioRef.current) {
+      log("⚙ SPEED CHANGE", speed);
       audioRef.current.playbackRate = speed;
     }
   }, [speed]);
 
   const format = (t) => {
-  if (!t || !isFinite(t) || t === Infinity || t <= 0) return "0:00";
-
-  const m = Math.floor(t / 60);
-  const s = Math.floor(t % 60);
-
-  return `${m}:${s < 10 ? "0" : ""}${s}`;
-};
-
-useEffect(() => {
-  const audio = audioRef.current;
-  if (!audio) return;
-
-  const fixDuration = () => {
-    const d = audio.duration;
-
-    if (isFinite(d) && d > 0) {
-      setDuration(d);
-    } else if (d === Infinity) {
-      console.warn("Invalid audio format detected");
-      setDuration(0);
-    } else {
-      setTimeout(fixDuration, 200);
-    }
+    if (!t || !isFinite(t)) return "0:00";
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  fixDuration();
-}, [audioSrc]);
-
-  const progress = duration ? (currentTime / duration) * 100 : 0;
+  const progress =
+    isFinite(duration) && duration > 0
+      ? (currentTime / duration) * 100
+      : 0;
 
   return (
-    <div
-      className={`p-2 rounded-2xl max-w-xs text-black ${
-        isMine ? "bg-green-200" : "bg-gray-100"
-      }`}
-    >
+    <div className={`p-2 rounded-2xl w-56 ${isMine ? "bg-green-200" : "bg-gray-100"}`}>
       <div className="flex items-center gap-2">
 
-        {/* Avatar */}
-        {!playing && (
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl text-white font-bold ${getColor(
-              msg.sender?.first_name || "U"
-            )}`}
-          >
-            {getInitial(msg.sender?.first_name || "U")}
-          </div>
-        )}
-
-        {/* Speed */}
-        {playing && (
-          <div className="relative">
-            <button
-              onClick={() => setShowSpeed(!showSpeed)}
-              className="w-10 h-10 rounded-full bg-white text-xs font-bold"
-            >
-              {speed}x
-            </button>
-
-            {showSpeed && (
-              <div className="absolute bottom-10 left-0 bg-white shadow rounded text-xs z-10">
-                {[1, 1.5, 2].map((v) => (
-                  <div
-                    key={v}
-                    onClick={() => {
-                      setSpeed(v);
-                      setShowSpeed(false);
-                    }}
-                    className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {v}x
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Play button */}
-        <button
-          onClick={togglePlay}
-          className="w-10 h-10 flex items-center justify-center"
-        >
-          {playing ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-              </svg> :  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-              </svg>}
+        <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center">
+          {playing ? "⏸" : ""}
         </button>
 
-        {/* Waveform */}
-        <div className="flex-1 flex items-center gap-[2px] h-6">
-          {[...Array(35)].map((_, i) => {
-            const active = (i / 35) * 100 < progress;
-
-            return (
-              <div
-                key={i}
-                className={`w-[2px] rounded-sm ${
-                  active ? "bg-green-600" : "bg-gray-400"
-                }`}
-                style={{
-                  height: `${10 + Math.sin(i) * 10 + 10}px`,
-                }}
-              />
-            );
-          })}
+        <div className="flex-1">
+          <div
+            ref={seekRef}
+            className="relative w-full h-1 bg-gray-300 rounded-full cursor-pointer"
+            onMouseDown={(e) => {
+              log("🟡 SEEK START");
+              setIsSeeking(true);
+              seek(e.clientX);
+            }}
+            onTouchStart={(e) => {
+              log("🟡 TOUCH SEEK START");
+              setIsSeeking(true);
+              seek(e.touches[0].clientX);
+            }}
+            onClick={(e) => {
+              log("🟣 SEEK CLICK");
+              seek(e.clientX);
+            }}
+          >
+            <div
+              className="absolute top-0 left-0 h-1 bg-green-600 rounded-full"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* TIME */}
-      <div className="mt-1 text-[10px] text-center text-gray-600 font-bold">
+      <div className="text-[10px] text-center mt-1">
         {format(currentTime)} / {format(duration)}
       </div>
 
-      {/* AUDIO */}
       {audioSrc && (
         <audio
           ref={audioRef}
@@ -237,6 +251,8 @@ useEffect(() => {
           onTimeUpdate={onTimeUpdate}
           onLoadedMetadata={onLoadedMetadata}
           onEnded={() => {
+            log("🏁 AUDIO ENDED");
+
             const audio = audioRef.current;
             if (!audio) return;
 

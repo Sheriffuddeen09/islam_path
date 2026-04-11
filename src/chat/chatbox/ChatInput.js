@@ -121,9 +121,17 @@ const sendText = async () => {
         type: "text",
         replied_to: replyingTo ? replyingTo.id : null,
       });
-      setMessages(prev =>
-        prev.map(m => (m.id === tempId ? { ...data, status: "sent" } : m))
-      );
+     setMessages(prev =>
+      prev.map(m =>
+        m.id === tempId
+          ? {
+              ...m,          // keep UI fields (message, temp state)
+              ...data,       // backend data
+              status: "sent"
+            }
+          : m
+      )
+    );
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 50);
@@ -245,6 +253,7 @@ const stopRecording = async () => {
     id: tempId,
     type: firstType,
     sender_id: authUser.id,
+    sender: authUser,
     status: "sending",
 
     files: files.map((file, i) => ({
@@ -328,13 +337,21 @@ const stopRecording = async () => {
     );
     setReplyingTo(null);
   } catch (err) {
-    console.error(err);
-    showToast(err);
-    setMessages((prev) =>
+  console.error(err);
+
+  const message =
+    err?.response?.data?.message ||
+    err?.message ||
+    "Something went wrong";
+
+  showToast(message);
+
+  setMessages((prev) =>
       prev.map((m) =>
         m.id === tempId ? { ...m, status: "failed" } : m
       )
     );
+    
   }
 
   setShowPreview(false);

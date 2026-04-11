@@ -28,7 +28,7 @@ export default function MediaGrid({ msg, setPreview }) {
   // -------------------------
   if (total === 1) {
   return (
-    <div className="w-44 h-44 rounded-xl overflow-hidden">
+    <div className="w-56 h-44 rounded-xl overflow-hidden">
       <MediaItem file={files[0]} index={0} openPreview={openPreview} big />
     </div>
   );
@@ -39,7 +39,7 @@ export default function MediaGrid({ msg, setPreview }) {
   // -------------------------
   if (total === 2) {
   return (
-    <div className="w-44 h-44 grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+    <div className="w-56 h-44 grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
       {files.map((file, i) => (
         <MediaItem
           key={i}
@@ -56,7 +56,7 @@ export default function MediaGrid({ msg, setPreview }) {
   // ✅ THREE OR MORE (WHATSAPP STYLE)
   // -------------------------
   return (
-  <div className="w-44 rounded-xl overflow-hidden flex flex-col gap-1">
+  <div className="w-56 rounded-xl overflow-hidden flex flex-col gap-1">
 
     {/* TOP FULL WIDTH */}
     <div className="w-full h-32">

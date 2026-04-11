@@ -9,6 +9,7 @@ import Linkify from "linkify-react";
 import DocumentMessage from "./DocumentMessage";
 import MediaMessage from "./MediaMessage";
 import MediaPreview from "./MediaPreview";
+import AudioPlayer from "./AudioUi";
 
 export default function MessageItem({
   msg, authUser,
@@ -29,7 +30,9 @@ export default function MessageItem({
   });
   const [showMenuId, setShowMenuId] = useState(null);
   const [showMore, setShowMore] = useState(false);
-
+  const [startX, setStartX] = useState(0);
+  const [translateX, setTranslateX] = useState(0);
+  const threshold = 80; // swipe distance
   
 
     const toggleSelect = (message) => {
@@ -50,7 +53,6 @@ export default function MessageItem({
   };
 
   const pressTimer = useRef(null);
-  const audioRef = useRef(null);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -81,25 +83,32 @@ export default function MessageItem({
   const touchEndX = useRef(0);
 
   const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-    handlePressStart();
+    startX.current = e.touches[0].clientX;
   };
 
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
+const handleTouchMove = (e) => {
+  const currentX = e.touches[0].clientX;
+  let diff = currentX - startX.current;
 
-  const handleTouchEnd = () => {
-    handlePressEnd();
+  if (isMine) {
+    diff = Math.max(0, diff);
+  } else {
+    diff = Math.min(0, diff);
+  }
 
-    const diff = touchEndX.current - touchStartX.current;
+  const limited = diff * 0.6;
 
-    // swipe right = reply trigger
-    if (!isMine && diff > 60) {
-      console.log("Reply triggered", msg);
-      // TODO: connect to parent reply handler
-    }
-  };
+  setTranslateX(limited);
+};
+
+const handleTouchEnd = () => {
+  if (Math.abs(translateX) > threshold) {
+    setReplyingTo(msg); // 🔥 trigger reply
+  }
+
+  setTranslateX(0); // snap back
+};
+
 
   // ================= STATUS =================
   const updateStatus = (id, status) => {
@@ -186,15 +195,12 @@ export default function MessageItem({
   }
 
   if (msg.is_read) {
-    const firstLetter =
-      activeChat?.first_name?.charAt(0)?.toUpperCase() || "?";
-
-    return (
-      <span className="bg-blue-500 text-white text-[10px] px-1 rounded-full">
-        {firstLetter}
-      </span>
-    );
-  }
+  return (
+    <span className="bg-blue-500 text-white text-[10px] px-2 rounded-full">
+      {activeChat?.first_name || "Read"}
+    </span>
+  );
+}
 
   // ✔✔ Delivered (user online or delivered_at exists)
   if (msg.delivered_at || isUserOnline) {
@@ -209,7 +215,7 @@ export default function MessageItem({
 
 };
 
-
+console.log("User Read Message", msg.is_read);
 
   const formatTime = (date) => {
   if (!date) return "";
@@ -226,9 +232,19 @@ export default function MessageItem({
 
   const isSelected = selectedMessages.some(m => m.id === msg.id);
 
+  const audioSrc =
+  msg.voice_url ||
+  (msg.files?.[0]?.file
+    ? `http://localhost:8000/storage/${msg.files[0].file}`
+    : msg.file
+    ? `http://localhost:8000/storage/${msg.file}`
+    : msg.local || null);
+
 
 console.log("forwardMode:", forwardMode);
 console.log("selectedMessages:", selectedMessages);
+
+
 
   return (
   <>
@@ -243,6 +259,10 @@ console.log("selectedMessages:", selectedMessages);
           }
       `}>
       <div
+      style={{
+        transform: `translateX(${translateX}px)`,
+        transition: translateX === 0 ? "transform 0.2s ease" : "none",
+      }}
       onClick={(e) => {
           e.stopPropagation();
           if (!forwardMode) {
@@ -335,6 +355,19 @@ console.log("selectedMessages:", selectedMessages);
           <div className="text-xs text-yellow-600 mb-1">📌 Pinned</div>
         )}
 
+        {Math.abs(translateX) > 20 && (
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 text-lg transition
+            ${isMine ? "right-full mr-2" : "left-full ml-2"}
+          `}
+        >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+      </svg>
+
+        </div>
+      )}
+
         {/* TEXT */}
         {msg.type === "text" && (
           <Linkify
@@ -349,16 +382,12 @@ console.log("selectedMessages:", selectedMessages);
 
        <MediaMessage msg={msg} setPreview={setPreview} />
 
-        {msg.type === "audio" && (
-          <VoiceUI msg={msg} isMine={isMine} />
+        {(msg.type === "audio" || msg.type === "voice") && audioSrc && (
+          <AudioPlayer msg={msg} isMine={isMine} />
         )}
 
         {msg.type === "file" && (
           <DocumentMessage msg={msg} />
-        )}
-        {/* VOICE */}
-        {msg.type === "voice" && (
-          <VoiceUI msg={msg} isMine={isMine} />
         )}
 
         {/* ================= TIME + STATUS svg ================= */}

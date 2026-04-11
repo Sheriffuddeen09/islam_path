@@ -19,7 +19,6 @@ export default function MessageComponent({
   onSearch, // 🔥 trigger global search
   activeChat,
   selectedMessages,
-  setToast,
   setActiveChat,
   setSelectedMessages,
   chats,
@@ -30,8 +29,14 @@ export default function MessageComponent({
 }) {
   const { user } = useAuth();
   const isMine = msg.sender_id === user.id;
+  const [toast, setToast] = useState(false)
 
 
+  
+      const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // ================= STATES =================
   const [copied, setCopied] = useState(false);
@@ -89,67 +94,140 @@ export default function MessageComponent({
     setOpenDelete(true);
   };
 
+  const handleDownload  = async (type, message) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `http://localhost:8000/api/messages/download/${type}/${message.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error("Download failed");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+
+    const extMap = {
+      video: "mp4",
+      image: "jpg",
+      audio: "mp3",
+      document: "pdf",
+    };
+
+    link.download = `${message.id}.${extMap[type]}`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    showToast(`${type} downloading...`, "success");
+  } catch (err) {
+    console.error(err);
+    showToast(`Failed to download ${type}`, "error");
+  }
+};
+
   // ================= ACTIONS =================
   const actions = [
-    { label: "Reply", show: true, onClick: () => {setReplyingTo(msg); setShowMenu(false)} },
+  { 
+    label: "Reply", 
+    show: true, 
+    onClick: () => {
+      setReplyingTo(msg); 
+      setShowMenu(false);
+    }
+  },
 
-    {
-      label: copied ? "Copied ✓" : "Copy",
-      show: true,
-      onClick: handleCopy,
-    },
+  {
+    label: copied ? "Copied ✓" : "Copy",
+    show: msg.type === "text", // ✅ only text
+    onClick: handleCopy,
+  },
 
-    // ✅ ONLY MY MESSAGE
-    {
-      label: "Edit",
-      show: isMine,
-      onClick: () => {
-        setEditingMessage(msg);
-        setShowMenu(false);
-      },
-    },
-    {
-      label: "Delete",
-      show: isMine,
-      onClick: handleDeletePop,
-    },
-    {
-      label: "Clear Message",
-      show: isMine,
-      onClick: () => setClearMessage(true),
-    },
+  {
+    label: "Download Image",
+    show: msg.type === "image" && !isMine,
+    onClick: handleDownload,
+  },
+  {
+    label: "Download Video",
+    show: msg.type === "video" && !isMine,
+    onClick: handleDownload,
+  },
+  {
+    label: "Download Audio",
+    show: (msg.type === "audio" || msg.type === "voice") && !isMine,
+    onClick: handleDownload,
+  },
+  {
+    label: "Download Document",
+    show: msg.type === "file" && !isMine,
+    onClick: handleDownload,
+  },
 
-    // COMMON
-    {
-  label: "Forward",
-      show: true,
-      onClick: () => {
-        setForwardMode(true);        // enable selection
-        setSelectedMessages([msg]);  // first message
-        setShowMenuId(null);
-      }
+  {
+    label: "Edit",
+    show: isMine,
+    onClick: () => {
+      setEditingMessage(msg);
+      setShowMenu(false);
     },
-    {
-      label: "Search",
-      show: true,
-      onClick: () => {
-        onSearch?.(msg.message);
-        setShowMenu(false);
-      },
-    },
-    {
-      label: "Pin",
-      show: true,
-      onClick: togglePin,
-    },
+  },
+  {
+    label: "Delete",
+    show: true,
+    onClick: handleDeletePop,
+  },
+  {
+    label: "Clear Message",
+    show: isMine,
+    onClick: () => setClearMessage(true),
+  },
 
-    // ❌ ONLY RECEIVER MESSAGE
-    {
-      label: "Report",
-      show: !isMine,
-      onClick: () => setReportMessage(true),
+  {
+    label: "Forward",
+    show: true,
+    onClick: () => {
+      setForwardMode(true);
+      setSelectedMessages([msg]);
+      setShowMenuId(null);
+    }
+  },
+  {
+    label: "Search",
+    show: msg.type === "text", // ✅ only text searchable
+    onClick: () => {
+      onSearch?.(msg.message);
+      setShowMenu(false);
     },
-  ].filter(a => a.show);
+  },
+  {
+    label: "Pin",
+    show: true,
+    onClick: togglePin,
+  },
+
+  // =========================
+  // ❌ ONLY RECEIVER MESSAGE
+  // =========================
+
+  {
+    label: "Report",
+    show: !isMine,
+    onClick: () => setReportMessage(true),
+  },
+
+].filter(a => a.show);
+
+
 
   const mainActions = actions.slice(0, 5);
   const moreActions = actions.slice(5);
@@ -289,6 +367,14 @@ export default function MessageComponent({
           onClose={() => setReportMessage(false)}
         />
       )}
+      {toast && (
+        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
+          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
+        `}>
+          {toast.message}
+        </div>
+      )}
+
     </>
   );
 }
