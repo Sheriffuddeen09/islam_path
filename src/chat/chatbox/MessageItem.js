@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import api from "../../Api/axios";
 import ReactionPopup from "./ReactionPopup";
-import VoiceUI from "./VoiceUi";
 import MessageComponent from "./MessageComponent";
 import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
 import { Check, CheckCheck } from "lucide-react";
@@ -18,22 +17,48 @@ export default function MessageItem({
   chatId,
   activeChat,
   setToast,
-  setActiveChat,
+  setActiveChat, newMessageCount, bottomRef,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage
 }) {
   const [showReactions, setShowReactions] = useState(null);
-  const [isPinned, setIsPinned] = useState(!!msg.is_pinned);
   const [preview, setPreview] = useState({
     items: [],
     index: 0,
   });
-  const [showMenuId, setShowMenuId] = useState(null);
   const [showMore, setShowMore] = useState(false);
-  const [startX, setStartX] = useState(0);
   const [translateX, setTranslateX] = useState(0);
   const threshold = 80; // swipe distance
+  const startX = useRef(0);
   
+  const messageRef = useRef();
+  const [hasMarkedRead, setHasMarkedRead] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+
+  const [menuPosition, setMenuPosition] = useState(null);
+
+
+useEffect(() => {
+  if (!messageRef.current) return;
+
+  const observer = new IntersectionObserver(
+    async ([entry]) => {
+      if (entry.isIntersecting && !hasMarkedRead && msg.sender_id !== authUser.id) {
+        try {
+          await api.post(`/api/messages/${msg.id}/read`);
+          setHasMarkedRead(true);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    },
+    { threshold: 0.6 }
+  );
+
+  observer.observe(messageRef.current);
+
+  return () => observer.disconnect();
+}, [msg.id, hasMarkedRead]);
 
     const toggleSelect = (message) => {
   setSelectedMessages(prev => {
@@ -60,7 +85,7 @@ export default function MessageItem({
 
     useEffect(() => {
       const checkScreen = () => {
-        setIsMobile(window.innerWidth < 1024); // tablet & mobile
+        setIsMobile(window.innerWidth < 1024); 
       };
 
       checkScreen();
@@ -78,37 +103,54 @@ export default function MessageItem({
       return () => document.removeEventListener("click", handleClick);
     }, [isMobile]);
 
-  // ================= SWIPE TO REPLY =================
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
 
-  const handleTouchStart = (e) => {
-    startX.current = e.touches[0].clientX;
-  };
+  const translateXRef = useRef(0);
 
-const handleTouchMove = (e) => {
-  const currentX = e.touches[0].clientX;
-  let diff = currentX - startX.current;
+  const isDragging = useRef(false);
 
-  if (isMine) {
-    diff = Math.max(0, diff);
-  } else {
-    diff = Math.min(0, diff);
-  }
 
-  const limited = diff * 0.6;
+  const handlePointerDown = (e) => {
+  startX.current = e.clientX;
+  isDragging.current = true;
 
+  e.currentTarget.setPointerCapture(e.pointerId); // 🔥 CRITICAL FIX
+
+  console.log("🟢 START", e.clientX);
+};
+
+
+const handlePointerMove = (e) => {
+  if (!isDragging.current) return;
+
+  const diff = e.clientX - startX.current;
+
+  const limited = diff * 0.5;
+
+  translateXRef.current = limited;
   setTranslateX(limited);
+
+  console.log("🟡 MOVE", limited);
 };
 
-const handleTouchEnd = () => {
-  if (Math.abs(translateX) > threshold) {
-    setReplyingTo(msg); // 🔥 trigger reply
+
+const handlePointerUp = (e) => {
+  isDragging.current = false;
+
+  e.currentTarget.releasePointerCapture(e.pointerId); // 🔥 IMPORTANT
+
+  console.log("🔴 END", translateXRef.current);
+
+  if (!isMine && translateXRef.current > threshold) {
+    setReplyingTo(msg);
   }
 
-  setTranslateX(0); // snap back
-};
+  if (isMine && translateXRef.current < -threshold) {
+    setReplyingTo(msg);
+  }
 
+  translateXRef.current = 0;
+  setTranslateX(0);
+};
 
   // ================= STATUS =================
   const updateStatus = (id, status) => {
@@ -116,39 +158,199 @@ const handleTouchEnd = () => {
   };
 
   const replaceMessage = (id, newMsg) => {
-    setMessages(prev => prev.map(m => m.id === id ? { ...newMsg, status: "sent" } : m));
-  };
+  setMessages(prev =>
+    prev.map(m =>
+      m.id === id
+        ? {
+            ...m,          // keep existing UI structure
+            ...newMsg,     // override with server data
+            status: "sent"
+          }
+        : m
+    )
+  );
+};
 
-  // ================= RETRY =================
   const resendText = async () => {
-    updateStatus(msg.id, "sending");
+      updateStatus(msg.id, "sending");
+  
+      try {
+        const { data } = await api.post("/api/messages", {
+          chat_id: chatId,
+          message: msg.message,
+          type: "text",
+        });
+  
+        replaceMessage(msg.id, data);
+      } catch {
+        updateStatus(msg.id, "failed");
+      }
+    };
 
-    try {
-      const { data } = await api.post("/api/messages", {
-        chat_id: chatId,
-        message: msg.message,
-        type: "text",
-      });
+    const resendVoice = async () => {
+  console.log("Retrying voice:", msg);
 
-      replaceMessage(msg.id, data);
-    } catch {
-      updateStatus(msg.id, "failed");
-    }
-  };
+  if (!msg.localBlob) {
+    console.warn("❌ No local blob, cannot retry voice");
+    return;
+  }
 
-  const retryMessage = () => {
-    resendText();
-  };
+  // 1. SET STATUS → sending
+  setMessages((prev) =>
+    prev.map((m) =>
+      m.id === msg.id ? { ...m, status: "sending" } : m
+    )
+  );
 
-  // ================= PIN MESSAGE =================
-  const handlePin = async () => {
-    const { data } = await api.post("/api/messages/pin", {
-      message_id: msg.id
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("voice", msg.localBlob, "voice.webm");
+
+  if (msg.replied_to?.id) {
+    form.append("replied_to", msg.replied_to.id);
+  }
+
+  try {
+    const res = await api.post("/api/messages/voice", form, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
-    setIsPinned(data.is_pinned);
-    setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_pinned: data.is_pinned } : m));
-  };
+    // 3. REPLACE MESSAGE (same pattern as stopRecording)
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === msg.id
+          ? {
+              ...m, // keep local preview
+              ...res.data.message,
+              sender: res.data.message.sender || authUser,
+              status: "sent",
+            }
+          : m
+      )
+    );
+
+
+    setReplyingTo(null);
+
+  } catch (err) {
+    console.log(err?.response?.data);
+
+    // 5. FAIL STATE
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === msg.id ? { ...m, status: "failed" } : m
+      )
+    );
+  }
+};
+
+const resendFile = async () => {
+  if (!msg.originalFiles) {
+    console.warn("❌ No original files to retry");
+    return;
+  }
+
+  updateStatus(msg.id, "sending");
+
+  const form = new FormData();
+  form.append("chat_id", chatId);
+
+  const getType = (file) => {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return "file";
+};
+
+msg.originalFiles.forEach(file => {
+  form.append("files[]", file);
+  form.append("types[]", getType(file)); // ✅ CORRECT
+  form.append("trim_start[]", 0);
+  form.append("trim_end[]", 0);
+});
+
+  if (msg.message) {
+    form.append("message", msg.message);
+  }
+
+  try {
+    const res = await api.post("/api/messages", form, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    const serverMessages = res.data.messages;
+
+    const grouped = {
+      ...serverMessages[0],
+      files: serverMessages.map((m) => ({
+        file: m.file_url,
+        file_url: m.file_url,
+        file_name: m.file_name,
+        type: m.type,
+        duration: m.duration,
+      })),
+      status: "sent",
+    };
+
+    replaceMessage(msg.id, grouped); // ✅ FIXED
+
+  } catch (err) {
+    updateStatus(msg.id, "failed");
+  }
+};
+
+
+const retryMessage = async () => {
+  console.log("Retrying message:", msg);
+
+  if (msg.type === "text") {
+    return resendText();
+  }
+
+  if (msg.type === "voice") {
+    return resendVoice();
+  }
+
+  if (["image", "video", "file", "audio", "document"].includes(msg.type)) {
+    return resendFile();
+  }
+};
+
+
+  // ================= PIN MESSAGE =================
+  const handlePin = async (msg) => {
+  try {
+    if (msg.is_pinned) {
+      await api.delete("/api/messages/pin", {
+        data: { message_id: msg.id },
+      });
+
+      console.log("❌ Unpinned");
+    } else {
+      await api.put("/api/messages/pin", {
+        message_id: msg.id,
+      });
+
+      console.log("📌 Pinned");
+    }
+
+    // 🔥 update UI locally
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === msg.id
+          ? { ...m, is_pinned: !m.is_pinned }
+          : m
+      )
+    );
+
+  } catch (err) {
+    console.error("Pin error:", err);
+  }
+};
 
   // ================= LONG PRESS REACTION =================
   const handlePressStart = () => {
@@ -177,6 +379,24 @@ const handleTouchEnd = () => {
   
     console.log('User Online', isUserOnline)
 
+    const colors = [
+      "bg-orange-500",
+      "bg-blue-500",
+      "bg-green-500",
+      "bg-purple-500",
+      "bg-pink-500"
+    ];
+  
+    const getColor = (name = "") => {
+      const index = name.charCodeAt(0) % colors.length;
+      return colors[index];
+    };
+  
+    const getInitial = (name) => {
+      if (!name) return "?";
+      return name.charAt(0).toUpperCase();
+    };
+
  const renderStatus = () => {
   if (!isMine) return null;
 
@@ -188,16 +408,20 @@ const handleTouchEnd = () => {
 
   if (msg.status === "failed") {
     return (
-      <button onClick={retryMessage} className="text-red-500">
+      <button onClick={retryMessage} className="text-red-500 z-50">
         Retry
       </button>
     );
   }
 
-  if (msg.is_read) {
+  if (msg.status === "read") {
+  const name = msg.read_by_name || "User";
+
   return (
-    <span className="bg-blue-500 text-white text-[10px] px-2 rounded-full">
-      {activeChat?.first_name || "Read"}
+    <span
+      className={`flex items-center justify-center text-white text-[7px] w-3 h-3 rounded-full ${getColor(name)}`}
+    >
+      {getInitial(name)}
     </span>
   );
 }
@@ -232,6 +456,12 @@ console.log("User Read Message", msg.is_read);
 
   const isSelected = selectedMessages.some(m => m.id === msg.id);
 
+  useEffect(() => {
+  if (selectedMessages.length === 0 && forwardMode) {
+    setForwardMode(false);
+  }
+}, [selectedMessages]);
+
   const audioSrc =
   msg.voice_url ||
   (msg.files?.[0]?.file
@@ -248,48 +478,59 @@ console.log("selectedMessages:", selectedMessages);
 
   return (
   <>
-    {preview?.items.length > 0 && (
+    
+    {preview && preview.items && preview.items.length > 0 && (
   <MediaPreview preview={preview} setPreview={setPreview} />
 )}
     <div
-      className={`flex cursor-pointer ${isMine ? "justify-end" : "justify-start"}
-      ${isSelected
-            ? " bg-green-200 p-2"  
-            : ""
-          }
-      `}>
-      <div
+        key={`${msg.id}-${selectedMessages.length}`}
+        ref={messageRef}
+        className={`flex cursor-pointer ${
+          isMine ? "justify-end" : "justify-start"
+        } ${isSelected ? "bg-green-200 p-2" : ""}`}
+      >
+     <div
+      className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
+        ${isMine 
+          ? "ml-auto bg-green-800 text-white" 
+          : "mr-auto bg-gray-900 text-white"
+        }
+      `}
       style={{
+        
         transform: `translateX(${translateX}px)`,
         transition: translateX === 0 ? "transform 0.2s ease" : "none",
+        
       }}
-      onClick={(e) => {
-          e.stopPropagation();
-          if (!forwardMode) {
-            if (isMobile) setShowActions(prev => !prev);
-            return;
-          }
-          toggleSelect(msg);
-        }}
-        onMouseDown={handlePressStart}
-        onMouseUp={handlePressEnd}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
-          ${isMine 
-            ? "ml-auto bg-green-800 text-white" 
-            : "mr-auto bg-gray-900 text-white"
-          }
+    
 
-          
-        `}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={(e) => handlePointerUp(e)}
+      onPointerCancel={(e) => handlePointerUp(e)}
+     onClick={(e) => {
+        e.stopPropagation();
+
+        // 🔥 HARD GUARD (this is what you're missing)
+        if (forwardMode && selectedMessages.length === 0) {
+          setForwardMode(false);
+          return;
+        }
+
+        if (!forwardMode) {
+          if (isMobile) setShowActions(prev => !prev);
+          return;
+        }
+
+        toggleSelect(msg);
+      }}
       >
       {selectedMessages.length <= 1 && (
         <div
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           className={`
-            absolute -bottom-9 right-0 flex gap-0 px-2 py-1 rounded-full text-xs
+            absolute -bottom-9 right-0 flex gap-0 px-2 py-1 rounded-full text-xs z-50
             transition-all duration-200
 
             ${
@@ -315,8 +556,17 @@ console.log("selectedMessages:", selectedMessages);
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowMenuId(msg.id)
-              setShowMore(false);
+
+              const rect = e.currentTarget.getBoundingClientRect();
+
+              setMenuPosition({
+                x: rect.x,
+                y: rect.y,
+                isMine,
+                id: msg.id,
+              });
+
+              setActiveMenuId(msg.id);
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -329,9 +579,21 @@ console.log("selectedMessages:", selectedMessages);
 
         </div>
         )}
-
+          {newMessageCount > 0 && (
+                <div
+                  onClick={() => {
+                    bottomRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "end",
+                    });
+                  }}
+                  className="fixed bottom-24 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-xs cursor-pointer shadow"
+                >
+                  {newMessageCount} new message{newMessageCount > 1 ? "s" : ""}
+                </div>
+              )}
         {msg.replied_to && (
-            <div className="bg-black/30 p-2 rounded mb-2 border-l-4 border-blue-400">
+            <div className="bg-black/30 p-2 rounded mb-2 border-4 border-blue-400">
               <p className="text-xs text-blue-300 font-semibold">
                 {msg.replied_to.sender?.first_name || "User"}
               </p>
@@ -339,21 +601,21 @@ console.log("selectedMessages:", selectedMessages);
                 {msg.replied_to.type === "text"
                   ? msg.replied_to.message
                   : msg.replied_to.type === "image"
-                  ? "🖼 Photo"
+                  ? msg.replied_to.file_name
                   : msg.replied_to.type === "video"
-                  ? "🎥 Video"
-                  : msg.replied_to.type === "file"
-                  ? "📎 Document"
+                  ? msg.replied_to.file_name
+                  : msg.replied_to.type === "audio"
+                  ? msg.replied_to.file_name
+                  : msg.type === "file"
+                  ? msg.replied_to.file_name
                   : msg.replied_to.type === "voice"
-                  ? "🎤 Voice message"
+                  ? msg.replied_to.file_name
                   : msg.replied_to.type}
+
               </p>
             </div>
           )}
         {/* PIN LABEL */}
-        {isPinned && (
-          <div className="text-xs text-yellow-600 mb-1">📌 Pinned</div>
-        )}
 
         {Math.abs(translateX) > 20 && (
         <div
@@ -376,11 +638,11 @@ console.log("selectedMessages:", selectedMessages);
               className: "text-blue-400 underline",
             }}
           >
-            <p className="text-sm break-words">{msg.message}</p>
+            <p className="text-sm break-words ">{msg.message}</p>
           </Linkify>
         )}
 
-       <MediaMessage msg={msg} setPreview={setPreview} />
+       <MediaMessage msg={msg} setPreview={setPreview} preview={preview} />
 
         {(msg.type === "audio" || msg.type === "voice") && audioSrc && (
           <AudioPlayer msg={msg} isMine={isMine} />
@@ -391,7 +653,7 @@ console.log("selectedMessages:", selectedMessages);
         )}
 
         {/* ================= TIME + STATUS svg ================= */}
-        <div className="flex justify-end items-center gap-2 mt-1">
+        <div className="flex justify-end items-center z-50 gap-2 mt-1">
           <span className="text-[10px]">
             {formatTime(msg.created_at)}
           </span>
@@ -404,7 +666,7 @@ console.log("selectedMessages:", selectedMessages);
           <div
             onClick={(e) => e.stopPropagation()}
           >
-            <ReactionPopup onReact={react} onClose={() => setShowReactions(null)}
+            <ReactionPopup onReact={react} setShowReactions={setShowReactions}
             message={msg} showReactions={showReactions} />
           </div>
         )}
@@ -413,11 +675,7 @@ console.log("selectedMessages:", selectedMessages);
     
      <MessageComponent
       msg={msg}
-      showMenu={showMenuId === msg.id}
-      setShowMenu={(val) => setShowMenuId(val ? msg.id : null)}
-      showMore={showMore}
-      setShowMore={setShowMore}
-      togglePin={() => handlePin(msg)}
+      togglePin={handlePin}
       setMessages={setMessages}
       activeChat={activeChat?.id}
       onSearch={(text) => handleSearch(text)} // ✅ FIX
@@ -434,10 +692,16 @@ console.log("selectedMessages:", selectedMessages);
       setForwardMessage= {setForwardMessage}
       forwardMessage={forwardMessage}
       setForwardMode={setForwardMode}
-      setShowMenuId={setShowMenuId}
       setReplyingTo={setReplyingTo}
-
+      showMenu={activeMenuId === msg.id}
+      setActiveMenuId={setActiveMenuId}
+      setMenuPosition={setMenuPosition}
+      menuPosition={menuPosition}
+      activeMenuId={activeMenuId}
+      showMore={showMore}
+      setShowMore={setShowMore}
     />
+
   </>
 );
   }

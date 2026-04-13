@@ -49,7 +49,8 @@ export default function ChatItem({
   
       if (message.type === "link") return message.message;
       if (message.type === "text") return message.message;
-      if (message.type === "voice") return "🎤 Voice Note";
+      if (message.type === "voice") return "🎤 Voice Message";
+      if (message.type === "audio") return "🎧 Audio";
       if (message.type === "video") return "🎥 Video";
       if (message.type === "image") return "🖼 Image";
       if (message.type === "file") return "📎 Document";
@@ -113,22 +114,29 @@ export default function ChatItem({
           <span className="truncate max-w-[200px] text-sm">
             {blockedMe
               ? <p className="text-red-900">You cannot reply to this conversation</p>
-              : <p className="text-gray-900">{getMessagePreview(lastMessage)}</p>
+              : <p className="text-gray-900">
+              
+                {getMessagePreview(lastMessage)}
+                </p>
             }
           </span>
 
           {/* STATUS */}
-          {!blockedMe && isMine && (
-            lastMessage?.seen_at ? (
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] ${getColor(other?.first_name)}`}>
-                {getInitial(other?.first_name)}
-              </div>
-            ) : isOnline ? (
-              <CheckCheck size={16} className="text-gray-400" />
-            ) : (
-              <Check size={16} className="text-gray-400" />
-            )
-          )}
+         {!blockedMe && isMine && (
+          chat.latest_message_status === "read" ? (
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] ${getColor(
+                chat.latest_message_read_by_name || other?.first_name
+              )}`}
+            >
+              {getInitial(chat.latest_message_read_by_name || other?.first_name)}
+            </span>
+          ) : chat.latest_message_status === "delivered" ? (
+            <CheckCheck size={16} className="text-gray-400" />
+          ) : (
+            <Check size={16} className="text-gray-400" />
+          )
+        )}
         </div>
 
         {/* UNREAD */}

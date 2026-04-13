@@ -31,6 +31,14 @@ export default function AudioPlayer({ msg, isMine }) {
   const getInitial = (name = "") =>
     name ? name.charAt(0).toUpperCase() : "?";
 
+  const formatDuration = (seconds) => {
+  if (!seconds || isNaN(seconds)) return "0:00";
+
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
   
   useEffect(() => {
     const audio = audioRef.current;
@@ -136,13 +144,15 @@ useEffect(() => {
     }
   }, [speed]);
 
-  const format = (t) => {
-  if (!t || !isFinite(t) || t === Infinity || t <= 0) return "0:00";
+  const format = (seconds) => {
+  const sec = Number(seconds); // 🔥 FORCE NUMBER
 
-  const m = Math.floor(t / 60);
-  const s = Math.floor(t % 60);
+  if (!sec || isNaN(sec)) return "0:00";
 
-  return `${m}:${s < 10 ? "0" : ""}${s}`;
+  const mins = Math.floor(sec / 60);
+  const secs = Math.floor(sec % 60);
+
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
 useEffect(() => {
@@ -169,16 +179,16 @@ useEffect(() => {
 
   return (
     <div
-      className={`p-2 rounded-2xl max-w-xs text-black ${
+      className={`p-2 rounded-2xl w-56 text-black ${
         isMine ? "bg-green-200" : "bg-gray-100"
       }`}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
 
         {/* Avatar */}
         {!playing && (
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl text-white font-bold ${getColor(
+            className={`w-12 pb-1 px-2 rounded-full flex items-center justify-center text-3xl text-white font-bold ${getColor(
               msg.sender?.first_name || "U"
             )}`}
           >
@@ -247,9 +257,11 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* TIME */}
+      {/* TIME {format(duration)}*/}
       <div className="mt-1 text-[10px] text-center text-gray-600 font-bold">
-        {format(currentTime)} / {format(duration)}
+        {format(currentTime)} / {msg.files?.[0]?.duration
+      ? `${formatDuration(msg.files?.[0]?.duration)}`
+      : `${format(duration)}`}
       </div>
 
       {/* AUDIO */}

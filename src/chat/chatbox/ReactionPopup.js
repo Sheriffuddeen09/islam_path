@@ -1,4 +1,4 @@
-export default function ReactionPopup({ onReact, onClose, message, showReactions }) {
+export default function ReactionPopup({ onReact, setShowReactions, message, showReactions }) {
   const emojis = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
 
   return (
@@ -7,21 +7,26 @@ export default function ReactionPopup({ onReact, onClose, message, showReactions
         <div className="absolute bottom-6 right-0 bg-black rounded-full flex items-center gap-2 p-2 z-50">
           
           {/* Emojis */}
-          {emojis.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => {
-                onReact(message.id, emoji);
-                onClose();
-              }}
-              className="text-lg hover:scale-125 transition"
-            >
-              {emoji}
-            </button>
-          ))}
+      {emojis.map((emoji) => (
+        <button
+          key={emoji}
+          onPointerDown={(e) => e.stopPropagation()} // ✅
+          onClick={() => {
+            onReact(message.id, emoji);
+            setShowReactions(null);
+          }}
+          className="text-lg hover:scale-125 transition"
+        >
+          {emoji}
+        </button>
+      ))}
 
-          {/* Single Cancel Button */}
-          <button onClick={onClose} className="ml-2 text-white hover:scale-110">
+      {/* Close */}
+      <button
+        onPointerDown={(e) => e.stopPropagation()} // ✅
+        onClick={() => setShowReactions(null)}
+        className="ml-2 text-white hover:scale-110"
+      >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

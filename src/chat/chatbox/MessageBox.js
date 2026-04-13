@@ -26,7 +26,15 @@ export default function MessageBox({
   setToast,
   setActiveChat,
   chats,
-  setReplyingTo, replyingTo
+  setReplyingTo, replyingTo,
+  containerRef,
+  handleScroll, newMessageCount,
+  paused, trimMap, trimAppliedMap,
+  stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
+  durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
+  setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
+  text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
+  mediaRecorderRef,setPaused 
 }) {
   
 
@@ -45,7 +53,6 @@ export default function MessageBox({
 
   const [forwardMessage, setForwardMessage] = useState(false);
   
-  const containerRef = useRef(null);
   const lastMessageCount = useRef(0);
   const isUserNearBottom = useRef(true);
 
@@ -70,40 +77,7 @@ useEffect(() => {
   lastMessageCount.current = currentCount;
 }, [messages]);
 
-  // ================= SCROLL TRACK =================
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const onScroll = () => {
-      const distanceFromBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight;
-
-      const isBottom = distanceFromBottom < 80;
-
-     if (isBottom) {
-        setShowNewBtn(false);
-        setNewCount(0); // ✅ ADD THIS
-      }
-
-      // INFINITE SCROLL (TOP)
-      if (el.scrollTop < 80 && !loadingMore && hasMore) {
-        loadOlderMessages();
-      }
-    };
-
-    el.addEventListener("scroll", onScroll);
-    return () => el.removeEventListener("scroll", onScroll);
-  }, [loadingMore, hasMore]);
-
-    useEffect(() => {
-    if (!loadingMessages && messages.length) {
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView();
-      }, 100);
-    }
-  }, [chatId]);
-
+  
   // ================= LOAD OLDER MESSAGES =================
   const loadOlderMessages = async () => {
     if (loadingMore || messages.length === 0) return;
@@ -369,11 +343,16 @@ const listToRender =
       {/* CHAT BODY */}
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400  p-4 space-y-3 bg-white relative"
-      >
+       onScroll={(e) => {
+          handleScroll(e); // ✅ keep your auto-scroll logic
 
-        {/* NEW MESSAGE BUTTON */}
-        {showNewBtn && (
+          if (e.target.scrollTop < 50) {
+            loadOlderMessages(); // ✅ load older messages
+          }
+        }}
+        className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 space-y-3 bg-white relative"
+      >
+        {/* {showNewBtn && (
         <button
           onClick={() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -382,7 +361,6 @@ const listToRender =
           }}
           className="fixed bottom-24 right-4 md:right-8 lg:right-96 bg-green-500 text-white p-3 rounded-full shadow-lg z-50 flex items-center justify-center"
         >
-          {/* ICON ONLY */}
           <div className="relative">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -398,8 +376,6 @@ const listToRender =
                 d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5"
               />
             </svg>
-
-            {/* COUNT BADGE */}
             {newCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {newCount}
@@ -407,7 +383,7 @@ const listToRender =
             )}
           </div>
         </button>
-      )}
+      )} */}
 
         {/* LOADING OLDER */}
         {loadingMore && (
@@ -428,6 +404,7 @@ const listToRender =
       <PinnedMessagesBar
         messages={messages}
         onSelect={handleScrollToMessage}
+        setMessages={setMessages}
       />
     {searchQuery && searchFilteredMessages.length === 0 ? (
   <div className="text-center text-gray-400 mt-10 space-y-3">
@@ -472,7 +449,7 @@ const listToRender =
     return (
       <div
           key={msg.id}
-          className={`px-1 rounded py-2 transition ${
+          className={`px-3 rounded py-2 transition ${
             searchQuery && !isMatch ? "opacity-20" : "opacity-100"
           }`}
           ref={(el) => (messageRefs.current[msg.id] = el)}
@@ -503,9 +480,11 @@ const listToRender =
           selectedMessages={selectedMessages}
           setSelectedMessages={setSelectedMessages}
           forwardMessage={forwardMessage}
-          setForwardMessage={setForwardMessage}
-          setReplyingTo={setReplyingTo} replyingTo={replyingTo}
+          setForwardMessage={setForwardMessage} bottomRef={bottomRef}
+          setReplyingTo={setReplyingTo} replyingTo={replyingTo} newMessageCount={newMessageCount}
+          sendFile={sendFile} sendText={sendText} stopRecording={stopRecording}
         />
+        <div ref={bottomRef} />
       </div>
     );
   })
@@ -519,14 +498,21 @@ const listToRender =
       {/* INPUT */}
       <div className="p-3 border-t bg-white">
         <ChatInput
-          chatId={chatId}
           authUser={authUser}
-          setMessages={setMessages}
           setIsTyping={setIsTyping}
-          bottomRef={bottomRef}
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
           activeChat={activeChat}
+          paused={paused} trimMap={trimMap} trimAppliedMap={trimAppliedMap} stopRecording={stopRecording} 
+          sendText={sendText} sendFile={sendFile} zoomMap={zoomMap} setTrimAppliedMap={setTrimAppliedMap} 
+          setTrimMap={setTrimMap} recording={recording} setDurationMap={setDurationMap} setShowPreview={setShowPreview}
+          durationMap={durationMap} setZoomMap={setZoomMap} selected={selected} cropAppliedMap={cropAppliedMap} 
+          croppedAreaPixels={croppedAreaPixels} setCrop={setCrop} crop={crop} setCropAppliedMap={setCropAppliedMap}
+          setCroppedImages={setCroppedImages} croppedImages={croppedImages} setCroppedAreaPixels={setCroppedAreaPixels}
+          setCaption={setCaption} caption={caption} previewUrls={previewUrls} files={files} showPreview={showPreview}
+          text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
+          setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
+          audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
         />
       </div>
 

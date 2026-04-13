@@ -11,7 +11,6 @@ import { ForwardModal } from "../ForwardMessage";
 export default function MessageComponent({
   showMenu,
   showMore,
-  setShowMenu,
   setShowMore,
   togglePin,
   msg,
@@ -24,8 +23,8 @@ export default function MessageComponent({
   chats,
   forwardMessage, 
   setForwardMessage,
-  setShowMenuId, searchMode, searchQuery, setSearchMode, 
-  setSearchQuery, setReplyingTo, setForwardMode
+  setShowMenuId, searchMode, searchQuery, setSearchMode,
+  setSearchQuery, setReplyingTo, setForwardMode, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
   const isMine = msg.sender_id === user.id;
@@ -45,6 +44,7 @@ export default function MessageComponent({
   const [editingMessage, setEditingMessage] = useState(null);
   const [clearMessage, setClearMessage] = useState(false);
   const [reportMessage, setReportMessage] = useState(false);
+  
 
   const forwardMessages = async (messageIds, receiverIds) => {
     try {
@@ -71,15 +71,6 @@ export default function MessageComponent({
     }
   };
 
-  // ================= CLOSE MENU =================
-  useEffect(() => {
-    const close = () => {
-      setShowMenu(false);
-      setShowMore(false);
-    };
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
-  }, []);
 
   // ================= COPY =================
   const handleCopy = async () => {
@@ -90,9 +81,10 @@ export default function MessageComponent({
 
   // ================= DELETE =================
   const handleDeletePop = () => {
-    setShowMenu(false);
+    setActiveMenuId(null)
     setOpenDelete(true);
   };
+
 
   const handleDownload  = async (type, message) => {
   try {
@@ -142,7 +134,7 @@ export default function MessageComponent({
     show: true, 
     onClick: () => {
       setReplyingTo(msg); 
-      setShowMenu(false);
+      setActiveMenuId(null)
     }
   },
 
@@ -164,7 +156,7 @@ export default function MessageComponent({
   },
   {
     label: "Download Audio",
-    show: (msg.type === "audio" || msg.type === "voice") && !isMine,
+    show: (msg.type === "audio") && !isMine,
     onClick: handleDownload,
   },
   {
@@ -175,10 +167,10 @@ export default function MessageComponent({
 
   {
     label: "Edit",
-    show: isMine,
+    show: msg.type === "text" && isMine,
     onClick: () => {
       setEditingMessage(msg);
-      setShowMenu(false);
+      setActiveMenuId(null)
     },
   },
   {
@@ -198,7 +190,7 @@ export default function MessageComponent({
     onClick: () => {
       setForwardMode(true);
       setSelectedMessages([msg]);
-      setShowMenuId(null);
+      setActiveMenuId(null)
     }
   },
   {
@@ -206,13 +198,13 @@ export default function MessageComponent({
     show: msg.type === "text", // ✅ only text searchable
     onClick: () => {
       onSearch?.(msg.message);
-      setShowMenu(false);
+      setActiveMenuId(null)
     },
   },
   {
-    label: "Pin",
+    label: msg.is_pinned ? "Unpin" : "Pin",
     show: true,
-    onClick: togglePin,
+    onClick: () => togglePin(msg),
   },
 
   // =========================
@@ -233,17 +225,13 @@ export default function MessageComponent({
   const moreActions = actions.slice(5);
 
   // ================= POSITION =================
-  const positionClass = isMine
-    ? "absolute bottom-12 right-0 origin-bottom-right"
-    : "absolute bottom-12 left-0 origin-bottom-left";
 
-  const morePositionClass = isMine
-    ? "absolute bottom-12 right-52"
-    : "absolute bottom-12 left-52";
+
+ 
 
   return (
-    <>
-      {searchMode && (
+  <>
+   {searchMode && (
   <div className="flex items-center gap-2 p-2 border-b">
 
     <button onClick={() => {
@@ -265,58 +253,195 @@ export default function MessageComponent({
 
   </div>
 )}
-      {showMenu && (
-        <div
-          className={`${positionClass} bg-white shadow-xl rounded-xl w-48 p-2 z-50 animate-slideUp relative`}
-          onClick={(e) => e.stopPropagation()}
-        >
 
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-           class="size-4 cursor-pointer  absolute right-2 top-2 " onClick={() => setShowMenu(null)}>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-        </svg>
- 
-          {mainActions.map((action, i) => (
+<div className="sm:hidden block">
+
+
+   {showMenu && menuPosition && activeMenuId === msg.id && (
+  <div
+    className="fixed inset-0 z-[9999] overflow-y-auto p-3 no-scrollbar "
+    onClick={() => {
+      setActiveMenuId(null);
+      setMenuPosition(null);
+      setShowMore(false);
+    }}
+  >
+    {/* POSITION WRAPPER */}
+    <div
+      className="absolute"
+      style={{
+        top: menuPosition.y + 0,
+        right: menuPosition.isMine
+          ? menuPosition.x - 250
+          : '',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      {/* ================= MENU BOX ================= */}
+      <div
+        className="
+          bg-white text-black shadow-xl rounded-xl w-48 py-3
+          max-h-[60vh]
+          overflow-y-auto
+          flex flex-col no-scrollbar
+        "
+      >
+
+        {/* CLOSE */}
+        <button
+          className="sticky top-0 bg-white z-10 text-right px-2 py-1"
+          onClick={() => {
+            setActiveMenuId(null);
+            setMenuPosition(null);
+            setShowMore(false);
+          }}
+        >
+          ✕
+        </button>
+
+        {/* MAIN ACTIONS  */}
+        {mainActions.map((action, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              action.onClick();
+              setActiveMenuId(null);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+          >
+            {action.label}
+          </button>
+        ))}
+
+        {/* MORE BUTTON */}
+        {moreActions.length > 0 && (
+          <button
+            onClick={() => setShowMore(true)}
+            className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
+          >
+            More
+          </button>
+        )}
+
+        {/* MORE ACTIONS */}
+        {showMore &&
+          moreActions.map((action, i) => (
             <button
               key={i}
-              onClick={action.onClick}
-              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm rounded"
+              onClick={() => {
+                action.onClick();
+                setActiveMenuId(null);
+                setShowMore(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
             >
               {action.label}
             </button>
           ))}
 
-          {moreActions.length > 0 && (
-            <button
-              onClick={() => setShowMore(!showMore)}
-              className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
-            >
-              More
-            </button>
-          )}
-        </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
-      {/* ================= MORE MENU ================= */}
-      {showMore && (
-        <div
-          className={`${morePositionClass} bg-white shadow-xl rounded-xl w-48 p-2 z-50 animate-slideUp`}
-          onClick={(e) => e.stopPropagation()}
+</div>
+
+<div className="sm:block hidden">
+
+
+   {showMenu && menuPosition && activeMenuId === msg.id && (
+  <div
+    className="fixed inset-0 z-[9999] overflow-y-auto p-3 no-scrollbar "
+    onClick={() => {
+      setActiveMenuId(null);
+      setMenuPosition(null);
+      setShowMore(false);
+    }}
+  >
+    {/* POSITION WRAPPER */}
+    <div
+      className="absolute"
+      style={{
+        top: menuPosition.y + 0,
+        right: menuPosition.isMine
+          ? menuPosition.x - 500
+          : '',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      {/* ================= MENU BOX ================= */}
+      <div
+        className="
+          bg-white text-black shadow-xl rounded-xl w-48 py-3
+          max-h-[60vh]
+          overflow-y-auto
+          flex flex-col no-scrollbar
+        "
+      >
+
+        {/* CLOSE */}
+        <button
+          className="sticky top-0 bg-white z-10 text-right px-2 py-1"
+          onClick={() => {
+            setActiveMenuId(null);
+            setMenuPosition(null);
+            setShowMore(false);
+          }}
         >
-          {moreActions.map((action, i) => (
+          ✕
+        </button>
+
+        {/* MAIN ACTIONS  */}
+        {mainActions.map((action, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              action.onClick();
+              setActiveMenuId(null);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+          >
+            {action.label}
+          </button>
+        ))}
+
+        {/* MORE BUTTON */}
+        {moreActions.length > 0 && (
+          <button
+            onClick={() => setShowMore(true)}
+            className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
+          >
+            More
+          </button>
+        )}
+
+        {/* MORE ACTIONS */}
+        {showMore &&
+          moreActions.map((action, i) => (
             <button
               key={i}
-              onClick={action.onClick}
-              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm rounded"
+              onClick={() => {
+                action.onClick();
+                setActiveMenuId(null);
+                setShowMore(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
             >
               {action.label}
             </button>
           ))}
-        </div>
-      )}
 
-      {/* ================= MODALS ================= */}
+      </div>
+    </div>
+  </div>
+)}
 
+</div>
+
+    {/* ================= MODALS ================= */}
+    
       {openDelete && (
         <DeleteModal
           message={msg}
@@ -374,7 +499,6 @@ export default function MessageComponent({
           {toast.message}
         </div>
       )}
-
-    </>
-  );
+  </>
+);
 }
