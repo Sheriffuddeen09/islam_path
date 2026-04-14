@@ -99,7 +99,9 @@ useEffect(() => {
 
     const res = await api.get(`/api/chats/${chat.id}/messages`);
 
-    setMessages(res.data || []);
+    // setMessages(res.data || []);
+
+    setMessages(res.data.messages || []);
 
     // 🔥 force scroll AFTER messages load
     setTimeout(() => {

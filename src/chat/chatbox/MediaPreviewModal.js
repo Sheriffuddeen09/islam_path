@@ -239,7 +239,7 @@ console.log("current image:", previewUrls?.[activeIndex]);
       <div className="absolute top-0 bottom-0 right-0 w-[1px] bg-white/50" />
     </div>
     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-white/80 px-3 py-1 rounded">
-    <div className="inline-flex items-center gap-2">
+    <div className="inline-flex items-center gap-2 p-1">
       <input type="range" 
       min={1} 
       max={3} step={0.1} 

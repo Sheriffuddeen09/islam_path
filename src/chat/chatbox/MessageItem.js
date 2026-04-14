@@ -258,21 +258,34 @@ const resendFile = async () => {
   form.append("chat_id", chatId);
 
   const getType = (file) => {
-  if (file.type.startsWith("image/")) return "image";
-  if (file.type.startsWith("video/")) return "video";
-  if (file.type.startsWith("audio/")) return "audio";
-  return "file";
-};
+    if (file.type.startsWith("image/")) return "image";
+    if (file.type.startsWith("video/")) return "video";
+    if (file.type.startsWith("audio/")) return "audio";
+    return "file";
+  };
 
-msg.originalFiles.forEach(file => {
-  form.append("files[]", file);
-  form.append("types[]", getType(file)); // ✅ CORRECT
-  form.append("trim_start[]", 0);
-  form.append("trim_end[]", 0);
-});
+  // ✅ GENERATE GROUP ID AGAIN
+  const isMediaGroup =
+    msg.originalFiles.length > 1 &&
+    msg.originalFiles.every(f =>
+      f.type.startsWith("image/") || f.type.startsWith("video/")
+    );
+
+  const groupId = isMediaGroup ? `grp_${Date.now()}` : null;
+
+  msg.originalFiles.forEach(file => {
+    form.append("files[]", file);
+    form.append("types[]", getType(file));
+    form.append("trim_start[]", 0);
+    form.append("trim_end[]", 0);
+  });
 
   if (msg.message) {
     form.append("message", msg.message);
+  }
+
+  if (groupId) {
+    form.append("group_id", groupId);
   }
 
   try {
@@ -284,19 +297,33 @@ msg.originalFiles.forEach(file => {
 
     const serverMessages = res.data.messages;
 
-    const grouped = {
-      ...serverMessages[0],
-      files: serverMessages.map((m) => ({
-        file: m.file_url,
-        file_url: m.file_url,
-        file_name: m.file_name,
-        type: m.type,
-        duration: m.duration,
-      })),
-      status: "sent",
-    };
+    let grouped;
 
-    replaceMessage(msg.id, grouped); // ✅ FIXED
+    // ✅ CASE 1: backend already grouped
+    if (serverMessages[0]?.files) {
+      grouped = {
+        ...serverMessages[0],
+        status: "sent",
+      };
+    }
+
+    // ✅ CASE 2: backend returns separate
+    else {
+      grouped = {
+        ...serverMessages[0],
+        group_id: serverMessages[0].group_id,
+        files: serverMessages.map((m) => ({
+          file: m.file_url,
+          file_url: m.file_url,
+          file_name: m.file_name,
+          type: m.type,
+          duration: m.duration,
+        })),
+        status: "sent",
+      };
+    }
+
+    replaceMessage(msg.id, grouped);
 
   } catch (err) {
     updateStatus(msg.id, "failed");

@@ -145,10 +145,6 @@ useEffect(() => {
   };
 
 
-   const isUserOnline = useUserOnlineStatus(authUser.id);
-
-  console.log('User Online', isUserOnline)
-
   const filteredMessages = messages;
 
   const searchFilteredMessages =

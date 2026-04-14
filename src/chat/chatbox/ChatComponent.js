@@ -318,17 +318,30 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           },
         });
         const serverMessages = res.data.messages;
-        const grouped = {
-          ...serverMessages[0],
-          files: serverMessages.map((m) => ({
-            file: m.file_url,
-            file_url: m.file_url,
-            file_name: m.file_name,
-            type: m.type,
-            duration: m.duration, // ✅ backend override
-          })),
-          status: "sent",
-        };
+
+          let grouped;
+
+          if (serverMessages[0]?.files) {
+            grouped = {
+              ...serverMessages[0],
+              status: "sent",
+            };
+          }
+
+          else {
+            grouped = {
+              ...serverMessages[0],
+              group_id: serverMessages[0].group_id,
+              files: serverMessages.map((m) => ({
+                file: m.file_url,
+                file_url: m.file_url,
+                file_name: m.file_name,
+                type: m.type,
+                duration: m.duration,
+              })),
+              status: "sent",
+            };
+          }
         setMessages((prev) =>
           prev.map((m) => (m.id === tempId ? grouped : m))
         );

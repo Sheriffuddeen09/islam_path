@@ -180,16 +180,16 @@ const handleFileChange = (e) => {
   return (
     <>
 
-    {toast && (
+    {/* {toast && (
         <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
           ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
         `}>
           {toast.message}
         </div>
-      )}
+      )} */}
 
    {replyingTo && (
-  <div className="bg-black/90 py-2 px-4 rounded mb-2 flex justify-between items-center">
+  <div className="bg-black/90 py-2 px-4 rounded mb-2 flex justify-between border-l-2 border-blue-800 items-center">
     <div className="text-xs">
       <p className="text-white text-sm mb-2 font-semibold">
       Replying to{" "}
