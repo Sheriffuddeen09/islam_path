@@ -15,7 +15,7 @@ export default function ChatPage({
   setActiveChat
 }) {
   const { user: authUser } = useAuth();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState({});
   const [chatFilter, setChatFilter] = useState("all");
   const [loadingChats, setLoadingChats] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -94,16 +94,36 @@ useEffect(() => {
     )
   );
 
+  // ✅ CHECK IF ALREADY LOADED
+  if (messagesMap[chat.id]) {
+    // No loading, instant display
+    setMessages(messagesMap[chat.id]);
+
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "end",
+      });
+    }, 50);
+
+    return; // 🚀 STOP HERE (no API call)
+  }
+
   try {
     setLoadingMessages(true);
 
     const res = await api.get(`/api/chats/${chat.id}/messages`);
 
-    // setMessages(res.data || []);
+    const msgs = res.data.messages || [];
 
-    setMessages(res.data.messages || []);
+    // ✅ Save to cache
+    setMessagesMap(prev => ({
+      ...prev,
+      [chat.id]: msgs,
+    }));
 
-    // 🔥 force scroll AFTER messages load
+    setMessages(msgs);
+
     setTimeout(() => {
       bottomRef.current?.scrollIntoView({
         behavior: "auto",
@@ -114,7 +134,6 @@ useEffect(() => {
     setLoadingMessages(false);
   }
 };
-
   const restoredRef = useRef(false);
 
   useEffect(() => {

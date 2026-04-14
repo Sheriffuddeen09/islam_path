@@ -12,4 +12,135 @@
   };
 
 
-  
+  <div
+        key={`${msg.id}-${selectedMessages.length}`}
+        ref={messageRef}
+        className={`flex cursor-pointer ${
+          isMine ? "justify-end" : "justify-start"
+        } ${isSelected ? "bg-green-200 p-2" : ""}`}
+      >
+     <div
+      className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
+        ${isMine 
+          ? "ml-auto bg-green-800 text-white" 
+          : "mr-auto bg-gray-900 text-white"
+        }
+      `}
+      style={{
+        transform: `translateX(${translateX}px)`,
+        transition: translateX === 0 ? "transform 0.2s ease" : "none",
+      }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={(e) => handlePointerUp(e)}
+      onPointerCancel={(e) => handlePointerUp(e)}
+     onClick={(e) => {
+        e.stopPropagation();
+        if (forwardMode && selectedMessages.length === 0) {
+          setForwardMode(false);
+          return;
+        }
+        if (!forwardMode) {
+          if (isMobile) setShowActions(prev => !prev);
+          return;
+        }
+        toggleSelect(msg);
+      }}
+      >
+      {selectedMessages.length <= 1 && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={`
+            absolute -bottom-9 right-0 flex gap-0 px-2 py-1 rounded-full text-xs z-50
+            transition-all duration-200
+            ${
+              isMobile
+                ? (showActions || (selectedMessages.length === 1 && isSelected))
+                  ? "opacity-100 pointer-events-auto"
+                  : "opacity-0 pointer-events-none"
+                : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+            }
+          `}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowReactions(msg.id);
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-black">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+            </svg>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setMenuPosition({
+                x: rect.x,
+                y: rect.y,
+                isMine,
+                id: msg.id,
+              });
+              setActiveMenuId(msg.id);
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24" strokeWidth={1.5}
+              stroke="currentColor" className="size-10 text-black">
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375" />
+            </svg>
+          </button>
+        </div>
+        )}
+          {newMessageCount > 0 && (
+                <div
+                  onClick={() => {
+                    bottomRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "end",
+                    });
+                  }}
+                  className="fixed bottom-24 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-xs cursor-pointer shadow"
+                >
+                  {newMessageCount} new message{newMessageCount > 1 ? "s" : ""}
+                </div>
+              )}
+        {msg.replied_to && (
+            <div className="bg-black/30 p-2 rounded mb-2 border-4 border-blue-400">
+              <p className="text-xs text-blue-300 font-semibold">
+                {msg.replied_to.sender?.first_name || "User"}
+              </p>
+              <p className="text-xs opacity-80 truncate">
+                {msg.replied_to.type === "text"
+                  ? msg.replied_to.message
+                  : msg.replied_to.type === "image"
+                  ? msg.replied_to.file_name
+                  : msg.replied_to.type === "video"
+                  ? msg.replied_to.file_name
+                  : msg.replied_to.type === "audio"
+                  ? msg.replied_to.file_name
+                  : msg.type === "file"
+                  ? msg.replied_to.file_name
+                  : msg.replied_to.type === "voice"
+                  ? msg.replied_to.file_name
+                  : msg.replied_to.type}
+              </p>
+            </div>
+          )}
+        {msg.type === "text" && (
+          <Linkify
+            options={{
+              target: "_blank",
+              className: "text-blue-400 underline",
+            }}
+          >
+            <p className="text-sm break-words ">{msg.message}</p>
+          </Linkify>
+        )}
+       <MediaMessage msg={msg} setPreview={setPreview} preview={preview} />
+        {(msg.type === "audio" || msg.type === "voice") && audioSrc && (
+          <AudioPlayer msg={msg} isMine={isMine} />
+        )}

@@ -466,7 +466,6 @@ const retryMessage = async () => {
 
 };
 
-console.log("User Read Message", msg.is_read);
 
   const formatTime = (date) => {
   if (!date) return "";
@@ -497,9 +496,6 @@ console.log("User Read Message", msg.is_read);
     ? `http://localhost:8000/storage/${msg.file}`
     : msg.local || null);
 
-
-console.log("forwardMode:", forwardMode);
-console.log("selectedMessages:", selectedMessages);
 
 
 
