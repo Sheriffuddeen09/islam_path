@@ -11,78 +11,41 @@
     setTimeout(() => setToast(null), 3000);
   };
 
+if i press the message body it should show the menu in the header of message in instead of hover and when i click the menu in the header it should drop dowm the mainAction menu if 
+* the menu action icon should be in header message in mobile and ipad mini
+* the hover should only work in large screen
+* the reaction should be pop on the message body on not the header
+* when press the message body the should reaction on body while menu on header
+* when i click the message show in header in mobile and ipad it should flip down the menu action with the should more
+* solve it out step by step with clean and easy step just like whatsapp
+onClick={(e) => {
+      e.stopPropagation(); (isTouchDevice) { 
+        setShowReactionPopup(prev => prev === msg.id ? null : msg.id);
+        return;
+      }
 
-  <div
-        key={`${msg.id}-${selectedMessages.length}`}
-        ref={messageRef}
-        className={`flex cursor-pointer ${
-          isMine ? "justify-end" : "justify-start"
-        } ${isSelected ? "bg-green-200 p-2" : ""}`}
-      >
-     <div
-      className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
-        ${isMine 
-          ? "ml-auto bg-green-800 text-white" 
-          : "mr-auto bg-gray-900 text-white"
-        }
-      `}
-      style={{
-        transform: `translateX(${translateX}px)`,
-        transition: translateX === 0 ? "transform 0.2s ease" : "none",
-      }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={(e) => handlePointerUp(e)}
-      onPointerCancel={(e) => handlePointerUp(e)}
-     onClick={(e) => {
-        e.stopPropagation();
-        if (forwardMode && selectedMessages.length === 0) {
-          setForwardMode(false);
-          return;
-        }
-        if (!forwardMode) {
-          if (isMobile) setShowActions(prev => !prev);
-          return;
-        }
+      // ✅ DESKTOP: normal behavior
+      if (forwardMode && selectedMessages.length === 0) {
+        setForwardMode(false);
+        return;
+      }
+
+      if (forwardMode) {
         toggleSelect(msg);
-      }}
-      >
-      {selectedMessages.length <= 1 && (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={`
-            absolute -bottom-9 right-0 flex gap-0 px-2 py-1 rounded-full text-xs z-50
-            transition-all duration-200
-            ${
-              isMobile
-                ? (showActions || (selectedMessages.length === 1 && isSelected))
-                  ? "opacity-100 pointer-events-auto"
-                  : "opacity-0 pointer-events-none"
-                : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-            }
-          `}
-        >
-          <button
+      }
+    }} //onClick for show menu <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowReactions(msg.id);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-black">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
-            </svg>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
+
               const rect = e.currentTarget.getBoundingClientRect();
+
               setMenuPosition({
                 x: rect.x,
                 y: rect.y,
                 isMine,
                 id: msg.id,
               });
+
               setActiveMenuId(msg.id);
             }}
           >
@@ -92,55 +55,95 @@
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375" />
             </svg>
-          </button>
-        </div>
-        )}
-          {newMessageCount > 0 && (
-                <div
-                  onClick={() => {
-                    bottomRef.current?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "end",
-                    });
-                  }}
-                  className="fixed bottom-24 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-xs cursor-pointer shadow"
-                >
-                  {newMessageCount} new message{newMessageCount > 1 ? "s" : ""}
-                </div>
-              )}
-        {msg.replied_to && (
-            <div className="bg-black/30 p-2 rounded mb-2 border-4 border-blue-400">
-              <p className="text-xs text-blue-300 font-semibold">
-                {msg.replied_to.sender?.first_name || "User"}
-              </p>
-              <p className="text-xs opacity-80 truncate">
-                {msg.replied_to.type === "text"
-                  ? msg.replied_to.message
-                  : msg.replied_to.type === "image"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type === "video"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type === "audio"
-                  ? msg.replied_to.file_name
-                  : msg.type === "file"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type === "voice"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type}
-              </p>
-            </div>
-          )}
-        {msg.type === "text" && (
-          <Linkify
-            options={{
-              target: "_blank",
-              className: "text-blue-400 underline",
+          </button> menu show drop down <div className="lg:hidden block"> 
+
+
+   {showMenu && menuPosition && activeMenuId === msg.id && (
+  <div
+    className="fixed inset-0 z-[9999] overflow-y-auto p-3 no-scrollbar "
+    onClick={() => {
+      setActiveMenuId(null);
+      setMenuPosition(null);
+      setShowMore(false);
+    }}
+  >
+    {/* POSITION WRAPPER */}
+    <div
+      className="absolute"
+      style={{
+        top: menuPosition.y + 0,
+        right: menuPosition.isMine
+          ? menuPosition.x - 250
+          : '',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      {/* ================= MENU BOX ================= */}
+      <div
+        className="
+          bg-white text-black shadow-xl rounded-xl w-48 py-3
+          max-h-[60vh]
+          overflow-y-auto
+          flex flex-col no-scrollbar
+        "
+      >
+
+        {/* CLOSE */}
+        <button
+          className="sticky top-0 bg-white z-10 text-right px-2 py-1"
+          onClick={() => {
+            setActiveMenuId(null);
+            setMenuPosition(null);
+            setShowMore(false);
+          }}
+        >
+          ✕
+        </button>
+
+        {/* MAIN ACTIONS  */}
+        {mainActions.map((action, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              action.onClick();
+              setActiveMenuId(null);
             }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
           >
-            <p className="text-sm break-words ">{msg.message}</p>
-          </Linkify>
+            {action.label}
+          </button>
+        ))}
+
+        {/* MORE BUTTON */}
+        {moreActions.length > 0 && (
+          <button
+            onClick={() => setShowMore(true)}
+            className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
+          >
+            More
+          </button>
         )}
-       <MediaMessage msg={msg} setPreview={setPreview} preview={preview} />
-        {(msg.type === "audio" || msg.type === "voice") && audioSrc && (
-          <AudioPlayer msg={msg} isMine={isMine} />
-        )}
+
+        {/* MORE ACTIONS */}
+        {showMore &&
+          moreActions.map((action, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                action.onClick();
+                setActiveMenuId(null);
+                setShowMore(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+            >
+              {action.label}
+            </button>
+          ))}
+
+      </div>
+    </div>
+  </div>
+)}
+
+</div>

@@ -37,6 +37,9 @@ export default function MessageItem({
 
   const [menuPosition, setMenuPosition] = useState(null);
 
+  const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+  const isDesktop = !isTouchDevice;
+  
 
 useEffect(() => {
   if (!messageRef.current) return;
