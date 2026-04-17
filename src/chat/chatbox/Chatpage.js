@@ -161,6 +161,23 @@ export default function ChatPage({
     [chats]
   );
 
+  const setMessages = (chatId, updater) => {
+  setMessagesMap(prev => {
+    const current = prev[chatId] || [];
+
+    const updated =
+      typeof updater === "function"
+        ? updater(current)
+        : updater;
+
+    return {
+      ...prev,
+      [chatId]: updated,
+    };
+  });
+};
+
+
   if (loadingChats) return <UserSkeleton />;
 
   return (
@@ -191,6 +208,7 @@ export default function ChatPage({
       setToast={setToast}
       openChat={openChat}
       messages={messages}
+      setMessages={(updater) => setMessages(activeChat?.id, updater)}
     />
   );
 }

@@ -8,6 +8,8 @@ import { Loader2 } from "lucide-react";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import CallModal from "./CallModal";
 import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
+import MessageComponent from "./MessageComponent";
+import MenuComponent from "./MenuComponent";
 
 
 
@@ -47,14 +49,34 @@ export default function MessageBox({
   const [newCount, setNewCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const [forwardMode, setForwardMode] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
 
   const [forwardMessage, setForwardMessage] = useState(false);
   
+  const [selectedMsg, setSelectedMsg] = useState(null);
+
   const lastMessageCount = useRef(0);
   const isUserNearBottom = useRef(true);
+
+  const [uiState, setUiState] = useState({
+    mode: null, // "reaction" | "menu"
+    message: null,
+    openMenu: false,
+  });
+
+  const [menuPosition, setMenuPosition] = useState(null);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  
+
+  const hasSelection = selectedMessages.length > 0;
+  const canForward = selectedMessages.length > 1;
+
+
+  const isTouchDevice =
+  window.matchMedia("(pointer: coarse)").matches;
 
 // SMART SCROLL
 useEffect(() => {
@@ -157,6 +179,54 @@ useEffect(() => {
 // 👇 THIS is what you asked about
 const listToRender =
   searchQuery.trim().length > 0 ? searchFilteredMessages : messages;
+
+
+  const toggleSelect = (message) => {
+  setSelectedMessages(prev => {
+    const exists = prev.some(m => m.id === message.id);
+
+    if (exists) {
+      return prev.filter(m => m.id !== message.id);
+    }
+
+    return [...prev, message];
+  });
+};
+
+const handlePin = async (msg) => {
+  try {
+    if (msg.is_pinned) {
+      await api.delete("/api/messages/pin", {
+        data: { message_id: msg.id },
+      });
+
+      console.log("❌ Unpinned");
+    } else {
+      await api.put("/api/messages/pin", {
+        message_id: msg.id,
+      });
+
+      console.log("📌 Pinned");
+    }
+
+    // 🔥 update UI locally
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === msg.id
+          ? { ...m, is_pinned: !m.is_pinned }
+          : m
+      )
+    );
+
+  } catch (err) {
+    console.error("Pin error:", err);
+  }
+};
+
+ const handleSearch = (text) => {
+    setSearchMode(true);
+    setSearchQuery(text);
+  };
 
     {loadingMessages && <ChatSkeleton type="messages" />}
 
@@ -270,49 +340,66 @@ const listToRender =
         </div>
 
         {/* RIGHT */}
-        <div className="flex gap-3 text-xl flex-shrink-0">
-
-          {selectedMessages.length > 1 && (
-            <button
-              onClick={() => setForwardMessage(true)}
-              className="hover:bg-gray-200 p-2 rounded-full"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="size-6 text-black"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
-                />
-              </svg>
-            </button>
-          )}
-
+        <div className="flex gap-1 text-xl flex-shrink-0">
+         {hasSelection && selectedMessages.length === 1 && (
           <button
-            onClick={() => setCallMode("video")}
-            className="hover:bg-gray-200 p-2 rounded-full"
+          className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+
+              if (!selectedMsg) return;
+
+              if (isTouchDevice) {
+                setUiState({
+                  mode: "menu",
+                  message: selectedMsg,
+                  openMenu: true,
+                });
+                return;
+              }
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth="1.5"
+              strokeWidth={1.5}
               stroke="currentColor"
-              className="size-6 text-black"
+              className="size-10 text-black rotate-90"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375"
+              />
             </svg>
           </button>
+        )}
 
+        {canForward && (
+        <button
+          onClick={() => setForwardMessage(true)}
+          className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-6 text-black"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+            />
+          </svg>
+        </button>
+      )}
           <button
             onClick={() => setCallMode("audio")}
-            className="hover:bg-gray-200 p-2 rounded-full"
+            className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -425,6 +512,8 @@ const listToRender =
         )}
 
         <MessageItem
+          key={msg.id}
+          messages={messages}
           msg={msg}
           authUser={authUser}
           isMine={msg.sender_id === authUser.id}
@@ -438,15 +527,16 @@ const listToRender =
           setSearchQuery={setSearchQuery}
           setSearchMode={setSearchMode}
           searchMode={searchMode}
-          key={msg.id}
-           forwardMode={forwardMode}
+          forwardMode={forwardMode}
           setForwardMode={setForwardMode}
           selectedMessages={selectedMessages}
           setSelectedMessages={setSelectedMessages}
           forwardMessage={forwardMessage}
-          setForwardMessage={setForwardMessage} bottomRef={bottomRef}
+          setForwardMessage={setForwardMessage} bottomRef={bottomRef} showMore={showMore} setShowMore={setShowMore}
           setReplyingTo={setReplyingTo} replyingTo={replyingTo} newMessageCount={newMessageCount}
-          sendFile={sendFile} sendText={sendText} stopRecording={stopRecording}
+          sendFile={sendFile} sendText={sendText} stopRecording={stopRecording} setUiState={setUiState}
+          isTouchDevice={isTouchDevice} menuPosition={menuPosition} setMenuPosition={setMenuPosition}
+          setSelectedMsg={setSelectedMsg} uiState={uiState} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId}
         />
         <div ref={bottomRef} />
       </div>
@@ -466,7 +556,7 @@ const listToRender =
           setIsTyping={setIsTyping}
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
-          activeChat={activeChat}
+          activeChat={activeChat} 
           paused={paused} trimMap={trimMap} trimAppliedMap={trimAppliedMap} stopRecording={stopRecording} 
           sendText={sendText} sendFile={sendFile} zoomMap={zoomMap} setTrimAppliedMap={setTrimAppliedMap} 
           setTrimMap={setTrimMap} recording={recording} setDurationMap={setDurationMap} setShowPreview={setShowPreview}
@@ -477,6 +567,7 @@ const listToRender =
           text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
+          
         />
       </div>
 
@@ -487,6 +578,42 @@ const listToRender =
           setCallMode={setCallMode}
         />
       )}
+
+      {messages.map((msg) => (
+      <MenuComponent 
+      msg={msg}
+      togglePin={handlePin}
+      setMessages={setMessages}
+      activeChat={activeChat?.id}
+      onSearch={(text) => handleSearch(text)} // ✅ FIX
+      selectedMessages={selectedMessages}
+      setToast={setToast}
+      setActiveChat={setActiveChat}
+      setSelectedMessages={setSelectedMessages}
+      chats={chats}
+      toggleSelect={toggleSelect}
+      searchMode={searchMode}
+      searchQuery={searchQuery}
+      setSearchMode={setSearchMode}
+      setSearchQuery={setSearchQuery}
+      setForwardMessage= {setForwardMessage}
+      forwardMessage={forwardMessage}
+      setForwardMode={setForwardMode}
+      setReplyingTo={setReplyingTo}
+      showMenu={activeMenuId === msg.id}
+      setActiveMenuId={setActiveMenuId}
+      setMenuPosition={setMenuPosition}
+      menuPosition={menuPosition}
+      activeMenuId={activeMenuId}
+      showMore={showMore}
+      setShowMore={setShowMore}
+      setUiState={setUiState}
+      uiState={uiState}
+      setSelectedMsg={setSelectedMsg}
+      messages={messages}
+      authUser={authUser}
+      />
+      ))}
     </div>
   );
 }

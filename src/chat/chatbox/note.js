@@ -23,7 +23,7 @@ export default function MessageComponent({
   chats,
   forwardMessage, 
   setForwardMessage,
-  searchMode, searchQuery, setSearchMode,
+  setShowMenuId, searchMode, searchQuery, setSearchMode,
   setSearchQuery, setReplyingTo, setForwardMode, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
@@ -128,10 +128,6 @@ export default function MessageComponent({
 };
 
   // ================= ACTIONS =================
-
-  const status = (msg.status || "").toLowerCase().trim();
-  console.log("STATUS:", msg.status);
-
   const actions = [
   { 
     label: "Reply", 
@@ -145,50 +141,47 @@ export default function MessageComponent({
   {
     label: copied ? "Copied ✓" : "Copy",
     show: msg.type === "text", // ✅ only text
-    onClick: () => {handleCopy(); setActiveMenuId(null)},
+    onClick: handleCopy,
   },
 
   {
     label: "Download Image",
     show: msg.type === "image" && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: handleDownload,
   },
   {
     label: "Download Video",
     show: msg.type === "video" && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: handleDownload,
   },
   {
     label: "Download Audio",
     show: (msg.type === "audio") && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: handleDownload,
   },
   {
     label: "Download Document",
     show: msg.type === "file" && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: handleDownload,
   },
 
   {
-  label: "Edit",
-  show:
-    msg.type === "text" &&
-    isMine &&
-    status !== "read",
-  onClick: (m) => {
-    setEditingMessage(m);
-    setActiveMenuId(null)
+    label: "Edit",
+    show: msg.type === "text" && isMine,
+    onClick: () => {
+      setEditingMessage(msg);
+      setActiveMenuId(null)
+    },
   },
-},
   {
     label: "Delete",
     show: true,
-    onClick: () => {handleDeletePop(); setActiveMenuId(null)},
+    onClick: handleDeletePop,
   },
   {
     label: "Clear Message",
     show: isMine,
-    onClick: () => {setClearMessage(true); setActiveMenuId(null)},
+    onClick: () => setClearMessage(true),
   },
 
   {
@@ -211,7 +204,7 @@ export default function MessageComponent({
   {
     label: msg.is_pinned ? "Unpin" : "Pin",
     show: true,
-    onClick: () => {togglePin(msg); setActiveMenuId(null)},
+    onClick: () => togglePin(msg),
   },
 
   // =========================
@@ -231,10 +224,13 @@ export default function MessageComponent({
   const mainActions = actions.slice(0, 5);
   const moreActions = actions.slice(5);
 
+  // ================= POSITION =================
+
+
+ 
 
   return (
   <>
-  <div className="lg:block hidden">
    {searchMode && (
   <div className="flex items-center gap-2 p-2 border-b">
 
@@ -258,20 +254,12 @@ export default function MessageComponent({
   </div>
 )}
 
-<div>
-</div>
-
-   
-
-</div>
-
-<div className="lg:block hidden">
+<div className="sm:hidden block">
 
 
    {showMenu && menuPosition && activeMenuId === msg.id && (
   <div
-    className="fixed inset-0 z-[9999] overflow-y-scroll p-3
-    scrollbar-thin scrollbar-thumb-gray-400 "
+    className="fixed inset-0 z-[9999] overflow-y-auto p-3 no-scrollbar "
     onClick={() => {
       setActiveMenuId(null);
       setMenuPosition(null);
@@ -282,11 +270,10 @@ export default function MessageComponent({
     <div
       className="absolute"
       style={{
-        top: menuPosition.isMine
-          ? menuPosition.y - 100 : menuPosition.y - 40,
+        top: menuPosition.y + 0,
         right: menuPosition.isMine
-          ? menuPosition.x - 500
-          :  menuPosition.x + 380,
+          ? menuPosition.x - 250
+          : '',
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -295,10 +282,102 @@ export default function MessageComponent({
       <div
         className="
           bg-white text-black shadow-xl rounded-xl w-48 py-3
-          max-h-[32vh]
-          overflow-y-scroll
-          flex flex-col
-          scrollbar-thin scrollbar-thumb-gray-400
+          max-h-[60vh]
+          overflow-y-auto
+          flex flex-col no-scrollbar
+        "
+      >
+
+        {/* CLOSE */}
+        <button
+          className="sticky top-0 bg-white z-10 text-right px-2 py-1"
+          onClick={() => {
+            setActiveMenuId(null);
+            setMenuPosition(null);
+            setShowMore(false);
+          }}
+        >
+          ✕
+        </button>
+
+        {/* MAIN ACTIONS  */}
+        {mainActions.map((action, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              action.onClick();
+              setActiveMenuId(null);
+            }}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+          >
+            {action.label}
+          </button>
+        ))}
+
+        {/* MORE BUTTON */}
+        {moreActions.length > 0 && (
+          <button
+            onClick={() => setShowMore(true)}
+            className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
+          >
+            More
+          </button>
+        )}
+
+        {/* MORE ACTIONS */}
+        {showMore &&
+          moreActions.map((action, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                action.onClick();
+                setActiveMenuId(null);
+                setShowMore(false);
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+            >
+              {action.label}
+            </button>
+          ))}
+
+      </div>
+    </div>
+  </div>
+)}
+
+</div>
+
+<div className="sm:block hidden">
+
+
+   {showMenu && menuPosition && activeMenuId === msg.id && (
+  <div
+    className="fixed inset-0 z-[9999] overflow-y-auto p-3 no-scrollbar "
+    onClick={() => {
+      setActiveMenuId(null);
+      setMenuPosition(null);
+      setShowMore(false);
+    }}
+  >
+    {/* POSITION WRAPPER */}
+    <div
+      className="absolute"
+      style={{
+        top: menuPosition.y + 0,
+        right: menuPosition.isMine
+          ? menuPosition.x - 500
+          : '',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+
+      {/* ================= MENU BOX ================= */}
+      <div
+        className="
+          bg-white text-black shadow-xl rounded-xl w-48 py-3
+          max-h-[60vh]
+          overflow-y-auto
+          flex flex-col no-scrollbar
         "
       >
 
@@ -420,7 +499,6 @@ export default function MessageComponent({
           {toast.message}
         </div>
       )}
-
   </>
 );
 }

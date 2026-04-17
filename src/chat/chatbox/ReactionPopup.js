@@ -1,32 +1,51 @@
-export default function ReactionPopup({ onReact, setShowReactions, message, showReactions }) {
+export default function ReactionPopup({
+  onReact,
+  setShowReactions,
+  message,
+  showReactions,
+  setSelectedMessages,
+  setSelectedMsg, isMine
+}) {
   const emojis = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
+
+  const clearSelection = () => {
+    setSelectedMessages([]);
+    setSelectedMsg(null);
+  };
+
+  const closeAll = () => {
+    setShowReactions(null);
+    clearSelection(); // ✅ single source of truth
+  };
 
   return (
     <>
       {showReactions === message.id && (
-        <div className="absolute bottom-6 right-0 bg-black rounded-full flex items-center gap-2 p-2 z-50">
-          
-          {/* Emojis */}
-      {emojis.map((emoji) => (
-        <button
-          key={emoji}
-          onPointerDown={(e) => e.stopPropagation()} // ✅
-          onClick={() => {
-            onReact(message.id, emoji);
-            setShowReactions(null);
-          }}
-          className="text-lg hover:scale-125 transition"
+        <div
+          className={`absolute bottom-6 bg-black rounded-full flex items-center gap-2 p-2 z-50
+            ${isMine ? "right-0" : "left-0"}
+          `}
         >
-          {emoji}
-        </button>
-      ))}
+          {emojis.map((emoji) => (
+            <button
+              key={emoji}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                onReact(message.id, emoji);
+                closeAll(); // ✅ clean reset
+              }}
+              className="text-lg hover:scale-125 transition"
+            >
+              {emoji}
+            </button>
+          ))}
 
-      {/* Close */}
-      <button
-        onPointerDown={(e) => e.stopPropagation()} // ✅
-        onClick={() => setShowReactions(null)}
-        className="ml-2 text-white hover:scale-110"
-      >
+          {/* Close */}
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={closeAll} // ✅ unified
+            className="ml-2 text-white hover:scale-110"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

@@ -198,20 +198,27 @@ const handleFileChange = (e) => {
         : replyingTo?.sender?.first_name || "User"}
     </p>
 
-      <p className="truncate opacity-80 text-white capitalize">
+     <p className="truncate opacity-80 text-white capitalize">
         {replyingTo?.type === "text"
           ? replyingTo?.message
-          : replyingTo?.type === "image"
-          ? `🖼 ${replyingTo?.file_name}`
-          : replyingTo?.type === "video"
-          ? `🎥 ${replyingTo?.file_name}`
+
+          : ["image", "video", "audio", "file"].includes(replyingTo?.type)
+          ? (() => {
+              const files = replyingTo?.files || [];
+
+              if (files.length === 0) return replyingTo?.type;
+
+              if (files.length === 1) {
+                return `🎥 ${files[0].file_name}`;
+              }
+
+              return `🎥 ${files[0].file_name} & ${files[1].file_name}`;
+            })()
+
           : replyingTo?.type === "voice"
-          ? `🎤 ${replyingTo?.type} message`
-          : replyingTo?.type === "audio"
-          ? `🎧 ${replyingTo?.file_name}`
-          : replyingTo?.type === "file"
-          ? `📄 ${replyingTo?.file_name}`
-          : replyingTo?.type}
+          ? `🎤 Voice message`
+
+          : ""}
       </p>
     </div>
 

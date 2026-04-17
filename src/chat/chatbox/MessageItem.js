@@ -16,43 +16,50 @@ export default function MessageItem({
   setMessages,
   chatId,
   activeChat,
-  setToast,
-  setActiveChat, newMessageCount, bottomRef,
-  chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo,
+  setToast, menuPosition, setMenuPosition, setSelectedMsg, uiState, setUiState,
+  setActiveChat, newMessageCount, bottomRef, activeMenuId, setActiveMenuId, showMore, setShowMore,
+  chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage
 }) {
-  const [showReactions, setShowReactions] = useState(null);
+  const [showReactionPopup, setShowReactionPopup] = useState(null);
   const [preview, setPreview] = useState({
     items: [],
     index: 0,
   });
-  const [showMore, setShowMore] = useState(false);
+
+
   const [translateX, setTranslateX] = useState(0);
   const threshold = 80; // swipe distance
   const startX = useRef(0);
   
   const messageRef = useRef();
   const [hasMarkedRead, setHasMarkedRead] = useState(false);
-  const [activeMenuId, setActiveMenuId] = useState(null);
 
-  const [menuPosition, setMenuPosition] = useState(null);
 
-  const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
-  const isDesktop = !isTouchDevice;
+  const [isLongPress, setIsLongPress] = useState(false);
+  const pressTimer = useRef(null);
   
-
 useEffect(() => {
   if (!messageRef.current) return;
+  if (msg.sender_id === authUser.id) return;
 
   const observer = new IntersectionObserver(
     async ([entry]) => {
-      if (entry.isIntersecting && !hasMarkedRead && msg.sender_id !== authUser.id) {
-        try {
-          await api.post(`/api/messages/${msg.id}/read`);
-          setHasMarkedRead(true);
-        } catch (err) {
-          console.error(err);
-        }
+      if (!entry.isIntersecting || hasMarkedRead) return;
+
+      setHasMarkedRead(true);
+
+      try {
+        await api.post(`/api/messages/${msg.id}/read`);
+
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === msg.id ? { ...m, status: "read" } : m
+          )
+        );
+      } catch (err) {
+        console.error(err);
+        setHasMarkedRead(false); // optional retry safety
       }
     },
     { threshold: 0.6 }
@@ -61,26 +68,40 @@ useEffect(() => {
   observer.observe(messageRef.current);
 
   return () => observer.disconnect();
-}, [msg.id, hasMarkedRead]);
-
-    const toggleSelect = (message) => {
+}, [msg.id, msg.sender_id, authUser.id, hasMarkedRead]);
+    
+const toggleSelect = (message) => {
   setSelectedMessages(prev => {
-    const exists = prev.some(m => m.id === message.id);
+    const exists = prev.includes(message.id);
+
+    let updated;
 
     if (exists) {
-      return prev.filter(m => m.id !== message.id);
+      updated = prev.filter(id => id !== message.id);
+    } else {
+      updated = [...prev, message.id];
     }
 
-    return [...prev, message];
+    // sync single
+    setSelectedMsg(updated.length ? message : null);
+
+    return updated;
   });
 };
+
+
+useEffect(() => {
+  if (selectedMessages.length === 0) {
+    setSelectedMsg(null);
+  }
+}, [selectedMessages]);
+
 
   const handleSearch = (text) => {
     setSearchMode(true);
     setSearchQuery(text);
   };
 
-  const pressTimer = useRef(null);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -106,55 +127,9 @@ useEffect(() => {
       return () => document.removeEventListener("click", handleClick);
     }, [isMobile]);
 
+    
 
-  const translateXRef = useRef(0);
-
-  const isDragging = useRef(false);
-
-
-  const handlePointerDown = (e) => {
-  startX.current = e.clientX;
-  isDragging.current = true;
-
-  e.currentTarget.setPointerCapture(e.pointerId); // 🔥 CRITICAL FIX
-
-  console.log("🟢 START", e.clientX);
-};
-
-
-const handlePointerMove = (e) => {
-  if (!isDragging.current) return;
-
-  const diff = e.clientX - startX.current;
-
-  const limited = diff * 0.5;
-
-  translateXRef.current = limited;
-  setTranslateX(limited);
-
-  console.log("🟡 MOVE", limited);
-};
-
-
-const handlePointerUp = (e) => {
-  isDragging.current = false;
-
-  e.currentTarget.releasePointerCapture(e.pointerId); // 🔥 IMPORTANT
-
-  console.log("🔴 END", translateXRef.current);
-
-  if (!isMine && translateXRef.current > threshold) {
-    setReplyingTo(msg);
-  }
-
-  if (isMine && translateXRef.current < -threshold) {
-    setReplyingTo(msg);
-  }
-
-  translateXRef.current = 0;
-  setTranslateX(0);
-};
-
+  
   // ================= STATUS =================
   const updateStatus = (id, status) => {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, status } : m));
@@ -383,21 +358,27 @@ const retryMessage = async () => {
 };
 
   // ================= LONG PRESS REACTION =================
-  const handlePressStart = () => {
-    pressTimer.current = setTimeout(() => setShowReactions(true), 500);
-  };
 
-  const handlePressEnd = () => clearTimeout(pressTimer.current);
+ const react = async (messageId, emoji) => {
+  if (typeof emoji !== "string") {
+    console.error("❌ Emoji must be string:", emoji);
+    return;
+  }
 
-  const react = async (emoji) => {
-    const { data } = await api.post("/api/messages/react", {
-      message_id: msg.id,
-      emoji,
-    });
+  console.log("🔥 sending:", messageId, emoji);
 
-    setMessages(prev => prev.map(m => m.id === data.id ? data : m));
-    setShowReactions(null);
-  };
+  const { data } = await api.post("/api/messages/react", {
+    message_id: messageId,
+    emoji,
+  });
+
+  setMessages(prev =>
+    prev.map(m => (m.id === data.id ? data : m))
+  );
+
+  setShowReactionPopup(null);
+};
+
 
   const otherUser = activeChat?.users?.find(
       (u) => u.id !== authUser.id
@@ -407,8 +388,6 @@ const retryMessage = async () => {
       otherUser?.id || null
     );
   
-    console.log('User Online', isUserOnline)
-
     const colors = [
       "bg-orange-500",
       "bg-blue-500",
@@ -483,7 +462,6 @@ const retryMessage = async () => {
   });
 };
 
-  const isSelected = selectedMessages.some(m => m.id === msg.id);
 
   useEffect(() => {
   if (selectedMessages.length === 0 && forwardMode) {
@@ -500,6 +478,7 @@ const retryMessage = async () => {
     : msg.local || null);
 
 
+  const isSelected = selectedMessages.some(m => m.id === msg.id);
 
 
   return (
@@ -513,68 +492,139 @@ const retryMessage = async () => {
         ref={messageRef}
         className={`flex cursor-pointer ${
           isMine ? "justify-end" : "justify-start"
-        } ${isSelected ? "bg-green-200 p-2" : ""}`}
+        } ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
       >
      <div
-      className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
-        ${isMine 
-          ? "ml-auto bg-green-800 text-white" 
-          : "mr-auto bg-gray-900 text-white"
-        }
-      `}
-      style={{
-        
-        transform: `translateX(${translateX}px)`,
-        transition: translateX === 0 ? "transform 0.2s ease" : "none",
-        
-      }}
-    
+  className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
+    ${isMine 
+      ? "ml-auto bg-green-800 text-white" 
+      : "mr-auto bg-gray-900 text-white"
+    }
+  `}
+  style={{
+    transform: `translateX(${translateX}px)`,
+    transition: translateX === 0 ? "transform 0.2s ease" : "none",
+  }}
 
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={(e) => handlePointerUp(e)}
-      onPointerCancel={(e) => handlePointerUp(e)}
-     onClick={(e) => {
-        e.stopPropagation();
+  // ================= LONG PRESS =================
+  onPointerDown={() => {
+    console.log("🟡 POINTER DOWN:", {
+      id: msg.id,
+      type: msg.type,
+      message: msg.message,
+    });
 
-        // 🔥 HARD GUARD (this is what you're missing)
-        if (forwardMode && selectedMessages.length === 0) {
-          setForwardMode(false);
-          return;
-        }
+    pressTimer.current = setTimeout(() => {
+      console.log("🔥 LONG PRESS TRIGGERED:", {
+        id: msg.id,
+        type: msg.type,
+      });
 
-        if (!forwardMode) {
-          if (isMobile) setShowActions(prev => !prev);
-          return;
-        }
+      setIsLongPress(true);
 
-        toggleSelect(msg);
-      }}
-      >
+      console.log("📌 BEFORE TOGGLE SELECT:", selectedMessages);
+
+      toggleSelect(msg);
+
+      console.log("RENDER MSG:", msg.id);
+      
+      console.log("📌 AFTER TOGGLE SELECT (async state):", msg.id);
+
+      setShowReactionPopup(msg.id);
+
+      console.log("😀 REACTION OPENED FOR:", msg.id);
+    }, 500);
+  }}
+
+  onPointerUp={() => {
+    console.log("🟢 POINTER UP:", msg.id);
+    clearTimeout(pressTimer.current);
+  }}
+
+  onPointerCancel={() => {
+    console.log("🔴 POINTER CANCEL:", msg.id);
+    clearTimeout(pressTimer.current);
+  }}
+
+  // ================= CLICK =================
+  onClick={(e) => {
+    e.stopPropagation();
+
+    console.log("🖱 CLICKED MESSAGE:", {
+      id: msg.id,
+      type: msg.type,
+      selectedMessages,
+      forwardMode
+    });
+
+    // 🚀 IF ANY MESSAGE IS SELECTED → TOGGLE
+    if (selectedMessages.length > 0) {
+      console.log("🔁 TOGGLE MODE ACTIVE → toggling:", msg.id);
+
+      toggleSelect(msg);
+
+      console.log("📊 AFTER TOGGLE CLICK:", msg.id);
+      return;
+    }
+
+    // 👇 NORMAL MODE
+    if (!forwardMode) {
+      console.log("📴 NORMAL MODE - OPEN ACTIONS:", msg.id);
+
+      if (isMobile) setShowActions(prev => !prev);
+
+      return;
+    }
+
+    console.log("📤 FORWARD MODE SELECT:", msg.id);
+
+    toggleSelect(msg);
+  }}
+>
+
+        {msg.reactions?.length > 0 && (
+        <div className="absolute -bottom-3 left-2 flex gap-1 bg-white px-2 py-0.5 rounded-full shadow text-xs">
+          {Object.values(
+            msg.reactions.reduce((acc, r) => {
+              if (!acc[r.emoji]) {
+                acc[r.emoji] = { emoji: r.emoji, count: 0 };
+              }
+              acc[r.emoji].count++;
+              return acc;
+            }, {})
+          ).map((r, i) => (
+            <span key={i}>
+              {r.emoji} {r.count > 1 && r.count}
+            </span>
+          ))}
+        </div>
+      )}
+
+
       {selectedMessages.length <= 1 && (
+        <div className="lg:block hidden">
         <div
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`
-            absolute -bottom-9 right-0 flex gap-0 px-2 py-1 rounded-full text-xs z-50
-            transition-all duration-200
+         className={`
+  absolute -bottom-8 right-0 flex items-center bg-gray-800 gap-1 px-2 py-1 rounded-lg text-xs z-50
+  transition-all duration-200 
 
-            ${
-              isMobile
-                ? (showActions || (selectedMessages.length === 1 && isSelected))
-                  ? "opacity-100 pointer-events-auto"
-                  : "opacity-0 pointer-events-none"
-                : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-            }
-          `}
-        >
+  ${
+    isMobile
+      ? (showActions || (selectedMessages.length === 1 && isSelected))
+        ? "opacity-100 pointer-events-auto"
+        : "opacity-0 pointer-events-none"
+      : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+  }
+`}>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowReactions(msg.id);
+              setShowReactionPopup(msg.id);
             }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-black">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-white">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
             </svg>
 
@@ -597,12 +647,13 @@ const retryMessage = async () => {
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
               viewBox="0 0 24 24" strokeWidth={1.5}
-              stroke="currentColor" className="size-10 text-black">
+              stroke="currentColor" className="size-6 text-white">
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375" />
             </svg>
           </button>
 
+        </div>
         </div>
         )}
           {newMessageCount > 0 && (
@@ -688,12 +739,13 @@ const retryMessage = async () => {
         </div>
 
         {/* ================= REACTIONS ================= */}
-        {showReactions && (
+        {showReactionPopup && (
           <div
             onClick={(e) => e.stopPropagation()}
           >
-            <ReactionPopup onReact={react} setShowReactions={setShowReactions}
-            message={msg} showReactions={showReactions} />
+            <ReactionPopup onReact={react} setShowReactions={setShowReactionPopup}
+            message={msg} showReactions={showReactionPopup} setSelectedMessages={setSelectedMessages}  
+            setSelectedMsg={setSelectedMsg} isMine={isMine} />
           </div>
         )}
       </div>
@@ -726,6 +778,11 @@ const retryMessage = async () => {
       activeMenuId={activeMenuId}
       showMore={showMore}
       setShowMore={setShowMore}
+      setUiState={setUiState}
+      uiState={uiState}
+      setSelectedMsg={setSelectedMsg}
+      messages={messages}
+      authUser={authUser}
     />
 
   </>

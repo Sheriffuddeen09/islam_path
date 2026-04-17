@@ -10,13 +10,10 @@ export default function MediaItem({ file, index, openPreview }) {
   return null;
 };
 
-console.log(file);
 
   const url = getUrl(file);
 
-if (!url) {
-  console.warn("❌ No media URL", file);
-}
+
 const isVideo = file.type === "video";
 
   return (

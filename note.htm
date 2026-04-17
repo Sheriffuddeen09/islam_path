@@ -11,139 +11,20 @@
     setTimeout(() => setToast(null), 3000);
   };
 
-if i press the message body it should show the menu in the header of message in instead of hover and when i click the menu in the header it should drop dowm the mainAction menu if 
-* the menu action icon should be in header message in mobile and ipad mini
-* the hover should only work in large screen
-* the reaction should be pop on the message body on not the header
-* when press the message body the should reaction on body while menu on header
-* when i click the message show in header in mobile and ipad it should flip down the menu action with the should more
-* solve it out step by step with clean and easy step just like whatsapp
-onClick={(e) => {
-      e.stopPropagation(); (isTouchDevice) { 
-        setShowReactionPopup(prev => prev === msg.id ? null : msg.id);
-        return;
-      }
 
-      // ✅ DESKTOP: normal behavior
-      if (forwardMode && selectedMessages.length === 0) {
-        setForwardMode(false);
-        return;
-      }
-
-      if (forwardMode) {
-        toggleSelect(msg);
-      }
-    }} //onClick for show menu <button
-            onClick={(e) => {
-              e.stopPropagation();
-
-              const rect = e.currentTarget.getBoundingClientRect();
-
-              setMenuPosition({
-                x: rect.x,
-                y: rect.y,
-                isMine,
-                id: msg.id,
-              });
-
-              setActiveMenuId(msg.id);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 24 24" strokeWidth={1.5}
-              stroke="currentColor" className="size-10 text-black">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375" />
-            </svg>
-          </button> menu show drop down <div className="lg:hidden block"> 
-
-
-   {showMenu && menuPosition && activeMenuId === msg.id && (
-  <div
-    className="fixed inset-0 z-[9999] overflow-y-auto p-3 no-scrollbar "
-    onClick={() => {
-      setActiveMenuId(null);
-      setMenuPosition(null);
-      setShowMore(false);
-    }}
-  >
-    {/* POSITION WRAPPER */}
-    <div
-      className="absolute"
-      style={{
-        top: menuPosition.y + 0,
-        right: menuPosition.isMine
-          ? menuPosition.x - 250
-          : '',
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      {/* ================= MENU BOX ================= */}
-      <div
-        className="
-          bg-white text-black shadow-xl rounded-xl w-48 py-3
-          max-h-[60vh]
-          overflow-y-auto
-          flex flex-col no-scrollbar
-        "
-      >
-
-        {/* CLOSE */}
-        <button
-          className="sticky top-0 bg-white z-10 text-right px-2 py-1"
-          onClick={() => {
-            setActiveMenuId(null);
-            setMenuPosition(null);
-            setShowMore(false);
-          }}
-        >
-          ✕
-        </button>
-
-        {/* MAIN ACTIONS  */}
-        {mainActions.map((action, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              action.onClick();
-              setActiveMenuId(null);
-            }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
-          >
-            {action.label}
-          </button>
-        ))}
-
-        {/* MORE BUTTON */}
-        {moreActions.length > 0 && (
-          <button
-            onClick={() => setShowMore(true)}
-            className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
-          >
-            More
-          </button>
-        )}
-
-        {/* MORE ACTIONS */}
-        {showMore &&
-          moreActions.map((action, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                action.onClick();
-                setActiveMenuId(null);
-                setShowMore(false);
-              }}
-              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
-            >
-              {action.label}
-            </button>
-          ))}
-
-      </div>
-    </div>
-  </div>
-)}
-
-</div>
+  but the file_name suppose to be the title of the image because it was the title of the image that was showing before i
+  change it to group but it was showing the url of the image or video
+  
+  "files": [
+                {
+                    "file_url": "http:\/\/localhost:8000\/storage\/chat_files\/AQMOufvjq--zc_ASWW3m_F1-El5nDeLVIOGf5LI6fODZ5kQR1qEBPY9-oLh9NxhzXueqw7_R5X4N4SNkkINKZc6nwiY7I_bt30yThyStrKIuqA_1776174468.mp4",
+                    "file_name": "AQMOufvjq--zc_ASWW3m_F1-El5nDeLVIOGf5LI6fODZ5kQR1qEBPY9-oLh9NxhzXueqw7_R5X4N4SNkkINKZc6nwiY7I_bt30yThyStrKIuqA.mp4",
+                    "type": "video"
+                },
+                {
+                    "file_url": "http:\/\/localhost:8000\/storage\/chat_files\/AQNBNL5vZcXyDh-PXkCLQCpw-JwVZ6vBrUqaNnA6wB6RGhxZO0I-y3ooCg2KAK94Qt0JlKskLtenIAQKVJGo-DNMfiNdv8oG2oJHU6izxtl-_Q_1776174469.mp4",
+                    "file_name": "AQNBNL5vZcXyDh-PXkCLQCpw-JwVZ6vBrUqaNnA6wB6RGhxZO0I-y3ooCg2KAK94Qt0JlKskLtenIAQKVJGo-DNMfiNdv8oG2oJHU6izxtl-_Q.mp4",
+                    "type": "video"
+                }
+            ]
+        }
