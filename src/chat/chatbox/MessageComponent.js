@@ -130,7 +130,7 @@ export default function MessageComponent({
   // ================= ACTIONS =================
 
   const status = (msg.status || "").toLowerCase().trim();
-  console.log("STATUS:", msg.status);
+  
 
   const actions = [
   { 
@@ -234,7 +234,7 @@ export default function MessageComponent({
 
   return (
   <>
-  <div className="lg:block hidden">
+ <div className="fixed w-[600px] top-20 lg:block hidden">
    {searchMode && (
   <div className="flex items-center gap-2 p-2 border-b">
 

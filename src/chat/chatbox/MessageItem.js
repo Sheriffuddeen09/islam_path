@@ -28,9 +28,7 @@ export default function MessageItem({
   });
 
 
-  const [translateX, setTranslateX] = useState(0);
   const threshold = 80; // swipe distance
-  const startX = useRef(0);
   
   const messageRef = useRef();
   const [hasMarkedRead, setHasMarkedRead] = useState(false);
@@ -38,6 +36,21 @@ export default function MessageItem({
 
   const [isLongPress, setIsLongPress] = useState(false);
   const pressTimer = useRef(null);
+
+  const [translateX, setTranslateX] = useState(0);
+  const startX = useRef(0);
+  const isDragging = useRef(false);
+  const dragX = useRef(0);
+
+  const MAX_SWIPE = 120; // hard cap
+  const TRIGGER = 60;
+
+  const applyElastic = (x) => {
+    // resistance after 60px
+    if (x <= 60) return x;
+
+    return 60 + (x - 60) * 0.3; // dampen beyond threshold
+  };
   
 useEffect(() => {
   if (!messageRef.current) return;
@@ -481,6 +494,29 @@ const retryMessage = async () => {
   const isSelected = selectedMessages.some(m => m.id === msg.id);
 
 
+  const getPreviewText = (msg) => {
+  if (!msg) return "";
+
+  if (msg.type === "text") return msg.message;
+
+  if (["image", "video", "audio", "file"].includes(msg.type)) {
+    const files = msg.files || [];
+
+    if (files.length === 0) return msg.type;
+
+    if (files.length === 1) {
+      return `📎 ${files[0].file_name}`;
+    }
+
+    return `📎 ${files[0].file_name} & ${files[1].file_name}`;
+  }
+
+  if (msg.type === "voice") return "🎤 Voice message";
+
+  return msg.type;
+};
+
+
   return (
   <>
     
@@ -502,86 +538,115 @@ const retryMessage = async () => {
     }
   `}
   style={{
-    transform: `translateX(${translateX}px)`,
-    transition: translateX === 0 ? "transform 0.2s ease" : "none",
-  }}
+  transform: `translateX(${translateX}px)`,
+  transition: translateX === 0 ? "transform 0.2s ease" : "none",
+  touchAction: "none", // 🔥 REQUIRED FIX
+}}
 
-  // ================= LONG PRESS =================
-  onPointerDown={() => {
-    console.log("🟡 POINTER DOWN:", {
-      id: msg.id,
-      type: msg.type,
-      message: msg.message,
-    });
+onPointerDown={(e) => {
+  e.currentTarget.setPointerCapture(e.pointerId);
+  console.log("DOWN");
+  startX.current = e.clientX;
+  isDragging.current = true;
+  dragX.current = 0;
 
-    pressTimer.current = setTimeout(() => {
-      console.log("🔥 LONG PRESS TRIGGERED:", {
-        id: msg.id,
-        type: msg.type,
-      });
+  pressTimer.current = setTimeout(() => {
+    setIsLongPress(true);
+    toggleSelect(msg);
+    setShowReactionPopup(msg.id);
+  }, 500);
+}}
 
-      setIsLongPress(true);
+onPointerMove={(e) => {
+  if (!isDragging.current) return;
 
-      console.log("📌 BEFORE TOGGLE SELECT:", selectedMessages);
+  const diff = e.clientX - startX.current;
 
-      toggleSelect(msg);
-
-      console.log("RENDER MSG:", msg.id);
-      
-      console.log("📌 AFTER TOGGLE SELECT (async state):", msg.id);
-
-      setShowReactionPopup(msg.id);
-
-      console.log("😀 REACTION OPENED FOR:", msg.id);
-    }, 500);
-  }}
-
-  onPointerUp={() => {
-    console.log("🟢 POINTER UP:", msg.id);
+  if (Math.abs(diff) > 10) {
     clearTimeout(pressTimer.current);
-  }}
+  }
 
-  onPointerCancel={() => {
-    console.log("🔴 POINTER CANCEL:", msg.id);
-    clearTimeout(pressTimer.current);
-  }}
+  if (diff > 0) {
+    // 👉 HARD LIMIT
+    const MAX = 30;
+
+    // 👉 ELASTIC FEEL
+    let x = diff;
+    if (diff > MAX) {
+      x = MAX + (diff - MAX) * 0.2; // resistance
+    }
+
+    dragX.current = diff;
+    setTranslateX(x);
+  }
+}}
+
+onPointerUp={(e) => {
+  e.currentTarget.releasePointerCapture(e.pointerId); 
+  console.log("UP", dragX.current);
+
+  if (dragX.current > 10) {
+    console.log("✅ REPLY TRIGGERED");
+    setReplyingTo(msg);
+  }
+
+  setTranslateX(0);
+  dragX.current = 0;
+  isDragging.current = false;
+}}
+
+onPointerCancel={() => {
+  clearTimeout(pressTimer.current);
+  isDragging.current = false;
+  setTranslateX(0);
+  dragX.current = 0;
+}}
 
   // ================= CLICK =================
   onClick={(e) => {
     e.stopPropagation();
 
-    console.log("🖱 CLICKED MESSAGE:", {
-      id: msg.id,
-      type: msg.type,
-      selectedMessages,
-      forwardMode
-    });
-
-    // 🚀 IF ANY MESSAGE IS SELECTED → TOGGLE
     if (selectedMessages.length > 0) {
-      console.log("🔁 TOGGLE MODE ACTIVE → toggling:", msg.id);
 
       toggleSelect(msg);
-
-      console.log("📊 AFTER TOGGLE CLICK:", msg.id);
       return;
     }
 
     // 👇 NORMAL MODE
     if (!forwardMode) {
-      console.log("📴 NORMAL MODE - OPEN ACTIONS:", msg.id);
-
       if (isMobile) setShowActions(prev => !prev);
 
       return;
     }
 
-    console.log("📤 FORWARD MODE SELECT:", msg.id);
-
     toggleSelect(msg);
   }}
 >
 
+    {translateX > 20 && (
+      <div
+        className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
+        style={{
+          opacity: Math.min(translateX / 50, 1),
+          transform: `translateY(-50%) scale(${Math.min(translateX / 50, 1)})`,
+        }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="w-4 h-4"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+          />
+        </svg>
+      </div>
+    )}
         {msg.reactions?.length > 0 && (
         <div className="absolute -bottom-3 left-2 flex gap-1 bg-white px-2 py-0.5 rounded-full shadow text-xs">
           {Object.values(
@@ -670,42 +735,16 @@ const retryMessage = async () => {
                 </div>
               )}
         {msg.replied_to && (
-            <div className="bg-black/30 p-2 rounded mb-2 border-4 border-blue-400">
-              <p className="text-xs text-blue-300 font-semibold">
-                {msg.replied_to.sender?.first_name || "User"}
-              </p>
-              <p className="text-xs opacity-80 truncate">
-                {msg.replied_to.type === "text"
-                  ? msg.replied_to.message
-                  : msg.replied_to.type === "image"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type === "video"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type === "audio"
-                  ? msg.replied_to.file_name
-                  : msg.type === "file"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type === "voice"
-                  ? msg.replied_to.file_name
-                  : msg.replied_to.type}
+          <div className="bg-black/30 p-2 rounded mb-2 border-l-4 border-blue-400">
+            <p className="text-xs text-blue-300 font-semibold">
+              {msg.replied_to.sender?.first_name || "User"}
+            </p>
 
-              </p>
-            </div>
-          )}
-        {/* PIN LABEL */}
-
-        {Math.abs(translateX) > 20 && (
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 text-lg transition
-            ${isMine ? "right-full mr-2" : "left-full ml-2"}
-          `}
-        >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-      </svg>
-
-        </div>
-      )}
+            <p className="text-xs opacity-80 truncate">
+              {getPreviewText(msg.replied_to)}
+            </p>
+          </div>
+        )}
 
         {/* TEXT */}
         {msg.type === "text" && (
@@ -745,7 +784,7 @@ const retryMessage = async () => {
           >
             <ReactionPopup onReact={react} setShowReactions={setShowReactionPopup}
             message={msg} showReactions={showReactionPopup} setSelectedMessages={setSelectedMessages}  
-            setSelectedMsg={setSelectedMsg} isMine={isMine} />
+            setSelectedMsg={setSelectedMsg} isMine={isMine} setUiState={setUiState} />
           </div>
         )}
       </div>

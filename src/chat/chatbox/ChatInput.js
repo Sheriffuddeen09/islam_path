@@ -176,55 +176,51 @@ const handleFileChange = (e) => {
     setShowConfirm(true);      // ConfirmSendModal
   }
 };
+
+const getPreviewText = (msg) => {
+  if (!msg) return "";
+
+  if (msg.type === "text") return msg.message;
+
+  if (["image", "video", "audio", "file"].includes(msg.type)) {
+    const files = msg.files || [];
+
+    if (files.length === 0) return msg.type;
+
+    if (files.length === 1) {
+      return `📎 ${files[0].file_name}`;
+    }
+
+    return `📎 ${files[0].file_name} & ${files[1].file_name}`;
+  }
+
+  if (msg.type === "voice") return "🎤 Voice message";
+
+  return msg.type;
+};
   
   return (
     <>
 
-    {/* {toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
-          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
-        `}>
-          {toast.message}
-        </div>
-      )} */}
-
    {replyingTo && (
-  <div className="bg-black/90 py-2 px-4 rounded mb-2 flex justify-between border-l-2 border-blue-800 items-center">
-    <div className="text-xs">
-      <p className="text-white text-sm mb-2 font-semibold">
-      Replying to{" "}
-      {replyingTo?.sender_id === authUser.id
-        ? "You"
-        : replyingTo?.sender?.first_name || "User"}
-    </p>
+  <div className="bg-black/90 py-2 px-4 rounded mb-2 flex justify-between border-l-4 border-blue-600 items-center">
+    
+    <div className="text-xs overflow-hidden">
+      <p className="text-white text-sm mb-1 font-semibold">
+        Replying to{" "}
+        {replyingTo.sender_id === authUser.id
+          ? "You"
+          : replyingTo?.sender?.first_name || "User"}
+      </p>
 
-     <p className="truncate opacity-80 text-white capitalize">
-        {replyingTo?.type === "text"
-          ? replyingTo?.message
-
-          : ["image", "video", "audio", "file"].includes(replyingTo?.type)
-          ? (() => {
-              const files = replyingTo?.files || [];
-
-              if (files.length === 0) return replyingTo?.type;
-
-              if (files.length === 1) {
-                return `🎥 ${files[0].file_name}`;
-              }
-
-              return `🎥 ${files[0].file_name} & ${files[1].file_name}`;
-            })()
-
-          : replyingTo?.type === "voice"
-          ? `🎤 Voice message`
-
-          : ""}
+      <p className="truncate opacity-80 text-white">
+        {getPreviewText(replyingTo)}
       </p>
     </div>
 
     <button
       onClick={() => setReplyingTo(null)}
-      className="text-red-400 text-sm"
+      className="text-white text-xs ml-2"
     >
       ✕
     </button>

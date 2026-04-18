@@ -4,7 +4,7 @@ export default function ReactionPopup({
   message,
   showReactions,
   setSelectedMessages,
-  setSelectedMsg, isMine
+  setSelectedMsg, isMine, setUiState
 }) {
   const emojis = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
 
@@ -16,6 +16,7 @@ export default function ReactionPopup({
   const closeAll = () => {
     setShowReactions(null);
     clearSelection(); // ✅ single source of truth
+    setUiState(prev => ({ ...prev, openMenu: false }));
   };
 
   return (

@@ -220,7 +220,7 @@ export default function MenuComponent({
 
   return (
     <>
-<div className="fixed w-full top-20">
+<div className="fixed w-full top-20 lg:hidden block">
     {searchMode && (
   <div className="flex items-center gap-2 p-2 ">
 
