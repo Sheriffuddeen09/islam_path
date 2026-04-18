@@ -15,20 +15,51 @@ export function ForwardModal({ messages, users, onSend, onClose }) {
     onClose()
   };
 
+  const getForwardPreview = (msg) => {
+  if (!msg) return "";
+
+  if (msg.type === "text") return msg.message;
+
+  if (["image", "video", "audio", "file"].includes(msg.type)) {
+    const files = msg.files || [];
+
+    if (files.length === 0) return msg.type;
+
+    if (files.length === 1) {
+      return `📎 ${files[0].file_name}`;
+    }
+
+    return `📎 ${files[0].file_name} & ${files[1].file_name}`;
+  }
+
+  if (msg.type === "voice") return "🎤 Voice message";
+
+  return msg.type;
+};
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white  p-5 rounded sm:w-96 w-72">
         <h2 className="font-bold mb-3">Forward Messages</h2>
 
         {/* Preview selected messages */}
-        <div className="overflow-y-auto mb-4 border p-2 rounded">
-          {messages.map(msg => (
-            <div key={msg.id} className="p-2 border-b last:border-b-0">
-              {msg.forwarded_from && <span className="text-xs text-gray-400 mr-1">Forwarded</span>}
-              {msg.type === "text" ? msg.message : `📎 ${msg.type}`}
-            </div>
-          ))}
-        </div>
+        <div className="overflow-y-auto mb-4 border p-2 rounded space-y-2">
+        {messages.map(msg => (
+          <div key={msg.id} className="p-2 bg-gray-100 rounded text-sm">
+            
+            {msg.forwarded_from && (
+              <span className="text-xs text-gray-400 mr-1">
+                Forwarded
+              </span>
+            )}
+
+            <p className="truncate">
+              {getForwardPreview(msg)}
+            </p>
+
+          </div>
+        ))}
+      </div>  
 
         {/* Select recipients */}
         <h3 className="font-semibold mb-2">Select Recipient(s):</h3>

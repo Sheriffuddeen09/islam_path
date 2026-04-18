@@ -615,9 +615,8 @@ const handlePin = async (msg) => {
       searchQuery={searchQuery}
       setSearchMode={setSearchMode}
       setSearchQuery={setSearchQuery}
-      setForwardMessage= {setForwardMessage}
-      forwardMessage={forwardMessage}
       setForwardMode={setForwardMode}
+      forwardMode={forwardMode}
       setReplyingTo={setReplyingTo}
       showMenu={activeMenuId === msg.id}
       setActiveMenuId={setActiveMenuId}

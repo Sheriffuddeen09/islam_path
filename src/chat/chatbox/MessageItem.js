@@ -822,6 +822,7 @@ onPointerCancel={() => {
       setSelectedMsg={setSelectedMsg}
       messages={messages}
       authUser={authUser}
+      forwardMode={forwardMode}
     />
 
   </>
