@@ -7,9 +7,8 @@ import { PinnedMessagesBar } from "./PinnedMessagesBar";
 import { Loader2 } from "lucide-react";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import CallModal from "./CallModal";
-import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
-import MessageComponent from "./MessageComponent";
 import MenuComponent from "./MenuComponent";
+import logo from "../../layout/image/favicon.png";
 
 
 
@@ -57,6 +56,9 @@ export default function MessageBox({
   const [forwardMessage, setForwardMessage] = useState(false);
   
   const [selectedMsg, setSelectedMsg] = useState(null);
+
+    const [showReactionPopup, setShowReactionPopup] = useState(null);
+  
 
   const lastMessageCount = useRef(0);
   const isUserNearBottom = useRef(true);
@@ -129,7 +131,7 @@ useEffect(() => {
       }, 50);
 
     } catch (err) {
-      console.log(err);
+     
     }
 
     setLoadingMore(false);
@@ -242,7 +244,7 @@ const handlePin = async (msg) => {
   return (
     <div className="flex flex-col h-full bg-black text-black relative">
 
-      {/* HEADER */}
+      {/* HEADER yet */}
       
       <div className="hidden sm:block">
      <div className="p-4 border-b flex justify-between items-center bg-white">
@@ -399,20 +401,14 @@ const handlePin = async (msg) => {
         </button>
       )}
 
-        <button
-            onClick={() => setCallMode("video")}
-            className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-5 text-black"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-            </svg>
+          <button
+              onClick={() => setCallMode("video")}
+            className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor" class="size-6 text-black">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+          </svg>
+
           </button>
 
           <button
@@ -465,11 +461,26 @@ const handlePin = async (msg) => {
         {loadingMessages ? (
     <ChatSkeleton type="messages" />
   ) : messages.length === 0 ? (
-    <div className="text-center text-gray-400 mt-10">
-      No messages yet
-    </div>
+     <div className="flex flex-col items-center justify-center h-full text-center p-6">
+        <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
+        Learn More.
+      </div>
+        <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
+
+        <p className="text-black max-w-md">
+          Messages, and updates will appear here.
+        </p>
+        <div className="mt-6 mb-6 text-sm text-black">
+          💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
+        </div>
+      </div>
   ) : (
     <>
+      <div className="mb-10 text-center mt-4 mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
+        Learn More.
+      </div>
       {/* PINNED */}
       <PinnedMessagesBar
         messages={messages}
@@ -556,6 +567,8 @@ const handlePin = async (msg) => {
           sendFile={sendFile} sendText={sendText} stopRecording={stopRecording} setUiState={setUiState}
           isTouchDevice={isTouchDevice} menuPosition={menuPosition} setMenuPosition={setMenuPosition}
           setSelectedMsg={setSelectedMsg} uiState={uiState} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId}
+          setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
+
         />
         <div ref={bottomRef} />
       </div>
@@ -630,6 +643,11 @@ const handlePin = async (msg) => {
       setSelectedMsg={setSelectedMsg}
       messages={messages}
       authUser={authUser}
+      setForwardMessage={setForwardMessage}
+      forwardMessage={forwardMessage}
+      messagesEndRef={bottomRef}
+      setShowReactions={setShowReactionPopup}
+
       />
       ))}
     </div>

@@ -29,7 +29,6 @@ export default function ChatPage({
 
   const chatId = activeChat?.id;
 
-  // ✅ derived messages
   const messages = messagesMap[activeChat?.id] || [];
 
   const { bottomRef, containerRef, handleScroll, newMessageCount } =
@@ -85,6 +84,8 @@ export default function ChatPage({
   }, []);
 
   // 🚀 OPEN CHAT (NO SCROLL HERE ANYMORE)
+
+  
   const openChat = async (chat) => {
     if (chat.block_info?.blocked_me) {
       showToast("You have been blocked in this chat", "error");
@@ -122,6 +123,12 @@ export default function ChatPage({
     } finally {
       setLoadingMessages(false);
     }
+
+     try {
+        await api.post(`/api/chats/${chat.id}/read`);
+      } catch (err) {
+        console.error("Failed to mark as read", err);
+      }
   };
 
   const restoredRef = useRef(false);

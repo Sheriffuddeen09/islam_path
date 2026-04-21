@@ -21,8 +21,8 @@ export default function MessageComponent({
   setActiveChat,
   setSelectedMessages,
   chats,
-  searchMode, searchQuery, setSearchMode, forwardMode,
-  setSearchQuery, setReplyingTo, setForwardMode, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
+  searchMode, searchQuery, setSearchMode, forwardMessage,
+  setSearchQuery, setReplyingTo, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
   const isMine = msg.sender_id === user.id;
@@ -62,7 +62,7 @@ export default function MessageComponent({
       }
   
       setSelectedMessages([]);
-      setForwardMode(false);
+      setForwardMessage(false);
     } catch (err) {
       console.error(err.response?.data || err);
       setToast("Failed to forward messages");
@@ -193,7 +193,7 @@ export default function MessageComponent({
     label: "Forward",
     show: true,
     onClick: () => {
-      setForwardMode(true);
+      setForwardMessage(true);
       setSelectedMessages([msg]);
       setActiveMenuId(null)
     }
@@ -284,7 +284,7 @@ export default function MessageComponent({
           ? menuPosition.y - 100 : menuPosition.y - 40,
         right: menuPosition.isMine
           ? menuPosition.x - 500
-          :  menuPosition.x + 380,
+          :  menuPosition.x + 180,
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -391,7 +391,7 @@ export default function MessageComponent({
         />
       )}
 
-      {forwardMode && (
+      {forwardMessage && (
         <ForwardModal
           messages={selectedMessages}
           users={chats}
@@ -399,8 +399,9 @@ export default function MessageComponent({
             forwardMessages(selectedMessages.map(m => m.id), selectedUserIds);
           }}
           onClose={() => {
-            setForwardMode(false);
+            setForwardMessage(false);
             setSelectedMessages([]);
+             setForwardMessage(false);
           }}
         />)}
 

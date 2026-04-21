@@ -11,11 +11,18 @@ export default function AudioPlayer({ msg, isMine }) {
 
   const GLOBAL_AUDIO_EVENT = "audio-play";
 
-  const audioSrc = msg.voice_url
-  ? msg.voice_url
-  : msg.file
-  ? `http://localhost:8000/storage/${msg.file}`
-  : msg.local || null;
+
+
+  const file = msg.files?.[0];
+
+    const isAudio =
+      file?.type === "audio" || file?.type === "voice";
+
+    const audioSrc =
+      msg.voice_url ||
+      (isAudio ? file.file_url : null) ||
+      msg.local ||
+      null;
 
   const colors = [
     "bg-orange-500",
@@ -270,6 +277,8 @@ useEffect(() => {
           ref={audioRef}
           src={audioSrc}
           preload="metadata"
+          className="pointer-events-auto"
+          onPointerDown={(e) => e.stopPropagation()}
           onTimeUpdate={onTimeUpdate}
           onLoadedMetadata={onLoadedMetadata}
           onEnded={() => {

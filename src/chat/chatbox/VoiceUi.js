@@ -100,7 +100,7 @@ export default function VoiceUI({ msg, isMine }) {
   const audioSrc = msg.voice_url
     ? msg.voice_url
     : msg.file
-    ? `http://localhost:8000/storage/${msg.file}`
+    ? `http://localhost:8000/storage/${msg.file_url}`
     : msg.local || null;
 
   useEffect(() => {

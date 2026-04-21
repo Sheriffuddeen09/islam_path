@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import api from "../../Api/axios";
 import DeleteModal from "../DeleteModal";
 import EditModal from "../EditModal";
 import ClearChatModal from "../ClearModal";
-import { ForwardModal } from "../ForwardMessage";
+import { ForwardModal } from "../ForwardModal";
 
 export default function MenuComponent({
   msg,
@@ -22,7 +22,7 @@ export default function MenuComponent({
   searchMode,
   searchQuery,
   setSearchMode,
-  setSearchQuery, chats, selectedMessages, forwardMode, activeChat, setForwardMode
+  setSearchQuery, chats, selectedMessages, activeChat, forwardMessage, messagesEndRef, messages, setShowReactions
 
 }) {
   const [showMore, setShowMore] = useState(false);
@@ -34,11 +34,16 @@ export default function MenuComponent({
    const [openDelete, setOpenDelete] = useState(false);
     const [editingMessage, setEditingMessage] = useState(null);
     const [clearMessage, setClearMessage] = useState(false);
-    const [reportMessage, setReportMessage] = useState(false);
     
   
     const [toast, setToast] = useState(false)
     
+
+    useEffect(() => {
+  if (uiState?.openMenu) {
+    setShowReactions(null);
+  }
+}, [uiState?.openMenu]);
     
       
           const showToast = (message, type = "success") => {
@@ -47,32 +52,71 @@ export default function MenuComponent({
       };
 
 
-    const forwardMessages = async (messageIds, receiverIds) => {
-      try {
-        const res = await api.post("/api/messages/forward-multiple", {
-          message_ids: messageIds,
-          receiver_ids: receiverIds,
-        });
+    // const forwardMessages = async (messageIds, receiverIds) => {
+    //   try {
+    //     await api.post("/api/messages/forward-multiple", {
+    //       message_ids: messageIds,
+    //       receiver_ids: receiverIds,
+    //     });
+    //   } catch (err) {
+    //     console.error(err);
+    //   }
+    // };
+
+
+    const normalizeChat = (chat, authUserId) => {
+  if (!chat) return chat;
+
+  const user =
+    chat.teacher_id === authUserId ? chat.student : chat.teacher;
+
+  return {
+    ...chat,
+    other_user: user,
+  };
+};
+
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages]);
+
+   const forwardMessages = async (messageIds, receiverIds) => {
+  try {
+    const res = await api.post("/api/messages/forward-multiple", {
+      message_ids: messageIds,
+      receiver_ids: receiverIds,
+    });
+
+    const chats = res.data.chats;
+
+    if (chats.length > 0) {
+      const chat = normalizeChat(chats[0], authUser.id);
+
+      setActiveChat(chat);
+
+      // 🔥 IMPORTANT: reorder messages
+      const sorted = (chat.messages || []).sort(
+        (a, b) => new Date(a.created_at) - new Date(b.created_at)
+      );
+
+      setMessages(sorted);
+
+      // 🔥 FORCE SCROLL AFTER STATE UPDATE
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+
+    setToast("✅ Messages forwarded");
+    setSelectedMessages([]);
+    setForwardMessage(false);
+
+  } catch (err) {
+    console.error(err);
+    setToast("❌ Failed to forward");
+  }
+};
     
-        setToast("Messages forwarded");
-    
-        const chats = res.data.chats; // full chat objects
-    
-        // Open the first forwarded chat
-        if (chats.length > 0) {
-          setActiveChat(chats[0]);       // sets chat header correctly
-          setMessages(chats[0].messages); // show latest messages including forwarded
-        }
-    
-        setSelectedMessages([]);
-        setForwardMode(false);
-      } catch (err) {
-        console.error(err.response?.data || err);
-        setToast("Failed to forward messages");
-      }
-    };
-  
-  
     // ================= COPY =================
     const handleCopy = async (message) => {
     await navigator.clipboard.writeText(message.message || "");
@@ -170,6 +214,26 @@ export default function MenuComponent({
             clearSelection();
         },
         },
+        {
+            label: "Download Image",
+            show: message.type === "image" && !isMine,
+            onClick: (m) => {handleDownload(m); setActiveMenuId(null)},
+          },
+          {
+            label: "Download Video",
+            show: message.type === "video" && !isMine,
+            onClick: (m) => {handleDownload(m); setActiveMenuId(null)},
+          },
+          {
+            label: "Download Audio",
+            show: (message.type === "audio") && !isMine,
+            onClick: (m) => {handleDownload(m); setActiveMenuId(null)},
+          },
+          {
+            label: "Download Document",
+            show: message.type === "file" && !isMine,
+            onClick: (m) => {handleDownload(m); setActiveMenuId(null)},
+          },
 
       {
         label: "Delete",
@@ -181,14 +245,15 @@ export default function MenuComponent({
       },
 
       {
-        label: "Forward",
-        show: true,
-        onClick: (m) => {
-          setForwardMode(true);
-          setSelectedMessages([m.id]);
-          clearSelection();
-        },
-      },
+      label: "Forward",
+      show: true,
+      onClick: () => {
+        setSelectedMessages([message]);
+        setTimeout(() => {
+          setForwardMessage(true);
+        }, 0);
+      }
+    },
 
       {
         label: "Search",
@@ -359,7 +424,7 @@ export default function MenuComponent({
                 />
               )}
         
-              {forwardMode && (
+              {forwardMessage && (
                 <ForwardModal
                   messages={selectedMessages}
                   users={chats}
@@ -367,10 +432,11 @@ export default function MenuComponent({
                     forwardMessages(selectedMessages.map(m => m.id), selectedUserIds);
                   }}
                   onClose={() => {
-                    setForwardMode(false);
+                    setForwardMessage(false);
                     setSelectedMessages([]);
                   }}
-                />)}
+                />
+              )}
         
     </>
   );

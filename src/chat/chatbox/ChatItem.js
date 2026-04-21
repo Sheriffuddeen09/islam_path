@@ -122,6 +122,7 @@ export default function ChatItem({
           </span>
 
           {/* STATUS */}
+          <div className="inline-flex items-center gap-2">
          {!blockedMe && isMine && (
           chat.latest_message_status === "read" ? (
             <span
@@ -137,14 +138,17 @@ export default function ChatItem({
             <Check size={16} className="text-gray-400" />
           )
         )}
-        </div>
 
-        {/* UNREAD */}
         {!blockedMe && chat.unread_count > 0 && activeChat?.id !== chat.id && (
           <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full mt-1 inline-block">
             {chat.unread_count}
           </span>
         )}
+        </div>
+        </div>
+
+        {/* UNREAD */}
+        
 
         {/* BLOCK LABELS */}
         {blockedByMe && (

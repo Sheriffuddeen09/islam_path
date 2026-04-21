@@ -19,16 +19,22 @@ export default function MessageItem({
   setToast, menuPosition, setMenuPosition, setSelectedMsg, uiState, setUiState,
   setActiveChat, newMessageCount, bottomRef, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
-  selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage
+  selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
+  showReactionPopup, setShowReactionPopup
 }) {
-  const [showReactionPopup, setShowReactionPopup] = useState(null);
   const [preview, setPreview] = useState({
     items: [],
     index: 0,
   });
 
 
-  const threshold = 80; // swipe distance
+  const [selectionMode, setSelectionMode] = useState(false);
+
+  useEffect(() => {
+  if (selectedMessages.length === 0) {
+    setSelectionMode(false);
+  }
+}, [selectedMessages]);
   
   const messageRef = useRef();
   const [hasMarkedRead, setHasMarkedRead] = useState(false);
@@ -42,8 +48,8 @@ export default function MessageItem({
   const isDragging = useRef(false);
   const dragX = useRef(0);
 
-  const MAX_SWIPE = 120; // hard cap
-  const TRIGGER = 60;
+
+  const longPressTriggered = useRef(false);
 
   const applyElastic = (x) => {
     // resistance after 60px
@@ -393,6 +399,23 @@ const retryMessage = async () => {
 };
 
 
+useEffect(() => {
+  if (!showReactionPopup) return; // ✅ don't interfere when opening
+
+  if (selectedMessages.length !== 1) {
+    setShowReactionPopup(null);
+  }
+}, [selectedMessages]);
+
+useEffect(() => {
+  if (!showReactionPopup) return; // ✅ important
+
+  if (!selectedMessages.includes(showReactionPopup)) {
+    setShowReactionPopup(null);
+  }
+}, [selectedMessages, showReactionPopup]);
+
+
   const otherUser = activeChat?.users?.find(
       (u) => u.id !== authUser.id
     );
@@ -482,13 +505,7 @@ const retryMessage = async () => {
   }
 }, [selectedMessages]);
 
-  const audioSrc =
-  msg.voice_url ||
-  (msg.files?.[0]?.file
-    ? `http://localhost:8000/storage/${msg.files[0].file}`
-    : msg.file
-    ? `http://localhost:8000/storage/${msg.file}`
-    : msg.local || null);
+  
 
 
   const isSelected = selectedMessages.some(m => m.id === msg.id);
@@ -514,6 +531,10 @@ const retryMessage = async () => {
   if (msg.type === "voice") return "🎤 Voice message";
 
   return msg.type;
+};
+
+const isInteractive = (target) => {
+  return target.closest("img, video, audio, button, a");
 };
 
 
@@ -544,13 +565,18 @@ const retryMessage = async () => {
 }}
 
 onPointerDown={(e) => {
+  if (isInteractive(e.target)) return;
+
+  longPressTriggered.current = false;
+
   e.currentTarget.setPointerCapture(e.pointerId);
-  console.log("DOWN");
+
   startX.current = e.clientX;
   isDragging.current = true;
   dragX.current = 0;
 
   pressTimer.current = setTimeout(() => {
+    longPressTriggered.current = true; // ✅ mark
     setIsLongPress(true);
     toggleSelect(msg);
     setShowReactionPopup(msg.id);
@@ -558,6 +584,7 @@ onPointerDown={(e) => {
 }}
 
 onPointerMove={(e) => {
+  if (isInteractive(e.target)) return; // ✅ ignore gestures on media
   if (!isDragging.current) return;
 
   const diff = e.clientX - startX.current;
@@ -567,13 +594,11 @@ onPointerMove={(e) => {
   }
 
   if (diff > 0) {
-    // 👉 HARD LIMIT
     const MAX = 30;
-
-    // 👉 ELASTIC FEEL
     let x = diff;
+
     if (diff > MAX) {
-      x = MAX + (diff - MAX) * 0.2; // resistance
+      x = MAX + (diff - MAX) * 0.2;
     }
 
     dragX.current = diff;
@@ -582,11 +607,11 @@ onPointerMove={(e) => {
 }}
 
 onPointerUp={(e) => {
-  e.currentTarget.releasePointerCapture(e.pointerId); 
-  console.log("UP", dragX.current);
+  e.currentTarget.releasePointerCapture(e.pointerId);
+
+  clearTimeout(pressTimer.current); // ✅ important
 
   if (dragX.current > 10) {
-    console.log("✅ REPLY TRIGGERED");
     setReplyingTo(msg);
   }
 
@@ -604,23 +629,27 @@ onPointerCancel={() => {
 
   // ================= CLICK =================
   onClick={(e) => {
-    e.stopPropagation();
+  e.stopPropagation();
 
-    if (selectedMessages.length > 0) {
+  if (isInteractive(e.target)) return;
 
-      toggleSelect(msg);
-      return;
-    }
+  // ❌ prevent double toggle after long press
+  if (longPressTriggered.current) return;
 
-    // 👇 NORMAL MODE
-    if (!forwardMode) {
-      if (isMobile) setShowActions(prev => !prev);
-
-      return;
-    }
-
+  // ✅ selection mode
+  if (selectionMode || selectedMessages.length > 0) {
     toggleSelect(msg);
-  }}
+    return;
+  }
+
+  // normal behavior
+  if (!forwardMode) {
+    if (isMobile) setShowActions(prev => !prev);
+    return;
+  }
+
+  toggleSelect(msg);
+}}
 >
 
     {translateX > 20 && (
@@ -667,60 +696,90 @@ onPointerCancel={() => {
 
 
       {selectedMessages.length <= 1 && (
-        <div className="lg:block hidden">
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-         className={`
-  absolute -bottom-8 right-0 flex items-center bg-gray-800 gap-1 px-2 py-1 rounded-lg text-xs z-50
-  transition-all duration-200 
+  <div className="lg:block hidden">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      className={`
+        absolute -bottom-8 right-0 flex items-center bg-gray-800 gap-2 px-2 py-1 rounded-lg text-xs z-50
+        transition-all duration-200
 
-  ${
-    isMobile
-      ? (showActions || (selectedMessages.length === 1 && isSelected))
-        ? "opacity-100 pointer-events-auto"
-        : "opacity-0 pointer-events-none"
-      : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-  }
-`}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowReactionPopup(msg.id);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-white">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
-            </svg>
+        ${
+          isMobile
+            ? (showActions || (selectedMessages.length === 1 && isSelected))
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+            : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+        }
+      `}
+    >
+      {/* ✅ CHECKBOX (NEW) */}
+      {!isMobile && (
+        <input
+          type="checkbox"
+          checked={selectedMessages.includes(msg.id)}
+          onChange={(e) => {
+            e.stopPropagation();
+            setSelectionMode(true); // 🔥 enable selection mode
+            toggleSelect(msg);
+          }}
+          className="w-4 h-4 cursor-pointer"
+        />
+      )}
 
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
+      {/* 😀 REACTION */}
+     <button
+  onPointerDown={(e) => e.stopPropagation()} // ✅ keep this
+  onClick={(e) => {
+    e.stopPropagation();
 
-              const rect = e.currentTarget.getBoundingClientRect();
+    // ✅ ensure this message is selected first
+    if (!selectedMessages.includes(msg.id)) {
+      setSelectedMessages([msg.id]);
+    }
 
-              setMenuPosition({
-                x: rect.x,
-                y: rect.y,
-                isMine,
-                id: msg.id,
-              });
+    // ✅ then open popup (toggle)
+    setShowReactionPopup(prev =>
+      prev === msg.id ? null : msg.id
+    );
+  }}
+>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" strokeWidth="1.5"
+          stroke="currentColor" className="size-5 text-white">
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+        </svg>
+      </button>
 
-              setActiveMenuId(msg.id);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 24 24" strokeWidth={1.5}
-              stroke="currentColor" className="size-6 text-white">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375" />
-            </svg>
-          </button>
+      {/* ⋮ MENU */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
 
-        </div>
-        </div>
-        )}
+          const rect = e.currentTarget.getBoundingClientRect();
+
+          setMenuPosition({
+            x: rect.x,
+            y: rect.y,
+            isMine,
+            id: msg.id,
+          });
+
+          setActiveMenuId(msg.id);
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" strokeWidth={1.5}
+          stroke="currentColor" className="size-6 text-white">
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+)}
           {newMessageCount > 0 && (
                 <div
                   onClick={() => {
@@ -751,7 +810,7 @@ onPointerCancel={() => {
           <Linkify
             options={{
               target: "_blank",
-              className: "text-blue-400 underline",
+              className: "text-blue-400 underline pointer-events-auto",
             }}
           >
             <p className="text-sm break-words ">{msg.message}</p>
@@ -760,7 +819,7 @@ onPointerCancel={() => {
 
        <MediaMessage msg={msg} setPreview={setPreview} preview={preview} />
 
-        {(msg.type === "audio" || msg.type === "voice") && audioSrc && (
+        {(msg.type === "audio" || msg.type === "voice") && (
           <AudioPlayer msg={msg} isMine={isMine} />
         )}
 
@@ -768,7 +827,7 @@ onPointerCancel={() => {
           <DocumentMessage msg={msg} />
         )}
 
-        {/* ================= TIME + STATUS svg ================= */}
+        {/* =================  TIME + STATUS svg ================= */}
         <div className="flex justify-end items-center z-50 gap-2 mt-1">
           <span className="text-[10px]">
             {formatTime(msg.created_at)}
@@ -823,6 +882,7 @@ onPointerCancel={() => {
       messages={messages}
       authUser={authUser}
       forwardMode={forwardMode}
+      setShowReactions={setShowReactionPopup}
     />
 
   </>

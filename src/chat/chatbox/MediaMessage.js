@@ -4,7 +4,7 @@ export default function MediaMessage({ msg, setPreview }) {
   if (!msg.type || (msg.type !== "image" && msg.type !== "video")) return null;
 
   return (
-    <div className="max-w-xs">
+    <div className="max-w-xs pointer-events-auto">
       <MediaGrid msg={msg} setPreview={setPreview} />
 
       {msg.message && (
