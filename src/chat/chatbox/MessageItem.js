@@ -498,6 +498,24 @@ useEffect(() => {
   });
 };
 
+const scrollToMessage = (messageId) => {
+  const el = document.getElementById(`msg-${messageId}`);
+
+  if (el) {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+
+    // optional highlight effect (WhatsApp style)
+    el.classList.add("bg-yellow-100");
+
+    setTimeout(() => {
+      el.classList.remove("bg-yellow-100");
+    }, 1000);
+  }
+};
+
 
   useEffect(() => {
   if (selectedMessages.length === 0 && forwardMode) {
@@ -516,22 +534,21 @@ useEffect(() => {
 
   if (msg.type === "text") return msg.message;
 
-  if (["image", "video", "audio", "file"].includes(msg.type)) {
-    const files = msg.files || [];
-
-    if (files.length === 0) return msg.type;
-
-    if (files.length === 1) {
-      return `📎 ${files[0].file_name}`;
-    }
-
-    return `📎 ${files[0].file_name} & ${files[1].file_name}`;
+  // ✅ HANDLE SINGLE FILE (reply case)
+  if (msg.file_name) {
+    return `📎 ${msg.file_name}`;
   }
 
+  // ✅ HANDLE TYPES
   if (msg.type === "voice") return "🎤 Voice message";
+  if (msg.type === "audio") return "🎵 Audio";
+  if (msg.type === "image") return "🖼️ Photo";
+  if (msg.type === "video") return "🎬 Video";
+  if (msg.type === "file") return "📎 Document";
 
   return msg.type;
 };
+
 
 const isInteractive = (target) => {
   return target.closest("img, video, audio, button, a");
@@ -794,38 +811,65 @@ onPointerCancel={() => {
                 </div>
               )}
         {msg.replied_to && (
-          <div className="bg-black/30 p-2 rounded mb-2 border-l-4 border-blue-400">
-            <p className="text-xs text-blue-300 font-semibold">
-              {msg.replied_to.sender?.first_name || "User"}
-            </p>
+          <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            scrollToMessage(msg.replied_to.id);
+          }}
+          className={`bg-black/30 p-2 rounded mb-2  ${
+            msg.replied_to.sender?.id === authUser.id
+                  ? "border-l-4 border-green-400"
+                  : "border-l-4 border-blue-400"
+          }`}>
 
+            <p className={`text-xs font-semibold ${
+                msg.replied_to.sender?.id === authUser.id
+                  ? "text-green-300"
+                  : "text-blue-300"
+              }`}>
+              {msg.replied_to.sender?.id === authUser.id
+                ? "You"
+                : msg.replied_to.sender?.first_name || "User"}
+            </p>
             <p className="text-xs opacity-80 truncate">
               {getPreviewText(msg.replied_to)}
             </p>
+
           </div>
         )}
 
         {/* TEXT */}
-        {msg.type === "text" && (
-          <Linkify
-            options={{
-              target: "_blank",
-              className: "text-blue-400 underline pointer-events-auto",
-            }}
-          >
-            <p className="text-sm break-words ">{msg.message}</p>
-          </Linkify>
-        )}
+          {msg.message && msg.type === "text" && (
+            <Linkify
+              options={{
+                target: "_blank",
+                className: "text-blue-400 underline pointer-events-auto",
+              }}
+            >
+              <p className="text-sm break-words">
+                {msg.message}
+              </p>
+            </Linkify>
+          )}
 
-       <MediaMessage msg={msg} setPreview={setPreview} preview={preview} />
+       {/* ================= FILES (ALWAYS FIRST) ================= */}
+          {msg.files?.length > 0 && (
+            <MediaMessage
+              msg={msg}
+              setPreview={setPreview}
+              preview={preview}
+            />
+          )}
 
-        {(msg.type === "audio" || msg.type === "voice") && (
-          <AudioPlayer msg={msg} isMine={isMine} />
-        )}
+        {msg.files?.some(f =>
+            f.type === "audio" || f.type === "voice"
+          ) && (
+            <AudioPlayer msg={msg} isMine={isMine} />
+          )}
 
-        {msg.type === "file" && (
-          <DocumentMessage msg={msg} />
-        )}
+        {msg.files?.some(f => f.type === "file") && (
+            <DocumentMessage msg={msg} />
+          )}
 
         {/* =================  TIME + STATUS svg ================= */}
         <div className="flex justify-end items-center z-50 gap-2 mt-1">

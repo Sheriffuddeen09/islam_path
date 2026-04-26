@@ -53,8 +53,13 @@ export default function MessageBox({
   const [forwardMode, setForwardMode] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
 
-  const [forwardMessage, setForwardMessage] = useState(false);
+  // const [forwardMessage, setForwardMessage] = useState(false);
   
+  const [forwardMessage, setForwardMessage] = useState({
+    open: false,
+    messages: []
+  });
+
   const [selectedMsg, setSelectedMsg] = useState(null);
 
     const [showReactionPopup, setShowReactionPopup] = useState(null);
@@ -102,7 +107,7 @@ useEffect(() => {
 }, [messages]);
 
   
-  // ================= LOAD OLDER MESSAGES =================
+  // ================= LOAD OLDER MESSAGES Select a chat =================
   const loadOlderMessages = async () => {
     if (loadingMore || messages.length === 0) return;
 
@@ -211,7 +216,7 @@ const handlePin = async (msg) => {
       console.log("📌 Pinned");
     }
 
-    // 🔥 update UI locally
+    // 🔥 update UI locally bg-gray
     setMessages((prev) =>
       prev.map((m) =>
         m.id === msg.id
@@ -230,12 +235,25 @@ const handlePin = async (msg) => {
     setSearchQuery(text);
   };
 
+ 
+
     {loadingMessages && <ChatSkeleton type="messages" />}
 
   if (!activeChat) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-400">
-        Select a chat
+      <div className="flex flex-col items-center justify-center h-full text-center p-6">
+        <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
+        Learn More.
+      </div>
+        <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
+
+        <p className="text-white max-w-md">
+          Messages, and updates will appear here.
+        </p>
+        <div className="mt-6 mb-6 text-sm text-white">
+          💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
+        </div>
       </div>
     );
   }
@@ -263,27 +281,37 @@ const handlePin = async (msg) => {
 
         {/* Forward */}
           {selectedMessages.length > 1 && (
-            <button
-              onClick={() => setForwardMessage(true)}
-              className="hover:bg-gray-200 hover:text-white p-2 rounded-full"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="size-6 text-black"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
-                />
-              </svg>
-            </button>
-          )}
-  
+          <button
+            onClick={() => {
+              const messagesToForward = messages.filter(msg =>
+                selectedMessages.includes(msg.id)
+              );
+
+              console.log("OPENING FORWARD:", messagesToForward);
+
+              setForwardMessage({
+                open: true,
+                messages: messagesToForward
+              });
+            }}
+            className="hover:bg-gray-200 hover:text-white p-2 rounded-full"
+          >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="1.5"
+      stroke="currentColor"
+      className="size-6 text-black"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+      />
+    </svg>
+  </button>
+)}
           {/* VIDEO */}
           <button
               onClick={() => setCallMode("video")}
@@ -379,9 +407,18 @@ const handlePin = async (msg) => {
           </button>
         )}
 
-        {canForward && (
+        {selectedMessages.length > 1 && (
         <button
-          onClick={() => setForwardMessage(true)}
+           onClick={() => {
+              const messagesToForward = messages.filter(msg =>
+                selectedMessages.includes(msg.id)
+              );
+
+              setForwardMessage({
+                open: true,
+                messages: messagesToForward
+              });
+            }}
           className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
         >
           <svg
@@ -530,7 +567,8 @@ const handlePin = async (msg) => {
     return (
       <div
           key={msg.id}
-          className={`px-3 rounded py-2 transition ${
+          id={`msg-${msg.id}`}
+          className={`px-3 rounded py-2 transition  message-bubble  ${
             searchQuery && !isMatch ? "opacity-20" : "opacity-100"
           }`}
           ref={(el) => (messageRefs.current[msg.id] = el)}
@@ -610,6 +648,7 @@ const handlePin = async (msg) => {
           setCallMode={setCallMode}
         />
       )}
+
 
       {messages.map((msg) => (
       <MenuComponent 

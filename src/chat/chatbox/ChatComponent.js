@@ -42,165 +42,191 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   };
 
     const sendText = async () => {
-      if (!text.trim()) return;
-    
-      const tempId = Date.now();
-    
-      const tempMessage = {
-        id: tempId,
-        message: text,
-        type: "text",
-        sender_id: authUser.id,
-        status: "sending",
-        created_at: new Date().toISOString(),
-      };
-    
-      // 1. Add message FIRST
-      setMessages(prev => [...prev, tempMessage]);
-      setText("");
-    
-      // 2. FORCE scroll immediately after render
+  if (!text.trim()) return;
+
+  const reply = replyingTo; // ✅ keep reference
+
+  setReplyingTo(null); // ✅ CLEAR UI IMMEDIATELY
+
+  const tempId = Date.now();
+
+  const tempMessage = {
+    id: tempId,
+    message: text,
+    type: "text",
+    sender_id: authUser.id,
+    status: "sending",
+    created_at: new Date().toISOString(),
+    replied_to: reply || null, // ✅ still preserved
+  };
+
+  setMessages(prev => [...prev, tempMessage]);
+  setText("");
+
+  requestAnimationFrame(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "auto",
+      block: "end",
+    });
+  });
+
+  try {
+    const { data } = await api.post("/api/messages", {
+      chat_id: chatId,
+      message: text,
+      type: "text",
+      replied_to: reply ? reply.id : null,
+    });
+
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === tempId
+          ? {
+              ...m,
+              ...data,
+              replied_to: data.replied_message || reply,
+              status: "sent",
+            }
+          : m
+      )
+    );
+
+  } catch (err) {
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === tempId ? { ...m, status: "failed" } : m
+      )
+    );
+  }
+};
+      
+    const stopRecording = async () => {
+  const reply = replyingTo; // ✅ SAVE FIRST
+  setReplyingTo(null);      // ✅ CLEAR UI IMMEDIATELY
+
+  const recorder = mediaRecorderRef.current;
+  if (!recorder) return;
+
+  clearInterval(timerRef.current);
+  setPaused(false);
+  setRecording(false);
+
+  recorder.stop();
+
+  recorder.onstop = async () => {
+    const blob = new Blob(audioChunksRef.current, {
+      type: "audio/webm",
+    });
+
+    if (!blob || blob.size === 0) {
+      console.error("Empty audio blob");
+      return;
+    }
+
+    const tempId = Date.now();
+    const localUrl = URL.createObjectURL(blob);
+
+    const tempMessage = {
+      id: tempId,
+      type: "voice",
+      sender_id: authUser.id,
+      sender: authUser,
+      status: "sending",
+      local: localUrl,
+
+      // ✅ KEEP REPLY IN UI
+      replied_to: reply || null,
+
+      files: [
+        {
+          file_url: localUrl,
+          type: "voice",
+        },
+      ],
+
+      localBlob: blob,
+      created_at: new Date().toISOString(),
+    };
+
+    // 1. ADD MESSAGE
+    setMessages((prev) => [...prev, tempMessage]);
+
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "end",
+      });
+    });
+
+    const form = new FormData();
+    form.append("chat_id", chatId);
+    form.append("voice", blob, "voice.webm");
+
+    // ✅ USE SAVED REPLY (NOT state)
+    if (reply?.id && !isNaN(reply.id)) {
+        form.append("replied_to", reply.id);
+      }
+
+    try {
+      const res = await api.post("/api/messages/voice", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // 3. REPLACE TEMP MESSAGE
+      setMessages((prev) =>
+  prev.map((m) =>
+    m.id === tempId
+      ? {
+          ...res.data.message,
+
+          // ✅ ALWAYS KEEP FRONTEND REPLY FIRST
+          replied_to: reply
+            ? {
+                ...reply,
+                sender: reply.sender || reply.sender_data || reply.sender
+              }
+            : res.data.message.replied_message || null,
+
+          files: res.data.message.files || [
+            {
+              file_url:
+                res.data.message.file_url ||
+                res.data.message.file,
+              type: res.data.message.type,
+            },
+          ],
+
+          local: null,
+          sender: res.data.message.sender || authUser,
+          status: "sent",
+        }
+      : m
+  )
+);
       requestAnimationFrame(() => {
         bottomRef.current?.scrollIntoView({
-          behavior: "auto",
+          behavior: "smooth",
           block: "end",
         });
       });
-    
-      try {
-        const { data } = await api.post("/api/messages", {
-          chat_id: chatId,
-          message: tempMessage.message,
-          type: "text",
-          replied_to: replyingTo ? replyingTo.id : null,
-        });
-    
-        // 3. Replace temp message with real one
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === tempId
-              ? {
-                  ...m,
-                  ...data,
-                  status: "sent",
-                }
-              : m
-          )
-        );
-    
-        // 4. FINAL guaranteed scroll (after backend update)
-        requestAnimationFrame(() => {
-          bottomRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-          });
-        });
-    
-        setReplyingTo(null);
-      } catch (err) {
-        setMessages(prev =>
-          prev.map(m =>
-            m.id === tempId ? { ...m, status: "failed" } : m
-          )
-        );
-      }
-    };
-      
-    const stopRecording = async () => {
-      const recorder = mediaRecorderRef.current;
-      if (!recorder) return;
-    
-      clearInterval(timerRef.current);
-      setPaused(false);
-      setRecording(false);
-    
-      recorder.stop();
-    
-      recorder.onstop = async () => {
-        const blob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
-        });
-    
-        if (!blob || blob.size === 0) {
-          console.error("Empty audio blob");
-          return;
-        }
-    
-        const tempId = Date.now();
-    
-        const tempMessage = {
-          id: tempId,
-          type: "voice",
-          sender_id: authUser.id,
-          sender: authUser,
-          status: "sending",
-          local: URL.createObjectURL(blob),
-          localBlob: blob,
-          created_at: new Date().toISOString(),
-        };
-    
-        // 1. ADD MESSAGE FIRST
-        setMessages((prev) => [...prev, tempMessage]);
-    
-        // 2. INSTANT SCROLL AFTER RENDER
-        requestAnimationFrame(() => {
-          bottomRef.current?.scrollIntoView({
-            behavior: "auto",
-            block: "end",
-          });
-        });
-    
-        const form = new FormData();
-        form.append("chat_id", chatId);
-        form.append("voice", blob, "voice.webm");
-    
-        if (replyingTo?.id) {
-          form.append("replied_to", replyingTo.id);
-        }
-    
-        try {
-          const res = await api.post("/api/messages/voice", form, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-    
-          // 3. REPLACE TEMP MESSAGE
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === tempId
-                ? {
-                    ...res.data.message,
-                    sender: res.data.message.sender || authUser,
-                    status: "sent",
-                  }
-                : m
-            )
-          );
-    
-          // 4. FINAL SMOOTH SCROLL AFTER UPDATE
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView({
-              behavior: "smooth",
-              block: "end",
-            });
-          });
-    
-          setReplyingTo(null);
-        } catch (err) {
-          console.log(err?.response?.data);
-    
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === tempId ? { ...m, status: "failed" } : m
-            )
-          );
-        }
-      };
-    
-      recorder.stream.getTracks().forEach((t) => t.stop());
-    };
-    
+
+    } catch (err) {
+      console.log(err?.response?.data);
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId ? { ...m, status: "failed" } : m
+        )
+      );
+    }
+  };
+
+  recorder.stream.getTracks().forEach((t) => t.stop());
+};
+
+
     
     const getAudioDuration = (file) => {
       return new Promise((resolve) => {
@@ -221,171 +247,220 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     };
     
     
-     const sendFile = async () => {
-      if (!files.length) return;
-      const tempId = Date.now();
-      const getType = (file) => {
-        if (file.type.startsWith("image/")) return "image";
-        if (file.type.startsWith("video/")) return "video";
-        if (file.type.startsWith("audio/")) return "audio";
-        return "file";
+
+    const sendFile = async () => {
+  if (!files.length) return;
+
+  const reply = replyingTo; // ✅ SAVE FIRST
+  setReplyingTo(null);      // ✅ CLEAR UI IMMEDIATELY
+
+  const tempId = Date.now();
+
+  const getType = (file) => {
+    if (file.type.startsWith("image/")) return "image";
+    if (file.type.startsWith("video/")) return "video";
+    if (file.type.startsWith("audio/")) return "audio";
+    return "file";
+  };
+
+  const firstType = getType(files[0]);
+  const allSameType = files.every((f) => getType(f) === firstType);
+
+  if (!allSameType) {
+    showToast("You cannot mix images, videos, and documents");
+    return;
+  }
+
+  const filesWithMeta = await Promise.all(
+    files.map(async (file, i) => {
+      const type = getType(file);
+
+      let duration = null;
+
+      if (type === "audio") {
+        duration = await getAudioDuration(file);
+      }
+
+      const preview =
+        croppedImages[i]
+          ? URL.createObjectURL(croppedImages[i])
+          : previewUrls[i];
+
+      return {
+        file: preview,
+        file_url: preview,
+        file_name: file.name,
+        type,
+        duration,
       };
-      const firstType = getType(files[0]);
-      const allSameType = files.every((f) => getType(f) === firstType);
-    
-      if (!allSameType) {
-        showToast("You cannot mix images, videos, and documents");
-        return;
-      }
-      const filesWithMeta = await Promise.all(
-        files.map(async (file, i) => {
-          const type = getType(file);
-    
-          let duration = null;
-    
-          if (type === "audio") {
-            duration = await getAudioDuration(file);
-          }
-          const preview =
-            croppedImages[i]
-              ? URL.createObjectURL(croppedImages[i])
-              : previewUrls[i];
-    
-          return {
-            file: preview,
-            file_url: preview,
-            file_name: file.name,
-            type,
-            duration, // ✅ FIX
-          };
-        })
-      );
-      const tempMessage = {
-        id: tempId,
-        type: firstType,
-        sender_id: authUser.id,
-        sender: authUser,
-        status: "sending",
-        files: filesWithMeta,
-        originalFiles: files,
-        message: caption,
-        created_at: new Date().toISOString(),
+    })
+  );
+
+  const tempMessage = {
+    id: tempId,
+    type: firstType,
+    sender_id: authUser.id,
+    sender: authUser,
+    status: "sending",
+    files: filesWithMeta,
+    originalFiles: files,
+    message: caption,
+
+    // ✅ show reply instantly in UI
+    replied_to: reply || null,
+
+    created_at: new Date().toISOString(),
+  };
+
+  setMessages((prev) => [...prev, tempMessage]);
+
+  requestAnimationFrame(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "auto",
+      block: "end",
+    });
+  });
+
+  const form = new FormData();
+  form.append("chat_id", chatId);
+
+  files.forEach((file, i) => {
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (isImage && croppedImages[i]) {
+      form.append("files[]", croppedImages[i]);
+    } else {
+      form.append("files[]", file);
+    }
+
+    if (isVideo) {
+      const trim = trimMap[i] || { start: 0, end: 0 };
+      form.append("trim_start[]", trim.start);
+      form.append("trim_end[]", trim.end);
+    } else {
+      form.append("trim_start[]", 0);
+      form.append("trim_end[]", 0);
+    }
+
+    form.append("types[]", getType(file));
+  });
+
+  if (caption.trim()) {
+    form.append("message", caption);
+  }
+
+  // ✅ USE SAFE REPLY
+  if (reply?.id && !isNaN(reply.id)) {
+    form.append("replied_to", reply.id);
+  }
+
+  try {
+    const res = await api.post("/api/messages", form, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    const serverMessages = res.data.messages;
+
+    let server = serverMessages[0];
+
+    let grouped;
+
+    if (serverMessages.length === 1 && serverMessages[0].files) {
+      grouped = {
+        ...serverMessages[0],
+        status: "sent",
       };
-      setMessages((prev) => [...prev, tempMessage]);
-      requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({
-          behavior: "auto",
-          block: "end",
-        });
-      });
-      const form = new FormData();
-      form.append("chat_id", chatId);
-    
-      files.forEach((file, i) => {
-        const isImage = file.type.startsWith("image/");
-        const isVideo = file.type.startsWith("video/");
-    
-        if (isImage && croppedImages[i]) {
-          form.append("files[]", croppedImages[i]);
-        } else {
-          form.append("files[]", file);
+    } else {
+      grouped = {
+        ...serverMessages[0],
+        group_id: serverMessages[0].group_id,
+        files: serverMessages.map((m) => ({
+          file: m.file_url,
+          file_url: m.file_url,
+          file_name: m.file_name,
+          type: m.type,
+          duration: m.duration,
+        })),
+        status: "sent",
+      };
+    }
+
+    setMessages((prev) => {
+  const filtered = prev.filter((m) => m.id !== tempId);
+
+  const server = serverMessages[0];
+
+  const fixedMessage = {
+    ...server,
+    files: serverMessages.map((m) => ({
+      file: m.file_url,
+      file_url: m.file_url,
+      file_name: m.file_name,
+      type: m.type,
+      duration: m.duration,
+    })),
+
+    status: "sent",
+
+    replied_to: reply
+      ? {
+          id: reply.id,
+          message: reply.message,
+          type: reply.type,
+          sender: reply.sender, // 👈 keeps correct name
         }
-    
-        if (isVideo) {
-          const trim = trimMap[i] || { start: 0, end: 0 };
-          form.append("trim_start[]", trim.start);
-          form.append("trim_end[]", trim.end);
-        } else {
-          form.append("trim_start[]", 0);
-          form.append("trim_end[]", 0);
-        }
-    
-        form.append("types[]", getType(file));
+      : server.replied_message || server.replied_to || null,
+  };
+
+  return [...filtered, fixedMessage];
+});
+
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
       });
-    
-      if (caption.trim()) {
-        form.append("message", caption);
-      }
-    
-      if (replyingTo?.id) {
-        form.append("replied_to", replyingTo.id);
-      }
-    
-      try {
-        const res = await api.post("/api/messages", form, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        const serverMessages = res.data.messages;
+    });
 
-          let grouped;
+  } catch (err) {
+    console.error(err);
 
-          if (serverMessages[0]?.files) {
-            grouped = {
-              ...serverMessages[0],
-              status: "sent",
-            };
-          }
+    const message =
+      err?.response?.data?.message ||
+      err?.message ||
+      "Something went wrong";
 
-          else {
-            grouped = {
-              ...serverMessages[0],
-              group_id: serverMessages[0].group_id,
-              files: serverMessages.map((m) => ({
-                file: m.file_url,
-                file_url: m.file_url,
-                file_name: m.file_name,
-                type: m.type,
-                duration: m.duration,
-              })),
-              status: "sent",
-            };
-          }
-        setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? grouped : m))
-        );
-        requestAnimationFrame(() => {
-          bottomRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-          });
-        });
-    
-        setReplyingTo(null);
-      } catch (err) {
-        console.error(err);
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Something went wrong";
-    
-        showToast(message);
-    
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === tempId ? { ...m, status: "failed" } : m
-          )
-        );
-      }
-      setShowPreview(false);
-      setFiles([]);
-      setPreviewUrls([]);
-      setCaption("");
-      setCroppedImages({});
-      setCropAppliedMap(false);
-      setCrop({ x: 0, y: 0 });
-      setZoomMap({});
-      setCroppedAreaPixels(null);
-      setSelected([]);
-      setTrimMap({});
-      setDurationMap({});
-      setTrimAppliedMap({});
-    
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    };
+    showToast(message);
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId ? { ...m, status: "failed" } : m
+      )
+    );
+  }
+
+  // reset UI
+  setShowPreview(false);
+  setFiles([]);
+  setPreviewUrls([]);
+  setCaption("");
+  setCroppedImages({});
+  setCropAppliedMap(false);
+  setCrop({ x: 0, y: 0 });
+  setZoomMap({});
+  setCroppedAreaPixels(null);
+  setSelected([]);
+  setTrimMap({});
+  setDurationMap({});
+  setTrimAppliedMap({});
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
       useEffect(() => {
       if (!text) return;
     

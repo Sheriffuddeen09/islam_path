@@ -130,15 +130,15 @@ const options = [
     >
 
       {/* HEADER */}
-      <div className="flex flex-row justify-between px-3 items-center">
+      <div className="flex flex-row justify-between px-3 py-4 items-center border-b ">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
           stroke="currentColor" class="size-6 cursor-pointer text-black lg:hidden" onClick={onBack}>
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
 
-         <div className="p-4 border-b font-bold flex items-center gap-2 text-black text-xl ">
-        <UserCircle size={24} /> User's Info
-      </div>
+         <div className="font-bold flex items-center gap-2 text-black text-xl ">
+          <UserCircle size={24} /> User's Info
+        </div>
       </div>
      
 
@@ -154,7 +154,7 @@ const options = [
               </div>
 
         <h2 className="font-semibold text-lg font-bold inline-flex gap-2 items-center text-black font-bold">
-          <UserStatus user={activeChat?.other_user} /> {user.first_name || "User"} {user.last_name || ""}
+          {user.first_name || "User"} {user.last_name || ""}
         </h2>
 
         

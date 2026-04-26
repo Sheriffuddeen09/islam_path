@@ -11,12 +11,86 @@
     setTimeout(() => setToast(null), 3000);
   };
 
-* when i select another message body it unselected immediately
-* the video is not showing or add a background with text 
-* the name of user does  not show when chat is open after forward 
+
+
+* when i open new message it was also starting from buttom instead of from new message 
+
+* the name of user does not show when chat is open after forward 
 * the forward message does not show after the chat user open 
-* the image and video was send but it was not so showing in message box after forward but if it's text it forward 
-and show.
+* the image and video was send in files{
+  array but it was send as one or returning as one 
+}
+* the reply to is not return in the message
+public function messages(Chat $chat)
+{
+    $userId = auth()->id();
+
+    if ($chat->isBlockedFor($userId)) {
+        return response()->json(['message' => 'This chat is blocked'], 403);
+    }
+
+    $messages = $chat->messages()
+        ->with([
+            'sender:id,first_name,last_name,role',
+            'readBy:id,first_name,last_name'
+        ])
+        ->orderBy('created_at')
+        ->get();
+
+    $result = [];
+$map = [];
+
+foreach ($messages as $msg) {
+
+    $base = [
+        'id' => $msg->id,
+        'chat_id' => $msg->chat_id,
+        'sender_id' => $msg->sender_id,
+        'type' => $msg->type,
+        'message' => $msg->message,
+        'group_id' => $msg->group_id,
+        'sender' => $msg->sender,
+        'created_at' => $msg->created_at?->toISOString(),
+        'status' => 'sent',
+    ];
+
+    if ($msg->group_id) {
+
+        if (!isset($map[$msg->group_id])) {
+
+            $map[$msg->group_id] = [
+                ...$base,
+                'files' => [],
+            ];
+
+            $result[] = $map[$msg->group_id]; // ❌ no reference
+        }
+
+        // find index safely
+        $index = array_key_last($result);
+
+        $result[$index]['files'][] = [
+            'file_url' => $msg->file ? asset('storage/' . $msg->file) : null,
+            'file_name' => $msg->file_name,
+            'type' => $msg->type,
+        ];
+
+    } else {
+
+        $base['files'] = [[
+            'file_url' => $msg->file ? asset('storage/' . $msg->file) : null,
+            'file_name' => $msg->file_name,
+            'type' => $msg->type,
+        ]];
+
+        $result[] = $base;
+    }
+}
+    return response()->json([
+        'messages' => $result
+    ]);
+} 
+
+* forward more than one file like text, audio, image and document but it was send but it when fetch it only fetch one
 
 
- 

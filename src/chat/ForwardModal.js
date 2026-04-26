@@ -5,13 +5,11 @@ export function ForwardModal({
   messages = [],
   users = [],
   onSend,
-  onClose,
+  onClose, loading, setLoading
 }) {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // ================= GET USER ID CORRECTLY =================
   const getUserId = (user) => {
     return (
       user?.other_user?.id ||
@@ -20,7 +18,6 @@ export function ForwardModal({
       null
     );
   };
-
   const getUserName = (user) => {
     return (
       user?.other_user
@@ -33,7 +30,6 @@ export function ForwardModal({
     );
   };
 
-  // ================= SELECT USER =================
   const toggleUser = (id) => {
     if (!id) return;
 
@@ -43,8 +39,6 @@ export function ForwardModal({
         : [...prev, id]
     );
   };
-
-  // ================= SEARCH =================
   const filteredUsers = useMemo(() => {
     return users.filter((user) =>
       getUserName(user)
@@ -52,24 +46,6 @@ export function ForwardModal({
         .includes(search.toLowerCase())
     );
   }, [users, search]);
-
-  // ================= PREVIEW =================
-
-  const getMediaUrl = (file) => {
-  if (!file) return null;
-
-  if (file.file_url?.startsWith("http")) return file.file_url;
-
-  if (file.file_url) {
-    return `http://localhost:8000/storage/${file.file_url.replace(/^storage\//, "")}`;
-  }
-
-  if (file.file_name) {
-    return `http://localhost:8000/storage/chat_files/${file.file_name}`;
-  }
-
-  return null;
-};
 
   const getUrl = (f) => {
   if (f.file_url?.startsWith("blob:")) return f.file_url;
@@ -79,8 +55,17 @@ export function ForwardModal({
   if (f.file) return `http://localhost:8000/storage/${f.file}`;
   return null;
 };
-  
- const renderPreview = (msg) => {
+  const getFileName = (file) => {
+  if (file.file_name) return file.file_name;
+  if (file.file_url) {
+    const parts = file.file_url.split("/");
+    return parts[parts.length - 1];
+  }
+  return "File";
+};
+
+const renderPreview = (msg) => {
+   if (!msg) return null;
   if (msg.type === "text") {
     return <p className="text-sm truncate">{msg.message}</p>;
   }
@@ -90,60 +75,56 @@ export function ForwardModal({
       <div className="flex gap-2 overflow-x-auto">
         {msg.files.slice(0, 3).map((file, i) => {
           const url = getUrl(file);
-          const urlVideo = getMediaUrl(file)
+          const name = getFileName(file);
 
           return (
-            <div key={i} className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 relative">
-
+            <div
+              key={i}
+              className=" rounded-lg overflow-hidden bg-gray-200 relative flex items-center justify-center"
+            >
               {/* IMAGE */}
-              {file.type.startsWith("image") && (
+              {file.type?.startsWith("image") && (
                 <img
                   src={url}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-16 h-16 object-cover"
                 />
               )}
 
-              {/* VIDEO */}
+              {/* VIDEO → first letter */}
               {file.type?.startsWith("video") && (
-                <div className="relative w-full h-full bg-black">
-                  <video
-                    src={urlVideo}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="w-full h-full object-cover"
-                    onError={(e) => console.log("VIDEO FAIL:", url)}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    ▶
-                  </div>
+                <div className="w-full h-full bg-black flex items-center justify-center text-white font-bold text-lg">
+                  {name.charAt(0).toUpperCase()}
                 </div>
               )}
 
-              {/* PLAY ICON */}
-              {file.type.startsWith("video") && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-black/50 p-1 rounded-full">
-                    ▶
-                  </div>
+              {/* AUDIO → file name */}
+              {file.type === "audio" && (
+                <div className="text-sm whitespace-nowrap font-bold text-gray-700">
+                  🎵 {name}
                 </div>
               )}
 
+              {file.type === "file" && (
+                <div className="text-sm whitespace-nowrap font-bold text-gray-700">
+                  📎 {name}
+                </div>
+              )}
+
+              {/* VOICE → type */}
+              {file.type === "voice" && (
+                <div className="text-sm whitespace-nowrap font-bold text-gray-700">
+                  🎤 Voice Message
+                </div>
+              )}
             </div>
           );
         })}
       </div>
     );
   }
-
-    // VOICE
-    if (msg.type === "voice") {
-      return <p className="text-xs">🎤 Voice message</p>;
-    }
-
-    return <p className="text-xs">{msg.type}</p>;
-  };
+  return null;
+};
 
   const getMessagePreview = (msg) => {
     if (!msg) return "";
@@ -162,17 +143,12 @@ export function ForwardModal({
 
   // ================= SEND =================
   const handleSend = async () => {
-    if (selectedUsers.length === 0) return;
+  if (selectedUsers.length === 0) return;
+  await onSend(selectedUsers);
+};
 
-    setLoading(true);
 
-    await onSend(selectedUsers);
 
-    setLoading(false);
-    onClose();
-  };
-
-  // ================= EMPTY =================
   if (!messages || messages.length === 0) {
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
@@ -200,7 +176,11 @@ export function ForwardModal({
           </h2>
 
           <button onClick={onClose} className="text-red-500">
-            ✕
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+            class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
+            w-10  h-10 cursor-pointer">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -274,7 +254,28 @@ export function ForwardModal({
             }`}
           >
             {loading
-              ? "Forwarding..."
+              ? <p className="inline-flex gap-2 items-center "> 
+                <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg> Forwarding
+              </p>
               : `Forward (${selectedUsers.length})`}
           </button>
 

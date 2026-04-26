@@ -34,6 +34,10 @@ export default function MenuComponent({
    const [openDelete, setOpenDelete] = useState(false);
     const [editingMessage, setEditingMessage] = useState(null);
     const [clearMessage, setClearMessage] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+
+
     
   
     const [toast, setToast] = useState(false)
@@ -50,18 +54,6 @@ export default function MenuComponent({
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
       };
-
-
-    // const forwardMessages = async (messageIds, receiverIds) => {
-    //   try {
-    //     await api.post("/api/messages/forward-multiple", {
-    //       message_ids: messageIds,
-    //       receiver_ids: receiverIds,
-    //     });
-    //   } catch (err) {
-    //     console.error(err);
-    //   }
-    // };
 
 
     const normalizeChat = (chat, authUserId) => {
@@ -82,9 +74,11 @@ useEffect(() => {
 
    const forwardMessages = async (messageIds, receiverIds) => {
   try {
+    setLoading(true);
+
     const res = await api.post("/api/messages/forward-multiple", {
       message_ids: messageIds,
-      receiver_ids: receiverIds,
+      user_ids: receiverIds,
     });
 
     const chats = res.data.chats;
@@ -94,14 +88,12 @@ useEffect(() => {
 
       setActiveChat(chat);
 
-      // 🔥 IMPORTANT: reorder messages
       const sorted = (chat.messages || []).sort(
         (a, b) => new Date(a.created_at) - new Date(b.created_at)
       );
 
       setMessages(sorted);
 
-      // 🔥 FORCE SCROLL AFTER STATE UPDATE
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
@@ -114,9 +106,12 @@ useEffect(() => {
   } catch (err) {
     console.error(err);
     setToast("❌ Failed to forward");
+  } finally {
+    setLoading(false);
   }
 };
-    
+
+
     // ================= COPY =================
     const handleCopy = async (message) => {
     await navigator.clipboard.writeText(message.message || "");
@@ -247,11 +242,25 @@ useEffect(() => {
       {
       label: "Forward",
       show: true,
-      onClick: () => {
-        setSelectedMessages([message]);
-        setTimeout(() => {
-          setForwardMessage(true);
-        }, 0);
+      onClick: (m) => {
+        let messagesToForward = [];
+
+        if (selectedMessages.length > 0) {
+          // ✅ MULTI SELECT
+          messagesToForward = messages.filter(msg =>
+            selectedMessages.includes(msg.id)
+          );
+        } else {
+          // ✅ SINGLE MESSAGE (menu click)
+          messagesToForward = [m];
+        }
+
+        console.log("FORWARD DATA:", messagesToForward);
+
+        setForwardMessage({
+          open: true,
+          messages: messagesToForward
+        });
       }
     },
 
@@ -424,17 +433,27 @@ useEffect(() => {
                 />
               )}
         
-              {forwardMessage && (
+              {forwardMessage.open && (
                 <ForwardModal
-                  messages={selectedMessages}
+
+                  setLoading={setLoading}
+                  loading={loading}
+                  messages={forwardMessage.messages}
                   users={chats}
-                  onSend={(selectedUserIds) => {
-                    forwardMessages(selectedMessages.map(m => m.id), selectedUserIds);
+                  onSend={async (selectedUserIds) => {
+                    await forwardMessages(
+                      forwardMessage.messages.map(m => m.id),
+                      selectedUserIds
+                    );
                   }}
                   onClose={() => {
-                    setForwardMessage(false);
+                    setForwardMessage({
+                      open: false,
+                      messages: []
+                    });
                     setSelectedMessages([]);
                   }}
+                  
                 />
               )}
         

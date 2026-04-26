@@ -21,10 +21,12 @@ const OrdersPage = ({setOrderCount}) => {
 
 
   const { user } = useAuth();
+  const { authUser } = useAuth();
+
   const authUserId = user?.id;
 
   console.log("order", authUserId)
-  console.log("order id", authUserId?.id)
+  
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -86,28 +88,40 @@ const OrdersPage = ({setOrderCount}) => {
   
 
 
-  const handleMessageSeller = async (sellerId, orderId) => {
-  try {
-    setChatLoading(orderId);
+  const handleMessageUser = async (order) => {
+  if (!order) {
+    console.error("❌ order is undefined");
+    return;
+  }
 
-    const res = await api.post("/api/chat/create", {
-      seller_id: sellerId,
-      order_id: orderId,
-      user_id: authUserId,
+  const currentUserId = authUserId;
+
+  if (!currentUserId) {
+    console.error("❌ authUser not ready");
+    return;
+  }
+
+  const otherUserId =
+    order.user_id === currentUserId
+      ? order.seller_id
+      : order.user_id;
+
+  try {
+    setChatLoading(order.id);
+
+    await api.post("/api/chat/create", {
+      user_id: otherUserId,
+      order_id: order.id,
     });
 
-    // ✅ Mark chat as active
-    setActiveChats((prev) => [...prev, orderId]);
+    setActiveChats(prev => [...prev, order.id]);
 
-    setToast({ type: "success", message: "Chat created" });
-
-  } catch {
-    setToast({ type: "error", message: "Chat failed" });
+  } catch (err) {
+    console.error("Chat failed", err);
   } finally {
     setChatLoading(null);
   }
 };
-
 
   const handleCancel = async (id) => {
   try {
@@ -164,13 +178,18 @@ const OrdersPage = ({setOrderCount}) => {
 
         {orders.map((order) => {
           const isBuyer = order.user_id === authUserId;
+          
+          const buyerId = order.user_id;
 
           const firstItem = order.items?.[0];
           const sellerId = firstItem?.seller_id;
-          const isSeller = sellerId === authUserId;
+        
 
           const currency = firstItem?.product?.currency;
           const symbol = symbols[currency] || currency;
+
+
+          console.log("buyer id", buyerId)
 
 
           return (
@@ -194,7 +213,7 @@ const OrdersPage = ({setOrderCount}) => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleMessageSeller(sellerId, order.id)}
+                    onClick={() => handleMessageUser(order)}
                     className="bg-blue-800 text-white px-3 py-2 text-sm rounded font-bold"
                   >
                     {chatLoading === order.id ? "Loading..." : "Message"}

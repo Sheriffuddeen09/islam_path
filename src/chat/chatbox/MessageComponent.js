@@ -21,7 +21,7 @@ export default function MessageComponent({
   setActiveChat,
   setSelectedMessages,
   chats,
-  searchMode, searchQuery, setSearchMode, forwardMessage,
+  searchMode, searchQuery, setSearchMode, forwardMessage, messages,
   setSearchQuery, setReplyingTo, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
@@ -190,21 +190,26 @@ export default function MessageComponent({
   },
 
   {
-    label: "Forward",
+    label: "Forwards",
     show: true,
-    onClick: () => {
-      setForwardMessage(true);
-      setSelectedMessages([msg]);
-      setActiveMenuId(null)
-    }
-  },
-  {
-    label: "Search",
-    show: msg.type === "text", // ✅ only text searchable
-    onClick: () => {
-      onSearch?.(msg.message);
-      setActiveMenuId(null)
-    },
+    onClick: (m) => {
+  const safeMsg = m || msg;
+
+  let messagesToForward = [];
+
+  if (selectedMessages.length > 0) {
+    messagesToForward = messages.filter(x =>
+      selectedMessages.includes(x.id)
+    );
+  } else if (safeMsg) {
+    messagesToForward = [safeMsg];
+  }
+
+  setForwardMessage({
+    open: true,
+    messages: messagesToForward.filter(Boolean)
+  });
+}
   },
   {
     label: msg.is_pinned ? "Unpin" : "Pin",
@@ -317,7 +322,7 @@ export default function MessageComponent({
           <button
             key={i}
             onClick={() => {
-              action.onClick();
+              action.onClick(msg);
               setActiveMenuId(null);
             }}
             className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
@@ -342,7 +347,7 @@ export default function MessageComponent({
             <button
               key={i}
               onClick={() => {
-                action.onClick();
+               action.onClick(msg);
                 setActiveMenuId(null);
                 setShowMore(false);
               }}
@@ -391,19 +396,26 @@ export default function MessageComponent({
         />
       )}
 
-      {forwardMessage && (
-        <ForwardModal
-          messages={selectedMessages}
-          users={chats}
-          onSend={(selectedUserIds) => {
-            forwardMessages(selectedMessages.map(m => m.id), selectedUserIds);
-          }}
-          onClose={() => {
-            setForwardMessage(false);
-            setSelectedMessages([]);
-             setForwardMessage(false);
-          }}
-        />)}
+       {forwardMessage.open && (
+                      <ForwardModal
+                        messages={forwardMessage.messages}
+                        users={chats}
+                        onSend={(selectedUserIds) => {
+                          forwardMessages(
+                            forwardMessage.messages.map(m => m.id),
+                            selectedUserIds
+                          );
+                        }}
+                        onClose={() => {
+                          setForwardMessage({
+                            open: false,
+                            messages: []
+                          });
+                          setSelectedMessages([]);
+                        }}
+                      />
+                    )}
+          
 
       {reportMessage && (
         <ReportModal

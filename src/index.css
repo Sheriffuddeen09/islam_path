@@ -480,3 +480,7 @@ textarea {
 .animate-dropdown {
   animation: dropdown 0.15s ease-out;
 }
+
+.message-bubble {
+  transition: background 0.3s ease;
+}
