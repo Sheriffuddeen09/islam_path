@@ -29,7 +29,7 @@ export default function MessageBox({
   chats,
   setReplyingTo, replyingTo,
   containerRef,
-  handleScroll, newMessageCount,
+  handleScroll,
   paused, trimMap, trimAppliedMap,
   stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
@@ -53,7 +53,7 @@ export default function MessageBox({
   const [forwardMode, setForwardMode] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
 
-  // const [forwardMessage, setForwardMessage] = useState(false);
+  const [activeReplyId, setActiveReplyId] = useState(null);
   
   const [forwardMessage, setForwardMessage] = useState({
     open: false,
@@ -78,9 +78,9 @@ export default function MessageBox({
   const [activeMenuId, setActiveMenuId] = useState(null);
   
 
-  const hasSelection = selectedMessages.length > 0;
-  const canForward = selectedMessages.length > 1;
 
+  const hasSelection = selectedMessages.length > 0;
+ 
 
   const isTouchDevice =
   window.matchMedia("(pointer: coarse)").matches;
@@ -173,6 +173,8 @@ useEffect(() => {
     });
   };
 
+
+  
 
   const filteredMessages = messages;
 
@@ -568,9 +570,10 @@ const handlePin = async (msg) => {
       <div
           key={msg.id}
           id={`msg-${msg.id}`}
-          className={`px-3 rounded py-2 transition  message-bubble  ${
-            searchQuery && !isMatch ? "opacity-20" : "opacity-100"
-          }`}
+          className={`px-3 rounded py-2 transition message-bubble  ${
+            searchQuery && !isMatch ? "opacity-20" : "opacity-100" 
+          }
+          `}
           ref={(el) => (messageRefs.current[msg.id] = el)}
         >
         {showDate && (
@@ -578,13 +581,15 @@ const handlePin = async (msg) => {
             {formatDateHeader(msg.created_at)}
           </div>
         )}
-
         <MessageItem
           key={msg.id}
           messages={messages}
           msg={msg}
           authUser={authUser}
           isMine={msg.sender_id === authUser.id}
+          setActiveReplyId={setActiveReplyId}
+          messageRefs={messageRefs}
+          containerRef={containerRef}
           setMessages={setMessages}
           chatId={chatId}
           isTyping={isTyping}
@@ -601,7 +606,7 @@ const handlePin = async (msg) => {
           setSelectedMessages={setSelectedMessages}
           forwardMessage={forwardMessage}
           setForwardMessage={setForwardMessage} bottomRef={bottomRef} showMore={showMore} setShowMore={setShowMore}
-          setReplyingTo={setReplyingTo} replyingTo={replyingTo} newMessageCount={newMessageCount}
+          setReplyingTo={setReplyingTo} replyingTo={replyingTo}
           sendFile={sendFile} sendText={sendText} stopRecording={stopRecording} setUiState={setUiState}
           isTouchDevice={isTouchDevice} menuPosition={menuPosition} setMenuPosition={setMenuPosition}
           setSelectedMsg={setSelectedMsg} uiState={uiState} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId}

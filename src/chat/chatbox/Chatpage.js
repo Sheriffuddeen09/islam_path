@@ -1,7 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
-import ChatList from "./ChatList";
-import MessageBox from "./MessageBox";
-import ActiveUsers from "./ActiveUsers";
+import  { useRef, useState, useMemo, useEffect } from "react";
 import { UserSkeleton } from "./UserSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
@@ -31,7 +28,7 @@ export default function ChatPage({
 
   const messages = messagesMap[activeChat?.id] || [];
 
-  const { bottomRef, containerRef, handleScroll, newMessageCount } =
+  const { bottomRef, containerRef, handleScroll } =
     useAutoScroll([messages, activeChat?.id]);
 
   const showToast = (message, type = "success") => {
@@ -210,7 +207,6 @@ export default function ChatPage({
       showList={showList}
       bottomRef={bottomRef}
       handleScroll={handleScroll}
-      newMessageCount={newMessageCount}
       containerRef={containerRef}
       setToast={setToast}
       openChat={openChat}

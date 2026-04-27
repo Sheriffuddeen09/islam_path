@@ -14,83 +14,282 @@
 
 
 * when i open new message it was also starting from buttom instead of from new message 
+import { useEffect, useRef, useState } from "react";
 
+export default function useAutoScroll(messages) {
+  const bottomRef = useRef(null);
+  const containerRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const prevLengthRef = useRef(0);
+
+  // 🔥 NEW: unread counter
+  const [newMessageCount, setNewMessageCount] = useState(0);
+
+  // detect scroll position
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const threshold = 80;
+    const position = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+    const atBottom = position < threshold;
+
+    isAtBottomRef.current = atBottom;
+
+    // 🔥 RESET when user returns to bottom
+    if (atBottom) {
+      setNewMessageCount(0);
+    }
+  };
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const prevLength = prevLengthRef.current;
+    const newLength = messages.length;
+
+    if (newLength === prevLength) return;
+
+    const addedCount = newLength - prevLength;
+
+    // =========================
+    // ✅ USER AT BOTTOM → normal scroll
+    // =========================
+    if (isAtBottomRef.current) {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({
+          behavior: "auto",
+          block: "end",
+        });
+      });
+
+      setNewMessageCount(0);
+    } 
+    // =========================
+    // ❗ USER NOT AT BOTTOM → show indicator + scroll to first new
+    // =========================
+    else if (addedCount > 0) {
+      setNewMessageCount((prev) => prev + addedCount);
+
+      requestAnimationFrame(() => {
+        const firstNewIndex = newLength - addedCount;
+        const firstNewNode = el.children[firstNewIndex];
+
+        if (firstNewNode) {
+          firstNewNode.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      });
+    }
+
+    prevLengthRef.current = newLength;
+  }, [messages]);
+
+  return {
+    bottomRef,
+    containerRef,
+    handleScroll,
+
+    // 🔥 expose for UI
+    newMessageCount,
+    setNewMessageCount,
+  };
+}
 * the name of user does not show when chat is open after forward 
 * the forward message does not show after the chat user open 
 * the image and video was send in files{
   array but it was send as one or returning as one 
 }
-* the reply to is not return in the message
-public function messages(Chat $chat)
-{
-    $userId = auth()->id();
-
-    if ($chat->isBlockedFor($userId)) {
-        return response()->json(['message' => 'This chat is blocked'], 403);
-    }
-
-    $messages = $chat->messages()
-        ->with([
-            'sender:id,first_name,last_name,role',
-            'readBy:id,first_name,last_name'
-        ])
-        ->orderBy('created_at')
-        ->get();
-
-    $result = [];
-$map = [];
-
-foreach ($messages as $msg) {
-
-    $base = [
-        'id' => $msg->id,
-        'chat_id' => $msg->chat_id,
-        'sender_id' => $msg->sender_id,
-        'type' => $msg->type,
-        'message' => $msg->message,
-        'group_id' => $msg->group_id,
-        'sender' => $msg->sender,
-        'created_at' => $msg->created_at?->toISOString(),
-        'status' => 'sent',
-    ];
-
-    if ($msg->group_id) {
-
-        if (!isset($map[$msg->group_id])) {
-
-            $map[$msg->group_id] = [
-                ...$base,
-                'files' => [],
-            ];
-
-            $result[] = $map[$msg->group_id]; // ❌ no reference
-        }
-
-        // find index safely
-        $index = array_key_last($result);
-
-        $result[$index]['files'][] = [
-            'file_url' => $msg->file ? asset('storage/' . $msg->file) : null,
-            'file_name' => $msg->file_name,
-            'type' => $msg->type,
-        ];
-
-    } else {
-
-        $base['files'] = [[
-            'file_url' => $msg->file ? asset('storage/' . $msg->file) : null,
-            'file_name' => $msg->file_name,
-            'type' => $msg->type,
-        ]];
-
-        $result[] = $base;
-    }
-}
-    return response()->json([
-        'messages' => $result
-    ]);
-} 
-
 * forward more than one file like text, audio, image and document but it was send but it when fetch it only fetch one
 
 
+
+    "message": "Call to undefined relationship [files] on model [App\\Models\\Message].",
+    "exception": "Illuminate\\Database\\Eloquent\\RelationNotFoundException",
+    "file": "C:\\Users\\Sheriffuddeen\\knowledge_path\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\RelationNotFoundException.php",
+    "line": 35,
+    "trace": [
+
+
+    <div
+        key={`${msg.id}-${selectedMessages.length}`}
+        ref={messageRef}
+        className={`flex cursor-pointer ${
+          isMine ? "justify-end" : "justify-start"
+        } ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
+      >
+     <div
+  className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
+    ${isMine 
+      ? "ml-auto bg-green-800 text-white" 
+      : "mr-auto bg-gray-900 text-white"
+    }
+  `}
+  style={{
+  transform: `translateX(${translateX}px)`,
+  transition: translateX === 0 ? "transform 0.2s ease" : "none",
+  touchAction: "none", // 🔥 REQUIRED FIX
+}}
+onPointerDown={(e) => {
+  if (isInteractive(e.target)) return;
+  longPressTriggered.current = false;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  startX.current = e.clientX;
+  isDragging.current = true;
+  dragX.current = 0;
+  pressTimer.current = setTimeout(() => {
+    longPressTriggered.current = true; // ✅ mark
+    setIsLongPress(true);
+    toggleSelect(msg);
+    setShowReactionPopup(msg.id);
+  }, 500);
+}}
+
+onPointerMove={(e) => {
+  if (isInteractive(e.target)) return; // ✅ ignore gestures on media
+  if (!isDragging.current) return;
+  const diff = e.clientX - startX.current;
+  if (Math.abs(diff) > 10) {
+    clearTimeout(pressTimer.current);
+  }
+  if (diff > 0) {
+    const MAX = 30;
+    let x = diff;
+    if (diff > MAX) {
+      x = MAX + (diff - MAX) * 0.2;
+    }
+    dragX.current = diff;
+    setTranslateX(x);
+  }
+}}
+
+onPointerUp={(e) => {
+  e.currentTarget.releasePointerCapture(e.pointerId);
+  clearTimeout(pressTimer.current); // ✅ important
+  if (dragX.current > 10) {
+    setReplyingTo(msg);
+  }
+  setTranslateX(0);
+  dragX.current = 0;
+  isDragging.current = false;
+}}
+
+onPointerCancel={() => {
+  clearTimeout(pressTimer.current);
+  isDragging.current = false;
+  setTranslateX(0);
+  dragX.current = 0;
+}}
+
+onClick={(e) => {
+  e.stopPropagation();
+  if (isInteractive(e.target)) return;
+  if (longPressTriggered.current) return;
+  if (selectionMode || selectedMessages.length > 0) {
+    toggleSelect(msg);
+    return;
+  }
+  if (!forwardMode) {
+    if (isMobile) setShowActions(prev => !prev);
+    return;
+  }
+  toggleSelect(msg);
+}}
+>
+    {translateX > 20 && (
+      <div
+        className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
+        style={{
+          opacity: Math.min(translateX / 50, 1),
+          transform: `translateY(-50%) scale(${Math.min(translateX / 50, 1)})`,
+        }}
+      >
+      </div>
+    )}
+      {selectedMessages.length <= 1 && (
+  <div className="lg:block hidden">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      className={`
+        absolute -bottom-8 right-0 flex items-center bg-gray-800 gap-2 px-2 py-1 rounded-lg text-xs z-50
+        transition-all duration-200
+        ${
+          isMobile
+            ? (showActions || (selectedMessages.length === 1 && isSelected))
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+            : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+        }
+      `}
+    >
+      {!isMobile && (
+        <input
+          type="checkbox"
+          checked={selectedMessages.includes(msg.id)}
+          onChange={(e) => {
+            e.stopPropagation();
+            setSelectionMode(true); // 🔥 enable selection mode
+            toggleSelect(msg);
+          }}
+          className="w-4 h-4 cursor-pointer"
+        />
+      )}
+     <button
+  onPointerDown={(e) => e.stopPropagation()} // ✅ keep this
+  onClick={(e) => {
+    e.stopPropagation();
+    if (!selectedMessages.includes(msg.id)) {
+      setSelectedMessages([msg.id]);
+    }
+    setShowReactionPopup(prev =>
+      prev === msg.id ? null : msg.id
+    );
+  }}
+>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" strokeWidth="1.5"
+          stroke="currentColor" className="size-5 text-white">
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+        </svg>
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          const rect = e.currentTarget.getBoundingClientRect();
+          setMenuPosition({
+            x: rect.x,
+            y: rect.y,
+            isMine,
+            id: msg.id,
+          });
+          setActiveMenuId(msg.id);
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" strokeWidth={1.5}
+          stroke="currentColor" className="size-6 text-white">
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+)}
+        {msg.replied_to && (
+          <div 
+          onClick={(e) => {
+            e.stopPropagation();
+            scrollToMessage(msg.replied_to.id);
+          }}
+          className={`bg-black/30 p-2 rounded mb-2  ${
+            msg.replied_to.sender?.id === authUser.id
+                  ? "border-l-4 border-green-400"
+                  : "border-l-4 border-blue-400"
+          }`}>

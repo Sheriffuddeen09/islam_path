@@ -1,10 +1,7 @@
-import React, { useMemo } from "react";
-import { Check, CheckCheck } from "lucide-react";
+import { useMemo } from "react";
 import { ChatSkeleton } from "./ChatSkeleton";
-import UserStatus from "../online/OnlineStatuesDot";
 import { useAuth } from "../../layout/AuthProvider";
 import { useNavigate } from "react-router-dom";
-import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
 import ChatItem from "./ChatItem";
 
 export default function ChatList({

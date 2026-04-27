@@ -7,7 +7,7 @@ import MessageBox from "./MessageBox";
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
     chatId,setShowProfile, showProfile, setShowList, showList, bottomRef, handleScroll,containerRef, openChat,
-    setMessages, messages, newMessageCount
+    setMessages, messages
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -515,7 +515,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
           containerRef={containerRef}
-          handleScroll={handleScroll} newMessageCount={newMessageCount}
+          handleScroll={handleScroll}
           paused={paused} trimMap={trimMap} trimAppliedMap={trimAppliedMap} stopRecording={stopRecording} 
           sendText={sendText} sendFile={sendFile} zoomMap={zoomMap} setTrimAppliedMap={setTrimAppliedMap} 
           setTrimMap={setTrimMap} recording={recording} setDurationMap={setDurationMap} setShowPreview={setShowPreview}

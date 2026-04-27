@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function useAutoScroll(messages) {
+export default function useAutoScroll(messages, lastReadMessageId = null, messageRefs = {}) {
   const bottomRef = useRef(null);
   const containerRef = useRef(null);
   const isAtBottomRef = useRef(true);
   const prevLengthRef = useRef(0);
 
-  // 🔥 NEW: unread counter
-  const [newMessageCount, setNewMessageCount] = useState(0);
+  const [initialized, setInitialized] = useState(false);
 
-  // detect scroll position
   const handleScroll = () => {
     const el = containerRef.current;
     if (!el) return;
@@ -17,69 +15,58 @@ export default function useAutoScroll(messages) {
     const threshold = 80;
     const position = el.scrollHeight - el.scrollTop - el.clientHeight;
 
-    const atBottom = position < threshold;
-
-    isAtBottomRef.current = atBottom;
-
-    // 🔥 RESET when user returns to bottom
-    if (atBottom) {
-      setNewMessageCount(0);
-    }
+    isAtBottomRef.current = position < threshold;
   };
 
+  // ✅ OPEN CHAT → SCROLL TO FIRST UNREAD
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    if (!messages.length || initialized) return;
 
-    const prevLength = prevLengthRef.current;
-    const newLength = messages.length;
+    const targetIndex = lastReadMessageId
+      ? messages.findIndex(m => m.id === lastReadMessageId) + 1
+      : 0;
 
-    if (newLength === prevLength) return;
+    const target = messages[targetIndex];
 
-    const addedCount = newLength - prevLength;
+    requestAnimationFrame(() => {
+      const el = messageRefs[target?.id];
 
-    // =========================
-    // ✅ USER AT BOTTOM → normal scroll
-    // =========================
+      if (el) {
+        el.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+        });
+      } else {
+        bottomRef.current?.scrollIntoView({
+          behavior: "auto",
+        });
+      }
+
+      setInitialized(true);
+    });
+  }, [messages, lastReadMessageId]);
+
+  // ✅ LIVE SCROLL
+  useEffect(() => {
+    const prev = prevLengthRef.current;
+    const next = messages.length;
+
+    if (prev === next) return;
+
     if (isAtBottomRef.current) {
       requestAnimationFrame(() => {
         bottomRef.current?.scrollIntoView({
-          behavior: "auto",
-          block: "end",
+          behavior: "smooth",
         });
-      });
-
-      setNewMessageCount(0);
-    } 
-    // =========================
-    // ❗ USER NOT AT BOTTOM → show indicator + scroll to first new
-    // =========================
-    else if (addedCount > 0) {
-      setNewMessageCount((prev) => prev + addedCount);
-
-      requestAnimationFrame(() => {
-        const firstNewIndex = newLength - addedCount;
-        const firstNewNode = el.children[firstNewIndex];
-
-        if (firstNewNode) {
-          firstNewNode.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }
       });
     }
 
-    prevLengthRef.current = newLength;
+    prevLengthRef.current = next;
   }, [messages]);
 
   return {
     bottomRef,
     containerRef,
     handleScroll,
-
-    // 🔥 expose for UI
-    newMessageCount,
-    setNewMessageCount,
   };
 }

@@ -17,10 +17,10 @@ export default function MessageItem({
   chatId,
   activeChat,
   setToast, menuPosition, setMenuPosition, setSelectedMsg, uiState, setUiState,
-  setActiveChat, newMessageCount, bottomRef, activeMenuId, setActiveMenuId, showMore, setShowMore,
+  setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
-  showReactionPopup, setShowReactionPopup
+  showReactionPopup, setShowReactionPopup, messageRefs, containerRef
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -499,22 +499,38 @@ useEffect(() => {
 };
 
 const scrollToMessage = (messageId) => {
-  const el = document.getElementById(`msg-${messageId}`);
+  const el = messageRefs.current[messageId];
+  if (!el) return;
 
-  if (el) {
-    el.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+  // 🔥 find REAL scrollable parent
+  let parent = el.parentElement;
 
-    // optional highlight effect (WhatsApp style)
-    el.classList.add("bg-yellow-100");
+  while (parent) {
+    const style = window.getComputedStyle(parent);
 
-    setTimeout(() => {
-      el.classList.remove("bg-yellow-100");
-    }, 1000);
+    if (
+      style.overflowY === "auto" ||
+      style.overflowY === "scroll"
+    ) {
+      break;
+    }
+
+    parent = parent.parentElement;
   }
+
+  if (!parent) return;
+
+  // 🔥 scroll INSIDE correct container
+  parent.scrollTop =
+    el.offsetTop - parent.clientHeight / 2;
+
+  // highlight
+  el.classList.add("bg-green-100");
+  setTimeout(() => {
+    el.classList.remove("bg-green-100");
+  }, 1000);
 };
+
 
 
   useEffect(() => {
@@ -562,6 +578,7 @@ const isInteractive = (target) => {
   <MediaPreview preview={preview} setPreview={setPreview} />
 )}
     <div
+    
         key={`${msg.id}-${selectedMessages.length}`}
         ref={messageRef}
         className={`flex cursor-pointer ${
@@ -578,22 +595,20 @@ const isInteractive = (target) => {
   style={{
   transform: `translateX(${translateX}px)`,
   transition: translateX === 0 ? "transform 0.2s ease" : "none",
-  touchAction: "none", // 🔥 REQUIRED FIX
+  touchAction: "none",
 }}
 
 onPointerDown={(e) => {
   if (isInteractive(e.target)) return;
 
   longPressTriggered.current = false;
-
-  e.currentTarget.setPointerCapture(e.pointerId);
+  isDragging.current = true;
 
   startX.current = e.clientX;
-  isDragging.current = true;
   dragX.current = 0;
 
   pressTimer.current = setTimeout(() => {
-    longPressTriggered.current = true; // ✅ mark
+    longPressTriggered.current = true;
     setIsLongPress(true);
     toggleSelect(msg);
     setShowReactionPopup(msg.id);
@@ -601,22 +616,21 @@ onPointerDown={(e) => {
 }}
 
 onPointerMove={(e) => {
-  if (isInteractive(e.target)) return; // ✅ ignore gestures on media
+  if (isInteractive(e.target)) return;
   if (!isDragging.current) return;
 
   const diff = e.clientX - startX.current;
 
+  // ❌ cancel long press if movement starts
   if (Math.abs(diff) > 10) {
     clearTimeout(pressTimer.current);
   }
 
+  // 👉 ONLY RIGHT SWIPE
   if (diff > 0) {
-    const MAX = 30;
-    let x = diff;
+    const MAX = 80;
 
-    if (diff > MAX) {
-      x = MAX + (diff - MAX) * 0.2;
-    }
+    const x = Math.min(diff, MAX);
 
     dragX.current = diff;
     setTranslateX(x);
@@ -624,18 +638,22 @@ onPointerMove={(e) => {
 }}
 
 onPointerUp={(e) => {
-  e.currentTarget.releasePointerCapture(e.pointerId);
+  isDragging.current = false;
+  clearTimeout(pressTimer.current);
 
-  clearTimeout(pressTimer.current); // ✅ important
-
-  if (dragX.current > 10) {
-    setReplyingTo(msg);
-  }
+  const diff = dragX.current;
 
   setTranslateX(0);
   dragX.current = 0;
-  isDragging.current = false;
+
+  // 🔥 SWIPE THRESHOLD
+  if (diff > 60) {
+    setReplyingTo(msg);
+  }
+
+  // ❗ DO NOT block click
 }}
+
 
 onPointerCancel={() => {
   clearTimeout(pressTimer.current);
@@ -797,46 +815,30 @@ onPointerCancel={() => {
     </div>
   </div>
 )}
-          {newMessageCount > 0 && (
-                <div
-                  onClick={() => {
-                    bottomRef.current?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "end",
-                    });
-                  }}
-                  className="fixed bottom-24 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-xs cursor-pointer shadow"
-                >
-                  {newMessageCount} new message{newMessageCount > 1 ? "s" : ""}
-                </div>
-              )}
+         
         {msg.replied_to && (
-          <div 
-          onClick={(e) => {
-            e.stopPropagation();
-            scrollToMessage(msg.replied_to.id);
-          }}
-          className={`bg-black/30 p-2 rounded mb-2  ${
-            msg.replied_to.sender?.id === authUser.id
-                  ? "border-l-4 border-green-400"
-                  : "border-l-4 border-blue-400"
-          }`}>
+  <div
+    onClick={(e) => {
+      e.stopPropagation();
+      scrollToMessage(msg.replied_to.id);
+    }}
+    className={`bg-black/30 p-2 rounded mb-2 ${
+      msg.replied_to?.sender?.id === authUser.id
+        ? "border-l-4 border-green-400"
+        : "border-l-4 border-blue-400"
+    }`}
+  >
+    <p className="text-xs text-blue-300 font-semibold">
+      {msg.replied_to?.sender
+        ? `${msg.replied_to.sender.first_name} ${msg.replied_to.sender.last_name}`
+        : "User"}
+    </p>
 
-            <p className={`text-xs font-semibold ${
-                msg.replied_to.sender?.id === authUser.id
-                  ? "text-green-300"
-                  : "text-blue-300"
-              }`}>
-              {msg.replied_to.sender?.id === authUser.id
-                ? "You"
-                : msg.replied_to.sender?.first_name || "User"}
-            </p>
-            <p className="text-xs opacity-80 truncate">
-              {getPreviewText(msg.replied_to)}
-            </p>
-
-          </div>
-        )}
+    <p className="text-xs opacity-80 truncate">
+      {getPreviewText(msg.replied_to)}
+    </p>
+  </div>
+)}
 
         {/* TEXT */}
           {msg.message && msg.type === "text" && (
