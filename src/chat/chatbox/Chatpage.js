@@ -4,6 +4,7 @@ import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import useAutoScroll from "./useAutoScroll";
 import ChatComponent from "./ChatComponent";
+import { initEcho } from "../../echo";
 
 export default function ChatPage({
   chats,
@@ -12,6 +13,7 @@ export default function ChatPage({
   setActiveChat
 }) {
   const { user: authUser } = useAuth();
+
 
   const [messagesMap, setMessagesMap] = useState({});
 
@@ -25,11 +27,16 @@ export default function ChatPage({
   const [showProfile, setShowProfile] = useState(false);
 
   const chatId = activeChat?.id;
+  const messageRefs = useRef({});
+
+  
+  const [lastReadMessageId, setLastReadMessageId] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const messages = messagesMap[activeChat?.id] || [];
 
   const { bottomRef, containerRef, handleScroll } =
-    useAutoScroll([messages, activeChat?.id]);
+    useAutoScroll(messages, lastReadMessageId, messageRefs.current, setUnreadCount, chatId);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -83,50 +90,161 @@ export default function ChatPage({
   // 🚀 OPEN CHAT (NO SCROLL HERE ANYMORE)
 
   
-  const openChat = async (chat) => {
-    if (chat.block_info?.blocked_me) {
-      showToast("You have been blocked in this chat", "error");
-      return;
+  // const openChat = async (chat) => {
+  //   if (chat.block_info?.blocked_me) {
+  //     showToast("You have been blocked in this chat", "error");
+  //     return;
+  //   }
+
+  //   setActiveChat(chat);
+
+  //   if (!isLargeScreen) setShowList(false);
+
+  //   localStorage.setItem("lastChatId", chat.id);
+
+  //   setChats(prev =>
+  //     prev.map(c =>
+  //       c.id === chat.id ? { ...c, unread_count: 0 } : c
+  //     )
+  //   );
+
+  //   // ✅ CACHE HIT
+  //   if (messagesMap[chat.id]) {
+  //     return;
+  //   }
+
+  //   // ❌ FETCH MESSAGES
+  //   try {
+  //     setLoadingMessages(true);
+
+  //     const res = await api.get(`/api/chats/${chat.id}/messages`);
+  //     const msgs = res.data.messages || [];
+
+  //     setMessagesMap(prev => ({
+  //       ...prev,
+  //       [chat.id]: msgs,
+  //     }));
+  //   } finally {
+  //     setLoadingMessages(false);
+  //   }
+
+  //    try {
+  //       await api.post(`/api/chats/${chat.id}/read`);
+  //     } catch (err) {
+  //       console.error("Failed to mark as read", err);
+  //     }
+  // }; 
+
+
+
+const openChat = async (chat) => {
+  if (chat.block_info?.blocked_me) {
+    showToast("You have been blocked in this chat", "error");
+    return;
+  }
+
+  setActiveChat(chat);
+
+  if (!isLargeScreen) setShowList(false);
+
+  localStorage.setItem("lastChatId", chat.id);
+
+  // ✅ reset sidebar unread
+  setChats(prev =>
+    prev.map(c =>
+      c.id === chat.id ? { ...c, unread_count: 0 } : c
+    )
+  );
+
+  // ✅ CACHE HIT
+  if (messagesMap[chat.id]) {
+    const cached = messagesMap[chat.id];
+
+    setMessages(cached);
+
+    // ⚠️ IMPORTANT: still set lastRead + unread
+    setLastReadMessageId(chat.last_read_message_id || null);
+    setUnreadCount(0);
+
+    return;
+  }
+
+  try {
+    setLoadingMessages(true);
+
+    const res = await api.get(`/api/chats/${chat.id}/messages`);
+    const msgs = res.data.messages || [];
+
+    setMessages(msgs);
+
+    setMessagesMap(prev => ({
+      ...prev,
+      [chat.id]: msgs,
+    }));
+
+    // ✅ THIS WAS MISSING
+    setLastReadMessageId(res.data.last_read_message_id);
+    setUnreadCount(res.data.unread_count || 0);
+
+  } finally {
+    setLoadingMessages(false);
+  }
+
+  // ✅ mark as read immediately on open
+  try {
+    await api.post(`/api/chats/${chat.id}/read`);
+  } catch (err) {
+    console.error("Failed to mark as read", err);
+  }
+};
+
+const echo = initEcho(); 
+
+useEffect(() => {
+  if (!activeChat) return;
+
+  const channel = echo.private(`chat.${activeChat.id}`);
+
+  channel.listen("NewMessage", (e) => {
+    handleIncomingMessage(e.message);
+  });
+
+  return () => {
+    echo.leave(`chat.${activeChat.id}`);
+  };
+}, [activeChat]);
+
+const handleIncomingMessage = (newMsg) => {
+  const chatId = newMsg.chat_id;
+
+  // ✅ update cache
+  setMessagesMap(prev => ({
+    ...prev,
+    [chatId]: [...(prev[chatId] || []), newMsg],
+  }));
+
+  // ✅ if current chat is open
+  if (activeChat?.id === chatId) {
+    setMessages(prev => [...prev, newMsg]);
+
+    if (bottomRef.current) {
+      setUnreadCount(0);
+
+      api.post(`/api/chats/${chatId}/read`);
+    } else {
+      setUnreadCount(prev => prev + 1);
     }
-
-    setActiveChat(chat);
-
-    if (!isLargeScreen) setShowList(false);
-
-    localStorage.setItem("lastChatId", chat.id);
-
+  } else {
+    // ✅ update sidebar unread
     setChats(prev =>
       prev.map(c =>
-        c.id === chat.id ? { ...c, unread_count: 0 } : c
+        c.id === chatId
+          ? { ...c, unread_count: (c.unread_count || 0) + 1 }
+          : c
       )
     );
-
-    // ✅ CACHE HIT
-    if (messagesMap[chat.id]) {
-      return;
-    }
-
-    // ❌ FETCH MESSAGES
-    try {
-      setLoadingMessages(true);
-
-      const res = await api.get(`/api/chats/${chat.id}/messages`);
-      const msgs = res.data.messages || [];
-
-      setMessagesMap(prev => ({
-        ...prev,
-        [chat.id]: msgs,
-      }));
-    } finally {
-      setLoadingMessages(false);
-    }
-
-     try {
-        await api.post(`/api/chats/${chat.id}/read`);
-      } catch (err) {
-        console.error("Failed to mark as read", err);
-      }
-  };
+  }
+};
 
   const restoredRef = useRef(false);
 
@@ -186,6 +304,7 @@ export default function ChatPage({
 
   return (
     <ChatComponent
+      messageRefs={messageRefs}
       replyingTo={replyingTo}
       setReplyingTo={setReplyingTo}
       chats={chats}
@@ -212,6 +331,7 @@ export default function ChatPage({
       openChat={openChat}
       messages={messages}
       setMessages={(updater) => setMessages(activeChat?.id, updater)}
+      unreadCount={unreadCount} setUnreadCount={setUnreadCount}
     />
   );
 }

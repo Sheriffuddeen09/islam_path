@@ -9,6 +9,7 @@ import DocumentMessage from "./DocumentMessage";
 import MediaMessage from "./MediaMessage";
 import MediaPreview from "./MediaPreview";
 import AudioPlayer from "./AudioUi";
+import UserStatusDots from "../online/OnlineStatuesDots";
 
 export default function MessageItem({
   msg, authUser,
@@ -20,7 +21,7 @@ export default function MessageItem({
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
-  showReactionPopup, setShowReactionPopup, messageRefs, containerRef
+  showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -420,10 +421,10 @@ useEffect(() => {
       (u) => u.id !== authUser.id
     );
 
-    const { online: isUserOnline } = useUserOnlineStatus(
-      otherUser?.id || null
-    );
-  
+    const  isUserOnline  = (
+    <UserStatusDots user={activeChat.other_user} />
+  )
+
     const colors = [
       "bg-orange-500",
       "bg-blue-500",
@@ -441,6 +442,7 @@ useEffect(() => {
       if (!name) return "?";
       return name.charAt(0).toUpperCase();
     };
+
 
  const renderStatus = () => {
   if (!isMine) return null;
@@ -472,8 +474,8 @@ useEffect(() => {
 }
 
   // ✔✔ Delivered (user online or delivered_at exists)
-  if (msg.delivered_at || isUserOnline) {
-     return <CheckCheck className="text-gray-400 w-5" />
+  if (isUserOnline) {
+    return <CheckCheck className="text-gray-400 w-5" />;
   }
 
   if (msg.status === "sent") {
@@ -736,7 +738,7 @@ onPointerCancel={() => {
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       className={`
-        absolute -bottom-8 right-0 flex items-center bg-gray-800 gap-2 px-2 py-1 rounded-lg text-xs z-50
+        absolute -bottom-8 right-0 mt-0.5 flex items-center bg-gray-100 shadow-md gap-2 px-2 py-1 rounded-lg text-xs z-50
         transition-all duration-200
 
         ${
@@ -781,7 +783,7 @@ onPointerCancel={() => {
 >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
           viewBox="0 0 24 24" strokeWidth="1.5"
-          stroke="currentColor" className="size-5 text-white">
+          stroke="currentColor" className="size-5 text-black">
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
         </svg>
@@ -806,7 +808,7 @@ onPointerCancel={() => {
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
           viewBox="0 0 24 24" strokeWidth={1.5}
-          stroke="currentColor" className="size-6 text-white">
+          stroke="currentColor" className="size-6 text-black">
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375"
           />
@@ -817,28 +819,40 @@ onPointerCancel={() => {
 )}
          
         {msg.replied_to && (
-  <div
-    onClick={(e) => {
-      e.stopPropagation();
-      scrollToMessage(msg.replied_to.id);
-    }}
-    className={`bg-black/30 p-2 rounded mb-2 ${
-      msg.replied_to?.sender?.id === authUser.id
-        ? "border-l-4 border-green-400"
-        : "border-l-4 border-blue-400"
-    }`}
-  >
-    <p className="text-xs text-blue-300 font-semibold">
-      {msg.replied_to?.sender
-        ? `${msg.replied_to.sender.first_name} ${msg.replied_to.sender.last_name}`
-        : "User"}
-    </p>
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            scrollToMessage(msg.replied_to.id);
+          }}
+          className={`bg-black/30 p-2 rounded mb-2 ${
+            msg.replied_to?.sender?.id === authUser.id
+              ? "border-l-4 border-green-400"
+              : "border-l-4 border-blue-400"
+          }`}
+        >
+          <p className="text-xs text-blue-300 font-semibold">
+            {msg.replied_to?.sender
+              ? `${msg.replied_to.sender.first_name} ${msg.replied_to.sender.last_name}`
+              : "User"}
+          </p>
 
-    <p className="text-xs opacity-80 truncate">
-      {getPreviewText(msg.replied_to)}
-    </p>
-  </div>
-)}
+          <p className="text-xs opacity-80 truncate">
+            {getPreviewText(msg.replied_to)}
+          </p>
+        </div>
+      )}
+
+        {unreadCount > 0 && (
+          <div
+            onClick={() => {
+              bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+              setUnreadCount(0);
+            }}
+            className="fixed bottom-20 right-4 z-50 bg-blue-600 text-white px-3 py-1 rounded-full cursor-pointer shadow-lg"
+          >
+            {unreadCount} new messages
+          </div>
+        )}
 
         {/* TEXT */}
           {msg.message && msg.type === "text" && (

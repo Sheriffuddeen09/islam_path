@@ -14,8 +14,8 @@ export default function ChatItem({
   const blockedMe = chat.block_info?.blocked_me;
   const isMine = lastMessage?.sender_id === authUser?.id;
 
-  // ✅ Hook is now valid here
   const { online: isOnline } = useUserOnlineStatus(other?.id || null);
+  
   const colors = [
       "bg-orange-500",
       "bg-blue-500",
@@ -58,6 +58,12 @@ export default function ChatItem({
       return "Start chatting";
     }
   
+
+    const isRead = chat.latest_message_status === "read";
+
+    const isDelivered =
+      chat.latest_message_status === "delivered" ||
+      other?.is_online; // 🔥 KEY ADDITION
 
   return (
     <div
@@ -124,7 +130,7 @@ export default function ChatItem({
           {/* STATUS */}
           <div className="inline-flex items-center gap-2">
          {!blockedMe && isMine && (
-          chat.latest_message_status === "read" ? (
+          isRead ? (
             <span
               className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] ${getColor(
                 chat.latest_message_read_by_name || other?.first_name
@@ -132,7 +138,7 @@ export default function ChatItem({
             >
               {getInitial(chat.latest_message_read_by_name || other?.first_name)}
             </span>
-          ) : chat.latest_message_status === "delivered" ? (
+          ) : isOnline ? (
             <CheckCheck size={16} className="text-gray-400" />
           ) : (
             <Check size={16} className="text-gray-400" />

@@ -35,13 +35,12 @@ export default function MessageBox({
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
-  mediaRecorderRef,setPaused 
+  mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount
 }) {
   
 
 
-  const messageRefs = useRef({});
-  const [callMode, setCallMode] = useState(null); // "audio" | "video"
+  const [callMode, setCallMode] = useState(null); // "audio" | "video" messageRefs
   const [showNewBtn, setShowNewBtn] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -80,6 +79,24 @@ export default function MessageBox({
 
 
   const hasSelection = selectedMessages.length > 0;
+
+  const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500"
+  ];
+
+  const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }; 
  
 
   const isTouchDevice =
@@ -273,8 +290,15 @@ const handlePin = async (msg) => {
           stroke="currentColor" class="size-6 cursor-pointer lg:hidden" onClick={onBack}>
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
-          <div onClick={onHeaderClick} className="flex items-center gap-2">
-            <h3 className="font-bold ">{activeChat.other_user?.first_name} {activeChat.other_user?.last_name}</h3>
+          <div onClick={onHeaderClick} className="flex items-center gap-4">
+             <div
+                className={`w-10 h-10 rounded-full bg-gray-300 shadow-md hover:scale-105 transition rounded-full text-white flex items-center justify-center font-bold text-[30px] shadow-sm ${getColor(
+                  activeChat.other_user?.first_name
+                )}`}
+              >
+                {getInitial(activeChat.other_user?.first_name)}
+              </div>
+            <h3 className="font-bold text-lg">{activeChat.other_user?.first_name} {activeChat.other_user?.last_name}</h3>
 
             <UserStatusDots user={activeChat.other_user} />
           </div>
@@ -365,6 +389,15 @@ const handlePin = async (msg) => {
             onClick={onHeaderClick}
             className="flex items-center gap-2 min-w-0"
           >
+            <div
+                className={`w-8 h-8 rounded-full bg-gray-300 shadow-md hover:scale-105 
+                  transition rounded-full text-white flex items-center justify-center
+                   font-bold text-[20px] shadow-sm ${getColor(
+                  activeChat.other_user?.first_name
+                )}`}
+              >
+                {getInitial(activeChat.other_user?.first_name)}
+              </div>
             <h3 className="font-bold truncate max-w-[140px]">
               {activeChat.other_user?.first_name}{" "}
               {activeChat.other_user?.last_name}
@@ -574,7 +607,12 @@ const handlePin = async (msg) => {
             searchQuery && !isMatch ? "opacity-20" : "opacity-100" 
           }
           `}
-          ref={(el) => (messageRefs.current[msg.id] = el)}
+          ref={(el) => {
+            if (el) {
+              console.log("📌 ref attached:", msg.id);
+              messageRefs.current[msg.id] = el;
+            }
+          }}
         >
         {showDate && (
           <div className="text-center text-xs text-gray-900 my-2">
@@ -584,6 +622,7 @@ const handlePin = async (msg) => {
         <MessageItem
           key={msg.id}
           messages={messages}
+          activeChat={activeChat}
           msg={msg}
           authUser={authUser}
           isMine={msg.sender_id === authUser.id}
@@ -611,7 +650,7 @@ const handlePin = async (msg) => {
           isTouchDevice={isTouchDevice} menuPosition={menuPosition} setMenuPosition={setMenuPosition}
           setSelectedMsg={setSelectedMsg} uiState={uiState} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId}
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
-
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         />
         <div ref={bottomRef} />
       </div>

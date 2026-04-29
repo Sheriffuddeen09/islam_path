@@ -33,7 +33,7 @@ export default function UserStatusDots({ user }) {
   };
 
   return (
-    <div className="flex items-center relative left-10 lg:mt-2 gap-1 pb-2">
+    <div className="flex items-center relative lg:left-8 left-10 lg:mt-2 gap-1 pb-2">
       <span
         className={`w-2 h-2 rounded-full ${
           online ? "bg-green-500" : "bg-gray-400"

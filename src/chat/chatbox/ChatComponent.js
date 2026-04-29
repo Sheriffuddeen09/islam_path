@@ -7,7 +7,7 @@ import MessageBox from "./MessageBox";
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
     chatId,setShowProfile, showProfile, setShowList, showList, bottomRef, handleScroll,containerRef, openChat,
-    setMessages, messages
+    setMessages, messages, messageRefs, unreadCount, setUnreadCount
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -498,6 +498,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
         ${showList ? "hidden lg:flex" : "flex"}
       `}>
         <MessageBox
+          messageRefs={messageRefs}
           activeChat={activeChat}
           messages={messages}
           setMessages={setMessages}
@@ -526,6 +527,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         />
       </div>
       <div className="hidden lg:block lg:w-80 border-l bg-white">
