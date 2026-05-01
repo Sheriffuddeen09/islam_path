@@ -13,7 +13,7 @@ export default function MenuComponent({
   setReplyingTo,
   setSelectedMessages,
   setSelectedMsg,
-  setActiveChat,
+  openChat,
   setForwardMessage,
   togglePin,
   onSearch,
@@ -21,7 +21,7 @@ export default function MenuComponent({
   uiState,
   searchMode,
   searchQuery,
-  setSearchMode,
+  setSearchMode, setChats,
   setSearchQuery, chats, selectedMessages, activeChat, forwardMessage, messagesEndRef, messages, setShowReactions
 
 }) {
@@ -56,17 +56,6 @@ export default function MenuComponent({
       };
 
 
-    const normalizeChat = (chat, authUserId) => {
-  if (!chat) return chat;
-
-  const user =
-    chat.teacher_id === authUserId ? chat.student : chat.teacher;
-
-  return {
-    ...chat,
-    other_user: user,
-  };
-};
 
 useEffect(() => {
   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -81,31 +70,40 @@ useEffect(() => {
       user_ids: receiverIds,
     });
 
-    const chats = res.data.chats;
+    const forwarded = res.data.messages;
 
-    if (chats.length > 0) {
-      const chat = normalizeChat(chats[0], authUser.id);
+    if (!forwarded?.length) return;
 
-      setActiveChat(chat);
+    const chatId = forwarded[0].chat_id;
 
-      const sorted = (chat.messages || []).sort(
-        (a, b) => new Date(a.created_at) - new Date(b.created_at)
-      );
+    // 🔥 STEP 1: refresh chats (important if new chat was created)
+    const chatsRes = await api.get("/api/chats");
+    const allChats = chatsRes.data;
 
-      setMessages(sorted);
+    setChats(allChats);
 
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+    // 🔥 STEP 2: find the correct chat
+    const chat = allChats.find(c => c.id === chatId);
+
+    if (!chat) {
+      console.warn("Chat not found after forwarding");
+      return;
     }
 
-    setToast("✅ Messages forwarded");
+    // 🔥 STEP 3: use your existing logic
+    await openChat(chat);
+
+    setToast("Messages forwarded");
+    setForwardMessage({
+                      open: false,
+                      messages: []
+                    });
     setSelectedMessages([]);
     setForwardMessage(false);
 
   } catch (err) {
-    console.error(err);
-    setToast("❌ Failed to forward");
+    console.error(err.response?.data || err);
+    setToast("Failed to forward messages");
   } finally {
     setLoading(false);
   }
@@ -434,29 +432,28 @@ useEffect(() => {
               )}
         
               {forwardMessage.open && (
-                <ForwardModal
+          <div className="fixed inset-0 flex justify-center block lg:hidden items-center overflow-y-auto z-50">
+                        <ForwardModal
+                          messages={forwardMessage.messages}
+                          users={chats}
+                          onSend={(selectedUserIds) => {
+                            forwardMessages(
+                              forwardMessage.messages.map(m => m.id),
+                              selectedUserIds
+                            );
+                          }}
+                          onClose={() => {
+                            setForwardMessage({
+                              open: false,
+                              messages: []
+                            });
+                            setSelectedMessages([]);
+                          }}
+                          loading={loading}
+                        />
+              </div>
+          )}
 
-                  setLoading={setLoading}
-                  loading={loading}
-                  messages={forwardMessage.messages}
-                  users={chats}
-                  onSend={async (selectedUserIds) => {
-                    await forwardMessages(
-                      forwardMessage.messages.map(m => m.id),
-                      selectedUserIds
-                    );
-                  }}
-                  onClose={() => {
-                    setForwardMessage({
-                      open: false,
-                      messages: []
-                    });
-                    setSelectedMessages([]);
-                  }}
-                  
-                />
-              )}
-        
     </>
   );
 }

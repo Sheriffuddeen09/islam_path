@@ -36,7 +36,7 @@ export default function ChatPage({
   const messages = messagesMap[activeChat?.id] || [];
 
   const { bottomRef, containerRef, handleScroll } =
-    useAutoScroll(messages, lastReadMessageId, messageRefs.current, setUnreadCount, chatId);
+    useAutoScroll( messages, lastReadMessageId, messageRefs, setUnreadCount, chatId );
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -88,53 +88,6 @@ export default function ChatPage({
   }, []);
 
   // 🚀 OPEN CHAT (NO SCROLL HERE ANYMORE)
-
-  
-  // const openChat = async (chat) => {
-  //   if (chat.block_info?.blocked_me) {
-  //     showToast("You have been blocked in this chat", "error");
-  //     return;
-  //   }
-
-  //   setActiveChat(chat);
-
-  //   if (!isLargeScreen) setShowList(false);
-
-  //   localStorage.setItem("lastChatId", chat.id);
-
-  //   setChats(prev =>
-  //     prev.map(c =>
-  //       c.id === chat.id ? { ...c, unread_count: 0 } : c
-  //     )
-  //   );
-
-  //   // ✅ CACHE HIT
-  //   if (messagesMap[chat.id]) {
-  //     return;
-  //   }
-
-  //   // ❌ FETCH MESSAGES
-  //   try {
-  //     setLoadingMessages(true);
-
-  //     const res = await api.get(`/api/chats/${chat.id}/messages`);
-  //     const msgs = res.data.messages || [];
-
-  //     setMessagesMap(prev => ({
-  //       ...prev,
-  //       [chat.id]: msgs,
-  //     }));
-  //   } finally {
-  //     setLoadingMessages(false);
-  //   }
-
-  //    try {
-  //       await api.post(`/api/chats/${chat.id}/read`);
-  //     } catch (err) {
-  //       console.error("Failed to mark as read", err);
-  //     }
-  // }; 
-
 
 
 const openChat = async (chat) => {

@@ -166,13 +166,14 @@ const renderPreview = (msg) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg w-[95%] max-w-md p-4">
+    
+      <div className="bg-black/30  w-full h-full ">
+        <div className="w-[95%] max-w-md p-4 mx-auto bg-white mt-10 mb-10 rounded-xl">
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg">
-            Forward ({messages.length})
+            Forward modal ({messages.length})
           </h2>
 
           <button onClick={onClose} className="text-red-500">
@@ -204,7 +205,7 @@ const renderPreview = (msg) => {
           placeholder="Search user..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border p-2 rounded mb-2"
+          className="w-full border p-2 rounded mb-2 "
         />
 
         {/* USERS */}
@@ -227,7 +228,6 @@ const renderPreview = (msg) => {
                   {getUserName(user)}
                 </div>
 
-                {/* LAST MESSAGE */}
                 <div className="text-xs opacity-70 truncate">
                   {getMessagePreview(user.last_message)}
                 </div>
@@ -280,7 +280,8 @@ const renderPreview = (msg) => {
           </button>
 
         </div>
+        </div>
       </div>
-    </div>
+    
   );
 }

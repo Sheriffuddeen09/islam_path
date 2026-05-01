@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from "react";
 import api from "../../Api/axios";
 import ReactionPopup from "./ReactionPopup";
 import MessageComponent from "./MessageComponent";
-import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
 import { Check, CheckCheck } from "lucide-react";
 import Linkify from "linkify-react";
 import DocumentMessage from "./DocumentMessage";
@@ -16,7 +15,7 @@ export default function MessageItem({
   isMine,
   setMessages,
   chatId,
-  activeChat,
+  activeChat, openChat, setChats,
   setToast, menuPosition, setMenuPosition, setSelectedMsg, uiState, setUiState,
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
@@ -738,7 +737,7 @@ onPointerCancel={() => {
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       className={`
-        absolute -bottom-8 right-0 mt-0.5 flex items-center bg-gray-100 shadow-md gap-2 px-2 py-1 rounded-lg text-xs z-50
+        absolute -bottom-8 right-0 translate-y-0.5 flex items-center bg-gray-100 shadow-md gap-0.5 px-1 py-1 rounded-lg text-xs z-50
         transition-all duration-200
 
         ${
@@ -752,17 +751,36 @@ onPointerCancel={() => {
     >
       {/* ✅ CHECKBOX (NEW) */}
       {!isMobile && (
-        <input
-          type="checkbox"
-          checked={selectedMessages.includes(msg.id)}
-          onChange={(e) => {
-            e.stopPropagation();
-            setSelectionMode(true); // 🔥 enable selection mode
-            toggleSelect(msg);
-          }}
-          className="w-4 h-4 cursor-pointer"
+  <div
+    onClick={(e) => {
+      e.stopPropagation();
+      setSelectionMode(true);
+      toggleSelect(msg);
+    }}
+    className={`w-4 h-4 flex items-center justify-center rounded-full border-2 cursor-pointer transition
+      ${
+        selectedMessages.includes(msg.id)
+          ? "bg-blue-500 border-blue-500"
+          : "border-gray-400"
+      }
+    `}
+  >
+    {selectedMessages.includes(msg.id) && (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-3 h-3 text-white"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M16.707 5.293a1 1 0 010 1.414l-7.071 7.071a1 1 0 01-1.414 0L3.293 9.85a1 1 0 011.414-1.414l3.515 3.515 6.364-6.364a1 1 0 011.414 0z"
+          clipRule="evenodd"
         />
-      )}
+      </svg>
+    )}
+  </div>
+)}
 
       {/* 😀 REACTION */}
      <button
@@ -806,18 +824,39 @@ onPointerCancel={() => {
           setActiveMenuId(msg.id);
         }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-          viewBox="0 0 24 24" strokeWidth={1.5}
-          stroke="currentColor" className="size-6 text-black">
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375"
-          />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
+        stroke="currentColor" class="size-6 rotate-90 text-black">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+</svg>
+
       </button>
     </div>
   </div>
 )}
-         
+
+    {msg.is_forwarded && (
+      
+      <div className="flex items-center italic gap-1 text-xs text-gray-300 mb-1 opacity-80">
+
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-3 h-3"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+          />
+        </svg>
+
+        <span>Forwarded</span>
+      </div>
+    )}
+         {/* 0  */}
         {msg.replied_to && (
         <div
           onClick={(e) => {
@@ -910,6 +949,8 @@ onPointerCancel={() => {
     </div>
     
      <MessageComponent
+     setChats={setChats}
+      openChat={openChat}
       msg={msg}
       togglePin={handlePin}
       setMessages={setMessages}

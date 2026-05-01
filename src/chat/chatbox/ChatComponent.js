@@ -391,31 +391,37 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setMessages((prev) => {
   const filtered = prev.filter((m) => m.id !== tempId);
 
-  const server = serverMessages[0];
+  const normalized = serverMessages.map((msg) => ({
+    ...msg,
 
-  const fixedMessage = {
-    ...server,
-    files: serverMessages.map((m) => ({
-      file: m.file_url,
-      file_url: m.file_url,
-      file_name: m.file_name,
-      type: m.type,
-      duration: m.duration,
-    })),
+      files: msg.files?.length
+  ? msg.files
+  : msg.file_url
+  ? [
+      {
+        file_url: msg.file_url,
+        file_name: msg.file_name,
+        type: msg.type,
+        duration: msg.duration,
+      },
+    ]
+  : [],
 
-    status: "sent",
+    is_forwarded: Boolean(msg.is_forwarded),
 
     replied_to: reply
       ? {
           id: reply.id,
           message: reply.message,
           type: reply.type,
-          sender: reply.sender, // 👈 keeps correct name
+          sender: reply.sender,
         }
-      : server.replied_message || server.replied_to || null,
-  };
+      : msg.replied_to || msg.replyTo || null,
 
-  return [...filtered, fixedMessage];
+    status: "sent",
+  }));
+
+  return [...filtered, ...normalized];
 });
 
     requestAnimationFrame(() => {
@@ -498,6 +504,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
         ${showList ? "hidden lg:flex" : "flex"}
       `}>
         <MessageBox
+          setChats={setChats}
+          openChat={openChat}
           messageRefs={messageRefs}
           activeChat={activeChat}
           messages={messages}

@@ -6,7 +6,8 @@ import EditModal from "../EditModal";
 import ClearChatModal from "../ClearModal";
 import { ReportModal } from "../ReportModal";
 import api from "../../Api/axios";
-import { ForwardModal } from "../ForwardMessage";
+import { ForwardModalLargeScreen } from "../ForwardModalLargeScreen";
+
 
 export default function MessageComponent({
   showMenu,
@@ -15,12 +16,11 @@ export default function MessageComponent({
   togglePin,
   msg,
   setMessages,
-  onSearch, // 🔥 trigger global search
   activeChat,
   selectedMessages,
-  setActiveChat,
+  openChat,
   setSelectedMessages,
-  chats,
+  chats, setChats,
   searchMode, searchQuery, setSearchMode, forwardMessage, messages,
   setSearchQuery, setReplyingTo, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
@@ -28,6 +28,7 @@ export default function MessageComponent({
   const isMine = msg.sender_id === user.id;
   const [toast, setToast] = useState(false)
 
+  const [loading, setLoading] = useState(false);
 
   
       const showToast = (message, type = "success") => {
@@ -44,32 +45,56 @@ export default function MessageComponent({
   const [reportMessage, setReportMessage] = useState(false);
   
 
+
+
+  
   const forwardMessages = async (messageIds, receiverIds) => {
-    try {
-      const res = await api.post("/api/messages/forward-multiple", {
-        message_ids: messageIds,
-        receiver_ids: receiverIds,
-      });
-  
-      setToast("Messages forwarded");
-  
-      const chats = res.data.chats; // full chat objects
-  
-      // Open the first forwarded chat
-      if (chats.length > 0) {
-        setActiveChat(chats[0]);       // sets chat header correctly
-        setMessages(chats[0].messages); // show latest messages including forwarded
-      }
-  
-      setSelectedMessages([]);
-      setForwardMessage(false);
-    } catch (err) {
-      console.error(err.response?.data || err);
-      setToast("Failed to forward messages");
+  try {
+    setLoading(true);
+
+    const res = await api.post("/api/messages/forward-multiple", {
+      message_ids: messageIds,
+      user_ids: receiverIds,
+    });
+
+    const forwarded = res.data.messages;
+
+    if (!forwarded?.length) return;
+
+    const chatId = forwarded[0].chat_id;
+
+    // 🔥 STEP 1: refresh chats (important if new chat was created)
+    const chatsRes = await api.get("/api/chats");
+    const allChats = chatsRes.data;
+
+    setChats(allChats);
+
+    // 🔥 STEP 2: find the correct chat
+    const chat = allChats.find(c => c.id === chatId);
+
+    if (!chat) {
+      console.warn("Chat not found after forwarding");
+      return;
     }
-  };
 
+    // 🔥 STEP 3: use your existing logic
+    await openChat(chat);
 
+    setForwardMessage({
+                      open: false,
+                      messages: []
+                    });
+    setSelectedMessages([]);
+    setForwardMessage(false);
+
+  } catch (err) {
+    console.error(err.response?.data || err);
+    setToast("Failed to forward messages");
+  } finally {
+    setLoading(false);
+  }
+};
+  
   // ================= COPY =================
   const handleCopy = async () => {
     await navigator.clipboard.writeText(msg.message || "");
@@ -190,7 +215,7 @@ export default function MessageComponent({
   },
 
   {
-    label: "Forwards",
+    label: "Forward",
     show: true,
     onClick: (m) => {
   const safeMsg = m || msg;
@@ -209,6 +234,8 @@ export default function MessageComponent({
     open: true,
     messages: messagesToForward.filter(Boolean)
   });
+
+  setSelectedMessages([])
 }
   },
   {
@@ -395,9 +422,11 @@ export default function MessageComponent({
           onCleared={() => setMessages([])}
         />
       )}
+     
+     {forwardMessage.open && (
+        <div className="fixed inset-0 flex justify-center lg:block hidden items-center overflow-y-auto z-50">
 
-       {forwardMessage.open && (
-                      <ForwardModal
+                      <ForwardModalLargeScreen
                         messages={forwardMessage.messages}
                         users={chats}
                         onSend={(selectedUserIds) => {
@@ -413,22 +442,16 @@ export default function MessageComponent({
                           });
                           setSelectedMessages([]);
                         }}
+                        loading={loading}
                       />
-                    )}
-          
+            </div>
+        )}
 
       {reportMessage && (
         <ReportModal
           activeChat={activeChat}
           onClose={() => setReportMessage(false)}
         />
-      )}
-      {toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
-          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
-        `}>
-          {toast.message}
-        </div>
       )}
 
   </>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../layout/AuthProvider";
 import MessageBubblePop from "./MessageModal";
-import { ForwardModal } from "./ForwardMessage";
 import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 import { Check, CheckCheck } from "lucide-react";
@@ -400,17 +399,7 @@ const renderReply = (
 )}
 
       {/* Forward Modal */}
-      { forwardModalOpen &&(
-      <ForwardModal
-          messages={selectedMessages}
-          users={chats}
-          onSend={(selectedUserIds) => {
-            forwardMessages(selectedMessages.map(m => m.id), selectedUserIds);
-          }}
-          onClose={() => setForwardModalOpen(false)}
-        />)
-}
-
+      
       
       <Toaster position="top-right" />
     </div>

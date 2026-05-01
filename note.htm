@@ -17,209 +17,38 @@
 
 * the name of user does not show when chat is open after forward 
 * the forward message does not show after the chat user open 
-* the image and video was send in files{
-  array but it was send as one or returning as one 
-}
-while if it was audio or document it work 
 
+const forwardMessages = async (messageIds, receiverIds) => {
+  try {
+    setLoading(true);
 
-    "message": "Call to undefined relationship [files] on model [App\\Models\\Message].",
-    "exception": "Illuminate\\Database\\Eloquent\\RelationNotFoundException",
-    "file": "C:\\Users\\Sheriffuddeen\\knowledge_path\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\RelationNotFoundException.php",
-    "line": 35,
-    "trace": [
+    const res = await api.post("/api/messages/forward-multiple", {
+      message_ids: messageIds,
+      user_ids: receiverIds,
+    });
 
+    const forwarded = res.data.messages;
 
-    this what i received before open the chat but it start from bottom instead from id 305 {
-            "id": 305,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "hi there",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T13:01:26.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        },
-        {
-            "id": 306,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "hi me",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T16:18:27.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        },
-        {
-            "id": 307,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "good then",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T16:18:34.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        },
-        {
-            "id": 308,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "pass",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T16:18:45.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        },
-        {
-            "id": 309,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "hmmm",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T16:18:57.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        },
-        {
-            "id": 310,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "whyyyy",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T16:19:10.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        },
-        {
-            "id": 311,
-            "chat_id": 13,
-            "sender_id": 1,
-            "type": "text",
-            "message": "retry",
-            "group_id": null,
-            "sender": {
-                "id": 1,
-                "first_name": "Nuruddeen",
-                "last_name": "Sheriff",
-                "role": "student"
-            },
-            "created_at": "2026-04-28T16:19:28.000000Z",
-            "status": "sent",
-            "delivered_at": "2026-04-28T16:22:11.000000Z",
-            "read_by": null,
-            "read_by_name": null,
-            "replied_to": null,
-            "files": [
-                {
-                    "file_url": null,
-                    "file_name": null,
-                    "type": "text"
-                }
-            ]
-        }
-    ],
-    "last_read_message_id": 304,
-    "unread_count": 7
-}
+    if (!forwarded?.length) return;
+
+    const chatId = forwarded[0].chat_id;
+
+    // 🔥 get full chat object (important)
+    const chatRes = await api.get(`/api/chats/${chatId}`);
+    const chat = chatRes.data;
+
+    // 🚀 THIS IS THE KEY FIX
+    await openChat(chat);
+
+    setToast("Messages forwarded");
+
+    setSelectedMessages([]);
+    setForwardMessage(false);
+
+  } catch (err) {
+    console.error(err.response?.data || err);
+    setToast("Failed to forward messages");
+  } finally {
+    setLoading(false);
+  }
+};

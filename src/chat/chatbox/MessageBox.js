@@ -12,7 +12,9 @@ import logo from "../../layout/image/favicon.png";
 
 
 
+
 export default function MessageBox({
+  openChat,
   activeChat,
   messages,
   setMessages,
@@ -27,7 +29,7 @@ export default function MessageBox({
   setToast,
   setActiveChat,
   chats,
-  setReplyingTo, replyingTo,
+  setReplyingTo, replyingTo, setChats,
   containerRef,
   handleScroll,
   paused, trimMap, trimAppliedMap,
@@ -191,7 +193,6 @@ useEffect(() => {
   };
 
 
-  
 
   const filteredMessages = messages;
 
@@ -445,15 +446,27 @@ const handlePin = async (msg) => {
         {selectedMessages.length > 1 && (
         <button
            onClick={() => {
-              const messagesToForward = messages.filter(msg =>
-                selectedMessages.includes(msg.id)
-              );
+            const messagesToForward = messages.filter(msg =>
+              selectedMessages.includes(msg.id)
+            );
 
-              setForwardMessage({
-                open: true,
-                messages: messagesToForward
-              });
-            }}
+            console.log("🟡 Selected IDs:", selectedMessages);
+            console.log("🟢 Matched Messages:", messagesToForward);
+
+            // 🔥 DEBUG GROUP CONTENT
+            messagesToForward.forEach(msg => {
+              if (msg.type === "group") {
+                console.log("📦 GROUP MESSAGE:", msg.id);
+                console.log("➡️ Files inside group:", msg.files);
+                console.log("➡️ File IDs:", msg.files?.map(f => f.id));
+              }
+            });
+
+            setForwardMessage({
+              open: true,
+              messages: messagesToForward
+            });
+          }}
           className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
         >
           <svg
@@ -608,11 +621,10 @@ const handlePin = async (msg) => {
           }
           `}
           ref={(el) => {
-            if (el) {
-              console.log("📌 ref attached:", msg.id);
-              messageRefs.current[msg.id] = el;
-            }
-          }}
+        if (el) {
+          messageRefs.current[msg.id] = el;
+        }
+      }}
         >
         {showDate && (
           <div className="text-center text-xs text-gray-900 my-2">
@@ -620,7 +632,9 @@ const handlePin = async (msg) => {
           </div>
         )}
         <MessageItem
+          setChats={setChats}
           key={msg.id}
+          openChat={openChat}      
           messages={messages}
           activeChat={activeChat}
           msg={msg}
@@ -652,7 +666,6 @@ const handlePin = async (msg) => {
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         />
-        <div ref={bottomRef} />
       </div>
     );
   })
@@ -696,6 +709,8 @@ const handlePin = async (msg) => {
 
       {messages.map((msg) => (
       <MenuComponent 
+      setChats={setChats}
+      openChat={openChat}
       msg={msg}
       togglePin={handlePin}
       setMessages={setMessages}
@@ -733,6 +748,8 @@ const handlePin = async (msg) => {
 
       />
       ))}
+
+       
     </div>
   );
 }

@@ -1,16 +1,15 @@
 import { CheckCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 
-export function ForwardModal({
+export function ForwardModalLargeScreen({
   messages = [],
   users = [],
   onSend,
-  onClose, loading, setLoading
+  onClose, loading
 }) {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [search, setSearch] = useState("");
 
-  // ================= GET USER ID CORRECTLY =================
   const getUserId = (user) => {
     return (
       user?.other_user?.id ||
@@ -19,7 +18,6 @@ export function ForwardModal({
       null
     );
   };
-
   const getUserName = (user) => {
     return (
       user?.other_user
@@ -32,7 +30,6 @@ export function ForwardModal({
     );
   };
 
-  // ================= SELECT USER =================
   const toggleUser = (id) => {
     if (!id) return;
 
@@ -42,8 +39,6 @@ export function ForwardModal({
         : [...prev, id]
     );
   };
-
-  // ================= SEARCH =================
   const filteredUsers = useMemo(() => {
     return users.filter((user) =>
       getUserName(user)
@@ -51,8 +46,6 @@ export function ForwardModal({
         .includes(search.toLowerCase())
     );
   }, [users, search]);
-
-  // ================= PREVIEW =================
 
   const getUrl = (f) => {
   if (f.file_url?.startsWith("blob:")) return f.file_url;
@@ -64,20 +57,15 @@ export function ForwardModal({
 };
   const getFileName = (file) => {
   if (file.file_name) return file.file_name;
-
-  // fallback: extract from URL
   if (file.file_url) {
     const parts = file.file_url.split("/");
     return parts[parts.length - 1];
   }
-
   return "File";
 };
 
 const renderPreview = (msg) => {
-
    if (!msg) return null;
-   
   if (msg.type === "text") {
     return <p className="text-sm truncate">{msg.message}</p>;
   }
@@ -99,7 +87,7 @@ const renderPreview = (msg) => {
                 <img
                   src={url}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-16 h-16 object-cover"
                 />
               )}
 
@@ -117,6 +105,12 @@ const renderPreview = (msg) => {
                 </div>
               )}
 
+              {file.type === "file" && (
+                <div className="text-sm whitespace-nowrap font-bold text-gray-700">
+                  📎 {name}
+                </div>
+              )}
+
               {/* VOICE → type */}
               {file.type === "voice" && (
                 <div className="text-sm whitespace-nowrap font-bold text-gray-700">
@@ -129,7 +123,6 @@ const renderPreview = (msg) => {
       </div>
     );
   }
-
   return null;
 };
 
@@ -150,17 +143,12 @@ const renderPreview = (msg) => {
 
   // ================= SEND =================
   const handleSend = async () => {
-    if (selectedUsers.length === 0) return;
+  if (selectedUsers.length === 0) return;
+  await onSend(selectedUsers);
+};
 
-    setLoading(true);
 
-  
-    await onSend(selectedUsers);
 
-    setLoading(false);
-  };
-
-  // ================= EMPTY =================
   if (!messages || messages.length === 0) {
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
@@ -178,13 +166,14 @@ const renderPreview = (msg) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg w-[95%] max-w-md p-4">
+    
+      <div className=" ">
+        <div className="w-[95%] bg-white max-w-md p-4 scroll-thin mx-auto bg- mt-10 mb-10 rounded-xl">
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg">
-            Forward ({messages.length})
+            Forward modal ({messages.length})
           </h2>
 
           <button onClick={onClose} className="text-red-500">
@@ -216,7 +205,7 @@ const renderPreview = (msg) => {
           placeholder="Search user..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border p-2 rounded mb-2"
+          className="w-full border p-2 rounded mb-2 "
         />
 
         {/* USERS */}
@@ -239,7 +228,6 @@ const renderPreview = (msg) => {
                   {getUserName(user)}
                 </div>
 
-                {/* LAST MESSAGE */}
                 <div className="text-xs opacity-70 truncate">
                   {getMessagePreview(user.last_message)}
                 </div>
@@ -292,7 +280,8 @@ const renderPreview = (msg) => {
           </button>
 
         </div>
+        </div>
       </div>
-    </div>
+    
   );
 }

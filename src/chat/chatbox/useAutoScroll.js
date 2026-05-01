@@ -1,159 +1,118 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import api from "../../Api/axios";
 
 export default function useAutoScroll(
   messages,
-  lastReadMessageId = null,
+  lastReadMessageId,
   messageRefs,
   setUnreadCount,
   chatId
 ) {
-  const bottomRef = useRef(null);
   const containerRef = useRef(null);
+  const bottomRef = useRef(null);
 
-  const isAtBottomRef = useRef(false); // ✅ IMPORTANT
-  const prevLengthRef = useRef(0);
+  const initializedRef = useRef(false);
+  const justInitializedRef = useRef(false);
+  const isAtBottomRef = useRef(false);
 
-  const initialScrollDone = useRef(false);
-  const userScrollingRef = useRef(false);
+  // ================= RESET ON CHAT CHANGE =================
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-  const markReadTimeout = useRef(null);
+    el.scrollTop = 0; // 🔥 FORCE START FROM TOP
+    initializedRef.current = false;
+    justInitializedRef.current = false;
+    isAtBottomRef.current = false;
 
-  const [initialized, setInitialized] = useState(false);
+  }, [chatId]);
 
   // ================= SCROLL HANDLER =================
   const handleScroll = () => {
     const el = containerRef.current;
     if (!el) return;
 
-    const threshold = 80;
+    const threshold = 100;
     const position = el.scrollHeight - el.scrollTop - el.clientHeight;
 
-    const isAtBottom = position < threshold;
+    isAtBottomRef.current = position < threshold;
 
-    isAtBottomRef.current = isAtBottom;
-
-    // ✅ detect user scrolling (prevents snap-back)
-    userScrollingRef.current = true;
-
-    if (isAtBottom) {
+    if (isAtBottomRef.current) {
       setUnreadCount(0);
 
-      if (markReadTimeout.current) {
-        clearTimeout(markReadTimeout.current);
-      }
-
-      markReadTimeout.current = setTimeout(async () => {
-        try {
-          await api.post(`/api/chats/${chatId}/read`);
-        } catch (e) {
-          console.log("mark read failed");
-        }
-      }, 500);
+      api.post(`/api/chats/${chatId}/read`).catch(() => {});
     }
   };
 
-  // ================= CLEANUP =================
+  // ================= WAIT UNTIL DOM READY =================
+  const isDomReady = () => {
+    return Object.keys(messageRefs.current || {}).length >= messages.length;
+  };
+
+  // ================= INITIAL SCROLL =================
   useEffect(() => {
-    return () => {
-      if (markReadTimeout.current) {
-        clearTimeout(markReadTimeout.current);
+    if (initializedRef.current || messages.length === 0) return;
+
+    const lastId = lastReadMessageId || 0;
+    const target = messages.find((m) => m.id > lastId);
+
+
+    if (!target) {
+      initializedRef.current = true;
+      return;
+    }
+
+    const tryScroll = (attempt = 1) => {
+      if (!isDomReady()) {
+        return setTimeout(() => tryScroll(attempt), 50);
+      }
+
+      const el = messageRefs.current?.[target.id];
+
+
+      if (el) {
+        el.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+        });
+
+
+        initializedRef.current = true;
+        justInitializedRef.current = true; // 🔥 block next auto-scroll
+        isAtBottomRef.current = false;
+
+        return;
+      }
+
+      if (attempt < 10) {
+        setTimeout(() => tryScroll(attempt + 1), 100);
       }
     };
-  }, []);
 
-  // ================= INITIAL SCROLL (UNREAD) =================
-  
-    
-   useEffect(() => {
-  if (!messages.length || initialScrollDone.current) {
-    console.log("⛔ skip scroll:", {
-      hasMessages: !!messages.length,
-      alreadyDone: initialScrollDone.current
-    });
-    return;
-  }
+    tryScroll();
+  }, [messages, lastReadMessageId]);
 
-  let attempts = 0;
-
-  const scrollToUnread = () => {
-    const lastId = lastReadMessageId || 0;
-
-    console.log("📦 messages:", messages.map(m => m.id));
-    console.log("📍 lastReadMessageId:", lastReadMessageId);
-
-    // ✅ find FIRST unread
-    const target = messages.find(m => m.id > lastId) || messages[0];
-
-    console.log("🎯 target message:", target);
-
-    const el = messageRefs.current?.[target?.id];
-
-    console.log("🔎 element found?", !!el, "for id:", target?.id);
-
-    if (el) {
-      console.log("✅ SCROLLING to:", target.id);
-
-      el.scrollIntoView({
-        behavior: "auto",
-        block: "start",
-      });
-
-      el.classList.add("bg-yellow-100");
-
-      setTimeout(() => {
-        el.classList.remove("bg-yellow-100");
-      }, 1500);
-
-      initialScrollDone.current = true;
-      setInitialized(true);
-
-      isAtBottomRef.current = false;
-
-      return;
-    }
-
-    // retry
-    if (attempts < 20) {
-      attempts++;
-      console.log(`🔁 retry ${attempts}...`);
-      requestAnimationFrame(scrollToUnread);
-    } else {
-      console.log("❌ FAILED: element never found");
-    }
-  };
-
-  requestAnimationFrame(scrollToUnread);
-}, [messages, lastReadMessageId]);
-
-  // ================= LIVE AUTO SCROLL =================
+  // ================= AUTO SCROLL =================
   useEffect(() => {
-    if (!initialized) return;
+    if (!initializedRef.current) return;
 
-    const prev = prevLengthRef.current;
-    const next = messages.length;
-
-    if (prev === next) return;
-
-    // ❌ IMPORTANT: do NOT auto-scroll if user is scrolling
-    if (!isAtBottomRef.current) {
-      prevLengthRef.current = next;
+    // 🔥 BLOCK FIRST RUN (THIS WAS YOUR BUG)
+    if (justInitializedRef.current) {
+      justInitializedRef.current = false;
       return;
     }
 
-    requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    });
+    if (!isAtBottomRef.current) return;
 
-    prevLengthRef.current = next;
-  }, [messages, initialized]);
+
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   return {
-    bottomRef,
     containerRef,
+    bottomRef,
     handleScroll,
   };
 }
