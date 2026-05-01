@@ -93,8 +93,8 @@ const renderPreview = (msg) => {
 
               {/* VIDEO → first letter */}
               {file.type?.startsWith("video") && (
-                <div className="w-full h-full bg-black flex items-center justify-center text-white font-bold text-lg">
-                  {name.charAt(0).toUpperCase()}
+                <div className="w-14 h-14 bg-black rounded-full flex items-center justify-center text-white font-bold text-3xl">
+                  {name.charAt(5).toUpperCase()}
                 </div>
               )}
 
