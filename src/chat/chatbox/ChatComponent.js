@@ -482,7 +482,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     
 
     return (
-    <div className="h-screen flex bg-gray-900 ">
+    <div className="h-screen flex bg-white text-black ">
       <div className={`
         border-r bg-white pt-3
         w-full lg:w-80
@@ -561,6 +561,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           loadingChats={loadingChats}
           setMessages={setMessages}
           onBack={() => setShowProfile(false)}
+          
         />
         </div>
       )}

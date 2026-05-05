@@ -9,13 +9,10 @@ import { toast } from "react-hot-toast"; // or your toast lib
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
-  headers: {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  },
   withCredentials: true,
 });
 
+// Interceptor to attach the latest token before every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -24,6 +21,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Global response interceptor
 api.interceptors.response.use(
   (res) => res,
   (error) => {

@@ -37,6 +37,7 @@
     "linkify-react": "^4.3.2",
     "lucide-react": "^0.474.0",
     "pusher-js": "^8.4.0",
+    "qrcode.react": "^4.2.0",
     "rc-slider": "^11.1.9",
     "react": "^18.3.1",
     "react-cropper": "^2.3.3",

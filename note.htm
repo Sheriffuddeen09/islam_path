@@ -13,5 +13,230 @@
 
 
 
-* when i open new message it was also starting from buttom instead of from new message 
+* if there is new message and the chat is open it should start from the first message (id:378) for user can scroll 
+scroll to view the rest but if there is no new message it should start from bottom 
+{#7803
+        +"id": 378,
+        +"chat_id": 12,
+        +"sender_id": 2,
+        +"type": "text",
+        +"file": null,
+        +"created_at": "2026-04-29 10:48:27",
+        +"updated_at": "2026-04-29 10:48:27",
+        +"seen_at": null,
+        +"delivered_at": null,
+        +"message": "for",
+        +"edited": 0,
+        +"replied_to": null,
+        +"body": null,
+        +"forwarded_from": 366,
+        +"receiver_id": null,
+        +"disappear_at": null,
+        +"expires_at": null,
+        +"duration": null,
+        +"file_name": null,
+        +"read_at": null,
+        +"read_by": null,
+        +"is_pinned": 0,
+        +"group_id": "fwd_69f1e1f43484b",
+        +"user_id": null,
+        +"is_forwarded": 1,
+      },
+      {#7804
+        +"id": 379,
+        +"chat_id": 12,
+        +"sender_id": 2,
+        +"type": "text",
+        +"file": null,
+        +"created_at": "2026-04-29 10:48:27",
+        +"updated_at": "2026-04-29 10:48:27",
+        +"seen_at": null,
+        +"delivered_at": null,
+        +"message": "that",
+        +"edited": 0,
+        +"replied_to": null,
+        +"body": null,
+        +"forwarded_from": 367,
+        +"receiver_id": null,
+        +"disappear_at": null,
+        +"expires_at": null,
+        +"duration": null,
+        +"file_name": null,
+        +"read_at": null,
+        +"read_by": null,
+        +"is_pinned": 0,
+        +"group_id": "fwd_69f1e1f43484b",
+        +"user_id": null,
+        +"is_forwarded": 1,
+      },
+      {#7805
+        +"id": 380,
+        +"chat_id": 13,
+        +"sender_id": 1,
+        +"type": "image",
+        +"file": "chat_files/canvasfive_1777515412.png",
+        +"created_at": "2026-04-30 02:16:55",
+        +"updated_at": "2026-04-30 02:41:21",
+        +"seen_at": null,
+        +"delivered_at": "2026-04-30 02:38:39",
+        +"message": null,
+        +"edited": 0,
+        +"replied_to": null,
+        +"body": null,
+        +"forwarded_from": null,
+        +"receiver_id": null,
+        +"disappear_at": null,
+        +"expires_at": null,
+        +"duration": null,
+        +"file_name": "canvasfive.png",
+        +"read_at": "2026-04-30 02:41:21",
+        +"read_by": null,
+        +"is_pinned": 0,
+        +"group_id": "grp_69f2bb9421008",
+        +"user_id": null,
+        +"is_forwarded": 0,
+      },
+      {#7806
+        +"id": 381,
+        +"chat_id": 13,
+        +"sender_id": 1,
+        +"type": "image",
+        +"file": "chat_files/canvasfour_1777515415.png",
+        +"created_at": "2026-04-30 02:16:55",
+        +"updated_at": "2026-04-30 02:41:21",
+        +"seen_at": null,
+        +"delivered_at": "2026-04-30 02:38:39",
+        +"message": null,
+        +"edited": 0,
+        +"replied_to": null,
+        +"body": null,
+        +"forwarded_from": null,
+        +"receiver_id": null,
+        +"disappear_at": null,
+        +"expires_at": null,
+        +"duration": null,
+        +"file_name": "canvasfour.png",
+        +"read_at": "2026-04-30 02:41:21",
+        +"read_by": null,
+        +"is_pinned": 0,
+        +"group_id": "grp_69f2bb9421008",
+        +"user_id": null,
+        +"is_forwarded": 0,
+      },
+      
+const openChat = async (chat) => {
+  if (chat.block_info?.blocked_me) {
+    showToast("You have been blocked in this chat", "error");
+    return;
+  }
 
+  setActiveChat(chat);
+
+  if (!isLargeScreen) setShowList(false);
+
+  localStorage.setItem("lastChatId", chat.id);
+
+  // ✅ reset sidebar unread
+  setChats(prev =>
+    prev.map(c =>
+      c.id === chat.id ? { ...c, unread_count: 0 } : c
+    )
+  );
+
+  // ✅ CACHE HIT
+  if (messagesMap[chat.id]) {
+    const cached = messagesMap[chat.id];
+
+    setMessages(cached);
+
+    // ⚠️ IMPORTANT: still set lastRead + unread
+    setLastReadMessageId(chat.last_read_message_id || null);
+    setUnreadCount(0);
+
+    return;
+  }
+
+  try {
+    setLoadingMessages(true);
+
+    const res = await api.get(`/api/chats/${chat.id}/messages`);
+    const msgs = res.data.messages || [];
+
+    setMessages(msgs);
+
+    setMessagesMap(prev => ({
+      ...prev,
+      [chat.id]: msgs,
+    }));
+
+    // ✅ THIS WAS MISSING
+    setLastReadMessageId(res.data.last_read_message_id);
+    setUnreadCount(res.data.unread_count || 0);
+
+  } finally {
+    setLoadingMessages(false);
+  }
+
+  // ✅ mark as read immediately on open
+  try {
+    await api.post(`/api/chats/${chat.id}/read`);
+  } catch (err) {
+    console.error("Failed to mark as read", err);
+  }
+};
+
+
+the error is coming from the payload sending to the backend 
+{message_ids: [1563, 1564], user_ids: [1], group_ids: []}
+group_ids
+: 
+[]
+message_ids
+: 
+[1563, 1564]
+user_ids
+: 
+[1]
+
+
+
+1. how will i use removehandleadmin function <ActionButton
+  icon={
+    loadingId === member.id ? (
+      <Loader2 className="w-4 h-4 animate-spin" />
+    ) : (
+      <Shield size={16} />
+    )
+  }
+  label={
+    loadingId === member.id
+      ? "Processing..."
+      : member.role === "admin"
+      ? "Remove Admin"
+      : "Make Admin"
+  }
+  onClick={() => handleToggleAdmin(member.id)}
+  disabled={loadingId === member.id}
+/>  2. {
+    "message": "The user id field is required.",
+    "errors": {
+        "user_id": [
+            "The user id field is required."
+        ]
+    } 
+} const handleRemoveMember = async (userId) => {
+  try {
+    setLoadingId(userId);
+
+    await api.delete(`/api/groups/${chat.id}/members/${userId}`);
+
+    setActiveChat((prev) => ({
+      ...prev,
+      members: prev.members.filter((m) => m.id !== userId),
+    }));
+  } catch (err) {
+    console.error(err.response?.data || err);
+  } finally {
+    setLoadingId(null);
+  }
+};

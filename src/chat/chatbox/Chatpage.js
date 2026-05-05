@@ -114,35 +114,46 @@ const openChat = async (chat) => {
     const cached = messagesMap[chat.id];
 
     setMessages(cached);
+          // ✅ CACHE HIT
+      if (messagesMap[chat.id]) {
+        const cached = messagesMap[chat.id];
 
-    // ⚠️ IMPORTANT: still set lastRead + unread
-    setLastReadMessageId(chat.last_read_message_id || null);
-    setUnreadCount(0);
+        // ✅ ALWAYS sort cached messages
+        const sortedCached = [...cached].sort((a, b) => a.id - b.id);
+
+        setMessages(sortedCached);
+
+        // ✅ KEEP REAL VALUES (do NOT force 0)
+        setLastReadMessageId(chat.last_read_message_id || null);
+        setUnreadCount(chat.unread_count || 0);
+
+        return;
+      }
 
     return;
   }
 
   try {
-    setLoadingMessages(true);
+  setLoadingMessages(true);
 
-    const res = await api.get(`/api/chats/${chat.id}/messages`);
-    const msgs = res.data.messages || [];
+  const res = await api.get(`/api/chats/${chat.id}/messages`);
 
-    setMessages(msgs);
+  // ✅ SORT HERE
+  const msgs = (res.data.messages || []).sort((a, b) => a.id - b.id);
 
-    setMessagesMap(prev => ({
-      ...prev,
-      [chat.id]: msgs,
-    }));
+  setMessages(msgs);
 
-    // ✅ THIS WAS MISSING
-    setLastReadMessageId(res.data.last_read_message_id);
-    setUnreadCount(res.data.unread_count || 0);
+  setMessagesMap(prev => ({
+    ...prev,
+    [chat.id]: msgs,
+  }));
 
-  } finally {
-    setLoadingMessages(false);
-  }
+  setLastReadMessageId(res.data.last_read_message_id);
+  setUnreadCount(res.data.unread_count || 0);
 
+} finally {
+  setLoadingMessages(false);
+}
   // ✅ mark as read immediately on open
   try {
     await api.post(`/api/chats/${chat.id}/read`);
@@ -150,6 +161,30 @@ const openChat = async (chat) => {
     console.error("Failed to mark as read", err);
   }
 };
+
+useEffect(() => {
+  if (!messages.length) return;
+
+  // 🔥 CASE 1: There are unread messages
+  if (unreadCount > 0 && lastReadMessageId) {
+    const firstUnread = messages.find(
+      (m) => m.id > lastReadMessageId
+    );
+
+    if (firstUnread) {
+      const el = messageRefs.current[firstUnread.id];
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+  }
+
+  // 🔥 CASE 2: No unread → go to bottom
+  const lastMsg = messages[messages.length - 1];
+  const el = messageRefs.current[lastMsg.id];
+  el?.scrollIntoView({ behavior: "smooth" });
+
+}, [messages, unreadCount, lastReadMessageId]);
+
 
 const echo = initEcho(); 
 

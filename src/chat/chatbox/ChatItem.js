@@ -61,9 +61,23 @@ export default function ChatItem({
 
     const isRead = chat.latest_message_status === "read";
 
-    const isDelivered =
-      chat.latest_message_status === "delivered" ||
-      other?.is_online; // 🔥 KEY ADDITION
+    const isGroup = chat.type === "group";
+
+      const displayName = isGroup
+        ? chat.name || "Unnamed Group"
+        : `${other?.first_name} ${other?.last_name}`;
+
+      const avatarName = isGroup
+        ? displayName
+        : other?.first_name;
+
+      const memberCount = isGroup
+        ? chat.members_count || chat.members?.length || 0
+        : null;
+
+      const senderName = isGroup
+        ? lastMessage?.sender?.first_name
+        : null;
 
   return (
     <div
@@ -77,12 +91,20 @@ export default function ChatItem({
       `}
     >
       {/* AVATAR */}
-      <div
-        className={`relative w-12 h-12 rounded-full text-white flex items-center justify-center font-bold text-xl ${getColor(
-          other?.first_name
-        )}`}
-      >
-        {getInitial(other?.first_name)}
+      <div className={`relative w-12 h-12 rounded-full overflow-hidden flex items-center 
+      justify-center font-bold text-xl text-white ${getColor(
+            avatarName
+          )}`}>
+          {isGroup && chat.image_url ? (
+            <img
+              src={chat.image_url}
+              alt={displayName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            getInitial(avatarName)
+          )}
+
 
         {/* ONLINE */}
         {isOnline && (
@@ -106,7 +128,7 @@ export default function ChatItem({
         {/* TOP */}
         <div className="flex justify-between items-center">
           <h4 className="font-semibold text-gray-900">
-            {other?.first_name} {other?.last_name}
+            {displayName}
           </h4>
 
           <span className="text-xs text-gray-500">
@@ -120,10 +142,14 @@ export default function ChatItem({
           <span className="truncate max-w-[200px] text-sm">
             {blockedMe
               ? <p className="text-red-900">You cannot reply to this conversation</p>
-              : <p className="text-gray-900">
-              
-                {getMessagePreview(lastMessage)}
-                </p>
+              : <p className="text-gray-900 flex gap-1">
+                    {isGroup && senderName && (
+                      <span className="text-gray-500 text-xs">
+                        {senderName}:
+                      </span>
+                    )}
+                    {getMessagePreview(lastMessage)}
+                  </p>
             }
           </span>
 
@@ -133,10 +159,10 @@ export default function ChatItem({
           isRead ? (
             <span
               className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] ${getColor(
-                chat.latest_message_read_by_name || other?.first_name
+                chat.latest_message_read_by_name || isGroup ? senderName : other?.first_name
               )}`}
             >
-              {getInitial(chat.latest_message_read_by_name || other?.first_name)}
+              {getInitial(chat.latest_message_read_by_name || isGroup ? senderName : other?.first_name)}
             </span>
           ) : isOnline ? (
             <CheckCheck size={16} className="text-gray-400" />

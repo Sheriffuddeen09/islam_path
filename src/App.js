@@ -43,6 +43,7 @@ import SingleProduct from "./pages/sales/SingleProduct";
 import CartPage from "./pages/sales/cart/CartPage";
 import WishlistPage from "./pages/sales/cart/WishlishPage";
 import ChatPage from "./chat/chatbox/Chatpage";
+import JoinGroup from "./chat/chatbox/JoinGroup";
 
    
 function App() {
@@ -457,6 +458,7 @@ function App() {
 
         />} />
 
+
          <Route path="/post/text//" element={<PostTextPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -468,6 +470,7 @@ function App() {
 
         />} />
 
+        <Route path="/invite/group/:token" element={<JoinGroup />} /> 
 
           {/* Home Post Page*/}
       <Route path="/" element={

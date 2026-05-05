@@ -268,15 +268,25 @@ const handlePin = async (msg) => {
       </div>
         <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
 
-        <p className="text-white max-w-md">
+        <p className="text-black max-w-md">
           Messages, and updates will appear here.
         </p>
-        <div className="mt-6 mb-6 text-sm text-white">
+        <div className="mt-6 mb-6 text-sm text-black">
           💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
         </div>
       </div>
     );
   }
+
+const isGroup = activeChat?.type === "group";
+
+const displayName = isGroup
+  ? activeChat?.group_name || activeChat?.name || "Unnamed Group"
+  : `${activeChat?.other_user?.first_name || ""} ${activeChat?.other_user?.last_name || ""}`;
+
+const avatarName = isGroup
+  ? displayName
+  : activeChat?.other_user?.first_name;
 
 
   return (
@@ -293,15 +303,25 @@ const handlePin = async (msg) => {
         </svg>
           <div onClick={onHeaderClick} className="flex items-center gap-4">
              <div
-                className={`w-10 h-10 rounded-full bg-gray-300 shadow-md hover:scale-105 transition rounded-full text-white flex items-center justify-center font-bold text-[30px] shadow-sm ${getColor(
-                  activeChat.other_user?.first_name
+                className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
+                  avatarName
                 )}`}
               >
-                {getInitial(activeChat.other_user?.first_name)}
-              </div>
-            <h3 className="font-bold text-lg">{activeChat.other_user?.first_name} {activeChat.other_user?.last_name}</h3>
+                {isGroup && activeChat.image_url ? (
+                  <img
+                    src={activeChat.image_url}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  getInitial(avatarName)
+                )}
 
-            <UserStatusDots user={activeChat.other_user} />
+              </div>
+            <h3 className="font-bold text-lg truncate">
+                {displayName}
+            </h3>
+
+            {!isGroup && <UserStatusDots user={activeChat.other_user} />}
           </div>
         </div>
        <div className="flex gap-3 text-xl">
@@ -390,18 +410,24 @@ const handlePin = async (msg) => {
             onClick={onHeaderClick}
             className="flex items-center gap-2 min-w-0"
           >
-            <div
-                className={`w-8 h-8 rounded-full bg-gray-300 shadow-md hover:scale-105 
+              <div
+              className={`w-10 h-10 py-3 rounded-full bg-gray-300 shadow-md hover:scale-105 
                   transition rounded-full text-white flex items-center justify-center
-                   font-bold text-[20px] shadow-sm ${getColor(
-                  activeChat.other_user?.first_name
-                )}`}
-              >
-                {getInitial(activeChat.other_user?.first_name)}
-              </div>
-            <h3 className="font-bold truncate max-w-[140px]">
-              {activeChat.other_user?.first_name}{" "}
-              {activeChat.other_user?.last_name}
+                   font-bold text-[16px] shadow-sm  ${getColor(
+                avatarName
+              )}`}
+            >
+              {isGroup && activeChat.image_url ? (
+                <img
+                  src={activeChat.image_url}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                getInitial(avatarName)
+              )}
+          </div>
+            <h3 className="font-bold text-lg truncate">
+              {displayName}
             </h3>
           </div>
         </div>
@@ -515,7 +541,7 @@ const handlePin = async (msg) => {
         </div>
       </div>
 
-      <UserStatusDots user={activeChat.other_user} />
+      {!isGroup && <UserStatusDots user={activeChat.other_user} />}
     </div>
 
   </div>
