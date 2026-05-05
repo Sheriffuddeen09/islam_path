@@ -22,10 +22,6 @@ export default function JoinGroup() {
       toast.success(res.data.message || "Joined successfully");
       setStatus("success");
 
-      // optional redirect after 2s
-      setTimeout(() => {
-        navigate("/chat"); // adjust route
-      }, 2000);
 
     } catch (err) {
       console.error(err);
@@ -55,22 +51,24 @@ export default function JoinGroup() {
         </div>
 
         {/* TITLE */}
-        <h2 className="text-xl font-semibold mb-2">
-          {status === "success"
-            ? "You're in!"
-            : status === "error"
-            ? "Join failed"
-            : "Join Group"}
-        </h2>
+        {/* TITLE */}
+      <h2 className="text-xl font-semibold mb-2">
+        {status === "success"
+          ? "Request Sent"
+          : status === "error"
+          ? "Join failed"
+          : "Join Group"}
+      </h2>
 
-        {/* MESSAGE */}
-        <p className="text-gray-800 text-sm text-sm mb-6">
-          {status === "success"
-            ? "You have successfully joined the group."
-            : status === "error"
-            ? "This invite link is invalid or expired."
-            : "You've been invited to join a group. Click below to continue."}
-        </p>
+      {/* MESSAGE */}
+      <p className="text-gray-700 text-sm mb-6">
+        {status === "success"
+          ? 
+          "🎉 Thank you for joining this group. Your request has been sent and is waiting for admin approval."
+          : status === "error"
+          ? "This invite link is invalid or expired."
+          : "You've been invited to join a group. Click below to continue."}
+      </p>
 
         {/* BUTTON */}
         {status === "idle" && (
@@ -97,7 +95,7 @@ export default function JoinGroup() {
         {/* BACK BUTTON */}
         {(status === "error" || status === "success") && (
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/chat")}
             className="mt-3 text-sm text-gray-500 hover:underline"
           >
             Go back

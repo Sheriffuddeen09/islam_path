@@ -62,6 +62,8 @@ export default function ActiveUsers({
   const [showPending, setShowPending] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
+  const [pending, setPending] = useState([]);
+
   const isAdmin = authUser?.role === "admin";
 
   useEffect(() => {
@@ -316,12 +318,12 @@ const options = [
             </p>
           )}
 
-          {isAdmin && pendingCount > 0 && (
+          {isAdmin && pending.length > 0 && (
               <button
                 onClick={() => setShowPending(true)}
                 className="text-blue-600 text-sm"
               >
-                Pending Members ({pendingCount})
+                Pending Members ({pending.length})
               </button>
             )}
 
@@ -453,12 +455,13 @@ const options = [
           />
         )}
 
+        {isAdmin && (
         <ActionButton
           icon={<GroupIcon size={20} />}
           label="Group Member Management"
           onClick={() => setShowGroupMemberModal(true)}
         />
-
+        )}
       
         
 
@@ -515,8 +518,8 @@ const options = [
       isOpen={showPending}
       onClose={() => setShowPending(false)}
       authUser={authUser}
-      setPendingCount={setPendingCount}
-      pending={pendingCount}
+      pending={pending}
+      setPending={setPending}
     />
       {showBlockModal && (
   <ModalOverlay onClose={() => setShowBlockModal(false)}>

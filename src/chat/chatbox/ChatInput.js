@@ -158,6 +158,23 @@ const handlePick = (type) => {
 };
 
 
+const status = activeChat?.membership_status; // pending | approved | rejected | null
+const role = activeChat?.my_role; // admin | member
+const isAdmin = role === "admin";
+
+const onlyAdminSend = activeChat?.only_admin_send === 1;
+
+const isPending = status === "pending";
+const isRejected = status === "rejected";
+const isRemoved = !status; 
+
+const canSendMessage =
+  isAdmin || (status === "approved" && !onlyAdminSend);
+
+const blockAllInput = isPending || isRejected || isRemoved || !canSendMessage;
+
+
+
 const handleFileChange = (e) => {
   const selectedFiles = Array.from(e.target.files);
 
@@ -200,6 +217,15 @@ const getPreviewText = (msg) => {
 };
   
   return (
+    <>
+
+  {!isAdmin && onlyAdminSend && status === "approved" && (
+    <div className="text-center text-gray-500 text-sm py-2">
+      Only admins can send messages in this group
+    </div>
+  )}
+
+  {!blockAllInput && (
     <>
 
    {replyingTo && (
@@ -339,7 +365,9 @@ const getPreviewText = (msg) => {
             </button>
 
           </div>
-        )}
+         )}
+    </>
+  )}
 
      
       

@@ -61,6 +61,7 @@ export default function ChatItem({
 
     const isRead = chat.latest_message_status === "read";
 
+    const membershipStatus = chat.membership_status;
     const isGroup = chat.type === "group";
 
       const displayName = isGroup
@@ -70,10 +71,6 @@ export default function ChatItem({
       const avatarName = isGroup
         ? displayName
         : other?.first_name;
-
-      const memberCount = isGroup
-        ? chat.members_count || chat.members?.length || 0
-        : null;
 
       const senderName = isGroup
         ? lastMessage?.sender?.first_name
@@ -144,7 +141,7 @@ export default function ChatItem({
               ? <p className="text-red-900">You cannot reply to this conversation</p>
               : <p className="text-gray-900 flex gap-1">
                     {isGroup && senderName && (
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-gray-800 capitalize text-xs">
                         {senderName}:
                       </span>
                     )}
@@ -176,11 +173,27 @@ export default function ChatItem({
             {chat.unread_count}
           </span>
         )}
+        
         </div>
+        
         </div>
 
         {/* UNREAD */}
         
+         {isGroup && membershipStatus === "pending" && (
+            <p className="text-xs text-green-800 mt-2 inline-flex gap-1 items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                stroke-width="1.5" stroke="currentColor" class="size-5 text-green-800">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg> Waiting for admin approval
+            </p>
+          )}
+
+          {isGroup && membershipStatus === "rejected" && (
+            <p className="text-xs text-red-600 mt-2">
+              ❌ Request rejected
+            </p>
+          )}
 
         {/* BLOCK LABELS */}
         {blockedByMe && (

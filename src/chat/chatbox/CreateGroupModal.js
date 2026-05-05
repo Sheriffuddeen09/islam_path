@@ -384,7 +384,7 @@ export default function CreateGroupModal({ users = [], onClose, loadingUsers }) 
           {/* Create Button */}
           <button
             onClick={createGroup}
-            className="fixed bottom-6 mx-auto  right-6 bg-[#25D366] w-14 h-14 rounded-full text-black text-xl"
+            className="fixed bottom-6 mx-auto z-50  right-6 bg-[#25D366] w-14 h-14 rounded-full text-black text-xl"
           >
             {
               createLoading ? <Loader2 className="mx-auto text-white" /> :
@@ -396,13 +396,13 @@ export default function CreateGroupModal({ users = [], onClose, loadingUsers }) 
         </div>
       )}
 
-      {toast && (
+      {/* {toast && (
         <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
           ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
         `}>
           {toast.message}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

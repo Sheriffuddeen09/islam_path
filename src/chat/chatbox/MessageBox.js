@@ -193,6 +193,14 @@ useEffect(() => {
   };
 
 
+  const status = activeChat?.membership_status; // pending | approved | rejected | null
+  const role = activeChat?.my_role; // admin | member
+
+  const isAdmin = role === "admin";
+
+  const canViewMessages = isAdmin || status === "approved";
+
+  const isBlockedUser = !canViewMessages;
 
   const filteredMessages = messages;
 
@@ -550,18 +558,68 @@ const avatarName = isGroup
 
       {/* CHAT BODY */}
       <div
-        ref={containerRef}
-       onScroll={(e) => {
-          handleScroll(e); // ✅ keep your auto-scroll logic
+  ref={containerRef}
+  onScroll={(e) => {
+    handleScroll(e);
 
-          if (e.target.scrollTop < 50) {
-            loadOlderMessages(); // ✅ load older messages
-          }
-        }}
-        className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
-         scrollbar-thumb-gray-400 space-y-3 bg-white relative"
-      >
-        
+    if (e.target.scrollTop < 50 && canViewMessages) {
+      loadOlderMessages(); // 🚫 prevent loading if blocked
+    }
+  }}
+  className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
+  scrollbar-thumb-gray-400 space-y-3 bg-white relative"
+>
+
+  {isBlockedUser ? (
+    <div className="flex flex-col items-center justify-center h-full text-center p-6">
+
+      <div className="bg-gray-800 text-white text-xs p-3 rounded-lg mb-6">
+        Messages are protected. You cannot access this chat.
+      </div>
+
+      {status === "pending" && (
+        <>
+          <p className="text-green-800 font-semibold inline-flex gap-1 items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                stroke-width="1.5" stroke="currentColor" class="size-5 text-green-800">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg> Waiting for admin approval
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            You will be able to see messages after approval.
+          </p>
+        </>
+      )}
+
+      {status === "rejected" && (
+        <>
+          <p className="text-red-600 font-semibold inline-flex gap-1 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+            stroke-width="1.5" stroke="currentColor" class="size-6 text-red-800">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+</svg>
+ Your request was rejected
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            You cannot access this group anymore.
+          </p>
+        </>
+      )}
+
+      {!status && (
+        <>
+          <p className="text-red-600 font-semibold">
+            🚫 You are no longer a member
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            You have been removed from this group.
+          </p>
+        </>
+      )}
+
+    </div>
+  ) : (
+    <>  
         {/* LOADING OLDER */}
         {loadingMore && (
           <div className="text-center mx-auto flex justify-center text-center text-xs text-gray-800">
@@ -693,14 +751,16 @@ const avatarName = isGroup
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         />
       </div>
-    );
-  })
-)}
+              );
+            })
+          )}
+        </>
+      )}
     </>
   )}
 
-        <div ref={bottomRef} />
-      </div>
+  <div ref={bottomRef} />
+</div>
 
       {/* INPUT */}
       <div className="p-3 border-t bg-white">
