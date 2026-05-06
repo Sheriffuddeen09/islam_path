@@ -18,6 +18,7 @@ import GroupSettingsModal from "./GroupSetting";
 import InviteViaLinkModal from "./InviteViaLinkModal";
 import PendingMembersModal from "./PendingMember";
 import { ReportGroupModal } from "./ReportGroupModal";
+import ExitGroupModal from "./ExistGroupModal";
 
 const socket = io("http://localhost:8000");
 
@@ -65,7 +66,7 @@ export default function ActiveUsers({
   const [showPending, setShowPending] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [pending, setPending] = useState([]);
-  const [pendingLoading, setPendingLoading] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const isAdmin = activeChat?.my_role === "admin";
 
@@ -508,7 +509,7 @@ const options = [
       <ActionButton
         icon={<Search size={20} />}
         label="Exit Group"
-        onClick={() => setShowSearchModal(true)}
+        onClick={() => setShowExitModal(true)} // ✅ FIX
       />
 
       <ActionButton
@@ -516,6 +517,7 @@ const options = [
         label="Delete Group"
         onClick={() => setShowSearchModal(true)}
       />
+      
       </div>
       }
 
@@ -714,7 +716,12 @@ const options = [
   </ModalOverlay>
 )}
 
-
+  {showExitModal && (
+    <ExitGroupModal
+      chat={activeChat}
+      onClose={() => setShowExitModal(false)}
+    />
+  )}
 
 
 {showModal && (

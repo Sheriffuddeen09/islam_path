@@ -13,7 +13,6 @@ import GetMentor from "./pages/mentor/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 import {  useEffect, useState } from "react";
 import ProtectedRoute from "./ProtectedRoute";
-import ProtectRoute from "./route/ProtectRouter";
 import ReportList from "./report/ReportList";
 import ReportChat from "./chat/ReportChat";
 import StudentAssignment from "./assignment/StudentAssignment";
@@ -281,6 +280,7 @@ function App() {
           <ReportList />
       } />
 
+      {/* /chat/reports */}
       <Route path="/report-chat" element={
           <ReportChat />
       } />

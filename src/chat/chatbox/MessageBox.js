@@ -82,6 +82,8 @@ export default function MessageBox({
 
   const hasSelection = selectedMessages.length > 0;
 
+  
+
   const colors = [
     "bg-orange-500",
     "bg-blue-500",
@@ -617,6 +619,17 @@ const avatarName = isGroup
         </>
       )}
 
+      {status === "left" && (
+        <>
+          <p className="text-red-600 font-semibold">
+            🚪 You are no longer a member
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            You have Exit from this group.
+          </p>
+        </>
+      )}
+
     </div>
   ) : (
     <>  
@@ -674,48 +687,71 @@ const avatarName = isGroup
   </div>
 ) : (
   listToRender.map((msg, index) => {
+  const isMatch =
+    searchQuery &&
+    msg.message?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const isMatch =
-  searchQuery &&
-  msg.message?.toLowerCase().includes(searchQuery.toLowerCase());
+  const prevMsg = filteredMessages[index - 1];
 
-    const prevMsg = filteredMessages[index - 1];
+  const safeDate = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? null : d;
+  };
 
-    const safeDate = (date) => {
-      if (!date) return null;
-      const d = new Date(date);
-      return isNaN(d.getTime()) ? null : d;
-    };
+  const currentDate = safeDate(msg.created_at);
+  const prevDate = safeDate(prevMsg?.created_at);
 
-    const currentDate = safeDate(msg.created_at);
-    const prevDate = safeDate(prevMsg?.created_at);
+  const showDate =
+    index === 0 ||
+    (currentDate &&
+      prevDate &&
+      currentDate.toDateString() !== prevDate.toDateString());
 
-    const showDate =
-      index === 0 ||
-      (currentDate &&
-        prevDate &&
-        currentDate.toDateString() !== prevDate.toDateString());
+  const isSystem = msg.type === "system";
 
-    return (
-      <div
-          key={msg.id}
-          id={`msg-${msg.id}`}
-          className={`px-3 rounded py-2 transition message-bubble  ${
-            searchQuery && !isMatch ? "opacity-20" : "opacity-100" 
-          }
-          `}
-          ref={(el) => {
+  const formatSystemMessage = (msg) => {
+  if (!msg.message) return "";
+
+  const text = msg.message.toLowerCase();
+
+  if (text.includes("removed")) return msg.message;
+  if (text.includes("added")) return msg.message;
+  if (text.includes("rejected")) return msg.message;
+  if (text.includes("left")) return msg.message;
+
+  return msg.message;
+};
+
+  return (
+    <div
+      key={msg.id}
+      id={`msg-${msg.id}`}
+      className={`px-3 rounded py-2 transition ${
+        searchQuery && !isMatch ? "opacity-20" : "opacity-100"
+      }`}
+      ref={(el) => {
         if (el) {
           messageRefs.current[msg.id] = el;
         }
       }}
-        >
-        {showDate && (
-          <div className="text-center text-xs text-gray-900 my-2">
-            {formatDateHeader(msg.created_at)}
+    >
+      {/* 📅 DATE */}
+      {showDate && (
+        <div className="text-center text-xs text-gray-900 my-2">
+          {formatDateHeader(msg.created_at)}
+        </div>
+      )}
+
+      {/* 🔥 SYSTEM MESSAGE */}
+      {isSystem ? (
+        <div className="flex justify-center my-2">
+          <div className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full">
+            {formatSystemMessage(msg)}
           </div>
-        )}
-        <MessageItem
+        </div>
+      ) : (
+         <MessageItem
           setChats={setChats}
           key={msg.id}
           openChat={openChat}      
@@ -750,6 +786,7 @@ const avatarName = isGroup
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         />
+        )}
       </div>
               );
             })

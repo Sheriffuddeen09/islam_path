@@ -11,7 +11,7 @@ export default function ChatItem({
 
   const isRestrictedMember =
     chat.type === "group" &&
-    ["pending", "rejected", "removed"].includes(chat.membership_status);
+    ["pending", "rejected", "removed", "left"].includes(chat.membership_status);
 
 
   const lastMessage = isRestrictedMember ? null : chat.latest_message;
@@ -72,10 +72,20 @@ export default function ChatItem({
         Request rejected
           </p>
     );
+    if (chat.membership_status === "left") {
+      return (
+        <p className="text-xs text-gray-500 flex items-center gap-1">
+          🚪 You left this group
+        </p>
+      );
+    }
     if (chat.membership_status === "removed") return "🚫 You were removed from this group";
   }
 
   if (!message) return "Start chatting";
+
+
+  if (message.type === "system") return message.message;
 
   if (message.type === "link") return message.message;
   if (message.type === "text") return message.message;
@@ -183,7 +193,7 @@ export default function ChatItem({
             ) : blockedMe ? (
               <p className="text-red-900">You cannot reply to this conversation</p>
             ) : (
-              <p className="text-gray-900 flex text-sm gap-1">
+              <p className="text-gray-900 flex text-xs gap-1">
                 {isGroup && senderName && (
                   <span className="text-gray-800 capitalize">{senderName}:</span>
                 )}
