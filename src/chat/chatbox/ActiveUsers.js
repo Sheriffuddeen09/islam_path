@@ -491,12 +491,13 @@ const options = [
       
         
 
-              
+        {!isAdmin && (  
         <ActionButton
           icon={<Flag size={20} />}
           label="Report Group"
           onClick={() => setShowReportGroupModal(true)}
         />
+          )}
 
         <ActionButton
         icon={<Search size={20} />}
