@@ -442,48 +442,66 @@ useEffect(() => {
       return name.charAt(0).toUpperCase();
     };
 
+    const membershipStatus = activeChat?.membership_status;
+    const canSeeMessages =
+    membershipStatus === "approved" || activeChat?.type !== "group";
 
- const renderStatus = () => {
-  if (!isMine) return null;
+      const renderStatus = () => {
+        // ❌ BLOCK EVERYTHING FOR NON-APPROVED USERS
+        if (!canSeeMessages) return null;
 
-  if (msg.status === "sending") return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-  stroke-width="1.5" stroke="currentColor" class="size-5 text-gray-400">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-</svg>
-;
+        // only sender sees status
+        if (!isMine) return null;
 
-  if (msg.status === "failed") {
-    return (
-      <button onClick={retryMessage} className="text-red-500 z-50">
-        Retry
-      </button>
-    );
-  }
+        if (msg.status === "sending") {
+          return (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-5 text-gray-400"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+              />
+            </svg>
+          );
+        }
 
-  if (msg.status === "read") {
-  const name = msg.read_by_name || "User";
+        if (msg.status === "failed") {
+          return (
+            <button onClick={retryMessage} className="text-red-500 z-50">
+              Retry
+            </button>
+          );
+        }
 
-  return (
-    <span
-      className={`flex items-center justify-center text-white text-[7px] w-3 h-3 rounded-full ${getColor(name)}`}
-    >
-      {getInitial(name)}
-    </span>
-  );
-}
+        if (msg.status === "read") {
+          const name = msg.read_by_name || "User";
 
-  // ✔✔ Delivered (user online or delivered_at exists)
-  if (isUserOnline) {
-    return <CheckCheck className="text-gray-400 w-5" />;
-  }
+          return (
+            <span
+              className={`flex items-center justify-center text-white text-[7px] w-3 h-3 rounded-full ${getColor(
+                name
+              )}`}
+            >
+              {getInitial(name)}
+            </span>
+          );
+        }
 
-  if (msg.status === "sent") {
-   
-    return <Check className="text-gray-400 w-5" />
-;
-  }
+        if (isUserOnline) {
+          return <CheckCheck className="text-gray-400 w-5" />;
+        }
 
-};
+        if (msg.status === "sent") {
+          return <Check className="text-gray-400 w-5" />;
+        }
+      };
 
 
   const formatTime = (date) => {

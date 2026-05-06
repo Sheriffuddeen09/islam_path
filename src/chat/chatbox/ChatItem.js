@@ -8,7 +8,13 @@ export default function ChatItem({
   openChat,
 }) {
   const other = chat.other_user || {};
-  const lastMessage = chat.latest_message;
+
+  const isRestrictedMember =
+    chat.type === "group" &&
+    ["pending", "rejected", "removed"].includes(chat.membership_status);
+
+
+  const lastMessage = isRestrictedMember ? null : chat.latest_message;
 
   const blockedByMe = chat.block_info?.blocked_by_me;
   const blockedMe = chat.block_info?.blocked_me;
@@ -34,6 +40,9 @@ export default function ChatItem({
       return name.charAt(0).toUpperCase();
     };
   
+
+    
+
     // 🕒 FORMAT TIME
     const formatTime = (date) => {
       if (!date) return "";
@@ -45,18 +54,39 @@ export default function ChatItem({
   
     // 💬 MESSAGE PREVIEW
     function getMessagePreview(message) {
-      if (!message) return "Start chatting";
-  
-      if (message.type === "link") return message.message;
-      if (message.type === "text") return message.message;
-      if (message.type === "voice") return "🎤 Voice Message";
-      if (message.type === "audio") return "🎧 Audio";
-      if (message.type === "video") return "🎥 Video";
-      if (message.type === "image") return "🖼 Image";
-      if (message.type === "file") return "📎 Document";
-  
-      return "Start chatting";
-    }
+  if (isRestrictedMember) {
+    if (chat.membership_status === "pending") return (
+      <p className="text-xs text-green-800 mt-2 inline-flex gap-1 items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+          stroke-width="1.5" stroke="currentColor" class="size-5 text-green-800">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Waiting for admin approval
+      </p>
+    )
+    if (chat.membership_status === "rejected") return (
+      <p className="text-red-800 font-semibold inline-flex  text-xs gap-1 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+            stroke-width="1.5" stroke="currentColor" class="size-5 text-red-800">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+        Request rejected
+          </p>
+    );
+    if (chat.membership_status === "removed") return "🚫 You were removed from this group";
+  }
+
+  if (!message) return "Start chatting";
+
+  if (message.type === "link") return message.message;
+  if (message.type === "text") return message.message;
+  if (message.type === "voice") return "🎤 Voice Message";
+  if (message.type === "audio") return "🎧 Audio";
+  if (message.type === "video") return "🎥 Video";
+  if (message.type === "image") return "🖼 Image";
+  if (message.type === "file") return "📎 Document";
+
+  return "Start chatting";
+}
   
 
     const isRead = chat.latest_message_status === "read";
@@ -72,7 +102,8 @@ export default function ChatItem({
         ? displayName
         : other?.first_name;
 
-      const senderName = isGroup
+      const senderName =
+      isGroup && !isRestrictedMember
         ? lastMessage?.sender?.first_name
         : null;
 
@@ -137,17 +168,28 @@ export default function ChatItem({
         <div className="flex items-center justify-between mt-2">
 
           <span className="truncate max-w-[200px] text-sm">
-            {blockedMe
-              ? <p className="text-red-900">You cannot reply to this conversation</p>
-              : <p className="text-gray-900 flex gap-1">
-                    {isGroup && senderName && (
-                      <span className="text-gray-800 capitalize text-xs">
-                        {senderName}:
-                      </span>
-                    )}
-                    {getMessagePreview(lastMessage)}
-                  </p>
-            }
+            {isRestrictedMember ? (
+              <p
+                className={`text-sm ${
+                  chat.membership_status === "pending"
+                    ? "text-green-700"
+                    : chat.membership_status === "rejected"
+                    ? "text-red-600"
+                    : "text-gray-500"
+                }`}
+              >
+                {getMessagePreview(null)}
+              </p>
+            ) : blockedMe ? (
+              <p className="text-red-900">You cannot reply to this conversation</p>
+            ) : (
+              <p className="text-gray-900 flex text-sm gap-1">
+                {isGroup && senderName && (
+                  <span className="text-gray-800 capitalize">{senderName}:</span>
+                )}
+                {getMessagePreview(lastMessage)}
+              </p>
+            )}
           </span>
 
           {/* STATUS */}
@@ -177,23 +219,6 @@ export default function ChatItem({
         </div>
         
         </div>
-
-        {/* UNREAD */}
-        
-         {isGroup && membershipStatus === "pending" && (
-            <p className="text-xs text-green-800 mt-2 inline-flex gap-1 items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-                stroke-width="1.5" stroke="currentColor" class="size-5 text-green-800">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg> Waiting for admin approval
-            </p>
-          )}
-
-          {isGroup && membershipStatus === "rejected" && (
-            <p className="text-xs text-red-600 mt-2">
-              ❌ Request rejected
-            </p>
-          )}
 
         {/* BLOCK LABELS */}
         {blockedByMe && (

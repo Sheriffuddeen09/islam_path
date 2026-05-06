@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import api from "../../Api/axios";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { X, Check, XCircle, Loader2 } from "lucide-react";
+import api from "../../Api/axios";
 
 export default function PendingMembersModal({
   chat,
@@ -9,57 +9,56 @@ export default function PendingMembersModal({
   onClose,
   authUser,
   pending,
-  setPending
+  setPending,
 }) {
-  const [loadingId, setLoadingId] = useState(null);
-  const [isFetching, setIsFetching] = useState(false); // 🔥 NEW
+  // ✅ separate loading state (FIX FOR YOUR BUG)
+  const [loadingState, setLoadingState] = useState({
+    userId: null,
+    action: null, // "approve" | "reject"
+  });
 
-  const isAdmin = authUser?.role === "admin";
+  const [isFetching, setIsFetching] = useState(false);
 
-  const colors = [
-    "bg-orange-500",
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-purple-500",
-    "bg-pink-500"
-  ];
+  const isAdmin = authUser?.id && chat?.my_role === "admin";
+
+  const colors = ["bg-orange-500", "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-pink-500"];
 
   const getColor = (name = "") => {
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
+    return colors[name.charCodeAt(0) % colors.length];
   };
 
-  const getInitial = (name) => {
-    if (!name) return "?";
-    return name.charAt(0).toUpperCase();
-  };
+  const getInitial = (name = "") => name?.charAt(0).toUpperCase() || "?";
 
-  // 🔥 FETCH PENDING MEMBERS
+  // =========================
+  // FETCH PENDING USERS
+  // =========================
   useEffect(() => {
-    if (!isAdmin || !chat?.id || !isOpen) return;
+    if (!isOpen || !chat?.id || !isAdmin) return;
 
     const fetchPending = async () => {
       try {
-        setIsFetching(true); // 🔥 START LOADING
+        setIsFetching(true);
 
         const res = await api.get(`/api/groups/${chat.id}/pending-members`);
-        setPending(res.data);
 
+        setPending(res.data);
       } catch (err) {
         console.error(err);
         toast.error("Failed to load requests");
       } finally {
-        setIsFetching(false); // 🔥 STOP LOADING
+        setIsFetching(false);
       }
     };
 
     fetchPending();
-  }, [chat.id, isAdmin, isOpen]);
+  }, [isOpen, chat?.id, isAdmin]);
 
-  // 🔥 APPROVE
+  // =========================
+  // APPROVE MEMBER
+  // =========================
   const approve = async (userId) => {
     try {
-      setLoadingId(userId);
+      setLoadingState({ userId, action: "approve" });
 
       await api.post(`/api/groups/${chat.id}/approve-member`, {
         user_id: userId,
@@ -71,14 +70,16 @@ export default function PendingMembersModal({
       console.error(err);
       toast.error("Failed to approve");
     } finally {
-      setLoadingId(null);
+      setLoadingState({ userId: null, action: null });
     }
   };
 
-  // 🔥 REJECT
+  // =========================
+  // REJECT MEMBER
+  // =========================
   const reject = async (userId) => {
     try {
-      setLoadingId(userId);
+      setLoadingState({ userId, action: "reject" });
 
       await api.post(`/api/groups/${chat.id}/reject-member`, {
         user_id: userId,
@@ -90,19 +91,22 @@ export default function PendingMembersModal({
       console.error(err);
       toast.error("Failed to reject");
     } finally {
-      setLoadingId(null);
+      setLoadingState({ userId: null, action: null });
     }
   };
 
   if (!isOpen || !isAdmin) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
       <div className="bg-white w-80 rounded-xl shadow-lg flex flex-col max-h-[500px]">
 
         {/* HEADER */}
         <div className="flex justify-between items-center p-3 border-b">
-          <h2 className="font-semibold">Pending Requests</h2>
+          <h2 className="font-semibold">
+            Pending Requests {isFetching ? "" : `(${pending.length})`}
+          </h2>
+
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
             <X size={18} />
           </button>
@@ -111,7 +115,7 @@ export default function PendingMembersModal({
         {/* LIST */}
         <div className="overflow-y-auto flex-1 p-2">
 
-          {/* 🔥 SKELETON LOADING */}
+          {/* LOADING SKELETON */}
           {isFetching ? (
             Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center justify-between p-2 animate-pulse">
@@ -139,7 +143,7 @@ export default function PendingMembersModal({
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-bold ${getColor(
-                      user?.first_name
+                      user.first_name
                     )}`}
                   >
                     {getInitial(user.first_name)}
@@ -156,10 +160,14 @@ export default function PendingMembersModal({
                   {/* APPROVE */}
                   <button
                     onClick={() => approve(user.id)}
-                    disabled={loadingId === user.id}
-                    className="p-1 px-2 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+                    disabled={
+                      loadingState.userId === user.id &&
+                      loadingState.action === "approve"
+                    }
+                    className="p-1 px-2 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
                   >
-                    {loadingId === user.id ? (
+                    {loadingState.userId === user.id &&
+                    loadingState.action === "approve" ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
                       <Check size={14} />
@@ -169,10 +177,14 @@ export default function PendingMembersModal({
                   {/* REJECT */}
                   <button
                     onClick={() => reject(user.id)}
-                    disabled={loadingId === user.id}
-                    className="p-1 px-2 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+                    disabled={
+                      loadingState.userId === user.id &&
+                      loadingState.action === "reject"
+                    }
+                    className="p-1 px-2 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                   >
-                    {loadingId === user.id ? (
+                    {loadingState.userId === user.id &&
+                    loadingState.action === "reject" ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
                       <XCircle size={14} />
@@ -183,7 +195,6 @@ export default function PendingMembersModal({
               </div>
             ))
           )}
-
         </div>
       </div>
     </div>

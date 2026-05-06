@@ -17,6 +17,7 @@ import GroupMembersManager from "./GroupMemberManager";
 import GroupSettingsModal from "./GroupSetting";
 import InviteViaLinkModal from "./InviteViaLinkModal";
 import PendingMembersModal from "./PendingMember";
+import { ReportGroupModal } from "./ReportGroupModal";
 
 const socket = io("http://localhost:8000");
 
@@ -36,6 +37,7 @@ export default function ActiveUsers({
 
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showReportGroupModal, setShowReportGroupModal] = useState(false);
 
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,16 +61,40 @@ export default function ActiveUsers({
   const [showGroupMemberModal, setShowGroupMemberModal] = useState(false);
 
   const [showInviteModal, setShowInviteModal] = useState(false);
+
   const [showPending, setShowPending] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
-
   const [pending, setPending] = useState([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
 
-  const isAdmin = authUser?.role === "admin";
+  const isAdmin = activeChat?.my_role === "admin";
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+
+
+
+ useEffect(() => {
+  if (!isAdmin || !activeChat?.id) return;
+
+  const fetchCount = async () => {
+    try {
+      const res = await api.get(
+        `/api/groups/${activeChat.id}/pending-count`
+      );
+
+      setPendingCount(res.data.count);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchCount();
+}, [activeChat?.id, isAdmin]);
+
+
+
+      useEffect(() => {
+        fetchUsers();
+      }, []);
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -318,14 +344,14 @@ const options = [
             </p>
           )}
 
-          {isAdmin && pending.length > 0 && (
-              <button
-                onClick={() => setShowPending(true)}
-                className="text-blue-600 text-sm"
-              >
-                Pending Members ({pending.length})
-              </button>
-            )}
+          {isAdmin && pendingCount > 0 && (
+            <button
+              onClick={() => setShowPending(true)}
+              className="text-blue-600 text-sm"
+            >
+              Pending Members ({pendingCount})
+            </button>
+          )}
 
         {user.email && (
           <div className="flex justify-between items-center group text-black text-sm">
@@ -469,7 +495,7 @@ const options = [
         <ActionButton
           icon={<Flag size={20} />}
           label="Report Group"
-          onClick={() => setShowReportModal(true)}
+          onClick={() => setShowReportGroupModal(true)}
         />
 
         <ActionButton
@@ -674,6 +700,21 @@ const options = [
 
   </ModalOverlay>
 )}
+
+
+{showReportGroupModal && (
+  <ModalOverlay onClose={() => setShowReportGroupModal(false)}>
+
+    <ReportGroupModal
+      chat={activeChat}
+      onClose={() => setShowReportGroupModal(false)}
+    />
+
+  </ModalOverlay>
+)}
+
+
+
 
 {showModal && (
         <CreateGroupModal
