@@ -126,7 +126,7 @@ export default function ChatItem({
           {isGroup && chat.image_url ? (
             <img
               src={chat.image_url}
-              alt={displayName}
+              alt={displayName}   
               className="w-full h-full object-cover"
             />
           ) : (
@@ -193,31 +193,46 @@ export default function ChatItem({
           </span>
 
           {/* STATUS */}
-          <div className="inline-flex items-center gap-2">
-         {!blockedMe && isMine && (
-          isRead ? (
-            <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] ${getColor(
-                chat.latest_message_read_by_name || isGroup ? senderName : other?.first_name
-              )}`}
-            >
-              {getInitial(chat.latest_message_read_by_name || isGroup ? senderName : other?.first_name)}
-            </span>
-          ) : isOnline ? (
-            <CheckCheck size={16} className="text-gray-400" />
-          ) : (
-            <Check size={16} className="text-gray-400" />
-          )
-        )}
+        <div className="inline-flex items-center gap-2">
+          {!blockedMe && isMine && !isRestrictedMember && (
 
-        {!blockedMe && chat.unread_count > 0 && activeChat?.id !== chat.id && (
-          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full mt-1 inline-block">
-            {chat.unread_count}
-          </span>
-        )}
-        
+            isGroup ? (
+              // ✅ GROUP LOGIC
+              isRead ? (
+                <CheckCheck size={16} className="text-blue-500" />
+              ) : isOnline ? (
+                <CheckCheck size={16} className="text-gray-400" />
+              )  :  (
+                <Check size={16} className="text-gray-400" />
+              )
+            ) : (
+              // ✅ PRIVATE CHAT LOGIC
+              isRead ? (
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] ${getColor(
+                    chat.latest_message_read_by_name || other?.first_name
+                  )}`}
+                >
+                  {getInitial(chat.latest_message_read_by_name || other?.first_name)}
+                </span>
+              ) : isOnline ? (
+                <CheckCheck size={16} className="text-gray-400" />
+              ) : (
+                <Check size={16} className="text-gray-400" />
+              )
+            )
+          )}
+
+          {/* ✅ UNREAD COUNT FIX (IMPORTANT) */}
+          {!blockedMe &&
+            !isRestrictedMember && // 🔥 prevent for pending/rejected/removed
+            chat.unread_count > 0 &&
+            activeChat?.id !== chat.id && (
+              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full mt-1 inline-block">
+                {chat.unread_count}
+              </span>
+          )}
         </div>
-        
         </div>
 
         {/* BLOCK LABELS */}

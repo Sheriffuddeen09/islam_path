@@ -424,6 +424,10 @@ useEffect(() => {
     <UserStatusDots user={activeChat.other_user} />
   )
 
+
+
+
+ //new messages
     const colors = [
       "bg-orange-500",
       "bg-blue-500",
@@ -447,61 +451,78 @@ useEffect(() => {
     membershipStatus === "approved" || activeChat?.type !== "group";
 
       const renderStatus = () => {
-        // ❌ BLOCK EVERYTHING FOR NON-APPROVED USERS
-        if (!canSeeMessages) return null;
+  // ❌ BLOCK EVERYTHING FOR NON-APPROVED USERS
+  if (!canSeeMessages) return null;
 
-        // only sender sees status
-        if (!isMine) return null;
+  // ❌ only sender sees status
+  if (!isMine) return null;
 
-        if (msg.status === "sending") {
-          return (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-5 text-gray-400"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-              />
-            </svg>
-          );
-        }
+  // ✅ detect group
+  const isGroup = activeChat?.type === "group";
 
-        if (msg.status === "failed") {
-          return (
-            <button onClick={retryMessage} className="text-red-500 z-50">
-              Retry
-            </button>
-          );
-        }
+  // ⏳ SENDING
+  if (msg.status === "sending") {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-5 text-gray-400"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+      </svg>
+    );
+  }
 
-        if (msg.status === "read") {
-          const name = msg.read_by_name || "User";
+  // ❌ FAILED
+  if (msg.status === "failed") {
+    return (
+      <button onClick={retryMessage} className="text-red-500 z-50">
+        Retry
+      </button>
+    );
+  }
 
-          return (
-            <span
-              className={`flex items-center justify-center text-white text-[7px] w-3 h-3 rounded-full ${getColor(
-                name
-              )}`}
-            >
-              {getInitial(name)}
-            </span>
-          );
-        }
+  // ✅ READ
+  if (msg.status === "read") {
 
-        if (isUserOnline) {
-          return <CheckCheck className="text-gray-400 w-5" />;
-        }
+    // 🔥 GROUP → BLUE DOUBLE CHECK
+    if (isGroup) {
+      return <CheckCheck className="text-blue-500 w-5" />;
+    }
 
-        if (msg.status === "sent") {
-          return <Check className="text-gray-400 w-5" />;
-        }
-      };
+    // 🔥 PRIVATE → AVATAR INITIAL
+    const name = msg.read_by_name || "User";
+
+    return (
+      <span
+        className={`flex items-center justify-center text-white text-[7px] w-3 h-3 rounded-full ${getColor(
+          name
+        )}`}
+      >
+        {getInitial(name)}
+      </span>
+    );
+  }
+
+
+  if (isUserOnline) {
+    return <CheckCheck className="text-gray-400 w-5" />;
+  }
+
+  // ✔ SENT
+  if (msg.status === "sent") {
+    return <Check className="text-gray-400 w-5" />;
+  }
+
+  return null;
+};
 
 
   const formatTime = (date) => {
@@ -899,17 +920,7 @@ onPointerCancel={() => {
         </div>
       )}
 
-        {unreadCount > 0 && (
-          <div
-            onClick={() => {
-              bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-              setUnreadCount(0);
-            }}
-            className="fixed bottom-20 right-4 z-50 bg-blue-600 text-white px-3 py-1 rounded-full cursor-pointer shadow-lg"
-          >
-            {unreadCount} new messages
-          </div>
-        )}
+       
 
         {/* TEXT */}
           {msg.message && msg.type === "text" && (
@@ -1003,6 +1014,22 @@ onPointerCancel={() => {
       forwardMode={forwardMode}
       setShowReactions={setShowReactionPopup}
     />
+
+     {unreadCount > 0 && (
+        <div
+          onClick={() => {
+            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+            setUnreadCount(0);
+          }}
+          className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center bg-green-600 text-white px-1 text-sm py-1 rounded-full cursor-pointer shadow-lg"
+        >
+          {unreadCount} 
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+        </svg>
+
+        </div>
+      )}
 
   </>
 );

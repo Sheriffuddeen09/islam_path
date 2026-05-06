@@ -596,9 +596,9 @@ const avatarName = isGroup
           <p className="text-red-600 font-semibold inline-flex gap-1 items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
             stroke-width="1.5" stroke="currentColor" class="size-6 text-red-800">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
- Your request was rejected
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            Your request was rejected
           </p>
           <p className="text-gray-500 text-sm mt-2">
             You cannot access this group anymore.
@@ -606,7 +606,7 @@ const avatarName = isGroup
         </>
       )}
 
-      {!status && (
+      {status === "removed" && (
         <>
           <p className="text-red-600 font-semibold">
             🚫 You are no longer a member
