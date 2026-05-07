@@ -1021,7 +1021,7 @@ onPointerCancel={() => {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
             setUnreadCount(0);
           }}
-          className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center bg-green-600 text-white px-1 text-sm py-1 rounded-full cursor-pointer shadow-lg"
+          className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center bg-gray-800 text-white px-1 text-sm py-1 rounded-full cursor-pointer shadow-lg"
         >
           {unreadCount} 
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">

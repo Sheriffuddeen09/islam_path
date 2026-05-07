@@ -19,6 +19,7 @@ import InviteViaLinkModal from "./InviteViaLinkModal";
 import PendingMembersModal from "./PendingMember";
 import { ReportGroupModal } from "./ReportGroupModal";
 import ExitGroupModal from "./ExistGroupModal";
+import DeleteGroupModal from "./DeleteGroupModal";
 
 const socket = io("http://localhost:8000");
 
@@ -67,6 +68,7 @@ export default function ActiveUsers({
   const [pendingCount, setPendingCount] = useState(0);
   const [pending, setPending] = useState([]);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const isAdmin = activeChat?.my_role === "admin";
 
@@ -512,11 +514,26 @@ const options = [
         onClick={() => setShowExitModal(true)} // ✅ FIX
       />
 
-      <ActionButton
-        icon={<Search size={20} />}
-        label="Delete Group"
-        onClick={() => setShowSearchModal(true)}
-      />
+    <ActionButton
+      icon={
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="size-5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 7.5h12m-10.5 3v6m3-6v6m3-6v6M4.5 7.5h15m-1.5 0-.832 11.648A2.25 2.25 0 0 1 14.924 21H9.076a2.25 2.25 0 0 1-2.244-1.852L6 7.5m3-3h6a1.5 1.5 0 0 1 1.5 1.5v1.5h-9V6A1.5 1.5 0 0 1 9 4.5Z"
+          />
+        </svg>
+      }
+      label="Delete Group"
+      onClick={() => setShowDeleteModal(true)}
+    />
       
       </div>
       }
@@ -596,6 +613,18 @@ const options = [
 
   </ModalOverlay>
 )}
+
+
+      {showDeleteModal && (
+        <ModalOverlay onClose={() => setShowDeleteModal(false)}>
+          <DeleteGroupModal
+            chat={activeChat}
+            onClose={() => setShowDeleteModal(false)}
+            setChats={setChats}
+            setActiveChat={setActiveChat}
+          />
+        </ModalOverlay>
+      )}
 
       {showRemoveModal && (
         <RemoveMemberModal

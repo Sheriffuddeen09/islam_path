@@ -196,13 +196,10 @@ useEffect(() => {
 
 
   const status = activeChat?.membership_status; // pending | approved | rejected | null
-  const role = activeChat?.my_role; // admin | member
 
-  const isAdmin = role === "admin";
-
-  const canViewMessages = isAdmin || status === "approved";
-
-  const isBlockedUser = !canViewMessages;
+  const isRestrictedGroupUser =
+  activeChat?.type === "group" &&
+  ["pending", "rejected", "removed", "left"].includes(status);
 
   const filteredMessages = messages;
 
@@ -564,7 +561,7 @@ const avatarName = isGroup
   onScroll={(e) => {
     handleScroll(e);
 
-    if (e.target.scrollTop < 50 && canViewMessages) {
+    if (e.target.scrollTop < 50) {
       loadOlderMessages(); // 🚫 prevent loading if blocked
     }
   }}
@@ -572,7 +569,7 @@ const avatarName = isGroup
   scrollbar-thumb-gray-400 space-y-3 bg-white relative"
 >
 
-  {isBlockedUser ? (
+  {isRestrictedGroupUser ? (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">
 
       <div className="bg-gray-800 text-white text-xs p-3 rounded-lg mb-6">
@@ -713,14 +710,21 @@ const avatarName = isGroup
   const formatSystemMessage = (msg) => {
   if (!msg.message) return "";
 
-  const text = msg.message.toLowerCase();
+  let text = msg.message;
 
-  if (text.includes("removed")) return msg.message;
-  if (text.includes("added")) return msg.message;
-  if (text.includes("rejected")) return msg.message;
-  if (text.includes("left")) return msg.message;
+  const currentUserName =
+    `${authUser?.first_name}`.trim();
 
-  return msg.message;
+  if (currentUserName) {
+
+    const regex = new RegExp(currentUserName, "gi");
+
+    text = text.replace(regex, "You");
+  }
+
+  text = text.replace(/You has/i, "You have");
+
+  return text;
 };
 
   return (
@@ -745,8 +749,8 @@ const avatarName = isGroup
 
       {/* 🔥 SYSTEM MESSAGE */}
       {isSystem ? (
-        <div className="flex justify-center my-2">
-          <div className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full">
+        <div className="flex justify-center">
+          <div className="bg-gray-200 text-gray-800 px-1 py-1 text-[9px] rounded-full">
             {formatSystemMessage(msg)}
           </div>
         </div>

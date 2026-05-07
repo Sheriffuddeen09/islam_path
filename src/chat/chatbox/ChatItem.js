@@ -114,7 +114,9 @@ export default function ChatItem({
 
       const senderName =
       isGroup && !isRestrictedMember
-        ? lastMessage?.sender?.first_name
+        ? lastMessage?.sender_id === authUser?.id
+          ? "You"
+          : lastMessage?.sender?.first_name
         : null;
 
   return (
