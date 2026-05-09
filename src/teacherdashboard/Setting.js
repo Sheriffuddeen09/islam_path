@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut, LogInIcon } from "lucide-react";
 import TeacherFormEdit from "./TeacherFormEdit";
+import TwoStepVerificationModal from "./TwoStepVerification";
 
 
 export default function Setting({editingTeacher, handleClose, handleUpdate, handleEdit}) {
@@ -18,6 +19,9 @@ export default function Setting({editingTeacher, handleClose, handleUpdate, hand
   type: "", // "success" | "error"
   message: "",
 });
+
+  const [showTwoStep, setShowTwoStep] = useState(false);
+
   const [teacher, setTeacher] = useState(null)
 
 
@@ -244,6 +248,19 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </div>
       </div>
       </button>  
+
+      {/* 4 */}
+       <button
+          onClick={() => setShowTwoStep(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
+        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+          <LogInIcon />
+         </div>
+        <div>
+         <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Two Step Verification</p>
+        </div>
+      </div>
+      </button>  
             {/* 5 */}
 
 
@@ -262,6 +279,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
            
      
       </div>
+
     {
       openVisibility && (
          <div className=" gap-4 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -523,6 +541,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         {profileCotent}
         {content}
         {teacherProfile}
+
         {
           openDelete && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center
@@ -575,6 +594,15 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             </div>
           )
         }
+
+        {showTwoStep && (
+                <TwoStepVerificationModal
+                  onClose={() =>
+                    setShowTwoStep(false)
+                  }
+                />
+              )}
+
         {notification.show && (
   <div
     className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-lg shadow-lg text-white transition-all

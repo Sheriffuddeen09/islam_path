@@ -71,6 +71,7 @@ export default function ActiveUsers({
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const [showDisappear, setShowDisappear] = useState(false);
+  const [encryption, setEncryption] = useState(false);
 
   const isAdmin = activeChat?.my_role === "admin";
 
@@ -439,7 +440,11 @@ const options = [
          onClick={() => setShowModal(true)}
          label="New Group Chat" />
 
-        <ActionButton icon={<Shield size={24} />} label="Verify Two-Step" />
+        <ActionButton
+          icon={<Shield size={24} />}
+          label="Encryption"
+          onClick={() => setEncryption(true)}
+        />
 
         {
             !activeChat?.block_info?.blocked ? 
@@ -531,7 +536,7 @@ const options = [
         {isAdmin && (
           <ActionButton
             icon={<Settings size={24} />}
-            label="Update Group Setting"
+            label="Group Setting"
             onClick={() => setShowSettings(true)}
           />
         )}
@@ -553,7 +558,7 @@ const options = [
         {isAdmin && (
         <ActionButton
           icon={<GroupIcon size={24} />}
-          label="Group Member Management"
+          label="Group Permissions"
           onClick={() => setShowGroupMemberModal(true)}
         />
         )}
@@ -611,6 +616,8 @@ const options = [
           Copied {copiedField} ✔
         </div>
       )}
+
+      
 
     {showGroupMemberModal && (
       <GroupMembersManager

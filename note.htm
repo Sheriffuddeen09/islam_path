@@ -19,3 +19,89 @@ php artisan schedule:work
 
 * backend when i forward files of id: 10 which has to two files or more in the file_url but it only return one after it was forwarded  "files": [
                 
+
+how will i solve it if the is new message as it was in picture it will show unrend message and the 
+message will start from there the unread message clear after reload but if there is not message it should 
+start from bottom 
+
+const openChat = async (chat) => {
+  if (activeChat?.id === chat.id) {
+    return;
+  }
+  if (chat.block_info?.blocked_me) {
+    showToast(
+      "You have been blocked in this chat",
+      "error"
+    );
+    return;
+  }
+  setActiveChat(chat);
+  if (!isLargeScreen) {
+    setShowList(false);
+  }
+  localStorage.setItem("lastChatId", chat.id);
+  setChats(prev =>
+    prev.map(c =>
+      c.id === chat.id
+        ? { ...c, unread_count: 0 }
+        : c
+    )
+  );
+  const cached = messagesMap[chat.id];
+  if (cached?.length > 0) {
+    const sortedCached = [...cached]
+      .sort((a, b) => a.id - b.id);
+    setMessages(sortedCached);
+    setLastReadMessageId(
+      chat.last_read_message_id || null
+    );
+    setUnreadCount(
+      chat.unread_count || 0
+    );
+  } else {
+    setLoadingMessages(true);
+    setMessages([]);
+  }
+  try {
+    const res = await api.get(
+      `/api/chats/${chat.id}/messages`
+    );
+    const msgs = (
+      res.data.messages || []
+    ).sort((a, b) => a.id - b.id);
+    setMessages(msgs);
+    setMessagesMap(prev => ({
+      ...prev,
+      [chat.id]: msgs,
+    }));
+    setLastReadMessageId(
+      res.data.last_read_message_id
+    );
+    setUnreadCount(
+      res.data.unread_count || 0
+    );
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoadingMessages(false);
+  }
+  api.post(`/api/chats/${chat.id}/read`)
+    .catch(err => {
+      console.error(
+        "Failed to mark as read",
+        err
+      );
+    });
+};
+<div
+  ref={containerRef}
+  onScroll={(e) => {
+    handleScroll(e);
+
+    if (e.target.scrollTop < 50) {
+      loadOlderMessages(); 
+    }
+  }}
+  className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
+  scrollbar-thumb-gray-400 space-y-3 bg-white relative"
+>
