@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, act } from "react";
-import { Copy,  Shield, Flag, User, UserCircle, MessageCircle, MessageCircleHeart, Search, Group, GroupIcon, Link2Icon, Settings } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Copy,  Shield, Flag, UserCircle, MessageCircleHeart, Search, Group, GroupIcon, Link2Icon, Settings, TimerReset } from "lucide-react";
 import { ChatSkeleton } from "./ChatSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,7 @@ import PendingMembersModal from "./PendingMember";
 import { ReportGroupModal } from "./ReportGroupModal";
 import ExitGroupModal from "./ExistGroupModal";
 import DeleteGroupModal from "./DeleteGroupModal";
+import DisappearingMessagesModal from "./DisappearingMessagesModal";
 
 const socket = io("http://localhost:8000");
 
@@ -44,7 +45,6 @@ export default function ActiveUsers({
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [showDropdown, setShowDropdown] = useState(false);
   const [disappearTime, setDisappearTime] = useState("off");
 
 
@@ -69,6 +69,8 @@ export default function ActiveUsers({
   const [pending, setPending] = useState([]);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  const [showDisappear, setShowDisappear] = useState(false);
 
   const isAdmin = activeChat?.my_role === "admin";
 
@@ -380,51 +382,88 @@ const options = [
         <ActionButton icon={<UserCircle size={24} />} label="View Profile" />
         </Link>
         
-      <div className="relative flex flex-col px-6 pt-3 border-b pb-2">
+      <div className="relative flex flex-co border-b">
 
         {/* BUTTON */}
-        <button  className="font-semibold text-black inline-flex gap-2 items-center"
-        onClick={() => setShowDropdown(!showDropdown)}>
-          <MessageCircle size={20} />
-          Disappear Message
-        </button>
+        <button
+          onClick={() => setShowDisappear(true)}
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-100 px-6"
+        >
 
-        {/* STATUS TEXT (UNDER BUTTON) */}
-        <div className="text-xs text-gray-800 mt-1 ml-7">
-          {options.find(o => o.value === disappearTime)?.label || "Off"}
-        </div>
+          <div className="inline-flex gap-5 items-center">
+            <TimerReset size={24} />
+          <div className="-translate-y-0.5">
+            <p className="font-medium text-left">
+              Disappearing Messages
+            </p>
+
+            <p className="text-[11px] text-gray-700 text-left">
+
+              {activeChat?.disappearing_mode === "24h" &&
+                "24 hours"}
+
+              {activeChat?.disappearing_mode === "7d" &&
+                "7 days"}
+
+              {activeChat?.disappearing_mode === "90d" &&
+                "90 days"}
+
+              {(!activeChat?.disappearing_mode ||
+                activeChat?.disappearing_mode === "off") &&
+                "Off"}
+
+            </p>
+          </div>
+          </div>
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-6 h-6 text-gray-800"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m9 5 7 7-7 7"
+            />
+          </svg>
+        </button>
+        
     </div>
         
         
-        <ActionButton icon={<MessageCircleHeart size={20} />} 
+        <ActionButton icon={<MessageCircleHeart size={24} />} 
          onClick={() => setShowModal(true)}
          label="New Group Chat" />
 
-        <ActionButton icon={<Shield size={20} />} label="Verify Two-Step" />
+        <ActionButton icon={<Shield size={24} />} label="Verify Two-Step" />
 
         {
             !activeChat?.block_info?.blocked ? 
         <ActionButton
-          icon={<Shield size={20} />}
+          icon={<Shield size={24} />}
           label="Block User"
           onClick={() => setShowBlockModal(true)}
         />
         :
         <ActionButton
-          icon={<Shield size={20} />}
+          icon={<Shield size={24} />}
           label="Unblock User"
           onClick={() => setShowBlockModal(true)}
         />
 }
 
         <ActionButton
-          icon={<Flag size={20} />}
+          icon={<Flag size={24} />}
           label="Report User"
           onClick={() => setShowReportModal(true)}
         />
 
         <ActionButton
-        icon={<Search size={20} />}
+        icon={<Search size={24} />}
         label="Search"
         onClick={() => setShowSearchModal(true)}
       />
@@ -443,42 +482,69 @@ const options = [
         onClick={() => setShowInviteModal(true)}
       />
         
-      <div className="relative flex flex-col px-6 pt-3 border-b pb-2">
+      
+      {isAdmin && (
+      <div className="relative flex flex-co border-b">
 
-        {/* BUTTON */}
-        <button  className="font-semibold text-black inline-flex gap-2 items-center"
-        onClick={() => setShowDropdown(!showDropdown)}>
-          <MessageCircle size={20} />
-          Disappear Message
+        <button
+          onClick={() => setShowDisappear(true)}
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-100 px-6"
+        >
+          <div className="inline-flex gap-2 items-center">
+            <TimerReset size={24} />
+          <div className="-translate-y-0.5">
+            <p className="font-medium text-left">
+              Disappearing Messages
+            </p>
+            <p className="text-[11px] text-gray-700 text-left">
+              {activeChat?.disappearing_mode === "24h" &&
+                "24 hours"}
+              {activeChat?.disappearing_mode === "7d" &&
+                "7 days"}
+              {activeChat?.disappearing_mode === "90d" &&
+                "90 days"}
+              {(!activeChat?.disappearing_mode ||
+                activeChat?.disappearing_mode === "off") &&
+                "Off"}
+            </p>
+          </div>
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-6 h-6 text-gray-800"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m9 5 7 7-7 7"
+            />
+          </svg>
         </button>
-
-        {/* STATUS TEXT (UNDER BUTTON) */}
-        <div className="text-xs text-gray-800 mt-1 ml-7">
-          {options.find(o => o.value === disappearTime)?.label || "Off"}
-            </div>
-        </div>
-        
-        
-        {/* ✅ EVERYONE */}
+      </div>
+        )}
         
 
         {isAdmin && (
           <ActionButton
-            icon={<Settings size={20} />}
+            icon={<Settings size={24} />}
             label="Update Group Setting"
             onClick={() => setShowSettings(true)}
           />
         )}
 
         <ActionButton
-          icon={<MessageCircleHeart size={20} />}
+          icon={<MessageCircleHeart size={24} />}
           label="Add New Member"
           onClick={() => setShowAddModal(true)}
         />
 
          {isAdmin && (
           <ActionButton
-            icon={<Shield size={20} />}
+            icon={<Shield size={24} />}
             label="Remove Member"
             onClick={() => setShowRemoveModal(true)}
           />
@@ -486,7 +552,7 @@ const options = [
 
         {isAdmin && (
         <ActionButton
-          icon={<GroupIcon size={20} />}
+          icon={<GroupIcon size={24} />}
           label="Group Member Management"
           onClick={() => setShowGroupMemberModal(true)}
         />
@@ -496,20 +562,20 @@ const options = [
 
         {!isAdmin && (  
         <ActionButton
-          icon={<Flag size={20} />}
+          icon={<Flag size={24} />}
           label="Report Group"
           onClick={() => setShowReportGroupModal(true)}
         />
           )}
 
         <ActionButton
-        icon={<Search size={20} />}
+        icon={<Search size={24} />}
         label="Search"
         onClick={() => setShowGroupSearchModal(true)}
       />
 
       <ActionButton
-        icon={<Search size={20} />}
+        icon={<Search size={24} />}
         label="Exit Group"
         onClick={() => setShowExitModal(true)} // ✅ FIX
       />
@@ -693,33 +759,23 @@ const options = [
   </div>
 )}
 
-{showDropdown && (
-  <ModalOverlay onClose={() => setShowDropdown(false)}>
 
-    <div className="bg-white w-72 text-black text-sm p-6 rounded-xl shadow-lg animate-scaleIn">
+{showDisappear && (
+  <DisappearingMessagesModal
+    chat={activeChat}
+    onClose={() =>
+      setShowDisappear(false)
+    }
+    onUpdated={(mode) => {
 
-    {options.map(opt => (
-      <div
-        key={opt.value}
-        onClick={async () => {
-          setDisappearTime(opt.value);
-          setShowDropdown(false);
+      setActiveChat(prev => ({
+        ...prev,
+        disappearing_mode: mode,
+      }));
 
-          await api.post(`/api/chat/${chatId}/disappearing`, {
-            time: opt.seconds,
-            label: opt.value,
-            enabled: opt.value !== "off",
-          });
-        }}
-        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-      >
-        {opt.label}
-      </div>
-    ))}
-
-  </div>
- 
-  </ModalOverlay>
+      setShowDisappear(false);
+    }}
+  />
 )}
 
 {showReportModal && (

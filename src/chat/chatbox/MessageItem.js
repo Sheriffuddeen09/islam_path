@@ -777,7 +777,7 @@ onPointerCancel={() => {
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       className={`
-        absolute -bottom-8 right-0 translate-y-0.5 flex items-center bg-gray-100 shadow-md gap-0.5 px-1 py-1 rounded-lg text-xs z-50
+        absolute -bottom-8 right-0 flex items-center bg-gray-50 shadow-xl gap-0.5 px-1 py-1 rounded-lg text-xs z-50
         transition-all duration-200
 
         ${

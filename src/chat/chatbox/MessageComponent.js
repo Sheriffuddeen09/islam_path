@@ -21,7 +21,7 @@ export default function MessageComponent({
   openChat,
   setSelectedMessages,
   chats, setChats, setActiveChat,
-  searchMode, searchQuery, setSearchMode, forwardMessage, messages,loadingChats,
+  searchMode, searchQuery, setSearchMode, forwardMessage, messages,loadingChats, 
   setSearchQuery, setReplyingTo, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
@@ -131,38 +131,46 @@ useEffect(() => {
 
       if (targetChat) {
 
-  // 🔥 open immediately
+  // 🔥 immediately switch chat
   setActiveChat(targetChat);
 
-  // 🔥 replace messages if changing chat
-  setMessages((prev) => {
+  // 🔥 ALWAYS replace when opening another chat
+  if (
+    Number(activeChat?.id) !== Number(targetChat.id)
+  ) {
 
-    // if opening another chat
-    if (
-      Number(activeChat?.id) !== Number(targetChat.id)
-    ) {
-      return newMessages;
-    }
+    setMessages(newMessages);
 
-    // same chat → merge safely
-    const existingIds = new Set(
-      prev.map((m) => m.id)
-    );
+  } else {
 
-    return [
-      ...prev,
-      ...newMessages.filter(
-        (m) => !existingIds.has(m.id)
-      ),
-    ];
-  });
+    // 🔥 same chat → merge
+    setMessages((prev) => {
 
-  // 🔥 delayed sync
-  setTimeout(() => {
-    openChat(targetChat);
-  }, 500);
+      const existingIds = new Set(
+        prev.map((m) => m.id)
+      );
+
+      return [
+        ...prev,
+        ...newMessages.filter(
+          (m) => !existingIds.has(m.id)
+        ),
+      ];
+    });
+  }
+
+  // 🔥 cache instantly
+  setMessages((prev) => ({
+    ...prev,
+    [targetChat.id]: newMessages,
+  }));
+
+  // 🔥 open without clearing messages
+  openChat(targetChat);
 }
-    }
+
+
+}
 
     // 🔥 close modal instantly
     setForwardMessage({

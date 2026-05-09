@@ -187,7 +187,7 @@ export default function ChatList({
           </div>
 
           {/* TITLE */}
-          <h2 className="text-3xl font-semibold text-gray-800 mb-3">
+          <h2 className="text-xl font-semibold text-gray-800 mb-3">
 
             {chatFilter === "unread"
               ? "No unread chats"
@@ -198,7 +198,7 @@ export default function ChatList({
           </h2>
 
           {/* SUBTEXT */}
-          <p className="text-gray-500 text-lg mb-10">
+          <p className="text-gray-500 text-sm mb-10">
 
             {chatFilter === "unread"
               ? "You're all caught up."
@@ -211,7 +211,7 @@ export default function ChatList({
           {/* BUTTON */}
           <button
             onClick={() => setChatFilter("all")}
-            className="text-green-500 font-semibold text-lg hover:underline"
+            className="text-green-500 font-semibold text-sm hover:underline"
           >
             View all chats
           </button>

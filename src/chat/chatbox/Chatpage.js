@@ -89,7 +89,6 @@ export default function ChatPage({
 
   // 🚀 OPEN CHAT (NO SCROLL HERE ANYMORE)
 
-
 const openChat = async (chat) => {
 
   if (activeChat?.id === chat.id) {
@@ -192,6 +191,77 @@ const openChat = async (chat) => {
     });
 };
 
+
+
+// when i use this when i open chat, the chat i have open before it load again and the loading take time const openChat = async (chat) => {
+//   if (chat.block_info?.blocked_me) {
+//     showToast("You have been blocked in this chat", "error");
+//     return;
+//   }
+
+//   setActiveChat(chat);
+
+//   if (!isLargeScreen) setShowList(false);
+
+//   localStorage.setItem("lastChatId", chat.id);
+
+//   // ✅ reset sidebar unread
+//   setChats(prev =>
+//     prev.map(c =>
+//       c.id === chat.id ? { ...c, unread_count: 0 } : c
+//     )
+//   );
+
+//   // ✅ CACHE HIT
+//     const cached = messagesMap[chat.id];
+
+//   if (cached && cached.length > 0) {
+
+//     const sortedCached = [...cached]
+//       .sort((a, b) => a.id - b.id);
+
+//     setMessages(sortedCached);
+
+//     setLastReadMessageId(
+//       chat.last_read_message_id || null
+//     );
+
+//     setUnreadCount(chat.unread_count || 0);
+
+//   } else {
+
+//     setMessages([]);
+//   }
+
+//   try {
+//   setLoadingMessages(true);
+
+//   const res = await api.get(`/api/chats/${chat.id}/messages`);
+
+//   // ✅ SORT HERE
+//   const msgs = (res.data.messages || []).sort((a, b) => a.id - b.id);
+
+//   setMessages(msgs);
+
+//   setMessagesMap(prev => ({
+//     ...prev,
+//     [chat.id]: msgs,
+//   }));
+
+//   setLastReadMessageId(res.data.last_read_message_id);
+//   setUnreadCount(res.data.unread_count || 0);
+
+// } finally {
+//   setLoadingMessages(false);
+// }
+//   // ✅ mark as read immediately on open
+//   try {
+//     await api.post(`/api/chats/${chat.id}/read`);
+//   } catch (err) {
+//     console.error("Failed to mark as read", err);
+//   }
+// };
+ 
 
 
 useEffect(() => {

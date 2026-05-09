@@ -46,7 +46,7 @@ export default function DeleteGroupModal({
         Delete Group
       </h2>
 
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-sm text-gray-800 text-center mt-2">
         Are you sure you want to delete this group
         from your chat list?
       </p>
