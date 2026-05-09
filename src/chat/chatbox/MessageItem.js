@@ -20,7 +20,8 @@ export default function MessageItem({
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
-  showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount
+  showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
+  loadingChats
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -1013,6 +1014,7 @@ onPointerCancel={() => {
       authUser={authUser}
       forwardMode={forwardMode}
       setShowReactions={setShowReactionPopup}
+      loadingChats={loadingChats}
     />
 
      {unreadCount > 0 && (

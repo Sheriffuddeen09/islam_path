@@ -91,76 +91,108 @@ export default function ChatPage({
 
 
 const openChat = async (chat) => {
+
+  if (activeChat?.id === chat.id) {
+    return;
+  }
+
   if (chat.block_info?.blocked_me) {
-    showToast("You have been blocked in this chat", "error");
+    showToast(
+      "You have been blocked in this chat",
+      "error"
+    );
     return;
   }
 
   setActiveChat(chat);
 
-  if (!isLargeScreen) setShowList(false);
+  if (!isLargeScreen) {
+    setShowList(false);
+  }
 
   localStorage.setItem("lastChatId", chat.id);
 
-  // ✅ reset sidebar unread
+  // ✅ reset unread
   setChats(prev =>
     prev.map(c =>
-      c.id === chat.id ? { ...c, unread_count: 0 } : c
+      c.id === chat.id
+        ? { ...c, unread_count: 0 }
+        : c
     )
   );
 
-  // ✅ CACHE HIT
-  if (messagesMap[chat.id]) {
-    const cached = messagesMap[chat.id];
+  const cached = messagesMap[chat.id];
 
-    setMessages(cached);
-          // ✅ CACHE HIT
-      if (messagesMap[chat.id]) {
-        const cached = messagesMap[chat.id];
+  // ✅ SHOW CACHE INSTANTLY
+  if (cached?.length > 0) {
 
-        // ✅ ALWAYS sort cached messages
-        const sortedCached = [...cached].sort((a, b) => a.id - b.id);
+    const sortedCached = [...cached]
+      .sort((a, b) => a.id - b.id);
 
-        setMessages(sortedCached);
+    setMessages(sortedCached);
 
-        // ✅ KEEP REAL VALUES (do NOT force 0)
-        setLastReadMessageId(chat.last_read_message_id || null);
-        setUnreadCount(chat.unread_count || 0);
+    setLastReadMessageId(
+      chat.last_read_message_id || null
+    );
 
-        return;
-      }
+    setUnreadCount(
+      chat.unread_count || 0
+    );
 
-    return;
+  } else {
+
+    // only show loading if NO cache
+    setLoadingMessages(true);
+
+    setMessages([]);
   }
 
   try {
-  setLoadingMessages(true);
 
-  const res = await api.get(`/api/chats/${chat.id}/messages`);
+    // 🔥 background refresh
+    const res = await api.get(
+      `/api/chats/${chat.id}/messages`
+    );
 
-  // ✅ SORT HERE
-  const msgs = (res.data.messages || []).sort((a, b) => a.id - b.id);
+    const msgs = (
+      res.data.messages || []
+    ).sort((a, b) => a.id - b.id);
 
-  setMessages(msgs);
+    setMessages(msgs);
 
-  setMessagesMap(prev => ({
-    ...prev,
-    [chat.id]: msgs,
-  }));
+    setMessagesMap(prev => ({
+      ...prev,
+      [chat.id]: msgs,
+    }));
 
-  setLastReadMessageId(res.data.last_read_message_id);
-  setUnreadCount(res.data.unread_count || 0);
+    setLastReadMessageId(
+      res.data.last_read_message_id
+    );
 
-} finally {
-  setLoadingMessages(false);
-}
-  // ✅ mark as read immediately on open
-  try {
-    await api.post(`/api/chats/${chat.id}/read`);
+    setUnreadCount(
+      res.data.unread_count || 0
+    );
+
   } catch (err) {
-    console.error("Failed to mark as read", err);
+
+    console.error(err);
+
+  } finally {
+
+    setLoadingMessages(false);
   }
+
+  // ✅ mark read silently
+  api.post(`/api/chats/${chat.id}/read`)
+    .catch(err => {
+      console.error(
+        "Failed to mark as read",
+        err
+      );
+    });
 };
+
+
 
 useEffect(() => {
   if (!messages.length) return;

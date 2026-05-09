@@ -37,7 +37,7 @@ export default function MessageBox({
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
-  mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount
+  mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats
 }) {
   
 
@@ -640,6 +640,7 @@ const avatarName = isGroup
         {loadingMessages ? (
     <ChatSkeleton type="messages" />
   ) : messages.length === 0 ? (
+    // comment 1
      <div className="flex flex-col items-center justify-center h-full text-center p-6">
         <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
@@ -789,6 +790,7 @@ const avatarName = isGroup
           setSelectedMsg={setSelectedMsg} uiState={uiState} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId}
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+          loadingChats={loadingChats}
         />
         )}
       </div>
@@ -872,7 +874,7 @@ const avatarName = isGroup
       forwardMessage={forwardMessage}
       messagesEndRef={bottomRef}
       setShowReactions={setShowReactionPopup}
-
+      loadingChats={loadingChats}
       />
       ))}
 

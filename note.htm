@@ -12,192 +12,241 @@
   };
 
 
-
-* if there is new message and the chat is open it should start from the first message (id:378) for user can scroll 
-scroll to view the rest but if there is no new message it should start from bottom 
-{#7803
-        +"id": 378,
-        +"chat_id": 12,
-        +"sender_id": 2,
-        +"type": "text",
-        +"file": null,
-        +"created_at": "2026-04-29 10:48:27",
-        +"updated_at": "2026-04-29 10:48:27",
-        +"seen_at": null,
-        +"delivered_at": null,
-        +"message": "for",
-        +"edited": 0,
-        +"replied_to": null,
-        +"body": null,
-        +"forwarded_from": 366,
-        +"receiver_id": null,
-        +"disappear_at": null,
-        +"expires_at": null,
-        +"duration": null,
-        +"file_name": null,
-        +"read_at": null,
-        +"read_by": null,
-        +"is_pinned": 0,
-        +"group_id": "fwd_69f1e1f43484b",
-        +"user_id": null,
-        +"is_forwarded": 1,
-      },
-      {#7804
-        +"id": 379,
-        +"chat_id": 12,
-        +"sender_id": 2,
-        +"type": "text",
-        +"file": null,
-        +"created_at": "2026-04-29 10:48:27",
-        +"updated_at": "2026-04-29 10:48:27",
-        +"seen_at": null,
-        +"delivered_at": null,
-        +"message": "that",
-        +"edited": 0,
-        +"replied_to": null,
-        +"body": null,
-        +"forwarded_from": 367,
-        +"receiver_id": null,
-        +"disappear_at": null,
-        +"expires_at": null,
-        +"duration": null,
-        +"file_name": null,
-        +"read_at": null,
-        +"read_by": null,
-        +"is_pinned": 0,
-        +"group_id": "fwd_69f1e1f43484b",
-        +"user_id": null,
-        +"is_forwarded": 1,
-      },
-      {#7805
-        +"id": 380,
-        +"chat_id": 13,
-        +"sender_id": 1,
-        +"type": "image",
-        +"file": "chat_files/canvasfive_1777515412.png",
-        +"created_at": "2026-04-30 02:16:55",
-        +"updated_at": "2026-04-30 02:41:21",
-        +"seen_at": null,
-        +"delivered_at": "2026-04-30 02:38:39",
-        +"message": null,
-        +"edited": 0,
-        +"replied_to": null,
-        +"body": null,
-        +"forwarded_from": null,
-        +"receiver_id": null,
-        +"disappear_at": null,
-        +"expires_at": null,
-        +"duration": null,
-        +"file_name": "canvasfive.png",
-        +"read_at": "2026-04-30 02:41:21",
-        +"read_by": null,
-        +"is_pinned": 0,
-        +"group_id": "grp_69f2bb9421008",
-        +"user_id": null,
-        +"is_forwarded": 0,
-      },
-      {#7806
-        +"id": 381,
-        +"chat_id": 13,
-        +"sender_id": 1,
-        +"type": "image",
-        +"file": "chat_files/canvasfour_1777515415.png",
-        +"created_at": "2026-04-30 02:16:55",
-        +"updated_at": "2026-04-30 02:41:21",
-        +"seen_at": null,
-        +"delivered_at": "2026-04-30 02:38:39",
-        +"message": null,
-        +"edited": 0,
-        +"replied_to": null,
-        +"body": null,
-        +"forwarded_from": null,
-        +"receiver_id": null,
-        +"disappear_at": null,
-        +"expires_at": null,
-        +"duration": null,
-        +"file_name": "canvasfour.png",
-        +"read_at": "2026-04-30 02:41:21",
-        +"read_by": null,
-        +"is_pinned": 0,
-        +"group_id": "grp_69f2bb9421008",
-        +"user_id": null,
-        +"is_forwarded": 0,
-      },
-      
-const openChat = async (chat) => {
-  if (chat.block_info?.blocked_me) {
-    showToast("You have been blocked in this chat", "error");
-    return;
-  }
-
-  setActiveChat(chat);
-
-  if (!isLargeScreen) setShowList(false);
-
-  localStorage.setItem("lastChatId", chat.id);
-
-  // ✅ reset sidebar unread
-  setChats(prev =>
-    prev.map(c =>
-      c.id === chat.id ? { ...c, unread_count: 0 } : c
-    )
-  );
-
-  // ✅ CACHE HIT
-  if (messagesMap[chat.id]) {
-    const cached = messagesMap[chat.id];
-
-    setMessages(cached);
-
-    // ⚠️ IMPORTANT: still set lastRead + unread
-    setLastReadMessageId(chat.last_read_message_id || null);
-    setUnreadCount(0);
-
-    return;
-  }
-
+  when i forward successful to the group it open chat and show message forward immediately without reload but when i forward to user it open chat but does not show forward message const forwardMessages = async ( 
+  messageIds,
+  receiverTargets
+) => {
   try {
-    setLoadingMessages(true);
+    setLoading(true);
 
-    const res = await api.get(`/api/chats/${chat.id}/messages`);
-    const msgs = res.data.messages || [];
+    const targetsArray = Array.isArray(receiverTargets)
+      ? receiverTargets
+      : [];
 
-    setMessages(msgs);
+    const payload = {
+      message_ids: messageIds,
 
-    setMessagesMap(prev => ({
+      targets: targetsArray.map((t) => {
+
+        // already object
+        if (typeof t === "object") {
+          return {
+            id: Number(t.id),
+            type: t.type || t.__type || "user",
+          };
+        }
+
+        // string user-1
+        const [type, id] = String(t).split("-");
+
+        return {
+          id: Number(id),
+          type,
+        };
+      }),
+    };
+
+    console.log("FORWARD PAYLOAD:", payload);
+
+    const res = await api.post(
+      "/api/messages/forward-multiple",
+      payload
+    );
+
+    console.log("FORWARD RESPONSE:", res.data);
+
+    // 🔥 USE BACKEND CHAT ID
+    const chatId = res.data?.chat_id;
+    const newMessages = res.data?.messages || [];
+
+    if (chatId) {
+
+      // 🔥 get latest chats
+      const chatsRes = await api.get("/api/chats");
+
+      const allChats = chatsRes.data || [];
+
+      // 🔥 instantly update sidebar
+      setChats(allChats);
+
+      // 🔥 find forwarded chat
+      const targetChat = allChats.find(
+        (c) => Number(c.id) === Number(chatId)
+      );
+
+      if (targetChat) {
+
+    setActiveChat(targetChat);
+
+    setMessages((prev) => {
+
+    const existingIds = new Set(
+      prev.map((m) => m.id)
+    );
+
+    const merged = [
       ...prev,
-      [chat.id]: msgs,
-    }));
+      ...newMessages.filter(
+        (m) => !existingIds.has(m.id)
+      ),
+    ];
 
-    // ✅ THIS WAS MISSING
-    setLastReadMessageId(res.data.last_read_message_id);
-    setUnreadCount(res.data.unread_count || 0);
+    return merged;
+  });
+
+  // 🔥 then sync from server silently
+  openChat(targetChat);
+}
+    }
+
+    // 🔥 close modal instantly
+    setForwardMessage({
+      open: false,
+      messages: [],
+    });
+
+    setSelectedMessages([]);
+
+    setToast("Messages forwarded");
+
+  } catch (err) {
+
+    console.error(
+      err.response?.data || err
+    );
+
+    setToast("Failed to forward messages");
 
   } finally {
-    setLoadingMessages(false);
-  }
 
-  // ✅ mark as read immediately on open
-  try {
-    await api.post(`/api/chats/${chat.id}/read`);
-  } catch (err) {
-    console.error("Failed to mark as read", err);
+    setLoading(false);
   }
 };
 
 
-the error is coming from the payload sending to the backend 
-{message_ids: [1563, 1564], user_ids: [1], group_ids: []}
-group_ids
-: 
-[]
-message_ids
-: 
-[1563, 1564]
-user_ids
-: 
-[1]
-
 
 5. forward messages
 6. disappearing message
+
+
+
+* backend when i forward files of id: 10 which has to two files or more in the file_url but it only return one after it was forwarded  "files": [
+                {
+                    "file_url": "http:\/\/localhost:8000\/storage\/chat_files\/Allah_name_2b_1778204460.jpg",
+                    "file_name": "Allah_name_2b.jpg",
+                    "type": "image"
+                },
+                {
+                    "file_url": "http:\/\/localhost:8000\/storage\/chat_files\/Allah_name_3_1778204460.jpg",
+                    "file_name": "Allah_name_3.jpg",
+                    "type": "image"
+                }
+            ] public function forwardMultiple(Request $request)
+{
+    $request->validate([
+        'message_ids' => 'required|array',
+        'message_ids.*' => 'exists:messages,id',
+
+        'targets' => 'required|array',
+        'targets.*.id' => 'required|integer',
+        'targets.*.type' => 'required|in:user,group',
+    ]);
+
+    $authId = auth()->id();
+
+    $messages = Message::whereIn('id', $request->message_ids)->get();
+
+    $lastChat = null;
+
+    foreach ($request->targets as $target) {
+        if ($target['type'] === 'user') {
+
+            $otherUserId = $target['id'];
+
+            if ($otherUserId == $authId) continue;
+
+            $pair = $this->getChatPair($authId, $otherUserId);
+
+            $chat = Chat::firstOrCreate(
+                [
+                    'user_one_id' => $pair['user_one_id'],
+                    'user_two_id' => $pair['user_two_id'],
+                ],
+                [
+                    'type' => 'private',
+                ]
+            );
+
+            foreach ($messages as $msg) {
+                $chat->messages()->create([
+                    'sender_id' => $authId,
+                    'type' => $msg->type,
+                    'message' => $msg->message,
+
+                    // SAFE FILE HANDLING
+                    'file' => $msg->file ?? null,
+                    'file_name' => $msg->file_name ?? null,
+
+                    'is_forwarded' => true,
+                ]);
+            }
+
+            $lastChat = $chat;
+        }
+        if ($target['type'] === 'group') {
+
+            // 🔥 STEP 1: GET REAL GROUP (NOT CHAT)
+            $group = \App\Models\Group::find($target['id']);
+
+            if (!$group) {
+                logger('GROUP NOT FOUND', ['id' => $target['id']]);
+                continue;
+            }
+            $chat = Chat::firstOrCreate(
+                [
+                    'group_id' => $group->id,
+                ],
+                [
+                    'type' => 'group',
+                    'user_one_id' => null,
+                    'user_two_id' => null,
+                ]
+            );
+            foreach ($messages as $msg) {
+                if (!empty($msg->files) && is_array($msg->files)) {
+                    foreach ($msg->files as $file) {
+                        $chat->messages()->create([
+                            'sender_id' => $authId,
+                            'type' => $msg->type,
+                            'message' => null,
+
+                            'file' => $file['file_url'] ?? null,
+                            'file_name' => $file['file_name'] ?? basename($file['file_url'] ?? ''),
+
+                            'is_forwarded' => true,
+                        ]);
+                    }
+
+                } else {
+                    $chat->messages()->create([
+                        'sender_id' => $authId,
+                        'type' => $msg->type,
+                        'message' => $msg->message,
+
+                        'file' => $msg->file ?? null,
+                        'file_name' => $msg->file_name ?? null,
+
+                        'is_forwarded' => true,
+                    ]);
+                }
+            }
+            $lastChat = $chat;
+        }
+    }
+    return response()->json([
+        'message' => 'Messages forwarded successfully',
+        'chat_id' => $lastChat?->id,
+        'chat_type' => $lastChat?->type,
+    ]);
+}
+

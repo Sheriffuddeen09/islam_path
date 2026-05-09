@@ -536,6 +536,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+          loadingChats={loadingChats}
         />
       </div>
       <div className="hidden lg:block lg:w-80 border-l bg-white">

@@ -73,19 +73,23 @@ export default function MediaGrid({ msg, setPreview }) {
         const isLast = realIndex === 2 && total > 3;
 
         return (
-          <div key={realIndex} className="relative">
-            <MediaItem
-              file={file}
-              index={realIndex}
-              openPreview={openPreview}
-            />
+          <div
+              key={realIndex}
+              className="relative"
+              onClick={() => openPreview(realIndex)}
+            >
+              <MediaItem
+                file={file}
+                index={realIndex}
+                openPreview={openPreview}
+              />
 
-            {isLast && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold text-lg">
-                +{remaining}
-              </div>
-            )}
-          </div>
+              {isLast && (
+                <div className="absolute inset-0 pointer-events-none bg-black/60 flex items-center justify-center text-white font-bold text-lg">
+                  +{remaining}
+                </div>
+              )}
+            </div>
         );
       })}
     </div>

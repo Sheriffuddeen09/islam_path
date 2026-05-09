@@ -158,21 +158,34 @@ const handlePick = (type) => {
 };
 
 
-const status = activeChat?.membership_status; // pending | approved | rejected | null
-const role = activeChat?.my_role; // admin | member
-const isAdmin = role === "admin";
+  const status = activeChat?.membership_status; // pending | approved | rejected | null
 
-const onlyAdminSend = activeChat?.only_admin_send === 1;
+  const isGroupChat = activeChat?.type === "group";
 
-const isPending = status === "pending";
-const isRejected = status === "rejected";
-const isRemoved = !status; 
+  const role = activeChat?.my_role; // admin | member
+  const isAdmin = role === "admin";
 
-const canSendMessage =
-  isAdmin || (status === "approved" && !onlyAdminSend);
+  const onlyAdminSend =
+    activeChat?.only_admin_send === 1;
 
-const blockAllInput = isPending || isRejected || isRemoved || !canSendMessage;
+  const isPending = status === "pending";
+  const isRejected = status === "rejected";
+  const isRemoved = !status;
 
+  // ✅ GROUP LOGIC ONLY
+  const canSendMessage = isGroupChat
+    ? (isAdmin || (status === "approved" && !onlyAdminSend))
+    : true;
+
+  // ✅ BLOCK ONLY FOR GROUPS
+  const blockAllInput = isGroupChat
+    ? (
+        isPending ||
+        isRejected ||
+        isRemoved ||
+        !canSendMessage
+      )
+    : false;
 
 
 const handleFileChange = (e) => {

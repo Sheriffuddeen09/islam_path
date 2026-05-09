@@ -20,8 +20,8 @@ export default function MessageComponent({
   selectedMessages,
   openChat,
   setSelectedMessages,
-  chats, setChats,
-  searchMode, searchQuery, setSearchMode, forwardMessage, messages,
+  chats, setChats, setActiveChat,
+  searchMode, searchQuery, setSearchMode, forwardMessage, messages,loadingChats,
   setSearchQuery, setReplyingTo, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
@@ -46,55 +46,149 @@ export default function MessageComponent({
   
 
 
+const [groups, setGroups] = useState([]);
+const [loadingGroups, setLoadingGroups] = useState(true);
 
-  
-  const forwardMessages = async (messageIds, receiverIds) => {
+useEffect(() => {
+  const fetchGroups = async () => {
+    try {
+      setLoadingGroups(true);
+
+      const res = await api.get("/api/groups");
+
+      setGroups(res.data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  fetchGroups();
+}, []);
+
+  const forwardMessages = async (
+  messageIds,
+  receiverTargets
+) => {
   try {
     setLoading(true);
 
-    const res = await api.post("/api/messages/forward-multiple", {
+    const targetsArray = Array.isArray(receiverTargets)
+      ? receiverTargets
+      : [];
+
+    const payload = {
       message_ids: messageIds,
-      user_ids: receiverIds,
-    });
 
-    const forwarded = res.data.messages;
+      targets: targetsArray.map((t) => {
 
-    if (!forwarded?.length) return;
+        // already object
+        if (typeof t === "object") {
+          return {
+            id: Number(t.id),
+            type: t.type || t.__type || "user",
+          };
+        }
 
-    const chatId = forwarded[0].chat_id;
+        // string user-1
+        const [type, id] = String(t).split("-");
 
-    // 🔥 STEP 1: refresh chats (important if new chat was created)
-    const chatsRes = await api.get("/api/chats");
-    const allChats = chatsRes.data;
+        return {
+          id: Number(id),
+          type,
+        };
+      }),
+    };
 
-    setChats(allChats);
+    console.log("FORWARD PAYLOAD:", payload);
 
-    // 🔥 STEP 2: find the correct chat
-    const chat = allChats.find(c => c.id === chatId);
+    const res = await api.post(
+      "/api/messages/forward-multiple",
+      payload
+    );
 
-    if (!chat) {
-      console.warn("Chat not found after forwarding");
-      return;
+    console.log("FORWARD RESPONSE:", res.data);
+
+    // 🔥 USE BACKEND CHAT ID
+    const chatId = res.data?.chat_id;
+    const newMessages = res.data?.messages || [];
+
+    if (chatId) {
+
+      // 🔥 get latest chats
+      const chatsRes = await api.get("/api/chats");
+
+      const allChats = chatsRes.data || [];
+
+      // 🔥 instantly update sidebar
+      setChats(allChats);
+
+      // 🔥 find forwarded chat
+      const targetChat = allChats.find(
+        (c) => Number(c.id) === Number(chatId)
+      );
+
+      if (targetChat) {
+
+  // 🔥 open immediately
+  setActiveChat(targetChat);
+
+  // 🔥 replace messages if changing chat
+  setMessages((prev) => {
+
+    // if opening another chat
+    if (
+      Number(activeChat?.id) !== Number(targetChat.id)
+    ) {
+      return newMessages;
     }
 
-    // 🔥 STEP 3: use your existing logic
-    await openChat(chat);
+    // same chat → merge safely
+    const existingIds = new Set(
+      prev.map((m) => m.id)
+    );
 
+    return [
+      ...prev,
+      ...newMessages.filter(
+        (m) => !existingIds.has(m.id)
+      ),
+    ];
+  });
+
+  // 🔥 delayed sync
+  setTimeout(() => {
+    openChat(targetChat);
+  }, 500);
+}
+    }
+
+    // 🔥 close modal instantly
     setForwardMessage({
-                      open: false,
-                      messages: []
-                    });
+      open: false,
+      messages: [],
+    });
+
     setSelectedMessages([]);
-    setForwardMessage(false);
+
+    setToast("Messages forwarded");
 
   } catch (err) {
-    console.error(err.response?.data || err);
+
+    console.error(
+      err.response?.data || err
+    );
+
     setToast("Failed to forward messages");
+
   } finally {
+
     setLoading(false);
   }
 };
-  
+
+
   // ================= COPY =================
   const handleCopy = async () => {
     await navigator.clipboard.writeText(msg.message || "");
@@ -443,6 +537,9 @@ export default function MessageComponent({
                           setSelectedMessages([]);
                         }}
                         loading={loading}
+                        groups={groups}
+                        loadingChats={loadingChats}
+                        loadingGroups={loadingGroups}
                       />
             </div>
         )}

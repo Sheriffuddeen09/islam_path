@@ -4,48 +4,89 @@ import { useState, useMemo } from "react";
 export function ForwardModal({
   messages = [],
   users = [],
+  groups = [],
   onSend,
-  onClose, loading, setLoading
+  onClose,
+  loading,
+  loadingChats = false,
+  loadingGroups = false,
 }) {
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedTargets, setSelectedTargets] = useState([]);
   const [search, setSearch] = useState("");
 
-  const getUserId = (user) => {
-    return (
-      user?.other_user?.id ||
-      user?.teacher?.id ||
-      user?.student?.id ||
-      null
-    );
-  };
-  const getUserName = (user) => {
-    return (
-      user?.other_user
-        ? `${user.other_user.first_name} ${user.other_user.last_name}`
-        : user?.teacher
-        ? `${user.teacher.first_name} ${user.teacher.last_name}`
-        : user?.student
-        ? `${user.student.first_name} ${user.student.last_name}`
-        : "Unknown User"
-    );
-  };
+  const isLoading = loadingChats || loadingGroups;
 
-  const toggleUser = (id) => {
-    if (!id) return;
 
-    setSelectedUsers((prev) =>
-      prev.includes(id)
-        ? prev.filter((u) => u !== id)
-        : [...prev, id]
-    );
-  };
-  const filteredUsers = useMemo(() => {
-    return users.filter((user) =>
-      getUserName(user)
+   const allTargets = useMemo(() => {
+  const map = new Map();
+  users.forEach((item) => {
+    if (!item) return;
+    if (
+      item.type === "group" ||
+      item.group_id ||
+      item.group ||
+      item.chat_group
+    ) {
+      return;
+    }
+    const user =
+      item.other_user ||
+      item.teacher ||
+      item.student ||
+      item.user ||
+      item;
+    const userId = user?.id || item.id;
+    if (!userId) return;
+    const fullName =
+      `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim();
+
+    const key = `user-${userId}`;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        id: userId,
+        __type: "user",
+        name: fullName || user.name || `User ${userId}`,
+      });
+    }
+  });
+
+  groups.forEach((group) => {
+    if (!group?.id) return;
+
+    const key = `group-${group.id}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        id: group.id,
+        __type: "group",
+        name:
+          group.name ||
+          group.group_name ||
+          "Unnamed Group",
+      });
+    }
+  });
+
+  return Array.from(map.values());
+}, [users, groups]);
+
+const filteredTargets = useMemo(() => {
+    return allTargets.filter((item) =>
+      (item.name || "")
         .toLowerCase()
         .includes(search.toLowerCase())
     );
-  }, [users, search]);
+  }, [allTargets, search]);
+
+  const toggleTarget = (item) => {
+    const key = `${item.__type}-${item.id}`;
+
+    setSelectedTargets((prev) =>
+      prev.includes(key)
+        ? prev.filter((t) => t !== key)
+        : [...prev, key]
+    );
+  };
 
   const getUrl = (f) => {
   if (f.file_url?.startsWith("blob:")) return f.file_url;
@@ -64,7 +105,7 @@ export function ForwardModal({
   return "File";
 };
 
-const renderPreview = (msg) => {
+  const renderPreview = (msg) => {
    if (!msg) return null;
   if (msg.type === "text") {
     return <p className="text-sm truncate">{msg.message}</p>;
@@ -125,39 +166,20 @@ const renderPreview = (msg) => {
   }
   return null;
 };
-
-  const getMessagePreview = (msg) => {
-    if (!msg) return "";
-
-    if (msg.type === "text") return msg.message;
-
-    if (msg.type === "voice") return "🎤 Voice Message";
-    if (msg.type === "audio") return "🎧 Audio";
-    if (msg.type === "video") return "🎥 Video";
-    if (msg.type === "image") return "🖼 Image";
-    if (msg.type === "file") return "📎 Document";
-
-    return "";
-  };
-
-
-  // ================= SEND =================
-  const handleSend = async () => {
-  if (selectedUsers.length === 0) return;
-  await onSend(selectedUsers);
+ const handleSend = async () => {
+  if (!Array.isArray(selectedTargets)) {
+    console.error("selectedTargets is NOT array:", selectedTargets);
+    return;
+  }
+  await onSend([...selectedTargets]); 
 };
-
-
-
-  if (!messages || messages.length === 0) {
+  
+  if (!messages.length) {
     return (
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-white p-5 rounded w-80 text-center">
           <p className="text-gray-500">No message selected</p>
-          <button
-            onClick={onClose}
-            className="mt-4 text-red-500 font-semibold"
-          >
+          <button onClick={onClose} className="mt-4 text-red-500">
             Close
           </button>
         </div>
@@ -166,88 +188,113 @@ const renderPreview = (msg) => {
   }
 
   return (
-    
-      <div className="bg-black/30  w-full h-full ">
-        <div className="w-[95%] max-w-md p-4 mx-auto bg-white mt-10 mb-10 rounded-xl">
-
-        {/* HEADER */}
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+      <div className="w-[95%] max-w-md bg-white p-4 rounded-xl">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg">
-            Forward modal ({messages.length})
+            Forward ({messages.length})
           </h2>
-
-          <button onClick={onClose} className="text-red-500">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
-            class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
-            w-10  h-10 cursor-pointer">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="text-red-500 text-xl">
+            ✕
           </button>
         </div>
-
-        {/* MESSAGE PREVIEW */}
         <div className="max-h-40 overflow-y-auto mb-3 space-y-2 border p-2 rounded">
-
           {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className="p-2 bg-gray-100 rounded-lg"
-            >
-              {renderPreview(msg)}
+            <div key={msg.id} className="p-2 bg-gray-100 rounded-lg">
+              <p className="text-sm truncate">
+                {renderPreview(msg)}
+              </p>
             </div>
           ))}
-
         </div>
-
-        {/* SEARCH */}
         <input
           type="text"
-          placeholder="Search user..."
+          placeholder="Search user or group..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border p-2 rounded mb-2 "
+          className="w-full border p-2 rounded mb-2"
         />
+        <div className="max-h-52 overflow-y-auto space-y-2">
 
-        {/* USERS */}
-        <div className="max-h-52 overflow-y-auto mb-3 space-y-1">
+  {/* SKELETON LOADING */}
+  {isLoading && (
+    <>
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          className="animate-pulse flex items-center justify-between p-3 rounded-lg border"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-300" />
 
-          {filteredUsers.map((user) => {
-            const id = getUserId(user);
+            <div>
+              <div className="h-3 w-28 bg-gray-300 rounded mb-2" />
+              <div className="h-2 w-16 bg-gray-200 rounded" />
+            </div>
+          </div>
+
+          <div className="w-5 h-5 rounded-full bg-gray-300" />
+        </div>
+      ))}
+    </>
+  )}
+
+        {!isLoading &&
+          filteredTargets.map((item) => {
+
+            const key = `${item.__type}-${item.id}`;
+            const isSelected = selectedTargets.includes(key);
 
             return (
               <button
-                key={id}
-                onClick={() => toggleUser(id)}
-                className={`w-full text-left p-2 rounded flex justify-between items-center transition ${
-                  selectedUsers.includes(id)
+                key={key}
+                onClick={() => toggleTarget(item)}
+                className={`w-full text-left p-3 rounded-lg flex justify-between items-center transition ${
+                  isSelected
                     ? "bg-green-700 text-white"
-                    : "lg:hover:bg-gray-800 lg:hover:text-white"
+                    : "hover:bg-gray-100"
                 }`}
               >
-                <div className="font-medium">
-                  {getUserName(user)}
+                <div className="flex items-center gap-3">
+
+                  {/* AVATAR */}
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                      isSelected
+                        ? "bg-white text-green-700"
+                        : "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {item.name?.charAt(0)?.toUpperCase()}
+                  </div>
+
+                  <div>
+                    <div className="font-medium">
+                      {item.name}
+                    </div>
+
+                    <div className="text-xs opacity-70 capitalize">
+                      {item.__type}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-xs opacity-70 truncate">
-                  {getMessagePreview(user.last_message)}
-                </div>
-
-                 {selectedUsers.includes(id) && <span>
-                  <CheckCircle />
-                  </span>}
+                {isSelected && <CheckCircle />}
               </button>
             );
           })}
 
-        </div>
-
-        {/* FOOTER */}
-        <div className="flex justify-between items-center gap-2">
-
-          <button
+        {/* EMPTY */}
+        {!isLoading && filteredTargets.length === 0 && (
+          <div className="text-center text-gray-500 py-6">
+            No users or groups found
+          </div>
+        )}
+      </div>
+       <button
             onClick={handleSend}
-            disabled={loading || selectedUsers.length === 0}
-            className={`px-4 py-2 rounded text-white w-full ${
+            disabled={loading || selectedTargets.length === 0}
+            className={`px-4 py-3 mt-4 rounded text-white w-full ${
               loading
                 ? "bg-gray-400"
                 : "bg-blue-600 hover:bg-blue-700"
@@ -276,12 +323,10 @@ const renderPreview = (msg) => {
       ></path>
     </svg> Forwarding
               </p>
-              : `Forward (${selectedUsers.length})`}
+              : `Forward (${selectedTargets.length})`}
           </button>
 
         </div>
-        </div>
-      </div>
-    
+    </div>
   );
 }
