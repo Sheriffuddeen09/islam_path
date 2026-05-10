@@ -30,19 +30,18 @@ export default function MessageBox({
   setActiveChat,
   chats,
   setReplyingTo, replyingTo, setChats,
-  containerRef,
-  handleScroll,
   paused, trimMap, trimAppliedMap,
   stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
-  mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats
+  mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
+  setLastReadMessageId
 }) {
   
 
 
-  const [callMode, setCallMode] = useState(null); // "audio" | "video" messageRefs
+  const [callMode, setCallMode] = useState(null); 
   const [showNewBtn, setShowNewBtn] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -63,8 +62,8 @@ export default function MessageBox({
 
   const [selectedMsg, setSelectedMsg] = useState(null);
 
-    const [showReactionPopup, setShowReactionPopup] = useState(null);
-  
+  const [showReactionPopup, setShowReactionPopup] = useState(null);
+  const messagesContainerRef = useRef(null);
 
   const lastMessageCount = useRef(0);
   const isUserNearBottom = useRef(true);
@@ -130,38 +129,106 @@ useEffect(() => {
   
   // ================= LOAD OLDER MESSAGES Select a chat =================
   const loadOlderMessages = async () => {
-    if (loadingMore || messages.length === 0) return;
 
-    setLoadingMore(true);
+  if (
+    loadingMore ||
+    messages.length === 0 ||
+    !hasMore
+  ) return;
 
-    const el = containerRef.current;
-    const prevHeight = el.scrollHeight;
+  setLoadingMore(true);
 
-    try {
-      const res = api.get(`/api/messages?chat_id=${chatId}&before=${messages[0].id}`)
+  const container = messagesContainerRef.current;
 
-      const older = res.data.data;
+  const oldScrollHeight =
+    container?.scrollHeight || 0;
 
-      if (!older.length) {
-        setHasMore(false);
-        setLoadingMore(false);
-        return;
-      }
+  try {
 
-      setMessages(prev => [...older, ...prev]);
+    const firstMessage = messages[0];
 
-      // preserve scroll position (IMPORTANT)
-      setTimeout(() => {
-        const newHeight = el.scrollHeight;
-        el.scrollTop = newHeight - prevHeight;
-      }, 50);
+    const res = await api.get(
+      `/api/messages?chat_id=${chatId}&before=${firstMessage.id}`
+    );
 
-    } catch (err) {
-     
+    const older = res.data.data || [];
+
+    // 🔥 stop further loading
+    if (older.length < 30) {
+      setHasMore(false);
     }
 
+    if (!older.length) {
+      return;
+    }
+
+    // 🔥 prepend without duplicates
+    setMessages(prev => {
+
+      const ids = new Set(prev.map(m => m.id));
+
+      const uniqueOlder = older.filter(
+        m => !ids.has(m.id)
+      );
+
+      return [
+        ...uniqueOlder,
+        ...prev,
+      ];
+    });
+
+    requestAnimationFrame(() => {
+
+      if (!container) return;
+
+      const newScrollHeight =
+        container.scrollHeight;
+
+      // 🔥 preserve exact position
+      container.scrollTop =
+        newScrollHeight - oldScrollHeight;
+    });
+
+  } catch (err) {
+
+    console.error(
+      "Failed to load older messages",
+      err
+    );
+
+  } finally {
+
     setLoadingMore(false);
+  }
+};
+
+
+useEffect(() => {
+  const container = messagesContainerRef.current;
+
+  if (!container) return;
+
+  const handleScroll = () => {
+
+    // already loading
+    if (loadingMore || !hasMore) return;
+
+    // 🔥 distance from top
+    const scrollTop = container.scrollTop;
+
+    // 🔥 trigger before reaching absolute top
+    // this gives smoother loading
+    if (scrollTop < 300) {
+      loadOlderMessages();
+    }
   };
+
+  container.addEventListener("scroll", handleScroll);
+
+  return () => {
+    container.removeEventListener("scroll", handleScroll);
+  };
+}, [loadingMore, hasMore, messages]);
 
   // ================= SCROLL TO MESSAGE =================
   const handleScrollToMessage = (msg) => {
@@ -257,6 +324,14 @@ const handlePin = async (msg) => {
   }
 };
 
+
+  const handleScroll = (e) => {
+
+    if (e.target.scrollTop < 100) {
+
+      loadOlderMessages();
+    }
+  };
  const handleSearch = (text) => {
     setSearchMode(true);
     setSearchQuery(text);
@@ -294,6 +369,14 @@ const displayName = isGroup
 const avatarName = isGroup
   ? displayName
   : activeChat?.other_user?.first_name;
+
+  
+  const firstUnreadMessageId =
+    messages.find(
+      msg =>
+        lastReadMessageId &&
+        msg.id > lastReadMessageId
+    )?.id;
 
 
   return (
@@ -557,14 +640,8 @@ const avatarName = isGroup
 
       {/* CHAT BODY */}
       <div
-  ref={containerRef}
-  onScroll={(e) => {
-    handleScroll(e);
-
-    if (e.target.scrollTop < 50) {
-      loadOlderMessages(); // 🚫 prevent loading if blocked
-    }
-  }}
+        onScroll={handleScroll}
+       ref={messagesContainerRef}
   className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
   scrollbar-thumb-gray-400 space-y-3 bg-white relative"
 >
@@ -631,9 +708,9 @@ const avatarName = isGroup
   ) : (
     <>  
         {/* LOADING OLDER */}
-        {loadingMore && (
-          <div className="text-center mx-auto flex justify-center text-center text-xs text-gray-800">
-            <Loader2 />
+        {loadingMore && hasMore && (
+          <div className="text-center mx-auto flex justify-center text-center text-xs text-gray-800 py-2">
+            <Loader2 className="animate-spin" />
           </div>
         )}
 
@@ -728,6 +805,13 @@ const avatarName = isGroup
   return text;
 };
 
+  
+
+  
+const isFirstUnread =
+    msg.id === firstUnreadMessageId;
+
+
   return (
     <div
       key={msg.id}
@@ -748,7 +832,20 @@ const avatarName = isGroup
         </div>
       )}
 
-      {/* 🔥 SYSTEM MESSAGE */}
+      {isFirstUnread && unreadCount > 0 && (
+        <div className="flex items-center gap-3 my-4 px-2">
+
+          <div className="flex-1 h-[1px] bg-gray-800" />
+
+          <div className="text-gray-800 text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
+            {unreadCount} Unread Message{unreadCount > 1 ? "s" : ""}
+          </div>
+
+          <div className="flex-1 h-[1px] bg-gray-800" />
+
+        </div>
+      )}
+
       {isSystem ? (
         <div className="flex justify-center">
           <div className="bg-gray-200 text-gray-800 px-1 py-1 text-[9px] rounded-full">
@@ -757,6 +854,7 @@ const avatarName = isGroup
         </div>
       ) : (
          <MessageItem
+          setLastReadMessageId={setLastReadMessageId}
           setChats={setChats}
           key={msg.id}
           openChat={openChat}      
@@ -767,7 +865,6 @@ const avatarName = isGroup
           isMine={msg.sender_id === authUser.id}
           setActiveReplyId={setActiveReplyId}
           messageRefs={messageRefs}
-          containerRef={containerRef}
           setMessages={setMessages}
           chatId={chatId}
           isTyping={isTyping}

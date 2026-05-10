@@ -21,7 +21,7 @@ export default function MessageItem({
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats
+  loadingChats, setLastReadMessageId
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -52,12 +52,7 @@ export default function MessageItem({
 
   const longPressTriggered = useRef(false);
 
-  const applyElastic = (x) => {
-    // resistance after 60px
-    if (x <= 60) return x;
 
-    return 60 + (x - 60) * 0.3; // dampen beyond threshold
-  };
   
 useEffect(() => {
   if (!messageRef.current) return;
@@ -417,10 +412,7 @@ useEffect(() => {
 }, [selectedMessages, showReactionPopup]);
 
 
-  const otherUser = activeChat?.users?.find(
-      (u) => u.id !== authUser.id
-    );
-
+ 
     const  isUserOnline  = (
     <UserStatusDots user={activeChat.other_user} />
   )
@@ -1018,20 +1010,75 @@ onPointerCancel={() => {
     />
 
      {unreadCount > 0 && (
-        <div
-          onClick={() => {
-            bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-            setUnreadCount(0);
-          }}
-          className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center bg-gray-800 text-white px-1 text-sm py-1 rounded-full cursor-pointer shadow-lg"
-        >
-          {unreadCount} 
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
-        </svg>
+      <div
+        onClick={async () => {
 
-        </div>
-      )}
+          // ✅ scroll to bottom
+          bottomRef.current?.scrollIntoView({
+            behavior: "smooth",
+          });
+
+          // ✅ set latest message as read
+          const latestMessage =
+            messages[messages.length - 1];
+
+          if (latestMessage) {
+
+            setLastReadMessageId(
+              latestMessage.id
+            );
+          }
+
+          // ✅ clear unread count locally
+          setUnreadCount(0);
+
+          // ✅ clear unread count in sidebar
+          setChats(prev =>
+            prev.map(chat =>
+              chat.id === activeChat?.id
+                ? {
+                    ...chat,
+                    unread_count: 0,
+                  }
+                : chat
+            )
+          );
+
+          // ✅ mark read in backend
+          try {
+
+            await api.post(
+              `/api/chats/${activeChat.id}/read`
+            );
+
+          } catch (err) {
+
+            console.error(
+              "Failed to mark read",
+              err
+            );
+          }
+        }}
+        className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center  bg-gray-800 text-white px-2 py-2 rounded-full cursor-pointer"
+      >
+        {unreadCount}
+
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="size-4"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+          />
+        </svg>
+      </div>
+    )}
 
   </>
 );

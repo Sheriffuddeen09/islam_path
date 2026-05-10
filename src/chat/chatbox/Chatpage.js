@@ -2,7 +2,6 @@ import  { useRef, useState, useMemo, useEffect } from "react";
 import { UserSkeleton } from "./UserSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
-import useAutoScroll from "./useAutoScroll";
 import ChatComponent from "./ChatComponent";
 import { initEcho } from "../../echo";
 
@@ -15,7 +14,6 @@ export default function ChatPage({
   const { user: authUser } = useAuth();
 
 
-  const [messagesMap, setMessagesMap] = useState({});
 
   const [chatFilter, setChatFilter] = useState("all");
   const [loadingChats, setLoadingChats] = useState(true);
@@ -27,16 +25,19 @@ export default function ChatPage({
   const [showProfile, setShowProfile] = useState(false);
 
   const chatId = activeChat?.id;
+  const messagesEndRef = useRef(null);
   const messageRefs = useRef({});
 
   
   const [lastReadMessageId, setLastReadMessageId] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const messages = messagesMap[activeChat?.id] || [];
+  const [messagesMap, setMessagesMap] = useState({});
 
-  const { bottomRef, containerRef, handleScroll } =
-    useAutoScroll( messages, lastReadMessageId, messageRefs, setUnreadCount, chatId );
+  const messages = Array.isArray(messagesMap[activeChat?.id])
+    ? messagesMap[activeChat?.id]
+    : [];
+
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -111,7 +112,7 @@ const openChat = async (chat) => {
 
   localStorage.setItem("lastChatId", chat.id);
 
-  // ✅ reset unread
+  // ✅ reset unread in sidebar
   setChats(prev =>
     prev.map(c =>
       c.id === chat.id
@@ -138,9 +139,38 @@ const openChat = async (chat) => {
       chat.unread_count || 0
     );
 
+    // ✅ SCROLL AFTER RENDER
+    setTimeout(() => {
+
+      // find first unread message
+      const firstUnread = sortedCached.find(
+        msg =>
+          chat.last_read_message_id &&
+          msg.id > chat.last_read_message_id
+      );
+
+      if (firstUnread) {
+
+        // scroll to first unread
+        messageRefs.current[firstUnread.id]
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+
+      } else {
+
+        // no unread -> bottom
+        messagesEndRef.current
+          ?.scrollIntoView({
+            behavior: "smooth",
+          });
+      }
+
+    }, 100);
+
   } else {
 
-    // only show loading if NO cache
     setLoadingMessages(true);
 
     setMessages([]);
@@ -148,7 +178,7 @@ const openChat = async (chat) => {
 
   try {
 
-    // 🔥 background refresh
+    // ✅ FETCH LATEST
     const res = await api.get(
       `/api/chats/${chat.id}/messages`
     );
@@ -172,6 +202,35 @@ const openChat = async (chat) => {
       res.data.unread_count || 0
     );
 
+    // ✅ WAIT FOR DOM RENDER
+    setTimeout(() => {
+
+      const firstUnread = msgs.find(
+        msg =>
+          res.data.last_read_message_id &&
+          msg.id > res.data.last_read_message_id
+      );
+
+      if (firstUnread) {
+
+        // scroll to first unread
+        messageRefs.current[firstUnread.id]
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+
+      } else {
+
+        // no unread -> bottom
+        messagesEndRef.current
+          ?.scrollIntoView({
+            behavior: "smooth",
+          });
+      }
+
+    }, 100);
+
   } catch (err) {
 
     console.error(err);
@@ -191,77 +250,6 @@ const openChat = async (chat) => {
     });
 };
 
-
-
-// when i use this when i open chat, the chat i have open before it load again and the loading take time const openChat = async (chat) => {
-//   if (chat.block_info?.blocked_me) {
-//     showToast("You have been blocked in this chat", "error");
-//     return;
-//   }
-
-//   setActiveChat(chat);
-
-//   if (!isLargeScreen) setShowList(false);
-
-//   localStorage.setItem("lastChatId", chat.id);
-
-//   // ✅ reset sidebar unread
-//   setChats(prev =>
-//     prev.map(c =>
-//       c.id === chat.id ? { ...c, unread_count: 0 } : c
-//     )
-//   );
-
-//   // ✅ CACHE HIT
-//     const cached = messagesMap[chat.id];
-
-//   if (cached && cached.length > 0) {
-
-//     const sortedCached = [...cached]
-//       .sort((a, b) => a.id - b.id);
-
-//     setMessages(sortedCached);
-
-//     setLastReadMessageId(
-//       chat.last_read_message_id || null
-//     );
-
-//     setUnreadCount(chat.unread_count || 0);
-
-//   } else {
-
-//     setMessages([]);
-//   }
-
-//   try {
-//   setLoadingMessages(true);
-
-//   const res = await api.get(`/api/chats/${chat.id}/messages`);
-
-//   // ✅ SORT HERE
-//   const msgs = (res.data.messages || []).sort((a, b) => a.id - b.id);
-
-//   setMessages(msgs);
-
-//   setMessagesMap(prev => ({
-//     ...prev,
-//     [chat.id]: msgs,
-//   }));
-
-//   setLastReadMessageId(res.data.last_read_message_id);
-//   setUnreadCount(res.data.unread_count || 0);
-
-// } finally {
-//   setLoadingMessages(false);
-// }
-//   // ✅ mark as read immediately on open
-//   try {
-//     await api.post(`/api/chats/${chat.id}/read`);
-//   } catch (err) {
-//     console.error("Failed to mark as read", err);
-//   }
-// };
- 
 
 
 useEffect(() => {
@@ -286,87 +274,6 @@ useEffect(() => {
   el?.scrollIntoView({ behavior: "smooth" });
 
 }, [messages, unreadCount, lastReadMessageId]);
-
-
-const echo = initEcho(); 
-
-useEffect(() => {
-  if (!activeChat) return;
-
-  const channel = echo.private(`chat.${activeChat.id}`);
-
-  channel.listen("NewMessage", (e) => {
-    handleIncomingMessage(e.message);
-  });
-
-  return () => {
-    echo.leave(`chat.${activeChat.id}`);
-  };
-}, [activeChat]);
-
-const handleIncomingMessage = (newMsg) => {
-  const chatId = newMsg.chat_id;
-
-  // ✅ update cache
-  setMessagesMap(prev => ({
-    ...prev,
-    [chatId]: [...(prev[chatId] || []), newMsg],
-  }));
-
-  // ✅ if current chat is open
-  if (activeChat?.id === chatId) {
-    setMessages(prev => [...prev, newMsg]);
-
-    if (bottomRef.current) {
-      setUnreadCount(0);
-
-      api.post(`/api/chats/${chatId}/read`);
-    } else {
-      setUnreadCount(prev => prev + 1);
-    }
-  } else {
-    // ✅ update sidebar unread
-    setChats(prev =>
-      prev.map(c =>
-        c.id === chatId
-          ? { ...c, unread_count: (c.unread_count || 0) + 1 }
-          : c
-      )
-    );
-  }
-};
-
-  const restoredRef = useRef(false);
-
-  useEffect(() => {
-    if (!chats.length || restoredRef.current) return;
-    if (!isLargeScreen) return;
-
-    const lastChatId = localStorage.getItem("lastChatId");
-    if (!lastChatId) return;
-
-    const found = chats.find(c => c.id === Number(lastChatId));
-    if (found) {
-      restoredRef.current = true;
-      openChat(found);
-    }
-  }, [chats]);
-
-  // 🚀 FIXED AUTO SCROLL (THIS IS THE KEY FIX)
-  useEffect(() => {
-    if (!activeChat?.id) return;
-
-    const msgs = messagesMap[activeChat.id];
-    if (!msgs || msgs.length === 0) return;
-
-    // wait for DOM paint
-    requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "end",
-      });
-    });
-  }, [activeChat?.id, messagesMap]);
 
   const unreadTotal = useMemo(
     () => chats.reduce((sum, c) => sum + (c.unread_count || 0), 0),
@@ -414,14 +321,14 @@ const handleIncomingMessage = (newMsg) => {
       showProfile={showProfile}
       setShowList={setShowList}
       showList={showList}
-      bottomRef={bottomRef}
-      handleScroll={handleScroll}
-      containerRef={containerRef}
+      bottomRef={messagesEndRef}
       setToast={setToast}
       openChat={openChat}
       messages={messages}
       setMessages={(updater) => setMessages(activeChat?.id, updater)}
       unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+      lastReadMessageId={lastReadMessageId}
+      setLastReadMessageId={setLastReadMessageId}
     />
   );
 }

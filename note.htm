@@ -19,89 +19,111 @@ php artisan schedule:work
 
 * backend when i forward files of id: 10 which has to two files or more in the file_url but it only return one after it was forwarded  "files": [
                 
+if am scroll up and the message am scroll up is more than 30 the previous message load should apply 
 
-how will i solve it if the is new message as it was in picture it will show unrend message and the 
-message will start from there the unread message clear after reload but if there is not message it should 
-start from bottom 
+public function oldMessage(Request $request)
+{
+    $chatId = $request->query('chat_id');
+    $before = $request->query('before');
 
-const openChat = async (chat) => {
-  if (activeChat?.id === chat.id) {
-    return;
-  }
-  if (chat.block_info?.blocked_me) {
-    showToast(
-      "You have been blocked in this chat",
-      "error"
-    );
-    return;
-  }
-  setActiveChat(chat);
-  if (!isLargeScreen) {
-    setShowList(false);
-  }
-  localStorage.setItem("lastChatId", chat.id);
-  setChats(prev =>
-    prev.map(c =>
-      c.id === chat.id
-        ? { ...c, unread_count: 0 }
-        : c
-    )
-  );
-  const cached = messagesMap[chat.id];
-  if (cached?.length > 0) {
-    const sortedCached = [...cached]
-      .sort((a, b) => a.id - b.id);
-    setMessages(sortedCached);
-    setLastReadMessageId(
-      chat.last_read_message_id || null
-    );
-    setUnreadCount(
-      chat.unread_count || 0
-    );
-  } else {
-    setLoadingMessages(true);
-    setMessages([]);
-  }
-  try {
-    const res = await api.get(
-      `/api/chats/${chat.id}/messages`
-    );
-    const msgs = (
-      res.data.messages || []
-    ).sort((a, b) => a.id - b.id);
-    setMessages(msgs);
-    setMessagesMap(prev => ({
-      ...prev,
-      [chat.id]: msgs,
-    }));
-    setLastReadMessageId(
-      res.data.last_read_message_id
-    );
-    setUnreadCount(
-      res.data.unread_count || 0
-    );
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoadingMessages(false);
-  }
-  api.post(`/api/chats/${chat.id}/read`)
-    .catch(err => {
-      console.error(
-        "Failed to mark as read",
-        err
-      );
-    });
-};
-<div
-  ref={containerRef}
-  onScroll={(e) => {
-    handleScroll(e);
-
-    if (e.target.scrollTop < 50) {
-      loadOlderMessages(); 
+    if (!$chatId) {
+        return response()->json(['message' => 'chat_id is required'], 422);
     }
-  }}
-  className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
-  scrollbar-thumb-gray-400 space-y-3 bg-white relative"
->
+
+    $query = Message::where('chat_id', $chatId);
+
+    if ($before) {
+        $query->where('id', '<', $before);
+    }
+
+    $messages = $query
+        ->orderBy('id', 'desc')
+        ->limit(20)
+        ->get()
+        ->map(function ($msg) {
+            return [
+                ...$msg->toArray(),
+                'created_at' => $msg->created_at?->toISOString(),
+
+                'status' => match (true) {
+                    !is_null($msg->read_at) => 'read',
+                    !is_null($msg->delivered_at) => 'delivered',
+                    default => 'sent',
+                },
+            ];
+        });
+
+    return response()->json([
+        'data' => $messages
+    ]);
+}
+const loadOlderMessages = async () => {
+
+  if (
+    loadingMore ||
+    messages.length === 0 ||
+    !hasMore
+  ) return;
+
+  setLoadingMore(true);
+
+  // ✅ current scroll container
+  const container = messagesContainerRef.current;
+
+  // ✅ store old scroll height
+  const oldScrollHeight =
+    container?.scrollHeight || 0;
+
+  try {
+
+    // ✅ await request
+    const res = await api.get(
+      `/api/messages?chat_id=${chatId}&before=${messages[0].id}`
+    );
+
+    const older = res.data.data || [];
+
+    // ✅ no more messages
+    if (!older.length) {
+
+      setHasMore(false);
+      setLoadingMore(false);
+
+      return;
+    }
+
+    // ✅ prepend older messages
+    setMessages(prev => [
+      ...older,
+      ...prev,
+    ]);
+
+    // ✅ preserve scroll position
+    requestAnimationFrame(() => {
+
+      if (!container) return;
+
+      const newScrollHeight =
+        container.scrollHeight;
+
+      container.scrollTop =
+        newScrollHeight - oldScrollHeight;
+    });
+
+  } catch (err) {
+
+    console.error(
+      "Failed to load older messages",
+      err
+    );
+
+  } finally {
+
+    setLoadingMore(false);
+  }
+};
+{loadingMore && hasMore && (
+          <div className="text-center mx-auto flex justify-center text-center text-xs text-gray-800">
+            <Loader2 />
+          </div>
+        )}

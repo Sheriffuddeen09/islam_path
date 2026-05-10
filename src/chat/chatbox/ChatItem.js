@@ -101,7 +101,6 @@ export default function ChatItem({
 
     const isRead = chat.latest_message_status === "read";
 
-    const membershipStatus = chat.membership_status;
     const isGroup = chat.type === "group";
 
       const displayName = isGroup

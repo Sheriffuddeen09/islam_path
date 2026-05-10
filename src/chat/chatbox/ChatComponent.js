@@ -6,8 +6,8 @@ import MessageBox from "./MessageBox";
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
-    chatId,setShowProfile, showProfile, setShowList, showList, bottomRef, handleScroll,containerRef, openChat,
-    setMessages, messages, messageRefs, unreadCount, setUnreadCount
+    chatId,setShowProfile, showProfile, setShowList, showList, bottomRef, openChat,
+    setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -507,6 +507,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           setChats={setChats}
           openChat={openChat}
           messageRefs={messageRefs}
+          setLastReadMessageId={setLastReadMessageId}
           activeChat={activeChat}
           messages={messages}
           setMessages={setMessages}
@@ -523,8 +524,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           chats={chats}
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
-          containerRef={containerRef}
-          handleScroll={handleScroll}
           paused={paused} trimMap={trimMap} trimAppliedMap={trimAppliedMap} stopRecording={stopRecording} 
           sendText={sendText} sendFile={sendFile} zoomMap={zoomMap} setTrimAppliedMap={setTrimAppliedMap} 
           setTrimMap={setTrimMap} recording={recording} setDurationMap={setDurationMap} setShowPreview={setShowPreview}
@@ -536,7 +535,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
-          loadingChats={loadingChats}
+          loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
         />
       </div>
       <div className="hidden lg:block lg:w-80 border-l bg-white">
