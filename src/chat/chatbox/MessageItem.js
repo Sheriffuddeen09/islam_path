@@ -1008,78 +1008,75 @@ onPointerCancel={() => {
       setShowReactions={setShowReactionPopup}
       loadingChats={loadingChats}
     />
+    <div
+      onClick={async () => {
 
-     {unreadCount > 0 && (
-      <div
-        onClick={async () => {
+        bottomRef.current?.scrollIntoView({
+          behavior: "smooth",
+        });
 
-          // ✅ scroll to bottom
-          bottomRef.current?.scrollIntoView({
-            behavior: "smooth",
-          });
+        const latestMessage =
+          messages[messages.length - 1];
 
-          // ✅ set latest message as read
-          const latestMessage =
-            messages[messages.length - 1];
+        if (latestMessage) {
 
-          if (latestMessage) {
+          setLastReadMessageId(
+            latestMessage.id
+          );
+        }
 
-            setLastReadMessageId(
-              latestMessage.id
-            );
-          }
+        setUnreadCount(0);
 
-          // ✅ clear unread count locally
-          setUnreadCount(0);
+        setChats(prev =>
+          prev.map(chat =>
+            chat.id === activeChat?.id
+              ? {
+                  ...chat,
+                  unread_count: 0,
+                }
+              : chat
+          )
+        );
 
-          // ✅ clear unread count in sidebar
-          setChats(prev =>
-            prev.map(chat =>
-              chat.id === activeChat?.id
-                ? {
-                    ...chat,
-                    unread_count: 0,
-                  }
-                : chat
-            )
+        try {
+
+          await api.post(
+            `/api/chats/${activeChat.id}/read`
           );
 
-          // ✅ mark read in backend
-          try {
+        } catch (err) {
 
-            await api.post(
-              `/api/chats/${activeChat.id}/read`
-            );
+          console.error(
+            "Failed to mark read",
+            err
+          );
+        }
+      }}
+      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center gap-1 bg-gray-800 text-white px-3 py-2 rounded-full cursor-pointer"
+    >
 
-          } catch (err) {
+      {unreadCount > 0 && (
+        <span className="text-xs font-semibold">
+          {unreadCount}
+        </span>
+      )}
 
-            console.error(
-              "Failed to mark read",
-              err
-            );
-          }
-        }}
-        className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center  bg-gray-800 text-white px-2 py-2 rounded-full cursor-pointer"
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-4"
       >
-        {unreadCount}
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+        />
+      </svg>
 
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="size-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
-          />
-        </svg>
-      </div>
-    )}
-
+    </div>
   </>
 );
   }

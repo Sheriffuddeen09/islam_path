@@ -21,6 +21,7 @@ import { ReportGroupModal } from "./ReportGroupModal";
 import ExitGroupModal from "./ExistGroupModal";
 import DeleteGroupModal from "./DeleteGroupModal";
 import DisappearingMessagesModal from "./DisappearingMessagesModal";
+import EncryptionModal from "./EncryptionModal";
 
 const socket = io("http://localhost:8000");
 
@@ -617,6 +618,13 @@ const options = [
         </div>
       )}
 
+
+      <EncryptionModal
+      open={encryption}
+      onClose={() => setEncryption(false)}
+      chatId={activeChat?.id}
+      activeChat={activeChat}
+    />
       
 
     {showGroupMemberModal && (

@@ -43,8 +43,6 @@ export default function MessageBox({
 
   const [callMode, setCallMode] = useState(null); 
   const [showNewBtn, setShowNewBtn] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [newCount, setNewCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState(false);
@@ -63,7 +61,6 @@ export default function MessageBox({
   const [selectedMsg, setSelectedMsg] = useState(null);
 
   const [showReactionPopup, setShowReactionPopup] = useState(null);
-  const messagesContainerRef = useRef(null);
 
   const lastMessageCount = useRef(0);
   const isUserNearBottom = useRef(true);
@@ -127,108 +124,6 @@ useEffect(() => {
 }, [messages]);
 
   
-  // ================= LOAD OLDER MESSAGES Select a chat =================
-  const loadOlderMessages = async () => {
-
-  if (
-    loadingMore ||
-    messages.length === 0 ||
-    !hasMore
-  ) return;
-
-  setLoadingMore(true);
-
-  const container = messagesContainerRef.current;
-
-  const oldScrollHeight =
-    container?.scrollHeight || 0;
-
-  try {
-
-    const firstMessage = messages[0];
-
-    const res = await api.get(
-      `/api/messages?chat_id=${chatId}&before=${firstMessage.id}`
-    );
-
-    const older = res.data.data || [];
-
-    // 🔥 stop further loading
-    if (older.length < 30) {
-      setHasMore(false);
-    }
-
-    if (!older.length) {
-      return;
-    }
-
-    // 🔥 prepend without duplicates
-    setMessages(prev => {
-
-      const ids = new Set(prev.map(m => m.id));
-
-      const uniqueOlder = older.filter(
-        m => !ids.has(m.id)
-      );
-
-      return [
-        ...uniqueOlder,
-        ...prev,
-      ];
-    });
-
-    requestAnimationFrame(() => {
-
-      if (!container) return;
-
-      const newScrollHeight =
-        container.scrollHeight;
-
-      // 🔥 preserve exact position
-      container.scrollTop =
-        newScrollHeight - oldScrollHeight;
-    });
-
-  } catch (err) {
-
-    console.error(
-      "Failed to load older messages",
-      err
-    );
-
-  } finally {
-
-    setLoadingMore(false);
-  }
-};
-
-
-useEffect(() => {
-  const container = messagesContainerRef.current;
-
-  if (!container) return;
-
-  const handleScroll = () => {
-
-    // already loading
-    if (loadingMore || !hasMore) return;
-
-    // 🔥 distance from top
-    const scrollTop = container.scrollTop;
-
-    // 🔥 trigger before reaching absolute top
-    // this gives smoother loading
-    if (scrollTop < 300) {
-      loadOlderMessages();
-    }
-  };
-
-  container.addEventListener("scroll", handleScroll);
-
-  return () => {
-    container.removeEventListener("scroll", handleScroll);
-  };
-}, [loadingMore, hasMore, messages]);
 
   // ================= SCROLL TO MESSAGE =================
   const handleScrollToMessage = (msg) => {
@@ -325,13 +220,7 @@ const handlePin = async (msg) => {
 };
 
 
-  const handleScroll = (e) => {
-
-    if (e.target.scrollTop < 100) {
-
-      loadOlderMessages();
-    }
-  };
+  
  const handleSearch = (text) => {
     setSearchMode(true);
     setSearchQuery(text);
@@ -640,11 +529,8 @@ const avatarName = isGroup
 
       {/* CHAT BODY */}
       <div
-        onScroll={handleScroll}
-       ref={messagesContainerRef}
-  className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
-  scrollbar-thumb-gray-400 space-y-3 bg-white relative"
->
+        className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
+        scrollbar-thumb-gray-400 space-y-3 bg-white relative">
 
   {isRestrictedGroupUser ? (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -707,13 +593,7 @@ const avatarName = isGroup
     </div>
   ) : (
     <>  
-        {/* LOADING OLDER */}
-        {loadingMore && hasMore && (
-          <div className="text-center mx-auto flex justify-center text-center text-xs text-gray-800 py-2">
-            <Loader2 className="animate-spin" />
-          </div>
-        )}
-
+        
         {loadingMessages ? (
     <ChatSkeleton type="messages" />
   ) : messages.length === 0 ? (

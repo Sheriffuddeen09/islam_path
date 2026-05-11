@@ -17,113 +17,15 @@ php artisan schedule:work
 5. forward messages
 
 
-* backend when i forward files of id: 10 which has to two files or more in the file_url but it only return one after it was forwarded  "files": [
-                
-if am scroll up and the message am scroll up is more than 30 the previous message load should apply 
+* backend when i forward files of id: 10 which has to two files or more in the file_url but it only return one after it was forwarded
+"files": [ { "file_url": "http:\/\/localhost:8000\/storage\/chat_files\/Allah_name_2b_1778204460.jpg", }] 
+instead of "files": [ { "file_url": "http:\/\/localhost:8000\/storage\/chat_files\/Allah_name_2b_1778204460.jpg", 
+"file_name": "Allah_name_2b.jpg", "type": "image" }, { "file_url": 
+"http:\/\/localhost:8000\/storage\/chat_files\/Allah_name_3_1778204460.jpg",
+ "file_name": "Allah_name_3.jpg", "type": "image" } ] 
 
-public function oldMessage(Request $request)
-{
-    $chatId = $request->query('chat_id');
-    $before = $request->query('before');
+* create with laravel and react complete component if i click the encryption it 
+should pop modal as it was in the picture and with api that is needed <ActionButton 
+icon={<Shield size={24} />} label="Encryption" onClick={() => setEncryption(true)} />
 
-    if (!$chatId) {
-        return response()->json(['message' => 'chat_id is required'], 422);
-    }
-
-    $query = Message::where('chat_id', $chatId);
-
-    if ($before) {
-        $query->where('id', '<', $before);
-    }
-
-    $messages = $query
-        ->orderBy('id', 'desc')
-        ->limit(20)
-        ->get()
-        ->map(function ($msg) {
-            return [
-                ...$msg->toArray(),
-                'created_at' => $msg->created_at?->toISOString(),
-
-                'status' => match (true) {
-                    !is_null($msg->read_at) => 'read',
-                    !is_null($msg->delivered_at) => 'delivered',
-                    default => 'sent',
-                },
-            ];
-        });
-
-    return response()->json([
-        'data' => $messages
-    ]);
-}
-const loadOlderMessages = async () => {
-
-  if (
-    loadingMore ||
-    messages.length === 0 ||
-    !hasMore
-  ) return;
-
-  setLoadingMore(true);
-
-  // ✅ current scroll container
-  const container = messagesContainerRef.current;
-
-  // ✅ store old scroll height
-  const oldScrollHeight =
-    container?.scrollHeight || 0;
-
-  try {
-
-    // ✅ await request
-    const res = await api.get(
-      `/api/messages?chat_id=${chatId}&before=${messages[0].id}`
-    );
-
-    const older = res.data.data || [];
-
-    // ✅ no more messages
-    if (!older.length) {
-
-      setHasMore(false);
-      setLoadingMore(false);
-
-      return;
-    }
-
-    // ✅ prepend older messages
-    setMessages(prev => [
-      ...older,
-      ...prev,
-    ]);
-
-    // ✅ preserve scroll position
-    requestAnimationFrame(() => {
-
-      if (!container) return;
-
-      const newScrollHeight =
-        container.scrollHeight;
-
-      container.scrollTop =
-        newScrollHeight - oldScrollHeight;
-    });
-
-  } catch (err) {
-
-    console.error(
-      "Failed to load older messages",
-      err
-    );
-
-  } finally {
-
-    setLoadingMore(false);
-  }
-};
-{loadingMore && hasMore && (
-          <div className="text-center mx-auto flex justify-center text-center text-xs text-gray-800">
-            <Loader2 />
-          </div>
-        )}
+{"success":true,"mode":"24h"}

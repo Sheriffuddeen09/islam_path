@@ -526,7 +526,7 @@ useEffect(() => {
       )}
      
      {forwardMessage.open && (
-        <div className="fixed inset-0 flex justify-center lg:block hidden items-center overflow-y-auto z-50">
+        <div >
 
                       <ForwardModalLargeScreen
                         messages={forwardMessage.messages}

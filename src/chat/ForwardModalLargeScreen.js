@@ -188,7 +188,7 @@ const filteredTargets = useMemo(() => {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="w-[95%] max-w-md bg-white p-4 rounded-xl">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg">

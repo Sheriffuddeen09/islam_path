@@ -91,11 +91,9 @@ export default function ChatPage({
   // 🚀 OPEN CHAT (NO SCROLL HERE ANYMORE)
 
 const openChat = async (chat) => {
-
   if (activeChat?.id === chat.id) {
     return;
   }
-
   if (chat.block_info?.blocked_me) {
     showToast(
       "You have been blocked in this chat",
@@ -103,16 +101,11 @@ const openChat = async (chat) => {
     );
     return;
   }
-
   setActiveChat(chat);
-
   if (!isLargeScreen) {
     setShowList(false);
   }
-
-  localStorage.setItem("lastChatId", chat.id);
-
-  // ✅ reset unread in sidebar
+  localStorage.setItem("lastChatId", String(chat.id));
   setChats(prev =>
     prev.map(c =>
       c.id === chat.id
@@ -120,127 +113,82 @@ const openChat = async (chat) => {
         : c
     )
   );
-
   const cached = messagesMap[chat.id];
-
-  // ✅ SHOW CACHE INSTANTLY
   if (cached?.length > 0) {
-
     const sortedCached = [...cached]
       .sort((a, b) => a.id - b.id);
-
     setMessages(sortedCached);
-
     setLastReadMessageId(
       chat.last_read_message_id || null
     );
-
     setUnreadCount(
       chat.unread_count || 0
     );
-
-    // ✅ SCROLL AFTER RENDER
     setTimeout(() => {
-
-      // find first unread message
       const firstUnread = sortedCached.find(
         msg =>
           chat.last_read_message_id &&
           msg.id > chat.last_read_message_id
       );
-
       if (firstUnread) {
-
-        // scroll to first unread
         messageRefs.current[firstUnread.id]
           ?.scrollIntoView({
             behavior: "smooth",
             block: "start",
           });
-
       } else {
-
-        // no unread -> bottom
         messagesEndRef.current
           ?.scrollIntoView({
             behavior: "smooth",
           });
       }
-
     }, 100);
-
   } else {
-
     setLoadingMessages(true);
-
     setMessages([]);
   }
-
   try {
-
-    // ✅ FETCH LATEST
     const res = await api.get(
       `/api/chats/${chat.id}/messages`
     );
-
     const msgs = (
       res.data.messages || []
     ).sort((a, b) => a.id - b.id);
-
     setMessages(msgs);
-
     setMessagesMap(prev => ({
       ...prev,
       [chat.id]: msgs,
     }));
-
     setLastReadMessageId(
       res.data.last_read_message_id
     );
-
     setUnreadCount(
       res.data.unread_count || 0
     );
-
-    // ✅ WAIT FOR DOM RENDER
     setTimeout(() => {
-
       const firstUnread = msgs.find(
         msg =>
           res.data.last_read_message_id &&
           msg.id > res.data.last_read_message_id
       );
-
       if (firstUnread) {
-
-        // scroll to first unread
         messageRefs.current[firstUnread.id]
           ?.scrollIntoView({
             behavior: "smooth",
             block: "start",
           });
-
       } else {
-
-        // no unread -> bottom
         messagesEndRef.current
           ?.scrollIntoView({
             behavior: "smooth",
           });
       }
-
     }, 100);
-
   } catch (err) {
-
     console.error(err);
-
   } finally {
-
     setLoadingMessages(false);
   }
-
-  // ✅ mark read silently
   api.post(`/api/chats/${chat.id}/read`)
     .catch(err => {
       console.error(
@@ -249,6 +197,38 @@ const openChat = async (chat) => {
       );
     });
 };
+
+
+useEffect(() => {
+
+  if (!chats.length) return;
+
+  const lastChatId =
+    localStorage.getItem("lastChatId");
+
+  if (!lastChatId) return;
+
+  const lastChat = chats.find(
+    c => String(c.id) === String(lastChatId)
+  );
+
+  if (!lastChat) {
+
+    localStorage.removeItem(
+      "lastChatId"
+    );
+
+    return;
+  }
+
+  if (
+    !activeChat ||
+    activeChat.id !== lastChat.id
+  ) {
+    openChat(lastChat);
+  }
+
+}, [chats]);
 
 
 
