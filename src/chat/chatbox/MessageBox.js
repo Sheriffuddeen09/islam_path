@@ -273,14 +273,11 @@ const avatarName = isGroup
 
       {/* HEADER yet */}
       
-      <div className="hidden sm:block">
+      <div className="hidden lg:block">
      <div className="p-4 border-b flex justify-between items-center bg-white">
         <div className="inline-flex gap-6 items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-          stroke="currentColor" class="size-6 cursor-pointer lg:hidden" onClick={onBack}>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-        </svg>
-          <div onClick={onHeaderClick} className="flex items-center gap-4">
+         
+          <div className="flex items-center gap-4">
              <div
                 className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
                   avatarName
@@ -364,7 +361,7 @@ const avatarName = isGroup
       </div>
 
       {/* Mobile Header */}
-   <div className="sm:hidden block ">
+   <div className="lg:hidden block ">
   <div className="px-4 py-2 border-b flex justify-between items-center bg-white overflow-hidden">
 
     <div className="flex flex-col flex-1 min-w-0">
@@ -390,21 +387,20 @@ const avatarName = isGroup
             className="flex items-center gap-2 min-w-0"
           >
               <div
-              className={`w-10 h-10 py-3 rounded-full bg-gray-300 shadow-md hover:scale-105 
-                  transition rounded-full text-white flex items-center justify-center
-                   font-bold text-[16px] shadow-sm  ${getColor(
-                avatarName
-              )}`}
-            >
-              {isGroup && activeChat.image_url ? (
-                <img
-                  src={activeChat.image_url}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                getInitial(avatarName)
-              )}
-          </div>
+                className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
+                  avatarName
+                )}`}
+              >
+                {isGroup && activeChat.image_url ? (
+                  <img
+                    src={activeChat.image_url}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  getInitial(avatarName)
+                )}
+
+              </div>
             <h3 className="font-bold text-lg truncate">
               {displayName}
             </h3>
@@ -715,13 +711,9 @@ const isFirstUnread =
       {isFirstUnread && unreadCount > 0 && (
         <div className="flex items-center gap-3 my-4 px-2">
 
-          <div className="flex-1 h-[1px] bg-gray-800" />
-
           <div className="text-gray-800 text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
             {unreadCount} Unread Message{unreadCount > 1 ? "s" : ""}
           </div>
-
-          <div className="flex-1 h-[1px] bg-gray-800" />
 
         </div>
       )}

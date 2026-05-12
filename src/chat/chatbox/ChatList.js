@@ -65,10 +65,10 @@ export default function ChatList({
   }, [chatFilter, chats]);
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
-      <div className="p-4 font-bold text-lg border-b inline-flex gap-3 items-center text-black">
+      <div className="p-4 font-bold text-lg border-b inline-flex gap-3 items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -96,8 +96,8 @@ export default function ChatList({
           onClick={() => setChatFilter("all")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
             chatFilter === "all"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-800 shadow border"
+              ? "bg-green-400 text-white"
+              : "bg-[var(--bg-color)] text-[var(--text-color)] border-0.5 shadow-md"
           }`}
         >
           All
@@ -106,10 +106,10 @@ export default function ChatList({
         {/* UNREAD */}
         <button
           onClick={() => setChatFilter("unread")}
-          className={`px-4 py-1 rounded-full text-sm font-medium transition flex items-center gap-1 ${
+          className={`px-4 py-1 rounded-full text-sm font-medium transition ${
             chatFilter === "unread"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-800 shadow border"
+              ? "bg-green-400 text-white"
+              : "bg-[var(--bg-color)] text-[var(--text-color)] border-0.5 shadow-md "
           }`}
         >
           Unread
@@ -125,8 +125,8 @@ export default function ChatList({
           onClick={() => setChatFilter("group")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
             chatFilter === "group"
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-800 shadow border"
+              ? "bg-green-400 text-white"
+              : "bg-[var(--bg-color)] text-[var(--text-color)] border-0.5 shadow-md"
           }`}
         >
           Groups
@@ -145,7 +145,7 @@ export default function ChatList({
           {/* ICON */}
           <div className="w-28 h-28 rounded-full border-4 border-green-200 flex items-center justify-center mb-6">
 
-            <div className="w-20 h-20 rounded-full border-2 border-gray-800 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full border-2 border-gray-400 flex items-center justify-center">
 
               {chatFilter === "unread" ? (
 
@@ -156,7 +156,7 @@ export default function ChatList({
                   viewBox="0 0 24 24"
                   strokeWidth="2"
                   stroke="currentColor"
-                  className="w-10 h-10 text-gray-800"
+                  className="w-10 h-10"
                 >
                   <path
                     strokeLinecap="round"
@@ -174,7 +174,7 @@ export default function ChatList({
                   viewBox="0 0 24 24"
                   strokeWidth="1.8"
                   stroke="currentColor"
-                  className="w-10 h-10 text-gray-800"
+                  className="w-10 h-10"
                 >
                   <path
                     strokeLinecap="round"
@@ -187,7 +187,7 @@ export default function ChatList({
           </div>
 
           {/* TITLE */}
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">
+          <h2 className="text-xl font-semibold mb-3">
 
             {chatFilter === "unread"
               ? "No unread chats"
@@ -198,7 +198,7 @@ export default function ChatList({
           </h2>
 
           {/* SUBTEXT */}
-          <p className="text-gray-500 text-sm mb-10">
+          <p className=" text-sm mb-10">
 
             {chatFilter === "unread"
               ? "You're all caught up."

@@ -2,38 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{
-    --body_background: #17191c;
-    --body_color: white;
-    --article: white;
-    --article_text:black;
-  }
- 
-  [dark-theme="dark"]{
-    --body_background: white;
-    --body_color: black;
-    --article: black;
-    --article_text:white;
-
-
-  }
+/* LIGHT MODE */
+:root {
+  --primary-color: #3B82F6;
+  --card-color: #f3f4f6;
+  --bg-color: #ffffff;
+  --card-color: #f3f4f6;
+  --text-color: #111827;
   
-  body{
-    background-color: white;
-    color: white;
-    overflow-x: hidden;
-  }
+}
+
+/* DARK MODE */
+.dark {
+  --bg-color: #0b141a;
+  --card-color: #202c33;
+  
+}
+
+/* GLOBAL WEBSITE */
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  overflow-x: hidden;
+}
+ 
 
   header{
     margin-bottom: 30px;
   }
-  .bg-menu{
+  /* .bg-menu{
     background-color: rgb(0, 0, 0, .7);
   }
   .bg-header{
     background-color: #17191c;
     z-index: 1000px;
-  }
+  } */
   .transition-all {
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

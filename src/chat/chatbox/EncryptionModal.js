@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
+
 import {
   X,
-  AlertCircle,
   QrCode,
   Hash,
   Copy,
   Check,
-  ShieldCheck,
+  Smartphone,
+  Lock,
 } from "lucide-react";
 
-import QRCode from "react-qr-code";
+import { QRCodeCanvas } from "qrcode.react";
+
 
 import api from "../../Api/axios";
 
@@ -23,11 +25,12 @@ export default function EncryptionModal({
   const [loading, setLoading] =
     useState(false);
 
+  // pending | verified | failed
+  const [status, setStatus] =
+    useState("pending");
+
   const [verification, setVerification] =
     useState(null);
-
-  const [copied, setCopied] =
-    useState(false);
 
   const [showQR, setShowQR] =
     useState(false);
@@ -35,10 +38,10 @@ export default function EncryptionModal({
   const [showNumber, setShowNumber] =
     useState(false);
 
-  const [verified, setVerified] =
+  const [copied, setCopied] =
     useState(false);
 
-  // ================= FETCH =================
+  // ================= OPEN =================
   useEffect(() => {
 
     if (!open || !chatId) return;
@@ -47,11 +50,15 @@ export default function EncryptionModal({
 
   }, [open, chatId]);
 
+  // ================= FETCH =================
   const fetchVerification = async () => {
 
     try {
 
       setLoading(true);
+
+      // 🔥 START VERIFYING
+      setStatus("pending");
 
       const res = await api.get(
         `/api/chats/${chatId}/encryption`
@@ -59,13 +66,41 @@ export default function EncryptionModal({
 
       setVerification(res.data);
 
-      setVerified(
-        res.data.verified
-      );
+      // 🔥 simulate verification delay
+      setTimeout(async () => {
+
+        try {
+
+          const verify =
+            await api.post(
+              `/api/chats/${chatId}/auto-verify`
+            );
+
+          // 🔥 SUCCESS
+          if (verify.data.verified) {
+
+            setStatus("verified");
+
+          } else {
+
+            // 🔥 FAILED
+            setStatus("failed");
+          }
+
+        } catch (err) {
+
+          console.error(err);
+
+          setStatus("failed");
+        }
+
+      }, 2500);
 
     } catch (err) {
 
       console.error(err);
+
+      setStatus("failed");
 
     } finally {
 
@@ -73,6 +108,7 @@ export default function EncryptionModal({
     }
   };
 
+  // ================= COPY =================
   const copyNumber = async () => {
 
     if (!verification?.security_code)
@@ -89,38 +125,23 @@ export default function EncryptionModal({
     }, 2000);
   };
 
-  const verifyEncryption = async () => {
-
-    try {
-
-      await api.post(
-        `/api/chats/${chatId}/verify-encryption`
-      );
-
-      setVerified(true);
-
-    } catch (err) {
-
-      console.error(err);
-    }
-  };
-
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] bg-black/70 flex items-center justify-center">
+    <div className="fixed inset-0 z-[999] bg-black flex justify-center">
 
-      <div className="bg-[#0b141a] w-full h-full sm:h-auto sm:max-w-md sm:rounded-2xl overflow-hidden text-white overflow-y-auto">
+      <div className="w-full max-w-md h-full bg-[#0b141a] text-white overflow-y-auto">
 
         {/* HEADER */}
-        <div className="flex items-center gap-4 px-4 py-4 border-b border-white/10 sticky top-0 bg-[#0b141a]">
+        <div className="flex items-center gap-4 px-4 py-4 border-b border-white/10">
 
           <button onClick={onClose}>
-            <X size={24} />
+            <X size={26} />
           </button>
 
           <div>
-            <h2 className="text-lg font-semibold">
+
+            <h2 className="text-xl font-semibold">
               Verify encryption
             </h2>
 
@@ -131,71 +152,138 @@ export default function EncryptionModal({
         </div>
 
         {/* BODY */}
-        <div className="p-6">
+        <div className="px-6 py-10">
 
-          {/* VERIFIED */}
-          {verified ? (
+          {/* ================= PENDING ================= */}
+          {status === "pending" && (
 
-            <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex flex-col items-center text-center">
 
-              <div className="w-36 h-36 rounded-full border-[10px] border-green-500 flex items-center justify-center mb-6">
+              {/* ANIMATION */}
+              <div className="relative mb-10">
 
-                <ShieldCheck
-                  size={80}
-                  className="text-green-500"
-                />
+                <div className="w-52 h-52 rounded-full border-2 border-dashed border-gray-300 animate-spin-slow flex items-center justify-center">
+
+                  <div className="flex items-center gap-3">
+
+                    <div className="w-16 h-28 rounded-lg bg-gray-100 relative border-2 border-gray-300">
+
+                      <div className="absolute top-5 left-4 w-8 h-4 bg-gray-300 rounded"></div>
+
+                      <div className="absolute top-12 left-3 w-6 h-4 bg-gray-300 rounded"></div>
+
+                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
+                    </div>
+
+                    <div className="w-16 h-28 rounded-lg bg-gray-100 relative border-2 border-gray-300">
+
+                      <div className="absolute top-5 left-4 w-8 h-4 bg-gray-300 rounded"></div>
+
+                      <div className="absolute top-12 left-7 w-6 h-4 bg-gray-300 rounded"></div>
+
+                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute top-7 right-5 w-5 h-5 rounded-full bg-green-500"></div>
               </div>
 
-              <h3 className="text-3xl font-bold mb-3">
-                Encryption Verified
+              <h3 className="text-4xl font-bold text-gray-400">
+                Verifying
+              </h3>
+            </div>
+          )}
+
+          {/* ================= VERIFIED ================= */}
+          {status === "verified" && (
+
+            <div className="flex flex-col items-center text-center">
+
+              <div className="relative mb-10">
+
+                <div className="w-56 h-56 rounded-full bg-[#dbe8d1] flex items-center justify-center relative">
+
+                  {/* PHONES */}
+                  <div className="flex items-center gap-3">
+
+                    <div className="w-16 h-28 rounded-lg bg-gray-100 relative border-2 border-gray-700">
+
+                      <div className="absolute top-5 left-4 w-8 h-4 bg-green-500 rounded"></div>
+
+                      <div className="absolute top-12 left-2 w-5 h-4 bg-[#d8cfc3] rounded"></div>
+
+                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
+                    </div>
+
+                    <div className="w-16 h-36 rounded-lg bg-gray-100 relative border-2 border-gray-700">
+
+                      <div className="absolute top-5 left-4 w-8 h-4 bg-[#d8cfc3] rounded"></div>
+
+                      <div className="absolute top-12 left-2 w-5 h-4 bg-green-500 rounded"></div>
+
+                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+
+                  {/* LOCK */}
+                  <div className="absolute bottom-3 right-3 w-16 h-16 rounded-full bg-green-500 flex items-center justify-center border-4 border-[#0b141a]">
+
+                    <Lock
+                      size={34}
+                      className="text-black"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="text-sm font-bold mb-5">
+                End-to-end encryption was automatically verified
               </h3>
 
-              <p className="text-gray-400 text-lg">
-                Your messages and calls are
-                end-to-end encrypted.
+              <p className="text-gray-400 text-sm">
+                Today at{" "}
+                {new Date().toLocaleTimeString()}
               </p>
             </div>
+          )}
 
-          ) : (
+          {/* ================= FAILED ================= */}
+          {status === "failed" && (
 
-            <>
-              {/* ICON */}
+            <div className="text-center">
+
               <div className="flex justify-center mb-8">
 
-                <div className="w-36 h-36 rounded-full border-[10px] border-gray-400 flex items-center justify-center">
+                <div className="w-40 h-40 rounded-full border-[10px] border-gray-500 flex items-center justify-center">
 
-                  <AlertCircle
+                  <Lock
                     size={80}
                     className="text-gray-400"
                   />
                 </div>
               </div>
 
-              {/* TEXT */}
-              <div className="text-center">
+              <h3 className="text-xl font-bold mb-4">
+                Please verify another way
+              </h3>
 
-                <h3 className="text-3xl font-bold mb-4">
-                  Please verify another way
-                </h3>
-
-                <p className="text-gray-400 text-lg leading-8">
-                  We can't automatically
-                  verify end-to-end
-                  encryption at this time.
-                </p>
-              </div>
-            </>
+              <p className="text-gray-200 text-sm leading-3">
+                We can't automatically
+                verify end-to-end
+                encryption at this time.
+              </p>
+            </div>
           )}
 
           {/* OPTIONS */}
-          <div className="mt-14 border-t border-white/10 pt-8">
+          <div className="mt-6 border-t border-white/10 pt-4">
 
-            <p className="text-gray-400 font-semibold mb-8">
-              Other ways to verify
-              encryption
+            <p className="text-gray-400 font-semibold mb-4 text-sm">
+              Other ways to verify encryption
             </p>
 
-            {/* QR BUTTON */}
+            {/* QR */}
             <button
               onClick={() => {
 
@@ -206,37 +294,30 @@ export default function EncryptionModal({
               className="w-full flex items-center gap-5 py-5"
             >
               <div className="w-12 h-12 rounded-lg border border-white/20 flex items-center justify-center">
+
                 <QrCode size={28} />
               </div>
 
-              <span className="text-xl">
+              <span className="text-sm">
                 Scan a QR code
               </span>
             </button>
 
-            {/* QR DISPLAY */}
             {showQR &&
               verification?.security_code && (
 
-              <div className="bg-white rounded-2xl p-6 flex flex-col items-center mt-4">
+              <div className="bg-white rounded-2xl p-6 flex justify-center mt-4">
 
-                <QRCode
+                <QRCodeCanvas
                   value={
                     verification.security_code
                   }
                   size={220}
                 />
-
-                <button
-                  onClick={verifyEncryption}
-                  className="mt-6 bg-green-600 hover:bg-green-700 transition px-5 py-3 rounded-full text-white font-semibold"
-                >
-                  Mark as Verified
-                </button>
               </div>
             )}
 
-            {/* NUMBER BUTTON */}
+            {/* NUMBER */}
             <button
               onClick={() => {
 
@@ -247,21 +328,21 @@ export default function EncryptionModal({
               className="w-full flex items-center gap-5 py-5"
             >
               <div className="w-12 h-12 rounded-lg border border-white/20 flex items-center justify-center">
+
                 <Hash size={28} />
               </div>
 
-              <span className="text-xl">
+              <span className="text-sm">
                 Compare a 60-digit number
               </span>
             </button>
 
-            {/* NUMBER DISPLAY */}
             {showNumber &&
               verification?.security_code && (
 
-              <div className="bg-[#111b21] rounded-2xl p-5 mt-4 border border-white/10">
+              <div className="bg-[#111b21] rounded-2xl p-5 mt-4">
 
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-3 gap-3">
 
                   {verification.security_code
                     .split(" ")
@@ -269,54 +350,62 @@ export default function EncryptionModal({
 
                     <div
                       key={index}
-                      className="bg-[#202c33] rounded-xl py-3 text-lg font-semibold tracking-wider"
+                      className="bg-[#202c33] rounded-xl py-3 text-center font-semibold"
                     >
                       {num}
                     </div>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between mt-5">
-
-                  <button
-                    onClick={copyNumber}
-                    className="flex items-center gap-2 text-gray-300"
-                  >
-                    {copied ? (
-                      <>
-                        <Check
-                          size={18}
-                          className="text-green-500"
-                        />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={18} />
-                        Copy number
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={verifyEncryption}
-                    className="bg-green-600 hover:bg-green-700 transition px-5 py-2 rounded-full"
-                  >
-                    Verified
-                  </button>
-                </div>
+                <button
+                  onClick={copyNumber}
+                  className="mt-5 flex items-center gap-2 text-gray-300"
+                >
+                  {copied ? (
+                    <>
+                      <Check
+                        size={18}
+                        className="text-green-500"
+                      />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={18} />
+                      Copy number
+                    </>
+                  )}
+                </button>
               </div>
             )}
 
             {/* LOADING */}
             {loading && (
               <div className="text-center text-gray-400 mt-6">
-                Loading encryption...
+                Loading encryption
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* CUSTOM ANIMATION */}
+      <style>
+        {`
+          .animate-spin-slow {
+            animation: spin 8s linear infinite;
+          }
+
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

@@ -93,9 +93,125 @@ function App() {
         
         
       
-      
+        useEffect(() => {
 
-           // ================= FETCH FUNCTIONS =================
+        const savedMode =
+          localStorage.getItem("theme_mode") ||
+          "light";
+
+        const savedTheme =
+          localStorage.getItem("theme_color") ||
+          "blue";
+
+        const savedTextColor =
+          localStorage.getItem("text_color") ||
+          "white";
+
+        // DARK MODE
+        if (savedMode === "dark") {
+
+          document.documentElement.classList.add(
+            "dark"
+          );
+
+        } else {
+
+          document.documentElement.classList.remove(
+            "dark"
+          );
+        }
+
+        // PRIMARY THEMES
+           const primaryThemes = [
+            {
+              id: "white",
+              color: "#FFFFFF",
+            },
+            {
+              id: "black",
+              color: "#000000",
+            },
+            {
+              id: "gray",
+              color: "#6B7280",
+            },
+            {
+              id: "blue",
+              color: "#3B82F6",
+            },
+            {
+              id: "green",
+              color: "#22C55E",
+            },
+            {
+              id: "purple",
+              color: "#A855F7",
+            },
+            {
+              id: "orange",
+              color: "#F97316",
+            },
+            {
+              id: "pink",
+              color: "#EC4899",
+            },
+          ];
+
+          const textThemes = [
+            {
+              id: "white",
+              color: "#FFFFFF",
+            },
+            {
+              id: "black",
+              color: "#000000",
+            },
+            {
+              id: "gray",
+              color: "#6B7280",
+            },
+            {
+              id: "blueText",
+              color: "#3B82F6",
+            },
+            {
+              id: "greenText",
+              color: "#22C55E",
+            },
+          ];
+
+            // FIND PRIMARY COLOR
+            const currentTheme =
+              primaryThemes.find(
+                t => t.id === savedTheme
+              );
+
+            if (currentTheme) {
+
+              document.documentElement.style.setProperty(
+                "--primary-color",
+                currentTheme.color
+              );
+            }
+
+            // FIND TEXT COLOR
+            const currentTextTheme =
+              textThemes.find(
+                t =>
+                  t.id ===
+                  savedTextColor
+              );
+
+            if (currentTextTheme) {
+
+              document.documentElement.style.setProperty(
+                "--text-color",
+                currentTextTheme.color
+              );
+            }
+
+          }, []);
+      
       const fetchPostCounts = async () => {
         const res = await api.get("/api/post-count");
         setHomeCount(res.data.home_count);

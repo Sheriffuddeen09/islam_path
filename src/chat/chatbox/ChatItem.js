@@ -126,7 +126,7 @@ export default function ChatItem({
       }}
       className={`flex gap-3 p-4 border-b transition relative
         ${blockedMe ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-100"}
-        ${activeChat?.id === chat.id ? "bg-gray-100" : ""}
+        ${activeChat?.id === chat.id ? "border-l-4 border-blue-800 border-b-0" : ""}
       `}
     >
       {/* AVATAR */}
@@ -162,15 +162,15 @@ export default function ChatItem({
       </div>
 
       {/* RIGHT */}
-      <div className="flex-1">
+      <div className="flex-1 bg-[var(--bg-color)] text-[var(--text-color)]">
 
         {/* TOP */}
         <div className="flex justify-between items-center">
-          <h4 className="font-semibold text-gray-900">
+          <h4 className="font-semibold ">
             {displayName}
           </h4>
 
-          <span className="text-xs text-gray-500">
+          <span className="text-xs ">
             {formatTime(lastMessage?.created_at)}
           </span>
         </div>
@@ -192,11 +192,11 @@ export default function ChatItem({
                 {getMessagePreview(null)}
               </p>
             ) : blockedMe ? (
-              <p className="text-red-900">You cannot reply to this conversation</p>
+              <p className="text-[var(--text-color)]">You cannot reply to this conversation</p>
             ) : (
-              <p className="text-gray-900 flex text-xs gap-1">
+              <p className="text-[var(--text-color)] flex text-xs gap-1">
                 {isGroup && senderName && (
-                  <span className="text-gray-800 capitalize">{senderName}:</span>
+                  <span className="capitalize">{senderName}:</span>
                 )}
                 {getMessagePreview(lastMessage)}
               </p>

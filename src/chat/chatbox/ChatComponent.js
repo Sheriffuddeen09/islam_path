@@ -482,9 +482,9 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     
 
     return (
-    <div className="h-screen flex bg-white text-black ">
+    <div className="h-screen flex bg-[var(--bg-color)] text-[var(--text-color)] ">
       <div className={`
-        border-r bg-white pt-3
+        border-r bg-[var(--bg-color)] text-[var(--text-color)] pt-3
         w-full lg:w-80
         ${showList ? "block" : "hidden lg:block"}
       `}>

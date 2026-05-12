@@ -1052,7 +1052,7 @@ onPointerCancel={() => {
           );
         }
       }}
-      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-4 z-50 inline-flex items-center gap-1 bg-gray-800 text-white px-3 py-2 rounded-full cursor-pointer"
+      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-2 z-50 inline-flex items-center gap-1 bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
     >
 
       {unreadCount > 0 && (

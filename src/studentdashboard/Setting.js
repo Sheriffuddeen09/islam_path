@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut, LogInIcon } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut, LogInIcon, BookCheck, Palette } from "lucide-react";
 import TwoStepVerificationModal from "./TwoStepVerification";
+import { useNavigate } from "react-router-dom";
+import SwitchAccountModal from "./SwitchAccountModal";
+import AppearanceModal from "../layout/ThemeSetting";
 
 
 export default function Setting() {
@@ -20,13 +23,16 @@ export default function Setting() {
 });
 
   const [showTwoStep, setShowTwoStep] = useState(false);
-
-
-  const [error, setError] = useState("");
+  const [showSwitchAccount, setShowSwitchAccount] =
+  useState(false);
+  const navigate = useNavigate()
 
   const [openDelete, setOpenDelete] = useState(false)
   const [loadingDelete, setLoadingDelete] = useState(false)
 
+
+  const [showAppearance, setShowAppearance] =
+  useState(false);
 
   const handleDeleteAccount = async () => {
 
@@ -53,10 +59,7 @@ const handleOpenVisibility = () =>{
   setOpenVisibility(!openVisibility)
 }
 
-const handleOpenProfile = () =>{
 
-  setOpenProfile(!openProfile)
-}
 
 
 
@@ -168,78 +171,149 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
   
   const profileCotent = (
-    <div className="lg:ml-64">
-      
-      <div className="grid grid-cols-2  md:grid-cols-2 sm:gap-4 gap-2 mt-8">
-      <button onClick={handleOpenVisibility} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
-       <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+  <div className="lg:ml-64">
+
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2 mt-8">
+
+      {/* 1 */}
+      <button
+        onClick={handleOpenVisibility}
+        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-blue-100 text-blue-600 mb-4">
           <Settings />
         </div>
-        <div>
-          <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">visibility Setting</p>
-        </div>
-      </div>
+
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Visibility Setting
+        </p>
+
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Control profile visibility
+        </p>
       </button>
 
       {/* 2 */}
+      <button
+        onClick={() => setShowEditModal(true)}
+         className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
 
-       <button
-          onClick={() => setShowEditModal(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
-       <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+        <div className="p-3 rounded-full bg-green-100 text-green-600 mb-4">
           <UserX2 />
         </div>
-        <div>
-        <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Profile Setting</p>
-        </div>
-      </div>
+
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Profile Setting
+        </p>
+
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Edit your personal profile
+        </p>
       </button>
 
       {/* 3 */}
       <button
-          onClick={() => setOpenDelete(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+        onClick={() => setOpenDelete(true)}
+         className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-red-100 text-red-600 mb-4">
           <LogOut />
-         </div>
-        <div>
-         <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Close Account</p>
         </div>
-      </div>
-      </button>  
+
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Delete Account
+        </p>
+
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Permanently remove account
+        </p>
+      </button>
 
       {/* 4 */}
-
       <button
-          onClick={() => setShowTwoStep(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+        onClick={() => setShowTwoStep(true)}
+         className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-orange-100 text-orange-600 mb-4">
           <LogInIcon />
-         </div>
-        <div>
-         <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Two Step Verification</p>
         </div>
-      </div>
-      </button>  
-            {/* 5 */}
 
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Two Step Verification
+        </p>
 
-        <button
-          onClick={() => setShowEditModal(true)} className="bg-white hover:bg-gray-50 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Secure your account login
+        </p>
+      </button>
+
+      {/* 5 */}
+      <button
+        onClick={() =>
+          setShowSwitchAccount(true)
+        }
+         className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-cyan-100 text-cyan-600 mb-4">
+          <BookCheck />
+        </div>
+
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Switch Account
+        </p>
+
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Add or switch accounts
+        </p>
+      </button>
+
+      {/* 6 */}
+      <button
+        onClick={() =>
+          setShowAppearance(true)
+        }
+         className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-purple-100 text-purple-600 mb-4">
+          <Palette />
+        </div>
+
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Appearance
+        </p>
+
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Dark mode & theme colors
+        </p>
+      </button>
+
+      {/* 7 */}
+      <button
+        onClick={() => setShowEditModal(true)}
+         className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition rounded-xl cursor-pointer shadow p-5 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-pink-100 text-pink-600 mb-4">
           <TrafficCone />
-         </div>
-        <div>
-         <p className="text-lg font-semibold text-gray-900 whitespace-nowrap">Privacy</p>
         </div>
-      </div>
-      </button>  
 
-           
-     
-      </div>
+        <p className="text-lg font-semibold text-[var(--text-color)]">
+          Privacy
+        </p>
+
+        <p className="text-sm text-[var(--text-color)] mt-1">
+          Manage your privacy options
+        </p>
+      </button>
+
+    </div>
+  
     {
       openVisibility && (
          <div className=" gap-4 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -541,6 +615,24 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           )
         }
 
+        <SwitchAccountModal
+                open={showSwitchAccount}
+                onClose={() =>
+                  setShowSwitchAccount(false)
+                }
+                navigate={navigate}
+                showNotification={showNotification}
+              />
+
+
+        <AppearanceModal
+          open={showAppearance}
+          onClose={() =>
+            setShowAppearance(false)
+          }
+        />
+        
+
         {showTwoStep && (
                 <TwoStepVerificationModal
                   onClose={() =>
@@ -574,7 +666,7 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
       <div className="flex items-center gap-4">
         <div className="p-3 rounded-full bg-blue-100 text-blue-600">{icon}</div>
         <div>
-          <p className="text-sm text-gray-500">{label}</p>
+          <p className="text-sm text-[var(--text-color)]">{label}</p>
           <p className="font-semibold text-gray-800">{value}</p>
         </div>
       </div>
