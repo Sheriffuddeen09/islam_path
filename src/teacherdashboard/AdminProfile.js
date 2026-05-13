@@ -121,7 +121,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
   if (!profile) return <p>Profile not found</p>;
 
-//bg-gray-
+//bg-gray- Teacher
   const headerDashboard = (
    <div>
      <div className="flex justify-end mb-6">
@@ -233,9 +233,13 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
              === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>Photo</button>
+          {
+            user?.admin_choice === "arabic_teacher" &&
           <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
              === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
           }`}>Teacher Profile</button>
+          }
+
         </div>
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>

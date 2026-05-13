@@ -125,7 +125,7 @@ export default function ChatItem({
         openChat(chat);
       }}
       className={`flex gap-3 p-4 border-b transition relative
-        ${blockedMe ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-100"}
+        ${blockedMe ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-r-4 border-blue-800 border-b-0"}
         ${activeChat?.id === chat.id ? "border-l-4 border-blue-800 border-b-0" : ""}
       `}
     >
@@ -161,16 +161,16 @@ export default function ChatItem({
       )}
       </div>
 
-      {/* RIGHT */}
-      <div className="flex-1 bg-[var(--bg-color)] text-[var(--text-color)]">
+      {/* RIGHT bg-[var(--bg-color)] text-[var(--text-color)]*/}
+      <div className="flex-1 bg-[var(--bg-color)]">
 
         {/* TOP */}
         <div className="flex justify-between items-center">
-          <h4 className="font-semibold ">
+          <h4 className="font-semibold text-[var(--text-color)]">
             {displayName}
           </h4>
 
-          <span className="text-xs ">
+          <span className="text-xs text-[var(--text-color)]">
             {formatTime(lastMessage?.created_at)}
           </span>
         </div>
@@ -181,12 +181,12 @@ export default function ChatItem({
           <span className="truncate max-w-[200px] text-sm">
             {isRestrictedMember ? (
               <p
-                className={`text-sm ${
+                className={`text-sm  ${
                   chat.membership_status === "pending"
                     ? "text-green-700"
                     : chat.membership_status === "rejected"
                     ? "text-red-600"
-                    : "text-gray-500"
+                    : "text-[var(--text-color)]"
                 }`}
               >
                 {getMessagePreview(null)}
@@ -196,7 +196,7 @@ export default function ChatItem({
             ) : (
               <p className="text-[var(--text-color)] flex text-xs gap-1">
                 {isGroup && senderName && (
-                  <span className="capitalize">{senderName}:</span>
+                  <span className="capitalize text-[var(--text-color)]">{senderName}:</span>
                 )}
                 {getMessagePreview(lastMessage)}
               </p>

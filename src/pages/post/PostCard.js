@@ -252,7 +252,7 @@ const handleHidePost = async (postId) => {
       // ref={postRef}
       >
       {post.is_repost && (
-        <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
+        <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
           <Link to={`/profile/${post.reposted_by?.id}`}>
         <p className="font-bold text-white pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
@@ -263,7 +263,7 @@ const handleHidePost = async (postId) => {
         
          <div>
           <Link to={`/profile/${post.reposted_by.id}`}>
-          <p className="font-semibold text-black text-sm">{post.reposted_by?.name}</p>
+          <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
           </Link>
           <p className="text-xs opacity-70">{post.created_at}</p>
         </div>
@@ -326,7 +326,7 @@ const handleHidePost = async (postId) => {
       </div>
       {/* TEXT */}
      <div
-  className="bg-white p-4 text-black text-[14px]">
+  className="bg-white p-4 text-[var(--text-color)] text-[14px]">
   {post.content && (
     <p className="cursor-pointer px-2">
       {showMore
@@ -537,34 +537,34 @@ const handleHidePost = async (postId) => {
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2  text-[var(--text-color)] rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
       </button>
         <div className="flex flex-col mx-auto gap-3 items-center">
           <button onClick={() => {setMessageOpenShare(!messageOpenShare); setShares(false);}} 
-          className="text-black flex flex-col  items-center gap-1 hover:text-blue-600">
+          className="text-[var(--text-color)] flex flex-col  items-center gap-1 hover:text-blue-600">
                 <MessageCircle className="border-2 border-black rounded-full p-1" size={35} />
                 <span className="text-sm font-bold">Chat List</span>
               </button>
             <div className="grid grid-cols-4 border-t-2 pt-2 gap-4 text-center">
-              <button onClick={() => handleShare("facebook")} className="text-black flex flex-col items-center gap-1 hover:text-blue-600 text-black">
+              <button onClick={() => handleShare("facebook")} className="text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-blue-600 text-[var(--text-color)]">
                 <FaFacebook size={28} />
                 <span className="text-sm">Facebook</span>
               </button>
 
-              <button onClick={() => handleShare("whatsapp")} className="text-black flex flex-col items-center gap-1 hover:text-green-500">
+              <button onClick={() => handleShare("whatsapp")} className="text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-green-500">
                 <FaWhatsapp size={28} />
                 <span className="text-sm">WhatsApp</span>
               </button>
 
-              <button onClick={() => handleShare("twitter")} className="text-black flex flex-col items-center gap-1 hover:text-sky-500">
+              <button onClick={() => handleShare("twitter")} className="text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-sky-500">
                 <FaTwitter size={28} />
                 <span className="text-sm">Twitter</span>
               </button>
 
-              <button onClick={() => handleShare("telegram")} className="text-black flex flex-col items-center gap-1 hover:text-blue-400">
+              <button onClick={() => handleShare("telegram")} className="text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-blue-400">
                 <FaTelegram size={28} />
                 <span className="text-sm">Telegram</span>
               </button>
@@ -677,7 +677,7 @@ const handleHidePost = async (postId) => {
     className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
     onClick={() => setShowUsersPopup(false)}
   >
-    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-black py-3">User Likes</h1>
+    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-[var(--text-color)] py-3">User Likes</h1>
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
   onClick={() =>setShowUsersPopup(false)}class="size-6 absolute right-4 top-2">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

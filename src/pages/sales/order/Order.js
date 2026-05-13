@@ -216,7 +216,7 @@ const OrdersPage = ({setOrderCount}) => {
                     onClick={() => handleMessageUser(order)}
                     className="bg-blue-800 text-white px-3 py-2 text-sm rounded font-bold"
                   >
-                    {chatLoading === order.id ? "Loading..." : "Message"}
+                    {chatLoading === order.id ? "Loading" : "Message"}
                   </button>
                 )
               )}

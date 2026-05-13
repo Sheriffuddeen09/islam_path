@@ -250,7 +250,7 @@ const options = [
 
   return (
     <div
-      className={`h-full flex flex-col bg-white transition-all duration-500 ease-in-out ${
+      className={`h-full flex flex-col bg-[var(--bg-color)] transition-all duration-500 ease-in-out ${
         animate ? "opacity-100 translate-x-0" : "opacity-0 translate-x-5"
       }`}
     >
@@ -258,17 +258,17 @@ const options = [
       {/* HEADER */}
       <div className="flex flex-row justify-between px-3 py-5 items-center border-b ">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-          stroke="currentColor" class="size-6 cursor-pointer text-black lg:hidden" onClick={onBack}>
+          stroke="currentColor" class="size-6 cursor-pointer text-[var(--text-color)] lg:hidden" onClick={onBack}>
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
 
       {isGroup  ?  (
-         <div className="font-bold flex items-center gap-2 text-black text-xl ">
+         <div className="font-bold flex items-center gap-2 text-[var(--text-color)] text-xl ">
 
           <Group size={30} /> Group's Info
         </div> 
       ) :  (
-         <div className="font-bold flex items-center gap-2 text-black text-xl ">
+         <div className="font-bold flex items-center gap-2 text-[var(--text-color)] text-xl ">
 
           <UserCircle size={24} /> User's Info
         </div> 
@@ -277,7 +277,7 @@ const options = [
      
 
       {/* PROFILE */}
-      <div className="flex flex-col items-center p-4 border-b bg-white transition-all duration-300">
+      <div className="flex flex-col items-center p-4 border-b bg-[var(--bg-color)] transition-all duration-300">
 
         <div
           className={`w-24 h-24 rounded-full mb-3 shadow-md hover:scale-105 transition flex items-center justify-center font-bold text-[60px] text-white ${getColor(
@@ -295,7 +295,7 @@ const options = [
 
       </div>
 
-        <h2 className="font-semibold text-lg font-bold inline-flex gap-2 items-center text-black font-bold">
+        <h2 className="font-semibold text-lg font-bold inline-flex gap-2 items-center text-[var(--text-color)] font-bold">
           {displayName}
         </h2>
 
@@ -319,7 +319,7 @@ const options = [
               </div>
 
               {/* NAME */}
-              <h2 className="text-sm font-semibold text-black">
+              <h2 className="text-sm font-semibold text-[var(--text-color)]">
                 {isMe ? "You" : member.first_name}
               </h2>
 
@@ -361,7 +361,7 @@ const options = [
           )}
 
         {user.email && (
-          <div className="flex justify-between items-center group text-black text-sm">
+          <div className="flex justify-between items-center group  text-[var(--text-color)] text-sm">
             <div className="flex items-center gap-2">
               <span>{user.email}</span>
               <Copy
@@ -378,7 +378,7 @@ const options = [
       {/* ACTIONS */}
       {
         !isGroup &&
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pb-2 space-y-0 text-black font-semibold border-b-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pb-2 space-y-0 text-[var(--text-color)] font-semibold border-b-2">
 
         <Link to={`/profile/${user.id}`}>
         <ActionButton icon={<UserCircle size={24} />} label="View Profile" />
@@ -399,7 +399,7 @@ const options = [
               Disappearing Messages
             </p>
 
-            <p className="text-[11px] text-gray-700 text-left">
+            <p className="text-[11px] text-[var(--text-color)] text-left">
 
               {activeChat?.disappearing_mode === "24h" &&
                 "24 hours"}
@@ -480,7 +480,7 @@ const options = [
 
       {
         isGroup &&
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pb-2 space-y-0 text-black font-semibold border-b-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pb-2 space-y-0 text-[var(--text-color)] font-semibold border-b-2">
 
       <ActionButton
         icon={<Link2Icon size={24} />}
@@ -653,7 +653,7 @@ const options = [
 
     <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-lg animate-scaleIn">
 
-      <h2 className="text-lg font-semibold mb-2 text-black p-2 text-center">
+      <h2 className="text-lg font-semibold mb-2 text-[var(--text-color)] p-2 text-center">
         Block User's {user.first_name}
       </h2>
 
@@ -836,7 +836,7 @@ const options = [
 {showSearchModal && (
   <ModalOverlay onClose={() => setShowSearchModal(false)}>
 
-    <div className="bg-white w-full flex-1 h-full text-black rounded-xl shadow-lg animate-scaleIn">
+    <div className="bg-white w-full flex-1 h-full text-[var(--text-color)] rounded-xl shadow-lg animate-scaleIn">
 
       {/* HEADER */}
       <div className="p-4 border-b flex justify-between items-center">

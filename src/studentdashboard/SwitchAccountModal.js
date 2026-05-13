@@ -35,6 +35,8 @@ export default function SwitchAccountModal({
 
   const [remember, setRemember] =
     useState(true);
+  const [showPassword, setShowPassword ] = useState(false)
+  
 
   const currentUser = JSON.parse(
     localStorage.getItem("user")
@@ -347,8 +349,9 @@ export default function SwitchAccountModal({
               className="w-full border rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
 
+            <div className="mb-6 relative">
             <input
-              type="password"
+               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={e =>
@@ -358,6 +361,24 @@ export default function SwitchAccountModal({
               }
               className="w-full border rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
+                
+                <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-4 text-gray-500"
+        >
+          {showPassword ? (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.5 10.5a3 3 0 104.5 4.5M9.75 14.25l4.5-4.5" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zM12 9a3 3 0 100 6 3 3 0 000-6z" />
+            </svg>
+          )}
+          </button>
+          </div>
+
 
             {/* REMEMBER */}
             <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -395,7 +416,7 @@ export default function SwitchAccountModal({
                 {loading ? (
                   <>
                     <Loader2 className="animate-spin" size={18} />
-                    Adding...
+                    Adding
                   </>
                 ) : (
                   "Add Account"

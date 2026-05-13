@@ -5,28 +5,24 @@
 /* LIGHT MODE */
 :root {
   --primary-color: #3B82F6;
-  --card-color: #f3f4f6;
   --bg-color: #ffffff;
   --card-color: #f3f4f6;
-  --text-color: #111827;
-  
+  --text-color: #000000;
 }
 
-/* DARK MODE */
 .dark {
   --bg-color: #0b141a;
   --card-color: #202c33;
-  
+  --text-color: #ffffff;
 }
 
-/* GLOBAL WEBSITE */
 body {
   background: var(--bg-color);
   color: var(--text-color);
   transition: all 0.3s ease;
   overflow-x: hidden;
 }
- 
+
 
   header{
     margin-bottom: 30px;

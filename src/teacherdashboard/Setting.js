@@ -6,6 +6,7 @@ import TwoStepVerificationModal from "./TwoStepVerification";
 import SwitchAccountModal from "./SwitchAccountModal";
 import { useNavigate } from "react-router-dom";
 import AppearanceModal from "../layout/ThemeSetting";
+import { useAuth } from "../layout/AuthProvider";
 
 
 export default function Setting({editingTeacher, handleClose, handleUpdate, handleEdit}) {
@@ -22,6 +23,8 @@ export default function Setting({editingTeacher, handleClose, handleUpdate, hand
   type: "", // "success" | "error"
   message: "",
 });
+
+  const user = useAuth
 
   const [showTwoStep, setShowTwoStep] = useState(false);
   const [showSwitchAccount, setShowSwitchAccount] =
@@ -202,177 +205,174 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   if (loading) return <Loader />;
 
   
+
+
   const profileCotent = (
   <div className="lg:ml-64">
 
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 mt-8">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2 mt-8">
 
       {/* 1 */}
       <button
         onClick={handleOpenVisibility}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
+        className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
 
-          <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-            <Settings />
-          </div>
-
-          <div>
-            <p className="text-lg font-semibold text-[var(--text-color)] whitespace-nowrap">
-              Visibility Setting
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Control profile visibility
-            </p>
-          </div>
+        <div className="p-3 rounded-full bg-blue-100 text-blue-600 mb-4">
+          <Settings />
         </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Visibility Setting
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Control profile visibility
+        </p>
       </button>
 
       {/* 2 */}
       <button
         onClick={() => setShowEditModal(true)}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
 
-          <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-            <UserX2 />
-          </div>
-
-          <div>
-            <p className="text-lg font-semibold text-[var(--text-color)] whitespace-nowrap">
-              Profile Setting
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Edit your profile details
-            </p>
-          </div>
+        <div className="p-3 rounded-full bg-green-100 text-green-600 mb-4">
+          <UserX2 />
         </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Profile Setting
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Edit your personal profile
+        </p>
       </button>
 
       {/* 3 */}
+      {
+        user?.admin_choice === "arabic_teacher" &&
       <button
         onClick={() => handleEdit(teacher)}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
 
-          <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-            <BookOpen />
-          </div>
-
-          <div>
-            <p className="text-lg font-semibold text-[var(--text-color)] whitespace-nowrap">
-              Teacher Profile
-            </p>
-
-            <p className="text-sm text-gray-500">
-              View teacher information
-            </p>
-          </div>
+        <div className="p-3 rounded-full bg-red-100 text-red-600 mb-4">
+          <BookOpen />
         </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Teacher Profile
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          View teacher information
+        </p>
       </button>
+      }
 
-      {/* 4 */}
-      <button
-        onClick={() => setOpenDelete(true)}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
-
-          <div className="p-3 rounded-full bg-red-100 text-red-600">
-            <LogOut />
-          </div>
-
-          <div>
-            <p className="text-lg font-semibold text-[var(--text-color)] whitespace-nowrap">
-              Close Account
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Permanently remove account
-            </p>
-          </div>
-        </div>
-      </button>
 
       {/* 5 */}
       <button
-        onClick={() => setShowTwoStep(true)}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
+        onClick={() => setOpenDelete(true)}
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
       >
-        <div className="flex items-center gap-4">
 
-          <div className="p-3 rounded-full bg-orange-100 text-orange-600">
-            <LogInIcon />
-          </div>
-
-          <div>
-
-            <p className="text-lg font-semibold text-[var(--text-color)]">
-              Two Step Verification
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Secure your account login
-            </p>
-          </div>
+        <div className="p-3 rounded-full bg-red-100 text-red-600 mb-4">
+          <LogOut />
         </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Delete Account
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Permanently remove account
+        </p>
       </button>
 
       {/* 6 */}
       <button
-        onClick={() => setShowAppearance(true)}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
+        onClick={() => setShowTwoStep(true)}
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
       >
-        <div className="flex items-center gap-4">
 
-          <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-            <Palette />
-          </div>
-
-          <div>
-
-            <p className="text-lg font-semibold text-[var(--text-color)]">
-              Appearance
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Dark mode & colors
-            </p>
-          </div>
+        <div className="p-3 rounded-full bg-orange-100 text-orange-600 mb-4">
+          <LogInIcon />
         </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Two Step Verification
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Secure your account login
+        </p>
       </button>
 
       {/* 7 */}
       <button
-        onClick={() => setShowEditModal(true)}
-        className="bg-[var(--bg-color)] text-[var(--text-color)] hover:bg-[var(--card-color)] transition-all duration-200 rounded-xl cursor-pointer shadow p-5 flex items-center justify-between gap-4"
+        onClick={() =>
+          setShowSwitchAccount(true)
+        }
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center items-start gap-4">
 
-          <div className="p-3 rounded-full bg-pink-100 text-pink-600">
-            <TrafficCone />
-          </div>
-
-          <div>
-            <p className="text-lg font-semibold text-[var(--text-color)] whitespace-nowrap">
-              Privacy
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Manage privacy settings
-            </p>
-          </div>
+        <div className="p-3 rounded-full bg-cyan-100 text-cyan-600 mb-4">
+          <BookCheck />
         </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Switch Account
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Add or switch accounts
+        </p>
+      </button>
+
+      {/* 8 */}
+      <button
+        onClick={() =>
+          setShowAppearance(true)
+        }
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-purple-100 text-purple-600 mb-4">
+          <Palette />
+        </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Appearance
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Dark mode & theme colors
+        </p>
+      </button>
+
+      {/* 9 */}
+      <button
+        onClick={() => setShowEditModal(true)}
+         className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-pink-100 text-pink-600 mb-4">
+          <TrafficCone />
+        </div>
+
+        <p className="sm:text-lg text-sm  font-semibold text-[var(--text-color)]">
+          Privacy
+        </p>
+
+        <p className="sm:text-sm text-xs whitespace-nowrap text-[var(--text-color)] mt-1">
+          Manage your privacy options
+        </p>
       </button>
 
     </div>
-
-
     {
       openVisibility && (
          <div className=" gap-4 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -734,11 +734,11 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
 function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
   return (
-    <div className="bg-white rounded-xl shadow p-5 flex items-center justify-between gap-4">
+    <div className="bg-white rounded-xl shadow sm:p-5 p-3 flex items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         <div className="p-3 rounded-full bg-blue-100 text-blue-600">{icon}</div>
         <div>
-          <p className="text-sm text-gray-500">{label}</p>
+          <p className="sm:text-sm text-xs whitespace-nowrap text-gray-500">{label}</p>
           <p className="font-semibold text-gray-800">{value}</p>
         </div>
       </div>

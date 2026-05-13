@@ -1,56 +1,87 @@
-// TwoStepVerificationModal.jsx
-
 import { useEffect, useState } from "react";
+
 import api from "../Api/axios";
+
 import {
   ShieldCheck,
   Loader2,
   XCircle,
 } from "lucide-react";
+
 import { toast } from "react-hot-toast";
+
 export default function TwoStepVerificationModal({
   onClose,
 }) {
 
+  // SAVE / CHANGE / REMOVE LOADING
   const [loading, setLoading] =
     useState(false);
 
+  // INITIAL FETCH LOADING
+  const [
+    statusLoading,
+    setStatusLoading,
+  ] = useState(true);
+
+  // ENABLED STATUS
   const [enabled, setEnabled] =
     useState(false);
 
+  // PIN INPUT
   const [pin, setPin] =
     useState("");
 
+  // SUCCESS TEXT
   const [success, setSuccess] =
     useState("");
 
+  // FETCH STATUS ON OPEN
   useEffect(() => {
 
     fetchStatus();
 
   }, []);
 
+  // GET TWO STEP STATUS
   const fetchStatus = async () => {
 
     try {
+
+      setStatusLoading(true);
 
       const res = await api.get(
         "/api/two-step"
       );
 
-      setEnabled(res.data.enabled);
+      // CONVERT 0/1 TO BOOLEAN
+      setEnabled(
+        Boolean(res.data.enabled)
+      );
 
     } catch (err) {
 
       console.error(err);
 
+      toast.error(
+        "Failed to fetch status"
+      );
+
+    } finally {
+
+      setStatusLoading(false);
     }
   };
 
+  // ENABLE OR CHANGE PIN
   const handleSave = async () => {
 
     if (pin.length !== 6) {
-      toast.error("PIN must be 6 digits");
+
+      toast.error(
+        "PIN must be 6 digits"
+      );
+
       return;
     }
 
@@ -58,37 +89,58 @@ export default function TwoStepVerificationModal({
 
       setLoading(true);
 
+      // CHANGE PIN
       if (enabled) {
 
-        await api.post(
-          "/api/two-step/change",
-          { pin }
+        const res =
+          await api.post(
+            "/api/two-step/change",
+            { pin }
+          );
+
+        toast.success(
+          res.data.message
         );
 
         setSuccess(
           "PIN changed successfully"
         );
-        
 
       } else {
 
-        await api.post(
-          "/api/two-step/setup",
-          { pin }
-        );
+        // ENABLE TWO STEP
+        const res =
+          await api.post(
+            "/api/two-step/setup",
+            { pin }
+          );
 
-        setEnabled(true);
+        toast.success(
+          res.data.message
+        );
 
         setSuccess(
           "Two-step verification enabled"
         );
+
+        setEnabled(true);
       }
 
+      // CLEAR PIN
       setPin("");
 
+      // REFRESH STATUS
+      await fetchStatus();
+
     } catch (err) {
 
       console.error(err);
+
+      toast.error(
+        err?.response?.data
+          ?.message ||
+        "Something went wrong"
+      );
 
     } finally {
 
@@ -96,138 +148,242 @@ export default function TwoStepVerificationModal({
     }
   };
 
-  const removeVerification = async () => {
+  // TURN OFF
+  const removeVerification =
+    async () => {
 
-    try {
+      try {
 
-      setLoading(true);
+        setLoading(true);
 
-      await api.delete(
-        "/api/two-step/remove"
-      );
+        const res =
+          await api.delete(
+            "/api/two-step/remove"
+          );
 
-      setEnabled(false);
+        toast.success(
+          res.data.message
+        );
 
-      setSuccess(
-        "Two-step verification turned off"
-      );
+        setEnabled(false);
 
-    } catch (err) {
+        setSuccess(
+          "Two-step verification turned off"
+        );
 
-      console.error(err);
+        setPin("");
 
-    } finally {
+      } catch (err) {
 
-      setLoading(false);
-    }
-  };
+        console.error(err);
+
+        toast.error(
+          err?.response?.data
+            ?.message ||
+          "Failed to turn off"
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black text-white overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md overflow-y-auto">
 
-      {/* HEADER */}
-      <div className="flex items-center gap-4 p-4 border-b border-gray-800">
+      <div className="w-full max-w-md bg-[var(--bg-color)] text-[var(--text-color)] flex mx-auto mt-10 justify-center flex-col p-3 rounded-2xl overflow-y-auto shadow-2xl">
 
-        <button onClick={onClose}>
-          ←
-        </button>
+        {/* HEADER */}
+        <div className="flex items-center gap-4 p-4 border-b border-gray-700">
 
-        <h1 className="text-2xl">
-          Two-step verification
-        </h1>
-      </div>
-
-      {/* ICON */}
-      <div className="flex justify-center mt-10">
-
-        <div className="relative">
-
-          <div className="bg-gray-100 rounded-xl px-10 py-5">
-
-            <div className="text-black text-4xl tracking-[12px]">
-              ***
-            </div>
-
-          </div>
-
-          <div className="absolute -bottom-3 -left-3 bg-green-500 rounded-full p-2">
-
-            <ShieldCheck
-              className="text-black"
-              size={30}
-            />
-
-          </div>
-        </div>
-      </div>
-
-      {/* TEXT */}
-      <div className="text-center mt-10 px-8">
-
-        <p className="text-gray-300 text-lg">
-          {enabled
-            ? "Two-step verification is on."
-            : "Protect your account with a PIN."}
-        </p>
-
-        <p className="text-gray-500 mt-3">
-          You'll need this PIN when
-          registering your number again.
-        </p>
-      </div>
-
-      {/* INPUT */}
-      <div className="px-6 mt-10">
-
-        <input
-          type="password"
-          maxLength={6}
-          value={pin}
-          onChange={(e) =>
-            setPin(
-              e.target.value.replace(/\D/g, "")
-            )
-          }
-          placeholder="Enter 6-digit PIN"
-          className="w-full bg-transparent border border-gray-700 rounded-xl p-4 text-center text-2xl tracking-[10px] outline-none"
-        />
-      </div>
-
-      {/* SUCCESS */}
-      {success && (
-        <div className="text-green-500 text-center mt-4">
-          {success}
-        </div>
-      )}
-
-      {/* ACTIONS */}
-      <div className="mt-10 px-6 space-y-4">
-
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 rounded-xl p-4 font-semibold"
-        >
-          {loading ? (
-            <div className="flex justify-center">
-              <Loader2 className="animate-spin" />
-            </div>
-          ) : enabled ? (
-            "Change PIN"
-          ) : (
-            "Enable"
-          )}
-        </button>
-
-        {enabled && (
           <button
-            onClick={removeVerification}
-            className="w-full border border-red-500 text-red-500 rounded-xl p-4 flex items-center justify-center gap-2"
+            onClick={onClose}
+            className="hover:opacity-70 transition"
           >
-            <XCircle size={20} />
-            Turn Off
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+              />
+            </svg>
+
           </button>
+
+          <h1 className="text-2xl font-semibold">
+            Two-step verification
+          </h1>
+        </div>
+
+        {/* ICON */}
+        <div className="flex justify-center mt-6">
+
+          <div className="relative">
+
+            <div className="bg-[var(--card-color)] rounded-2xl px-10 py-4">
+
+              <div className="text-4xl tracking-[12px]">
+                ***
+              </div>
+
+            </div>
+
+            <div className="absolute -bottom-3 -left-3 bg-[var(--bg-color)] rounded-full p-2 shadow-lg">
+
+              <ShieldCheck
+                className="text-green-500"
+                size={30}
+              />
+
+            </div>
+          </div>
+        </div>
+
+        {/* TEXT */}
+        <div className="text-center mt-10 px-8">
+
+          {statusLoading ? (
+
+            <div className="flex justify-center">
+
+              <Loader2 className="animate-spin" />
+
+            </div>
+
+          ) : (
+
+            <>
+              <p className="text-sm font-medium">
+
+                {enabled
+                  ? "Two-step verification is enabled."
+                  : "Protect your account with a PIN."}
+
+              </p>
+
+              <p className="mt-3 text-sm opacity-80 leading-6">
+
+                You'll need this PIN
+                when logging in on a
+                new device after
+                30 days.
+
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* INPUT */}
+        <div className="px-6 mt-10">
+
+          <input
+            type="password"
+            maxLength={6}
+            value={pin}
+            onChange={(e) =>
+              setPin(
+                e.target.value.replace(
+                  /\D/g,
+                  ""
+                )
+              )
+            }
+            placeholder={
+              enabled
+                ? "Enter new PIN"
+                : "Enter 6-digit PIN"
+            }
+            disabled={
+              statusLoading ||
+              loading
+            }
+            className="w-full bg-transparent border border-gray-700 rounded-2xl p-4 text-center text-sm tracking-[10px] outline-none disabled:opacity-50"
+          />
+        </div>
+
+        {/* SUCCESS */}
+        {success && (
+
+          <div className="text-green-500 text-center mt-4 text-sm">
+
+            {success}
+
+          </div>
         )}
+
+        {/* ACTIONS */}
+        <div className="mt-10 px-6 space-y-4 pb-5">
+
+          {/* ENABLE / CHANGE */}
+          <button
+            onClick={handleSave}
+            disabled={
+              loading ||
+              statusLoading
+            }
+            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 rounded-2xl p-4 font-semibold text-white transition"
+          >
+
+            {loading ||
+            statusLoading ? (
+
+              <div className="flex justify-center">
+
+                <Loader2
+                  className="animate-spin"
+                  size={20}
+                />
+
+              </div>
+
+            ) : enabled ? (
+              "Change PIN"
+            ) : (
+              "Enable"
+            )}
+          </button>
+
+          {/* TURN OFF */}
+          {!statusLoading &&
+            enabled && (
+
+            <button
+              onClick={
+                removeVerification
+              }
+              disabled={loading}
+              className="w-full border border-red-500 text-red-500 rounded-2xl p-4 flex items-center justify-center gap-2 hover:bg-red-500/10 disabled:opacity-60 transition"
+            >
+
+              {loading ? (
+
+                <Loader2
+                  className="animate-spin"
+                  size={20}
+                />
+
+              ) : (
+
+                <>
+                  <XCircle
+                    size={20}
+                  />
+
+                  Turn Off
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

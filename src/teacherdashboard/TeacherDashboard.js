@@ -169,7 +169,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
     if (item.label === "Saved Order") {
       try {
         await api.post(`/saved-products/clear/${user.id}`);
-        setSavedCount(0); // update UI after backend success
+        setSavedCount(0); // update UI after backend success Teacher
       } catch (err) {
         console.error(err);
       }

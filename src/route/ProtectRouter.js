@@ -28,7 +28,12 @@ export default function ProtectRoute({ allowedRoles = [], children }) {
     checkUser();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );;
 
   // Redirect if not logged in
   if (!user) return <Navigate to="/login" replace />;

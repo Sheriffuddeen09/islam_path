@@ -279,7 +279,7 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
             {/* 🔥 REAL AD SLOT */}
             {USE_REAL_ADS && (
               <div className="p-6 text-center">
-                <p>Real Ad Loading...</p>
+                <p>Real Ad Loading</p>
                 {/* AdSense / Ad script goes here */}
               </div>
             )}

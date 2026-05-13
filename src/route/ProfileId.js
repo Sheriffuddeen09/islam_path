@@ -32,6 +32,8 @@ export default function ProfileId({handleMessageOpen, profileId, requests, chats
   const [selectedPost, setSelectedPost] = useState(null);
   const [editContent, setEditContent] = useState("");
 
+  
+
   const { user: authUser } = useAuth();
   const fetchProfile = async () => {
   if (!profileId) return;
@@ -150,9 +152,12 @@ const canSeeContactInfo = () => {
                     <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
                        === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
                     }`}>Photo</button>
+                    {
+                      authUser?.admin_choice === "arabic_teacher" &&
                     <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
                        === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
                     }`}>Teacher Profile</button>
+                  }
                   </div>
                   
                   <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
