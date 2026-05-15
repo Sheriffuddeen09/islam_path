@@ -449,7 +449,7 @@ const handleRegister = async () => {
 
 
     return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="min-h-screen  flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
       {/* Top Navigation */}
     <header className="flex justify-between items-center shadow-md py-4 px-8 md:px-16 lg:px-24 border-b relative">
       {/* Left - Homepage */}
@@ -561,10 +561,10 @@ const handleRegister = async () => {
 
 
 
-  <div className=" text lg:hidden block pb-3 mt-5 -md:mb-60 md:translate-y-28 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
+  <div className=" text lg:hidden block pb-3 -md:mb-60 md:translate-y-28 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
           <TextSlider texts={texts} />
         </div>
-    <div className="flex flex-1 mt-4 flex-col lg:flex-row mb-10 justify-around items-center sm:p-6 gap-10">
+    <div className="flex flex-1 sm:-mt-5 flex-col lg:flex-row mb-10 justify-around items-center sm:p-3 gap-10">
         {/* Left Section - Form */}
         <div className=" flex justify-end float-left">
        

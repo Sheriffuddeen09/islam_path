@@ -795,7 +795,7 @@ function Loader() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2 mt-8">
 
-        {[1, 2, 3, 4, 5, 6, 7].map((item) => (
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
           <div
             key={item}
             className="bg-white/10 border border-white/10 rounded-xl sm:p-5 p-3"

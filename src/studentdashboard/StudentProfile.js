@@ -252,9 +252,9 @@ const badge = (
 
 function Loader() {
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br lg:ml-64 from-[#050816] via-[#0b1120] to-[#111827] animate-pulse">
+    <div className="min-h-screen p-4  lg:ml-64 animate-pulse">
 
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-3">
 
         {/* HEADER */}
         <div className="flex justify-end mb-4">
@@ -278,7 +278,7 @@ function Loader() {
             </div>
 
             {/* CONTENT */}
-            <div className="pt-14 space-y-4">
+            <div className="pt-8 space-y-4">
 
               <div className="h-6 w-52 rounded bg-white/10" />
 
@@ -320,55 +320,6 @@ function Loader() {
           </div>
         </div>
 
-        {/* EDUCATION */}
-        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-white/10" />
-            <div className="h-5 w-40 rounded bg-white/10" />
-          </div>
-
-          <div className="space-y-4">
-
-            {[1, 2].map((item) => (
-              <div
-                key={item}
-                className="bg-black/20 rounded-2xl p-4 border border-white/5"
-              >
-                <div className="h-5 w-52 rounded bg-white/10 mb-3" />
-
-                <div className="h-4 w-40 rounded bg-white/10 mb-4" />
-
-                <div className="h-7 w-20 rounded-full bg-white/10" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CAREER */}
-        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-white/10" />
-            <div className="h-5 w-40 rounded bg-white/10" />
-          </div>
-
-          <div className="space-y-4">
-
-            {[1, 2].map((item) => (
-              <div
-                key={item}
-                className="bg-black/20 rounded-2xl p-4 border border-white/5"
-              >
-                <div className="h-5 w-52 rounded bg-white/10 mb-3" />
-
-                <div className="h-4 w-40 rounded bg-white/10 mb-4" />
-
-                <div className="h-7 w-24 rounded-full bg-white/10" />
-              </div>
-            ))}
-          </div>
-        </div>
 
       </div>
     </div>
