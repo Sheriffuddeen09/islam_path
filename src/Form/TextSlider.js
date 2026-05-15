@@ -15,7 +15,7 @@ export default function TextSlider({ texts }) {
   }, [total]);
 
   return (
-    <div className="relative h-[110px] md:h-[140px] px-2 py-4 overflow-hidden ">
+    <div className="relative h-[110px] md:h-[140px] px-2 py-4 overflow-hidden  ">
       {/* SLIDES */}
       <div
         className="flex h-full transition-transform duration-700"

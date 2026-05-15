@@ -389,7 +389,7 @@ const options = [
         {/* BUTTON */}
         <button
           onClick={() => setShowDisappear(true)}
-          className="w-full flex items-center justify-between py-3 hover:bg-gray-100 px-6"
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 px-6"
         >
 
           <div className="inline-flex gap-5 items-center">
@@ -424,7 +424,7 @@ const options = [
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-6 h-6 text-gray-800"
+            className="w-6 h-6 text-[var(--text-color)]"
           >
             <path
               strokeLinecap="round"
@@ -494,7 +494,7 @@ const options = [
 
         <button
           onClick={() => setShowDisappear(true)}
-          className="w-full flex items-center justify-between py-3 hover:bg-gray-100 px-6"
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 px-6"
         >
           <div className="inline-flex gap-2 items-center">
             <TimerReset size={24} />
@@ -502,7 +502,7 @@ const options = [
             <p className="font-medium text-left">
               Disappearing Messages
             </p>
-            <p className="text-[11px] text-gray-700 text-left">
+            <p className="text-[11px] text-[var(--text-color)] text-left">
               {activeChat?.disappearing_mode === "24h" &&
                 "24 hours"}
               {activeChat?.disappearing_mode === "7d" &&
@@ -521,7 +521,7 @@ const options = [
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-6 h-6 text-gray-800"
+            className="w-6 h-6 text-[var(--text-color)]"
           >
             <path
               strokeLinecap="round"
@@ -751,7 +751,7 @@ const options = [
         <div
           key={member.id}
           onClick={() => navigate(`/profile/${member.id}`)}
-          className="flex items-center gap-3 py-2 border-b cursor-pointer hover:bg-gray-100 rounded px-2">
+          className="flex items-center gap-3 py-2 border-b cursor-pointer hover:bg-gray-900 rounded px-2">
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${getColor(
               member.first_name
@@ -873,7 +873,7 @@ const options = [
                   setShowSearchModal(false);
                   openChat(chat); // 🔥 OPEN CHAT
                 }}
-                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 transition"
+                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-900 transition"
               >
 
                 {/* AVATAR */}
@@ -929,13 +929,13 @@ function ActionButton({ icon, label, onClick, danger, warning }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-4 w-full py-3 px-6 border-b hover:border-b-0 transition-all duration-200 transform active:scale-95
+      className={`flex items-center gap-4 w-full py-3 px-6 border-b  transition-all duration-200 transform active:scale-95
         ${
           danger
             ? "text-red-600 hover:bg-red-100"
             : warning
             ? "text-yellow-600 hover:bg-yellow-100"
-            : "hover:bg-gray-100"
+            : "hover:bg-gray-900"
         }`}
     >
       {icon}

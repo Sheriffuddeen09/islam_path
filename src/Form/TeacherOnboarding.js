@@ -109,9 +109,9 @@ const autoGrow = (ref) => {
   };
 
   const content = (
-    <div className="sm:h-[78vh] h-[78vh] no-scrollbar overflow-y-auto p-4">
+    <div className="sm:h-[78vh] h-[78vh] bg-[var(--bg-color)] no-scrollbar overflow-y-auto p-4">
     <form onSubmit={handleSubmit} className="py-4 sm:px-8 px-5 sm:w-[500px] w-80 mx-auto border border-blue-600 rounded-2xl">
-      <h1 className="sm:text-2xl font-bold mb-4 text-black text-lg text-center">Become an Arabic Teacher</h1>
+      <h1 className="sm:text-2xl font-bold mb-4  text-[var(--text-color)]  text-lg text-center">Become an Arabic Teacher</h1>
 
       <select
         value={coursetitle_id}
@@ -119,7 +119,7 @@ const autoGrow = (ref) => {
           setCoursetitleId(e.target.value);
           setSpecialization("");
         }}
-        className="w-full p-3 border cursor-pointer rounded-lg border-blue-300 bg-white text-black"
+        className="w-full p-3 border cursor-pointer rounded-lg border-blue-300 bg-[var(--bg-color)] text-[var(--text-color)] "
       >
         <option value="">Select Course</option>
         {coursetitles.map((c) => (
@@ -136,8 +136,8 @@ const autoGrow = (ref) => {
         value={specialization}
         onChange={(e) => setSpecialization(e.target.value)}
         disabled={!isOtherCourse}
-        className={`w-full p-2 mt-3 rounded-lg outline-0 text-black mb-4 border 
-          ${isOtherCourse ? "border-blue-600 bg-white" : "border-gray-300 bg-gray-100 cursor-not-allowed"}
+        className={`w-full p-2 mt-3 rounded-lg outline-0 mb-4 border 
+          ${isOtherCourse ? "border-blue-600 bg-[var(--bg-color)] text-[var(--text-color)] " : "border-gray-300 bg-[var(--bg-color)] text-[var(--text-color)]  cursor-not-allowed"}
         `}
       />
 
@@ -146,7 +146,7 @@ const autoGrow = (ref) => {
         onChange={(e) => setExperience(e.target.value)}
         className="w-full p-2 border border-blue-600 rounded-lg outline-0 text-black mb-1"
       />
-      <p className="text-xs text-black mb-4"> wish to take more than one course</p>
+      <p className="text-xs text-[var(--text-color)]  mb-4"> wish to take more than one course</p>
 
       <div className="flex items-center mb-3 gap-2">
         <select
@@ -170,18 +170,18 @@ const autoGrow = (ref) => {
       </div>
 
       <textarea
-    ref={complimentRef}
-    value={compliment}
-    placeholder="Compliment"
-    onChange={(e) => {
-      setCompliment(e.target.value);
-      autoGrow(complimentRef);
-    }}
-    className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
-  />
+        ref={complimentRef}
+        value={compliment}
+        placeholder="Compliment"
+        onChange={(e) => {
+          setCompliment(e.target.value);
+          autoGrow(complimentRef);
+        }}
+        className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
+      />
 
 
-      <label className="text-black mb-5 font-bold pb-5">Academy Logo</label>
+      <label className="text-[var(--text-color)]  mb-5 font-bold pb-5">Academy Logo</label>
      <div className="flex items-center my-5 gap-4">
       {/* Hidden File Input */}
       <input
@@ -227,7 +227,7 @@ const autoGrow = (ref) => {
 
     {/* Cv */}
 
-    <label className="text-black my-5 font-bold pb-5">Cv Optional</label>
+    <label className="text-[var(--text-color)]  my-5 font-bold pb-5">Cv Optional</label>
      <div className="flex items-center mt-5 gap-4">
       {/* Hidden File Input */}
        <input

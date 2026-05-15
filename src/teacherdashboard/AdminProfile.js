@@ -1,5 +1,5 @@
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
+import { Mail, Phone} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import LogoutButton from "../Form/LogOut";
@@ -8,6 +8,7 @@ import AdminProfileFriendDashboard from "./AdminProfileFriendDashboard"
 import MyPosts from "./mediaprofile/PostProfile";
 import MyVideos from "./mediaprofile/VideoProfile";
 import MyImages from "./mediaprofile/ImageProfile";
+import BiodataDashboard from "./BioDataDashboard";
 
 
 export default function ProfilePage({teachers, chats, setTeachers, handleEdit, handleMessageOpen, 
@@ -303,52 +304,6 @@ const [visibleProfile, setVisibleProfile] = useState(1)
           </div>
         </div>
       </div>
-
-      {/* Profile Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <ProfileCard
-          icon={<Calendar />}
-          label="Date of Birth"
-          value={visibility.dob ? profile.dob : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("dob")}
-          isVisible={visibility.dob}
-        />
-        
-        <ProfileCard
-          icon={<MapPin />}
-          label="Location"
-          value={visibility.location ? profile.location : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("location")}
-          isVisible={visibility.location}
-        />
-        <ProfileCard
-          icon={<Mail />}
-          label="Email"
-          value={visibility.email ? profile.email : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("email")}
-          isVisible={visibility.email}
-        />
-        <ProfileCard
-          icon={<Phone />}
-          label="Phone"
-          value={visibility.phone ? profile.phone : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("phone")}
-          isVisible={visibility.phone}
-        />
-        
-        <ProfileCard
-          icon={<User />}
-          label="Gender"
-          value={visibility.gender ? profile.gender : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("gender")}
-          isVisible={visibility.gender}
-        />
-      </div>
     </div>
   );
 
@@ -358,6 +313,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         
         {headerDashboard}
         {content}
+        <BiodataDashboard profile={profile} visibility={visibility}
+         handleToggleVisibility={handleToggleVisibility} editVisibility={editVisibility} />
         <AdminProfileFriendDashboard handleMessageOpen={handleMessageOpen}/>
         {profile_content}
 
@@ -365,32 +322,127 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   )
 }
 
-function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
+ function Loader() {
   return (
-    <div className="bg-white rounded-xl shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">{icon}</div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="font-semibold text-gray-800">{value}</p>
+    <div className="min-h-screen p-4 bg-gradient-to-br lg:ml-64 from-[#050816] via-[#0b1120] to-[#111827] animate-pulse">
+
+      <div className="max-w-5xl mx-auto space-y-6">
+
+        {/* HEADER */}
+        <div className="flex justify-end mb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-32 rounded bg-white/10" />
+            <div className="h-10 w-10 rounded-full bg-white/10" />
+          </div>
         </div>
+
+        {/* PROFILE CARD */}
+        <div className="bg-white/10 border border-white/10 rounded-3xl overflow-hidden">
+
+          {/* COVER */}
+          <div className="h-32 bg-white/10" />
+
+          <div className="p-6 relative">
+
+            {/* AVATAR */}
+            <div className="absolute -top-12 left-6">
+              <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-[#0b1120]" />
+            </div>
+
+            {/* CONTENT */}
+            <div className="pt-14 space-y-4">
+
+              <div className="h-6 w-52 rounded bg-white/10" />
+
+              <div className="h-4 w-full rounded bg-white/10" />
+
+              <div className="h-4 w-3/4 rounded bg-white/10" />
+
+              <div className="flex gap-3 mt-4">
+                <div className="h-8 w-24 rounded-full bg-white/10" />
+                <div className="h-8 w-24 rounded-full bg-white/10" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PERSONAL INFO */}
+        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/10" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/10" />
+                  <div className="h-4 w-full rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* EDUCATION */}
+        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="space-y-4">
+
+            {[1, 2].map((item) => (
+              <div
+                key={item}
+                className="bg-black/20 rounded-2xl p-4 border border-white/5"
+              >
+                <div className="h-5 w-52 rounded bg-white/10 mb-3" />
+
+                <div className="h-4 w-40 rounded bg-white/10 mb-4" />
+
+                <div className="h-7 w-20 rounded-full bg-white/10" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CAREER */}
+        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="space-y-4">
+
+            {[1, 2].map((item) => (
+              <div
+                key={item}
+                className="bg-black/20 rounded-2xl p-4 border border-white/5"
+              >
+                <div className="h-5 w-52 rounded bg-white/10 mb-3" />
+
+                <div className="h-4 w-40 rounded bg-white/10 mb-4" />
+
+                <div className="h-7 w-24 rounded-full bg-white/10" />
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
-      {editable && (
-        <button onClick={onToggle}>
-          {isVisible ? <Eye className="text-green-500" /> : <EyeOff className="text-red-500" />}
-        </button>
-      )}
     </div>
   );
-
-}
-
-
-function Loader() {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
-      </div>
-    );
-    
 }

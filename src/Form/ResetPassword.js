@@ -108,12 +108,12 @@ const isDisabled =
   };
 
   const content = (
-    <div className="flex flex-1 flex-col justify-center mt-6 items-center md:flex-row">
+    <div className="flex flex-1 flex-col justify-center mt-6 bg-[var(--bg-color)] text-[var(--text-color)]   items-center md:flex-row">
       
       {/* Left Section */}
       <div className="flex flex-1 flex-col justify-center items-center p-6">
         <div className="lg:w-full md:w-[600px] w-80  p-6 border border-blue-200 shadow-xl rounded-lg">
-      <h2 className="text-xl font-bold mb-4 text-black text-center my-5">Reset Password</h2>
+      <h2 className="text-xl font-bold mb-4 text-[var(--text-color)]  text-center my-5">Reset Password</h2>
 
       <form onSubmit={handleReset}>
         <div className="relative mb-3 outline-none rounded border-blue-300 border">

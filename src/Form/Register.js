@@ -320,6 +320,34 @@ const resendOtp = async () => {
 };
 
 
+const handleOtpPaste = (e) => {
+
+  e.preventDefault();
+
+  const pastedData = e.clipboardData
+    .getData("text")
+    .replace(/\D/g, "")
+    .slice(0, 6);
+
+  if (!pastedData) return;
+
+  const newOtp = [...otpBoxes];
+
+  pastedData.split("").forEach((char, index) => {
+    newOtp[index] = char;
+  });
+
+  setOtpBoxes(newOtp);
+
+  // focus last filled input
+  const lastIndex = pastedData.length - 1;
+
+  if (inputsRef.current[lastIndex]) {
+    inputsRef.current[lastIndex].focus();
+  }
+};
+
+
   const handleOtpChange = (value, index) => {
     if (!/^\d*$/.test(value)) return;
 
@@ -346,9 +374,11 @@ const clearError = (field) =>{
 }
 
 const handleRegister = async () => {
+
   setLoading(true);
 
-  const phoneWithoutCode = phonenumber.slice(countryCode.length);
+  const phoneWithoutCode =
+    phonenumber.slice(countryCode.length);
 
   const payload = {
     first_name: firstName,
@@ -362,65 +392,116 @@ const handleRegister = async () => {
     password,
     password_confirmation: passwordConfirm,
     privacy,
-    role
+    role,
   };
 
   try {
-    const res = await api.post("/api/register", payload);
-    navigate(res.data.redirect);
+
+    await api.post("/api/register", payload);
+
+    // CLEAR OLD USER SESSION
+    localStorage.clear();
+
+    sessionStorage.clear();
+
+    delete api.defaults.headers.common["Authorization"];
+
+    showNotification(
+      "Registration successful. Please login."
+    );
+
+    // REDIRECT TO LOGIN
+    navigate("/login");
 
   } catch (err) {
 
     if (err.response?.status === 422) {
-      const validationErrors = err.response.data.errors;
 
-      // Show first validation error
-      const firstError = Object.values(validationErrors)[0][0];
+      const validationErrors =
+        err.response.data.errors;
+
+      const firstError =
+        Object.values(validationErrors)[0][0];
+
       showNotification(firstError);
     }
 
     else if (err.response?.data?.message) {
-      showNotification(err.response.data.message);
+
+      showNotification(
+        err.response.data.message
+      );
     }
 
     else {
-      showNotification("Something went wrong. Try again.", "error");
+
+      showNotification(
+        "Something went wrong. Try again.",
+        "error"
+      );
     }
 
   } finally {
+
     setLoading(false);
   }
 };
 
 
     return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
       {/* Top Navigation */}
-     <header className="flex justify-between items-center shadow-md py-4 px-8 md:px-16 lg:px-24 border-b relative">
+    <header className="flex justify-between items-center shadow-md py-4 px-8 md:px-16 lg:px-24 border-b relative">
       {/* Left - Homepage */}
       <Link
         to="/"
-        className="hidden md:flex items-center gap-2 text-black border border-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition"
+        className="hidden md:flex items-center font-bold gap-2 text-[var(--text-color)] border border-blue-600 px-4 py-2 rounded-full text-sm hover:bg-gray-400 transition"
       >
-        ← Homepage
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+            />
+          </svg> Homepage
       </Link>
 
       {/* Center Logo */}
-      <p className="font-bold text-black text-sm sm:text-lg font-serif flex items-center gap-3">
+      <p className="font-bold text-[var(--text-color)] text-sm sm:text-lg font-serif flex items-center gap-3">
         <Home /> Islam Path Of Knowledge
       </p>
 
       {/* Right - About Us (desktop) */}
       <Link
         to="/about"
-        className="hidden md:block bg-blue-900 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition"
+        className="hidden md:flex text-sm font-bold items-center gap-2 bg-blue-900 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition"
       >
-        About Us →
+        About Us <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-4 rotate-180"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+            />
+          </svg>
       </Link>
 
       {/* Mobile Menu Button */}
       <button
-        className="md:hidden text-black"
+        className="md:hidden  text-[var(--text-color)]"
         onClick={() => setMenuOpen(!menuOpen)}
       >
         {menuOpen ? <X size={28} className="hidden" /> : <Menu size={28} />}
@@ -428,27 +509,53 @@ const handleRegister = async () => {
 
       {/* Mobile Menu Overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-64  space-y-6 text-center">
-            <X size={28} className="text-black" onClick={() => setMenuOpen(!menuOpen)} />
-            <Link
+        <div className="fixed inset-0 bg-[var(--bg-color)]/40 backdrop-blur-md flex justify-center items-center z-50">
+          <div className=" rounded-xl shadow-lg p-6 w-64 bg-[var(--bg-color)]  space-y-6 text-center">
+            <X size={28} className=" text-[var(--text-color)] cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} />
+             <Link
               to="/"
-              onClick={() => setMenuOpen(false)}
-              className="block text-gray-700 font-semibold  border border-blue-600 px-4 py-2 rounded-full hover:bg-gray-100 transition"
+              className="flex items-center font-bold justify-center gap-2 text-[var(--text-color)] border border-blue-600 px-3 py-3 rounded-full text-sm hover:bg-gray-400 transition"
             >
-              ← Homepage
+              Homepage
+              <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-4 rotate-180"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                  />
+                </svg> 
             </Link>
             <Link
               to="/about"
-              onClick={() => setMenuOpen(false)}
-              className="block bg-blue-900 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+              className="flex text-sm justify-center font-bold items-center gap-2 bg-blue-900 text-white px-3 py-3 rounded-full text-sm hover:bg-blue-700 transition"
             >
-              About Us →
+              About Us <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-4 rotate-180"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                  />
+                </svg>
             </Link>
           </div>
         </div>
       )}
     </header>
+
 
       {/* Main Content */}
 
@@ -468,22 +575,23 @@ const handleRegister = async () => {
             steps === 1 && (
               <>
               <button
-          className="px-4 py-2  -mb-5 text-white font-bold rounded opacity-60 "
+          className="px-4 py-2  -mb-5 bg-[var(--bg-color)] text-[var(--text-color)] font-bold rounded opacity-60 "
           
         >
           <Link to={'/login'}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-black">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 bg-[var(--bg-color)] text-[var(--text-color)]">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
 </svg>
 </Link>
         </button>
 
-          <h2 className="text-2xl font-bold text-center sm:py-5 text-black mb-10">Tell us about yourself</h2>
+          <h2 className="text-2xl font-bold text-center sm:py-5 bg-[var(--bg-color)] text-[var(--text-color)] mb-10">Tell us about yourself</h2>
 
           <div className="mt-6 sm:px-4">
             <div className="relative mb-7">
-              <label className="text-black mb-8 absolute text-[13px] font-bold -top-3 left-2 bg-white text-blue-500">First Name</label>
-              <input value={firstName} onChange={(e)=>{setFirstName(e.target.value); clearError("firstName")} }  className="w-full text-black border border-blue-200 rounded px-4 py-2"/>
+              <label className="absolute -top-3 left-3 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">First Name</label>
+              <input value={firstName} onChange={(e)=>{setFirstName(e.target.value); clearError("firstName")} }  
+              className="w-full text-black border border-blue-200 rounded px-4 py-3 border border-blue-200"/>
               <div>
                 {errors.firstName && (
                   <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>
@@ -492,8 +600,9 @@ const handleRegister = async () => {
             </div>
 
              <div className="relative mt-7">
-              <label className="text-black absolute text-[13px] font-bold -top-3 left-2 bg-white text-blue-500">Last Name</label>
-              <input value={lastName} onChange={(e)=>{setLastName(e.target.value); clearError('lastName')} } className="w-full border text-black rounded px-4 py-3"/>
+              <label className="absolute -top-3 left-3 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">Last Name</label>
+              <input value={lastName} onChange={(e)=>{setLastName(e.target.value); clearError('lastName')} } 
+              className="w-full border text-black rounded px-4 py-3 border border-blue-200"/>
                 <div>
                   {
                     errors && (
@@ -504,19 +613,18 @@ const handleRegister = async () => {
             </div>
               <div className="sm:inline-flex gap-3 items-center">
              <div className="relative mt-7 sm:w-52 w-full">
-              <label className="text-black z-50 absolute text-[13px] font-bold -top-3 left-2 bg-white text-blue-500">Date of Birth</label>
-              <div className="relative w-full">
-  <input
-    type="date"
-    value={dob}
-    required
-    onChange={(e) => {
-      setDob(e.target.value);
-      clearError("dob");
-    }}
-    className="hide-date-text w-full border text-black rounded px-4 py-3 cursor-pointer relative"
-  />
-</div>
+              <label className="absolute -top-3 left-3 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">Date of Birth</label>
+                <input
+                  type="date"
+                  value={dob}
+                  required
+                  onChange={(e) => {
+                    setDob(e.target.value);
+                    clearError("dob");
+                  }}
+                  className="hide-date-text w-full border text-black rounded px-4 py-3 cursor-pointer border 
+                  border-blue-200 "
+                />
             <div>
                   {
                     errors && (
@@ -527,8 +635,9 @@ const handleRegister = async () => {
             </div>
 
              <div className="relative mt-7 sm:w-52 w-full">
-              <label className="text-black absolute text-[13px] font-bold -top-3 left-2 bg-white text-blue-500">Gender</label>
-              <select value={gender} onChange={(e)=>{setGender(e.target.value); clearError('gender')}} className="w-full border text-black rounded px-4 py-3">
+              <label className="absolute -top-3 left-3 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">Gender</label>
+              <select value={gender} onChange={(e)=>{setGender(e.target.value); clearError('gender')}} 
+              className="w-full border text-black rounded px-4 py-3 border border-blue-200">
                 <option value="">Select</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
@@ -549,10 +658,10 @@ const handleRegister = async () => {
               </div>
             )}
 
-            <button  onClick={handleNext} className="px-4 py-2 bg-blue-700 mt-8 text-white rounded float-right hover:bg-blue-800  hover:scale-105">
+            <button  onClick={handleNext} className="px-4 py-2 bg-blue-700 mt-8 rounded float-right hover:bg-blue-800  hover:scale-105">
             {loading ? (
     <svg
-      className="animate-spin h-5 w-5 text-white"
+      className="animate-spin h-5 w-5"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -585,7 +694,7 @@ const handleRegister = async () => {
           {steps === 2 && (
   <>
    <button
-          className="px-4 py-2  text-black rounded opacity-60 "
+          className="px-4 py-2  text-[var(--text-color)] rounded opacity-60 "
           onClick={prevButton}
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -593,9 +702,9 @@ const handleRegister = async () => {
 </svg>
 
         </button>
-    <h2 className="text-2xl font-bold text-center text-black">Choose Account Type</h2>
+    <h2 className="text-2xl font-bold text-center text-[var(--text-color)]">Choose Account Type</h2>
 
-    <p className="text-center text-sm text-gray-700 mt-2">
+    <p className="text-center text-sm text-[var(--text-color)] mt-2">
       Select how you want to use the platform
     </p>
 
@@ -605,8 +714,8 @@ const handleRegister = async () => {
       <label
         className={`block border rounded-lg p-4 cursor-pointer transition ${
           role === "student"
-            ? "border-blue-700 bg-blue-50"
-            : "border-gray-300"
+            ? "border-blue-700 bg-blue-700"
+            : "border-gray-800"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -619,17 +728,17 @@ const handleRegister = async () => {
               clearError("role");
             }}
           />
-          <span className="font-medium text-black">Student</span>
+          <span className="font-medium text-[var(--text-color)]">User</span>
         </div>
-        <p className="text-sm text-gray-600 ml-7">Learn and access all courses</p>
+        <p className="text-sm text-[var(--text-color)] ml-7">Learn and access all courses</p>
       </label>
 
       {/* Admin */}
       <label
         className={`block border rounded-lg p-4 cursor-pointer transition ${
           role === "admin"
-            ? "border-blue-700 bg-blue-50"
-            : "border-gray-300"
+             ? "border-blue-700 bg-blue-700"
+            : "border-gray-600"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -642,9 +751,9 @@ const handleRegister = async () => {
               clearError("role");
             }}
           />
-          <span className="font-medium text-black">Admin</span>
+          <span className="font-medium text-[var(--text-color)]">Admin</span>
         </div>
-        <p className="text-sm text-gray-600 ml-7">Create courses & manage platform</p>
+        <p className="text-sm text-[var(--text-color)] ml-7">Create courses & manage platform</p>
       </label>
 
       {/* Error */}
@@ -656,7 +765,7 @@ const handleRegister = async () => {
 
         <button
         onClick={handleNextRole}
-          className="px-4 py-2 bg-blue-700 mt-8 text-white rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
+          className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
         >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -672,7 +781,7 @@ const handleRegister = async () => {
       {steps === 3 && (
         <>
   <button
-          className="px-4 py-2  text-black rounded opacity-60 "
+          className="px-4 py-2  bg-[var(--bg-color)] text-[var(--text-color)] rounded opacity-60 "
           onClick={prevButton}
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -680,13 +789,13 @@ const handleRegister = async () => {
 </svg>
 
         </button>
-          <h2 className="text-2xl font-bold text-center text-black mb-7">What's your contact info?</h2>
+          <h2 className="text-2xl font-bold text-center text-[var(--text-color)] mb-7">What's your contact info?</h2>
 
           <div className="mt-6 space-y-4">
 
             {/* Email */}
            <div className="relative mt-7 sm:px-4 py-3">
-              <label className="text-black absolute text-[13px] font-bold top-0 sm:left-6 left-2 bg-white text-blue-500">Email Address</label>
+              <label className="absolute -top-0 left-6 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">Email Address</label>
               <input
                 type="email"
                 value={email}
@@ -699,12 +808,12 @@ const handleRegister = async () => {
 
          {/* Location */}
             <div className="relative mt-7 sm:px-4 py-3">
-              <label className="text-black absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">Address</label>
+              <label className="absolute -top-0 left-6 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">Address</label>
               <div className="flex gap-2">
                 <input
                   value={location}
                   onChange={(e)=>{setLocation(e.target.value); clearError('location')}}
-                  className="flex-1 border rounded px-4 py-3 text-black w-full"
+                  className="flex-1 border rounded px-4 py-3 w-full text-black"
                   placeholder="City / State / Location"
                 />
               </div>
@@ -713,14 +822,14 @@ const handleRegister = async () => {
             
             {/* Phone */}
            <div className="relative mt-7 sm:px-4 py-3">
-            <label className="text-black z-50 absolute text-[13px] font-bold -top-0 sm:left-6 left-2 bg-white text-blue-500">
+            <label className="absolute z-50 top-1 left-6 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">
               Phone Number
             </label>
 
             <PhoneInput
               country={"ng"}
               value={phonenumber}
-              className='mt-1 bg-white'
+              className='mt-1 bg-white text-black'
               onChange={(value, country) => {
                 setPhonenumber(value); // store full number
                 setCountryCode(country.dialCode); // optional
@@ -745,11 +854,11 @@ const handleRegister = async () => {
 
             <button
               onClick={handleContactNext}
-             className="px-4 py-2 bg-blue-700 mt-8 text-white rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
+             className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
         >
           
               {loading ?  <svg
-      className="animate-spin h-5 w-5 text-white"
+      className="animate-spin h-5 w-5"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -778,7 +887,7 @@ const handleRegister = async () => {
  {steps === 4 && (
         <>
         <button
-          className="px-4 py-2  text-black rounded opacity-60 "
+          className="px-4 py-2  text-[var(--text-color)] rounded opacity-60 "
           onClick={prevButton}
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -786,20 +895,25 @@ const handleRegister = async () => {
 </svg>
 
         </button>
-          <h2 className="text-2xl font-bold text-black text-center">Verify your login</h2>
-          <p className="text-gray-600 mt-2 text-center">Enter the 6-digit code sent to your email</p>
+          <h2 className="text-2xl font-bold text-[var(--text-color)] text-center">Verify your login</h2>
+          <p className=" text-[var(--text-color)] mt-2 text-center">Enter the 6-digit code sent to your email</p>
 
           <div className="mt-6 flex gap-3 mx-auto justify-center">
             {otpBoxes.map((val, i) => (
               <input
                 key={i}
-                ref={el => inputsRef.current[i] = el}
+                ref={(el) => (inputsRef.current[i] = el)}
                 value={val}
                 maxLength={1}
-                onChange={(e)=>{handleOtpChange(e.target.value, i); clearError('otp')}}
-                onKeyDown={(e)=>handleOtpKeyDown(e, i)}
+                onChange={(e) => {
+                  handleOtpChange(e.target.value, i);
+                  clearError("otp");
+                }}
+                onKeyDown={(e) =>
+                  handleOtpKeyDown(e, i)
+                }
+                onPaste={handleOtpPaste}
                 className="sm:w-14 sm:h-14 w-10 h-10 text-center text-black border rounded text-xl"
-
               />
             ))}
           </div>
@@ -809,8 +923,8 @@ const handleRegister = async () => {
       disabled={resendTimer > 0}
       className={`px-4 py-2 rounded mx-auto font-bold transition
         ${resendTimer > 0
-          ? "text-gray-400 cursor-not-allowed"
-          : "text-blue-600 hover:text-blue-800 cursor-pointer"
+          ? "text-[var(--text-color)] cursor-not-allowed"
+          : "text-blue-900 hover:text-blue-800 cursor-pointer"
         }
       `}
     >
@@ -823,12 +937,12 @@ const handleRegister = async () => {
           {errors.otp && <p className="text-red-600 sm:translate-x-8 translate-x-2 text-xs mt-2">{errors.otp}</p>}
 
           <button
-            className="mt-6 px-4 py-2 bg-blue-700 float-right text-white rounded  hover:bg-blue-800  hover:scale-105"
+            className="mt-6 px-4 py-2 bg-blue-700 float-right rounded  hover:bg-blue-800  hover:scale-105"
             onClick={verifyOtp}
           >
             {loading ? (
     <svg
-      className="animate-spin h-5 w-5 text-white"
+      className="animate-spin h-5 w-5 "
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -857,7 +971,7 @@ const handleRegister = async () => {
       {steps === 5 && (
   <>
     <button
-      className="px-4 py-2 text-black rounded opacity-60"
+      className="px-4 py-2 text-[var(--text-color)] rounded opacity-60"
       onClick={prevButton}
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
@@ -865,12 +979,12 @@ const handleRegister = async () => {
       </svg>
     </button>
 
-    <h2 className="text-2xl font-bold text-black text-center">Create a password</h2>
+    <h2 className="text-2xl font-bold text-[var(--text-color)] text-center">Create a password</h2>
 
     <div className="mt-4 space-y-3">
       {/* Password field */}
       <div className="relative mt-7 sm:px-4 py-3">
-        <label className="text-black absolute text-[13px] font-bold top-1 sm:left-6 left-2 bg-white text-blue-500">
+        <label className=" text-[var(--text-color)] absolute text-[13px] font-bold top-1 sm:left-6 left-2 bg-white text-blue-500">
           Password
         </label>
         <input
@@ -899,7 +1013,7 @@ const handleRegister = async () => {
 
       {/* Confirm Password */}
       <div className="relative mt-7 sm:px-4 py-3">
-        <label className="text-black absolute text-[13px] font-bold top-1 sm:left-6 left-2 bg-white text-blue-500">
+        <label className=" text-[var(--text-color)] absolute text-[13px] font-bold top-1 sm:left-6 left-2 bg-white text-blue-500">
           Confirm password
         </label>
         <input
@@ -929,7 +1043,7 @@ const handleRegister = async () => {
 
     <button
       onClick={handleNextPassword}
-      className="px-4 py-2 bg-blue-700 mt-8 text-white rounded flex justify-end items-end float-right hover:bg-blue-800 hover:scale-105"
+      className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800 hover:scale-105"
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -943,7 +1057,7 @@ const handleRegister = async () => {
 {steps === 6 && (
   <>
   <button
-          className="px-4 py-2  text-black rounded opacity-60 "
+          className="px-4 py-2  text-[var(--text-color)] rounded opacity-60 "
           onClick={prevButton}
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -951,7 +1065,7 @@ const handleRegister = async () => {
 </svg>
 
         </button>
-    <h2 className="sm:text-2xl text-sm font-bold text-black text-center">⚠️ Terms and Conditions</h2>
+    <h2 className="sm:text-2xl text-sm font-bold text-[var(--text-color)] text-center">⚠️ Terms and Conditions</h2>
 
     <div className="mt-4 space-y-3">
 
@@ -966,13 +1080,13 @@ const handleRegister = async () => {
             className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
 
-          <label htmlFor="agree" className="text-sm text-black leading-relaxed">
+          <label htmlFor="agree" className="text-sm bg-[var(--bg-color)] text-[var(--text-color)] leading-relaxed">
             I have read and agree to the{" "}
-            <span className="font-semibold text-blue-800">Terms and Islamic Privacy Policy</span>,
+            <span className="font-semibold text-blue-900">Terms and Islamic Privacy Policy</span>,
             which ensures that this platform —
             <span className="font-semibold text-blue-900">Islam Path of Knowledge</span> — operates
             according to Islamic values and principles. By continuing, I acknowledge that:
-            <ul className="list-disc ml-6 mt-2 text-gray-700">
+            <ul className="list-disc ml-6 mt-2  text-[var(--text-color)]">
               <li>All shared content must be respectful and within the bounds of Islamic teachings.</li>
               <li>Publishing or promoting haram, inappropriate, or misleading material is strictly prohibited.</li>
               <li>There must be no involvement in exam malpractice, dishonesty, or any unethical activity.</li>
@@ -991,12 +1105,12 @@ const handleRegister = async () => {
       <div className="flex justify-end mt-6">
         <button
           onClick={handleRegister}
-          className="px-4 py-2 bg-green-600 text-white mt-4 rounded"
+          className="px-4 py-2 bg-green-600 mt-4 rounded"
           disabled={loading}
         >
           {loading ? (
     <svg
-      className="animate-spin h-5 w-5 text-white"
+      className="animate-spin h-5 w-5"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

@@ -1,4 +1,4 @@
-import { Menu, X } from "lucide-react";
+import { Home, KeyRound, Loader2, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import dua_success from "./image/dua_success.png";
@@ -44,6 +44,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
 
   const navigate = useNavigate()
 
@@ -62,91 +63,229 @@ const showNotification = (message, type = "success") => {
 const clearError = (field) => {
   setErrors(prev => ({ ...prev, [field]: '' }));
 }
+const loginUser = async () => {
 
-const loginUser = async () => { 
   setLoading(true);
 
   // Local validation
   if (!email) {
     showNotification("Email is required", "error");
+    setLoading(false);
     return;
   }
+
   if (!email.includes("@")) {
     showNotification("Enter a valid email address", "error");
+    setLoading(false);
     return;
   }
+
   if (!password) {
     showNotification("Password is required", "error");
+    setLoading(false);
     return;
   }
+
   if (password.length < 6) {
-    showNotification("Password must be at least 6 characters", "error");
+    showNotification(
+      "Password must be at least 6 characters",
+      "error"
+    );
+
+    setLoading(false);
     return;
   }
 
   try {
-    await api.get("/sanctum/csrf-cookie");
-    const res = await api.post("/api/login", { email, password, remember_me: remember });
 
-    localStorage.setItem("token", res.data.token);
-    
-    // No success notification, just redirect
-    navigate(res.data.redirect);
+    await api.get("/sanctum/csrf-cookie");
+
+    const res = await api.post(
+      "/api/login",
+      {
+        email,
+        password,
+        remember_me: remember,
+      }
+    );
+
+    // ✅ TWO STEP REQUIRED
+    if (res.data.requires_two_step) {
+
+      navigate("/verify-two-step", {
+        state: {
+          user_id: res.data.user_id,
+        },
+      });
+
+      return;
+    }
+
+    // ✅ NORMAL LOGIN
+    if (res.data.status) {
+
+      localStorage.setItem(
+        "token",
+        res.data.token
+      );
+
+      navigate(res.data.redirect);
+
+      return;
+    }
 
   } catch (err) {
+
     const res = err.response;
 
-    // Validation error from backend
-    if (res?.status === 422 && res.data?.errors) {
-      const firstError = Object.values(res.data.errors)[0][0];
-      showNotification(firstError);
+    // Validation error
+    if (
+      res?.status === 422 &&
+      res.data?.errors
+    ) {
+
+      const firstError =
+        Object.values(
+          res.data.errors
+        )[0][0];
+
+      showNotification(
+        firstError,
+        "error"
+      );
+
       return;
     }
 
-    // Server error
-    if (res?.status === 500 && res.data?.message) {
-      showNotification(res.data.message);
+    // Server message
+    if (res?.data?.message) {
+
+      showNotification(
+        res.data.message,
+        "error"
+      );
+
       return;
     }
 
-    // Unknown error
-    showNotification("Something went wrong. Please try again.", "error");
+    // Unknown
+    showNotification(
+      "Something went wrong. Please try again.",
+      "error"
+    );
+
   } finally {
+
     setLoading(false);
+  }
+};
+
+const handlePasskeyLogin = async () => {
+  try {
+    setPasskeyLoading(true);
+
+    const res = await api.post("/api/passkeys/login/options", {
+      email,
+    });
+
+    const options = res.data;
+
+    const credential = await navigator.credentials.get({
+      publicKey: {
+        challenge: Uint8Array.from(atob(options.challenge), c =>
+          c.charCodeAt(0)
+        ),
+
+        allowCredentials: options.allowCredentials.map(c => ({
+          id: Uint8Array.from(atob(c.id), c => c.charCodeAt(0)),
+          type: "public-key",
+        })),
+
+        userVerification: "required",
+      },
+    });
+
+    const rawId = btoa(
+      String.fromCharCode(...new Uint8Array(credential.rawId))
+    );
+
+    const authData = {
+      id: rawId,
+    };
+        
+
+    const loginRes = await api.post(
+      "/api/passkeys/login/verify",
+      authData
+    );
+
+    localStorage.setItem("token", loginRes.data.token);
+
+    navigate(loginRes.data.redirect);
+
+  } catch (err) {
+    console.log(err);
+    showNotification("Passkey login failed");
+  } finally {
+    setPasskeyLoading(false);
   }
 };
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
       {/* Top Navigation */}
-      <header className="flex justify-between items-center shadow-md py-4 px-4 md:px-16 lg:px-24 border-b relative">
+     <header className="flex justify-between items-center shadow-md py-4 px-8 md:px-16 lg:px-24 border-b relative">
       {/* Left - Homepage */}
       <Link
         to="/"
-        className="hidden md:flex items-center gap-2 text-black border border-blue-600 px-4 py-2 rounded-full text-sm hover:bg-blue-200 transition"
+        className="hidden md:flex items-center font-bold gap-2 text-[var(--text-color)] border border-blue-600 px-4 py-2 rounded-full text-sm hover:bg-gray-400 transition"
       >
-        ← Homepage
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+            />
+          </svg> Homepage
       </Link>
 
       {/* Center Logo */}
-       <p className="font-bold text-black text-[15px] font-serif flex items-center gap-3">
-        <Link to={'/'}>
-              <img src={logos} alt='logo' width={30} height={30}/>
-              </Link> Islam Path Of Knowledge
+      <p className="font-bold text-[var(--text-color)] text-sm sm:text-lg font-serif flex items-center gap-3">
+        <Home /> Islam Path Of Knowledge
       </p>
 
       {/* Right - About Us (desktop) */}
       <Link
         to="/about"
-        className="hidden md:block bg-blue-900 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition"
+        className="hidden md:flex text-sm font-bold items-center gap-2 bg-blue-900 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition"
       >
-        About Us →
+        About Us <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-4 rotate-180"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+            />
+          </svg>
       </Link>
 
       {/* Mobile Menu Button */}
       <button
-        className="md:hidden text-black"
+        className="md:hidden  text-[var(--text-color)]"
         onClick={() => setMenuOpen(!menuOpen)}
       >
         {menuOpen ? <X size={28} className="hidden" /> : <Menu size={28} />}
@@ -154,31 +293,57 @@ const loginUser = async () => {
 
       {/* Mobile Menu Overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-64  space-y-6 text-center">
-            <X size={28} className="text-black" onClick={() => setMenuOpen(!menuOpen)} />
-            <Link
+        <div className="fixed inset-0 bg-[var(--bg-color)]/40 backdrop-blur-md flex justify-center items-center z-50">
+          <div className=" rounded-xl shadow-lg p-6 w-64 bg-[var(--bg-color)]  space-y-6 text-center">
+            <X size={28} className=" text-[var(--text-color)] cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} />
+             <Link
               to="/"
-              onClick={() => setMenuOpen(false)}
-              className="block text-gray-700 font-semibold  border border-blue-600 px-4 py-2 rounded-full hover:bg-gray-100 transition"
+              className="flex items-center font-bold justify-center gap-2 text-[var(--text-color)] border border-blue-600 px-3 py-3 rounded-full text-sm hover:bg-gray-400 transition"
             >
-              ← Homepage
+              Homepage
+              <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-4 rotate-180"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                  />
+                </svg> 
             </Link>
             <Link
               to="/about"
-              onClick={() => setMenuOpen(false)}
-              className="block bg-blue-900 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+              className="flex text-sm justify-center font-bold items-center gap-2 bg-blue-900 text-white px-3 py-3 rounded-full text-sm hover:bg-blue-700 transition"
             >
-              About Us →
+              About Us <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-4 rotate-180"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                  />
+                </svg>
             </Link>
           </div>
         </div>
       )}
     </header>
 
+
       {/* Main Content - Login + Image */}
 
-       <div className=" text lg:hidden block pb-3 mt-5 md:translate-y-40 -md:mb-60 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
+       <div className=" lg:hidden block pb-3 sm:mt-5 md:translate-y-40 -md:mb-60 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
                 <TextSlider texts={texts} />
               </div>
 
@@ -193,13 +358,13 @@ const loginUser = async () => {
               </h2>
 
               {/* Email */}
-              <div className="mb-6 relative">
-                <label className="absolute -top-3 left-3 bg-white px-1 text-sm text-blue-500 font-bold">
+              <div className="mb-12 relative">
+                <label className="absolute -top-3 left-3 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">
                   Email
                 </label>
                 <input
                   type="email"
-                  className="w-full border bg-white outline-0 focus:bg-white border-blue-200 text-black px-4 py-3 rounded"
+                  className="w-full border-2 bg-[var(--bg-color)] text-[var(--text-color)] outline-0 focus:bg-[var(--bg-color)] text-[var(--text-color)] border-blue-200 px-4 py-3 rounded"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -211,11 +376,11 @@ const loginUser = async () => {
 
               {/* Password */}
               <div className="mb-6 relative">
-                <label className="absolute -top-3 left-3 bg-white px-1 text-sm text-blue-500 font-bold">
+                <label className="absolute -top-3 left-3 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">
                   Password
                 </label>
                 <input
-                  className="w-full border bg-white outline-0 border-blue-200 text-black px-4 py-3 rounded"
+                className="w-full border-2 bg-[var(--bg-color)] text-[var(--text-color)] outline-0 focus:bg-[var(--bg-color)] text-[var(--text-color)] border-blue-200 px-4 py-3 rounded"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
@@ -244,7 +409,7 @@ const loginUser = async () => {
 
               {/* Remember Me */}
               <div className="flex justify-between pt-2 items-center text-xs mt-2">
-              <label className="flex items-center text-sm gap-2 mb-6 text-black">
+              <label className="flex items-center text-sm gap-2 mb-6 text-[var(--text-color)]">
                 <input
                   type="checkbox"
                   checked={remember}
@@ -287,15 +452,34 @@ const loginUser = async () => {
   }
               </button>
 
-               <div className="flex items-center my-5 gap-4">
+            <div className="flex items-center mt-5 mb-3 gap-4">
               <div className="flex-1 h-px bg-gray-300 h-0.5"></div>
-              <p className="text-sm text-gray-500">OR CONTINUE WITH</p>
+              <p className="text-sm text-[var(--text-color)]">OR CONTINUE WITH</p>
               <div className="flex-1 h-px bg-gray-300 h-0.5"></div>
             </div>
+            <button
+                onClick={handlePasskeyLogin}
+                disabled={passkeyLoading}
+                className="text-sm mx-auto bg-[var(--bg-color)] 
+                text-[var(--text-color)] font-bold flex justify-center mb-4 items-center gap-2 px-4 py-2 rounded-lg"
+              >
+                {passkeyLoading ? (
+                  <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Login Processing
+                  </>
+                ) : (
+                  <>
+                    <KeyRound size={18} />
+                    Login with Passkeys
+                  </>
+                )}
+              </button>
 
-            <p className="text-center text-xs text-gray-600">
+
+            <p className="text-center text-xs text-[var(--text-color)]">
               Don’t have an account?{" "}
-              <Link to="/register" className="text-blue-900 text-xs font-semibold">
+              <Link to="/register" className="text-blue-500 text-xs font-semibold">
                 Create Account
               </Link>
             </p>

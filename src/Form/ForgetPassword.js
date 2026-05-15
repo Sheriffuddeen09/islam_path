@@ -99,13 +99,13 @@ const handleSubmit = async (e) => {
 
 
   const content = (
-    <div className="flex flex-1 flex-col justify-center mt-6 items-center md:flex-row">
+    <div className="flex flex-1 flex-col justify-center bg-[var(--bg-color)] text-[var(--text-color)]  mt-6 items-center md:flex-row">
       
       {/* Left Section */}
       <div className="flex flex-1 flex-col justify-center items-center p-6">
         <div className="lg:w-full md:w-[600px] w-80  p-6 border border-blue-200 shadow-xl rounded-lg">
 
-          <h2 className="text-xl text-black my-5 text-center font-bold mb-4">
+          <h2 className="text-xl text-[var(--text-color)]  my-5 text-center font-bold mb-4">
             Forgot Password
           </h2>
 

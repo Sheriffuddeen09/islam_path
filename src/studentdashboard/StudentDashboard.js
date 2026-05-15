@@ -13,6 +13,8 @@ import PostLibrary from "../pages/post/PostLibrary";
 import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
+import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText, ClipboardList, CheckCircle,
+  BarChart3, ShoppingCart, Bookmark } from "lucide-react";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -35,13 +37,6 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
           setPendingRequests(res.data.pending_requests);
         });
       }, []);
-
-
-      // useEffect(() => {
-      //   api.get("/api/friend-notifications/requests").then(res => {
-      //     setPendingRequests(res.data.pending_requests);
-      //   });
-      // }, []);
 
 
           const handleVisible = (id) => {
@@ -67,14 +62,45 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         }, [user]);
       
         const menu = [
-        { id: 5, label: "Teacher Request", showBadge: true },
-        { id: 6, label: "View Continue Assignment" },
-        { id: 7, label: "View Continue Examination" },
-        { id: 8, label: "View Assignment Result" },
-        { id: 9, label: "View Examination Result" },
-        { id: 10, label: "Product Order", ordershow: true },
-        { id: 11, label: "Saved Order", showcount: true },
-      ];
+            {
+              id: 5,
+              label: "Teacher Request",
+              icon: Users,
+              showBadge: true,
+            },
+            {
+              id: 6,
+              label: "View Continue Assignment",
+              icon: ClipboardList,
+            },
+            {
+              id: 7,
+              label: "View Continue Examination",
+              icon: FileText,
+            },
+            {
+              id: 8,
+              label: "View Assignment Result",
+              icon: CheckCircle,
+            },
+            {
+              id: 9,
+              label: "View Examination Result",
+              icon: BarChart3,
+            },
+            {
+              id: 10,
+              label: "Product Order",
+              icon: ShoppingCart,
+              ordershow: true,
+            },
+            {
+              id: 11,
+              label: "Saved Order",
+              icon: Bookmark,
+              showcount: true,
+            },
+          ];
       
       const handleMenuClick = async (item) => {
         if (item.label === "Saved Order") {
@@ -89,87 +115,132 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
 
   return (
 
-    <div className="flex min-h-screen bg-gray-100 text-gray-800">
-       
-             {/* Desktop: always visible. Mobile: slide-in */}
-            <aside
-         className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
-           transform transition-transform duration-300
-           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-           lg:translate-x-0
-           overflow-y-auto overflow-x-hidden
-           scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-       >
+    <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
+      <aside
+      className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
+        transform transition-transform duration-300
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0
+        overflow-y-auto overflow-x-hidden
+        scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+    >
                {/* CLOSE BUTTON (Mobile Only) */}
        
        
                <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-12">
-                 <span className="text-purple-600">Islam Path</span>
+                 <span className="text-purple-900">Islam Path</span>
                  <span>Of Knowledge</span>
                </div>
        
-               <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
+               <h3 className="text-xs text-purple-900 font-bold mb-2">GENERAL</h3>
                <ul className="space-y-2">
-                 <li onClick={ () => handleVisible(1)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 1 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
-                   Dashboard
-                 </li>
-                 <li className={`rounded-lg hover:bg-gray-900 text-sm font-semibold cursor-pointer `}>
-                 <Link className="text-gray-700 hover:bg-gray-400 pt-2 hover:text-gray-200" to="/">
-                 <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer `}>
-                   Home Page
-                 </li>
-                 </Link>
-                 </li>
-                 
-                 <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                 }`}>
-                   Library
-                 </li>
-                 <li onClick={() => handleVisible(3)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                 }`}>
-                   Create Post
-                 </li>
-                 <li onClick={() => handleVisible(4)} className={`p-2 rounded-lg text-sm font-semibold cursor-pointer ${visible
-                    === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                 }`}>
-                   Setting
-                 </li>
-               </ul>
+
+              {/* DASHBOARD */}
+              <li
+                onClick={() => handleVisible(1)}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 1
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                <LayoutDashboard size={18} />
+                Dashboard
+              </li>
+
+              {/* HOME */}
+              <Link to="/">
+                <li className="flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-gray-500 hover:text-gray-100">
+                  <Home size={18} />
+                  Home Page
+                </li>
+              </Link>
+
+              {/* LIBRARY */}
+              <li
+                onClick={() => handleVisible(2)}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 2
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                <Library size={18} />
+                Library
+              </li>
+
+              {/* CREATE POST */}
+              <li
+                onClick={() => handleVisible(3)}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 3
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                <PlusSquare size={18} />
+                Create Post
+              </li>
+
+              {/* SETTINGS */}
+              <li
+                onClick={() => handleVisible(4)}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 4
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                <Settings size={18} />
+                Setting
+              </li>
+
+            </ul>
              {/* Actual Menu */}
              <div className= "">
-               <h3 className="text-xs text-blue-800 font-bold mt-6 mb-2">SET SECTION</h3>
-       
-               <ul className="space-y-2 mb-10">
-                 {menu.map(item => (
-                   <li
-                     key={item.id}
-                     onClick={() => {setVisible(item.id); handleMenuClick(item);}}
-                     className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
-                       
-                       ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
-                     `}
-                   >
-                     {item.label}
-                      {item.showBadge && pendingRequests > 0 && (
-                       <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                         {pendingRequests}
-                       </span>
-                     )}
-
-                     {item.showcount && savedCount > 0 && (
-                       <span onClick={() => handleMenuClick(item)} className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                         {savedCount}
-                       </span>
-                     )}
-
+               <h3 className="text-xs text-purple-900 font-bold mt-6 mb-2">SET SECTION</h3>
                     
-                    
-                   </li>
-                 ))}
-               </ul>
+                  <ul className="space-y-2 mb-10">
+                {menu.map((item) => (
+                  <li
+                    key={item.id}
+                    onClick={() => {
+                      setVisible(item.id);
+                      handleMenuClick(item);
+                    }}
+                    className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
+                      ${
+                        visible === item.id
+                          ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                      }
+                    `}
+                  >
+                    {/* ICON */}
+                    {item.icon && <item.icon size={18} />}
+
+                    {/* LABEL */}
+                    {item.label}
+
+                    {/* BADGE */}
+                    {item.showBadge && pendingRequests > 0 && (
+                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {pendingRequests}
+                      </span>
+                    )}
+
+                    {item.showcount && savedCount > 0 && (
+                      <span
+                        onClick={() => handleMenuClick(item)}
+                        className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full"
+                      >
+                        {savedCount}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+
              </div>
        
              </aside>
@@ -177,7 +248,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
               {/* Mobile View */}
                  
       <button
-        className={`lg:hidden fixed top-10 right-4 z-50 bg-white p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
+        className={`lg:hidden fixed top-10 right-4 z-50 bg-[var(--bg-color)] text-[var(--text-color)] p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
         onClick={handleOpenModel}
       >
         ☰
@@ -186,7 +257,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
                   <aside
-                className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
+                className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] text-[var(--text-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
                   transform transition-transform duration-300
                   ${sidebarOpen ? " block" : "hidden"}
                   lg:translate-x-0
@@ -202,67 +273,118 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                       </button>
 
                       <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-4">
-                        <span className="text-purple-600">Islam Path</span>
+                        <span className="text-purple-900">Islam Path</span>
                         <span>Of Knowledge</span>
                       </div>
 
-                      <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
+                      <h3 className="text-xs text-purple-900 font-bold mb-2">GENERAL</h3>
                       <ul className="space-y-2">
-                        <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-                          === 1 ? "bg-gray-900 text-white hover:text-gray-100 " : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
-                          Dashboard
-                        </li>
-                        <Link to="/">
-                        <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer `}>
-                          Home Page
-                        </li>
-                        </Link>
-                      
-                        <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-                          === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                        }`}>
-                          Library
-                        </li>
-                        <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-                          === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                        }`}>
-                          Create Post
-                        </li>
-                        <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-                          === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-                        }`}>
-                          Setting
-                        </li>
-                      </ul>
-                       {/* Actual Menu */}
+
+                    {/* DASHBOARD */}
+                    <li
+                      onClick={() => {handleVisible(1); handleOpenModel()}}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                        visible === 1
+                          ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                      }`}
+                    >
+                      <LayoutDashboard size={18} />
+                      Dashboard
+                    </li>
+
+                    {/* HOME */}
+                    <Link to="/">
+                      <li className="flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-gray-500 hover:text-gray-100">
+                        <Home size={18} />
+                        Home Page
+                      </li>
+                    </Link>
+
+                    {/* LIBRARY */}
+                    <li
+                      onClick={() => {handleVisible(2); handleOpenModel()}}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                        visible === 2
+                          ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                      }`}
+                    >
+                      <Library size={18} />
+                      Library
+                    </li>
+
+                    {/* CREATE POST */}
+                    <li
+                      onClick={() => {handleVisible(3); handleOpenModel()}}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                        visible === 3
+                          ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                      }`}
+                    >
+                      <PlusSquare size={18} />
+                      Create Post
+                    </li>
+
+                    {/* SETTINGS */}
+                    <li
+                      onClick={() => {handleVisible(4); handleOpenModel()}}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                        visible === 4
+                          ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                      }`}
+                    >
+                      <Settings size={18} />
+                      Setting
+                    </li>
+
+                  </ul> {/* Actual Menu */}
                        <div className= "">
-                         <h3 className="text-xs text-blue-800 font-bold mt-6 mb-2">SET SECTION</h3>
+                         <h3 className="text-xs text-purple-900 font-bold mt-6 mb-2">SET SECTION</h3>
                  
                          <ul className="space-y-2 mb-10">
-                           {menu.map(item => (
-                             <li
-                               key={item.id}
-                               onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item);}}
-                               className={`p-2 relative rounded-lg text-sm cursor-pointer font-semibold cursor-pointer 
-                                 
-                                 ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
-                               `}
-                             >
-                               {item.label}
-                                {item.showBadge && pendingRequests > 0 && (
-                                 <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                   {pendingRequests}
-                                 </span>
-                               )}  
-                               {item.showcount && savedCount > 0 && (
-                                  <span onClick={() => handleMenuClick(item)} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                    {savedCount}
-                                  </span>
-                                )}
-                              
-                              </li>
-                           ))}
-                         </ul>
+                        {menu.map((item) => (
+                          <li
+                            key={item.id}
+                            onClick={() => {
+                              setVisible(item.id);
+                              handleMenuClick(item);
+                              handleOpenModel()
+                            }}
+                            className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
+                              ${
+                                visible === item.id
+                                  ? "bg-gray-500 text-white"
+                                  : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                              }
+                            `}
+                          >
+                            {/* ICON */}
+                            {item.icon && <item.icon size={18} />}
+
+                            {/* LABEL */}
+                            {item.label}
+
+                            {/* BADGE */}
+                            {item.showBadge && pendingRequests > 0 && (
+                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                {pendingRequests}
+                              </span>
+                            )}
+
+                            {item.showcount && savedCount > 0 && (
+                              <span
+                                onClick={() => handleMenuClick(item)}
+                                className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full"
+                              >
+                                {savedCount}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
                        </div>
                  
                        </aside>

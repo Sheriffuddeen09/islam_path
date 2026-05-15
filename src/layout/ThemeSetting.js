@@ -26,6 +26,14 @@ const primaryThemes = [
   },
   {
     id: "blue",
+    color: "#f5f5f5",
+  },
+  {
+    id: "darkblue",
+    color: "#17191c",
+  },
+  {
+    id: "skyblue",
     color: "#3B82F6",
   },
   {
@@ -168,7 +176,7 @@ export default function AppearanceModal({
     document.documentElement.style.setProperty(
       "--bg-color",
       mode === "dark"
-        ? "#0b141a"
+        ? "#17191c"
         : "#ffffff"
     );
 
@@ -176,8 +184,8 @@ export default function AppearanceModal({
     document.documentElement.style.setProperty(
       "--card-color",
       mode === "dark"
-        ? "#202c33"
-        : "#f3f4f6"
+        ? "#17191c"
+        : "#f5f5f5"
     );
   };
 
@@ -185,84 +193,79 @@ export default function AppearanceModal({
   // LOAD THEME
   useEffect(() => {
 
-    const loadTheme = async () => {
-
-      try {
-
-        const res =
-          await api.get("/api/theme");
-
-        const {
-          theme_mode,
-          theme_color,
-          text_color,
-        } = res.data;
-
-        setPreviewMode(
-          theme_mode || "light"
-        );
-
-        setPreviewTheme(
-          theme_color || "blue"
-        );
-
-        setPreviewTextColor(
-          text_color || "auto"
-        );
-
-        applyTheme(
-          theme_mode || "light",
-          theme_color || "blue",
-          text_color || "auto"
-        );
-
-      } catch (error) {
-
-        console.log(error);
-      }
-    };
-
-    loadTheme();
-
-  }, []);
-
-  // APPLY BUTTON
-  const handleApply = async () => {
+  const loadTheme = async () => {
 
     try {
 
-    setApplyLoading(true)
+      const localMode = localStorage.getItem("theme_mode");
+      const localColor = localStorage.getItem("theme_color");
+      const localText = localStorage.getItem("text_color");
 
-      await api.post(
-        "/api/theme/update",
-        {
-          theme_mode:
-            previewMode,
+      if (localMode && localColor && localText) {
 
-          theme_color:
-            previewTheme,
+        setPreviewMode(localMode);
+        setPreviewTheme(localColor);
+        setPreviewTextColor(localText);
 
-          text_color:
-            previewTextColor,
-        }
-      );
+        applyTheme(localMode, localColor, localText);
+
+        return;
+      }
+
+      const res = await api.get("/api/theme");
+
+      const {
+        theme_mode,
+        theme_color,
+        text_color,
+      } = res.data;
+
+      setPreviewMode(theme_mode || "light");
+      setPreviewTheme(theme_color || "blue");
+      setPreviewTextColor(text_color || "auto");
 
       applyTheme(
-        previewMode,
-        previewTheme,
-        previewTextColor
+        theme_mode || "light",
+        theme_color || "blue",
+        text_color || "auto"
       );
 
-      onClose();
-
     } catch (error) {
-
       console.log(error);
     }
-    finally{
-      setApplyLoading(false)
-    }
   };
+
+  loadTheme();
+
+}, []);
+
+  // APPLY BUTTON
+  const handleApply = async () => {
+  try {
+    setApplyLoading(true);
+
+    const payload = {
+      theme_mode: previewMode,
+      theme_color: previewTheme,
+      text_color: previewTextColor,
+    };
+
+    await api.post("/api/theme/update", payload);
+
+    // ✅ SAVE TO LOCAL STORAGE (IMPORTANT)
+    localStorage.setItem("theme_mode", previewMode);
+    localStorage.setItem("theme_color", previewTheme);
+    localStorage.setItem("text_color", previewTextColor);
+
+    applyTheme(previewMode, previewTheme, previewTextColor);
+
+    onClose();
+
+  } finally {
+    setApplyLoading(false);
+  }
+};
+
 
   if (!open) return null;
 
@@ -365,10 +368,9 @@ export default function AppearanceModal({
                     "light"
                   )
                 }
-                className={`rounded-2xl border p-5 transition ${
-                  previewMode ===
-                  "light"
-                    ? "border-green-700 border-2"
+                className={`rounded-2xl border-2 p-5 transition ${
+                  previewMode === "light"
+                    ? "border-green-500 bg-green-50"
                     : "border-gray-200"
                 }`}
               >
@@ -379,7 +381,11 @@ export default function AppearanceModal({
                     <Sun size={28} />
                   </div>
 
-                  <p className="font-medium text-black">
+                  <p className={`font-medium ${
+                    previewMode === "dark"
+                      ? "text-white"
+                      : "text-black"
+                  }`}>
                     Light
                   </p>
                 </div>
@@ -393,10 +399,9 @@ export default function AppearanceModal({
                   )
                 }
                 className={`rounded-2xl border p-5 transition ${
-                  previewMode ===
-                  "dark"
-                    ? "border-green-700 border-2"
-                    : "border-gray-200"
+                  previewMode === "dark"
+                  ? "border-green-500 bg-gray-900"
+                  : "border-gray-200"
                 }`}
               >
 
@@ -529,7 +534,7 @@ export default function AppearanceModal({
               {/* HEADER */}
               <div
                 className={`p-4 font-semibold
-                previewMode === "dark"
+                ${previewMode === "dark"
                 ? "text-white bg-black"
                 : "text-black bg-white"
             }`}

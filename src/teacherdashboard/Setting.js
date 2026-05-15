@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut, LogInIcon, BookCheck, Palette } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User, UserX2, Download, Settings, BookOpen, TrafficCone, LogOut, LogInIcon, BookCheck, Palette, KeyRound, UserRound } from "lucide-react";
 import TeacherFormEdit from "./TeacherFormEdit";
 import TwoStepVerificationModal from "./TwoStepVerification";
 import SwitchAccountModal from "./SwitchAccountModal";
 import { useNavigate } from "react-router-dom";
 import AppearanceModal from "../layout/ThemeSetting";
 import { useAuth } from "../layout/AuthProvider";
+import PasskeysModal from "./PassKeysModal";
+import BiodataModal from "./BioDataModal";
 
 
 export default function Setting({editingTeacher, handleClose, handleUpdate, handleEdit}) {
@@ -39,27 +41,68 @@ export default function Setting({editingTeacher, handleClose, handleUpdate, hand
   const [openDelete, setOpenDelete] = useState(false)
   const [loadingDelete, setLoadingDelete] = useState(false)
 
-  const [showAppearance, setShowAppearance] =
-  useState(false);
+  const [showAppearance, setShowAppearance] = useState(false);
+  const [showPasskeys, setShowPasskeys] = useState(false)
+
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [bioLoading, setBioLoading] = useState(true);
+  const [enabled, setEnabled] = useState(false);
+
+  // CHECK IF BIODATA EXISTS
+  useEffect(() => {
+    checkBio();
+  }, []);
+
+  const checkBio = async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.get("/api/biodata/me");
+
+      setEnabled(!!res.data);
+
+    } catch (err) {
+      setEnabled(false);
+    } finally {
+      setBioLoading(false);
+    }
+  };
+
+  // OPEN SELF BIODATA (CREATE / EDIT)
+  const openMyBio = () => {
+    setSelectedUserId(null);
+    setOpenModal(true);
+  };
 
   const handleDeleteAccount = async () => {
 
-    setLoadingDelete(true)
+  setLoadingDelete(true);
 
-    try{
-      await api.delete('/api/delete-account')
+  try {
 
-      localStorage.removeItem("token")
+    await api.delete("/api/delete-account");
 
-      window.location.href = "/login"
-    }
-    catch(err){
-      console.error(err)
-    }
-    finally{
-      setLoadingDelete(false)
-    }
+    // CLEAR EVERYTHING
+    localStorage.clear();
+
+    sessionStorage.clear();
+
+    delete api.defaults.headers.common["Authorization"];
+
+    // FORCE REDIRECT
+    window.location.replace("/login");
+
+  } catch (err) {
+
+    console.error(err);
+
+  } finally {
+
+    setLoadingDelete(false);
+
   }
+};
 
 
   useEffect(() => {
@@ -311,6 +354,53 @@ const [visibleProfile, setVisibleProfile] = useState(1)
         </p>
       </button>
 
+      <button
+        onClick={() =>
+          setShowPasskeys(true)
+        }
+        className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 mb-4">
+          <KeyRound />
+        </div>
+
+        <p className="sm:text-lg text-sm font-semibold text-[var(--text-color)]">
+          Passkeys
+        </p>
+
+        <p className="sm:text-sm text-xs text-[var(--text-color)] mt-1">
+           Secure login using fingerprint, Face ID or device PIN
+        </p>
+      </button>
+
+
+        <button
+        onClick={openMyBio}
+        className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
+      >
+
+        <div className="p-3 rounded-full bg-blue-100 text-blue-600 mb-4">
+          <UserRound />
+        </div>
+
+        <p className="sm:text-lg text-sm font-semibold">
+          {bioLoading
+            ? "Loading..."
+            : enabled
+              ? "Manage Biodata"
+              : "Biodata"}
+        </p>
+
+        <p className="sm:text-sm text-xs mt-1 opacity-80">
+          {enabled
+            ? "Edit your profile, education & career"
+            : "Add your personal biodata information"}
+        </p>
+
+      </button>
+
+
       {/* 7 */}
       <button
         onClick={() =>
@@ -522,8 +612,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       
     <div>
        {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+        <div className="fixed inset-0 bg-[var(--primary-color)]/50 backdrop-blur-md text-[var(--text-color)] flex items-center justify-center z-50">
+          <div className="bg-[var(--primary-color)] text-[var(--text-color)] rounded-xl shadow-lg w-full max-w-lg p-6 relative">
             <h3 className="text-xl font-bold mb-4">Edit Profile</h3>
             <div className="flex flex-col gap-4">
              <input
@@ -531,7 +621,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 name="first_name"
                 value={editForm.first_name}
                 onChange={handleFormChange}
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full text-black"
                 placeholder="First Name"
                 />
 
@@ -541,7 +631,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 value={editForm.last_name}
                 onChange={handleFormChange}
                 placeholder="Last Name"
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full text-black"
               />
               <input
                 type="email"
@@ -549,7 +639,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 value={editForm.email}
                 onChange={handleFormChange}
                 placeholder="Email"
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full text-black"
               />
               <input
                 type="text"
@@ -557,7 +647,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 value={editForm.phone}
                 onChange={handleFormChange}
                 placeholder="Phone"
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full text-black"
               />
               <input
                 type="text"
@@ -565,7 +655,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 value={editForm.location}
                 onChange={handleFormChange}
                 placeholder="Location"
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full text-black"
               />
               <input
                 type="date"
@@ -573,7 +663,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 value={editForm.dob}
                 onChange={handleFormChange}
                 placeholder="Date of Birth"
-                className="border p-2 rounded w-full"
+                className="border p-2 rounded w-full text-black"
               />
             </div>
             <div className="mt-6 flex justify-end gap-3">
@@ -630,7 +720,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
    
   return(
     <div>
-      <h1 className="text-2xl text-black lg:ml-64 font-bold border-b-2 px-2 py-3 border-blue-400">Settings</h1>
+      <h1 className="text-2xl text-[var(--text-color)] lg:ml-64 font-bold border-b-2 px-2 py-3 border-blue-400">Settings</h1>
         {profileCotent}
         {content}
         {teacherProfile}
@@ -704,6 +794,16 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       }
     />
 
+    {
+      showPasskeys && (
+        <PasskeysModal
+          onClose={() =>
+            setShowPasskeys(false)
+          }
+        />
+      )
+    }
+
         {showTwoStep && (
                 <TwoStepVerificationModal
                   onClose={() =>
@@ -711,6 +811,16 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                   }
                 />
               )}
+
+        {openModal && (
+        <BiodataModal
+          userId={selectedUserId}
+          onClose={() => {
+            setOpenModal(false);
+            checkBio(); // refresh status after closing
+          }}
+        />
+      )}
 
         {notification.show && (
   <div
@@ -751,12 +861,33 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
   );
 }
 
-
 function Loader() {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+  return (
+    <div className="animate-pulse lg:ml-64">
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2 mt-8">
+
+        {[1, 2, 3, 4, 5, 6, 7].map((item) => (
+          <div
+            key={item}
+            className="bg-white/10 border border-white/10 rounded-xl sm:p-5 p-3"
+          >
+
+            {/* ICON */}
+            <div className="w-14 h-14 rounded-full bg-white/10 mb-4" />
+
+            {/* TITLE */}
+            <div className="h-5 w-32 rounded bg-white/10 mb-3" />
+
+            {/* TEXT */}
+            <div className="space-y-2">
+              <div className="h-3 w-full rounded bg-white/10" />
+              <div className="h-3 w-3/4 rounded bg-white/10" />
+            </div>
+
+          </div>
+        ))}
       </div>
-    );
-    
+    </div>
+  );
 }

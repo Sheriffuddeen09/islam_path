@@ -90,18 +90,18 @@ useEffect(() => {
   if (!currentUser) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-600 text-lg">Checking authentication...</p>
+        <p className="bg-[var(--bg-color)] text-[var(--text-color)]  text-lg">Checking authentication...</p>
       </div>
     );
   }
 
   const content = (
-    <section className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl mt-10 p-10">
-        <h1 className="sm:text-3xl text-lg font-bold text-gray-900 text-center mb-6">
+    <section className="min-h-screen flex items-center justify-center bg-[var(--bg-color)]/50 backdrop-blur-md text-[var(--text-color)]  p-6">
+      <div className="max-w-4xl w-full bg-[var(--bg-color)] text-[var(--text-color)]  shadow-2xl rounded-2xl mt-10 p-10">
+        <h1 className="sm:text-3xl text-lg font-bold  text-[var(--text-color)]  text-center mb-6">
           Choose How You Want to Contribute
         </h1>
-        <p className="text-center text-gray-600 mb-10">
+        <p className="text-center text-[var(--text-color)]  mb-10">
           Select an option to begin setting up your admin journey.
         </p>
 
@@ -117,18 +117,18 @@ useEffect(() => {
                 selected === opt.id
                   ? "shadow-2xl scale-105 border-purple-500"
                   : "border-gray-200 hover:shadow-xl hover:-translate-y-2"
-              } group bg-white`}
+              } group bg-[var(--bg-color)] text-[var(--text-color)] `}
             >
               <div className="text-center">
                 <div
-                  className={`w-16 h-16 mx-auto flex items-center justify-center rounded-full mb-4 text-3xl ${opt.bg} ${opt.text} transition-all ${opt.hoverBg} group-hover:text-white`}
+                  className={`w-16 h-16 mx-auto flex items-center justify-center rounded-full mb-4 text-3xl ${opt.bg} ${opt.text} transition-all ${opt.hoverBg} group-hover:text-[var(--text-color)] `}
                 >
                   {opt.emoji}
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                <h2 className="text-xl font-semibold text-[var(--text-color)]  mb-2">
                   {opt.title}
                 </h2>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-[var(--text-color)] text-sm leading-relaxed">
                   {opt.id === "sell" &&
                     "Create premium courses and earn income while teaching others."}
                   {opt.id === "free" &&

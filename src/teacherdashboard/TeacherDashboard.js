@@ -2,7 +2,8 @@
 import api from "../Api/axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, ClipboardList, Eye,
+  FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings } from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -124,26 +125,25 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
   // Menu items for Comment 1  
   const teacherMenu = [
-
-    { id: 5, label: "Student Request", showBadge: true },
-    { id: 6, label: "Create Student Assignment" },
-    { id: 7, label: "Create Student Examination" },
-    { id: 8, label: "View Assignment" },
-    { id: 9, label: "View Examination" },
-    { id: 10, label: "View Assignment Result" },
-    { id: 11, label: "View Examination Result" },
-    { id: 12, label: "Product Order" },
-    { id: 13, label: "Saved Order", showcount: true  },
-  ];
+  { id: 5, label: "Student Request", icon: Users, showBadge: true },
+  { id: 6, label: "Create Student Assignment", icon: FilePlus },
+  { id: 7, label: "Create Student Examination", icon: ClipboardList },
+  { id: 8, label: "View Assignment", icon: Eye },
+  { id: 9, label: "View Examination", icon: FileText },
+  { id: 10, label: "View Assignment Result", icon: CheckCircle },
+  { id: 11, label: "View Examination Result", icon: BarChart3 },
+  { id: 12, label: "Product Order", icon: ShoppingCart },
+  { id: 13, label: "Saved Order", icon: Bookmark, showcount: true },
+];
 
   // Menu items for Comment 2
   const defaultMenu = [
-    { id: 21, label: "Create Product" },
-    { id: 22, label: "Product List" },
-    { id: 23, label: "Promote Product" },
-    { id: 24, label: "Product Order", ordershow: true },
-    { id: 25, label: "Saved Order", showcount: true },
-  ];
+  { id: 21, label: "Create Product", icon: FilePlus },
+  { id: 22, label: "Product List", icon: ClipboardList },
+  { id: 23, label: "Promote Product", icon: BarChart3 },
+  { id: 24, label: "Product Order", icon: ShoppingCart, ordershow: true },
+  { id: 25, label: "Saved Order", icon: Bookmark, showcount: true },
+];
 
   // Choose which menu
   const menu = isTeacher ? teacherMenu : defaultMenu;
@@ -180,9 +180,9 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
 
   return (
-    <div className="flex min-h-screen bg-gray-100 text-gray-800">
+    <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside
-  className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
+  className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
     transform transition-transform duration-300
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
     lg:translate-x-0
@@ -198,41 +198,72 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         </button>
 
         <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 m 5">
-          <span className="text-purple-600">Islam Path</span>
+          <span className="text-purple-400">Islam Path</span>
           <span>Of Knowledge</span>
         </div>
 
-        <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
-        <ul className="space-y-2">
-          <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg mb-2 text-sm font-semibold cursor-pointer ${visible
-             === 1 ? "bg-gray-900 text-white hover:text-gray-100 " : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
-            Dashboard
-          </li>
-          <li className={`rounded-lg hover:bg-gray-900 text-sm font-semibold cursor-pointer `}>
-          <Link className="text-gray-700 hover:bg-gray-400 pt-2 hover:text-gray-200" to="/">
-          <li className={`p-2 rounded-lg text-sm font-semibold cursor-pointer `}>
-            Home Page
-          </li>
-          </Link>
-          </li>
-          
-          <li onClick={() => handleVisible(2)} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Library
-          </li>
-          <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Create Post
-          </li>
-          <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Setting
-          </li>
-        </ul>
+        <h3 className="text-xs text-purple-400 font-bold mb-2">GENERAL</h3>
+       <ul className="space-y-2">
 
+            {/* Dashboard */}
+            <li
+              onClick={() => { handleVisible(1); handleOpenModel(); }}
+              className={`flex items-center gap-2 p-2 rounded-lg mb-2 text-sm font-semibold cursor-pointer
+              ${visible === 1
+                ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}`}
+            >
+              <LayoutDashboard size={18} />
+              Dashboard
+            </li>
+
+            {/* Home */}
+            <Link to="/">
+              <li
+                className="flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer bg-[var(--bg-color)] text-[var(--text-color)]  hover:bg-gray-500 hover:text-gray-100"
+              >
+                <Home size={18} />
+                Home Page
+              </li>
+            </Link>
+
+            {/* Library */}
+            <li
+              onClick={() => handleVisible(2)}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer
+              ${visible === 2
+                ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}`}
+            >
+              <Library size={18} />
+              Library
+            </li>
+
+            {/* Create Post */}
+            <li
+              onClick={() => { handleVisible(3); handleOpenModel(); }}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer
+              ${visible === 3
+                ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}`}
+            >
+              <PlusSquare size={18} />
+              Create Post
+            </li>
+
+            {/* Settings */}
+            <li
+              onClick={() => { handleVisible(4); handleOpenModel(); }}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer
+              ${visible === 4
+                ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}`}
+            >
+              <Settings size={18} />
+              Setting
+            </li>
+
+          </ul>
         <div className="relative">
 
       {/* 🔐 LOCKED OVERLAY */}
@@ -247,19 +278,34 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
       {/* Actual Menu */}
       <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
-        <h3 className="text-xs text-blue-800 font-bold mt-6 mb-2">SET SECTION</h3>
+        <h3 className="text-xs text-purple-400 font-bold mt-6 mb-2">SET SECTION</h3>
 
         <ul className="space-y-2 mb-10">
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item); handleClearOrderCount(item)}}
-              className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
-                hover:bg-gray-900 hover:text-gray-200 
-                ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
+              onClick={() => {
+                setVisible(item.id);
+                handleOpenModel();
+                handleMenuClick(item);
+                handleClearOrderCount(item);
+              }}
+              className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer 
+                hover:bg-gray-500 hover:text-gray-100 
+                ${visible === item.id
+                  ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}
               `}
             >
-              {item.label}
+              {/* ICON */}
+              {item.icon && (
+                <item.icon className="w-4 h-4 shrink-0" />
+              )}
+
+              {/* LABEL */}
+              <span>{item.label}</span>
+
+              {/* BADGES */}
               {item.showBadge && pendingCount > 0 && (
                 <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {pendingCount}
@@ -267,16 +313,16 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
               )}
 
               {item.showcount && savedCount > 0 && (
-                <span onClick={() =>handleMenuClick(item)} className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {savedCount}
                 </span>
               )}
 
-               {item.ordershow && orderCount > 0 && (
-                  <span onClick={() => handleClearOrderCount(item)} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {orderCount}
-                  </span>
-                )}
+              {item.ordershow && orderCount > 0 && (
+                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  {orderCount}
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -287,7 +333,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
       {/* ---------------- MOBILE MENU BUTTON ---------------- */}
       <button
-        className={`lg:hidden fixed top-10 right-4 z-50 bg-white p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
+        className={`lg:hidden fixed top-10 right-4 z-50 bg-[var(--bg-color)] text-[var(--text-color)] p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
         onClick={handleOpenModel}
       >
         ☰
@@ -296,7 +342,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
     <aside
-  className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-white shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
+  className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
     transform transition-transform duration-300
     ${sidebarOpen ? " block" : "hidden"}
     lg:translate-x-0
@@ -312,39 +358,86 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         </button>
 
         <div className="text-lg whitespace-nowrap font-bold flex items-center gap-2 mb-8 sm:mt-6 mt-4">
-          <span className="text-purple-600">Islam Path</span>
+          <span className="text-purple-400">Islam Path</span>
           <span>Of Knowledge</span>
         </div>
 
-        <h3 className="text-xs text-blue-800 font-bold mb-2">GENERAL</h3>
+        <h3 className="text-xs text-purple-400 font-bold mb-2">GENERAL</h3>
         <ul className="space-y-2">
-          <li onClick={ () => {handleVisible(1); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 1 ? "bg-gray-900 text-white hover:text-gray-100 " : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}`}>
-            Dashboard
-          </li>
-          <Link to="/">
-          <li className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer `}>
-            Home Page
-          </li>
-          </Link>
-         
-          <li onClick={() => {handleVisible(2); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 2 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Library
-          </li>
-          <li onClick={() => {handleVisible(3); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 3 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Create Post
-          </li>
-          <li onClick={() => {handleVisible(4); handleOpenModel()}} className={`p-2 rounded-lg  text-sm font-semibold cursor-pointer ${visible
-             === 4 ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"
-          }`}>
-            Setting
-          </li>
-        </ul>
 
+            {/* DASHBOARD */}
+            <li
+              onClick={() => {
+                handleVisible(1);
+                handleOpenModel();
+              }}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                visible === 1
+                  ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+              }`}
+            >
+              <LayoutDashboard size={18} />
+              Dashboard
+            </li>
+
+            {/* HOME */}
+            <Link to="/">
+              <li className="flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-gray-900 hover:text-gray-200">
+                <Home size={18} />
+                Home Page
+              </li>
+            </Link>
+
+            {/* LIBRARY */}
+            <li
+              onClick={() => {
+                handleVisible(2);
+                handleOpenModel();
+              }}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                visible === 2
+                  ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+              }`}
+            >
+              <Library size={18} />
+              Library
+            </li>
+
+            {/* CREATE POST */}
+            <li
+              onClick={() => {
+                handleVisible(3);
+                handleOpenModel();
+              }}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                visible === 3
+                  ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+              }`}
+            >
+              <PlusSquare size={18} />
+              Create Post
+            </li>
+
+            {/* SETTINGS */}
+            <li
+              onClick={() => {
+                handleVisible(4);
+                handleOpenModel();
+              }}
+              className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                visible === 4
+                  ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+              }`}
+            >
+              <Settings size={18} />
+              Setting
+            </li>
+
+          </ul>
         <div className="relative">
 
       {/* 🔐 LOCKED OVERLAY */}
@@ -359,36 +452,51 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
 
       {/* Actual Menu */}
       <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
-        <h3 className="text-xs text-blue-800 font-bold mt-6 mb-2">SET SECTION</h3>
+        <h3 className="text-xs text-purple-400 font-bold mt-6 mb-2">SET SECTION</h3>
 
         <ul className="space-y-2 mb-10">
           {menu.map(item => (
             <li
               key={item.id}
-              onClick={() => {setVisible(item.id); handleOpenModel(); handleMenuClick(item); handleClearOrderCount(item)}}
-              className={`p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
-                hover:bg-gray-900 hover:text-gray-200 
-                ${visible === item.id ? "bg-gray-900 text-white hover:text-gray-100" : "bg-transparent hover:bg-gray-900 hover:text-gray-200"}
+              onClick={() => {
+                setVisible(item.id);
+                handleOpenModel();
+                handleMenuClick(item);
+                handleClearOrderCount(item);
+              }}
+              className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer 
+                hover:bg-gray-500 hover:text-gray-100 
+                ${visible === item.id
+                  ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}
               `}
             >
-              {item.label}
+              {/* ICON */}
+              {item.icon && (
+                <item.icon className="w-4 h-4 shrink-0" />
+              )}
+
+              {/* LABEL */}
+              <span>{item.label}</span>
+
+              {/* BADGES */}
               {item.showBadge && pendingCount > 0 && (
                 <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {pendingCount}
                 </span>
               )}
 
-               {item.showcount && savedCount > 0 && (
-                <span onClick={() =>handleMenuClick(item)} className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {item.showcount && savedCount > 0 && (
+                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {savedCount}
                 </span>
               )}
 
-               {item.ordershow && orderCount > 0 && (
-                    <span onClick={() => handleClearOrderCount(item)} className="absolute top-2 right-1  bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      {orderCount}
-                    </span>
-                  )}
+              {item.ordershow && orderCount > 0 && (
+                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  {orderCount}
+                </span>
+              )}
             </li>
           ))}
         </ul>

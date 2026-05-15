@@ -16,6 +16,10 @@ const primaryThemes = [
   },
   {
     id: "blue",
+    color: "#f5f5f5",
+  },
+  {
+    id: "skyblue",
     color: "#3B82F6",
   },
   {
@@ -37,6 +41,11 @@ const primaryThemes = [
 ];
 
 const textThemes = [
+  {
+    id: "auto",
+    color:
+      "linear-gradient(135deg,#000,#fff)",
+  },
   {
     id: "white",
     color: "#FFFFFF",
@@ -142,7 +151,7 @@ export default function ThemeLoader() {
     document.documentElement.style.setProperty(
       "--bg-color",
       mode === "dark"
-        ? "#0b141a"
+        ? "#17191c"
         : "#ffffff"
     );
 
@@ -150,8 +159,8 @@ export default function ThemeLoader() {
     document.documentElement.style.setProperty(
       "--card-color",
       mode === "dark"
-        ? "#202c33"
-        : "#f3f4f6"
+        ? "#f5f5f5"
+        : " #17191c"
     );
   };
 
