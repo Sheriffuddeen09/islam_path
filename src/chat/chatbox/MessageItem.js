@@ -769,7 +769,7 @@ onPointerCancel={() => {
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       className={`
-        absolute -bottom-8 right-0 flex items-center bg-gray-50 shadow-xl gap-0.5 px-1 py-1 rounded-lg text-xs z-50
+        absolute -bottom-7 right-0 flex items-center bg-gray-50 shadow-xl gap-0.5 px-1 py-1 rounded-lg text-xs z-50
         transition-all duration-200
 
         ${
@@ -783,37 +783,62 @@ onPointerCancel={() => {
     >
       {/* ✅ CHECKBOX (NEW) */}
       {!isMobile && (
-  <div
-    onClick={(e) => {
-      e.stopPropagation();
-      setSelectionMode(true);
-      toggleSelect(msg);
-    }}
-    className={`w-4 h-4 flex items-center justify-center rounded-full border-2 cursor-pointer transition
-      ${
-        selectedMessages.includes(msg.id)
-          ? "bg-blue-500 border-blue-500"
-          : "border-gray-400"
-      }
-    `}
-  >
-    {selectedMessages.includes(msg.id) && (
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectionMode(true);
+          toggleSelect(msg);
+        }}
+        className={`w-4 h-4 flex items-center justify-center rounded-full border-2 cursor-pointer transition
+          ${
+            selectedMessages.includes(msg.id)
+              ? "bg-blue-500 border-blue-500"
+              : "border-gray-400"
+          }
+        `}
+      >
+        {selectedMessages.includes(msg.id) && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-3 h-3 text-white"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-7.071 7.071a1 1 0 01-1.414 0L3.293 9.85a1 1 0 011.414-1.414l3.515 3.515 6.364-6.364a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        )}
+      </div>
+    )}
+
+    {/* REPLY */}
+    <button
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        setReplyingTo(msg);
+        setActiveMenuId(null);
+      }}
+      className="p-1 hover:bg-gray-200 rounded-md transition"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-3 h-3 text-white"
-        viewBox="0 0 20 20"
-        fill="currentColor"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="w-5 h-5 text-black"
       >
         <path
-          fillRule="evenodd"
-          d="M16.707 5.293a1 1 0 010 1.414l-7.071 7.071a1 1 0 01-1.414 0L3.293 9.85a1 1 0 011.414-1.414l3.515 3.515 6.364-6.364a1 1 0 011.414 0z"
-          clipRule="evenodd"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 14l-4-4m0 0l4-4m-4 4h10a4 4 0 110 8h-1"
         />
       </svg>
-    )}
-  </div>
-)}
-
+    </button>
       {/* 😀 REACTION */}
      <button
   onPointerDown={(e) => e.stopPropagation()} // ✅ keep this

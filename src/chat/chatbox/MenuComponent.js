@@ -281,16 +281,6 @@ useEffect(() => {
 
     return [
       {
-        label: "Reply",
-        show: true,
-        onClick: (m) => {
-          setReplyingTo(m);
-          clearSelection();
-          setUiState(prev => ({ ...prev, openMenu: false }));
-        },
-      },
-
-      {
         label: copied ? "Copied ✓" : "Copy",
         show: message.type === "text",
         onClick: (m) => {

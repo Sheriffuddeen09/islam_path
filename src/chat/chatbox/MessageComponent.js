@@ -258,14 +258,6 @@ useEffect(() => {
   
 
   const actions = [
-  { 
-    label: "Reply", 
-    show: true, 
-    onClick: () => {
-      setReplyingTo(msg); 
-      setActiveMenuId(null)
-    }
-  },
 
   {
     label: copied ? "Copied ✓" : "Copy",
@@ -397,101 +389,93 @@ useEffect(() => {
 
 </div>
 
-<div className="lg:block hidden">
+    <div className="lg:block hidden">
 
-
-   {showMenu && menuPosition && activeMenuId === msg.id && (
-  <div
-    className="fixed inset-0 z-[9999] overflow-y-scroll p-3
-    scrollbar-thin scrollbar-thumb-gray-400 "
-    onClick={() => {
-      setActiveMenuId(null);
-      setMenuPosition(null);
-      setShowMore(false);
-    }}
-  >
-    {/* POSITION WRAPPER */}
-    <div
-      className="absolute"
-      style={{
-        top: menuPosition.isMine
-          ? menuPosition.y - 100 : menuPosition.y - 40,
-        right: menuPosition.isMine
-          ? menuPosition.x - 500
-          :  menuPosition.x + 180,
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      {/* ================= MENU BOX ================= */}
+    {showMenu && menuPosition && activeMenuId === msg.id && (
       <div
-        className="
-          bg-white text-black shadow-xl rounded-xl w-48 py-3
-          max-h-[32vh]
-          overflow-y-scroll
-          flex flex-col
-          scrollbar-thin scrollbar-thumb-gray-400
-        "
+        className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4"
+        onClick={() => {
+          setActiveMenuId(null);
+          setMenuPosition(null);
+          setShowMore(false);
+        }}
       >
-
-        {/* CLOSE */}
-        <button
-          className="sticky top-0 bg-white z-10 text-right px-2 py-1"
-          onClick={() => {
-            setActiveMenuId(null);
-            setMenuPosition(null);
-            setShowMore(false);
-          }}
+        {/* MENU CARD */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="
+            w-full max-w-xs sm:max-w-sm
+            bg-[var(--bg-color)]
+            border border-white/30
+            shadow-2xl
+            rounded-2xl
+            text-[var(--text-color)]
+            overflow-hidden
+          "
         >
-          ✕
-        </button>
-
-        {/* MAIN ACTIONS  */}
-        {mainActions.map((action, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              action.onClick(msg);
-              setActiveMenuId(null);
-            }}
-            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
-          >
-            {action.label}
-          </button>
-        ))}
-
-        {/* MORE BUTTON */}
-        {moreActions.length > 0 && (
-          <button
-            onClick={() => setShowMore(true)}
-            className="w-full text-left px-3 py-2 text-blue-500 hover:bg-gray-100 text-sm"
-          >
-            More
-          </button>
-        )}
-
-        {/* MORE ACTIONS */}
-        {showMore &&
-          moreActions.map((action, i) => (
+          {/* CLOSE */}
+          <div className="flex justify-end p-2">
             <button
-              key={i}
               onClick={() => {
-               action.onClick(msg);
                 setActiveMenuId(null);
+                setMenuPosition(null);
                 setShowMore(false);
               }}
-              className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+              className="hover:text-gray-200 text-[var(--text-color)]"
             >
-              {action.label}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+
             </button>
-          ))}
+          </div>
 
+          {/* MAIN ACTIONS */}
+          <div className="flex flex-col">
+            {mainActions.map((action, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  action.onClick(msg);
+                  setActiveMenuId(null);
+                }}
+                className="px-4 py-3 text-left text-sm hover:bg-[var(--bg-color)]/5 transition"
+              >
+                {action.label}
+              </button>
+            ))}
+
+            {/* MORE */}
+            {moreActions.length > 0 && (
+              <button
+                onClick={() => setShowMore(true)}
+                className="px-4 py-3 text-left text-sm text-blue-500 hover:bg-[var(--bg-color)]/5"
+              >
+                More
+              </button>
+            )}
+
+            {/* MORE ACTIONS */}
+            {showMore &&
+              moreActions.map((action, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    action.onClick(msg);
+                    setActiveMenuId(null);
+                    setShowMore(false);
+                  }}
+                  className="px-4 py-3 text-left text-sm hover:bg-[var(--bg-color)]/5"
+                >
+                  {action.label}
+                </button>
+              ))}
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-)}
+    )}
 
-</div>
+    </div>
 
     {/* ================= MODALS ================= */}
     

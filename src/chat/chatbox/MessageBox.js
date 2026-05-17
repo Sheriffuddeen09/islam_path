@@ -274,7 +274,7 @@ const avatarName = isGroup
       {/* HEADER yet */}
       
       <div className="hidden lg:block">
-     <div className="px-3 border-b shadow py-1 border-white flex justify-between items-center bg-[var(--bg-color)] text-[var(--text-color)]">
+     <div className="px-3 border-b-2 shadow py-1 border-white flex justify-between items-center bg-[var(--bg-color)] text-[var(--text-color)]">
          
           <div className="inline-flex gap-4 items-center">
              <div
@@ -611,7 +611,7 @@ const avatarName = isGroup
       </div>
   ) : (
     <>
-      <div className="mb-10 text-center mt-4 mx-auto bg-gray-400 text-black rounded-lg sm:w-80 w-72 text-xs p-3">
+      <div className="mb-10 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold rounded-lg sm:w-80 w-72 text-[10px] p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
