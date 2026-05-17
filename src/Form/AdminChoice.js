@@ -89,15 +89,15 @@ useEffect(() => {
 
   if (!currentUser) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="bg-[var(--bg-color)] text-[var(--text-color)]  text-lg">Checking authentication...</p>
+      <div className="flex justify-center items-center min-h-screen bg-[var(--bg-color)]">
+        <p className=" text-[var(--text-color)]  text-lg">Checking authentication...</p>
       </div>
     );
   }
 
   const content = (
-    <section className="min-h-screen flex items-center justify-center bg-[var(--bg-color)]/50 backdrop-blur-md text-[var(--text-color)]  p-6">
-      <div className="max-w-4xl w-full bg-[var(--bg-color)] text-[var(--text-color)]  shadow-2xl rounded-2xl mt-10 p-10">
+    <section className="min-h-screen flex items-center justify-center bg-[var(--bg-color)] text-[var(--text-color)]  p-6">
+      <div className="max-w-4xl w-full bg-[var(--bg-color)] text-[var(--text-color)] shadow-md rounded-2xl mt-10 p-10">
         <h1 className="sm:text-3xl text-lg font-bold  text-[var(--text-color)]  text-center mb-6">
           Choose How You Want to Contribute
         </h1>
@@ -113,7 +113,7 @@ useEffect(() => {
                 setSelected(opt.id);
                 setChoice(opt.id);
               }}
-              className={`p-6 rounded-xl border cursor-pointer transition-all duration-300 ${
+              className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
                 selected === opt.id
                   ? "shadow-2xl scale-105 border-purple-500"
                   : "border-gray-200 hover:shadow-xl hover:-translate-y-2"

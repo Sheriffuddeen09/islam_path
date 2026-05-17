@@ -157,10 +157,10 @@ export default function ThemeLoader() {
 
     // CARD COLOR
     document.documentElement.style.setProperty(
-      "--card-color",
+      "--primary-color",
       mode === "dark"
-        ? "#f5f5f5"
-        : " #17191c"
+        ? "#17191c"
+        : "#f5f5f5"
     );
   };
 

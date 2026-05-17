@@ -147,31 +147,6 @@ export default function ActiveUsers({
   };
 
   
-  const generateInviteLink = async () => {
-  try {
-    const res = await api.get(`/api/groups/${chatId}/invite-link`);
-
-    const link = res.data.invite_link;
-
-    await navigator.clipboard.writeText(link);
-
-    toast.success("Invite link copied!");
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to generate link");
-  }
-};
-
-
-const options = [
-  { label: "Off", value: "off", seconds: 0  },
-  { label: "1 Minute", value: "1m", seconds: 60 },
-  { label: "1 Hour", value: "1h", seconds: 3600 },
-  { label: "1 Day", value: "1d", seconds: 86400 },
-  { label: "7 Days", value: "7d", seconds: 604800 },
-];
-
-
    const colors = [
     "bg-orange-500",
     "bg-blue-500",

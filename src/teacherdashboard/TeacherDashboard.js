@@ -21,7 +21,7 @@ import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 
-export default function TeacherDashboardLayout({chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
+export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,  orderCount, setOrderCount,
         savedCount, setSavedCount
@@ -76,10 +76,20 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
     const handleClose = () => setEditingTeacher(null);
   
     const handleUpdate = (updatedTeacher) => {
+
       setTeachers((prev) =>
-        prev.map((t) => (t.id === updatedTeacher.id ? updatedTeacher : t))
+        prev.map((t) =>
+          t.id === updatedTeacher.id
+            ? updatedTeacher
+            : t
+        )
       );
+
+      setEditingTeacher(updatedTeacher);
     };
+
+
+
 
 
 
@@ -510,7 +520,7 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <ProfilePage chats={chats} handleVisible={handleVisible} user={user} setUser={setUser} 
         teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} handleMessageOpen={handleMessageOpen}
-        image={image} setImage={setImage}
+        image={image} setImage={setImage} onProfileCompleted={onProfileCompleted}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -526,9 +536,10 @@ export default function TeacherDashboardLayout({chats, handlePostCreated, user, 
         </div>
         <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
         <Setting  editingTeacher={editingTeacher}
-        handleEdit={handleEdit}
+          handleEdit={handleEdit}
           handleClose={handleClose}
-          handleUpdate={handleUpdate} />
+          handleUpdate={handleUpdate} 
+        />
         </div>
 
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>

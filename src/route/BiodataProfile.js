@@ -1,44 +1,41 @@
-import {
-  Loader2,
-  MapPin,
-  Heart,
-  GraduationCap,
-  BriefcaseBusiness,
-  Phone,
-  Mail,
-  Globe,
-  User2,
-  User,
-  Calendar,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
+import {
+  Loader2,
+  User2,
+  GraduationCap,
+  BriefcaseBusiness,
+  MapPin,
+  Heart,
+  Phone,
+  Mail,
+ Calendar, Eye, EyeOff, User, Globe } from "lucide-react";
 
-export default function BiodataDashboard({visibility, editVisibility, handleToggleVisibility, profile}) {
+
+export default function BioDataProfile({ userId, visibility, handleToggleVisibility, profile}) {
 
   const [loading, setLoading] = useState(true);
   const [bio, setBio] = useState(null);
 
   useEffect(() => {
-    fetchBiodata();
-  }, []);
+    fetchProfile();
+  }, [userId]);
 
-  const fetchBiodata = async () => {
+  const fetchProfile = async () => {
 
     try {
 
       setLoading(true);
 
-      const res = await api.get("/api/biodata/me");
+      const res = await api.get(`/api/biodata/${userId}`);
 
       setBio(res.data);
 
     } catch (err) {
 
       console.log(err);
+
+      setBio(null);
 
     } finally {
 
@@ -47,17 +44,19 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
   };
 
   // ================= LOADING =================
-  if (loading) return <Loader />
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-10">
+        <Loader2 className="animate-spin text-blue-500" size={32} />
+      </div>
+    );
+  }
 
   // ================= EMPTY =================
   if (!bio) {
     return (
-      <div className="max-w-3xl mx-auto p-6 text-center lg:ml-64  bg-[var(--bg-color)] text-[var(--text-color)]">
-        <User2 size={40} className="mx-auto mb-4" />
-        <h2 className="text-2xl font-bold">No Biodata Added</h2>
-        <p className="mt-2">
-          Your profile data will appear here once created.
-        </p>
+      <div className="text-center text-white opacity-70 p-10">
+        No biodata found
       </div>
     );
   }
@@ -74,7 +73,6 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
           icon={<Heart size={16} />}
           label="Date of Birth"
           value={visibility.dob ? profile.dob : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("dob")}
           isVisible={visibility.dob}
         />
@@ -83,7 +81,6 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
           icon={<MapPin />}
           label="Location"
           value={visibility.location ? profile.location : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("location")}
           isVisible={visibility.location}
         />
@@ -92,7 +89,6 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
           icon={<Mail />}
           label="Email"
           value={visibility.email ? profile.email : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("email")}
           isVisible={visibility.email}
         />
@@ -101,7 +97,6 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
           icon={<Phone />}
           label="Phone"
           value={visibility.phone ? profile.phone : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("phone")}
           isVisible={visibility.phone}
         />
@@ -110,7 +105,6 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
           icon={<User />}
           label="Gender"
           value={visibility.gender ? profile.gender : "Hidden"}
-          editable={editVisibility}
           onToggle={() => handleToggleVisibility("gender")}
           isVisible={visibility.gender}
         />

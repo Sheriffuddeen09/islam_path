@@ -131,7 +131,7 @@ export default function ChatItem({
     >
       {/* AVATAR */}
       <div className={`relative w-12 h-12 rounded-full overflow-hidden flex items-center 
-      justify-center font-bold text-xl text-white ${getColor(
+      justify-center font-bold text-2xl text-white ${getColor(
             avatarName
           )}`}>
           {isGroup && chat.image_url ? (
@@ -147,7 +147,7 @@ export default function ChatItem({
 
         {/* ONLINE */}
         {isOnline && (
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+          <span className="absolute bottom-1 right-1 z-50 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
         )}
 
         {/* BLOCK OVERLAY */}

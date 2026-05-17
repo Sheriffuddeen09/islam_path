@@ -152,7 +152,7 @@ export default function EncryptionModal({
         </div>
 
         {/* BODY */}
-        <div className="px-6 py-10">
+        <div className="px-6">
 
           {/* ================= PENDING ================= */}
           {status === "pending" && (
@@ -160,7 +160,7 @@ export default function EncryptionModal({
             <div className="flex flex-col items-center text-center">
 
               {/* ANIMATION */}
-              <div className="relative mb-10">
+              <div className="relative mb-3">
 
                 <div className="w-52 h-52 rounded-full border-2 border-dashed border-gray-300 animate-spin-slow flex items-center justify-center">
 
@@ -189,7 +189,7 @@ export default function EncryptionModal({
                 <div className="absolute top-7 right-5 w-5 h-5 rounded-full bg-green-500"></div>
               </div>
 
-              <h3 className="text-4xl font-bold text-gray-400">
+              <h3 className="text-xl font-bold text-gray-400">
                 Verifying
               </h3>
             </div>
@@ -381,7 +381,7 @@ export default function EncryptionModal({
 
             {/* LOADING */}
             {loading && (
-              <div className="text-center text-gray-400 mt-6">
+              <div className="text-center text-gray-400 mt-2">
                 Loading encryption
               </div>
             )}

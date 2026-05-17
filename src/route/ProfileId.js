@@ -1,5 +1,5 @@
 import api from "../Api/axios";
-import { Mail, Phone, MapPin, Calendar, Eye, EyeOff, User } from "lucide-react";
+import { Mail, Phone, Eye, EyeOff } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import AdminAdded from "../pages/friend/AdminAdded";
@@ -15,17 +15,17 @@ import MyPostsIdAdmin from "../teacherdashboard/mediaProfileId/PostProfileId";
 import MyPostsIdStudent from "../studentdashboard/mediaProfileId/PostProfileId";
 import MyVideosIdStudent from "../studentdashboard/mediaProfileId/VideoProfileId";
 import MyImagesIdStudent from "../studentdashboard/mediaProfileId/ImageProfileId";
+import BioDataProfile from "./BiodataProfile";
 
 
 
 
-export default function ProfileId({handleMessageOpen, profileId, requests, chats,
+export default function ProfileId({handleMessageOpen, profileId, chats,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
 }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -91,39 +91,6 @@ const showAdminFriend = () => {
     profile.role === "admin" &&
     authUser.id !== profile.id
   );
-};
-
-
-const isAdminTeacher = profile?.admin_choice === "arabic_teacher";
-
-
-const requestsArray = Array.isArray(requests) ? requests : [];
-
-
-const requestWithTeacher = requestsArray.find(
-  r =>
-    r.teacher_id === profile?.id ||
-    r.student_id === profile?.id
-);
-
-const requestStatus = requestWithTeacher?.status ?? null;
-
-
-const canSeeContactInfo = () => {
-  if (!authUser || !profile) return false;
-
-  // Admin sees everything
-  if (authUser.role === "admin") return true;
-
-  // If profile is NOT admin teacher → show
-  if (!isAdminTeacher) return true;
-
-  // Student viewing admin teacher
-  if (authUser.role === "student" && isAdminTeacher) {
-    return requests === "accepted";
-  }
-
-  return false;
 };
 
 
@@ -254,93 +221,110 @@ const canSeeContactInfo = () => {
                  }
                  </div>
   )
-  const content = (
-    <div className="max-w-5xl 0 mx-auto px-4 py-0">
-     
+  const colors = [
+  "bg-orange-500",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-purple-500",
+  "bg-pink-500",
+];
 
-      {/* Profile Header */}
-      <div className="bg-gray-900 sm:p-14 translate-y-24 mb-28 rounded-2xl shadow p-6  flex flex-col md:flex-row gap-6 items-center">
-        
-         <div className="w-28 h-28 rounded-full bg-blue-600 text-white flex items-center justify-center text-[80px] font-bold">
-          {profile.first_name?.[0]}
-        </div>
+const getColor = (name = "") => {
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
 
-            
-        <div className="text-center md:text-left flex-1">
-          <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.first_name} • {profile.last_name}</h2>
-          <p className="text-sm my-1 text-white font-semibold capitalize">{profile.role} • {profile.role === 'admin' &&( 'Teacher')}</p>
-          <p className="text-sm my-1 text-white font-semibold">PROFILE ID: {profileId}</p>
-          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
-            {canSeeContactInfo() && (
-              <span className="flex text-white items-center gap-1">
-                <Mail className="w-4 h-4" /> {profile.email}
+const getInitial = (name) => {
+  if (!name) return "?";
+  return name.charAt(0).toUpperCase();
+};
+
+const content = (
+  <div className="max-w-6xl lg:ml-64 mx-auto px-4 py-4">
+
+    {/* PROFILE CARD */}
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-2xl">
+
+      {/* TOP BANNER */}
+      <div className="h-36 sm:h-44 bg-gradient-to-r from-cyan-500 via-gray-600 to-purple-600" />
+
+      {/* MAIN CONTENT */}
+      <div className="relative px-5 sm:px-8 pb-8">
+
+        <div className="-mt-16 sm:-mt-20 flex flex-col md:flex-row md:items-end gap-6">
+
+          {/* AVATAR */}
+          <div
+            className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-2xl flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
+              profile.first_name
+            )}`}
+          >
+            {getInitial(profile.first_name)}
+          </div>
+
+          {/* USER DETAILS */}
+          <div className="flex-1 text-center md:text-left md:pb-3">
+
+            <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
+              {profile.first_name}{" "}
+              <span className="">
+                {profile.last_name}
               </span>
-            )}
+            </h2>
 
-            {canSeeContactInfo() &&  (
-              <span className="flex text-white items-center gap-1">
-                <Phone className="w-4 h-4" /> {profile.phone}
-              </span>
-            )}
+            <p className="text-sm sm:text-base text-gray-300 mt-2 capitalize font-medium">
+              {profile.role}
+            </p>
+
+            <div className="inline-flex font-bold items-center mt-3 px-4 py-1 rounded-full bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
+              PROFILE ID: #{profile.id}
+            </div>
+
+            {/* CONTACT INFO */}
+            <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-3">
+
+              {visibility.email && (
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
+                  <Mail className="w-4 h-4 text-cyan-400" />
+                  <span className="break-all">
+                    {profile.email}
+                  </span>
+                </div>
+              )}
+
+              {visibility.phone && (
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
+                  <Phone className="w-4 h-4 text-green-400" />
+                  <span>
+                    {profile.phone}
+                  </span>
+                </div>
+              )}
+
+            </div>
           </div>
 
         </div>
-        
-{showStudentFriend() && (
-  <StudentAdded handleMessageOpen={handleMessageOpen} />
-)}
+      </div>
 
-{showAdminFriend() && (
-  <AdminAdded handleMessageOpen={handleMessageOpen} />
-)}
+      {/* OVERLAY */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+
+                
+        {showStudentFriend() && (
+          <StudentAdded handleMessageOpen={handleMessageOpen} />
+        )}
+
+        {showAdminFriend() && (
+          <AdminAdded handleMessageOpen={handleMessageOpen} />
+        )}
 
       </div>
 
       {/* Profile Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <ProfileCard
-          icon={<Calendar />}
-          label="Date of Birth"
-          value={visibility.dob ? profile.dob : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("dob")}
-          isVisible={visibility.dob}
-        />
-        
-        <ProfileCard
-          icon={<MapPin />}
-          label="Location"
-          value={visibility.location ? profile.location : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("location")}
-          isVisible={visibility.location}
-        />
-        <ProfileCard
-          icon={<Mail />}
-          label="Email"
-          value={visibility.email ? profile.email : "Hidden"}
-          onToggle={() => handleToggleVisibility("email")}
-          isVisible={visibility.location}
-        />
-
-        <ProfileCard
-          icon={<Phone />}
-          label="Phone"
-          value={visibility.phone ? profile.phone : "Hidden"}
-          onToggle={() => handleToggleVisibility("phone")}
-          isVisible={visibility.phone}
-        />
-
-        
-        <ProfileCard
-          icon={<User />}
-          label="Gender"
-          value={visibility.gender ? profile.gender : "Hidden"}
-          editable={editVisibility}
-          onToggle={() => handleToggleVisibility("gender")}
-          isVisible={visibility.gender}
-        />
-      </div>
+     <BioDataProfile userId={authUser.id} handleToggleVisibility={handleToggleVisibility}
+     profile={profile} visibility={visibility}
+     />
     </div>
   );
 

@@ -266,7 +266,7 @@ const getPreviewText = (msg) => {
   </div>
 )}
     {!recording && (
-    <div className="px w-full bg-white gap-3 flex items-center flex-row">
+    <div className="px w-full bg-[var(--bg-color)]  gap-3 flex items-center flex-row p-2">
        
        <input
         ref={fileInputRef}
@@ -291,7 +291,7 @@ const getPreviewText = (msg) => {
           </button>
         <button
             onClick={() => setShowMenu((prev) => !prev)}
-            className="bg-gray-300 rounded-full p-2 hover:bg-gray-400 cursor-pointer"
+            className="bg-gray-300 rounded-full text-black p-2 hover:bg-gray-400 cursor-pointer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
             stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -302,12 +302,12 @@ const getPreviewText = (msg) => {
         
 
    
-      <div className="relative w-full ">
+      <div className="relative w-full mt-1">
        <input
               ref={textareaRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="flex-1 border bg-white shadow text-black relative w-full px-4 rounded-full py-3 relative"
+              className="flex-1 border bg-[var(--bg-color)] border-gray-400 border-2 text-[var(--text-color)] shadow text-black relative w-full px-4 rounded-full py-3 relative"
           />
         <button className="absolute top-3 right-3 hover:text-gray-900" onClick={() => setShowEmoji(prev => !prev)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
@@ -319,7 +319,7 @@ const getPreviewText = (msg) => {
       </div>
   
       {!recording && text && (
-          <button onClick={sendText} className="text-blue-800 hover:text-blue-900 px-3 py-1 rounded">
+          <button onClick={sendText} className="text-[var(--text-color)] bg-green-500  hover:text-blue-900 px-2 py-2 rounded-full">
             
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
@@ -336,13 +336,13 @@ const getPreviewText = (msg) => {
       )} 
 
       {recording && (
-          <div className="flex justify-center mx-auto items-center gap-6 sm:gap-8  bg-gray-100 px-3 py-3 rounded-full">
+          <div className="flex justify-center mx-auto items-center my-2 gap-6 sm:gap-8 shadow-md  border px-3 py-3 rounded-full">
          <button onClick={cancelRecording}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5  text-[var(--text-color)]">
           <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
         </svg>
       </button> 
-          <span className="text-sm font-mono font-bold text-black">
+          <span className="text-sm font-mono font-bold text-[var(--text-color)]">
             {formatTime(duration)}
           </span>
             <VoiceWave active={!paused} />
@@ -352,14 +352,14 @@ const getPreviewText = (msg) => {
             {/* PAUSE / RESUME */}
             {!paused ? (
               <button onClick={pauseRecording}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
               </svg>
 
               </button>
             ) : (
               <button onClick={resumeRecording}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
               </svg>
 
@@ -369,7 +369,7 @@ const getPreviewText = (msg) => {
             {/* SEND */}
             <button
               onClick={stopRecording}
-              className="text-blue-600 font-bold"
+              className="text-[var(--text-color)] font-bold"
             >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />

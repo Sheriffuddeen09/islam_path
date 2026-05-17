@@ -51,7 +51,7 @@ export function ChatSkeleton({ type = "list" }) {
   // 🔹 ACTIVE USER / CHAT INFO SKELETON
   if (type === "info") {
   return (
-    <div className="h-full bg-white animate-pulse">
+    <div className="h-full bg-[var(--bg-color)] animate-pulse">
 
       {/* HEADER */}
       <div className="p-4 border-b flex items-center gap-2">

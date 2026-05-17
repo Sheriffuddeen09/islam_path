@@ -712,10 +712,10 @@ const handleRegister = async () => {
 
       {/* Student */}
       <label
-        className={`block border rounded-lg p-4 cursor-pointer transition ${
+        className={`block border rounded-lg p-4 cursor-pointer transition text-sm ${
           role === "student"
-            ? "border-blue-700 bg-blue-700"
-            : "border-gray-800"
+            ? "border-blue-700 bg-blue-700 text-white"
+            : "border-gray-800 text-[var(--text-color)]"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -728,17 +728,24 @@ const handleRegister = async () => {
               clearError("role");
             }}
           />
-          <span className="font-medium text-[var(--text-color)]">User</span>
-        </div>
-        <p className="text-sm text-[var(--text-color)] ml-7">Learn and access all courses</p>
-      </label>
+          <span className="font-medium">
+            User
+          </span>
+
+          </div>
+
+          <p className="text-sm leading-6  ml-7 opacity-80">
+            Access Online Arabic Teachers, Order Halal products, Explore Educational Resources,
+            and Connect with the Muslim Friends.
+          </p>
+          </label>
 
       {/* Admin */}
       <label
-        className={`block border rounded-lg p-4 cursor-pointer transition ${
+        className={`block border rounded-lg p-4 cursor-pointer transition text-sm ${
           role === "admin"
-             ? "border-blue-700 bg-blue-700"
-            : "border-gray-600"
+             ? "border-blue-700 bg-blue-700 text-white"
+            : "border-gray-600 text-[var(--text-color)]"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -751,10 +758,17 @@ const handleRegister = async () => {
               clearError("role");
             }}
           />
-          <span className="font-medium text-[var(--text-color)]">Admin</span>
-        </div>
-        <p className="text-sm text-[var(--text-color)] ml-7">Create courses & manage platform</p>
-      </label>
+          <span className="font-medium">
+            Admin
+          </span>
+
+          </div>
+
+          <p className="text-sm leading-6  ml-7 opacity-80">
+            Teach Arabic Online, Sell Online Products of any Categories, Manage Platform Activities,
+            and Help Grow The Islamic Learning.
+          </p>  
+          </label>
 
       {/* Error */}
       {errors.role && (
@@ -765,7 +779,7 @@ const handleRegister = async () => {
 
         <button
         onClick={handleNextRole}
-          className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
+          className="px-4 py-2 bg-blue-700 mt-8 text-white rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
         >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -854,7 +868,8 @@ const handleRegister = async () => {
 
             <button
               onClick={handleContactNext}
-             className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800  hover:scale-105"
+             className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end 
+             items-end float-right hover:bg-blue-800  hover:scale-105 text-white"
         >
           
               {loading ?  <svg
@@ -937,7 +952,7 @@ const handleRegister = async () => {
           {errors.otp && <p className="text-red-600 sm:translate-x-8 translate-x-2 text-xs mt-2">{errors.otp}</p>}
 
           <button
-            className="mt-6 px-4 py-2 bg-blue-700 float-right rounded  hover:bg-blue-800  hover:scale-105"
+            className="mt-6 px-4 py-3 bg-blue-700 text-white text-sm float-right rounded  hover:bg-blue-800  hover:scale-105"
             onClick={verifyOtp}
           >
             {loading ? (
@@ -984,14 +999,14 @@ const handleRegister = async () => {
     <div className="mt-4 space-y-3">
       {/* Password field */}
       <div className="relative mt-7 sm:px-4 py-3">
-        <label className=" text-[var(--text-color)] absolute text-[13px] font-bold top-1 sm:left-6 left-2 bg-white text-blue-500">
+        <label className=" text-[var(--text-color)] bg-[var(--bg-color)] absolute text-[13px] font-bold top-1 sm:left-6 left-2">
           Password
         </label>
         <input
           type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => { setPassword(e.target.value); clearError('password') }}
-          className="w-full border rounded px-4 py-2 text-black"
+          className="w-full border rounded px-4 py-3 text-black"
         />
         <button
           type="button"
@@ -1013,14 +1028,14 @@ const handleRegister = async () => {
 
       {/* Confirm Password */}
       <div className="relative mt-7 sm:px-4 py-3">
-        <label className=" text-[var(--text-color)] absolute text-[13px] font-bold top-1 sm:left-6 left-2 bg-white text-blue-500">
+        <label className=" text-[var(--text-color)] bg-[var(--bg-color)] absolute text-[13px] font-bold top-1 sm:left-6 left-2">
           Confirm password
         </label>
         <input
           type={showPasswordConfirm ? "text" : "password"}
           value={passwordConfirm}
           onChange={(e) => { setPasswordConfirm(e.target.value); clearError('passwordConfirm') }}
-          className="w-full border rounded px-4 py-2 text-black"
+          className="w-full border rounded px-4 py-3 text-black"
         />
         <button
           type="button"
@@ -1043,7 +1058,7 @@ const handleRegister = async () => {
 
     <button
       onClick={handleNextPassword}
-      className="px-4 py-2 bg-blue-700 mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800 hover:scale-105"
+      className="px-4 py-2 bg-blue-700 text-white mt-8 rounded flex justify-end items-end float-right hover:bg-blue-800 hover:scale-105"
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -1077,14 +1092,14 @@ const handleRegister = async () => {
             id="agree"
             checked={privacy}
             onChange={(e) => setPrivacy(e.target.checked)}
-            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="mt-1 w-5 h-5 cursor-pointer text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
 
           <label htmlFor="agree" className="text-sm bg-[var(--bg-color)] text-[var(--text-color)] leading-relaxed">
             I have read and agree to the{" "}
-            <span className="font-semibold text-blue-900">Terms and Islamic Privacy Policy</span>,
+            <span className="font-semibold text-blue-500">Terms and Islamic Privacy Policy</span>,
             which ensures that this platform —
-            <span className="font-semibold text-blue-900">Islam Path of Knowledge</span> — operates
+            <span className="font-semibold text-blue-500">Islam Path of Knowledge</span> — operates
             according to Islamic values and principles. By continuing, I acknowledge that:
             <ul className="list-disc ml-6 mt-2  text-[var(--text-color)]">
               <li>All shared content must be respectful and within the bounds of Islamic teachings.</li>
@@ -1105,7 +1120,7 @@ const handleRegister = async () => {
       <div className="flex justify-end mt-6">
         <button
           onClick={handleRegister}
-          className="px-4 py-2 bg-green-600 mt-4 rounded"
+          className="px-4 py-3 text-sm bg-green-600 mt-4 rounded text-white"
           disabled={loading}
         >
           {loading ? (

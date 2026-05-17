@@ -203,37 +203,109 @@ const badge = (
         </div>
         </div>
   )
-  const content = (
-    <div className="max-w-5xl lg:ml-64 0 mx-auto px-4 py-0">
-     
+  const colors = [
+  "bg-orange-500",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-purple-500",
+  "bg-pink-500",
+];
 
-      {/* Profile Header */}
-      <div className="bg-gray-900 sm:p-14 rounded-2xl shadow p-6  flex flex-col md:flex-row gap-6 items-center">
-        
-        <div className="w-28 h-28 rounded-full bg-gray-600 text-white flex items-center justify-center text-[80px] font-bold">
-          {profile.first_name?.[0]}
-        </div>
+const getColor = (name = "") => {
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
 
-            
-        <div className="text-center md:text-left flex-1">
-          <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.first_name} • {profile.last_name}</h2>
-          <p className="text-sm my-1 text-white font-semibold capitalize">{profile.role}</p>
-          <p className="text-sm my-1 text-white font-semibold">PROFILE {profile.id}</p>
-          <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-600">
-            {visibility.email && (
-              <span className="flex text-white items-center gap-1"><Mail className="w-4 h-4" /> {profile.email}</span>
-            )}
-            {visibility.phone && (
-              <span className="flex text-white items-center gap-1"><Phone className="w-4 h-4" /> {profile.phone}</span>
-            )}
+const getInitial = (name) => {
+  if (!name) return "?";
+  return name.charAt(0).toUpperCase();
+};
+
+const content = (
+  <div className="max-w-6xl lg:ml-64 mx-auto px-4 py-4">
+
+    {/* PROFILE HEADER */}
+    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-2xl">
+
+      {/* TOP GRADIENT */}
+      <div className="h-36 sm:h-44 bg-gradient-to-r from-gray-600 via-purple-600 to-pink-600" />
+
+      {/* CONTENT */}
+      <div className="relative px-5 sm:px-8 pb-8">
+
+        {/* AVATAR */}
+        <div className="-mt-16 sm:-mt-20 flex flex-col md:flex-row md:items-end gap-5">
+
+          <div
+            className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-2xl flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
+              profile.first_name
+            )}`}
+          >
+            {getInitial(profile.first_name)}
           </div>
+
+          {/* USER INFO */}
+          <div className="flex-1 text-center md:text-left md:pb-3">
+
+            <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
+              {profile.first_name}{" "}
+              <span className="">
+                {profile.last_name}
+              </span>
+            </h2>
+
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mt-3">
+
+              <span className="px-4 py-1 rounded-full bg-blue-500/20 border border-blue-400/20 text-white text-xs sm:text-sm font-semibold capitalize">
+                {profile.role}
+              </span>
+
+              <div className="inline-flex font-bold items-center mt-3 px-4 py-1 rounded-full bg-white border border-white/10 text-xs sm:text-sm text-black">
+                PROFILE ID: #{profile.id}
+              </div>
+
+            </div>
+
+            {/* CONTACT */}
+            <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-3">
+
+              {visibility.email && (
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
+                  <Mail className="w-4 h-4 text-blue-400" />
+                  <span className="break-all">
+                    {profile.email}
+                  </span>
+                </div>
+              )}
+
+              {visibility.phone && (
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
+                  <Phone className="w-4 h-4 text-green-400" />
+                  <span>
+                    {profile.phone}
+                  </span>
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          {/* BADGE */}
+          {badge && (
+            <div className="md:pb-3 flex justify-center md:justify-end">
+              {badge}
+            </div>
+          )}
+
         </div>
-        {badge}
       </div>
 
-    </div>
-  );
+      {/* BOTTOM LIGHT */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
+    </div>
+  </div>
+);
    
   return(
     <div>
@@ -241,7 +313,8 @@ const badge = (
         <Toaster position="top-right" />
         {headerDashboard}
         {content}
-        <BiodataDashboard />
+        <BiodataDashboard profile={profile} visibility={visibility}
+         handleToggleVisibility={handleToggleVisibility} editVisibility={editVisibility} />
         <StudentProfileFriendDashboard  handleMessageOpen={handleMessageOpen} />
         {profile_content}
 
@@ -252,54 +325,54 @@ const badge = (
 
 function Loader() {
   return (
-    <div className="min-h-screen p-4  lg:ml-64 animate-pulse">
+    <div className="min-h-screen p-2 lg:ml-64 animate-pulse bg-gray-200 rounded-2xl">
 
       <div className="max-w-5xl mx-auto space-y-3">
 
         {/* HEADER */}
         <div className="flex justify-end mb-4">
           <div className="flex items-center gap-3">
-            <div className="h-4 w-32 rounded bg-white/10" />
-            <div className="h-10 w-10 rounded-full bg-white/10" />
+            <div className="h-4 w-32 rounded bg-white/50" />
+            <div className="h-10 w-10 rounded-full bg-white/50" />
           </div>
         </div>
 
         {/* PROFILE CARD */}
-        <div className="bg-white/10 border border-white/10 rounded-3xl overflow-hidden">
+        <div className="bg-white/50 border border-white/10 rounded-3xl overflow-hidden">
 
           {/* COVER */}
-          <div className="h-32 bg-white/10" />
+          <div className="h-32 bg-white/50" />
 
           <div className="p-6 relative">
 
             {/* AVATAR */}
             <div className="absolute -top-12 left-6">
-              <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-[#0b1120]" />
+              <div className="w-24 h-24 rounded-full bg-white/50 border-4 border-[#0b1120]" />
             </div>
 
             {/* CONTENT */}
             <div className="pt-8 space-y-4">
 
-              <div className="h-6 w-52 rounded bg-white/10" />
+              <div className="h-6 w-52 rounded bg-white/50" />
 
-              <div className="h-4 w-full rounded bg-white/10" />
+              <div className="h-4 w-full rounded bg-white/50" />
 
-              <div className="h-4 w-3/4 rounded bg-white/10" />
+              <div className="h-4 w-3/4 rounded bg-white/50" />
 
               <div className="flex gap-3 mt-4">
-                <div className="h-8 w-24 rounded-full bg-white/10" />
-                <div className="h-8 w-24 rounded-full bg-white/10" />
+                <div className="h-8 w-24 rounded-full bg-white/50" />
+                <div className="h-8 w-24 rounded-full bg-white/50" />
               </div>
             </div>
           </div>
         </div>
 
         {/* PERSONAL INFO */}
-        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
+        <div className="bg-white/50 border border-white/10 rounded-3xl p-5">
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-white/10" />
-            <div className="h-5 w-40 rounded bg-white/10" />
+            <div className="w-12 h-12 rounded-2xl bg-white/50" />
+            <div className="h-5 w-40 rounded bg-white/50" />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-5">
@@ -309,11 +382,11 @@ function Loader() {
                 key={item}
                 className="flex items-start gap-3"
               >
-                <div className="w-10 h-10 rounded-xl bg-white/10" />
+                <div className="w-10 h-10 rounded-xl bg-white/50" />
 
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 w-24 rounded bg-white/10" />
-                  <div className="h-4 w-full rounded bg-white/10" />
+                  <div className="h-3 w-24 rounded bg-white/50" />
+                  <div className="h-4 w-full rounded bg-white/50" />
                 </div>
               </div>
             ))}

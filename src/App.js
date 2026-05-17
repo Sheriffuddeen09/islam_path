@@ -7,7 +7,6 @@ import { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import ForgotPassword from "./Form/ForgetPassword";
 import ResetPassword from "./Form/ResetPassword";
-import TeacherOnboarding from "./Form/TeacherOnboarding";
 import AdminChoice from "./Form/AdminChoice";
 import GetMentor from "./pages/mentor/GetMentor";
 import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
@@ -379,12 +378,6 @@ function App() {
           path="/block"
           element={<ExamBlock />}
         />
-
-      <Route 
-          path="/admin/teacher-form" 
-          element={<TeacherOnboarding onProfileCompleted={setUser} />} 
-        />
-
       
       <Route path="/admin/choose-choice" element={
           <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
@@ -404,6 +397,7 @@ function App() {
           emojiList={emojiList} setEmojiList={setEmojiList}
           savedCount={savedCount} setSavedCount={setSavedCount}
           orderCount={orderCount} setOrderCount={setOrderCount}
+          onProfileCompleted={setUser}
           />
         </ProtectedRoute>
       } />

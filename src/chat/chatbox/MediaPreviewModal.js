@@ -191,9 +191,9 @@ const handlePlay = () => {
   }
 }, [files]);
 
-if (!previewUrls?.length || !previewUrls[activeIndex]) {
-    return <div className="text-white">No image selected</div>;
-  }
+// if (!previewUrls?.length || !previewUrls[activeIndex]) {
+//     return <div className="text-white">No image selected</div>;
+//   }
 
  
 

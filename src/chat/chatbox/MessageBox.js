@@ -239,10 +239,10 @@ const handlePin = async (msg) => {
       </div>
         <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
 
-        <p className="text-black max-w-md">
+        <p className="text-[var(--text-color)] max-w-md">
           Messages, and updates will appear here.
         </p>
-        <div className="mt-6 mb-6 text-sm text-black">
+        <div className="mt-6 mb-6 text-sm text-[var(--text-color)]">
           💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
         </div>
       </div>
@@ -269,15 +269,14 @@ const avatarName = isGroup
 
 
   return (
-    <div className="flex flex-col h-full bg-black text-black relative">
+    <div className="flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative">
 
       {/* HEADER yet */}
       
       <div className="hidden lg:block">
-     <div className="p-4 border-b flex justify-between items-center bg-white">
-        <div className="inline-flex gap-6 items-center">
+     <div className="px-3 border-b shadow py-1 border-white flex justify-between items-center bg-[var(--bg-color)] text-[var(--text-color)]">
          
-          <div className="flex items-center gap-4">
+          <div className="inline-flex gap-4 items-center">
              <div
                 className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
                   avatarName
@@ -293,12 +292,14 @@ const avatarName = isGroup
                 )}
 
               </div>
-            <h3 className="font-bold text-lg truncate">
-                {displayName}
-            </h3>
+            
+              <div className="flex flex-col lg:mt-2">
+                  <h3 className="font-bold text-lg truncate text-[var(--text-color)]">
+                    {displayName}
+                  </h3>
+                {!isGroup && <UserStatusDots user={activeChat.other_user} />}
+              </div>
 
-            {!isGroup && <UserStatusDots user={activeChat.other_user} />}
-          </div>
         </div>
        <div className="flex gap-3 text-xl">
 
@@ -317,7 +318,7 @@ const avatarName = isGroup
                 messages: messagesToForward
               });
             }}
-            className="hover:bg-gray-200 hover:text-white p-2 rounded-full"
+            className="hover:bg-gray-200 hover:text-white text-[var(--text-color)] p-2 rounded-full"
           >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -325,7 +326,7 @@ const avatarName = isGroup
       viewBox="0 0 24 24"
       strokeWidth="1.5"
       stroke="currentColor"
-      className="size-6 text-black"
+      className="size-6 text-[var(--text-color)]"
     >
       <path
         strokeLinecap="round"
@@ -340,7 +341,7 @@ const avatarName = isGroup
               onClick={() => setCallMode("video")}
             className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor" class="size-6 text-black">
+             stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
             <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
 
@@ -350,7 +351,7 @@ const avatarName = isGroup
           {/* AUDIO */}
           <button onClick={() => setCallMode("audio")} className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
-            stroke-width="1.5" stroke="currentColor" class="size-5 text-black ">
+            stroke-width="1.5" stroke="currentColor" class="size-5 text-[var(--text-color)] ">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
           </svg>
 
@@ -362,7 +363,7 @@ const avatarName = isGroup
 
       {/* Mobile Header */}
    <div className="lg:hidden block ">
-  <div className="px-4 py-2 border-b flex justify-between items-center bg-white overflow-hidden">
+  <div className="px-4 py-2 border-b flex justify-between items-center bg-[var(--bg-color)] overflow-hidden">
 
     <div className="flex flex-col flex-1 min-w-0">
       <div className="flex justify-between items-center flex-1 min-w-0">
@@ -376,7 +377,7 @@ const avatarName = isGroup
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6 cursor-pointer flex-shrink-0"
+            className="size-6 cursor-pointer flex-shrink-0 text-[var(--text-color)]"
             onClick={onBack}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -401,7 +402,7 @@ const avatarName = isGroup
                 )}
 
               </div>
-            <h3 className="font-bold text-lg truncate">
+            <h3 className="font-bold text-lg truncate text-[var(--text-color)]">
               {displayName}
             </h3>
           </div>
@@ -433,7 +434,7 @@ const avatarName = isGroup
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="size-10 text-black rotate-90"
+              className="size-10 text-[var(--text-color)] rotate-90"
             >
               <path
                 strokeLinecap="round"
@@ -476,7 +477,7 @@ const avatarName = isGroup
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6 text-black"
+            className="size-6 text-[var(--text-color)]"
           >
             <path
               strokeLinecap="round"
@@ -491,7 +492,7 @@ const avatarName = isGroup
               onClick={() => setCallMode("video")}
             className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor" class="size-6 text-black">
+             stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
             <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
 
@@ -507,7 +508,7 @@ const avatarName = isGroup
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="size-5 text-black"
+              className="size-5 text-[var(--text-color)]"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
             </svg>
@@ -526,7 +527,7 @@ const avatarName = isGroup
       {/* CHAT BODY */}
       <div
         className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
-        scrollbar-thumb-gray-400 space-y-3 bg-white relative">
+        scrollbar-thumb-gray-400 space-y-3 bg-[var(--primary-color)] relative">
 
   {isRestrictedGroupUser ? (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -543,7 +544,7 @@ const avatarName = isGroup
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg> Waiting for admin approval
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-[var(--text-color)] text-sm mt-2">
             You will be able to see messages after approval.
           </p>
         </>
@@ -558,7 +559,7 @@ const avatarName = isGroup
             </svg>
             Your request was rejected
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-[var(--text-color)] text-sm mt-2">
             You cannot access this group anymore.
           </p>
         </>
@@ -569,7 +570,7 @@ const avatarName = isGroup
           <p className="text-red-600 font-semibold">
             🚫 You are no longer a member
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-[var(--text-color)] text-sm mt-2">
             You have been removed from this group.
           </p>
         </>
@@ -580,7 +581,7 @@ const avatarName = isGroup
           <p className="text-red-600 font-semibold">
             🚪 You are no longer a member
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-[var(--text-color)] text-sm mt-2">
             You have Exit from this group.
           </p>
         </>
@@ -595,22 +596,22 @@ const avatarName = isGroup
   ) : messages.length === 0 ? (
     // comment 1
      <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+        <div className="mb-10 text-center mx-auto bg-[var(--primary-color)] text-[var(--text-color)] rounded-lg sm:w-80 w-72 text-xs p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
         <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
 
-        <p className="text-black max-w-md">
+        <p className="text-[var(--text-color)] max-w-md">
           Messages, and updates will appear here.
         </p>
-        <div className="mt-6 mb-6 text-sm text-black">
+        <div className="mt-6 mb-6 text-sm text-[var(--text-color)]">
           💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
         </div>
       </div>
   ) : (
     <>
-      <div className="mb-10 text-center mt-4 mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+      <div className="mb-10 text-center mt-4 mx-auto bg-gray-400 text-black rounded-lg sm:w-80 w-72 text-xs p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
@@ -621,7 +622,7 @@ const avatarName = isGroup
         setMessages={setMessages}
       />
     {searchQuery && searchFilteredMessages.length === 0 ? (
-  <div className="text-center text-gray-400 mt-10 space-y-3">
+  <div className="text-center text-[var(--text-color)] mt-10 space-y-3">
     
     <p>No messages found</p>
 
@@ -703,7 +704,7 @@ const isFirstUnread =
     >
       {/* 📅 DATE */}
       {showDate && (
-        <div className="text-center text-xs text-gray-900 my-2">
+        <div className="text-center text-xs text-[var(--text-color)] my-2">
           {formatDateHeader(msg.created_at)}
         </div>
       )}
@@ -711,7 +712,7 @@ const isFirstUnread =
       {isFirstUnread && unreadCount > 0 && (
         <div className="flex items-center gap-3 my-4 px-2">
 
-          <div className="text-gray-800 text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
+          <div className="text-[var(--text-color)] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
             {unreadCount} Unread Message{unreadCount > 1 ? "s" : ""}
           </div>
 
@@ -720,7 +721,7 @@ const isFirstUnread =
 
       {isSystem ? (
         <div className="flex justify-center">
-          <div className="bg-gray-200 text-gray-800 px-1 py-1 text-[9px] rounded-full">
+          <div className="bg-[var(--bg-color)] shadow-md text-[var(--text-color)] px-1 py-1 text-[9px] rounded-full">
             {formatSystemMessage(msg)}
           </div>
         </div>
@@ -775,7 +776,7 @@ const isFirstUnread =
 </div>
 
       {/* INPUT */}
-      <div className="p-3 border-t bg-white">
+      <div className="px-3 border-t bg-[var(--bg-color)]">
         <ChatInput
           authUser={authUser}
           setIsTyping={setIsTyping}

@@ -182,9 +182,9 @@ export default function AppearanceModal({
 
     // CARD
     document.documentElement.style.setProperty(
-      "--card-color",
+      "--primary-color",
       mode === "dark"
-        ? "#17191c"
+        ? "#171a1f"
         : "#f5f5f5"
     );
   };

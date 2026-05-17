@@ -3,7 +3,7 @@ import { useUserOnlineStatus } from "./UseUserOnlineStatus";
 export default function UserStatus({user}) {
    const userId = user?.id;
   
-    const { online, lastSeen } = useUserOnlineStatus(userId);
+    const { online } = useUserOnlineStatus(userId);
   
     // ✅ THEN guard render
     if (!userId) return null;

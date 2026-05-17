@@ -52,7 +52,7 @@ export default function ArrayInput({
               placeholder={placeholder}
               onInput={handleAutoGrow}
               onChange={(e) => handleChange(idx, e.target.value)}
-              className="w-full border rounded px-3 py-2 resize-none overflow-hidden disabled:bg-gray-100"
+              className="w-full border rounded px-3 py-2 resize-none overflow-hidden text-black disabled:bg-gray-100"
             />
           ) : (
             <input
@@ -60,7 +60,7 @@ export default function ArrayInput({
               disabled={disabled}
               onChange={(e) => handleChange(idx, e.target.value)}
               placeholder={placeholder}
-              className="w-full border rounded px-3 py-2 disabled:bg-gray-100"
+              className="w-full border rounded px-3 py-2 disabled:bg-gray-100 text-black"
             />
           )}
 
@@ -83,7 +83,7 @@ export default function ArrayInput({
         <button
           type="button"
           onClick={() => setLocalValues([...localValues, ""]) && onChange([...localValues, ""])}
-          className="text-sm text-blue-600"
+          className="text-sm text-[var(--text-color)]"
         >
           + Add
         </button>

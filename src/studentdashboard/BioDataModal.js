@@ -18,9 +18,6 @@ export default function BiodataModal({ onClose, userId }) {
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState(null);
 
-  // =========================
-  // BIODATA
-  // =========================
   const [biodataList, setBiodataList] = useState([
     {
       marital_status: "",
@@ -102,16 +99,15 @@ export default function BiodataModal({ onClose, userId }) {
     fetchBio();
   }, [userId]);
 
-  // =========================
-  // BIODATA UPDATE
-  // =========================
+
   const updateBiodata = (index, field, value) => {
     const updated = [...biodataList];
     updated[index][field] = value;
     setBiodataList(updated);
   };
 
- const saveBio = async () => {
+
+  const saveBio = async () => {
 
   try {
 
@@ -146,12 +142,10 @@ export default function BiodataModal({ onClose, userId }) {
   }
 };
 
-
-
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
 
-      <div className="w-full max-w-3xl max-h-[92vh] overflow-y-auto scrollbar-thin bg-white/10 border border-white/20 backdrop-blur-2xl rounded-3xl text-white p-6 relative">
+      <div className="w-full max-w-3xl max-h-[92vh] overflow-y-auto scrollbar-thin bg-[var(--bg-color)] border border-white/20 backdrop-blur-2xl rounded-3xl text-[var(--text-color)] p-6 relative">
 
         {/* CLOSE */}
         <button onClick={onClose} className="absolute top-4 right-4">
@@ -159,7 +153,7 @@ export default function BiodataModal({ onClose, userId }) {
         </button>
 
         <h2 className="text-2xl font-bold mb-6">
-          {userId ? "Edit Biodata" : "User Biodata"}
+          {userId ? "Edit Biodata" : " User Biodata"}
         </h2>
 
         {fetching ? (
@@ -178,11 +172,11 @@ export default function BiodataModal({ onClose, userId }) {
               </div>
 
               {biodataList.map((item, index) => (
-                <div key={index} className="bg-black/30 p-4 rounded-2xl">
+                <div key={index} className="p-4 rounded-2xl">
 
                   <input
                     placeholder="State"
-                    className="w-full p-3 mb-2 bg-black/20 rounded-xl"
+                    className="w-full p-3 mb-2 bg-white text-black rounded-xl"
                     value={item.state}
                     onChange={(e) =>
                       updateBiodata(index, "state", e.target.value)
@@ -191,7 +185,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                   <input
                     placeholder="Address"
-                    className="w-full p-3 mb-2 bg-black/20 rounded-xl"
+                    className="w-full p-3 mb-2 bg-white text-black rounded-xl"
                     value={item.address}
                     onChange={(e) =>
                       updateBiodata(index, "address", e.target.value)
@@ -200,7 +194,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                   <input
                     placeholder="Marital Status"
-                    className="w-full p-3 mb-2 bg-black/20 rounded-xl"
+                    className="w-full p-3 mb-2 bg-white text-black rounded-xl"
                     value={item.marital_status}
                     onChange={(e) =>
                       updateBiodata(index, "marital_status", e.target.value)
@@ -209,7 +203,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                   <textarea
                     placeholder="Bio"
-                    className="w-full p-3 bg-black/20 rounded-xl"
+                    className="w-full p-3 bg-white text-black rounded-xl"
                     rows={4}
                     value={item.bio}
                     onChange={(e) =>
@@ -217,7 +211,7 @@ export default function BiodataModal({ onClose, userId }) {
                     }
                   />
 
-                 
+                  
                 </div>
               ))}
             </div>
@@ -231,11 +225,11 @@ export default function BiodataModal({ onClose, userId }) {
               </div>
 
               {/* INPUTS */}
-              <div className="bg-black/20 p-4 rounded-xl space-y-2">
+              <div className="bg-white text-black p-4 rounded-xl space-y-2">
 
                 <input
                   placeholder="School"
-                  className="w-full p-3 bg-black/30 rounded-xl"
+                  className="w-full p-3 rounded-xl"
                   value={education.school}
                   onChange={(e) =>
                     setEducation({ ...education, school: e.target.value })
@@ -244,7 +238,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                 <input
                   placeholder="Course"
-                  className="w-full p-3 bg-black/30 rounded-xl"
+                  className="w-full p-3 rounded-xl"
                   value={education.course}
                   onChange={(e) =>
                     setEducation({ ...education, course: e.target.value })
@@ -253,7 +247,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                 <input
                   placeholder="Year"
-                  className="w-full p-3 bg-black/30 rounded-xl"
+                  className="w-full p-3 rounded-xl"
                   value={education.year}
                   onChange={(e) =>
                     setEducation({ ...education, year: e.target.value })
@@ -266,7 +260,7 @@ export default function BiodataModal({ onClose, userId }) {
               {educationList.map((e, index) => (
                 <div
                   key={index}
-                  className="bg-black/20 p-3 rounded-xl mt-2 flex justify-between"
+                  className="bg-white text-black p-3 rounded-xl mt-2 flex justify-between"
                 >
                   <div>
                     <p className="font-semibold">{e.school}</p>
@@ -286,11 +280,11 @@ export default function BiodataModal({ onClose, userId }) {
               </div>
 
               {/* INPUTS */}
-              <div className="bg-black/20 p-4 rounded-xl space-y-2">
+              <div className="bg-white text-black p-4 rounded-xl space-y-2">
 
                 <input
                   placeholder="Company"
-                  className="w-full p-3 bg-black/30 rounded-xl"
+                  className="w-full p-3 rounded-xl"
                   value={career.company}
                   onChange={(e) =>
                     setCareer({ ...career, company: e.target.value })
@@ -299,7 +293,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                 <input
                   placeholder="Role"
-                  className="w-full p-3 bg-black/30 rounded-xl"
+                  className="w-full p-3 rounded-xl"
                   value={career.role}
                   onChange={(e) =>
                     setCareer({ ...career, role: e.target.value })
@@ -308,7 +302,7 @@ export default function BiodataModal({ onClose, userId }) {
 
                 <input
                   placeholder="Duration"
-                  className="w-full p-3 bg-black/30 rounded-xl"
+                  className="w-full p-3 rounded-xl"
                   value={career.duration}
                   onChange={(e) =>
                     setCareer({ ...career, duration: e.target.value })
@@ -321,7 +315,7 @@ export default function BiodataModal({ onClose, userId }) {
               {careerList.map((c, index) => (
                 <div
                   key={index}
-                  className="bg-black/20 p-3 rounded-xl mt-2 flex justify-between"
+                  className="bg-white text-black p-3 rounded-xl mt-2 flex justify-between"
                 >
                   <div>
                     <p className="font-semibold">{c.company}</p>

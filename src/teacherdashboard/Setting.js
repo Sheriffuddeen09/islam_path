@@ -26,7 +26,7 @@ export default function Setting({editingTeacher, handleClose, handleUpdate, hand
   message: "",
 });
 
-  const user = useAuth
+  const {user} = useAuth()
 
   const [showTwoStep, setShowTwoStep] = useState(false);
   const [showSwitchAccount, setShowSwitchAccount] =
@@ -294,8 +294,9 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       </button>
 
       {/* 3 */}
-      {
-        user?.admin_choice === "arabic_teacher" &&
+       {
+            user?.admin_choice === "arabic_teacher" &&
+            user?.teacher_profile_completed &&
       <button
         onClick={() => handleEdit(teacher)}
          className="bg-[var(--primary-color)] text-[var(--text-color)] hover:scale-[1.02] transition rounded-xl cursor-pointer shadow sm:p-5 p-3 flex flex-col items-start text-left"
@@ -465,9 +466,9 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     </div>
     {
       openVisibility && (
-         <div className=" gap-4 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+         <div className=" gap-4 fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
           
-        <div className="max-w-5xl bg-white  z-50 mt-0 mx-auto px-4 py-4">
+        <div className="max-w-5xl bg-[var(--bg-color)]  rounded-xl  z-50 mt-0 mx-auto px-4 py-4">
      
 
      
@@ -488,16 +489,16 @@ const [visibleProfile, setVisibleProfile] = useState(1)
             </button>
             }
         </button>
+        {!editVisibility &&
          <button
           onClick={handleOpenVisibility}
           title="Edit"
-           className="px-2 py-1 bg-gray-100 text-black rounded hover:bg-gray-500"
-        >
-         
-               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+           className="px-2 py-1 bg-gray-100 text-black rounded hover:bg-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
         </button> 
+        }
       </div>
       
 
@@ -596,11 +597,12 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   const teacherProfile = (
     <div>
        {editingTeacher && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4">
          <TeacherFormEdit 
           teacher={editingTeacher}
           onClose={handleClose}
           onUpdate={handleUpdate}
+          setTeacher={setTeacher}
            />
         </div>
       )}
@@ -612,8 +614,8 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       
     <div>
        {showEditModal && (
-        <div className="fixed inset-0 bg-[var(--primary-color)]/50 backdrop-blur-md text-[var(--text-color)] flex items-center justify-center z-50">
-          <div className="bg-[var(--primary-color)] text-[var(--text-color)] rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+        <div className="fixed inset-0 bg-[var(--bg-color)]/50 backdrop-blur-md text-[var(--text-color)] flex items-center justify-center z-50">
+          <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow-lg w-full max-w-lg p-6 relative">
             <h3 className="text-xl font-bold mb-4">Edit Profile</h3>
             <div className="flex flex-col gap-4">
              <input
@@ -727,13 +729,12 @@ const [visibleProfile, setVisibleProfile] = useState(1)
 
         {
           openDelete && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center
-            z-50">
-              <div className="bg-white mx-auto p-6 rounded-lg w-80 sm:w-96">
+             <div className="fixed inset-0 bg-[var(--bg-color)]/50 backdrop-blur-md text-[var(--text-color)] flex items-center justify-center z-50">
+              <div className="bg-[var(--bg-color)] mx-auto p-6 rounded-lg w-80 sm:w-96">
               <h2 className="font-bold text-xl text-center mb-3">
                 ⚠️ Delete Account
               </h2>
-              <p className="text-sm font-semibold text-center text-gray-800 mb-8">
+              <p className="text-sm font-semibold text-center text-[var(--text-color)] mb-8">
                 This Action cannot be undone, you will lost your account profile and could 
                 not be able to restore. are you sure, you want to 
                 close your Account.
@@ -863,26 +864,26 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="animate-pulse lg:ml-64">
+    <div className="animate-pulse lg:ml-64 bg-gray-200 rounded-2xl p-2">
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2 mt-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2">
 
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
           <div
             key={item}
-            className="bg-white/10 border border-white/10 rounded-xl sm:p-5 p-3"
+            className="bg-white/50 border border-white/10 rounded-xl sm:p-5 p-3"
           >
 
             {/* ICON */}
-            <div className="w-14 h-14 rounded-full bg-white/10 mb-4" />
+            <div className="w-14 h-14 rounded-full bg-white/50 mb-4" />
 
             {/* TITLE */}
-            <div className="h-5 w-32 rounded bg-white/10 mb-3" />
+            <div className="h-5 w-32 rounded bg-white/50 mb-3" />
 
             {/* TEXT */}
             <div className="space-y-2">
-              <div className="h-3 w-full rounded bg-white/10" />
-              <div className="h-3 w-3/4 rounded bg-white/10" />
+              <div className="h-3 w-full rounded bg-white/50" />
+              <div className="h-3 w-3/4 rounded bg-white/50" />
             </div>
 
           </div>

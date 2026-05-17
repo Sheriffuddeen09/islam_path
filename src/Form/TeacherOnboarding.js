@@ -3,8 +3,9 @@ import api from "../Api/axios";
 
 import { useNavigate } from "react-router-dom";
 import Notification from "../notification/Notification";
+import { Loader2 } from "lucide-react";
 
-export default function TeacherOnboarding({onProfileCompleted}) {
+export default function TeacherOnboarding({onProfileCompleted, onClose, setNotification}) {
   const [specialization, setSpecialization] = useState("");
   const [payment, setPayment] = useState("");
   const [currency, setCurrency] = useState("");
@@ -14,10 +15,8 @@ export default function TeacherOnboarding({onProfileCompleted}) {
   const [experience, setExperience] = useState("");
   const [logo, setLogo] = useState(null);
   const [cv, setCv] = useState(null);
-  const [notification, setNotification] = useState({ message: "", type: "" });
   const [coursetitles, setCoursetitles]  = useState([])
   const [coursetitle_id, setCoursetitleId]  = useState('')
-  const [user, setUser] = useState([])
   
 
   const router = useNavigate();
@@ -40,12 +39,32 @@ const autoGrow = (ref) => {
     setCv(e.target.files[0]);
   };
 
-   useEffect(() => {
+  const [loadingCourses, setLoadingCourses] = useState(true);
+
+  useEffect(() => {
+
     const fetchCoursetitles = async () => {
-      const res = await api.get("/api/coursetitles");
-      setCoursetitles(res.data);
+
+      try {
+
+        setLoadingCourses(true);
+
+        const res = await api.get("/api/coursetitles");
+
+        setCoursetitles(res.data);
+
+      } catch (err) {
+
+        console.log(err);
+
+      } finally {
+
+        setLoadingCourses(false);
+      }
     };
+
     fetchCoursetitles();
+
   }, []);
 
   const selectedCourse = coursetitles.find(
@@ -53,81 +72,176 @@ const autoGrow = (ref) => {
   );
   const isOtherCourse = selectedCourse?.name?.toLowerCase() === "other";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
 
-    if (!coursetitle_id) {
-      setNotification({ message: "Please select a course.", type: "error" });
-      setLoading(false);
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    if (isOtherCourse && !specialization.trim()) {
-      setNotification({ message: "Please specify your Teaching Course.", type: "error" });
-      setLoading(false);
-      return;
-    }
+  if (!coursetitle_id) {
+    setNotification({
+      message: "Please select a course.",
+      type: "error"
+    });
 
-    const form = new FormData();
-    form.append("coursetitle_id", coursetitle_id);
-    form.append("specialization", specialization);
-    form.append("course_payment", payment);
-    form.append("currency", currency);
-    form.append("compliment", compliment);
-    form.append("experience", experience);
-    form.append("qualification", qualification);
-    if (logo) form.append("logo", logo);
-    if (cv) form.append("cv", cv);
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const res = await api.post("/api/admin/teacher/save", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+  if (isOtherCourse && !specialization.trim()) {
 
-      // ✅ Update user immediately in DashboardLayout
-      if (onProfileCompleted) {
-        onProfileCompleted(prev => ({
-          ...prev,
-          teacher_profile_completed: true, // mark profile as completed
-        }));
+    setNotification({
+      message: "Please specify your Teaching Course.",
+      type: "error"
+    });
+
+    setLoading(false);
+    return;
+  }
+
+  const form = new FormData();
+
+  form.append("coursetitle_id", coursetitle_id);
+  form.append("specialization", specialization);
+  form.append("course_payment", payment);
+  form.append("currency", currency);
+  form.append("compliment", compliment);
+  form.append("experience", experience);
+  form.append("qualification", qualification);
+
+  if (logo) form.append("logo", logo);
+  if (cv) form.append("cv", cv);
+
+  try {
+
+    const res = await api.post(
+      "/api/admin/teacher/save",
+      form,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
+    );
 
-      setNotification({ message: res.data.message || "Saved successfully!", type: "success" });
+    // ✅ Update dashboard instantly
+    if (onProfileCompleted) {
 
-      setTimeout(() => {
-        router("/admin/dashboard");
-      }, 1000);
-    } catch (err) {
-      const messages = err.response?.data?.errors
-        ? Object.values(err.response.data.errors).flat().join("\n")
-        : err.response?.data?.message || "Something went wrong!";
-      setNotification({ message: messages, type: "error" });
-    } finally {
-      setLoading(false);
+      onProfileCompleted(prev => ({
+        ...prev,
+        teacher_profile_completed: true,
+      }));
     }
-  };
+
+    setNotification({
+      message: res.data.message || "Saved successfully!",
+      type: "success"
+    });
+
+    // ✅ CLOSE MODAL HERE
+    onClose();
+
+    // ✅ Redirect
+    setTimeout(() => {
+      router("/admin/dashboard");
+    }, 1000);
+
+  } catch (err) {
+
+    const messages = err.response?.data?.errors
+      ? Object.values(err.response.data.errors)
+          .flat()
+          .join("\n")
+      : err.response?.data?.message ||
+        "Something went wrong!";
+
+    setNotification({
+      message: messages,
+      type: "error"
+    });
+
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const content = (
-    <div className="sm:h-[78vh] h-[78vh] bg-[var(--bg-color)] no-scrollbar overflow-y-auto p-4">
-    <form onSubmit={handleSubmit} className="py-4 sm:px-8 px-5 sm:w-[500px] w-80 mx-auto border border-blue-600 rounded-2xl">
+    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-md flex items-center justify-center p-2 ">
+      <div
+        className={`relative w-full max-w-md rounded-xl overflow-hidden shadow-2xl overflow-y-auto bg-[var(--bg-color)] 
+        max-h-[65vh] sm:max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 p-3 my-2`}>
+
+          <button onClick={onClose}
+          className="absolute right-2 top-3"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+            class="size-12  text-[var(--text-color)] text-xs px-2 py-2 font-bold rounded-full
+             hover:text-gray-700 hover:bg-gray-100 transition 
+            w-10  h-10 cursor-pointer">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            
+          </button>
+    <form onSubmit={handleSubmit} className="">
       <h1 className="sm:text-2xl font-bold mb-4  text-[var(--text-color)]  text-lg text-center">Become an Arabic Teacher</h1>
 
-      <select
-        value={coursetitle_id}
-        onChange={(e) => {
-          setCoursetitleId(e.target.value);
-          setSpecialization("");
-        }}
-        className="w-full p-3 border cursor-pointer rounded-lg border-blue-300 bg-[var(--bg-color)] text-[var(--text-color)] "
-      >
-        <option value="">Select Course</option>
-        {coursetitles.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
+      {loadingCourses ? (
+
+        // ✅ SKELETON
+        <div className="w-full h-[52px] rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center px-4">
+
+          <Loader2 className="animate-spin text-blue-500 mr-2" size={18} />
+
+          <div className="h-3 w-40 bg-gray-300 dark:bg-gray-600 rounded" />
+
+        </div>
+
+      ) : (
+
+        // ✅ SELECT
+        <select
+          value={coursetitle_id}
+          onChange={(e) => {
+
+            setCoursetitleId(e.target.value);
+
+            setSpecialization("");
+
+          }}
+
+          className="
+            w-full
+            p-3
+            rounded-xl
+            border
+            border-blue-300
+            dark:border-gray-700
+            outline-none
+            focus:ring-2
+            focus:ring-blue-500
+            transition
+            cursor-pointer
+          "
+        >
+
+          <option value="">
+            Select Course
           </option>
-        ))}
-      </select>
+
+          {coursetitles.map((c) => (
+
+            <option
+              key={c.id}
+              value={c.id}
+            >
+              {c.name}
+            </option>
+
+          ))}
+
+        </select>
+      )}
 
 
       <input
@@ -288,6 +402,7 @@ const autoGrow = (ref) => {
 
     </form>
     </div>
+    </div>
   );
 
   return (
@@ -296,14 +411,7 @@ const autoGrow = (ref) => {
       <div className="pt-24 pb-8">
       {content}
       </div>
-      {notification.message && (
-      <Notification
-        message={notification.message}
-        type={notification.type}
-        onClose={() => setNotification({ message: "", type: "" })}
-      />
-    )}
-
+     
       </div>
   )
 }

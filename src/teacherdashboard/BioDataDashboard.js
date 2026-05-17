@@ -1,5 +1,4 @@
 import {
-  Loader2,
   MapPin,
   Heart,
   GraduationCap,
@@ -63,9 +62,9 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
   }
 
   return (
-  <div className="min-h-screen p-4 bg-gradient-to-br from-[#050816] lg:ml-64 via-[#0b1120] to-[#111827] text-white">
+  <div className="p-4 lg:ml-64 ">
 
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 shadow-md">
 
       {/* ================= PROFILE SECTION (ALWAYS SHOW) ================= */}
       <Section title="Personal Information" icon={<Calendar />}>
@@ -246,14 +245,14 @@ function Section({ title, icon, children }) {
 
 function InfoRow({ icon, label, value, editable, onToggle, isVisible }) {
   return (
-    <div className="flex items-start gap-3 mb-3">
+    <div className="flex items-start gap-3 mb-5 mt-2">
 
       <div className="bg-white/10 p-2 rounded-xl">
         {icon}
       </div>
 
       <div>
-        <p className="text-xs opacity-60">{label}</p>
+        <p className="text-xs ">{label}</p>
         <p className="font-medium">{value || "Not added"}</p>
       </div>
 
@@ -268,10 +267,10 @@ function InfoRow({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="p-4 lg:ml-64 animate-pulse">
+    <div className="p-2 lg:ml-64 animate-pulse bg-[#17191c] rounded-2xl">
 
       <div className="max-w-5xl mx-auto space-y-6">
-        <div className="bg-white/10 border border-white/10 rounded-3xl p-5">
+        <div className="bg-white/30 border border-white/10 rounded-3xl p-5">
 
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/10" />
