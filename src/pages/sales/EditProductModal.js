@@ -112,12 +112,6 @@ useEffect(() => {
 };
 
 
- const removeImage = (i) => {
-    const newGallery = [...gallery];
-    newGallery.splice(i, 1);
-    setGallery(newGallery);
-  };
-
 
   const fields = [
     { key: "title", label: "Title", type: "text" },
@@ -192,8 +186,9 @@ useEffect(() => {
   const removeSpec = (i) => setSpecifications(specifications.filter((_, idx) => idx !== i));
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-start pt-10 z-50 overflow-auto">
-      <div className="bg-white w-[650px] max-h-[90vh] overflow-y-auto p-6 rounded-xl shadow-lg space-y-4">
+    <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-[var(--bg-color)] w-[650px] max-h-[90vh] overflow-y-auto scrollbar-thin p-6 rounded-xl shadow-lg space-y-4">
 
         <h2 className="text-xl font-bold">Edit Product</h2>
 
@@ -229,7 +224,7 @@ useEffect(() => {
                 onChange={(e) =>
                   setSelected({ ...selected, [field.key]: e.target.value })
                 }
-                className="w-full border p-2 rounded"
+                className="w-full border text-black p-2 rounded"
               />
             </div>
           );
@@ -246,7 +241,7 @@ useEffect(() => {
                 onChange={(e) =>
                   setSelected({ ...selected, [field.key]: e.target.value })
                 }
-                className="w-full border p-2 rounded"
+                className="w-full border text-black p-2 rounded"
               >
                 <option value="">Select {field.label}</option>
 
@@ -270,7 +265,7 @@ useEffect(() => {
               onChange={(e) =>
                 setSelected({ ...selected, [field.key]: e.target.value })
               }
-              className="w-full border p-2 rounded"
+              className="w-full border text-black p-2 rounded"
             />
           </div>
         );
@@ -284,7 +279,7 @@ useEffect(() => {
               <input
                 value={kf}
                 onChange={(e) => updateKeyFeature(i, e.target.value)}
-                className="border p-1 flex-1"
+                className="border p-1 text-black flex-1"
               />
               <button
                 onClick={() => removeKeyFeature(i)}
@@ -294,7 +289,7 @@ useEffect(() => {
               </button>
             </div>
           ))}
-          <button onClick={addKeyFeature} className="text-blue-600">
+          <button onClick={addKeyFeature} className="text-blue-600 mt-2 text-sm">
             + Add
           </button>
         </div>
@@ -309,13 +304,13 @@ useEffect(() => {
                 placeholder="Key"
                 value={spec.key}
                 onChange={(e) => updateSpec(i, "key", e.target.value)}
-                className="border p-1 flex-1"
+                className="border p-1 text-black flex-1"
               />
               <input
                 placeholder="Value"
                 value={spec.value}
                 onChange={(e) => updateSpec(i, "value", e.target.value)}
-                className="border p-1 flex-1"
+                className="border p-1 text-black flex-1"
               />
               <button
                 onClick={() => removeSpec(i)}
@@ -325,7 +320,7 @@ useEffect(() => {
               </button>
             </div>
           ))}
-          <button onClick={addSpec} className="text-blue-600">
+          <button onClick={addSpec} className="text-blue-600 mt-2 text-sm">
             + Add
           </button>
         </div>
@@ -361,7 +356,7 @@ useEffect(() => {
 
             <label
               htmlFor={inputId}
-              className="inline-block w-40 text-center whitespace-nowrap font-semibold capitalize text-black border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50 transition"
+              className="inline-block text-[var(--text-color)] w-40 text-center whitespace-nowrap font-semibold capitalize border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50 transition"
             >
               Edit {key.replace("_", " ")}
             </label>
@@ -371,13 +366,13 @@ useEffect(() => {
 
       {selected.pdf_file && (
         <div className="mb-6">
-          <label className="block mb-2 font-medium">PDF File</label>
+          <label className="block mb-2 font-medium text-[var(--text-color)]">PDF File</label>
 
           {typeof selected.pdf_file === "string" && (
             <a
               href={`http://localhost:8000/storage/${selected.pdf_file}`}
               target="_blank"
-              className="text-blue-600 underline block mb-2"
+              className="text-[var(--text-color)] underline block mb-2"
             >
               View Current PDF
             </a>
@@ -394,7 +389,7 @@ useEffect(() => {
 
           <label
             htmlFor="pdf-input"
-            className="inline-block w-40 text-center font-bold border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50"
+            className="inline-block text-[var(--text-color)] w-40 text-center font-bold border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer"
           >
             Edit PDF
           </label>
@@ -437,7 +432,7 @@ useEffect(() => {
 
         <label
           htmlFor="gallery-input"
-          className="inline-block w-48 text-center font-bold border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50"
+          className="inline-block text-[va] w-48 text-center font-bold border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50"
         >
           Edit Product Images
         </label>
@@ -471,7 +466,7 @@ useEffect(() => {
 
         <button
           onClick={() => setModal(false)}
-          className="w-full bg-gray-300 p-2 rounded"
+          className="w-full bg-gray-700 p-2 rounded"
         >
           Cancel
         </button>

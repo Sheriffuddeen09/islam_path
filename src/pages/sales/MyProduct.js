@@ -63,7 +63,7 @@ export default function MyProducts() {
 };
 
   return (
-    <div className="p-6 lg:ml-64">
+    <div className="px-6 lg:ml-64">
       <h2 className="text-2xl font-bold mb-6 border-b-2 pb-3 border-blue-700">
         Product Lists
       </h2>
@@ -82,7 +82,7 @@ export default function MyProducts() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
   {products.map((p) => {
-  // ✅ Declare firstImage inside the block
+  
   const firstImage = p.images?.[0]?.image_path
     ? `http://localhost:8000/storage/${p.images[0].image_path}`
     : "/placeholder.png";
@@ -90,7 +90,7 @@ export default function MyProducts() {
      const symbol = symbols[p.currency] || p.currency;
 
   return (
-    <div key={p.id} className="bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition relative">
+    <div key={p.id} className="bg-white border-blue-900 border shadow-md rounded-xl p-4 hover:shadow-lg transition relative">
       <img
         src={firstImage}
         alt={p.title}
@@ -117,14 +117,14 @@ export default function MyProducts() {
       <div className="absolute top-0 right-3 flex flex-col gap-3">
         <button
           onClick={() => openModal(p)}
-          className="mt-3 w-12 bg-gray-800 flex flex-col text-xs items-center text-white py-1 rounded-lg hover:bg-gray-900"
+          className="mt-3 w-12 bg-gray-800 text-sm font-semibold flex flex-col text-xs items-center text-white py-1 rounded-lg hover:bg-gray-900"
         >
           Edit
         </button>
 
         <button
           onClick={() => deleteProduct(p)}
-          className="bg-gray-800 w-12 text-white flex flex-col text-xs items-center py-1 rounded-lg hover:bg-gray-900"
+          className="bg-gray-800 text-sm font-semibold w-12 text-white flex flex-col text-xs items-center py-1 rounded-lg hover:bg-gray-900"
         >
           Delete
         </button>

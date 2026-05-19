@@ -89,7 +89,7 @@ export default function ChatList({
       </div>
 
       {/* FILTERS */}
-      <div className="flex gap-2 p-3 shadow-md flex-wrap">
+      <div className="flex gap-2 p-3 flex-wrap">
 
         {/* ALL */}
         <button
@@ -97,7 +97,7 @@ export default function ChatList({
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
             chatFilter === "all"
               ? "bg-green-400 text-white"
-              : "bg-[var(--bg-color)] text-[var(--text-color)] border-0.5 shadow-md"
+              : "bg-[var(--bg-color)] text-[var(--text-color)] border-0.5 shadow-md "
           }`}
         >
           All
@@ -133,7 +133,7 @@ export default function ChatList({
         </button>
       </div>
 
-      {/* CHAT LIST */}
+      {/* CHAT LIST shadow */}
       <div className="flex-1 overflow-y-auto">
 
         {loadingChats && <ChatSkeleton type="list" />}

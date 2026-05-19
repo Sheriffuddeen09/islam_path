@@ -308,7 +308,7 @@ const isGeneral =
 
 
   return (
-    <div className="min-h-screen bg-gray-100 sm:p-8 lg:ml-64">
+    <div className="min-h-screen bg-[var(--bg-color)] shadow-md  rounded-xl sm:p-8 lg:ml-64">
       <div className="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl sm:p-8 p-3">
         <h2 className="text-3xl font-bold mb-8 text-gray-800 border-b-2 pb-3 border-black">
           Create New Product

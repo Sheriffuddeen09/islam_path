@@ -393,7 +393,7 @@ const avatarName = isGroup
             className="flex items-center gap-2 min-w-0"
           >
               <div
-                className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
+                className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
                   avatarName
                 )}`}
               >
@@ -616,7 +616,7 @@ const avatarName = isGroup
       </div>
   ) : (
     <>
-      <div className="mb-10 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold rounded-lg sm:w-80 w-72 text-[10px] p-3">
+      <div className="mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold rounded-lg sm:w-80 w-72 text-[10px] p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>

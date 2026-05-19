@@ -92,7 +92,7 @@ export default function ChatItem({
   if (message.type === "voice") return "🎤 Voice Message";
   if (message.type === "audio") return "🎧 Audio";
   if (message.type === "video") return "🎥 Video";
-  if (message.type === "image") return "🖼 Image";
+  if (message.type === "image") return "🖼 Photo";
   if (message.type === "file") return "📎 Document";
 
   return "Start chatting";

@@ -191,15 +191,10 @@ const handlePlay = () => {
   }
 }, [files]);
 
-// if (!previewUrls?.length || !previewUrls[activeIndex]) {
-//     return <div className="text-white">No image selected</div>;
-//   }
+
 
  
 
-console.log("activeIndex:", activeIndex);
-console.log("previewUrls:", previewUrls);
-console.log("current image:", previewUrls?.[activeIndex]);
   if (!show) return null;
 
 
@@ -379,7 +374,7 @@ console.log("current image:", previewUrls?.[activeIndex]);
                 <input
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="w-full rounded-full px-4 py-3 pr-10 text-sm"
+                  className="w-full rounded-full px-4 py-3 pr-10 text-sm text-black"
                   placeholder="Write a caption..."
                 />
                 <button

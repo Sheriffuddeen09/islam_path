@@ -2,18 +2,24 @@ import { useEffect, useState } from "react";
 
 import {
   X,
-  QrCode,
-  Hash,
+  ShieldCheck,
+  Lock,
   Copy,
   Check,
+  QrCode,
+  Hash,
   Smartphone,
-  Lock,
+  Loader2,
 } from "lucide-react";
 
 import { QRCodeCanvas } from "qrcode.react";
 
-
 import api from "../../Api/axios";
+
+import {
+  generateKeyPair,
+  sha256,
+} from "../../utils/encryption";
 
 export default function EncryptionModal({
   open,
@@ -25,7 +31,6 @@ export default function EncryptionModal({
   const [loading, setLoading] =
     useState(false);
 
-  // pending | verified | failed
   const [status, setStatus] =
     useState("pending");
 
@@ -41,24 +46,75 @@ export default function EncryptionModal({
   const [copied, setCopied] =
     useState(false);
 
-  // ================= OPEN =================
+  const [publicKey, setPublicKey] =
+    useState("");
+
+  const [privateKey, setPrivateKey] =
+    useState("");
+
+  const [securityNumber, setSecurityNumber] =
+    useState("");
+
+  // ============================================
+  // SETUP ENCRYPTION
+  // ============================================
+
   useEffect(() => {
 
     if (!open || !chatId) return;
 
-    fetchVerification();
+    setupEncryption();
 
   }, [open, chatId]);
 
-  // ================= FETCH =================
-  const fetchVerification = async () => {
+  const setupEncryption = async () => {
 
     try {
 
       setLoading(true);
 
-      // 🔥 START VERIFYING
       setStatus("pending");
+
+      // ============================================
+      // GENERATE DEVICE KEYS
+      // ============================================
+
+      const keys =
+        await generateKeyPair();
+
+      setPublicKey(keys.publicKey);
+
+      setPrivateKey(keys.privateKey);
+
+      // save private locally ONLY
+      localStorage.setItem(
+        "private_key",
+        keys.privateKey
+      );
+
+      // ============================================
+      // SAVE PUBLIC KEY
+      // ============================================
+
+      await api.post(
+        "/api/save-public-key",
+        {
+          public_key:
+            keys.publicKey,
+        }
+      );
+
+      // ============================================
+      // GENERATE CHAT KEY
+      // ============================================
+
+      await api.post(
+        `/api/chats/${chatId}/generate-key`
+      );
+
+      // ============================================
+      // FETCH VERIFICATION
+      // ============================================
 
       const res = await api.get(
         `/api/chats/${chatId}/encryption`
@@ -66,35 +122,33 @@ export default function EncryptionModal({
 
       setVerification(res.data);
 
-      // 🔥 simulate verification delay
-      setTimeout(async () => {
+      // ============================================
+      // SECURITY NUMBER
+      // ============================================
 
-        try {
+      const number = await sha256(
+        keys.publicKey +
+        res.data.security_code
+      );
 
-          const verify =
-            await api.post(
-              `/api/chats/${chatId}/auto-verify`
-            );
+      setSecurityNumber(number);
 
-          // 🔥 SUCCESS
-          if (verify.data.verified) {
+      // ============================================
+      // AUTO VERIFY
+      // ============================================
 
-            setStatus("verified");
+      const verify = await api.post(
+        `/api/chats/${chatId}/auto-verify`
+      );
 
-          } else {
+      if (verify.data.verified) {
 
-            // 🔥 FAILED
-            setStatus("failed");
-          }
+        setStatus("verified");
 
-        } catch (err) {
+      } else {
 
-          console.error(err);
-
-          setStatus("failed");
-        }
-
-      }, 2500);
+        setStatus("failed");
+      }
 
     } catch (err) {
 
@@ -108,304 +162,404 @@ export default function EncryptionModal({
     }
   };
 
-  // ================= COPY =================
-  const copyNumber = async () => {
+  // ============================================
+  // COPY SECURITY NUMBER
+  // ============================================
 
-    if (!verification?.security_code)
-      return;
+  const copySecurityNumber =
+    async () => {
+
+    if (!securityNumber) return;
 
     await navigator.clipboard.writeText(
-      verification.security_code
+      securityNumber
     );
 
     setCopied(true);
 
     setTimeout(() => {
+
       setCopied(false);
+
     }, 2000);
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] bg-black flex justify-center">
+    <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex justify-center items-center sm:p-4">
 
-      <div className="w-full max-w-md h-full bg-[#0b141a] text-white overflow-y-auto">
+      <div className="w-full max-w-md sm:max-w-3xl sm:h-[600px] h-full rounded-xl scrollbar-thin bg-[#0b141a] text-white overflow-y-auto">
 
-        {/* HEADER */}
-        <div className="flex items-center gap-4 px-4 py-4 border-b border-white/10">
+        {/* ============================================
+            HEADER
+        ============================================ */}
 
-          <button onClick={onClose}>
-            <X size={26} />
-          </button>
+        <div className="sticky top-0 z-50 bg-[#0b141a] border-b border-white/10">
 
-          <div>
+          <div className="flex items-center gap-4 px-4 py-4">
 
-            <h2 className="text-xl font-semibold">
-              Verify encryption
-            </h2>
+            <button
+              onClick={onClose}
+              className="text-white"
+            >
+              <X size={26} />
+            </button>
 
-            <p className="text-sm text-gray-400">
-              You, {activeChat?.name}
-            </p>
+            <div>
+
+              <h2 className="text-xl font-semibold">
+                Encryption
+              </h2>
+
+              <p className="text-sm text-gray-400">
+                Messages and calls are end-to-end encrypted
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* BODY */}
-        <div className="px-6">
+        {/* ============================================
+            BODY
+        ============================================ */}
 
-          {/* ================= PENDING ================= */}
+        <div className="px-6 py-6">
+
+          {/* ============================================
+              STATUS UI
+          ============================================ */}
+
           {status === "pending" && (
 
             <div className="flex flex-col items-center text-center">
 
-              {/* ANIMATION */}
-              <div className="relative mb-3">
+              <div className="w-40 h-40 rounded-full border-4 border-dashed border-green-500 flex items-center justify-center animate-spin mb-8">
 
-                <div className="w-52 h-52 rounded-full border-2 border-dashed border-gray-300 animate-spin-slow flex items-center justify-center">
+                <div className="w-28 h-28 rounded-full bg-green-500/20 flex items-center justify-center">
 
-                  <div className="flex items-center gap-3">
-
-                    <div className="w-16 h-28 rounded-lg bg-gray-100 relative border-2 border-gray-300">
-
-                      <div className="absolute top-5 left-4 w-8 h-4 bg-gray-300 rounded"></div>
-
-                      <div className="absolute top-12 left-3 w-6 h-4 bg-gray-300 rounded"></div>
-
-                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
-                    </div>
-
-                    <div className="w-16 h-28 rounded-lg bg-gray-100 relative border-2 border-gray-300">
-
-                      <div className="absolute top-5 left-4 w-8 h-4 bg-gray-300 rounded"></div>
-
-                      <div className="absolute top-12 left-7 w-6 h-4 bg-gray-300 rounded"></div>
-
-                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute top-7 right-5 w-5 h-5 rounded-full bg-green-500"></div>
-              </div>
-
-              <h3 className="text-xl font-bold text-gray-400">
-                Verifying
-              </h3>
-            </div>
-          )}
-
-          {/* ================= VERIFIED ================= */}
-          {status === "verified" && (
-
-            <div className="flex flex-col items-center text-center">
-
-              <div className="relative mb-10">
-
-                <div className="w-56 h-56 rounded-full bg-[#dbe8d1] flex items-center justify-center relative">
-
-                  {/* PHONES */}
-                  <div className="flex items-center gap-3">
-
-                    <div className="w-16 h-28 rounded-lg bg-gray-100 relative border-2 border-gray-700">
-
-                      <div className="absolute top-5 left-4 w-8 h-4 bg-green-500 rounded"></div>
-
-                      <div className="absolute top-12 left-2 w-5 h-4 bg-[#d8cfc3] rounded"></div>
-
-                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
-                    </div>
-
-                    <div className="w-16 h-36 rounded-lg bg-gray-100 relative border-2 border-gray-700">
-
-                      <div className="absolute top-5 left-4 w-8 h-4 bg-[#d8cfc3] rounded"></div>
-
-                      <div className="absolute top-12 left-2 w-5 h-4 bg-green-500 rounded"></div>
-
-                      <div className="absolute bottom-3 left-5 w-6 h-1 bg-gray-700 rounded"></div>
-                    </div>
-                  </div>
-
-                  {/* LOCK */}
-                  <div className="absolute bottom-3 right-3 w-16 h-16 rounded-full bg-green-500 flex items-center justify-center border-4 border-[#0b141a]">
-
-                    <Lock
-                      size={34}
-                      className="text-black"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="text-sm font-bold mb-5">
-                End-to-end encryption was automatically verified
-              </h3>
-
-              <p className="text-gray-400 text-sm">
-                Today at{" "}
-                {new Date().toLocaleTimeString()}
-              </p>
-            </div>
-          )}
-
-          {/* ================= FAILED ================= */}
-          {status === "failed" && (
-
-            <div className="text-center">
-
-              <div className="flex justify-center mb-8">
-
-                <div className="w-40 h-40 rounded-full border-[10px] border-gray-500 flex items-center justify-center">
-
-                  <Lock
-                    size={80}
-                    className="text-gray-400"
+                  <Loader2
+                    size={60}
+                    className="animate-spin text-green-400"
                   />
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold mb-4">
-                Please verify another way
-              </h3>
+              <h2 className="text-2xl font-bold mb-3">
+                Verifying Encryption
+              </h2>
 
-              <p className="text-gray-200 text-sm leading-3">
-                We can't automatically
-                verify end-to-end
-                encryption at this time.
+              <p className="text-gray-400 text-sm">
+                Setting up secure encrypted communication...
               </p>
             </div>
           )}
 
-          {/* OPTIONS */}
-          <div className="mt-6 border-t border-white/10 pt-4">
+          {/* ============================================
+              VERIFIED
+          ============================================ */}
 
-            <p className="text-gray-400 font-semibold mb-4 text-sm">
-              Other ways to verify encryption
-            </p>
+          {status === "verified" && (
 
-            {/* QR */}
-            <button
-              onClick={() => {
+            <div className="flex flex-col items-center">
 
-                setShowQR(prev => !prev);
+              <div className="relative">
 
-                setShowNumber(false);
-              }}
-              className="w-full flex items-center gap-5 py-5"
-            >
-              <div className="w-12 h-12 rounded-lg border border-white/20 flex items-center justify-center">
+                <div className="w-56 h-56 rounded-full bg-[#d9fdd3] flex items-center justify-center">
 
-                <QrCode size={28} />
-              </div>
+                  <div className="flex items-center gap-4">
 
-              <span className="text-sm">
-                Scan a QR code
-              </span>
-            </button>
+                    <div className="w-16 h-32 bg-white rounded-xl border-4 border-black relative">
 
-            {showQR &&
-              verification?.security_code && (
+                      <div className="absolute top-5 left-4 w-8 h-3 rounded bg-green-500"></div>
 
-              <div className="bg-white rounded-2xl p-6 flex justify-center mt-4">
+                      <div className="absolute top-12 left-3 w-6 h-3 rounded bg-gray-300"></div>
 
-                <QRCodeCanvas
-                  value={
-                    verification.security_code
-                  }
-                  size={220}
-                />
-              </div>
-            )}
-
-            {/* NUMBER */}
-            <button
-              onClick={() => {
-
-                setShowNumber(prev => !prev);
-
-                setShowQR(false);
-              }}
-              className="w-full flex items-center gap-5 py-5"
-            >
-              <div className="w-12 h-12 rounded-lg border border-white/20 flex items-center justify-center">
-
-                <Hash size={28} />
-              </div>
-
-              <span className="text-sm">
-                Compare a 60-digit number
-              </span>
-            </button>
-
-            {showNumber &&
-              verification?.security_code && (
-
-              <div className="bg-[#111b21] rounded-2xl p-5 mt-4">
-
-                <div className="grid grid-cols-3 gap-3">
-
-                  {verification.security_code
-                    .split(" ")
-                    .map((num, index) => (
-
-                    <div
-                      key={index}
-                      className="bg-[#202c33] rounded-xl py-3 text-center font-semibold"
-                    >
-                      {num}
+                      <div className="absolute bottom-3 left-5 w-6 h-1 rounded bg-black"></div>
                     </div>
-                  ))}
+
+                    <div className="w-16 h-32 bg-white rounded-xl border-4 border-black relative">
+
+                      <div className="absolute top-5 left-4 w-8 h-3 rounded bg-gray-300"></div>
+
+                      <div className="absolute top-12 left-3 w-6 h-3 rounded bg-green-500"></div>
+
+                      <div className="absolute bottom-3 left-5 w-6 h-1 rounded bg-black"></div>
+                    </div>
+                  </div>
                 </div>
 
-                <button
-                  onClick={copyNumber}
-                  className="mt-5 flex items-center gap-2 text-gray-300"
-                >
-                  {copied ? (
-                    <>
-                      <Check
-                        size={18}
-                        className="text-green-500"
-                      />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={18} />
-                      Copy number
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
+                <div className="absolute bottom-4 right-4 w-16 h-16 rounded-full bg-green-500 flex items-center justify-center border-4 border-[#0b141a]">
 
-            {/* LOADING */}
-            {loading && (
-              <div className="text-center text-gray-400 mt-2">
-                Loading encryption
+                  <ShieldCheck
+                    size={32}
+                    className="text-black"
+                  />
+                </div>
               </div>
-            )}
-          </div>
+
+              <h2 className="mt-8 text-xl font-bold text-center">
+                End-to-end encryption verified
+              </h2>
+
+              <p className="text-gray-400 text-sm text-center mt-2">
+                Your messages with{" "}
+                {activeChat?.name}
+                {" "}are secured with encryption.
+              </p>
+
+              {/* ============================================
+                  SECURITY INFO
+              ============================================ */}
+
+              <div className="w-full mt-8 space-y-4">
+
+                <div className="bg-[#111b21] rounded-3xl p-5">
+
+                  <div className="flex items-center gap-3 mb-4">
+
+                    <Lock
+                      size={22}
+                      className="text-green-400"
+                    />
+
+                    <h3 className="font-semibold">
+                      Encryption Details
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3 text-sm">
+
+                    <div className="flex justify-between">
+
+                      <span className="text-gray-400">
+                        Algorithm
+                      </span>
+
+                      <span>
+                        AES-256 + RSA
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+
+                      <span className="text-gray-400">
+                        Key Exchange
+                      </span>
+
+                      <span>
+                        Secure
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+
+                      <span className="text-gray-400">
+                        Verification
+                      </span>
+
+                      <span className="text-green-400">
+                        Verified
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ============================================
+                    QR SECTION
+                ============================================ */}
+
+                <button
+                  onClick={() => {
+
+                    setShowQR(!showQR);
+
+                    setShowNumber(false);
+                  }}
+                  className="w-full bg-[#111b21] rounded-3xl p-5 flex items-center justify-between"
+                >
+
+                  <div className="flex items-center gap-4">
+
+                    <div className="w-14 h-14 rounded-2xl bg-black/20 flex items-center justify-center">
+
+                      <QrCode size={30} />
+                    </div>
+
+                    <div className="text-left">
+
+                      <p className="font-semibold">
+                        Scan QR Code
+                      </p>
+
+                      <p className="text-sm text-gray-400">
+                        Verify with another device
+                      </p>
+                    </div>
+                  </div>
+
+                  <Smartphone size={22} />
+                </button>
+
+                {showQR && (
+
+                  <div className="bg-white rounded-3xl p-6 flex justify-center">
+
+                    <QRCodeCanvas
+                      value={JSON.stringify({
+                        security_number:
+                          securityNumber,
+                        chat_id: chatId,
+                      })}
+                      size={240}
+                    />
+                  </div>
+                )}
+
+                {/* ============================================
+                    SECURITY NUMBER
+                ============================================ */}
+
+                <button
+                  onClick={() => {
+
+                    setShowNumber(
+                      !showNumber
+                    );
+
+                    setShowQR(false);
+                  }}
+                  className="w-full bg-[#111b21] rounded-3xl p-5 flex items-center justify-between"
+                >
+
+                  <div className="flex items-center gap-4">
+
+                    <div className="w-14 h-14 rounded-2xl bg-black/20 flex items-center justify-center">
+
+                      <Hash size={28} />
+                    </div>
+
+                    <div className="text-left">
+
+                      <p className="font-semibold">
+                        Security Number
+                      </p>
+
+                      <p className="text-sm text-gray-400">
+                        Compare with recipient
+                      </p>
+                    </div>
+                  </div>
+
+                  <Lock size={22} />
+                </button>
+
+                {showNumber && (
+
+                  <div className="bg-[#111b21] rounded-3xl p-5">
+
+                    <div className="grid grid-cols-3 gap-3">
+
+                      {securityNumber
+                        ?.match(/.{1,5}/g)
+                        ?.map((num, index) => (
+
+                        <div
+                          key={index}
+                          className="bg-[#202c33] rounded-2xl py-4 text-center font-semibold text-sm"
+                        >
+                          {num}
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={
+                        copySecurityNumber
+                      }
+                      className="mt-5 flex items-center gap-2 text-sm text-gray-300"
+                    >
+
+                      {copied ? (
+                        <>
+                          <Check
+                            size={18}
+                            className="text-green-500"
+                          />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={18} />
+                          Copy Security Number
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* ============================================
+                    PUBLIC KEY
+                ============================================ */}
+
+                <div className="bg-[#111b21] rounded-3xl p-5">
+
+                  <h3 className="font-semibold mb-3">
+                    Public Key
+                  </h3>
+
+                  <div className="bg-[#202c33] rounded-2xl p-4 break-all text-xs text-gray-300 max-h-40 overflow-y-auto">
+
+                    {publicKey}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================
+              FAILED
+          ============================================ */}
+
+          {status === "failed" && (
+
+            <div className="flex flex-col items-center text-center">
+
+              <div className="w-40 h-40 rounded-full border-[10px] border-red-500/20 flex items-center justify-center mb-8">
+
+                <Lock
+                  size={80}
+                  className="text-red-400"
+                />
+              </div>
+
+              <h2 className="text-2xl font-bold mb-3">
+                Verification Failed
+              </h2>
+
+              <p className="text-gray-400 text-sm">
+                Could not verify encryption at this time.
+              </p>
+
+              <button
+                onClick={setupEncryption}
+                className="mt-8 bg-green-500 text-black font-semibold px-8 py-3 rounded-full"
+              >
+                Retry Verification
+              </button>
+            </div>
+          )}
+
+          {/* ============================================
+              LOADING
+          ============================================ */}
+
+          {loading && (
+            <div className="mt-6 text-center text-gray-400 text-sm">
+              Preparing secure encrypted session...
+            </div>
+          )}
         </div>
       </div>
-
-      {/* CUSTOM ANIMATION */}
-      <style>
-        {`
-          .animate-spin-slow {
-            animation: spin 8s linear infinite;
-          }
-
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        `}
-      </style>
     </div>
   );
 }

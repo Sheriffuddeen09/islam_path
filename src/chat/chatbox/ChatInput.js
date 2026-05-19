@@ -270,7 +270,7 @@ const getPreviewText = (msg) => {
   </div>
 )}
     {!recording && (
-    <div className="px w-full bg-[var(--bg-color)]  gap-3 flex items-center flex-row p-2">
+    <div className="px w-full bg-[var(--bg-color)]  sm:gap-3 gap-1 flex items-center flex-row sm:p-2">
        
        <input
         ref={fileInputRef}
@@ -280,7 +280,7 @@ const getPreviewText = (msg) => {
         accept={fileType}
         onChange={handleFileChange}
       />
-      <div className="inline-flex items-center gap-3">
+      <div className="inline-flex items-center sm:gap-3 gap-1">
           <button className="bg-gray-300 rounded-full p-2 hover:bg-gray-400"
             onMouseDown={handleHoldStart}
             onMouseUp={handleHoldEnd}
@@ -307,11 +307,12 @@ const getPreviewText = (msg) => {
 
    
       <div className="relative w-full mt-1">
-       <input
+       <textarea
               ref={textareaRef}
               value={text}
+              rows={1}
               onChange={(e) => setText(e.target.value)}
-              className="flex-1 border bg-[var(--bg-color)] border-gray-400 border-2 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
+              className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 border-2 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
           />
         <button className="absolute top-3 right-3" onClick={() => setShowEmoji(prev => !prev)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 

@@ -15,9 +15,37 @@
 
 
 * forward messages
-* encryption
-* unread count issue
+* clear message should work 
+* the total amount in order naira and dollar or pollar how to make it equal each other 
 
-there is an error with unread count if user A send message and user B send message at the same time so user A have not 
-view message or reload to see message when user B send message instead of the count be 1 unread count for user A and User B
-it will be returning two
+1. this should show in image and video with caption text 
+
+ {
+        label: "Edit",
+        show:
+            message.type === "text" &&
+            isMine &&
+            msg.status !== "read",
+        onClick: (m) => {
+            setEditingMessage(m);
+            clearSelection();
+        },
+
+        and 
+
+        {
+        label: "Edit",
+        show:
+          msg.type === "text" &&
+          isMine &&
+          status !== "read",
+        onClick: (m) => {
+          setEditingMessage(m);
+          setActiveMenuId(null)
+        },
+      },
+
+
+how am i going to use the public key when encryption successful or what does the encryption does when verified successful
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAweljsW1F512gqLAjChKy1sMdBmycHiq/ATpttnpW/jfrC/BBBFeCpsr9VS1do6X7/hUvSJmPPLdyyMGuagkE4XvDIaIKK+jYa81xETCUQxbFj2nyYalP7tubGkmEG/94idpoGp/j3TwXHH16+Xv17L4/uWdjBb0a8yQRoJ3dTEA0r65XaxkA/CFy80UWk48Wlp0Y4ABzaBCJBCuxhcjXOgQGxz4Hnhp50cCfhfoOfV3iBX/dpeh+EG1jFhVmG65jQ7ySUG//rD2WSF50vbcJdm2Q+WK6WDImgpGwFaXbd1GnSS/EiU44suJQjLx+b6eSMwyhoe7t25Knl5JPto2BbwIDAQAB
+

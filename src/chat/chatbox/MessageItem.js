@@ -348,6 +348,12 @@ const retryMessage = async () => {
 };
 
 
+ const hasLink =
+  /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi.test(
+    msg.message || ""
+  );
+
+
   // ================= PIN MESSAGE =================
   const handlePin = async (msg) => {
   try {
@@ -947,28 +953,64 @@ onPointerCancel={() => {
 
        
 
-        {/* TEXT */}
-          {msg.message && msg.type === "text" && (
-            <Linkify
-              options={{
-                target: "_blank",
-                className: "text-blue-400 underline pointer-events-auto",
-              }}
-            >
-              <p className="text-sm break-words">
-                {msg.message}
-              </p>
-            </Linkify>
-          )}
+       {msg.deleted ? (
 
+  <div className="flex items-center gap-2 italic text-white text-sm">
+
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-5 text-white"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+      </svg>
+
+    <span>This message was deleted</span>
+
+  </div>
+
+) : (
+
+  <>
+    {msg.message && msg.type === "text" && (
+      <div
+        className={
+          hasLink ? "w-56" : "w-auto"
+        }
+      >
+        <Linkify
+          options={{
+            target: "_blank",
+            className:
+              "text-blue-400 underline pointer-events-auto",
+          }}
+        >
+          <p className="text-sm break-words">
+            {msg.message}
+          </p>
+        </Linkify>
+      </div>
+    )}
+
+    {(msg.type === "image" ||
+      msg.type === "video") && (
+      <MediaMessage
+        msg={msg}
+        setPreview={setPreview}
+      />
+    )}
+  </>
+
+)}
        {/* ================= FILES (ALWAYS FIRST) ================= */}
-          {msg.files?.length > 0 && (
-            <MediaMessage
-              msg={msg}
-              setPreview={setPreview}
-              preview={preview}
-            />
-          )}
+         
 
         {msg.files?.some(f =>
             f.type === "audio" || f.type === "voice"
@@ -982,11 +1024,23 @@ onPointerCancel={() => {
 
         {/* =================  TIME + STATUS svg ================= */}
         <div className="flex justify-end items-center z-50 gap-2 mt-1">
+          {msg.edited && (
+        <span className="text-[12px] text-white italic">
+          edited
+        </span>
+       )}
           <span className="text-[10px]">
             {formatTime(msg.created_at)}
           </span>
 
+       {!msg.deleted && (
+          <>
           {renderStatus && renderStatus()}
+          </>
+       )}
+
+
+          
         </div>
 
         {/* ================= REACTIONS ================= */}
@@ -1084,7 +1138,7 @@ onPointerCancel={() => {
           );
         }
       }}
-      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-2 inline-flex items-center gap-1 bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
+      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-1 inline-flex items-center gap-1 bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
     >
 
       {unreadCount > 0 && latestMessage?.sender_id !== myId &&  (

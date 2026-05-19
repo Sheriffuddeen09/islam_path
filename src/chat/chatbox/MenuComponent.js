@@ -427,7 +427,7 @@ useEffect(() => {
             }
           >
             <div
-              className="absolute top-10 right-3 w-52 bg-white rounded-lg py-2"
+              className="absolute top-10 right-3 w-52 bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold rounded-lg py-2"
               onClick={(e) => e.stopPropagation()}
             >
               {/* MAIN */}
@@ -447,7 +447,7 @@ useEffect(() => {
                         showMore: false,
                       });
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
+                    className="w-full text-left px-4 py-3 text-sm bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold"
                   >
                     {action.label}
                   </button>
@@ -461,7 +461,7 @@ useEffect(() => {
 
                   <button
                     onClick={() => setShowMore(!showMore)}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
+                    className="w-full text-left px-4 py-3 text-sm bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold"
                   >
                     More {showMore ? "▲" : "▼"}
                   </button>
@@ -481,7 +481,7 @@ useEffect(() => {
                               showMore: false,
                             });
                           }}
-                          className="w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
+                          className="w-full text-left px-4 py-3 text-sm bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold"
                         >
                           {action.label}
                         </button>

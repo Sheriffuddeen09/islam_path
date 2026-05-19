@@ -353,7 +353,7 @@ export default function ActiveUsers({
       {/* ACTIONS */}
       {
         !isGroup &&
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pb-2 space-y-0 text-[var(--text-color)] font-semibold border-b-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pt-2 pb-2 space-y-0 text-[var(--text-color)] font-semibold border-b-2">
 
         <Link to={`/profile/${user.id}`}>
         <ActionButton icon={<UserCircle size={24} />} label="View Profile" />
@@ -904,7 +904,7 @@ function ActionButton({ icon, label, onClick, danger, warning }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-4 w-full py-3 px-6 border-b  transition-all duration-200 transform active:scale-95
+      className={`flex items-center gap-4 w-full py-3 px-6  transition-all duration-200 transform active:scale-95
         ${
           danger
             ? "text-red-600 hover:bg-red-100"

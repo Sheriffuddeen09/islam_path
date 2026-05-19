@@ -3,6 +3,9 @@ import api from "../../Api/axios";
 import ActiveUsers from "./ActiveUsers";
 import ChatList from "./ChatList";
 import MessageBox from "./MessageBox";
+import {
+  encryptMessage, decryptMessage
+} from "../../utils/encryption";
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
@@ -61,6 +64,9 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   };
 
   setMessages(prev => [...prev, tempMessage]);
+
+   const originalText = text;
+
   setText("");
 
   requestAnimationFrame(() => {
@@ -71,9 +77,21 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   });
 
   try {
+
+    // ================= CHAT KEY =================
+
+    const chatKey = localStorage.getItem(
+      `chat_key_${chatId}`
+    );
+
+    // ================= ENCRYPT =================
+
+    const { encrypted, iv } = await encryptMessage(originalText, chatKey);
+
     const { data } = await api.post("/api/messages", {
       chat_id: chatId,
-      message: text,
+      message: encrypted,
+      iv: iv,
       type: "text",
       replied_to: reply ? reply.id : null,
     });
@@ -158,6 +176,29 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
       });
     });
 
+    try {
+
+      // ================= CHAT KEY =================
+
+      const chatKey =
+        localStorage.getItem(
+          `chat_key_${chatId}`
+        );
+
+      // ================= ENCRYPT REPLY =================
+
+      let encryptedReply = null;
+
+      if (reply?.message) {
+
+        encryptedReply =
+          await encryptMessage(
+            reply.message,
+            chatKey
+          );
+      }
+
+
     const form = new FormData();
     form.append("chat_id", chatId);
     form.append("voice", blob, "voice.webm");
@@ -167,7 +208,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
         form.append("replied_to", reply.id);
       }
 
-    try {
       const res = await api.post("/api/messages/voice", form, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -344,12 +384,24 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     }
 
     form.append("types[]", getType(file));
-  });
+    });
 
-  if (caption.trim()) {
-    form.append("message", caption);
-  }
+    if (caption && caption.trim() !== "") {
+      const chatKey = localStorage.getItem(`chat_key_${chatId}`);
 
+      if (!chatKey) {
+        showToast("Encryption key missing");
+        return;
+      }
+
+      const encrypted = await encryptMessage(caption, chatKey);
+
+      form.append("message", encrypted.encrypted);
+      form.append("iv", encrypted.iv);
+    } else {
+      form.append("message", "");
+      form.append("iv", "");
+    }
   // ✅ USE SAFE REPLY
   if (reply?.id && !isNaN(reply.id)) {
     form.append("replied_to", reply.id);
@@ -364,7 +416,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
     const serverMessages = res.data.messages;
 
-    let server = serverMessages[0];
 
     let grouped;
 
@@ -388,43 +439,77 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
       };
     }
 
-    setMessages((prev) => {
-  const filtered = prev.filter((m) => m.id !== tempId);
+    const chatKey = localStorage.getItem(`chat_key_${chatId}`);
 
-  const normalized = serverMessages.map((msg) => ({
-    ...msg,
+const normalized = await Promise.all(
+  serverMessages.map(async (msg) => {
+
+    let decryptedMessage = msg.message;
+
+    // ✅ decrypt immediately
+    if (msg.message && msg.iv) {
+
+      try {
+
+        decryptedMessage = await decryptMessage(
+          msg.message,
+          msg.iv,
+          chatKey
+        );
+
+      } catch (err) {
+
+        console.log(
+          "Immediate decrypt failed",
+          err
+        );
+      }
+    }
+
+    return {
+      ...msg,
+
+      message: decryptedMessage,
 
       files: msg.files?.length
-  ? msg.files
-  : msg.file_url
-  ? [
-      {
-        file_url: msg.file_url,
-        file_name: msg.file_name,
-        type: msg.type,
-        duration: msg.duration,
-      },
-    ]
-  : [],
+        ? msg.files
+        : msg.file_url
+        ? [
+            {
+              file_url: msg.file_url,
+              file_name: msg.file_name,
+              type: msg.type,
+              duration: msg.duration,
+            },
+          ]
+        : [],
 
-    is_forwarded: Boolean(msg.is_forwarded),
+      is_forwarded: Boolean(msg.is_forwarded),
 
-    replied_to: reply
-      ? {
-          id: reply.id,
-          message: reply.message,
-          type: reply.type,
-          sender: reply.sender,
-        }
-      : msg.replied_to || msg.replyTo || null,
+      replied_to: reply
+        ? {
+            id: reply.id,
+            message: reply.message,
+            type: reply.type,
+            sender: reply.sender,
+          }
+        : msg.replied_to || msg.replyTo || null,
 
-    status: "sent",
-  }));
+      status: "sent",
+    };
+  })
+);
+
+// ✅ NOW update state
+setMessages((prev) => {
+
+  const filtered = prev.filter(
+    (m) => m.id !== tempId
+  );
 
   return [...filtered, ...normalized];
 });
-
-    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "end",

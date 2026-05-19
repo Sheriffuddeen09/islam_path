@@ -1,14 +1,50 @@
+import Linkify from "linkify-react";
 import MediaGrid from "./MediaGrid";
 
-export default function MediaMessage({ msg, setPreview }) {
-  if (!msg.type || (msg.type !== "image" && msg.type !== "video")) return null;
+export default function MediaMessage({
+  msg,
+  setPreview,
+}) {
+
+  if (
+    !["image", "video"].includes(
+      msg.type
+    )
+  )
+    return null;
+
+  const hasLink =
+    /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi.test(
+      msg.message || ""
+    );
 
   return (
-    <div className="max-w-xs pointer-events-auto">
-      <MediaGrid msg={msg} setPreview={setPreview} />
+    <div className="max-w-xs">
 
+      <MediaGrid
+        msg={msg}
+        setPreview={setPreview}
+      />
+
+      {/* caption */}
       {msg.message && (
-        <p className="text-sm mt-1 break-words">{msg.message}</p>
+        <div
+          className={`mt-1 ${
+            hasLink ? "w-56" : "w-auto"
+          }`}
+        >
+          <Linkify
+            options={{
+              target: "_blank",
+              className:
+                "text-blue-400 underline break-all pointer-events-auto",
+            }}
+          >
+            <p className="text-sm break-words whitespace-pre-wrap">
+              {msg.message}
+            </p>
+          </Linkify>
+        </div>
       )}
     </div>
   );

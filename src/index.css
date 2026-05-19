@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE */
+/* LIGHT MODE no-scrollbar*/
 :root {
   --primary-color:  #17191c;
   --bg-color: #ffffff;

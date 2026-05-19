@@ -3,7 +3,8 @@ import { UserSkeleton } from "./UserSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import ChatComponent from "./ChatComponent";
-import { initEcho } from "../../echo";
+import { decryptMessage } from "../../utils/encryption";
+
 
 export default function ChatPage({
   chats,
@@ -43,38 +44,113 @@ export default function ChatPage({
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
+const fetchChats = async () => {
 
-  const fetchChats = async () => {
-    if (!authUser) return;
-    try {
-      setLoadingChats(true);
-      const res = await api.get("/api/chats");
+  if (!authUser) return;
 
-      const normalized = res.data.map(chat => ({
-        ...chat,
-        unread_count: Number(chat.unread_count || 0),
-        latest_message: chat.latest_message || null,
-        block_info: chat.block_info
-          ? {
-              ...chat.block_info,
-              blocked_by_me: chat.block_info.blocker_id === authUser.id,
-              blocked_me: chat.block_info.blocked_id === authUser.id
+  try {
+
+    setLoadingChats(true);
+
+    const res = await api.get("/api/chats");
+
+    const normalized = await Promise.all(
+
+      res.data.map(async (chat) => {
+
+        let latestMessage =
+          chat.latest_message || null;
+
+        // ✅ decrypt latest message
+        if (
+          latestMessage?.message &&
+          latestMessage?.iv
+        ) {
+
+          try {
+
+            // get chat key
+            const chatKey =
+              localStorage.getItem(
+                `chat_key_${chat.id}`
+              );
+
+            if (chatKey) {
+
+              // decrypt
+              const decrypted =
+                await decryptMessage(
+                  latestMessage.message,
+                  latestMessage.iv,
+                  chatKey
+                );
+
+              latestMessage = {
+                ...latestMessage,
+                message: decrypted,
+              };
             }
-          : null
-      }));
 
-      setChats(normalized);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingChats(false);
-    }
-  };
+          } catch (err) {
 
-  useEffect(() => {
-    if (!authUser) return;
-    fetchChats();
-  }, [authUser]);
+            console.error(
+              "Decrypt latest message failed",
+              err
+            );
+
+            latestMessage = {
+              ...latestMessage,
+              message: "Encrypted message",
+            };
+          }
+        }
+
+        return {
+          ...chat,
+
+          unread_count: Number(
+            chat.unread_count || 0
+          ),
+
+          latest_message: latestMessage,
+
+          block_info: chat.block_info
+            ? {
+                ...chat.block_info,
+
+                blocked_by_me:
+                  chat.block_info.blocker_id ===
+                  authUser.id,
+
+                blocked_me:
+                  chat.block_info.blocked_id ===
+                  authUser.id,
+              }
+            : null,
+        };
+      })
+    );
+
+    setChats(normalized);
+
+  } catch (err) {
+
+    console.error(err);
+
+  } finally {
+
+    setLoadingChats(false);
+  }
+};
+
+useEffect(() => {
+
+  if (!authUser) return;
+
+  fetchChats();
+
+}, [authUser]);
+
 
   const [isLargeScreen, setIsLargeScreen] = useState(
     window.innerWidth >= 1024
@@ -88,130 +164,283 @@ export default function ChatPage({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 🚀 OPEN CHAT (NO SCROLL HERE ANYMORE)
+
+
+const decryptMessages = async (incoming, chatId) => {
+  try {
+    const chatKey = localStorage.getItem(`chat_key_${chatId}`);
+
+    if (!chatKey) return incoming;
+
+    return await Promise.all(
+      incoming.map(async (msg) => {
+
+        try {
+          const decrypted = await decryptMessage(
+            msg.message,
+            msg.iv,
+            chatKey
+          );
+
+          return {
+            ...msg,
+            message: decrypted,
+          };
+
+        } catch (err) {
+          console.log("Decrypt failed:", err);
+          return msg;
+        }
+      })
+    );
+
+  } catch (err) {
+    console.log(err);
+    return incoming;
+  }
+};
 
 const openChat = async (chat) => {
+
   if (activeChat?.id === chat.id) {
     return;
   }
+
   if (chat.block_info?.blocked_me) {
+
     showToast(
       "You have been blocked in this chat",
       "error"
     );
+
     return;
   }
+
   setActiveChat(chat);
+
   if (!isLargeScreen) {
     setShowList(false);
   }
-  localStorage.setItem("lastChatId", String(chat.id));
+
+  localStorage.setItem(
+    "lastChatId",
+    String(chat.id)
+  );
+
   setChats(prev =>
     prev.map(c =>
       c.id === chat.id
-        ? { ...c, unread_count: 0 }
+        ? {
+            ...c,
+            unread_count: 0,
+          }
         : c
     )
   );
-  const cached = messagesMap[chat.id];
+
+  const cached =
+    messagesMap[chat.id];
+
   if (cached?.length > 0) {
-    const sortedCached = [...cached]
-      .sort((a, b) => a.id - b.id);
-    setMessages(sortedCached);
-    setLastReadMessageId(
-      chat.last_read_message_id || null
-    );
-    setUnreadCount(
-      chat.unread_count || 0
-    );
-    setTimeout(() => {
-      const firstUnread = sortedCached.find(
-        msg =>
-          chat.last_read_message_id &&
-          msg.id > chat.last_read_message_id
+
+    try {
+
+      const sortedCached =
+        [...cached].sort(
+          (a, b) => a.id - b.id
+        );
+
+      // ✅ decrypt cached
+      const decrypted =
+        await decryptMessages(
+          sortedCached,
+          chat.id
+        );
+
+      setMessages(decrypted);
+
+      setLastReadMessageId(
+        chat.last_read_message_id ||
+        null
       );
-      if (firstUnread) {
-        messageRefs.current[firstUnread.id]
-          ?.scrollIntoView({
+
+      setUnreadCount(
+        chat.unread_count || 0
+      );
+
+      setTimeout(() => {
+
+        const firstUnread =
+          decrypted.find(
+            msg =>
+              chat.last_read_message_id &&
+              msg.id >
+              chat.last_read_message_id
+          );
+
+        if (firstUnread) {
+
+          messageRefs.current[
+            firstUnread.id
+          ]?.scrollIntoView({
             behavior: "smooth",
             block: "start",
           });
-      } else {
-        messagesEndRef.current
-          ?.scrollIntoView({
-            behavior: "smooth",
-          });
-      }
-    }, 100);
+
+        } else {
+
+          messagesEndRef.current
+            ?.scrollIntoView({
+              behavior: "smooth",
+            });
+        }
+
+      }, 100);
+
+    } catch (err) {
+
+      console.log(
+        "Cached decrypt failed",
+        err
+      );
+    }
+
   } else {
+
     setLoadingMessages(true);
+
     setMessages([]);
   }
+
   try {
-    const res = await api.get(
-      `/api/chats/${chat.id}/messages`
-    );
+
+    setLoadingMessages(true);
+
+    const res = await api.get(`/api/chats/${chat.id}/messages`);
+
+    // 🔐 SAVE CHAT KEY (THIS WAS MISSING)
+    if (res.data.chat_key) {
+      localStorage.setItem(
+        `chat_key_${chat.id}`,
+        res.data.chat_key
+      );
+    }
+
+    console.log("RAW MESSAGES FROM BACKEND:", res.data.messages);
+    console.log("RAW MESSAGES FROM BACKEND:", res.data.messages);
+   
     const msgs = (
       res.data.messages || []
-    ).sort((a, b) => a.id - b.id);
-    setMessages(msgs);
+    ).sort(
+      (a, b) => a.id - b.id
+    );
+
+    // ✅ decrypt API messages
+    const decrypted =
+      await decryptMessages(
+        msgs,
+        chat.id
+      );
+
+    // ✅ set decrypted
+    setMessages(decrypted);
+
+    // ✅ cache decrypted
     setMessagesMap(prev => ({
       ...prev,
-      [chat.id]: msgs,
+      [chat.id]: decrypted,
     }));
+
     setLastReadMessageId(
       res.data.last_read_message_id
     );
+
     setUnreadCount(
       res.data.unread_count || 0
     );
+
     setTimeout(() => {
-      const firstUnread = msgs.find(
-        msg =>
-          res.data.last_read_message_id &&
-          msg.id > res.data.last_read_message_id
-      );
+
+      const firstUnread =
+        decrypted.find(
+          msg =>
+            res.data
+              .last_read_message_id &&
+            msg.id >
+            res.data
+              .last_read_message_id
+        );
+
       if (firstUnread) {
-        messageRefs.current[firstUnread.id]
-          ?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+
+        messageRefs.current[
+          firstUnread.id
+        ]?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+
       } else {
+
         messagesEndRef.current
           ?.scrollIntoView({
             behavior: "smooth",
           });
       }
+
     }, 100);
+
   } catch (err) {
-    console.error(err);
+
+    console.error(
+      "Open chat error:",
+      err
+    );
+
+    showToast(
+      "Failed to load messages"
+    );
+
   } finally {
+
     setLoadingMessages(false);
   }
-  api.post(`/api/chats/${chat.id}/read`)
-    .catch(err => {
-      console.error(
-        "Failed to mark as read",
-        err
-      );
-    });
+
+  api.post(
+    `/api/chats/${chat.id}/read`
+  ).catch(err => {
+
+    console.error(
+      "Failed to mark as read",
+      err
+    );
+  });
 };
 
 
 useEffect(() => {
 
+  // ✅ ONLY LARGE SCREEN
+  if (!isLargeScreen) return;
+
+  // ✅ wait until chats loaded
   if (!chats.length) return;
 
   const lastChatId =
-    localStorage.getItem("lastChatId");
+    localStorage.getItem(
+      "lastChatId"
+    );
 
   if (!lastChatId) return;
 
-  const lastChat = chats.find(
-    c => String(c.id) === String(lastChatId)
-  );
+  const lastChat =
+    chats.find(
+      c =>
+        String(c.id) ===
+        String(lastChatId)
+    );
 
+  // ✅ chat deleted/removed
   if (!lastChat) {
 
     localStorage.removeItem(
@@ -221,14 +450,17 @@ useEffect(() => {
     return;
   }
 
+  // ✅ prevent reopening same chat
   if (
-    !activeChat ||
-    activeChat.id !== lastChat.id
+    activeChat?.id === lastChat.id
   ) {
-    openChat(lastChat);
+    return;
   }
 
-}, [chats]);
+  // ✅ auto open ONLY desktop
+  openChat(lastChat);
+
+}, [chats, isLargeScreen]);
 
 
 

@@ -146,7 +146,7 @@ const OrdersPage = ({setOrderCount}) => {
 
 
   return (
-  <div className="relative lg:ml-64 p-4">
+  <div className="relative lg:ml-64 px-4 text-[var(--text-color)]">
 
     {/* 🔔 TOAST */}
     {toast && (
@@ -157,7 +157,7 @@ const OrdersPage = ({setOrderCount}) => {
     )}
 
     <h2 className="text-2xl font-bold mb-5 border-b-2 border-blue-800 pb-2">
-      My Orders
+      Product Order
     </h2>
 
     {/* 🔄 LOADING */}
@@ -165,8 +165,8 @@ const OrdersPage = ({setOrderCount}) => {
     <div className="grid md:grid-cols-2 gap-3"> 
     {[1, 2, 3, 4, 5, 6, 7, 8 ].map((i) => ( 
           <div key={i} className="bg-white p-5 rounded-xl shadow animate-pulse"> 
-          <div className="h-4 bg-gray-200 w-1/3 mb-3 rounded"></div> 
-          <div className="h-3 bg-gray-200 w-full mb-2 rounded"></div> 
+          <div className="h-28 bg-gray-200 w-2/3 mb-3 rounded"></div> 
+          <div className="h-8 bg-gray-200 w-full mb-2 rounded"></div> 
       <div className="h-3 bg-gray-200 w-2/3 rounded"></div> </div> 
       ))} 
       </div> 
@@ -193,10 +193,10 @@ const OrdersPage = ({setOrderCount}) => {
 
 
           return (
-            <div key={order.id} className="bg-white p-5 rounded-2xl shadow">
+            <div key={order.id} className="bg-white p-5 rounded-2xl shadow-md ">
 
               {/* HEADER */}
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-2 text-black">
                 <h3 className="font-semibold">Order #{order.id}</h3>
 
                 <div className="flex items-center gap-2">
@@ -309,7 +309,7 @@ const OrdersPage = ({setOrderCount}) => {
                       <div className="flex-1">
                         <p className="font-medium">{item.title}</p>
                         <div className="relative">
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm">
                          {symbol}{item.price} × {item.quantity}
                         </p>
 
@@ -390,22 +390,22 @@ const OrdersPage = ({setOrderCount}) => {
     {/* ================= MODAL ================= */}
 
     {showDeleteModal && (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-
-    <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6">
+  <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-[var(--bg-color)] w-full max-w-md overflow-y-auto scrollbar-thin rounded-xl shadow-lg space-y-4">
 
       {/* HEADER */}
-      <h2 className="text-lg font-bold mb-3 text-center text-red-600">
+      <h2 className="text-lg font-bold mb-3 text-center border-b border-[var(--text-color)] py-3">
         Delete Order
       </h2>
 
       {/* MESSAGE */}
-      <p className="text-sm text-gray-600 mb-5">
+      <p className="text-[15px]  mb-5 text-center py-3 px-6">
         Are you sure you want to delete this order? This action cannot be undone.
       </p>
 
       {/* ACTIONS */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 py-3 px-3">
 
         {/* CANCEL */}
         <button
@@ -479,9 +479,9 @@ const OrdersPage = ({setOrderCount}) => {
   </div>
 )}
     {showModal && selectedOrder && (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-
-        <div className="bg-white w-full max-w-3xl rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+        <div className="bg-[var(--bg-color)]  w-full max-w-2xl scrollbar-thin  rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
 
           {/* HEADER */}
           <div className="flex justify-between items-center border-b pb-3 mb-4">
@@ -490,16 +490,20 @@ const OrdersPage = ({setOrderCount}) => {
             </h2>
 
             <button onClick={() => setShowModal(false)}>
-              ✕
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 transition 
+            w-8  h-8 cursor-pointer">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            
             </button>
           </div>
 
           {/* CUSTOMER + ADDRESS */}
-          <div className="bg- shadow-md rounded-xl p-2 sm:p-4 bg-gray-50 ">
-            <h1 className="text-2xl font-bold border-b-2 border-blue-800 pb-2 ">{selectedOrder.first_name}'s Info</h1>
+          <div className=" shadow-md rounded-xl p-2 sm:p-4 ">
+            <h1 className="text-2xl font-bold border-b-2  pb-2 ">{selectedOrder.first_name}'s Info</h1>
           <div className="grid md:grid-cols-2 gap-4 mb-5">
             
-            <div className="bg-white shadow my-3 dots p-4 rounded sm:p-4 p-2">
+            <div className=" shadow my-3 dots p-4 rounded sm:p-4 p-2">
               <p className="font-semibold mb-2">
                 • {selectedOrder.first_name} {selectedOrder.last_name}
               </p>
@@ -507,7 +511,7 @@ const OrdersPage = ({setOrderCount}) => {
               <p className="text-sm mb-2">• {selectedOrder.phone}</p>
             </div>
 
-             <div className="bg-white shadow my-3 dots p-4 rounded sm:p-4 p-2">
+             <div className=" shadow my-3 dots p-4 rounded sm:p-4 p-2">
               <p className="font-semibold mb-2">• {selectedOrder.address}</p>
               <p className="text-sm mb-2">• {selectedOrder.city}, • {selectedOrder.state}</p>
               <p className="text-sm mb-2">• ZIP: {selectedOrder.zip}</p>
@@ -542,7 +546,7 @@ const OrdersPage = ({setOrderCount}) => {
                       <div className="flex-1">
                         <p className="font-medium">{item.title}</p>
                         <div className="relative">
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm">
                          {symbol}{item.price} × {item.quantity}
                         </p>
 
@@ -556,7 +560,7 @@ const OrdersPage = ({setOrderCount}) => {
                       </div>
                         
                     </div>
-                     <p className="text-sm font-semibold text-green-700 mt-1">
+                     <p className="text-sm font-bold text-green-500  mt-1">
                         Subtotal: {symbol}{(item.price * item.quantity) - (item.discount || 0)}
                       </p>
                     </div>
@@ -564,7 +568,7 @@ const OrdersPage = ({setOrderCount}) => {
                 })}
 
           {/* TOTAL */}
-          <div className="mt-4 font-bold flex justify-between">
+          <div className="mt-4 font-bold border-t py-2 flex justify-between">
             <span>Total</span>
             <span>₦{selectedOrder.total_price}</span>
           </div>

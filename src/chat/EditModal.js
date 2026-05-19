@@ -29,16 +29,27 @@ export default function EditModal({ message, onMessageUpdate, onClose }) {
 
 
   const content = (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded sm:w-96 w-72 ">
-        <input
+    <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+
+      <div
+        className="w-full max-w-xs sm:max-w-sm
+            bg-[var(--bg-color)]
+            border border-white/30
+            shadow-2xl
+            rounded-2xl
+            text-[var(--text-color)]
+            overflow-hidden
+            relative p-4 "
+      >
+        <textarea
           type="text"
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
-          className="border text-black border-blue-600 outline-0  p-2 rounded-md my-3  w-full mb-2"
+          className="border text-black no-scrollbar border-blue-600 outline-0  p-2 rounded-md my-3  w-full mb-2"
         />
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="bg-gray-300 px-3 py-1 rounded">
+          <button onClick={onClose} className="bg-gray-800 px-3 py-1 rounded">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
 </svg>

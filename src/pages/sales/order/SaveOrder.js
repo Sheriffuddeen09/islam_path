@@ -62,7 +62,7 @@ export default function SaveOrder() {
   };
 
   return (
-  <div className="p-3 sm:p-4 md:p-6 lg:ml-64">
+  <div className="px-3 sm:px-4 md:px-6 lg:ml-64">
 
     {/* ================= TOAST ================= */}
     {toast && (
@@ -75,7 +75,7 @@ export default function SaveOrder() {
     )}
 
     {/* ================= HEADER ================= */}
-    <h2 className="text-lg sm:text-xl text-black font-bold mb-4 sm:mb-5 border-b-2 border-blue-800 pb-2">
+    <h2 className="text-lg sm:text-xl text-[var(--text-color)] font-bold mb-4 sm:mb-5 border-b-2 border-blue-800 pb-2">
       Saved Orders
     </h2>
 
@@ -112,7 +112,7 @@ export default function SaveOrder() {
           return (
             <div
               key={draft.id}
-              className="bg-white p-3 sm:p-4 rounded-xl shadow hover:shadow-lg transition"
+              className="bg-white  p-3 sm:p-4 rounded-xl shadow-md hover:shadow-lg transition"
             >
 
               {/* ===== PRODUCTS ROW ===== */}
@@ -247,7 +247,7 @@ export default function SaveOrder() {
 
         {/* EMPTY STATE */}
         {drafts.length === 0 && (
-          <div className="col-span-full text-center text-gray-400 py-10 text-sm">
+          <div className="col-span-full text-center text-[var(--text-color)] py-10 text-sm ">
             No saved orders
           </div>
         )}
@@ -256,9 +256,10 @@ export default function SaveOrder() {
 
     {/* ================= DELETE MODAL ================= */}
     {deleteId && (
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-3">
+      <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
 
-        <div className="bg-white p-4 sm:p-6 rounded-xl w-full max-w-sm text-center shadow-lg">
+        <div className="bg-[var(--bg-color)] p-4 sm:p-6 rounded-xl w-full max-w-sm text-center shadow-lg">
 
           <h3 className="font-bold text-base sm:text-lg mb-3">
             Delete Draft?
