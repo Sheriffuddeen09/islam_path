@@ -212,7 +212,7 @@ export default function EncryptionModal({
                 Encryption
               </h2>
 
-              <p className="text-sm text-gray-400">
+              <p className="text-xs text-white mt02">
                 Messages and calls are end-to-end encrypted
               </p>
             </div>
@@ -248,7 +248,7 @@ export default function EncryptionModal({
                 Verifying Encryption
               </h2>
 
-              <p className="text-gray-400 text-sm">
+              <p className="text-white  text-sm">
                 Setting up secure encrypted communication...
               </p>
             </div>
@@ -297,11 +297,11 @@ export default function EncryptionModal({
                 </div>
               </div>
 
-              <h2 className="mt-8 text-xl font-bold text-center">
+              <h2 className="mt-8 text-sm font-bold text-center">
                 End-to-end encryption verified
               </h2>
 
-              <p className="text-gray-400 text-sm text-center mt-2">
+              <p className="text-white text-xs text-center mt-2">
                 Your messages with{" "}
                 {activeChat?.name}
                 {" "}are secured with encryption.
@@ -331,7 +331,7 @@ export default function EncryptionModal({
 
                     <div className="flex justify-between">
 
-                      <span className="text-gray-400">
+                      <span className="text-white">
                         Algorithm
                       </span>
 
@@ -342,7 +342,7 @@ export default function EncryptionModal({
 
                     <div className="flex justify-between">
 
-                      <span className="text-gray-400">
+                      <span className="text-white">
                         Key Exchange
                       </span>
 
@@ -353,7 +353,7 @@ export default function EncryptionModal({
 
                     <div className="flex justify-between">
 
-                      <span className="text-gray-400">
+                      <span className="text-white ">
                         Verification
                       </span>
 
@@ -387,11 +387,11 @@ export default function EncryptionModal({
 
                     <div className="text-left">
 
-                      <p className="font-semibold">
+                      <p className="font-semibold text-sm">
                         Scan QR Code
                       </p>
 
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-white text-xs">
                         Verify with another device
                       </p>
                     </div>
@@ -440,11 +440,11 @@ export default function EncryptionModal({
 
                     <div className="text-left">
 
-                      <p className="font-semibold">
+                      <p className="font-semibold text-sm">
                         Security Number
                       </p>
 
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-white text-xs">
                         Compare with recipient
                       </p>
                     </div>
@@ -507,7 +507,7 @@ export default function EncryptionModal({
                     Public Key
                   </h3>
 
-                  <div className="bg-[#202c33] rounded-2xl p-4 break-all text-xs text-gray-300 max-h-40 overflow-y-auto">
+                  <div className="bg-[#202c33] rounded-2xl p-4 break-all text-xs text-gray-300 max-h-40 overflow-y-auto no-scrollbar">
 
                     {publicKey}
                   </div>
@@ -536,7 +536,7 @@ export default function EncryptionModal({
                 Verification Failed
               </h2>
 
-              <p className="text-gray-400 text-sm">
+              <p className="text-white  text-sm">
                 Could not verify encryption at this time.
               </p>
 
@@ -554,7 +554,7 @@ export default function EncryptionModal({
           ============================================ */}
 
           {loading && (
-            <div className="mt-6 text-center text-gray-400 text-sm">
+            <div className="mt-6 text-center text-white  text-sm">
               Preparing secure encrypted session...
             </div>
           )}

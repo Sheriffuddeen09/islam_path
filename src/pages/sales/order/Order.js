@@ -570,7 +570,7 @@ const OrdersPage = ({setOrderCount}) => {
           {/* TOTAL */}
           <div className="mt-4 font-bold border-t py-2 flex justify-between">
             <span>Total</span>
-            <span>₦{selectedOrder.total_price}</span>
+            <span>{selectedOrder.total_price}</span>
           </div>
 
         </div>

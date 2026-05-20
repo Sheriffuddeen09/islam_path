@@ -22,6 +22,7 @@ import ExitGroupModal from "./ExistGroupModal";
 import DeleteGroupModal from "./DeleteGroupModal";
 import DisappearingMessagesModal from "./DisappearingMessagesModal";
 import EncryptionModal from "./EncryptionModal";
+import ClearChatModal from "../ClearModal";
 
 const socket = io("http://localhost:8000");
 
@@ -46,7 +47,9 @@ export default function ActiveUsers({
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [disappearTime, setDisappearTime] = useState("off");
+  const [clearMessage, setClearMessage] = useState(false);
+  
+
 
 
   const navigate = useNavigate();
@@ -435,7 +438,13 @@ export default function ActiveUsers({
           label="Unblock User"
           onClick={() => setShowBlockModal(true)}
         />
-}
+          }
+
+          <ActionButton
+          icon={<Flag size={24} />}
+          label= "Clear Message"
+          onClick={() => setClearMessage(true)}
+        />
 
         <ActionButton
           icon={<Flag size={24} />}
@@ -539,7 +548,13 @@ export default function ActiveUsers({
         />
         )}
       
-        
+
+        <ActionButton
+          icon={<Flag size={24} />}
+          label= "Clear Message"
+          onClick={() => setClearMessage(true)}
+        />
+
 
         {!isAdmin && (  
         <ActionButton
@@ -879,6 +894,14 @@ export default function ActiveUsers({
   </ModalOverlay>
 )}
    
+ {clearMessage && (
+        <ClearChatModal
+          chatId={activeChat}
+          onClose={() => setClearMessage(false)}
+          onCleared={() => setMessages([])}
+        />
+      )}
+     
 
 {showGroupSearchModal && (
   <ModalOverlay onClose={() => setShowGroupSearchModal(false)}>

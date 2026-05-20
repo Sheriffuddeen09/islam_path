@@ -10,7 +10,6 @@ export default function MenuComponent({
   authUser,
   setMessages,
   setActiveMenuId,
-  setReplyingTo,
   setSelectedMessages,
   setSelectedMsg,
   openChat,
@@ -33,12 +32,12 @@ export default function MenuComponent({
 
    const [openDelete, setOpenDelete] = useState(false);
     const [editingMessage, setEditingMessage] = useState(null);
-    const [clearMessage, setClearMessage] = useState(false);
+   
 
   const [loading, setLoading] = useState(false);
 
 
-    
+
   
     const [toast, setToast] = useState(false)
     
@@ -292,9 +291,15 @@ useEffect(() => {
       {
         label: "Edit",
         show:
-            message.type === "text" &&
-            isMine &&
-            msg.status !== "read",
+        isMine &&
+        msg.status !== "read" &&
+        (
+          msg.type === "text" ||
+          (
+            ["image", "video"].includes(msg.type) &&
+            msg.message
+          )
+        ),
         onClick: (m) => {
             setEditingMessage(m);
             clearSelection();
@@ -427,7 +432,7 @@ useEffect(() => {
             }
           >
             <div
-              className="absolute top-10 right-3 w-52 bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold rounded-lg py-2"
+              className="absolute top-10 right-3 w-52 bg-black text-white backdrop-blur-md font-bold rounded-lg py-2"
               onClick={(e) => e.stopPropagation()}
             >
               {/* MAIN */}
@@ -513,16 +518,11 @@ useEffect(() => {
                       prev.map(m => (m.id === updated.id ? updated : m))
                     );
                   }}
+                  chatId={activeChat}
                 />
               )}
         
-              {clearMessage && (
-                <ClearChatModal
-                  chatId={activeChat}
-                  onClose={() => setClearMessage(false)}
-                  onCleared={() => setMessages([])}
-                />
-              )}
+             
         
               {forwardMessage.open && (
           <div className="fixed inset-0 flex justify-center block lg:hidden items-center overflow-y-auto z-50">

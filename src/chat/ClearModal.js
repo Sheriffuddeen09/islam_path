@@ -23,16 +23,28 @@ export default function ClearChatModal({ chatId, onClose, onCleared, chat }) {
     }
   };
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-80 text-center">
-        <h3 className="text-lg font-semibold mb-3">Clear Chat?</h3>
-        <p className="text-sm text-gray-600 mb-6">
+    <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+
+      <div
+        className="w-full max-w-xs sm:max-w-sm
+            bg-[var(--bg-color)]
+            border border-white/30
+            shadow-2xl
+            rounded-2xl
+            text-[var(--text-color)]
+            overflow-hidden
+            relative text-center"
+      >
+
+        <h3 className="text-sm font-semibold mb-3 p-4 border-b">Clear Chat?</h3>
+        <p className="text-sm  my-6">
           This will remove all messages only for you?  
           <br />
           <b>All messages will be lost.</b>
         </p>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 mb-6">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-900 text-sm rounded"

@@ -22,7 +22,7 @@ export default function MessageComponent({
   setSelectedMessages,
   chats, setChats, setActiveChat,
   searchMode, searchQuery, setSearchMode, forwardMessage, messages,loadingChats, 
-  setSearchQuery, setReplyingTo, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
+  setSearchQuery, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
   const isMine = msg.sender_id === user.id;
@@ -41,7 +41,6 @@ export default function MessageComponent({
 
   const [openDelete, setOpenDelete] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
-  const [clearMessage, setClearMessage] = useState(false);
   const [reportMessage, setReportMessage] = useState(false);
   
 
@@ -289,9 +288,15 @@ useEffect(() => {
   {
   label: "Edit",
   show:
-    msg.type === "text" &&
-    isMine &&
-    status !== "read",
+  isMine &&
+  status !== "read" &&
+  (
+    msg.type === "text" ||
+    (
+      ["image", "video"].includes(msg.type) &&
+      msg.message
+    )
+  ),
   onClick: (m) => {
     setEditingMessage(m);
     setActiveMenuId(null)
@@ -301,11 +306,6 @@ useEffect(() => {
     label: "Delete",
     show: true,
     onClick: () => {handleDeletePop(); setActiveMenuId(null)},
-  },
-  {
-    label: "Clear Message",
-    show: isMine,
-    onClick: () => {setClearMessage(true); setActiveMenuId(null)},
   },
 
   {
@@ -498,16 +498,10 @@ useEffect(() => {
               prev.map(m => (m.id === updated.id ? updated : m))
             );
           }}
+          chatId={activeChat}
         />
       )}
 
-      {clearMessage && (
-        <ClearChatModal
-          chatId={activeChat}
-          onClose={() => setClearMessage(false)}
-          onCleared={() => setMessages([])}
-        />
-      )}
      
      {forwardMessage.open && (
         <div >
