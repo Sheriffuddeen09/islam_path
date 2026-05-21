@@ -44,6 +44,7 @@ import ChatPage from "./chat/chatbox/Chatpage";
 import JoinGroup from "./chat/chatbox/JoinGroup";
 import ThemeLoader from "./layout/ThemeLoader";
 import VerifyTwoStep from "./studentdashboard/VerifyTwoStep";
+import About from "./pages/about/About";
 
    
 function App() {
@@ -225,8 +226,9 @@ function App() {
           setUnreadNotification={setUnreadNotification}
           />}>
 
-      
-      <Route path="/post//" element={<PostId 
+      <Route path="/about" element={<About />} />
+
+      <Route path="/post" element={<PostId 
         image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}

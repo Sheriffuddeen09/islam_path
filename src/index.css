@@ -2,6 +2,146 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@media (min-width: 310px) {
+  .ingredients-section .slide_image-flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+}
+@media (min-width: 768px) {
+  .ingredients-section .slide_image-flex {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 20px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+}
+.ingredients-section .slide_image-flex {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+
+.ingredients-section .slider-wrapper {
+  width: 250px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.ingredients-section .slides {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.ingredients-section .slide_image {
+  flex: 0 0 100%;
+}
+
+
+.testimonials h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  margin-bottom: 30px;
+  color: #4B3F3F;
+}
+
+/* Your row layout */
+.testimonials {
+  padding: 40px 0;
+  text-align: center;
+  display: block; /* FIX: was flex, which caused H1 and sliders to align in a row */
+}
+
+.slide_image-flex {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start; /* was center */
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+
+
+/* Slider wrapper styling */
+.slider-wrapper {
+  width: 300px;
+  overflow: hidden; /* hides extra slides completely */
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.slides {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.slide_image {
+  flex: 0 0 100%; /* takes full width of slider-wrapper */
+  padding: 0; /* remove any padding that might cause peeking */
+}
+
+.facepack-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block; /* removes inline gap under images */
+}
+
+.facepack-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.facepack-card:hover {
+  transform: translateY(-5px);
+}
+
+.card-content {
+  padding: 15px;
+  text-align: center;
+}
+
+.card-content h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .slide_image-flex {
+    flex-direction: column;
+    align-items: center;
+  }
+  .slider-wrapper {
+    width: 90%;
+  }
+}
+.my-slider-block {
+  display: block;
+  width: 100%;
+}
+
+
 /* LIGHT MODE no-scrollbar*/
 :root {
   --primary-color:  #17191c;
@@ -484,4 +624,19 @@ textarea {
 
 .message-bubble {
   transition: background 0.3s ease;
+}
+
+.green-crop .ReactCrop__crop-selection {
+  border: 2px solid #22c55e !important;
+}
+
+.green-crop .ReactCrop__drag-handle {
+  background-color: #22c55e !important;
+  border: 2px solid #15803d !important;
+  width: 14px;
+  height: 14px;
+}
+
+.green-crop .ReactCrop__rule-of-thirds-line {
+  background-color: rgba(34, 197, 94, 0.4) !important;
 }

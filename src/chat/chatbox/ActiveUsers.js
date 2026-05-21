@@ -356,7 +356,7 @@ export default function ActiveUsers({
       {/* ACTIONS */}
       {
         !isGroup &&
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 pt-2 pb-2 space-y-0 text-[var(--text-color)] font-semibold border-b-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent pt-2 pb-2 space-y-0 text-[var(--text-color)] font-semibold border-b-2">
 
         <Link to={`/profile/${user.id}`}>
         <ActionButton icon={<UserCircle size={24} />} label="View Profile" />
@@ -896,7 +896,7 @@ export default function ActiveUsers({
    
  {clearMessage && (
         <ClearChatModal
-          chatId={activeChat}
+          chatId={activeChat?.id}
           onClose={() => setClearMessage(false)}
           onCleared={() => setMessages([])}
         />

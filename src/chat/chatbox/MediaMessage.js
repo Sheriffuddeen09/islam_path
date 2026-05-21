@@ -18,6 +18,11 @@ export default function MediaMessage({
       msg.message || ""
     );
 
+    const cleanMessage =
+  typeof msg.message === "string"
+    ? msg.message.trim()
+    : "";
+
   return (
     <div className="max-w-xs">
 
@@ -27,7 +32,7 @@ export default function MediaMessage({
       />
 
       {/* caption */}
-      {msg.message && (
+       {cleanMessage !== "" && (
         <div
           className={`mt-1 ${
             hasLink ? "w-56" : "w-auto"

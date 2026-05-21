@@ -532,7 +532,7 @@ const avatarName = isGroup
       {/* CHAT BODY */}
       <div
         className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
-        scrollbar-thumb-gray-400 space-y-3 bg-[var(--primary-color)] relative">
+        scrollbar-thumb-green-500 scrollbar-track-transparent space-y-3 bg-[var(--primary-color)] relative">
 
   {isRestrictedGroupUser ? (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">

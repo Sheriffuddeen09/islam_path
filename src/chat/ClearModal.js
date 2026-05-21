@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import api from "../Api/axios";
 import { useState } from "react";
 
-export default function ClearChatModal({ chatId, onClose, onCleared, chat }) {
+export default function ClearChatModal({ chatId, onClose, onCleared }) {
 
     const [loading, setLoading] = useState(false)
 
@@ -10,7 +10,7 @@ export default function ClearChatModal({ chatId, onClose, onCleared, chat }) {
   const clearChat = async () => {
     setLoading(true)
     try {
-      await api.delete(`/api/chats/${chat.id}/clear`);
+      await api.delete(`/api/chats/${chatId}/clear`);
       toast.success("Chat cleared");
       onCleared();   // update UI
       onClose();

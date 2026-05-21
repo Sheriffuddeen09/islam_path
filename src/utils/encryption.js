@@ -102,7 +102,6 @@ export async function decryptMessage(encrypted, iv, chatKey) {
       error: err
     });
 
-    return "[Unable to decrypt]";
   }
 }
 

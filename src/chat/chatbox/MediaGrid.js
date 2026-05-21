@@ -44,7 +44,7 @@ export default function MediaGrid({ msg, setPreview }) {
 
   if (total === 2) {
   return (
-    <div className="w-56 h-44 grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+    <div className="w-56 h-44 grid grid-cols-2 gap-1 rounded-xl object-cover overflow-hidden">
       {files.map((file, i) => (
         <MediaItem
           key={i}
@@ -58,7 +58,7 @@ export default function MediaGrid({ msg, setPreview }) {
 }
 
   return (
-  <div className="w-56 rounded-xl overflow-hidden flex flex-col gap-1">
+  <div className="w-56 rounded-xl overflow-hidden flex object-cover flex-col gap-1">
     <div className="w-full h-32">
       <MediaItem
         file={files[0]}
