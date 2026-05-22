@@ -791,7 +791,7 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="animate-pulse lg:ml-64 bg-gray-200 rounded-2xl p-2">
+    <div className="animate-pulse lg:ml-64 bg-gray-700 rounded-2xl p-2">
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (

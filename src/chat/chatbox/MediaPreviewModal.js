@@ -23,6 +23,8 @@ export default function MediaPreviewModal({
   const [showEmoji, setShowEmoji] = useState(false);
   // Tracks pixel dimensions for drawing on the canvas later
   const [completedCrops, setCompletedCrops] = useState({});
+  // ✅ ADD THIS STATE
+  const [cropModeMap, setCropModeMap] = useState({});
 
   const videoRef = useRef(null);
 
@@ -326,55 +328,117 @@ const getPreviewSrc = (index) => {
           {activeFile?.type.startsWith("video/") && <span>Trim</span>}
         </div>
       </div>
-     <div className="flex-1 flex  justify-center overflow-hidden">
+     <div className="flex-1 flex justify-center overflow-hidden">
   {activeFile?.type.startsWith("image/") && (
     <div className="relative w-full max-w-md h-[60vh] bg-black scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-black overflow-y-auto overflow-x-hidden rounded-xl">
-      <div className="min-h-full flex items-center justify-center p-4">
-      <ReactCrop
-        crop={crop?.[activeIndex]} 
-        className="green-crop"
-        onChange={(c) => {
-            setCrop((prev) => ({
-              ...prev,
-              [activeIndex]: c,
-            }));
-        }}
-         onComplete={(pixelCrop) => {
-          setCompletedCrops(prev => ({
-            ...prev,
-            [activeIndex]: pixelCrop
-          }));
-        }}
-        
-        aspect={undefined} 
-      >
-        <img
-          src={getPreviewSrc(activeIndex)}
-          alt="Source preview"
-          className="max-w-full h-auto object-contain select-none" // Added select-none to avoid native drag glitches
-          onLoad={(e) => {
-            const { width, height } = e.currentTarget;
-            setCrop((prev) => {
-            if (prev?.[activeIndex]) return prev;
-              return {
+
+      {/* ✅ TOP ACTION BUTTON */}
+      <div className="sticky top-0 z-20 flex justify-center py-3 bg-black/80 backdrop-blur">
+
+        {!cropModeMap?.[activeIndex] ? (
+          <button
+            onClick={() => {
+              setCropModeMap((prev) => ({
                 ...prev,
-                [activeIndex]: undefined,
-              };            
-            });
-          }}
-        />
-      </ReactCrop>
-    </div>
-      {/* Control Action Overlay */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-        <button
-          onClick={applyCrop}
-          className={`px-4 py-1 rounded text-white shadow-md ${
-            cropAppliedMap?.[activeIndex] ? "bg-green-700" : "bg-green-600"
-          }`}
-        >
-          {cropAppliedMap?.[activeIndex] ? "Applied ✓" : "Apply Crop"}
-        </button>
+                [activeIndex]: true,
+              }));
+            }}
+            className="px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium shadow"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+</svg>
+
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              applyCrop();
+
+              // ✅ HIDE CROP BOX AFTER APPLY
+              setCropModeMap((prev) => ({
+                ...prev,
+                [activeIndex]: false,
+              }));
+            }}
+            className={`px-4 py-3 rounded-lg text-white font-medium shadow ${
+              cropAppliedMap?.[activeIndex]
+                ? "bg-green-700"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {cropAppliedMap?.[activeIndex]
+              ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+</svg>
+
+              : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+</svg>
+}
+          </button>
+        )}
+
+      </div>
+
+      <div className="min-h-full flex items-center justify-center p-4">
+
+        {/* ✅ ONLY SHOW CROP BOX WHEN ENABLED */}
+        {cropModeMap?.[activeIndex] ? (
+
+          <ReactCrop
+            crop={crop?.[activeIndex]}
+            className="green-crop"
+            onChange={(c) => {
+              setCrop((prev) => ({
+                ...prev,
+                [activeIndex]: c,
+              }));
+            }}
+            onComplete={(pixelCrop) => {
+              setCompletedCrops((prev) => ({
+                ...prev,
+                [activeIndex]: pixelCrop,
+              }));
+            }}
+            aspect={undefined}
+          >
+            <img
+              src={getPreviewSrc(activeIndex)}
+              alt="Source preview"
+              className="max-w-full h-auto object-contain select-none"
+              onLoad={(e) => {
+                const { width, height } = e.currentTarget;
+
+                setCrop((prev) => {
+                  if (prev?.[activeIndex]) return prev;
+
+                  return {
+                    ...prev,
+                    [activeIndex]: {
+                      unit: "%",
+                      x: 10,
+                      y: 10,
+                      width: 80,
+                      height: 80,
+                    },
+                  };
+                });
+              }}
+            />
+          </ReactCrop>
+
+        ) : (
+
+          // ✅ NORMAL IMAGE WITHOUT CROP BOX
+          <img
+            src={getPreviewSrc(activeIndex)}
+            alt="Preview"
+            className="max-w-full h-auto object-contain rounded-lg"
+          />
+
+        )}
+
       </div>
     </div>
   )}
@@ -487,6 +551,7 @@ const getPreviewSrc = (index) => {
           className="w-full h-full object-cover"
         />
       )}
+
       {i === activeIndex && (
         <Check className="absolute top-1 right-1 w-3 h-3 bg-green-800 text-white rounded-full" />
       )}

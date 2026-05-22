@@ -408,7 +408,7 @@ const content = (
 
  function Loader() {
   return (
-    <div className="min-h-screen p-2 lg:ml-64 animate-pulse bg-gray-200 rounded-2xl">
+    <div className="min-h-screen p-2 lg:ml-64 animate-pulse bg-gray-700 rounded-2xl">
 
       <div className="max-w-5xl mx-auto space-y-3">
 

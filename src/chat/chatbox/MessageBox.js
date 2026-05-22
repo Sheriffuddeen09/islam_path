@@ -238,7 +238,7 @@ const handlePin = async (msg) => {
   if (!activeChat) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="mb-10 text-center mx-auto bg-gray-700 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
+        <div className="mb-10 text-center mx-auto rounded-lg sm:w-80 w-72 text-xs p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
@@ -265,12 +265,14 @@ const avatarName = isGroup
   : activeChat?.other_user?.first_name;
 
   
-  const firstUnreadMessageId =
-    messages.find(
-      msg =>
-        lastReadMessageId &&
-        msg.id > lastReadMessageId
-    )?.id;
+  const firstUnreadMessage = messages.find(
+  (m) =>
+    Number(lastReadMessageId || 0) > 0 &&
+    m.id > Number(lastReadMessageId)
+);
+
+const firstUnreadMessageId =
+  firstUnreadMessage?.id ?? null;
 
 
   return (
@@ -601,7 +603,7 @@ const avatarName = isGroup
   ) : messages.length === 0 ? (
     // comment 1
      <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="mb-10 text-center mx-auto bg-[var(--primary-color)] text-[var(--text-color)] rounded-lg sm:w-80 w-72 text-xs p-3">
+        <div className="mb-10 text-center mx-auto bg-gray-800 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
@@ -715,8 +717,8 @@ const isFirstUnread =
       )}
 
       {isFirstUnread &&
-        unreadCount > 0 &&
-        latestMessage?.sender_id !== myId && (
+        unreadCount > 0 && 
+        msg.sender_id !== myId && (
         <div className="flex items-center gap-3 my-4 px-2">
 
           <div className="text-[var(--text-color)] text-xs px-3 py-1 text-center mx-auto rounded-full font-medium whitespace-nowrap">

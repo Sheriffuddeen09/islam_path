@@ -59,7 +59,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEjO4Td1E_YFJLs-1MLnmEKWnnb6Tm-tnArw&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -71,7 +71,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?q=80&w=1200&auto=format&fit=crop"
+                      src="https://cdn.shopify.com/s/files/1/0011/0850/8735/files/3_daily_480x480.png?v=1645717178"
                       alt=""
                     />
                     <div className="card-content">
@@ -83,7 +83,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop"
+                      src="https://muslimaid-2022.storage.googleapis.com/upload/img_cache/file-22050-5c099713a00707878dac7d9d2c6bc4a2.jpg"
                       alt=""
                     />
                     <div className="card-content">
@@ -102,7 +102,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyPBDvs0pUmKaKgZFPpHa0PKp9ciLpFjQ5vw&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -114,7 +114,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1200&auto=format&fit=crop"
+                      src="https://i0.wp.com/afosa.org/wp-content/uploads/2019/01/quran-2784477_1920.jpg?resize=1170%2C600&ssl=1"
                       alt=""
                     />
                     <div className="card-content">
@@ -126,7 +126,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"
+                      src="https://content.kaspersky-labs.com/se/com/content/en-global/images/repository/isc/2021/encryption-1/encryption-1.jpg"
                       alt=""
                     />
                     <div className="card-content">
@@ -145,7 +145,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDFufe2wx3VtRVvUrnEkGxFUqSu3EJ0CMeKQ&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -157,7 +157,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=1200&auto=format&fit=crop"
+                      src="https://makemyassignment419318342.wordpress.com/wp-content/uploads/2019/11/images-53.jpg?w=524"
                       alt=""
                     />
                     <div className="card-content">
@@ -169,7 +169,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJQbYGuVBumZoE9-j2Qe0ic1QZ7CJ1lY6m-g&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -200,7 +200,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1200&auto=format&fit=crop"
+                      src="https://t4.ftcdn.net/jpg/04/56/20/89/360_F_456208906_h2bZ51348xqpFcYXh4sGUiQDF5zolfRm.jpg"
                       alt=""
                     />
                     <div className="card-content">
@@ -231,7 +231,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWYsz-NuqWeF3KuhNI6hY2a8eQJj73b21lug&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -286,7 +286,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1516321310764-8d3f1b8fdb2f?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf2ui4bOD9PJalHQ6FX_m1VR5XvJQ8989JKg&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -317,7 +317,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1516321165247-4aa89a48be28?q=80&w=1200&auto=format&fit=crop"
+                      src="https://www.shareicon.net/data/2017/02/15/878677_community_512x512.png"
                       alt=""
                     />
                     <div className="card-content">
@@ -329,7 +329,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop"
+                      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8SWo4Ma368FDs8DzgXatNpLiY6IaUjJJY9w&s"
                       alt=""
                     />
                     <div className="card-content">
@@ -384,7 +384,7 @@ export default function FeatureSlider() {
                 <div className="slide_image">
                   <div className="facepack-card">
                     <img
-                      src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=1200&auto=format&fit=crop"
+                      src="https://yt3.googleusercontent.com/bPyfOFWXnrbOvJevGg8J0AI1SSc0c0TJODtfu8hv1mlvCmQ1nxEyNwMMYvCo9qauPswkxr8jERM=s900-c-k-c0x00ffffff-no-rj"
                       alt=""
                     />
                     <div className="card-content">
@@ -438,7 +438,7 @@ export default function FeatureSlider() {
         }
 
         .ingredients-section .slider-wrapper {
-          width: 250px;
+          width: 300px;
           overflow: hidden;
           border-radius: 10px;
           background: #fff;
@@ -500,11 +500,14 @@ export default function FeatureSlider() {
         .card-content {
           padding: 15px;
           text-align: center;
+          color: black;
+
         }
 
         .card-content h3 {
           font-size: 18px;
           margin: 0;
+          color: black;
           font-weight: 700;
         }
 

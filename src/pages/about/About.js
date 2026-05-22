@@ -169,10 +169,10 @@ export default function About() {
   const Icon = slides[active].icon;
 
   return (
-    <div className="bg-[var(--bg-color)] text-[var(--text-color)] pb-20">
+    <div className="bg-[var(--bg-color)] text-[var(--text-color)] pb-10 sm:pb-20">
 
       {/* TOP SLIDER */}
-      <div className="relative h-56 sm:h-[92vh] overflow-hidden group">
+      <div className="relative h-[85vh] sm:h-[92vh] overflow-hidden group">
 
   {/* ANIMATION STYLE */}
   <style>
@@ -297,23 +297,11 @@ export default function About() {
       </div>
     </div>
 
-    {/* MOVING SUN */}
-    {/* <div
-      className="absolute bottom-10 left-10 sm:left-24"
-      style={{
-        animation: "sunGlow 5s ease-in-out infinite",
-      }}
-    >
-      <div className="absolute w-40 h-40 rounded-full bg-yellow-400/20 blur-3xl" />
-
-      <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-yellow-300 shadow-[0_0_90px_rgba(255,200,0,0.9)]" />
-    </div> */}
-
   </div>
 
-  {/* CONTENT */}
+  {/* CONTENT h-[] */}
   <div
-    className={`relative h-full w-full flex items-center justify-center text-center transition-all duration-700 bg-[var(--bg-color)]/60 backdrop-blur-sm text-[var(--text-color)]`}
+    className={`relative h-full w-full flex items-center justify-center text-center transition-all duration-700 bg-[var(--bg-color)]/50 backdrop-blur-sm text-[var(--text-color)]`}
   >
     <div className="px-6 mt-6 flex flex-col items-center text-center">
 
@@ -324,7 +312,7 @@ export default function About() {
         {slides[active].title}
       </h1>
 
-      <p className="text-lg max-w-2xl font-medium pt-4 mt-2 text-white/90">
+      <p className="text-lg max-w-2xl font-medium pt-4 mt-2">
         {slides[active].desc}
       </p>
 
@@ -391,8 +379,8 @@ export default function About() {
           return (
             <div
               key={i}
-              className="group relative overflow-hidden rounded-3xl 
-              border border-white/10 bg-gradient-to-br 
+              className="group relative shadow-md hover:shadow-xl overflow-hidden rounded-3xl 
+              border border-white/10 bg-[var(--primary-color)] 
               from-white/[0.07] to-white/[0.03]
               hover:from-white/[0.10] hover:to-white/[0.05]
               transition-all duration-300 p-5"
@@ -410,7 +398,7 @@ export default function About() {
                     className={`${item.color} w-14 h-14 rounded-2xl 
                     flex items-center justify-center shadow-lg`}
                   >
-                    <Icon className="w-7 h-7 text-white" />
+                    <Icon className="w-7 h-7 text-[var(--text-color)]" />
                   </div>
 
                   <div className="flex-1">
@@ -425,7 +413,7 @@ export default function About() {
                     </h2>
 
                     <p
-                      className="text-[14px] text-white mt-3 leading-2"
+                      className="text-[14px] text-[var(--text-color)] mt-3 leading-2"
                       style={{
                         fontFamily: "'Inter', sans-serif",
                       }}
@@ -465,7 +453,7 @@ export default function About() {
           onClick={() => setShowMore(!showMore)}
           className="flex items-center gap-2 px-6 py-3 rounded-2xl
           bg-gradient-to-r from-emerald-500 to-cyan-500
-          hover:scale-[1.02] transition-all duration-300
+          hover:scale-[1.02] transition-all duration-300 text-[var(--text-color)]
           font-semibold shadow-xl"
         >
           {showMore ? "Hide Features" : "See More Features"}
@@ -500,7 +488,7 @@ export default function About() {
                 More Powerful Features
               </h2>
 
-              <p className="text-gray-400 mt-3 max-w-2xl mx-auto leading-7">
+              <p className=" mt-3 max-w-2xl mx-auto leading-7">
                 Islamic Path provides modern tools and beneficial systems
                 designed to improve learning, communication, security,
                 reminders, and spiritual growth in one complete platform.
@@ -531,7 +519,7 @@ export default function About() {
                       {item.title}
                     </h3>
 
-                    <p className="text-gray-400 leading-7 mt-3 text-[15px]">
+                    <p className=" leading-7 mt-3 text-[15px]">
                       {item.desc}
                     </p>
 
@@ -596,7 +584,7 @@ export default function About() {
         <div className="mt-8 max-w-2xl space-y-5">
 
           <p
-            className="text-[13px] leading-8 text-white"
+            className="text-[13px] leading-8 font-semibold italic text-[var(--text-color)]"
             style={{
               fontFamily: "'Inter', sans-serif",
             }}
@@ -611,7 +599,7 @@ export default function About() {
           </p>
 
           <p
-            className="text-[13px] leading-8 text-white"
+            className="text-[13px] leading-8 font-semibold italic text-[var(--text-color)]"
             style={{
               fontFamily: "'Inter', sans-serif",
             }}
@@ -625,7 +613,7 @@ export default function About() {
           </p>
 
           <p
-            className="text-[13px] leading-8 text-white"
+            className="text-[13px] leading-8 font-semibold italic text-[var(--text-color)]"
             style={{
               fontFamily: "'Inter', sans-serif",
             }}
@@ -656,7 +644,7 @@ export default function About() {
         </div>
 
         <h2
-          className="text-4xl sm:text-5xl font-black mt-6 leading-tight"
+          className="text-4xl sm:text-5xl font-black my-6 leading-tight"
           style={{
             fontFamily: "'Poppins', sans-serif",
             letterSpacing: "-2px",
@@ -666,7 +654,7 @@ export default function About() {
         </h2>
 
         <p
-          className="text-[13px] leading-8 text-white"
+          className="text-[13px] leading-8 font-semibold italic text-[var(--text-color)]"
           style={{
             fontFamily: "'Inter', sans-serif",
           }}
@@ -680,7 +668,7 @@ export default function About() {
         </p>
 
         <p
-          className="text-[13px] leading-8 text-white"
+          className="text-[13px] leading-8 font-semibold italic text-[var(--text-color)]"
           style={{
             fontFamily: "'Inter', sans-serif",
           }}
@@ -695,7 +683,7 @@ export default function About() {
         </p>
 
         <p
-          className="text-[13px] leading-8 text-white"
+          className="text-[13px] leading-8 font-semibold italic text-[var(--text-color)]"
           style={{
             fontFamily: "'Inter', sans-serif",
           }}
@@ -708,19 +696,19 @@ export default function About() {
         </p>
 
         {/* STATS */}
-        <div className="grid grid-cols-2 gap-4 mt-10">
+        <div className="grid sm:grid-cols-2 grid-cols gap-4 mt-10">
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+          <div className="rounded-2xl shadow-md hover:shadow-xl border border-white/10 bg-white/[0.04] p-5">
             <h3 className="text-3xl font-black text-emerald-400">24/7</h3>
-            <p className="text-sm text-white mt-2 leading-6">
+            <p className="text-sm  mt-2 leading-6">
               Continuous access to Islamic learning resources, discussions,
               and educational content.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-            <h3 className="text-3xl font-black text-cyan-400">Global</h3>
-            <p className="text-sm text-white mt-2 leading-6">
+          <div className="rounded-2xl shadow-md hover:shadow-xl border border-white/10 bg-white/[0.04] p-5">
+            <h3 className="text-3xl font-black text-emerald-400 ">Global</h3>
+            <p className="text-sm  mt-2 leading-6">
               Designed to connect Muslims, students, and scholars from all
               around the world.
             </p>
@@ -733,7 +721,7 @@ export default function About() {
 
           <button
             onClick={() =>navigate('/post')}
-            className="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 
+            className="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-[var(--text-color)]
             transition-all duration-300 font-semibold shadow-lg shadow-emerald-500/20"
           >
             Explore Platform
@@ -755,20 +743,20 @@ export default function About() {
 
   <div
     className="relative overflow-hidden rounded-[36px] border border-white/10 
-    bg-gradient-to-br from-[#0f172a] via-[#111827] to-black"
+    bg-gradient-[var(--bg-color)] from-[#0f172a] via-[#111827] to-black"
   >
 
     {/* BACKGROUND GLOW */}
     <div className="absolute -top-20 -left-20 w-72 h-72 bg-emerald-500/20 blur-3xl rounded-full" />
     <div className="absolute bottom-0 right-0 w-72 h-72 bg-cyan-500/10 blur-3xl rounded-full" />
 
-    <div className="relative p-6 sm:p-10 lg:p-14">
+    <div className="relative p-3 sm:p-10 lg:p-14">
 
       {/* TOP */}
       <div className="max-w-5xl mx-auto text-center">
         {/* HEADING */}
         <h2
-          className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-black leading-tight"
+          className="mt-8 text-3xl sm:text-5xl lg:text-6xl font-black leading-tight"
           style={{
             fontFamily: "'Poppins', sans-serif",
             letterSpacing: "-2px",
@@ -783,7 +771,7 @@ export default function About() {
         {/* SUBTEXT */}
         <p
           className="max-w-3xl mx-auto mt-7 text-[16px] sm:text-[17px] 
-          leading-8 text-white"
+          leading-8 font-semibold italic text-[var(--text-color)]"
           style={{
             fontFamily: "'Inter', sans-serif",
           }}
@@ -797,7 +785,7 @@ export default function About() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="grid lg:grid-cols-2 gap-8 mt-14 items-center">
+      <div className="grid lg:grid-cols-2 sm:gap-8 gap-4 sm:mt-14 mt-2 items-center">
 
         {/* LEFT SIDE */}
         <div className="space-y-6">
@@ -813,7 +801,7 @@ export default function About() {
               The Vision Behind The Platform
             </h3>
 
-            <p className="text-white leading-8 text-[15px]">
+            <p className="text-[var(--text-color)] leading-8 text-[13px] font-semibold">
               Many Muslims today desire authentic Islamic learning but often
               struggle to find organized, reliable, and engaging platforms
               dedicated to beneficial knowledge. Most online spaces are
@@ -821,7 +809,7 @@ export default function About() {
               weakens focus and spiritual growth.
             </p>
 
-            <p className="text-white leading-8 text-[15px] mt-5">
+            <p className="text-[var(--text-color)] leading-8 text-[13px] font-semibold mt-5">
               Islamic Path was developed to solve this challenge by bringing
               together Islamic education, communication, community building,
               and modern technology into one complete experience that helps
@@ -840,7 +828,7 @@ export default function About() {
               A Platform Built For Every Muslim
             </h3>
 
-            <p className="text-white leading-7 text-[15px]">
+            <p className="text-[var(--text-color)] leading-7 text-[15px]">
               Whether someone is beginning their journey in Islam or already
               seeking advanced Islamic understanding, the platform is
               designed to support continuous learning, spiritual growth,
@@ -870,11 +858,11 @@ export default function About() {
               </div>
 
               <div>
-                <h3 className="text-xl font-bold">
+                <h3 className="sm:text-xl text-[15px] font-bold">
                   Authentic Islamic Learning
                 </h3>
 
-                <p className="text-white leading-7 mt-2 text-[15px]">
+                <p className="text-[var(--text-color)] leading-7 mt-2 text-[13px]">
                   Providing structured Islamic knowledge based on Quran and
                   Sunnah with clarity, proper understanding, and organized
                   educational systems.
@@ -900,11 +888,11 @@ export default function About() {
               </div>
 
               <div>
-                <h3 className="text-xl font-bold">
+                <h3 className="sm:text-xl text-[15px] font-bold">
                   Global Islamic Community
                 </h3>
 
-                <p className="text-white leading-7 mt-2 text-[15px]">
+                <p className="text-[var(--text-color)] leading-7 mt-2 text-[13px]">
                   Connecting Muslims from around the world through beneficial
                   discussions, group learning, mentorship, and meaningful
                   Islamic interaction.
@@ -930,11 +918,11 @@ export default function About() {
               </div>
 
               <div>
-                <h3 className="text-xl font-bold">
+                <h3 className="sm:text-xl text-[15px] font-bold">
                   Modern Educational Experience
                 </h3>
 
-                <p className="text-white leading-7 mt-2 text-[15px]">
+                <p className="text-[var(--text-color)] leading-7 mt-2 text-[13px]">
                   Combining modern technology with Islamic values to create
                   interactive learning systems, assignments, communication,
                   online classes, and spiritual development tools.
@@ -950,13 +938,13 @@ export default function About() {
 
       {/* BOTTOM QUOTE */}
       <div
-        className="mt-14 rounded-[30px] border border-emerald-500/20
+        className="sm:mt-14 mt-6 rounded-[30px] border border-emerald-500/20
         bg-gradient-to-r from-emerald-500/10 to-cyan-500/10
         p-8 text-center"
       >
 
         <p
-          className="text-sm sm:text-xl font-bold leading-relaxed"
+          className="text-xs sm:text-xl font-bold leading-relaxed"
           style={{
             fontFamily: "'Poppins', sans-serif",
           }}

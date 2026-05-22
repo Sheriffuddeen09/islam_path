@@ -17,19 +17,27 @@ export default function ChatList({
   const navigate = useNavigate();
 
  const safeUnreadTotal = useMemo(() => {
-  return chats.reduce((total, chat) => {
-    const isGroup = chat.type === "group";
-    const status = chat.membership_status;
+  return chats.filter(chat => {
+
+    const isGroup =
+      chat.type === "group";
+
+    const status =
+      chat.membership_status;
 
     const isAllowed =
       !isGroup ||
       (isGroup &&
-        (status === "approved" || chat.my_role === "admin"));
+        (status === "approved" ||
+         chat.my_role === "admin"));
 
-    if (!isAllowed) return total;
+    return (
+      isAllowed &&
+      (chat.unread_count || 0) > 0
+    );
 
-    return total + (chat.unread_count || 0);
-  }, 0);
+  }).length;
+
 }, [chats]);
 
 

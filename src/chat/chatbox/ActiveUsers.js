@@ -23,6 +23,7 @@ import DeleteGroupModal from "./DeleteGroupModal";
 import DisappearingMessagesModal from "./DisappearingMessagesModal";
 import EncryptionModal from "./EncryptionModal";
 import ClearChatModal from "../ClearModal";
+import DeleteChatModal from "./DeleteChatModal";
 
 const socket = io("http://localhost:8000");
 
@@ -50,6 +51,8 @@ export default function ActiveUsers({
   const [clearMessage, setClearMessage] = useState(false);
   
 
+  const blockedMe = activeChat?.block_info?.blocked_me;
+
 
 
   const navigate = useNavigate();
@@ -72,7 +75,8 @@ export default function ActiveUsers({
   const [pendingCount, setPendingCount] = useState(0);
   const [pending, setPending] = useState([]);
   const [showExitModal, setShowExitModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showGroupDeleteModal, setGroupShowDeleteModal] = useState(false)
+  const [showChatDeleteModal, setChatShowDeleteModal] = useState(false)
 
   const [showDisappear, setShowDisappear] = useState(false);
   const [encryption, setEncryption] = useState(false);
@@ -119,10 +123,6 @@ export default function ActiveUsers({
     }
   };
 
-
-  const chatId = activeChat?.id;
-
-  
 
 
   useEffect(() => {
@@ -351,7 +351,7 @@ export default function ActiveUsers({
           </div>
         )}
       </div>
-          {/* Disappearing Message */}
+          {/* Disappearing Message  hover*/}
 
       {/* ACTIONS */}
       {
@@ -367,7 +367,7 @@ export default function ActiveUsers({
         {/* BUTTON */}
         <button
           onClick={() => setShowDisappear(true)}
-          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 px-6"
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 hover:text-white px-6"
         >
 
           <div className="inline-flex gap-5 items-center">
@@ -458,6 +458,27 @@ export default function ActiveUsers({
         onClick={() => setShowSearchModal(true)}
       />
 
+          
+    <ActionButton
+      icon={
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="size-5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 7.5h12m-10.5 3v6m3-6v6m3-6v6M4.5 7.5h15m-1.5 0-.832 11.648A2.25 2.25 0 0 1 14.924 21H9.076a2.25 2.25 0 0 1-2.244-1.852L6 7.5m3-3h6a1.5 1.5 0 0 1 1.5 1.5v1.5h-9V6A1.5 1.5 0 0 1 9 4.5Z"
+          />
+        </svg>
+      }
+      label="Delete Group"
+      onClick={() => setChatShowDeleteModal(true)}
+    />
       </div>
       }
 
@@ -478,7 +499,7 @@ export default function ActiveUsers({
 
         <button
           onClick={() => setShowDisappear(true)}
-          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 px-6"
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 hover:text-white px-6"
         >
           <div className="inline-flex gap-2 items-center">
             <TimerReset size={24} />
@@ -486,7 +507,7 @@ export default function ActiveUsers({
             <p className="font-medium text-left">
               Disappearing Messages
             </p>
-            <p className="text-[11px] text-[var(--text-color)] text-left">
+            <p className="text-[11px] text-[var(--text-color)] hover:text-white text-left">
               {activeChat?.disappearing_mode === "24h" &&
                 "24 hours"}
               {activeChat?.disappearing_mode === "7d" &&
@@ -575,7 +596,9 @@ export default function ActiveUsers({
         label="Exit Group"
         onClick={() => setShowExitModal(true)} // ✅ FIX
       />
-
+  {
+    blockedMe && (
+      
     <ActionButton
       icon={
         <svg
@@ -593,10 +616,12 @@ export default function ActiveUsers({
           />
         </svg>
       }
-      label="Delete Group"
-      onClick={() => setShowDeleteModal(true)}
+      label="Delete Chat"
+      onClick={() => setGroupShowDeleteModal(true)}
     />
       
+    )
+  }
       </div>
       }
 
@@ -686,11 +711,22 @@ export default function ActiveUsers({
 )}
 
 
-      {showDeleteModal && (
-        <ModalOverlay onClose={() => setShowDeleteModal(false)}>
+      {showGroupDeleteModal && (
+        <ModalOverlay onClose={() => setGroupShowDeleteModal(false)}>
           <DeleteGroupModal
             chat={activeChat}
-            onClose={() => setShowDeleteModal(false)}
+            onClose={() => setGroupShowDeleteModal(false)}
+            setChats={setChats}
+            setActiveChat={setActiveChat}
+          />
+        </ModalOverlay>
+      )}
+
+       {showChatDeleteModal && (
+        <ModalOverlay onClose={() => setChatShowDeleteModal(false)}>
+          <DeleteChatModal
+            chat={activeChat}
+            onClose={() => setChatShowDeleteModal(false)}
             setChats={setChats}
             setActiveChat={setActiveChat}
           />
@@ -741,7 +777,7 @@ export default function ActiveUsers({
         <div
           key={member.id}
           onClick={() => navigate(`/profile/${member.id}`)}
-          className="flex items-center gap-3 py-2 border-b cursor-pointer hover:bg-gray-900 rounded px-2">
+          className="flex items-center gap-3 py-2 border-b cursor-pointer hover:bg-gray-900 hover:text-white rounded px-2">
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${getColor(
               member.first_name
@@ -863,7 +899,7 @@ export default function ActiveUsers({
                   setShowSearchModal(false);
                   openChat(chat); // 🔥 OPEN CHAT
                 }}
-                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-900 transition"
+                className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-900 hover:text-white transition"
               >
 
                 {/* AVATAR */}
@@ -933,7 +969,7 @@ function ActionButton({ icon, label, onClick, danger, warning }) {
             ? "text-red-600 hover:bg-red-100"
             : warning
             ? "text-yellow-600 hover:bg-yellow-100"
-            : "hover:bg-gray-900"
+            : "hover:bg-gray-900 hover:text-white"
         }`}
     >
       {icon}

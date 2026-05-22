@@ -864,26 +864,26 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="animate-pulse lg:ml-64 bg-gray-200 rounded-2xl p-2">
+    <div className="animate-pulse lg:ml-64 bg-gray-700 rounded-2xl p-2">
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 sm:gap-4 gap-2">
 
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
           <div
             key={item}
-            className="bg-white/50 border border-white/10 rounded-xl sm:p-5 p-3"
+            className="bg-white/20 border border-white/10 rounded-xl sm:p-5 p-3"
           >
 
             {/* ICON */}
-            <div className="w-14 h-14 rounded-full bg-white/50 mb-4" />
+            <div className="w-14 h-14 rounded-full bg-white/20 mb-4" />
 
             {/* TITLE */}
-            <div className="h-5 w-32 rounded bg-white/50 mb-3" />
+            <div className="h-5 w-32 rounded bg-white/20 mb-3" />
 
             {/* TEXT */}
             <div className="space-y-2">
-              <div className="h-3 w-full rounded bg-white/50" />
-              <div className="h-3 w-3/4 rounded bg-white/50" />
+              <div className="h-3 w-full rounded bg-white/20" />
+              <div className="h-3 w-3/4 rounded bg-white/20" />
             </div>
 
           </div>
