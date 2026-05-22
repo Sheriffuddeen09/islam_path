@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import api from "../Api/axios";
+import api from "../../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 
 import {
   encryptMessage,
-} from "../utils/encryption";
+} from "../../utils/encryption";
 
 export default function EditModal({
   message,

@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-import api from "../Api/axios";
+import api from "../../Api/axios";
 import { useState } from "react";
 
 export default function ClearChatModal({ chatId, onClose, onCleared }) {

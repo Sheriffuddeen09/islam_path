@@ -1,12 +1,11 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "../../layout/AuthProvider";
-import DeleteModal from "../DeleteModal";
-import EditModal from "../EditModal";
-import ClearChatModal from "../ClearModal";
-import { ReportModal } from "../ReportModal";
+import DeleteModal from "../chatcomponent/DeleteModal";
+import EditModal from "../chatcomponent/EditModal";
+import { ReportModal } from "../chatcomponent/ReportModal";
 import api from "../../Api/axios";
-import { ForwardModalLargeScreen } from "../ForwardModalLargeScreen";
+import { ForwardModalLargeScreen } from "../chatcomponent/ForwardModalLargeScreen";
 
 
 export default function MessageComponent({

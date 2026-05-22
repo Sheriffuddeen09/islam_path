@@ -1,8 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ChatSkeleton } from "./ChatSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import ChatItem from "./ChatItem";
+import CommunityButton from "../community/CommunityButton";
+import CommunityPage from "../community/CommunityPage";
 
 export default function ChatList({
   chats = [],
@@ -14,7 +16,23 @@ export default function ChatList({
   activeChat
 }) {
   const { user: authUser } = useAuth();
+
+  const chatListRef = useRef(null);
+
   const navigate = useNavigate();
+
+  const [showCommunity, setShowCommunity] = useState(false);
+  const [showChannel, setShowChannel] = useState(false);
+
+
+  const onOpenCommunity = () => {
+    setShowCommunity(true);
+  };
+
+
+  const onOpenChannel = () => {
+    setShowChannel(true);
+  };
 
  const safeUnreadTotal = useMemo(() => {
   return chats.filter(chat => {
@@ -39,6 +57,8 @@ export default function ChatList({
   }).length;
 
 }, [chats]);
+
+
 
 
   const filteredChats = useMemo(() => {
@@ -237,6 +257,17 @@ export default function ChatList({
             />
           ))}
       </div>
+
+      <CommunityButton
+        chatListRef={chatListRef}
+        onOpenCommunity={() => setShowCommunity(true)}
+        onOpenChannel={() => setShowChannel(true)}
+      />
+
+      {showCommunity && (
+        <CommunityPage onClose={() => setShowCommunity(false)} />
+      )}
+
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { initEcho } from "../echo";
+import { initEcho } from "../../echo";
 import { useEffect, useState } from "react";
-import { useAuth } from "../layout/AuthProvider";
+import { useAuth } from "../../layout/AuthProvider";
 
 export function useTyping(chatId) {
   const { user } = useAuth();

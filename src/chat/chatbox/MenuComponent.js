@@ -1,9 +1,8 @@
 import React, { useMemo, useEffect, useState } from "react";
 import api from "../../Api/axios";
-import DeleteModal from "../DeleteModal";
-import EditModal from "../EditModal";
-import ClearChatModal from "../ClearModal";
-import { ForwardModal } from "../ForwardModal";
+import DeleteModal from "../chatcomponent/DeleteModal";
+import EditModal from "../chatcomponent/EditModal";
+import { ForwardModal } from "../chatcomponent/ForwardModal";
 
 export default function MenuComponent({
   msg,

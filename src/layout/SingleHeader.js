@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
-import { AlarmCheck, AlarmClock, AlarmPlus, AlarmSmoke, Bell, Book, BookOpen, BookTemplateIcon, Clock, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2 } from "lucide-react";
+import {Bell, BookOpen, BookTemplateIcon, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2 } from "lucide-react";
 import { useAuth } from './AuthProvider';
-import LiveClass from '../chat/LiveClass';
-import api from '../Api/axios';
 import LogoutButton from '../Form/LogOut';
 import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
@@ -334,13 +332,6 @@ console.log('currentUser', user)
         </section>
         </div>
         </header>
-
-        <div className={`${messageOpen ? 'block' : 'hidden'}`}>
-          <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} 
-          setMessageOpen={setMessageOpen} chats={chats} setChats={setChats}
-          activeChat={activeChat} setActiveChat={setActiveChat} messageOpen={messageOpen}/>
-          </div>
-
           {
             dashboardToggle && (
             <div className="fixed sm:top-16 top-36 right-10 mt-2 w-40  bg-white border rounded shadow-lg z-50">

@@ -1,7 +1,7 @@
 import toast, { Toaster } from "react-hot-toast";
-import api from "../Api/axios";
+import api from "../../Api/axios";
 import { useState } from "react";
-import { useAuth } from "../layout/AuthProvider";
+import { useAuth } from "../../layout/AuthProvider";
 
 
 export function ReportModal({ chat, onClose }) {

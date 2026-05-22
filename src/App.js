@@ -13,7 +13,7 @@ import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 import {  useEffect, useState } from "react";
 import ProtectedRoute from "./ProtectedRoute";
 import ReportList from "./report/ReportList";
-import ReportChat from "./chat/ReportChat";
+import ReportChat from "./chat/chatcomponent/ReportChat";
 import StudentAssignment from "./assignment/StudentAssignment";
 import StudentExam from "./exam/StudentExam";
 import StudentDashboard from "./studentdashboard/StudentDashboard";

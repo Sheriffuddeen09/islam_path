@@ -1,7 +1,7 @@
 import { Loader2, Unlock, UserX } from "lucide-react";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import api from "../Api/axios";
+import api from "../../Api/axios";
 
 export default function BlockButton({ activeChat, authUser, chatPartner, setActiveChat, setChats }) {
   const [loading, setLoading] = useState(false);
