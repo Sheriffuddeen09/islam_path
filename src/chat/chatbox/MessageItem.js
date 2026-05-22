@@ -31,6 +31,13 @@ export default function MessageItem({
 
   const [selectionMode, setSelectionMode] = useState(false);
 
+  const myId = authUser.id;
+  const latestMessage = messages?.length
+  ? messages[messages.length - 1]
+  : null;
+
+ 
+
   useEffect(() => {
   if (selectedMessages.length === 0) {
     setSelectionMode(false);
@@ -614,15 +621,15 @@ const isInteractive = (target) => {
     
         key={`${msg.id}-${selectedMessages.length}`}
         ref={messageRef}
-        className={`flex cursor-pointer ${
+        className={`flex cursor-pointer px-4 ${
           isMine ? "justify-end" : "justify-start"
         } ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
       >
      <div
-  className={`relative group p-2 my-2 rounded-lg max-w-xs text-sm transition
+  className={`relative group p-2 my-1 rounded-lg max-w-xs text-sm transition
     ${isMine 
       ? "ml-auto bg-green-800 text-white" 
-      : "mr-auto bg-gray-900 text-white"
+      : "mr-auto bg-blue-900 text-white"
     }
   `}
   style={{
@@ -769,7 +776,7 @@ onPointerCancel={() => {
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       className={`
-        absolute -bottom-7 right-0 flex items-center bg-gray-50 shadow-xl gap-0.5 px-1 py-1 rounded-lg text-xs z-50
+        absolute -bottom-7 -right-2 flex items-center mt-0.5 shadow-xl px-1 py-1 rounded-lg text-xs z-50
         transition-all duration-200
 
         ${
@@ -793,14 +800,14 @@ onPointerCancel={() => {
           ${
             selectedMessages.includes(msg.id)
               ? "bg-blue-500 border-blue-500"
-              : "border-gray-400"
+              : "border-text-[var(--text-color)]"
           }
         `}
       >
         {selectedMessages.includes(msg.id) && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="w-3 h-3 text-white"
+            className="w-3 h-3 text-[var(--text-color)]"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -822,7 +829,7 @@ onPointerCancel={() => {
         setReplyingTo(msg);
         setActiveMenuId(null);
       }}
-      className="p-1 hover:bg-gray-200 rounded-md transition"
+      className="p-1  rounded-md transition"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -830,7 +837,7 @@ onPointerCancel={() => {
         viewBox="0 0 24 24"
         strokeWidth="1.5"
         stroke="currentColor"
-        className="w-5 h-5 text-black"
+        className="w-5 h-5 text-[var(--text-color)]"
       >
         <path
           strokeLinecap="round"
@@ -858,7 +865,7 @@ onPointerCancel={() => {
 >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
           viewBox="0 0 24 24" strokeWidth="1.5"
-          stroke="currentColor" className="size-5 text-black">
+          stroke="currentColor" className="size-5 text-[var(--text-color)]">
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
         </svg>
@@ -882,7 +889,7 @@ onPointerCancel={() => {
         }}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-        stroke="currentColor" class="size-6 rotate-90 text-black">
+        stroke="currentColor" class="size-6 rotate-90 text-[var(--text-color)]">
   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
 </svg>
 
@@ -1077,10 +1084,10 @@ onPointerCancel={() => {
           );
         }
       }}
-      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-2 z-50 inline-flex items-center gap-1 bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
+      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-2 inline-flex items-center gap-1 bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
     >
 
-      {unreadCount > 0 && (
+      {unreadCount > 0 && latestMessage?.sender_id !== myId &&  (
         <span className="text-xs font-semibold">
           {unreadCount}
         </span>

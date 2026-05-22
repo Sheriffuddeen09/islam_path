@@ -28,7 +28,7 @@ export default function ChatPage({
   const messagesEndRef = useRef(null);
   const messageRefs = useRef({});
 
-  
+  //latestMessage
   const [lastReadMessageId, setLastReadMessageId] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 

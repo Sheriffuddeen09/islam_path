@@ -242,7 +242,7 @@ const getPreviewText = (msg) => {
     <>
 
    {replyingTo && (
-  <div className="bg-black/90 py-2 px-4 rounded mb-2 flex justify-between border-l-4 border-blue-600 items-center">
+  <div className="bg-black/90 py-2 px-4 rounded mb-2 z-50 flex justify-between border-l-4 border-blue-600 items-center">
     
     <div className="text-xs overflow-hidden">
       <p className="text-white text-sm mb-1 font-semibold">
@@ -261,7 +261,11 @@ const getPreviewText = (msg) => {
       onClick={() => setReplyingTo(null)}
       className="text-white text-xs ml-2"
     >
-      ✕
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class=" text-white text-black text-xs px-2 py-2 font-bold rounded-full transition 
+            size-10 cursor-pointer">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            
     </button>
   </div>
 )}
@@ -309,7 +313,7 @@ const getPreviewText = (msg) => {
               onChange={(e) => setText(e.target.value)}
               className="flex-1 border bg-[var(--bg-color)] border-gray-400 border-2 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
           />
-        <button className="absolute top-3 right-3 hover:text-gray-900" onClick={() => setShowEmoji(prev => !prev)}>
+        <button className="absolute top-3 right-3" onClick={() => setShowEmoji(prev => !prev)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
           class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />

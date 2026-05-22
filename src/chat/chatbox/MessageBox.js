@@ -58,6 +58,8 @@ export default function MessageBox({
     messages: []
   });
 
+  
+
   const [selectedMsg, setSelectedMsg] = useState(null);
 
   const [showReactionPopup, setShowReactionPopup] = useState(null);
@@ -78,7 +80,10 @@ export default function MessageBox({
 
   const hasSelection = selectedMessages.length > 0;
 
-  
+  const myId = authUser.id;
+  const latestMessage = messages?.length
+  ? messages[messages.length - 1]
+  : null;
 
   const colors = [
     "bg-orange-500",
@@ -615,7 +620,7 @@ const avatarName = isGroup
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
-      {/* PINNED */}
+      {/* PINNED Unread */}
       <PinnedMessagesBar
         messages={messages}
         onSelect={handleScrollToMessage}
@@ -709,10 +714,12 @@ const isFirstUnread =
         </div>
       )}
 
-      {isFirstUnread && unreadCount > 0 && (
+      {isFirstUnread &&
+        unreadCount > 0 &&
+        latestMessage?.sender_id !== myId && (
         <div className="flex items-center gap-3 my-4 px-2">
 
-          <div className="text-[var(--text-color)] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap">
+          <div className="text-[var(--text-color)] text-xs px-3 py-1 text-center mx-auto rounded-full font-medium whitespace-nowrap">
             {unreadCount} Unread Message{unreadCount > 1 ? "s" : ""}
           </div>
 

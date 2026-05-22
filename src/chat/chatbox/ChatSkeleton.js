@@ -25,7 +25,7 @@ export function ChatSkeleton({ type = "list" }) {
   // 🔹 MESSAGE BOX SKELETON
   if (type === "messages") {
     return (
-      <div className="flex flex-col p-6 space-y-4 animate-pulse">
+      <div className="flex flex-col p-6 space-y-2 animate-pulse">
         {[1, 2, 3, 4, 5].map(i => (
           <div
             key={i}
