@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import ChatItem from "./ChatItem";
 import CommunityButton from "../community/CommunityButton";
 import CommunityPage from "../community/CommunityPage";
+import CreateCommunityModal from "../community/CreateCommunityModal";
 
 export default function ChatList({
   chats = [],
@@ -24,6 +25,9 @@ export default function ChatList({
   const [showCommunity, setShowCommunity] = useState(false);
   const [showChannel, setShowChannel] = useState(false);
 
+  const [showCommunityModal,
+  setShowCommunityModal] =
+  useState(false);
 
   const onOpenCommunity = () => {
     setShowCommunity(true);
@@ -247,6 +251,8 @@ export default function ChatList({
       )}
 
         {!loadingChats &&
+        <div ref={chatListRef}>
+          {
           filteredChats.map((chat) => (
             <ChatItem
               key={chat.id}
@@ -257,16 +263,30 @@ export default function ChatList({
             />
           ))}
       </div>
+          
+          }
+      </div>
 
       <CommunityButton
         chatListRef={chatListRef}
         onOpenCommunity={() => setShowCommunity(true)}
         onOpenChannel={() => setShowChannel(true)}
+        setShowCommunityModal={setShowCommunityModal}
       />
 
       {showCommunity && (
         <CommunityPage onClose={() => setShowCommunity(false)} />
       )}
+
+      {showCommunityModal && (
+      <CreateCommunityModal
+        chats={chats}
+        // loadingUsers={loadingUsers}
+        onClose={() =>
+          setShowCommunityModal(false)
+        }
+      />
+    )}
 
     </div>
   );

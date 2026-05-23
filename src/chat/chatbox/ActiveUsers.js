@@ -26,6 +26,7 @@ import DeleteChatModal from "./DeleteChatModal";
 
 const socket = io("http://localhost:8000");
 
+
 export default function ActiveUsers({
   activeChat,
   loadingChats, // 👈 NEW PROP
@@ -198,15 +199,36 @@ export default function ActiveUsers({
 
 
   const filteredSearch = useMemo(() => {
-  if (!searchTerm) return chats;
 
-  return chats.filter(chat => {
+  const privateChats =
+    chats.filter(chat =>
+
+      // ✅ ONLY PRIVATE USER CHAT
+      !chat.is_group &&
+
+      // ✅ MUST HAVE USER
+      chat.other_user
+    );
+
+  if (!searchTerm) {
+    return privateChats;
+  }
+
+  return privateChats.filter(chat => {
+
     const name =
-      `${chat.other_user?.first_name || ""} ${chat.other_user?.last_name || ""}`.toLowerCase();
+      `${chat.other_user?.first_name || ""}
+       ${chat.other_user?.last_name || ""}`
+      .toLowerCase();
 
-    return name.includes(searchTerm.toLowerCase());
+    return name.includes(
+      searchTerm.toLowerCase()
+    );
+
   });
+
 }, [searchTerm, chats]);
+
 
   // 🔥 LOADING STATE
   if (loadingChats) {
@@ -376,7 +398,7 @@ export default function ActiveUsers({
               Disappearing Messages
             </p>
 
-            <p className="text-[11px] text-[var(--text-color)] text-left">
+            <p className="text-[11px] text-left">
 
               {activeChat?.disappearing_mode === "24h" &&
                 "24 hours"}
@@ -401,7 +423,7 @@ export default function ActiveUsers({
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-6 h-6 text-[var(--text-color)]"
+            className="w-6 h-6"
           >
             <path
               strokeLinecap="round"
@@ -457,7 +479,8 @@ export default function ActiveUsers({
         onClick={() => setShowSearchModal(true)}
       />
 
-          
+       {
+    blockedMe && (   
     <ActionButton
       icon={
         <svg
@@ -475,9 +498,10 @@ export default function ActiveUsers({
           />
         </svg>
       }
-      label="Delete Group"
+      label="Delete Chat"
       onClick={() => setChatShowDeleteModal(true)}
     />
+    )}
       </div>
       }
 
@@ -506,7 +530,7 @@ export default function ActiveUsers({
             <p className="font-medium text-left">
               Disappearing Messages
             </p>
-            <p className="text-[11px] text-[var(--text-color)] hover:text-white text-left">
+            <p className="text-[11px] text-left">
               {activeChat?.disappearing_mode === "24h" &&
                 "24 hours"}
               {activeChat?.disappearing_mode === "7d" &&
@@ -595,8 +619,7 @@ export default function ActiveUsers({
         label="Exit Group"
         onClick={() => setShowExitModal(true)} // ✅ FIX
       />
-  {
-    blockedMe && (
+  
       
     <ActionButton
       icon={
@@ -615,13 +638,11 @@ export default function ActiveUsers({
           />
         </svg>
       }
-      label="Delete Chat"
+      label="Delete Group"
       onClick={() => setGroupShowDeleteModal(true)}
     />
       
-    )
-  }
-      </div>
+ </div>
       }
 
 
@@ -743,8 +764,13 @@ export default function ActiveUsers({
 
       {showAddModal && (
         <AddMemberModal
-          chat={activeChat}
-          onClose={() => setShowAddModal(false)}
+            chat={{
+                ...activeChat,
+                all_chats: chats
+              }}
+              onClose={() =>
+                setShowAddModal(false)
+              }
         />
       )}
 
@@ -851,7 +877,7 @@ export default function ActiveUsers({
 
 {showModal && (
         <CreateGroupModal
-          users={users}
+          chats={chats}
           onClose={() => setShowModal(false)}
           loadingUsers={loadingUsers}
         />

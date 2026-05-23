@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { Loader2, X } from "lucide-react";
 
 export default function AddMemberModal({ chat, onClose }) {
-  const [users, setUsers] = useState([]);
+  const [chatUsers, setChatUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true); // ✅ NEW
   const [loadingId, setLoadingId] = useState(null);
   const [search, setSearch] = useState("");
@@ -33,25 +33,39 @@ export default function AddMemberModal({ chat, onClose }) {
   }, [chat]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoadingUsers(true); // start loading
 
-        const res = await api.get("/api/users");
-        setUsers(res.data);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load users");
-      } finally {
-        setLoadingUsers(false); // stop loading
-      }
-    };
+  if (!chat?.all_chats) return;
 
-    fetchUsers();
-  }, []);
+  const extractedUsers =
+    chat.all_chats
+      .filter(c =>
+
+        // ✅ only private chats
+        !c.is_group &&
+
+        // ✅ must have user
+        c.other_user
+      )
+      .map(c => c.other_user);
+
+  // ✅ remove duplicates
+  const uniqueUsers =
+    Array.from(
+      new Map(
+        extractedUsers.map(
+          user => [user.id, user]
+        )
+      ).values()
+    );
+
+  setChatUsers(uniqueUsers);
+
+  setLoadingUsers(false);
+
+}, [chat]);
 
   const filteredUsers = useMemo(() => {
-  let list = users;
+  let list = chatUsers;
 
   // 🔥 remove members completely
   list = list.filter(
@@ -67,7 +81,7 @@ export default function AddMemberModal({ chat, onClose }) {
   }
 
   return list;
-}, [search, users, memberIds]);
+}, [search, chatUsers, memberIds]);
 
   const addMember = async (userId) => {
     try {
@@ -79,7 +93,9 @@ export default function AddMemberModal({ chat, onClose }) {
 
       toast.success("Member added");
 
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      setChatUsers((prev) =>
+        prev.filter((u) => u.id !== userId)
+      );
     } catch (err) {
       console.error(err);
       toast.error("Failed to add member");

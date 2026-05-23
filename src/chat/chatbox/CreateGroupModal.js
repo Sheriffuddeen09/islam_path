@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../Api/imageAxios";
 import { CheckCircle, Circle, Loader2 } from "lucide-react";
 
-export default function CreateGroupModal({ users = [], onClose, loadingUsers }) {
+export default function CreateGroupModal({ chats = [], onClose, loadingUsers }) {
   const [step, setStep] = useState(1);
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -41,11 +41,21 @@ export default function CreateGroupModal({ users = [], onClose, loadingUsers }) 
   // =============================
   // Search Filter
   // =============================
-  const filteredUsers = users.filter((u) =>
-    `${u.first_name} ${u.last_name}`
+  const filteredUsers =
+  chats.filter(chat => {
+
+    const user =
+      chat.user ||
+      chat.receiver ||
+      chat.other_user;
+
+    if (!user) return false;
+
+    return `${user.first_name} ${user.last_name}`
       .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+      .includes(search.toLowerCase());
+
+  });
 
   // =============================
   // Avatar Preview
@@ -206,12 +216,17 @@ export default function CreateGroupModal({ users = [], onClose, loadingUsers }) 
             ))
           ) : (
             // ================= REAL USERS =================
-            filteredUsers.map((user) => {
+            filteredUsers.map(chat => {
+
+            const user =
+              chat.user ||
+              chat.receiver ||
+              chat.other_user;
               const selected = selectedUsers.find((u) => u.id === user.id);
 
               return (
                 <div
-                  key={user.id}
+                  key={chat.id}
                   onClick={() => toggleUser(user)}
                   className="flex justify-between items-center p-3 border-b border-gray-700 cursor-pointer"
                 >

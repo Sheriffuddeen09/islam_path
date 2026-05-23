@@ -16,6 +16,7 @@ export default function CommunityButton({
   chatListRef,
   onOpenCommunity,
   onOpenChannel,
+  setShowCommunityModal
 
 }) {
 
@@ -24,6 +25,7 @@ export default function CommunityButton({
 
   const [open, setOpen] =
     useState(false);
+
 
   useEffect(() => {
 
@@ -109,7 +111,7 @@ export default function CommunityButton({
 
               setOpen(false);
 
-              onOpenCommunity();
+              setShowCommunityModal(true);
 
             }}
             className="flex items-center gap-3 bg-[#202c33] text-white px-5 py-3 rounded-2xl shadow-xl"
@@ -134,7 +136,7 @@ export default function CommunityButton({
         className="w-12 h-12 rounded-full bg-[#00a884] shadow-2xl flex items-center justify-center text-white"
       >
 
-        <Plus size={30} />
+        <Plus size={35} />
 
       </button>
 
