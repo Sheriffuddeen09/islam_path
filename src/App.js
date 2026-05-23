@@ -69,6 +69,24 @@ function App() {
     const [chats, setChats] = useState([]);
     const [messageOpen, setMessageOpen] = useState(false);
     const [activeChat, setActiveChat] = useState(null);
+    const [messagesMap, setMessagesMap] = useState({});
+    
+      const setMessages = (chatId, updater) => {
+      setMessagesMap(prev => {
+        const current = prev[chatId] || [];
+    
+        const updated =
+          typeof updater === "function"
+            ? updater(current)
+            : updater;
+    
+        return {
+          ...prev,
+          [chatId]: updated,
+        };
+      });
+    };
+    
 
     // Post 
 
@@ -400,6 +418,7 @@ function App() {
           savedCount={savedCount} setSavedCount={setSavedCount}
           orderCount={orderCount} setOrderCount={setOrderCount}
           onProfileCompleted={setUser}
+          setActiveChat={setActiveChat} setMessages={setMessages}
           />
         </ProtectedRoute>
       } />
@@ -412,6 +431,8 @@ function App() {
       setChats={setChats}
       activeChat={activeChat}
       setActiveChat={setActiveChat}
+      messagesMap={messagesMap} setMessagesMap={setMessagesMap}
+      setMessages={setMessages}
     />
           } />
 
@@ -428,6 +449,7 @@ function App() {
               showEmoji={showEmoji} setShowEmoji={setShowEmoji}
               emojiList={emojiList} setEmojiList={setEmojiList}
               savedCount={savedCount} setSavedCount={setSavedCount}
+              setActiveChat={setActiveChat} setMessages={setMessages}
                />
             </ProtectedRoute>
           }

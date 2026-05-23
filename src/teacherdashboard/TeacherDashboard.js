@@ -24,7 +24,7 @@ import { useAuth } from "../layout/AuthProvider";
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,  orderCount, setOrderCount,
-        savedCount, setSavedCount
+        savedCount, setSavedCount, setActiveChat, setMessages
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -564,11 +564,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
-        <Order  />
+        <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div> 
         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div> 
+
         <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
         <CreateProduct  />
         </div>
@@ -576,7 +577,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         <MyProducts   />
         </div>
         <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
-        <Order  setOrderCount={setOrderCount} />
+        <Order  setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
           <div className={`${visible === 25 ? 'block' : 'hidden'}`}>
           <SaveOrder  />

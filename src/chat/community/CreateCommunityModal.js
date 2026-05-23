@@ -248,7 +248,7 @@ export default function CreateCommunityModal({
 
       {step === 1 && (
 
-        <div className=" relative p-4 w-full max-w-md flex h-full shadow-sm rounded-lg overflow-auto-y flex-col mx-auto bg-[var(--bg-color)]
+        <div className=" relative p-4 w-full max-w-md flex h-full shadow-md rounded-lg overflow-auto-y flex-col mx-auto bg-[var(--bg-color)]
          text-[var(--text-color)]">
 
           <div className="flex items-center gap-3 mb-4">
@@ -335,17 +335,57 @@ export default function CreateCommunityModal({
 
             {loadingUsers ? (
 
-              Array.from({
-                length: 8
-              }).map((_, i) => (
-
+                Array.from({ length: 6 }).map((_, i) => (
                 <div
-                  key={i}
-                  className="animate-pulse h-16 bg-[#202C33] rounded-xl mb-3"
+                    key={i}
+                    className="animate-pulse h-16 bg-[#202C33] rounded-xl mb-3"
                 />
-              ))
+                ))
+
+            ) : filteredUsers.length === 0 ? (
+
+                /* 🚫 NO DATA STATE */
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+
+                <div className="w-28 h-28 rounded-full border-4 border-green-200 flex items-center justify-center mb-6">
+
+            <div className="w-20 h-20 rounded-full border-2 border-gray-400 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.8"
+                  stroke="currentColor"
+                  className="w-10 h-10"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M18 18.72a9.094 9.094 0 0 0 3.742-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.75m12 0a5.971 5.971 0 0 0-.94-3.197M6 18.75a5.971 5.971 0 0 1 .94-3.197m0 0A5.995 5.995 0 0 1 12 13.5a5.995 5.995 0 0 1 5.06 2.053M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+                  />
+                </svg>
+
+            </div>
+            </div>
+                <div className="text-xl font-semibold mb-3">
+                    No chat users
+                </div>
+
+                <p className="text-sm mb-10">
+                    Start a chat first to create a community
+                </p>
+
+                 <button
+                    onClick={onClose}
+                    className="text-green-500 font-semibold text-sm hover:underline"
+                >
+                    View all chats
+                </button>
+
+                </div>
 
             ) : (
+
 
               filteredUsers.map(chat => {
 

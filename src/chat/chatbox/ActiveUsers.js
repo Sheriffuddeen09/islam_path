@@ -26,7 +26,7 @@ import DeleteChatModal from "./DeleteChatModal";
 
 const socket = io("http://localhost:8000");
 
-
+// members
 export default function ActiveUsers({
   activeChat,
   loadingChats, // 👈 NEW PROP
@@ -174,6 +174,7 @@ export default function ActiveUsers({
 
 
     const isGroup = activeChat?.type === "group";
+    
 
     const members = activeChat?.members || [];
 

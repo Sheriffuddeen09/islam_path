@@ -59,6 +59,9 @@ export default function MessageBox({
   });
 
   
+  const members = activeChat?.members || [];
+
+  
 
   const [selectedMsg, setSelectedMsg] = useState(null);
 
@@ -305,6 +308,12 @@ const firstUnreadMessageId =
                     {displayName}
                   </h3>
                 {!isGroup && <UserStatusDots user={activeChat.other_user} />}
+
+                {isGroup && (
+                  <p className="text-[9px] pt-0.5 pb-2">
+                    {activeChat.members_count || activeChat.members?.length || 0} members
+                  </p>
+                )}
               </div>
 
         </div>
@@ -525,6 +534,11 @@ const firstUnreadMessageId =
       </div>
 
       {!isGroup && <UserStatusDots user={activeChat.other_user} />}
+      {isGroup && (
+                  <p className="text-[9px] pt-0.5 pb-2">
+                    {activeChat.members_count || activeChat.members?.length || 0} members
+                  </p>
+                )}
     </div>
 
   </div>

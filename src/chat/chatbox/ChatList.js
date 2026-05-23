@@ -274,14 +274,13 @@ export default function ChatList({
         setShowCommunityModal={setShowCommunityModal}
       />
 
-      {showCommunity && (
-        <CommunityPage onClose={() => setShowCommunity(false)} />
+      {showChannel && (
+        <CommunityPage onClose={() => setShowChannel(false)} />
       )}
 
       {showCommunityModal && (
       <CreateCommunityModal
         chats={chats}
-        // loadingUsers={loadingUsers}
         onClose={() =>
           setShowCommunityModal(false)
         }

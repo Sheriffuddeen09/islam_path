@@ -14,7 +14,6 @@ import {
 export default function CommunityButton({
 
   chatListRef,
-  onOpenCommunity,
   onOpenChannel,
   setShowCommunityModal
 
@@ -105,7 +104,6 @@ export default function CommunityButton({
 
           </button>
 
-          {/* COMMUNITY */}
           <button
             onClick={() => {
 

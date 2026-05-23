@@ -4,13 +4,16 @@ import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import ChatComponent from "./ChatComponent";
 import { decryptMessage } from "../../utils/encryption";
+import { useSearchParams } from "react-router-dom";
 
 
 export default function ChatPage({
   chats,
   setChats,
   activeChat,
-  setActiveChat
+  setActiveChat,
+  messagesMap, setMessagesMap, setMessages
+
 }) {
   const { user: authUser } = useAuth();
 
@@ -33,7 +36,12 @@ export default function ChatPage({
   const [lastReadMessageId, setLastReadMessageId] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const [messagesMap, setMessagesMap] = useState({});
+
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const chatIdFromUrl = searchParams.get("chatId");
+
 
   const messages = Array.isArray(messagesMap[activeChat?.id])
     ? messagesMap[activeChat?.id]
@@ -205,69 +213,105 @@ const restoredChatRef = useRef(false);
 const loadingChatRef = useRef(null);
 const openedChatsRef = useRef({});
 
-const scrollToMessage = (
-  messages,
-  lastReadId,
-  forceBottom = false
-) => {
+// const scrollToMessage = (
+//   messages,
+//   lastReadId,
+//   forceBottom = false
+// ) => {
 
+//   requestAnimationFrame(() => {
+
+//     requestAnimationFrame(() => {
+
+//       const container =
+//         messagesEndRef.current
+//           ?.parentElement;
+
+//       if (!container) return;
+
+//       // ✅ ALWAYS GO BOTTOM
+//       if (forceBottom) {
+
+//         container.scrollTop =
+//           container.scrollHeight;
+
+//         return;
+//       }
+
+//       const unreadMessages =
+//         messages.filter(
+//           msg =>
+//             Number(msg.id) >
+//             Number(lastReadId || 0)
+//         );
+
+//       const firstUnread =
+//         unreadMessages[0];
+
+//       // ✅ FIRST TIME ONLY
+//       if (firstUnread) {
+
+//         const target =
+//           messageRefs.current[
+//             firstUnread.id
+//           ];
+
+//         if (target) {
+
+//           target.scrollIntoView({
+//             behavior: "auto",
+//             block: "center",
+//           });
+
+//           return;
+//         }
+//       }
+
+//       // ✅ FALLBACK
+//       container.scrollTop =
+//         container.scrollHeight;
+//     });
+
+//   });
+
+// };
+
+const scrollToMessage = (messages, lastReadId, forceBottom = false) => {
   requestAnimationFrame(() => {
-
     requestAnimationFrame(() => {
-
-      const container =
-        messagesEndRef.current
-          ?.parentElement;
-
+      const container = messagesEndRef.current?.parentElement;
       if (!container) return;
 
-      // ✅ ALWAYS GO BOTTOM
+      // ✅ ALWAYS BOTTOM = SIMPLE RULE
       if (forceBottom) {
-
-        container.scrollTop =
-          container.scrollHeight;
-
+        container.scrollTop = container.scrollHeight;
         return;
       }
 
-      const unreadMessages =
-        messages.filter(
-          msg =>
-            Number(msg.id) >
-            Number(lastReadId || 0)
-        );
+      const unreadMessages = messages.filter(
+        msg => Number(msg.id) > Number(lastReadId || 0)
+      );
 
-      const firstUnread =
-        unreadMessages[0];
+      const firstUnread = unreadMessages[0];
 
-      // ✅ FIRST TIME ONLY
       if (firstUnread) {
-
-        const target =
-          messageRefs.current[
-            firstUnread.id
-          ];
+        const target = messageRefs.current[firstUnread.id];
 
         if (target) {
-
           target.scrollIntoView({
             behavior: "auto",
             block: "center",
           });
-
           return;
         }
       }
 
-      // ✅ FALLBACK
-      container.scrollTop =
-        container.scrollHeight;
+      container.scrollTop = container.scrollHeight;
     });
-
   });
-
 };
 
+//messagesCacheRef.current[chat.id] = decrypted;
 const openChat = async (chat) => {
 
   if (loadingChatRef.current && loadingChatRef.current !== chat.id) {
@@ -288,15 +332,14 @@ const openChat = async (chat) => {
     return;
   }
 
-  const alreadyOpened =
-  openedChatsRef.current[chat.id];
+ 
 
   const cached =
     messagesCacheRef.current[
       chat.id
     ];
 
-  if (cached?.length > 0) {
+  if (cached) {
 
     setLoadingMessages(false);
     setActiveChat(chat);
@@ -333,7 +376,7 @@ const openChat = async (chat) => {
       scrollToMessage(
         cached,
         chat.last_read_message_id,
-        alreadyOpened // force bottom if reopened
+        true // ALWAYS bottom when reopening cached chat
       );
     });
   });
@@ -346,7 +389,10 @@ const openChat = async (chat) => {
     chat.id;
   setLoadingMessages(true);
   setMessages([]);
+
   setActiveChat(chat);
+  setSearchParams({ chatId: chat.id }); // 👈 ADD THIS
+  
   if (!isLargeScreen) {
     setShowList(false);
   }
@@ -407,10 +453,10 @@ const openChat = async (chat) => {
     openedChatsRef.current[chat.id] = true;
 
     scrollToMessage(
-        decrypted,
-        res.data.last_read_message_id,
-        alreadyOpened
-      );
+      decrypted,
+      res.data.last_read_message_id,
+      true // consistent behavior
+    );
 
       setTimeout(() => {
 
@@ -467,6 +513,27 @@ useEffect(() => {
 
 }, [chats, isLargeScreen]);
 
+
+const openedRef = useRef(null);
+
+useEffect(() => {
+  if (!chatIdFromUrl || !chats.length) return;
+
+  // ✅ PREVENT RE-RUNNING SAME CHAT
+  if (openedRef.current === chatIdFromUrl) return;
+  openedRef.current = chatIdFromUrl;
+
+  const chat = chats.find(
+    c => String(c.id) === String(chatIdFromUrl)
+  );
+
+  if (chat) {
+    openChat(chat);
+  }
+}, [chatIdFromUrl, chats]);
+
+
+
 useEffect(() => {
   if (!messages.length) return;
 
@@ -495,22 +562,7 @@ useEffect(() => {
     [chats]
   );
 
-  const setMessages = (chatId, updater) => {
-  setMessagesMap(prev => {
-    const current = prev[chatId] || [];
-
-    const updated =
-      typeof updater === "function"
-        ? updater(current)
-        : updater;
-
-    return {
-      ...prev,
-      [chatId]: updated,
-    };
-  });
-};
-
+  
 
   if (loadingChats) return <UserSkeleton />;
 

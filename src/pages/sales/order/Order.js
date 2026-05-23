@@ -2,8 +2,9 @@ import { Delete, Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
 import { useAuth } from "../../../layout/AuthProvider";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const OrdersPage = ({setOrderCount}) => {
+const Order = ({chats, setActiveChat, setMessages}) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -19,9 +20,10 @@ const OrdersPage = ({setOrderCount}) => {
 
   const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
 
+  const navigate = useNavigate();
+
 
   const { user } = useAuth();
-  const { authUser } = useAuth();
 
   const authUserId = user?.id;
 
@@ -87,6 +89,24 @@ const OrdersPage = ({setOrderCount}) => {
 
   
 
+    const getChatByOrder = (orderId) => {
+  return Array.isArray(chats)
+    ? chats.find(c => c.order_id === orderId)
+    : null;
+};
+
+    const openChat = async (chat) => {
+      if (!chat?.id) return;
+
+      const res = await api.get(`/api/chats/${chat.id}/messages`);
+
+      setActiveChat(chat);
+      setMessages(res.data.messages || []);
+
+      // ✅ update URL without changing route
+      navigate(`/chat?chatId=${chat.id}`);
+    };
+
 
   const handleMessageUser = async (order) => {
   if (!order) {
@@ -109,12 +129,19 @@ const OrdersPage = ({setOrderCount}) => {
   try {
     setChatLoading(order.id);
 
-    await api.post("/api/chat/create", {
+    const res = await api.post("/api/chat/create", {
       user_id: otherUserId,
       order_id: order.id,
     });
 
+     const chat = res.data.chat;
+
     setActiveChats(prev => [...prev, order.id]);
+
+
+     openChat(chat);
+
+
 
   } catch (err) {
     console.error("Chat failed", err);
@@ -143,6 +170,7 @@ const OrdersPage = ({setOrderCount}) => {
     setCancelingId(null);
   }
 };
+
 
 
   return (
@@ -188,6 +216,7 @@ const OrdersPage = ({setOrderCount}) => {
           const currency = firstItem?.product?.currency;
           const symbol = symbols[currency] || currency;
 
+          const chat = getChatByOrder(order.id);
 
           console.log("buyer id", buyerId)
 
@@ -201,30 +230,28 @@ const OrdersPage = ({setOrderCount}) => {
 
                 <div className="flex items-center gap-2">
 
-                  {/* ✅ ONE MESSAGE BUTTON */}
-                  {!isBuyer && sellerId && (
-                order.status === "cancelled" ? (
-                  <button className="text-red-700 px-3 py-2 text-sm rounded whitespace-nowrap font-bold cursor-not-allowed">
-                    Order Cancelled
-                  </button>
-                ) : activeChats.includes(order.id) ? (
-                  <button className="bg-green-600 text-white px-3 py-2 text-sm rounded font-bold cursor-not-allowed">
-                    Active
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleMessageUser(order)}
-                    className="bg-blue-800 text-white px-3 py-2 text-sm rounded font-bold"
-                  >
-                    {chatLoading === order.id ? "Loading" : "Message"}
-                  </button>
-                )
-              )}
-                  {/* ✅ STATUS */}
-                  
 
-                  {/* ✅ DELETE (ONLY ONE) */}
-                  {/*  */}
+            {!isBuyer && sellerId && (
+              order.status === "cancelled" ? (
+                <button className="text-red-700 px-3 py-2 text-sm rounded font-bold cursor-not-allowed">
+                  Order Cancelled
+                </button>
+              ) : chat ? (
+                <button
+                  onClick={() => openChat(chat)}
+                  className="bg-green-600 text-white px-3 py-2 text-sm rounded font-bold"
+                >
+                  Active
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleMessageUser(order)}
+                  className="bg-blue-800 text-white px-3 py-2 text-sm rounded font-bold"
+                >
+                  {chatLoading === order.id ? "Loading" : "Message"}
+                </button>
+              )
+            )}
 
                   {isBuyer && (
                   <button
@@ -580,4 +607,4 @@ const OrdersPage = ({setOrderCount}) => {
 );
 };
 
-export default OrdersPage;
+export default Order;

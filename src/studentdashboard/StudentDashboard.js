@@ -18,7 +18,7 @@ import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText,
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
-         handleMessageOpen, savedCount, setSavedCount}){
+         handleMessageOpen, savedCount, setSavedCount, setActiveChat, setMessages}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -428,7 +428,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                          <ExamResults  />
                          </div> 
                          <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
-                         <Order  />
+                         <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
                          </div> 
                          <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
                          <SaveOrder  />
