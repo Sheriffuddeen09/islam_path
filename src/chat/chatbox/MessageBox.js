@@ -535,7 +535,7 @@ const firstUnreadMessageId =
 
       {!isGroup && <UserStatusDots user={activeChat.other_user} />}
       {isGroup && (
-                  <p className="text-[9px] pt-0.5 pb-2">
+                  <p className="text-[9px] pt-0.5 pb-2 relative left-20">
                     {activeChat.members_count || activeChat.members?.length || 0} members
                   </p>
                 )}

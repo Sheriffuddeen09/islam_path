@@ -594,21 +594,14 @@ const scrollToMessage = (messageId) => {
   const getPreviewText = (msg) => {
   if (!msg) return "";
 
-  if (msg.type === "text") return msg.message;
+  if (msg.preview) return msg.preview; // ✔ IMPORTANT FIX
 
-  // ✅ HANDLE SINGLE FILE (reply case)
-  if (msg.file_name) {
-    return `📎 ${msg.file_name}`;
-  }
-
-  // ✅ HANDLE TYPES
-  if (msg.type === "voice") return "🎤 Voice message";
-  if (msg.type === "audio") return "🎵 Audio";
   if (msg.type === "image") return "🖼️ Photo";
   if (msg.type === "video") return "🎬 Video";
-  if (msg.type === "file") return "📎 Document";
+  if (msg.type === "audio") return "🎵 Audio";
+  if (msg.file_name) return `📎 ${msg.file_name}`;
 
-  return msg.type;
+  return msg.message;
 };
 
 

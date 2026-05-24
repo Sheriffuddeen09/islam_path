@@ -175,106 +175,46 @@ useEffect(() => {
 
 
 const decryptMessages = async (incoming, chatId) => {
-  try {
-    const chatKey = localStorage.getItem(`chat_key_${chatId}`);
 
-    if (!chatKey) return incoming;
+  const chatKey = localStorage.getItem(`chat_key_${chatId}`);
 
-    return await Promise.all(
-      incoming.map(async (msg) => {
+  return Promise.all(
+    incoming.map(async (msg) => {
 
+      let decrypted = msg;
+
+      // decrypt main message
+      if (msg.message && msg.iv) {
         try {
-          const decrypted = await decryptMessage(
+          msg.message = await decryptMessage(
             msg.message,
             msg.iv,
             chatKey
           );
+        } catch {}
+      }
 
-          return {
-            ...msg,
-            message: decrypted,
-          };
+      // 🔥 decrypt reply message too
+      if (msg.replied_to?.message && msg.replied_to?.iv) {
+        try {
+          msg.replied_to.message = await decryptMessage(
+            msg.replied_to.message,
+            msg.replied_to.iv,
+            chatKey
+          );
+        } catch {}
+      }
 
-        } catch (err) {
-          console.log("Decrypt failed:", err);
-          return msg;
-        }
-      })
-    );
-
-  } catch (err) {
-    console.log(err);
-    return incoming;
-  }
+      return msg;
+    })
+  );
 };
+
 
 const messagesCacheRef = useRef({});
 const restoredChatRef = useRef(false);
 const loadingChatRef = useRef(null);
 const openedChatsRef = useRef({});
-
-// const scrollToMessage = (
-//   messages,
-//   lastReadId,
-//   forceBottom = false
-// ) => {
-
-//   requestAnimationFrame(() => {
-
-//     requestAnimationFrame(() => {
-
-//       const container =
-//         messagesEndRef.current
-//           ?.parentElement;
-
-//       if (!container) return;
-
-//       // ✅ ALWAYS GO BOTTOM
-//       if (forceBottom) {
-
-//         container.scrollTop =
-//           container.scrollHeight;
-
-//         return;
-//       }
-
-//       const unreadMessages =
-//         messages.filter(
-//           msg =>
-//             Number(msg.id) >
-//             Number(lastReadId || 0)
-//         );
-
-//       const firstUnread =
-//         unreadMessages[0];
-
-//       // ✅ FIRST TIME ONLY
-//       if (firstUnread) {
-
-//         const target =
-//           messageRefs.current[
-//             firstUnread.id
-//           ];
-
-//         if (target) {
-
-//           target.scrollIntoView({
-//             behavior: "auto",
-//             block: "center",
-//           });
-
-//           return;
-//         }
-//       }
-
-//       // ✅ FALLBACK
-//       container.scrollTop =
-//         container.scrollHeight;
-//     });
-
-//   });
-
-// };
 
 const scrollToMessage = (messages, lastReadId, forceBottom = false) => {
   requestAnimationFrame(() => {
@@ -430,7 +370,7 @@ const openChat = async (chat) => {
     const decrypted =
       await decryptMessages(
         msgs,
-        chat.id
+        chat.id,
       );
 
     messagesCacheRef.current[
@@ -442,6 +382,7 @@ const openChat = async (chat) => {
       [chat.id]: decrypted,
     }));
 
+    
     setMessages(decrypted);
     setLastReadMessageId(
       res.data.last_read_message_id

@@ -72,7 +72,7 @@ export default function CommunityButton({
   return (
 
     <div
-      className={`fixed bottom-10 left-3 z-[999] transition-all duration-300 ${
+      className={`fixed bottom-10 left-3 transition-all duration-300 ${
         visible
           ? "translate-y-0 opacity-100"
           : "translate-y-24 opacity-0"

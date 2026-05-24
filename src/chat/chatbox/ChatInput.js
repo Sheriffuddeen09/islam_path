@@ -312,7 +312,7 @@ const getPreviewText = (msg) => {
               value={text}
               rows={1}
               onChange={(e) => setText(e.target.value)}
-              className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 border-2 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
+              className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
           />
         <button className="absolute top-3 right-3" onClick={() => setShowEmoji(prev => !prev)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 

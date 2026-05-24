@@ -274,9 +274,12 @@ export default function ChatList({
         setShowCommunityModal={setShowCommunityModal}
       />
 
-      {showChannel && (
-        <CommunityPage onClose={() => setShowChannel(false)} />
-      )}
+      <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
+        <CommunityPage
+          onClose={() => setShowChannel(false)}
+          authUser={authUser}
+        />
+      </div>
 
       {showCommunityModal && (
       <CreateCommunityModal

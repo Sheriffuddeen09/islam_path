@@ -118,7 +118,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   }
 };
       
-    const stopRecording = async () => {
+  const stopRecording = async () => {
   const reply = replyingTo; // ✅ SAVE FIRST
   setReplyingTo(null);      // ✅ CLEAR UI IMMEDIATELY
 
@@ -285,6 +285,9 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
         };
       });
     };
+
+
+    
     
     
 

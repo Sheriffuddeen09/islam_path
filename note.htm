@@ -16,3 +16,28 @@
 
 * forward messages
 * the total amount in order naira and dollar or pollar how to make it equal each other 
+
+
+{
+    "message": "The selected replied to is invalid.",
+    "errors": {
+        "replied_to": [
+            "The selected replied to is invalid."
+        ]
+    }
+}
+
+if (!$chat->chat_key_user1) {
+
+    $plainKey = base64_encode(
+        random_bytes(32)
+    );
+
+    $chat->chat_key_user1 =
+        encrypt($plainKey);
+
+    $chat->chat_key_user2 =
+        encrypt($plainKey);
+
+    $chat->save();
+}
