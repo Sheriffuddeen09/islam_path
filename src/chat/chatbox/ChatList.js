@@ -100,7 +100,7 @@ export default function ChatList({
     <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
-      <div className="p-3 font-bold text-2xl border-b-2 inline-flex gap-3 items-center">
+      <div className="p-3 font-bold text-2xl shadow-md inline-flex gap-3 items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

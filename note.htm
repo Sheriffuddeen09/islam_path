@@ -27,17 +27,4 @@
     }
 }
 
-if (!$chat->chat_key_user1) {
-
-    $plainKey = base64_encode(
-        random_bytes(32)
-    );
-
-    $chat->chat_key_user1 =
-        encrypt($plainKey);
-
-    $chat->chat_key_user2 =
-        encrypt($plainKey);
-
-    $chat->save();
-}
+  chat id 14 chatlist showing text for lastmessage while chat id 15 is showing encrypted message 

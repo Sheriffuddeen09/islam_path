@@ -15,7 +15,7 @@ export default function MediaCommunityPreviewModal({
   onSend,
   crop,setCrop, cropAppliedMap,  croppedImages, selected, setCropAppliedMap,
   setTrimMap, setDurationMap, trimMap, durationMap, dragType, setDragType,
-  setTrimAppliedMap, trimAppliedMap, setCroppedImages
+  setTrimAppliedMap, trimAppliedMap, setCroppedImages, showSendOptions, setShowSendOptions
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
  
@@ -581,20 +581,139 @@ const getPreviewSrc = (index) => {
                   </div>
                 )}
               </div>
-              <button
-                onClick={() =>
-                  onSend({
-                    selectedFiles: files.filter((_, i) => selected[i]),
-                    cropData: croppedImages,
-                    trimData: trimMap,
-                  })
-                }
-                className="bg-green-600 text-white px-4 py-2 rounded-full"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+             {/* SEND BUTTON */}
+  <div className="relative">
+
+    {/* FLOAT ACTIONS */}
+    {showSendOptions && (
+      <div className="
+        absolute bottom-14 right-0
+        bg-[#202c33]
+        border border-gray-700
+        rounded-2xl
+        shadow-2xl
+        overflow-hidden
+        z-50
+        min-w-[180px]
+      ">
+
+        {/* NORMAL SEND */}
+        <button
+          onClick={() => {
+            onSend({
+              selectedFiles: files.filter((_, i) => selected[i]),
+              cropData: croppedImages,
+              trimData: trimMap,
+            });
+
+            setShowSendOptions(false);
+          }}
+          className="
+            w-full
+            flex
+            items-center
+            gap-3
+            px-4
+            py-3
+            hover:bg-[#2a3942]
+            text-white
+            text-sm
+          "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+            />
+          </svg>
+
+          No Respond
+        </button>
+
+        {/* SEND WITH RESPOND */}
+        <button
+          onClick={() => {
+            onSend({
+              selectedFiles: files.filter((_, i) => selected[i]),
+              cropData: croppedImages,
+              trimData: trimMap,
+            });
+
+            setShowSendOptions(false);
+          }}
+          className="
+            w-full
+            flex
+            items-center
+            gap-3
+            px-4
+            py-3
+            hover:bg-[#2a3942]
+            text-white
+            text-sm
+            border-t border-gray-700
+          "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H15m-8.25 4.5h10.5"
+            />
+          </svg>
+
+         Respond
+        </button>
+
+      </div>
+    )}
+
+    {/* MAIN BUTTON */}
+    <button
+      onClick={() =>
+        setShowSendOptions(prev => !prev)
+      }
+      className="
+        bg-green-600
+        text-white
+        px-4
+        py-2
+        rounded-full
+        shadow-lg
+      "
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+        />
       </svg>
-              </button>
+    </button>
+
+  </div>
             </div>
         </div>
   );

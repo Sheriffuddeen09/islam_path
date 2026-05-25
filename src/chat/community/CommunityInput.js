@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import VoiceWave from "../chatbox/VoiceWave";
 import EmojiPicker from "emoji-picker-react";
 import MediaCommunityPreviewModal from "./MediaCommunityPreviewModal";
@@ -20,8 +20,8 @@ export default function CommunityInput({
         recordingCommunity, setRecordingCommunity, setFiles, previewUrlsCommunity, status,
         setPreviewUrlsCommunity, captionCommunity, setCaptionCommunity, replyingToCommunity, blockAllInput,
        textCommunity, setTextCommunity, onlyAdminSend, isAdmin, setReplyingToCommunity, timerRefCommunity,
-       audioChunksRefCommunity, mediaRecorderRefCommunity, croppedImagesCommunity, setCroppedImagesCommunity}) {
-
+       audioChunksRefCommunity, mediaRecorderRefCommunity, croppedImagesCommunity, setCroppedImagesCommunity,
+      showSendOptions, setShowSendOptions}) {
 
 
     const handleFileChange = (e) => {
@@ -280,15 +280,142 @@ const handlePick = (type) => {
           </button>
         </div>
     
-        {!recordingCommunity && textCommunity && (
-            <button onClick={sendTextCommunity} className="text-white bg-green-500  px-2 py-2 rounded-full">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+        <div className="relative">
+        {!recordingCommunity &&
+          textCommunity && (
+
+          <button
+            onClick={() =>
+              setShowSendOptions(
+                (prev) => !prev
+              )
+            }
+            className="
+              text-white
+              bg-green-500
+              px-2
+              py-2
+              rounded-full
+            "
+          >
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+              />
             </svg>
-  
+
+          </button>
+        )}
+
+        {/* FLOAT UP */}
+        {showSendOptions && (
+
+          <div
+            className="
+              absolute
+              bottom-16
+              right-0
+              flex
+              flex-col
+              gap-2
+              z-50
+            "
+          >
+
+            {/* RESPOND */}
+            <button
+              onClick={() =>
+
+                sendTextCommunity({
+                  response_mode: true,
+                })
+
+              }
+              className="
+                flex
+                items-center
+                gap-2
+                bg-[#202c33]
+                text-white
+                px-4
+                py-3
+                rounded-full
+                shadow-lg
+                whitespace-nowrap font-bold text-sm
+              "
+            >
+
+              <span>
+               Enable Respond
+              </span>
+
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 text-white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+              
+
             </button>
-          )}
+
+            {/* NO RESPOND */}
+            <button
+              onClick={() =>
+
+                sendTextCommunity({
+                  response_mode: false,
+                })
+
+              }
+              className="
+                flex
+                items-center
+                gap-2
+                bg-[#202c33]
+                text-white
+                px-4
+                py-3
+                rounded-full
+                shadow-lg
+                whitespace-nowrap font-bold text-sm
+              "
+            >
+
+              <span>
+                No Respond
+              </span>
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18 18 6M6 6l12 12"
+                />
+              </svg>
+
+              
+
+            </button>
+
+          </div>
+        )}
+
+      </div>
       </div>
       )}
           {showEmojiCommunity && (
@@ -389,6 +516,7 @@ const handlePick = (type) => {
     setDragType={setDragTypeCommunity}
     trimAppliedMap={trimAppliedMapCommunity}
     setTrimAppliedMap={setTrimAppliedMapCommunity}
+    showSendOptions={showSendOptions} setShowSendOptions={setShowSendOptions}
   />
   
       </> 

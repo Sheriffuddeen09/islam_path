@@ -233,7 +233,6 @@ export default function CommunityPage({
       <div className={`
         w-full
         md:w-[350px]
-        border-r border-gray-700
         ${mobileView === "sidebar"
           ? "flex"
           : "hidden"}
@@ -260,7 +259,8 @@ export default function CommunityPage({
         ${mobileView === "messages"
           ? "flex"
           : "hidden"}
-
+        
+        shadow-md
         md:flex
         flex-col
 
@@ -290,7 +290,7 @@ export default function CommunityPage({
 
         w-full
         md:w-[350px]
-        border-l border-gray-700
+        shadow-md
 
         ${mobileView === "settings"
           ? "flex"

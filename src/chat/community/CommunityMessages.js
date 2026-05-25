@@ -26,6 +26,8 @@ export default function CommunityMessages({
     );
   };
 
+  //No
+
   const replaceMessage = (id, newMsg) => {
 
     setMessages(prev =>
@@ -356,7 +358,7 @@ export default function CommunityMessages({
     <div className="flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
-      <div className="h-16 border-b border-gray-700 flex items-center px-5">
+      <div className="h-16 shadow-md flex items-center py-2 px-4">
 
         <div className="flex items-center gap-3">
 
@@ -393,8 +395,8 @@ export default function CommunityMessages({
 
                         className="
 
-                          w-14
-                          h-14
+                          w-12
+                          h-12
                           rounded-full
                           object-cover
 
@@ -448,6 +450,8 @@ export default function CommunityMessages({
           retryCommunityMessage={retryCommunityMessage}
           setReplyingTo={setReplyingToCommunity}
           activeCommunity={activeCommunity}
+          setMessages={setMessages}
+
           />            
          
         <InputComponent

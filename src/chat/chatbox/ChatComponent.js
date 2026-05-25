@@ -572,7 +572,7 @@ setMessages((prev) => {
     return (
     <div className="h-screen flex bg-[var(--bg-color)] text-[var(--text-color)] ">
       <div className={`
-        border-r bg-[var(--bg-color)] text-[var(--text-color)] pt-3
+        shadow-md bg-[var(--bg-color)] text-[var(--text-color)] pt-3
         w-full lg:w-80
         ${showList ? "block" : "hidden lg:block"}
       `}>
@@ -626,7 +626,7 @@ setMessages((prev) => {
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
         />
       </div>
-      <div className="hidden lg:block lg:w-80 border-l bg-white">
+      <div className="hidden lg:block lg:w-80 shadow-md ">
         <ActiveUsers
           chats={chats}
           activeChat={activeChat}

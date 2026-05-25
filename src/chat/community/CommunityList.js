@@ -43,7 +43,7 @@ export default function CommunityList({
   const getLastMessage = (community) => {
 
     if (!community.last_message)
-      return "No messages yet";
+      return "Start Conservation";
 
     if (
       community.last_message.message
@@ -160,10 +160,10 @@ export default function CommunityList({
 
   return (
 
-    <div className="w-full md:w-[340px] border-r border-gray-700 bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col">
+    <div className="w-full border-gray-700 bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col">
 
       {/* HEADER */}
-      <div className="h-16 px-4 border-b border-gray-700 flex items-center justify-between">
+      <div className="h-16 px-4 sm:px-8 shadow-md  flex items-center justify-between">
 
         <button
           onClick={onClose}
@@ -332,7 +332,7 @@ export default function CommunityList({
                         justify-center
                         text-white
                         font-bold
-                        text-lg
+                        text-3xl
 
                         ${getColor(
                           community.community_name
@@ -379,7 +379,7 @@ export default function CommunityList({
                     </div>
 
                     {/* LAST MESSAGE */}
-                    <p className="text-sm text-gray-400 line-clamp-1 mt-1">
+                    <p className="text-xs text-[var(--text-color)] line-clamp-1 mt-2">
 
                       {getLastMessage(
                         community

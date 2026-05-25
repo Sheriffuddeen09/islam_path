@@ -368,14 +368,17 @@ const stopRecordingCommunity = async () => {
       });
     };
 
-  const [message, setMessage] =
-    useState("");
+const [showSendOptions, setShowSendOptions] =
+  useState(false);
 
-    const sendTextCommunity = async () => {
+const sendTextCommunity = async ({
+  response_mode = false,
+} = {}) => {
 
   if (!textCommunity.trim()) return;
 
-  const reply = replyingToCommunity;
+  const reply =
+    replyingToCommunity;
 
   // ✅ CLEAR REPLY UI
   setReplyingToCommunity(null);
@@ -393,30 +396,38 @@ const stopRecordingCommunity = async () => {
 
     sender_id: authUser.id,
 
-    status: "sending",
-
-    created_at: new Date().toISOString(),
-
-    replied_to: reply || null,
-
     sender: authUser,
 
+    status: "sending",
+
+    created_at:
+      new Date().toISOString(),
+
+    replied_to:
+      reply || null,
+
+    // ✅ IMPORTANT
+    response_mode,
   };
 
   // ✅ SHOW IMMEDIATELY
-  setMessages(prev => [
+  setMessages((prev) => [
 
     ...prev,
     tempMessage
 
   ]);
 
-  const originalText = textCommunity;
+  const originalText =
+    textCommunity;
 
   // ✅ CLEAR INPUT
   setTextCommunity("");
 
-  // ✅ SCROLL BOTTOM
+  // ✅ CLOSE FLOAT
+  setShowSendOptions(false);
+
+  // ✅ SCROLL
   requestAnimationFrame(() => {
 
     bottomRef.current?.scrollIntoView({
@@ -451,6 +462,8 @@ const stopRecordingCommunity = async () => {
             ? reply.id
             : null,
 
+        // ✅ NEW
+        response_mode,
       }
 
     );
@@ -459,10 +472,10 @@ const stopRecordingCommunity = async () => {
     const realMessage =
       data.messages?.[0];
 
-    // ✅ REPLACE TEMP MESSAGE
-    setMessages(prev =>
+    // ✅ REPLACE TEMP
+    setMessages((prev) =>
 
-      prev.map(m =>
+      prev.map((m) =>
 
         m.id === tempId
 
@@ -487,15 +500,18 @@ const stopRecordingCommunity = async () => {
     console.log(err);
 
     // ✅ FAILED
-    setMessages(prev =>
+    setMessages((prev) =>
 
-      prev.map(m =>
+      prev.map((m) =>
 
         m.id === tempId
 
           ? {
+
               ...m,
-              status: "failed"
+
+              status: "failed",
+
             }
 
           : m
@@ -504,8 +520,9 @@ const stopRecordingCommunity = async () => {
   }
 };
 
-
-  const sendFileCommunity = async () => {
+  const sendFileCommunity = async (
+  response_mode = false // ✅ NEW
+) => {
 
   if (!files.length) return;
 
@@ -600,6 +617,9 @@ const stopRecordingCommunity = async () => {
 
     replied_to: reply || null,
 
+    // ✅ NEW
+    response_mode: response_mode,
+
     created_at:
       new Date().toISOString(),
   };
@@ -625,6 +645,12 @@ const stopRecordingCommunity = async () => {
   form.append(
     "community_id",
     activeCommunity.id
+  );
+
+  // ✅ RESPONSE ENABLED
+  form.append(
+    "response_enabled",
+    response_mode ? 1 : 0
   );
 
   files.forEach((file, i) => {
@@ -720,6 +746,11 @@ const stopRecordingCommunity = async () => {
             }
           : msg.replied_to || null,
 
+        // ✅ KEEP RESPONSE
+        response_enabled:
+          msg.response_enabled ??
+          response_mode,
+
         status: "sent",
       }));
 
@@ -770,7 +801,7 @@ const stopRecordingCommunity = async () => {
 
   setShowPreviewCommunity(false);
 
-  setFiles={setFiles}([]);
+  setFiles([]);
 
   setPreviewUrlsCommunity([]);
 
@@ -837,7 +868,7 @@ return (
         isAdmin={isAdmin} setReplyingToCommunity={setReplyingToCommunity} timerRefCommunity={timerRefCommunity}
         audioChunksRefCommunity={audioChunksRefCommunity} mediaRecorderRefCommunity={mediaRecorderRefCommunity}
         croppedImagesCommunity={croppedImagesCommunity} setCroppedImagesCommunity={setCroppedImagesCommunity}
-
+        showSendOptions={showSendOptions} setShowSendOptions={setShowSendOptions}
         />
     </div>
 )

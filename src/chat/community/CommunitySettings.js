@@ -18,7 +18,7 @@ export default function CommunitySettings({
     <div className="w-full h-full">
 
       {/* HEADER */}
-      <div className="h-16 border-b border-gray-700 flex items-center gap-3 px-4">
+      <div className="h-16 shadow-md flex items-center gap-3 px-4">
 
         {/* MOBILE BACK */}
         <button
