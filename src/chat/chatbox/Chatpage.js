@@ -36,6 +36,8 @@ export default function ChatPage({
   const [lastReadMessageId, setLastReadMessageId] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "chatlist");
+
 
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -252,27 +254,29 @@ const scrollToMessage = (messages, lastReadId, forceBottom = false) => {
 };
 
 //messagesCacheRef.current[chat.id] = decrypted;
-const openChat = async (chat) => {
+const openChat = async (
+  chat,
+  skipMobile = false,
+  userTriggered = false
+) => {
 
   if (loadingChatRef.current && loadingChatRef.current !== chat.id) {
         loadingChatRef.current = null;
       }
 
   if (
-    activeChat?.id === chat.id ||
-    loadingChatRef.current === chat.id
-  ) {
-    return;
-  }
-  if (chat.block_info?.blocked_me) {
-    showToast(
-      "You have been blocked in this chat",
-      "error"
-    );
-    return;
-  }
+        loadingChatRef.current === chat.id
+      ) {
+        return;
+      }
 
- 
+
+    if (isLargeScreen) {
+      setMobileView("messages");
+    }
+    else if (userTriggered) {
+      setMobileView("messages");
+    }
 
   const cached =
     messagesCacheRef.current[
@@ -509,7 +513,7 @@ useEffect(() => {
 
   return (
     <ChatComponent
-      messageRefs={messageRefs}
+      messageRefs={messageRefs} mobileView={mobileView} setMobileView={setMobileView}
       replyingTo={replyingTo}
       setReplyingTo={setReplyingTo}
       chats={chats}

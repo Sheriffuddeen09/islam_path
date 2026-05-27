@@ -189,12 +189,6 @@ const handlePick = (type) => {
   return (
       <>
   
-    {!isAdmin && onlyAdminSend && status === "approved" && (
-      <div className="text-center text-gray-500 text-sm py-2">
-        Only admins can send messages in this group
-      </div>
-    )}
-  
     {!blockAllInput && (
       <>
   

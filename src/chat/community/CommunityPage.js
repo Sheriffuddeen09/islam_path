@@ -15,6 +15,11 @@ export default function CommunityPage({
   authUser
 }) {
 
+  const [
+  loadingMessages,
+  setLoadingMessages
+  ] = useState(false);
+
   const [loading, setLoading] =
   useState(true);
   const [communities,
@@ -141,12 +146,16 @@ export default function CommunityPage({
   }
 };
 
+
+
   const openCommunity = async (
   community,
   skipMobile = false
 ) => {
 
-  setActiveCommunity(community);
+  setActiveCommunity(
+    community
+  );
 
   localStorage.setItem(
     "last_opened_community",
@@ -156,17 +165,32 @@ export default function CommunityPage({
   lastOpenedCommunity.current =
     community;
 
-  // ✅ DESKTOP
-  if (window.innerWidth >= 768) {
-    setMobileView("messages");
+  // DESKTOP
+  if (
+    window.innerWidth >= 768
+  ) {
+
+    setMobileView(
+      "messages"
+    );
   }
 
-  // ✅ MOBILE
+  // MOBILE
   else if (!skipMobile) {
-    setMobileView("messages");
+
+    setMobileView(
+      "messages"
+    );
   }
 
-  // ✅ CACHE
+  // START LOADING
+  setLoadingMessages(true);
+
+  // OPTIONAL:
+  // clear old messages
+  setMessages([]);
+
+  // CACHE
   if (
     messagesCache.current[
       community.id
@@ -177,6 +201,10 @@ export default function CommunityPage({
       messagesCache.current[
         community.id
       ]
+    );
+
+    setLoadingMessages(
+      false
     );
 
     return;
@@ -202,6 +230,12 @@ export default function CommunityPage({
 
     console.log(err);
 
+  } finally {
+
+    // STOP LOADING
+    setLoadingMessages(
+      false
+    );
   }
 };
 
@@ -232,7 +266,7 @@ export default function CommunityPage({
 
       <div className={`
         w-full
-        md:w-[350px]
+        md:w-[370px]
         ${mobileView === "sidebar"
           ? "flex"
           : "hidden"}
@@ -283,13 +317,15 @@ export default function CommunityPage({
             goBack
           }
 
+          loadingMessages={loadingMessages}
+
         />
 
       </div>
       <div className={`
 
         w-full
-        md:w-[350px]
+        md:w-[370px]
         shadow-md
 
         ${mobileView === "settings"

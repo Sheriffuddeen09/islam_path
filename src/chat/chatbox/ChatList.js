@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChatSkeleton } from "./ChatSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import ChatItem from "./ChatItem";
 import CommunityButton from "../community/CommunityButton";
 import CommunityPage from "../community/CommunityPage";
 import CreateCommunityModal from "../community/CreateCommunityModal";
+import api from "../../Api/axios";
 
 export default function ChatList({
   chats = [],
@@ -13,8 +14,7 @@ export default function ChatList({
   loadingChats,
   chatFilter,
   setChatFilter,
-  unreadTotal,
-  activeChat
+  activeChat, unreadDividerRef
 }) {
   const { user: authUser } = useAuth();
 
@@ -22,22 +22,26 @@ export default function ChatList({
 
   const navigate = useNavigate();
 
-  const [showCommunity, setShowCommunity] = useState(false);
   const [showChannel, setShowChannel] = useState(false);
 
   const [showCommunityModal,
   setShowCommunityModal] =
   useState(false);
 
-  const onOpenCommunity = () => {
-    setShowCommunity(true);
-  };
+  const [
+  hasViewedUnread,
+  setHasViewedUnread
+] = useState(false);
 
+  useEffect(() => {
 
-  const onOpenChannel = () => {
-    setShowChannel(true);
-  };
+  setHasViewedUnread(false);
 
+  }, [activeChat?.id]);
+
+  
+
+  
  const safeUnreadTotal = useMemo(() => {
   return chats.filter(chat => {
 
@@ -269,7 +273,6 @@ export default function ChatList({
 
       <CommunityButton
         chatListRef={chatListRef}
-        onOpenCommunity={() => setShowCommunity(true)}
         onOpenChannel={() => setShowChannel(true)}
         setShowCommunityModal={setShowCommunityModal}
       />

@@ -9,7 +9,7 @@ import {
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
-    chatId,setShowProfile, showProfile, setShowList, showList, bottomRef, openChat,
+    chatId, setMobileView, bottomRef, openChat,isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId
 }) {
 
@@ -37,7 +37,29 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const [showPreview, setShowPreview] = useState(false);
 
     const timerRef = useRef(null)
+    const unreadDividerRef =
+  useRef(null);
     
+    const openSettings = () => {
+    setMobileView(
+      "settings"
+    );
+  };
+
+  const goBack = () => {
+    if (
+      mobileView === "settings"
+    ) {
+      setMobileView(
+        "messages"
+      );
+    } else {
+      setMobileView(
+        "chatlist"
+      );
+    }
+  };
+
       
     const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -47,9 +69,9 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const sendText = async () => {
   if (!text.trim()) return;
 
-  const reply = replyingTo; // ✅ keep reference
+  const reply = replyingTo;
 
-  setReplyingTo(null); // ✅ CLEAR UI IMMEDIATELY
+  setReplyingTo(null); 
 
   const tempId = Date.now();
 
@@ -571,10 +593,14 @@ setMessages((prev) => {
 
     return (
     <div className="h-screen flex bg-[var(--bg-color)] text-[var(--text-color)] ">
-      <div className={`
-        shadow-md bg-[var(--bg-color)] text-[var(--text-color)] pt-3
-        w-full lg:w-80
-        ${showList ? "block" : "hidden lg:block"}
+       <div className={`
+        w-full
+        md:w-[350px]
+        ${mobileView === "chatlist"
+          ? "flex"
+          : "hidden"}
+        md:flex
+        flex-col
       `}>
         <ChatList
           chats={chats}
@@ -585,13 +611,25 @@ setMessages((prev) => {
           activeChat={activeChat}
           setChats={setChats}
           loadingChats={loadingChats}
+          messages={messages}
+          setUnreadCount={setUnreadCount}
+          unreadDividerRef={unreadDividerRef}
+          setLastReadMessageId={setLastReadMessageId}
         />
       </div>
-      <div className={`
-        flex-1 flex flex-col
-        ${showList ? "hidden lg:flex" : "flex"}
-      `}>
+     <div className={`
+             flex-1
+             ${mobileView === "messages"
+               ? "flex"
+               : "hidden"}
+             
+             shadow-md
+             md:flex
+             flex-col
+     
+           `}>
         <MessageBox
+          unreadDividerRef={unreadDividerRef}
           setChats={setChats}
           openChat={openChat}
           messageRefs={messageRefs}
@@ -603,8 +641,8 @@ setMessages((prev) => {
           loadingMessages={loadingMessages}
           isTyping={isTyping}
           setIsTyping={setIsTyping}
-          onHeaderClick={() => setShowProfile(true)}
-          onBack={() => setShowList(true)}
+          onHeaderClick={openSettings}
+          onBack={goBack}
           chatId={chatId}
           bottomRef={bottomRef}
           setToast={setToast}
@@ -622,11 +660,24 @@ setMessages((prev) => {
           text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
-          unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
         />
       </div>
-      <div className="hidden lg:block lg:w-80 shadow-md ">
+     <div className={`
+     
+             w-full
+             md:w-[350px]
+             shadow-md
+     
+             ${mobileView === "settings"
+               ? "flex"
+               : "hidden"}
+     
+             md:flex
+             flex-col
+     
+           `}>
         <ActiveUsers
           chats={chats}
           activeChat={activeChat}
@@ -635,24 +686,10 @@ setMessages((prev) => {
           openChat={openChat}
           loadingChats={loadingChats}
           setMessages={setMessages}
-          onBack={() => setShowProfile(false)}
+          onBack={goBack}
         />
       </div>
-      {showProfile && activeChat && (
-        <div className="fixed inset-0 bg-black/50 z-50">
-          <ActiveUsers
-          chats={chats}
-          activeChat={activeChat}
-          setActiveChat={setActiveChat}
-          setChats={setChats}
-          openChat={openChat}
-          loadingChats={loadingChats}
-          setMessages={setMessages}
-          onBack={() => setShowProfile(false)}
-          
-        />
-        </div>
-      )}
+
     </div>
   );
 }

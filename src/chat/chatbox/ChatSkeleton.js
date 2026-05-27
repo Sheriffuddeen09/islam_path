@@ -26,7 +26,7 @@ export function ChatSkeleton({ type = "list" }) {
   if (type === "messages") {
     return (
       <div className="flex flex-col p-6 space-y-2 animate-pulse">
-        {[1, 2, 3, 4, 5].map(i => (
+        {[1, 2, 3, 4, 5, 6].map(i => (
           <div
             key={i}
             className={`flex ${
@@ -35,7 +35,7 @@ export function ChatSkeleton({ type = "list" }) {
           >
             <div
               className={`rounded-lg p-3 max-w-xs ${
-                i % 2 === 0 ? "bg-gray-300" : "bg-gray-200"
+                i % 2 === 0 ? "bg-gray-200" : "bg-gray-200"
               }`}
             >
               <div className="h-3 bg-gray-400 rounded w-40 mb-2" />

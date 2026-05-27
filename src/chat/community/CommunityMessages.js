@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../../Api/axios";
 import InputComponent from "./InputComponent";
 import MessagesArea from "./MessageArea";
+import { ChatSkeleton } from "../chatbox/ChatSkeleton";
 
 export default function CommunityMessages({
 
@@ -10,11 +11,13 @@ export default function CommunityMessages({
   setMessages,
   onBack,
   onOpenSettings,
-  authUser
+  authUser,
+  loadingMessages
 
 }) {
 
     const [replyingToCommunity, setReplyingToCommunity] = useState(null);
+    const [textCommunity, setTextCommunity] = useState("");
   
     const updateStatus = (id, status) => {
     setMessages(prev =>
@@ -355,7 +358,7 @@ export default function CommunityMessages({
 
   return (
 
-    <div className="flex-1 flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
       <div className="h-16 shadow-md flex items-center py-2 px-4">
@@ -443,17 +446,40 @@ export default function CommunityMessages({
         </div>
 
       </div>
+     <div
+         className="
+    flex-1
+    min-h-0
+    overflow-y-auto
+    scrollbar-thin
+    scrollbar-thumb-green-500
+    scrollbar-track-transparent
+    bg-[var(--primary-color)]
+    relative
+    px-1
+  "
+        >
+          {loadingMessages ? (
 
+            <ChatSkeleton
+              type="messages"
+            />
+
+          ) : (
+          
           <MessagesArea 
           messages={messages}
           authUser={authUser}
           retryCommunityMessage={retryCommunityMessage}
-          setReplyingTo={setReplyingToCommunity}
+          setReplyingToCommunity={setReplyingToCommunity}
           activeCommunity={activeCommunity}
           setMessages={setMessages}
-
+          replyingToCommunity={replyingToCommunity}
+          textCommunity={textCommunity} setTextCommunity={setTextCommunity}
           />            
-         
+       
+          )}
+          </div>
         <InputComponent
           activeCommunity={
             activeCommunity
@@ -462,7 +488,8 @@ export default function CommunityMessages({
           authUser={authUser}
           setReplyingToCommunity={setReplyingToCommunity}
           replyingToCommunity={replyingToCommunity}
-        />
+          textCommunity={textCommunity} setTextCommunity={setTextCommunity}
+       />
 
       </div>
   );

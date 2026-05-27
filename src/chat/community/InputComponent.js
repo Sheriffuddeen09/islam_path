@@ -3,13 +3,12 @@ import CommunityInput from "./CommunityInput";
 import api from "../../Api/axios";
 
 export default function InputComponent({activeCommunity,
-  setMessages,
+  setMessages, textCommunity, setTextCommunity,
   authUser, replyingToCommunity, setReplyingToCommunity}){
 
     
   const [files, setFiles={setFiles}] = useState([]);
   const [captionCommunity, setCaptionCommunity] = useState("");
-  const [textCommunity, setTextCommunity] = useState("");
   const [previewUrlsCommunity, setPreviewUrlsCommunity] = useState([]);
   const [croppedImagesCommunity, setCroppedImagesCommunity] = useState({});
   const [showPreviewCommunity, setShowPreviewCommunity] = useState(false);
@@ -93,15 +92,7 @@ export default function InputComponent({activeCommunity,
     isRemoved ||
     !canSendMessage;
 
-    console.log({
-    role,
-    status,
-    isAdmin,
-    onlyAdminSend,
-    canSendMessage,
-    blockAllInput,
-  });
-
+    
 const stopRecordingCommunity = async () => {
 
   const reply = replyingToCommunity;

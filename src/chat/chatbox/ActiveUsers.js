@@ -29,7 +29,7 @@ const socket = io("http://localhost:8000");
 // members
 export default function ActiveUsers({
   activeChat,
-  loadingChats, // 👈 NEW PROP
+  loadingChats,
   setActiveChat,
   setChats,
   chats,

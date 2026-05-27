@@ -5,7 +5,7 @@ export default function ChatItem({
   chat,
   authUser,
   activeChat,
-  openChat,
+  openChat, 
 }) {
   const other = chat.other_user || {};
 

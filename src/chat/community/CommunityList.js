@@ -275,11 +275,6 @@ export default function CommunityList({
 
                   `}
                 >
-
-                  {/* ===================================
-                      IMAGE / FALLBACK
-                  =================================== */}
-
                   <div className="relative flex-shrink-0">
 
                     {community.community_image ? (
@@ -368,7 +363,7 @@ export default function CommunityList({
 
                       </h2>
 
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                      <span className="text-xs text-[var(--text-color)] whitespace-nowrap">
 
                         {formatTime(
                           community.last_message?.created_at

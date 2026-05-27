@@ -1131,7 +1131,7 @@ onPointerCancel={() => {
           );
         }
       }}
-      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-1 inline-flex items-center gap-1 bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
+      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-10 inline-flex items-center gap- bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
     >
 
       {unreadCount > 0 && latestMessage?.sender_id !== myId &&  (
@@ -1146,7 +1146,7 @@ onPointerCancel={() => {
         viewBox="0 0 24 24"
         strokeWidth="1.5"
         stroke="currentColor"
-        className="size-4"
+        className="size-3"
       >
         <path
           strokeLinecap="round"

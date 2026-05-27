@@ -1,25 +1,91 @@
 import Linkify from "linkify-react";
 import CommunityReactionPopup from "./CommunityReactionPopUp";
+import { useEffect, useState } from "react";
+import CommunityRespondModal from "./CommunityRespondModal";
+import ApprovalModal from "./ApprovalModal";
+import api from "../../Api/axios";
 
 export default function MessageList({msg, showForwardModal, forwardMsg, setReactionMsg, setShowForwardModal,
                                     reactionMsg, isMobile, isMine, authUser, retryCommunityMessage ,react,
-                                    setReplyingTo, activeCommunity, formatMessageTime, handleForward, hoverMsgId,
-                                    setHoverMsgId}){
+                                    setReplyingTo, approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
+                                    setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
+                                  pendingMessages, setPendingMessages, messageRefs}){
 
-    const role = activeCommunity?.my_role;
+                                
+                                      
+  const [respondModal, setRespondModal] = useState(false);
 
-  const isAdmin =
-    role === "admin" ||
-    role === "owner";
+  const [respondingMessage, setRespondingMessage] = useState("");
+  const [ approvalModal, setApprovalModal ] = useState(false);
+
+
+  const scrollToMessage =
+  (id) => {
+
+  const el =
+    messageRefs.current[id];
+
+  if (!el) return;
+
+  el.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+
+  // highlight effect
+  el.classList.add(
+    "bg-yellow-500/20"
+  );
+
+  setTimeout(() => {
+    el.classList.remove(
+      "bg-yellow-500/20"
+    );
+  }, 2000);
+};
+
+  const isSystemResponse = msg.response_mode === true;
+  const isReply = !!msg.replied_to;
+
+  useEffect(() => {
+
+  if (!isAdmin)
+    return;
+
+    const fetchPending =
+      async () => {
+
+      try {
+
+        const { data } =
+          await api.get(
+            `/api/community/${activeCommunity.id}/pending`
+          );
+
+        setPendingMessages(
+          data.pending || []
+        );
+
+      } catch (err) {
+
+        console.log(err);
+      }
+    };
+
+    fetchPending();
+
+  }, [
+    activeCommunity?.id,
+    isAdmin,
+  ]);
 
      return (
         <div>
           <div
             key={msg.id}
             className={`
-              max-w-[75%]
+              max-w-md w-full mx-auto
               rounded-2xl
-              px-4
               py-3
               relative
               group
@@ -29,7 +95,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
               ${
                 isMine
                   ? "ml-auto bg-[#202c33]"
-                  : "bg-green-800"
+                  : "bg-[#202c33]"
               }
             `}
 
@@ -63,60 +129,55 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
             {/* SENDER */}
             <p className="
               text-[12px]
+              px-4
               font-semibold
               text-white
               mb-1
             ">
-
-              {msg.sender?.first_name ||
-                msg.sender?.name} {msg.sender?.last_name ||
-                msg.sender?.name}
-
+             {msg.replied_to === null && (
+              <span>
+                {msg.sender?.first_name || msg.sender?.name}
+                {" "}
+                {msg.sender?.last_name || ""}
+              </span>
+            )}
             </p>
 
             {/* REPLY */}
-            {msg.replied_to && (
 
-              <div className="
-                bg-black/30
-                rounded-lg
-                p-2
-                mb-2
-                border-l-4
-                border-blue-500
-              ">
+                {isReply && msg.repliedMessage && (
+                <div
+                onClick={() =>
+                  scrollToMessage(
+                    msg.replied_message.id
+                  )
+                }
+                className="
+                  bg-black/20
+                  border-l-4
+                  border-green-500
+                  p-2
+                  mb-2
+                  rounded-xl
+                  cursor-pointer
+                "
+              >
+                  <div className="text-[11px] text-green-400 font-semibold">
+                    Reply to
+                  </div>
 
-                <p className="
-                  text-xs
-                  text-blue-400
-                  font-semibold
-                ">
-
-                  {msg.replied_to
-                    .sender?.first_name ||
-                    "User"}
-
-                </p>
-
-                <p className="
-                  text-xs
-                  text-gray-300
-                  truncate
-                ">
-
-                  {msg.replied_to.message ||
-                    msg.replied_to.type}
-
-                </p>
-
-              </div>
-            )}
-
+                  <div className="text-xs opacity-80 truncate">
+                    {msg.repliedMessage.message}
+                  </div>
+                </div>
+              )}
+             
             {/* MESSAGE */}
             <div className="
               break-words
               text-white
               text-sm
+              px-4
               leading-relaxed
             ">
 
@@ -145,6 +206,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 alt=""
                 className="
                   rounded-xl
+                  px-4
                   mt-2
                   max-h-[300px]
                   object-cover
@@ -161,6 +223,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 controls
                 className="
                   rounded-xl
+                  px-4
                   mt-2
                   max-h-[300px]
                 "
@@ -185,6 +248,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 controls
                 className="
                   mt-2
+                  px-4
                   w-full
                 "
               >
@@ -204,6 +268,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
               flex
               items-center
               justify-between
+              px-4
               mt-3
             ">
 
@@ -211,7 +276,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
               {!isMobile && hoverMsgId === msg.id && (
                 <div
                     className={`absolute -bottom-6 flex bg-[var(--bg-color)] text-[var(--text-color)] p-1 px-2 gap-2 
-                        z-50 rounded-lg shadow-xl ${
+                        z-50 rounded-lg shadow-xl px-4 ${
                     isMine ? "right-0" : "left-0"
                     }`}
                 >
@@ -253,12 +318,18 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 items-center
                 flex gap-1
                 justify-end
+      
                 flex-1
               ">
 
-                {formatMessageTime(
-                  msg.created_at
-                )}
+     
+              
+                <div className="text-center text-[9px] text-white my-2">
+                  {new Date(msg.created_at).toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </div>
                  {msg.status ===
                 "failed" && (
 
@@ -349,30 +420,27 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
               </div>
             )}
 
-            {/* ACTIONS */}
+            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && (
             <div className="
-              flex
-              items-center
-              gap-4
+              mx-auto
+              text-center
               mt-3
-              text-xs
-              text-gray-400
+              text-sm
+              text-green-800 font-bold 
+              border-t py-2
             ">
-
-              {/* RESPOND */}
-              {msg.response_mode && isAdmin && (
                 <button
-                    onClick={() => setReplyingTo(msg)}
-                    className="text-xs text-blue-400 hover:text-white"
+                  onClick={() => {
+                    setRespondingMessage(msg);
+                    setRespondModal(true);
+                  }}
+                  
                 >
-                    Respond
+                  Respond
                 </button>
-                )}
-
-
-              {/* RETRY */}
-             
             </div>
+
+            )}
 
            {reactionMsg?.id === msg.id && (
         <div className={`absolute  bottom-0 z-[9999] 
@@ -444,6 +512,63 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
         </div>
       )}
 
+      <CommunityRespondModal
+      open={respondModal}
+      setOpen={setRespondModal}
+      message={respondingMessage}
+      onSend={sendTextCommunity}
+       text={textCommunity}
+        setText={setTextCommunity}
+      
+    />
+
+      
+    {isAdmin &&
+ pendingMessages.length > 0 && (
+
+  <div
+    onClick={() =>
+      setApprovalModal(true)
+    }
+    className="
+      bg-[var(--bg-color)]
+      text-[var(--text-color)]
+      text-xs
+      px-3
+      py-1
+      cursor-pointer
+      font-semibold
+      fixed
+      top-16 w-full max-w-md  flex-1
+      left-1/2
+      -translate-x-1/2
+      z-50
+      shadow-md
+      flex justify-between items-center
+    "
+  >
+    <span>
+    Pending Approval
+    </span>
+
+    <span>
+    {pendingMessages.length}
+    </span>
+    
+    </div>
+  )}
+
+
+    <ApprovalModal
+      open={approvalModal}
+      setOpen={setApprovalModal}
+      messages={pendingMessages}
+      setMessages={setPendingMessages}
+      onApprove={approveMessage}
+      onReject={rejectMessage}
+    />
+
     </div>
      )
 }
+

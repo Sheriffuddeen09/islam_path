@@ -4,14 +4,10 @@ import ChatInput from "./ChatInput";
 import api from "../../Api/axios";
 import { ChatSkeleton } from "./ChatSkeleton";
 import { PinnedMessagesBar } from "./PinnedMessagesBar";
-import { Loader2 } from "lucide-react";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import CallModal from "./CallModal";
 import MenuComponent from "./MenuComponent";
 import logo from "../../layout/image/favicon.png";
-
-
-
 
 export default function MessageBox({
   openChat,
@@ -30,7 +26,7 @@ export default function MessageBox({
   setActiveChat,
   chats,
   setReplyingTo, replyingTo, setChats,
-  paused, trimMap, trimAppliedMap,
+  paused, trimMap, trimAppliedMap, unreadDividerRef,
   stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
@@ -47,12 +43,8 @@ export default function MessageBox({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState(false);
   const [showMore, setShowMore] = useState(false);
-
   const [forwardMode, setForwardMode] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
-
-  const [activeReplyId, setActiveReplyId] = useState(null);
-  
   const [forwardMessage, setForwardMessage] = useState({
     open: false,
     messages: []
@@ -61,7 +53,94 @@ export default function MessageBox({
   
   const members = activeChat?.members || [];
 
-  
+  useEffect(() => {
+
+  if (
+    !activeChat?.id ||
+    !messages?.length ||
+    !unreadDividerRef.current
+  ) return;
+
+  const observer =
+    new IntersectionObserver(
+      async ([entry]) => {
+        if (
+          entry.isIntersecting
+        ) {
+
+          const lastMessage =
+            messages[
+              messages.length - 1
+            ];
+
+          if (
+            !lastMessage
+          ) return;
+
+          // ignore own messages
+          if (
+            lastMessage.sender_id ===
+            authUser.id
+          ) {
+            return;
+          }
+
+          try {
+
+            await api.post(
+              `/api/chats/${activeChat.id}/read`,
+              {
+                last_read_message_id:
+                  lastMessage.id,
+              }
+            );
+
+            // clear UI
+            setUnreadCount(0);
+
+            setLastReadMessageId(
+              lastMessage.id
+            );
+
+            setChats(prev =>
+              prev.map(chat =>
+                chat.id ===
+                activeChat.id
+                  ? {
+                      ...chat,
+                      unread_count: 0,
+                      last_read_message_id:
+                        lastMessage.id,
+                    }
+                  : chat
+              )
+            );
+
+          } catch (err) {
+
+            console.log(err);
+          }
+
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.7,
+      }
+    );
+
+  observer.observe(
+    unreadDividerRef.current
+  );
+
+  return () =>
+    observer.disconnect();
+
+}, [
+  activeChat?.id,
+  messages,
+]);
+
 
   const [selectedMsg, setSelectedMsg] = useState(null);
 
@@ -759,7 +838,6 @@ const isFirstUnread =
           msg={msg}
           authUser={authUser}
           isMine={msg.sender_id === authUser.id}
-          setActiveReplyId={setActiveReplyId}
           messageRefs={messageRefs}
           setMessages={setMessages}
           chatId={chatId}
