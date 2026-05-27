@@ -224,8 +224,6 @@ const react = async (messageId, emoji) => {
 
   const isMobile = window.matchMedia("(pointer: coarse)").matches;
 
-  const filteredMessages = messages;
-
   const searchFilteredMessages =
   searchQuery.trim().length > 0
     ? messages.filter(m =>

@@ -34,12 +34,12 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
 
   // highlight effect
   el.classList.add(
-    "bg-yellow-500/20"
+    "bg-green-200/20"
   );
 
   setTimeout(() => {
     el.classList.remove(
-      "bg-yellow-500/20"
+      "bg-green-200/20"
     );
   }, 2000);
 };
@@ -145,7 +145,7 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
 
             {/* REPLY */}
 
-                {isReply && msg.repliedMessage && (
+                { msg.replied_to && (
                 <div
                 onClick={() =>
                   scrollToMessage(
@@ -156,18 +156,19 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                   bg-black/20
                   border-l-4
                   border-green-500
-                  p-2
+                  p-4
                   mb-2
                   rounded-xl
                   cursor-pointer
+                  text-white
                 "
               >
-                  <div className="text-[11px] text-green-400 font-semibold">
-                    Reply to
-                  </div>
+                  <div className="text-xs opacity-80 truncate inline-flex gap-2 items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+</svg>
 
-                  <div className="text-xs opacity-80 truncate">
-                    {msg.repliedMessage.message}
+                    {msg.replied_message.message}
                   </div>
                 </div>
               )}
