@@ -59,6 +59,22 @@ export default function MessageItem({
 
   const longPressTriggered = useRef(false);
 
+  const [expandedMessages, setExpandedMessages] = useState({});
+
+  const isExpanded =
+  expandedMessages[msg.id];
+
+const messageText =
+  msg.message || "";
+
+const shouldTrim =
+  messageText.length > 250;
+
+const displayText =
+  shouldTrim && !isExpanded
+    ? messageText.slice(0, 250) + "..."
+    : messageText;
+
 
   
 useEffect(() => {
@@ -974,21 +990,43 @@ onPointerCancel={() => {
   <>
     {msg.message && msg.type === "text" && (
       <div
-        className={
+        className={`text-[13px] mt-1 px-4 text-white ${
           hasLink ? "w-56" : "w-auto"
-        }
+        }`}
       >
         <Linkify
           options={{
             target: "_blank",
             className:
-              "text-blue-400 underline pointer-events-auto",
+              "text-blue-400 pointer-events-auto",
           }}
         >
-          <p className="text-sm break-words">
-            {msg.message}
-          </p>
-        </Linkify>
+    {displayText}
+  </Linkify>
+
+  {shouldTrim && (
+    <button
+      onClick={() =>
+        setExpandedMessages((prev) => ({
+          ...prev,
+          [msg.id]:
+            !prev[msg.id],
+        }))
+      }
+      className="
+        ml-2
+        text-green-400
+        text-xs
+        font-semibold
+        hover:underline
+      "
+    >
+      {isExpanded
+        ? "See less"
+        : "See more"}
+    </button>
+  )}
+
       </div>
     )}
 

@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import VoiceWave from "../chatbox/VoiceWave";
 import EmojiPicker from "emoji-picker-react";
 import MediaCommunityPreviewModal from "./MediaCommunityPreviewModal";
-import ConfirmSendCommunityModal from "./ConfirmSendCommunityModal";
 import AttachmentMenuCommunity from "./AttachmentMenuCommunity";
 
 
@@ -265,6 +264,7 @@ const handlePick = (type) => {
                 onChange={(e) => setTextCommunity(e.target.value)}
                 className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
             />
+          {!textCommunity && 
           <button className="absolute top-3 right-3" onClick={() => setShowEmojiCommunity(prev => !prev)}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
             class="size-6">
@@ -272,6 +272,7 @@ const handlePick = (type) => {
             </svg>
   
           </button>
+          }
         </div>
     
         <div className="relative">
@@ -473,16 +474,6 @@ const handlePick = (type) => {
     onPick={handlePick}
   />
   
-  <ConfirmSendCommunityModal
-    show={showConfirmCommunity}
-    files={files}
-    username={activeCommunity.other_user?.first_name || "User"}
-    onCancel={() => setShowConfirmCommunity(false)}
-    onConfirm={() => {
-      sendFileCommunity();
-      setShowConfirmCommunity(false);
-    }}
-  />
   
   <MediaCommunityPreviewModal
     show={showPreviewCommunity}

@@ -1,23 +1,188 @@
 import Linkify from "linkify-react";
 import CommunityReactionPopup from "./CommunityReactionPopUp";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CommunityRespondModal from "./CommunityRespondModal";
 import ApprovalModal from "./ApprovalModal";
 import api from "../../Api/axios";
+import CommunityMessageMenu from "./CommunityMessageMenu";
+import MessageActionModal from "./MessageActionModal";
+import CommunityMediaMessage from "./CommunityMediaMessage";
 
 export default function MessageList({msg, showForwardModal, forwardMsg, setReactionMsg, setShowForwardModal,
                                     reactionMsg, isMobile, isMine, authUser, retryCommunityMessage ,react,
-                                    setReplyingTo, approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
+                                    approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
                                     setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
-                                  pendingMessages, setPendingMessages, messageRefs}){
+                                    pendingMessages, setPendingMessages, messageRefs, selectedMessage,
+                                    setSelectedMessage, showMessageMenu, setShowMessageMenu, setReplyingToCommunity,
+                                    setMenuPosition, menuPosition, communityMessageAction, setMessages}){
 
                                 
                                       
   const [respondModal, setRespondModal] = useState(false);
 
+  
+
   const [respondingMessage, setRespondingMessage] = useState("");
   const [ approvalModal, setApprovalModal ] = useState(false);
+  const [toast, setToast] = useState(false)
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionType, setActionType] = useState(null);
+  const [actionMessage, setActionMessage] = useState(null);
 
+  const [expandedMessages, setExpandedMessages] = useState({});
+
+  const [previewMessage, setPreviewMessage] =
+  useState(null);
+
+  const [showPreview, setShowPreview] =
+  useState(false);
+
+  
+  const startX = useRef(0);
+  const dragX = useRef(0);
+  const isDragging = useRef(false);
+  const pressTimer = useRef(null);
+  const longPressTriggered = useRef(false);
+  const [translateX, setTranslateX] = useState(0);
+
+  const hasLink =
+  /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi.test(
+    msg.message || ""
+  );
+
+
+
+  const isExpanded =
+  expandedMessages[msg.id];
+
+const messageText =
+  msg.message || "";
+
+const shouldTrim =
+  messageText.length > 250;
+
+const displayText =
+  shouldTrim && !isExpanded
+    ? messageText.slice(0, 250) + " "
+    : messageText;
+
+  const isInteractive = (target) => {
+  return !!target.closest(
+    `button,
+      a,
+      input,
+      textarea,
+      video,
+      audio,
+      svg
+      `)};
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleConfirmAction = async (
+  msg,
+  editedText
+) => {
+
+  try {
+
+    if (actionType === "delete") {
+
+      await communityMessageAction({
+        action: "delete",
+        message_id: msg.id,
+      });
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === msg.id
+            ? {
+                ...m,
+                deleted_at:
+                  new Date().toISOString(),
+              }
+            : m
+        )
+      );
+    }
+
+    if (actionType === "clear") {
+
+      await communityMessageAction({
+        action: "clear",
+        message_id: msg.id,
+      });
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === msg.id
+            ? {
+                ...m,
+                message: "",
+                file: null,
+              }
+            : m
+        )
+      );
+    }
+
+    if (actionType === "edit") {
+
+      await communityMessageAction({
+        action: "edit",
+        message_id: msg.id,
+        message: editedText,
+      });
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === msg.id
+            ? {
+                ...m,
+                message: editedText,
+                edited: true,
+              }
+            : m
+        )
+      );
+    }
+
+  } catch (err) {
+
+    console.log(err);
+
+  }
+
+  setShowActionModal(false);
+};
+
+  const copyMessageText = async (
+  mgs
+) => {
+
+  try {
+
+    await navigator.clipboard.writeText(
+      mgs || ""
+    );
+
+    showToast(
+      "Message copied",
+      "success"
+    );
+
+  } catch (err) {
+
+    showToast(
+      "Failed to copy",
+      "error"
+    );
+
+  }
+};
 
   const scrollToMessage =
   (id) => {
@@ -44,14 +209,13 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
   }, 2000);
 };
 
-  const isSystemResponse = msg.response_mode === true;
-  const isReply = !!msg.replied_to;
 
   useEffect(() => {
 
   if (!isAdmin)
     return;
 
+   
     const fetchPending =
       async () => {
 
@@ -79,6 +243,67 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
     isAdmin,
   ]);
 
+
+  // FRONTEND DOWNLOAD
+
+const handleDownloadMessage =
+  async (message) => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const response =
+        await fetch(
+          `http://localhost:8000/api/community/messages/download/${message.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Download failed"
+        );
+      }
+
+      const blob =
+        await response.blob();
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+      const a =
+        document.createElement("a");
+
+      a.href = url;
+
+      a.download =
+        message.type === "video"
+          ? "video.mp4"
+          : "image.jpg";
+
+      document.body.appendChild(a);
+
+      a.click();
+
+      a.remove();
+
+      window.URL.revokeObjectURL(
+        url
+      );
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
+};
+
      return (
         <div>
           <div
@@ -86,12 +311,10 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
             className={`
               max-w-md w-full mx-auto
               rounded-2xl
-              py-3
               relative
               group
               transition-all
               cursor-pointer
-
               ${
                 isMine
                   ? "ml-auto bg-[#202c33]"
@@ -99,172 +322,285 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
               }
             `}
 
-            // ✅ DESKTOP / LARGE SCREEN HOVER
+           style={{
+    transform: `translateX(${translateX}px)`,
+
+    transition:
+      translateX === 0
+        ? "transform 0.2s ease"
+        : "none",
+
+    touchAction: "none",
+  }}
+
+  onPointerDown={(e) => {
+
+    if (isInteractive(e.target))
+      return;
+
+    longPressTriggered.current =
+      false;
+
+    isDragging.current = true;
+
+    startX.current = e.clientX;
+
+    dragX.current = 0;
+
+    pressTimer.current =
+      setTimeout(() => {
+
+        longPressTriggered.current =
+          true;
+
+        setReactionMsg(msg);
+        setSelectedMessage(msg);
+        setShowMessageMenu(false);
+
+      }, 500);
+  }}
+
+  onPointerMove={(e) => {
+
+    if (isInteractive(e.target))
+      return;
+
+    if (!isDragging.current)
+      return;
+
+    const diff =
+      e.clientX - startX.current;
+
+    // cancel long press if dragging
+    if (Math.abs(diff) > 10) {
+
+      clearTimeout(
+        pressTimer.current
+      );
+    }
+
+    // RIGHT SWIPE ONLY
+    if (diff > 0) {
+
+      const MAX = 80;
+
+      const x = Math.min(
+        diff,
+        MAX
+      );
+
+      dragX.current = diff;
+
+      setTranslateX(x);
+          }
+        }}
+
+        onPointerUp={(e) => {
+
+          isDragging.current = false;
+
+          clearTimeout(
+            pressTimer.current
+          );
+
+          const diff = dragX.current;
+
+          setTranslateX(0);
+
+          dragX.current = 0;
+
+          // SWIPE TO REPLY
+          if (diff > 60) {
+
+            setReplyingToCommunity(
+              msg
+            );
+          }
+        }}
+
+        onPointerCancel={() => {
+
+          clearTimeout(
+            pressTimer.current
+          );
+
+          isDragging.current = false;
+
+          setTranslateX(0);
+
+          dragX.current = 0;
+        }}
+
+        onClick={(e) => {
+
+          e.stopPropagation();
+
+          if (isInteractive(e.target))
+            return;
+
+          // prevent click after long press
+          if (
+            longPressTriggered.current
+          ) {
+            return;
+          }
+
+          // normal click logic here
+        }}
            onMouseEnter={() => {
             setHoverMsgId(msg.id);
             }}
-
             onMouseLeave={() => {
             setHoverMsgId(null);
             }}
-
-            // ✅ MOBILE + IPAD LONG PRESS pointer-events
-           onPointerDown={(e) => {
-            if (!isMobile) return;
-
-            e.currentTarget.pressTimer = setTimeout(() => {
-                setReactionMsg(msg);
-            }, 500);
-            }}
-
-            onPointerUp={(e) => {
-            clearTimeout(e.currentTarget.pressTimer);
-            }}
-
-            onPointerCancel={(e) => {
-            clearTimeout(e.currentTarget.pressTimer);
-            }}
           >
+            
+            {msg.deleted_at ? (
 
-            {/* SENDER */}
-            <p className="
-              text-[12px]
-              px-4
-              font-semibold
-              text-white
-              mb-1
-            ">
-             {msg.replied_to === null && (
-              <span>
-                {msg.sender?.first_name || msg.sender?.name}
-                {" "}
-                {msg.sender?.last_name || ""}
-              </span>
-            )}
-            </p>
+              <div className="flex items-center py-2 px-4 gap-2 italic text-white text-sm">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-5 text-white"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
 
-            {/* REPLY */}
+                <span>This message was deleted</span>
+              </div>
 
-                { msg.replied_to && (
-                <div
-                onClick={() =>
-                  scrollToMessage(
-                    msg.replied_message.id
-                  )
-                }
-                className="
-                  bg-black/20
-                  border-l-4
-                  border-green-500
-                  p-4
-                  mb-2
-                  rounded-xl
-                  cursor-pointer
-                  text-white
-                "
-              >
-                  <div className="text-xs opacity-80 truncate inline-flex gap-2 items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-</svg>
+            ) : (
 
-                    {msg.replied_message.message}
+              <>
+              
+                {/* SENDER NAME */}
+                {/* {!msg.replied_to && (
+                  <p
+                    className="
+                      text-[12px]
+                      px-4
+                      font-semibold
+                      text-white
+                      pt-3
+                    "
+                  >
+                    <span>
+                      {msg.sender?.first_name || msg.sender?.name}
+                      {" "}
+                      {msg.sender?.last_name || ""}
+                    </span>
+                  </p>
+                )} */}
+
+                {/* REPLY MESSAGE */}
+                {msg.replied_to && msg.replied_message && (
+                  <div
+                    onClick={() =>
+                      scrollToMessage(
+                        msg.replied_message.id
+                      )
+                    }
+                    className="
+                      bg-black/20
+                      border-l-4
+                      border-green-500
+                      p-4
+                      rounded-xl
+                      cursor-pointer
+                      text-white
+                      -translate-y-
+                      -mb-4
+                    "
+                  >
+                    <div
+                      className="
+                        text-xs
+                        opacity-80
+                        truncate
+                        inline-flex
+                        gap-2
+                        items-center
+                      "
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="size-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+                        />
+                      </svg>
+
+                      {msg.replied_message.message}
+                    </div>
                   </div>
+                )}
+
+                {/* MESSAGE PREVIEW */}
+                <CommunityMediaMessage  
+                  isMobile={isMobile}
+                  onPreview={(message) => {
+                  setPreviewMessage(message);
+                    setShowPreview(true);
+                  }}
+                  onDownload={(message) => {
+                    handleDownloadMessage(message);
+                  }}
+                  msg={msg} 
+                
+                 />
+                 <div
+                        className={`text-[13px] pt-3 mt-1 px-4 text-white ${
+                          hasLink ? "w-56" : "w-auto"
+                        }`}
+                      >
+                        <Linkify
+                          options={{
+                            target: "_blank",
+                            className:
+                              "text-blue-400 pointer-events-auto",
+                          }}
+                        >
+                    {displayText}
+                  </Linkify>
+
+                  {shouldTrim && (
+                    <button
+                      onClick={() =>
+                        setExpandedMessages((prev) => ({
+                          ...prev,
+                          [msg.id]:
+                            !prev[msg.id],
+                        }))
+                      }
+                      className="
+                        text-green-400
+                        text-xs
+                        font-semibold
+                        hover:underline
+                      "
+                    >
+                      {isExpanded
+                        ? ""
+                        : "See more"}
+                    </button>
+                  )}
                 </div>
-              )}
-             
-            {/* MESSAGE */}
-            <div className="
-              break-words
-              text-white
-              text-sm
-              px-4
-              leading-relaxed
-            ">
-
-              <Linkify
-                options={{
-                  target: "_blank",
-                  className:
-                    "text-blue-400 underline",
-                }}
-              >
-
-                {msg.message}
-
-              </Linkify>
-
-            </div>
-
-            {/* IMAGE */}
-            {msg.type === "image" &&
-              msg.files?.length > 0 && (
-
-              <img
-                src={
-                  msg.files[0].file_url
-                }
-                alt=""
-                className="
-                  rounded-xl
-                  px-4
-                  mt-2
-                  max-h-[300px]
-                  object-cover
-                "
-              />
-
+              </>
             )}
-
-            {/* VIDEO */}
-            {msg.type === "video" &&
-              msg.files?.length > 0 && (
-
-              <video
-                controls
-                className="
-                  rounded-xl
-                  px-4
-                  mt-2
-                  max-h-[300px]
-                "
-              >
-
-                <source
-                  src={
-                    msg.files[0].file_url
-                  }
-                />
-
-              </video>
-
-            )}
-
-            {/* AUDIO */}
-            {(msg.type === "audio" ||
-              msg.type === "voice") &&
-              msg.files?.length > 0 && (
-
-              <audio
-                controls
-                className="
-                  mt-2
-                  px-4
-                  w-full
-                "
-              >
-
-                <source
-                  src={
-                    msg.files[0].file_url
-                  }
-                />
-
-              </audio>
-
-            )}
-
-            {/* FOOTER Hover */}
             <div className="
               flex
               items-center
@@ -272,18 +608,72 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
               px-4
               mt-3
             ">
-
-              {/* REACTION POPUP */}
               {!isMobile && hoverMsgId === msg.id && (
                 <div
-                    className={`absolute -bottom-6 flex bg-[var(--bg-color)] text-[var(--text-color)] p-1 px-2 gap-2 
-                        z-50 rounded-lg shadow-xl px-4 ${
-                    isMine ? "right-0" : "left-0"
+                    className={`absolute -bottom-7 flex bg-gray-50 shadow-md text-[var(--text-color)] p-1 px-1 gap-1 
+                        z-50 rounded-lg shadow-xl px-2 ${
+                    isMine ? "right-0" : "right-0"
                     }`}
                 >
-                    
-              {/* FORWARD */}
+              {Boolean(Number(msg.response_mode))  && msg.replied_to === null && isMine && (
               <button
+                onClick={() =>
+                  setReplyingToCommunity(true)
+                }
+                >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                </svg>
+
+              </button>
+                  )}
+
+             
+                    <button
+                  onClick={(e) => {
+                        e.stopPropagation();
+                        setReactionMsg(msg); // OPEN POPUP
+                    }}
+                    className=""
+                    >
+                <svg 
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+                class="size-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+                </svg>
+                </button>
+
+                <button
+                  onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedMessage(msg);
+                  const rect =
+                    e.currentTarget.getBoundingClientRect();
+                  setMenuPosition({
+                    x: rect.left,
+                    y: rect.bottom + 10,
+                  });
+                  setShowMessageMenu(true);
+                }}>
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="size-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 6a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 6a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+                    />
+                  </svg>
+
+                </button>
+
+                 <button
                 onClick={() =>
                   handleForward(msg)
                 }
@@ -292,39 +682,21 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
                 </svg>
               </button>
-
-              {/* Reaction */}
-                    <button
-                  onClick={(e) => {
-                        e.stopPropagation();
-                        setReactionMsg(msg); // OPEN POPUP
-                    }}
-                    className=""
-                    >
-    
-                <svg 
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
-                class="size-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
-                </svg>
-                </button>
                 </div>
               )}
-              
-
-              {/* TIME */}
               <div className="
                 text-[10px]
                 text-white
                 items-center
                 flex gap-1
                 justify-end
-      
                 flex-1
               ">
-
-     
-              
+                 {Boolean(Number(msg.edited)) && (
+                    <span className="text-[12px] text-white italic">
+                      edited
+                    </span>
+                  )}
                 <div className="text-center text-[9px] text-white my-2">
                   {new Date(msg.created_at).toLocaleTimeString([], {
                     hour: "numeric",
@@ -333,7 +705,6 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 </div>
                  {msg.status ===
                 "failed" && (
-
                 <button
                   onClick={() =>
                     retryCommunityMessage(
@@ -347,28 +718,17 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                   Retry
                 </button>
               )}
-
-              {/* SENDING */}
               {msg.status ===
                 "sending" && (
-
                 <span >
-
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-
-
                 </span>
                )} 
-
               </div>
-
             </div>
-
-            {/* REACTION LIST */}
             {msg.reactions?.length > 0 && (
-
               <div className="
                 absolute
                 -bottom-3
@@ -382,46 +742,33 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 shadow
                 text-xs
               ">
-
                 {Object.values(
                   msg.reactions.reduce(
                     (acc, r) => {
-
                       if (
                         !acc[r.emoji]
                       ) {
-
                         acc[r.emoji] = {
                           emoji: r.emoji,
                           count: 0,
                         };
                       }
-
                       acc[r.emoji]
                         .count++;
-
                       return acc;
-
                     },
                     {}
                   )
                 ).map((r, i) => (
-
                   <span key={i}>
-
                     {r.emoji}
-
                     {r.count > 1 &&
                       ` ${r.count}`}
-
                   </span>
-
                 ))}
-
               </div>
             )}
-
-            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && (
+            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && !isMine && (
             <div className="
               mx-auto
               text-center
@@ -435,66 +782,45 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                     setRespondingMessage(msg);
                     setRespondModal(true);
                   }}
-                  
                 >
                   Respond
                 </button>
             </div>
-
             )}
-
            {reactionMsg?.id === msg.id && (
         <div className={`absolute  bottom-0 z-[9999] 
         ${isMine ? "right-0" : "left-0"}`}>
             <CommunityReactionPopup
             onReact={react}
             message={reactionMsg}
-            isMine={reactionMsg.sender_id === authUser.id}
+            isMine={
+              reactionMsg &&
+              reactionMsg.sender_id === authUser.id
+            }
             setShowReactions={() => setReactionMsg(null)}
             />
         </div>
         )}
           </div>
-
-      
-
          {showForwardModal && (
-
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-
           <div className="bg-[#202c33] rounded-2xl w-[90%] max-w-md p-4">
-
             <h2 className="text-white text-lg font-bold mb-4">
-
               Forward Message
-
             </h2>
-
             <div className="bg-black/30 rounded-xl p-3 text-white text-sm mb-4">
-
               {forwardMsg?.message}
-
             </div>
-
             <button
               className="w-full bg-green-600 py-3 rounded-xl text-white font-semibold"
               onClick={() => {
-
-                console.log(
-                  "Forward:",
-                  forwardMsg
-                );
-
                 setShowForwardModal(
                   false
                 );
               }}
             >
-
               Forward
-
             </button>
-
             <button
               className="w-full mt-3 py-3 rounded-xl bg-gray-700 text-white"
               onClick={() =>
@@ -503,16 +829,11 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                 )
               }
             >
-
               Cancel
-
             </button>
-
           </div>
-
         </div>
       )}
-
       <CommunityRespondModal
       open={respondModal}
       setOpen={setRespondModal}
@@ -568,6 +889,270 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
       onApprove={approveMessage}
       onReject={rejectMessage}
     />
+    <CommunityMessageMenu
+    isAdmin={isAdmin}
+    open={showMessageMenu}
+    isMobile={isMobile}
+    selectedMessage={selectedMessage}
+    authUser={authUser}
+    anchorPosition={menuPosition}
+
+    onClose={() =>
+      setShowMessageMenu(false)
+    }
+
+    onCopy={() => {
+
+    copyMessageText(
+      selectedMessage?.msg
+    );
+
+    setShowMessageMenu(false);
+  }}
+   
+
+    onReply={() => {
+      setReplyingToCommunity(
+        selectedMessage
+      );
+      setShowMessageMenu(false);
+    }}
+
+    onShare={() => {
+      handleForward(selectedMessage);
+      setShowMessageMenu(false);}}
+    setShowMessageMenu={setShowMessageMenu}
+    showToast={showToast}
+    setMessages={setMessages}
+    communityMessageAction={communityMessageAction}
+    message={msg}
+    setActionType={setActionType}
+    setActionMessage={setActionMessage}
+    setShowActionModal={setShowActionModal}
+
+  />
+
+    <MessageActionModal
+    open={showActionModal}
+    type={actionType}
+    message={actionMessage}
+    onClose={() =>
+      setShowActionModal(false)
+    }
+    onConfirm={handleConfirmAction}
+  />
+
+    {toast && (
+        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
+          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
+        `}>
+          {toast.message}
+        </div>
+      )}
+
+
+
+{
+  showPreview &&
+  previewMessage && (
+
+    <div
+      onClick={() =>
+        setShowPreview(false)
+      }
+      className="
+        fixed
+        inset-0
+        z-[99999]
+        bg-black/70
+        backdrop-blur-md
+        pb-8
+
+        flex
+        justify-center
+      "
+    >
+
+      {/* TOP BAR */}
+
+      <div
+        className="
+          absolute
+          top-0
+          left-0
+          right-0
+
+          z-20
+
+          flex
+          items-center
+          justify-between
+
+          p-4
+
+          bg-gradient-to-b
+          from-black/80
+          to-transparent
+        "
+      >
+
+        <button
+          
+          className="
+            text-white
+          "
+        >
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-7"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+
+        </button>
+
+        <div
+          className="
+            flex
+            items-center
+            gap-3
+          "
+        >
+
+          {/* DOWNLOAD */}
+
+          <button
+            onClick={() =>
+              handleDownloadMessage(
+                previewMessage
+              )
+            }
+            className="
+              text-white
+            "
+          >
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 16.5v-9m0 9-3-3m3 3 3-3M3.75 15v3a2.25 2.25 0 0 0 2.25 2.25h12A2.25 2.25 0 0 0 20.25 18v-3"
+              />
+            </svg>
+
+          </button>
+
+            <CommunityMessageMenu
+                isAdmin={isAdmin}
+                open={showMessageMenu}
+                isMobile={isMobile}
+                selectedMessage={selectedMessage}
+                authUser={authUser}
+                anchorPosition={menuPosition}
+
+                onClose={() =>
+                  setShowMessageMenu(false)
+                }
+
+                onCopy={() => {
+
+                copyMessageText(
+                  selectedMessage?.msg
+                );
+
+                setShowMessageMenu(false);
+              }}
+              
+
+                onReply={() => {
+                  setReplyingToCommunity(
+                    selectedMessage
+                  );
+                  setShowMessageMenu(false);
+                }}
+
+                onShare={() => {
+                  handleForward(selectedMessage);
+                  setShowMessageMenu(false);}}
+                setShowMessageMenu={setShowMessageMenu}
+                showToast={showToast}
+                setMessages={setMessages}
+                communityMessageAction={communityMessageAction}
+                message={msg}
+                setActionType={setActionType}
+                setActionMessage={setActionMessage}
+                setShowActionModal={setShowActionModal}
+
+              />
+
+          
+        </div>
+
+      </div>
+
+      {/* IMAGE */}
+
+      {previewMessage.type ===
+        "image" && (
+
+        <img
+          src={
+            previewMessage.files?.[0]
+              ?.file_url
+          }
+          alt=""
+          className="
+            max-w-full
+            h-full
+            object-contain
+          "
+        />
+
+      )}
+
+      {/* VIDEO */}
+
+      {previewMessage.type ===
+        "video" && (
+
+        <video
+          controls
+          autoPlay
+          className="
+            max-w-full
+            h-full
+          "
+        >
+          <source
+            src={
+              previewMessage.files?.[0]
+                ?.file_url
+            }
+          />
+        </video>
+
+      )}
+
+    </div>
+
+  )
+}
 
     </div>
      )

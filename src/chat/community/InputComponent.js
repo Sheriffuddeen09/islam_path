@@ -4,7 +4,7 @@ import api from "../../Api/axios";
 
 export default function InputComponent({activeCommunity,
   setMessages, textCommunity, setTextCommunity,
-  authUser, replyingToCommunity, setReplyingToCommunity}){
+  authUser, replyingToCommunity, setReplyingToCommunity, communityMessageAction, bottomRef}){
 
     
   const [files, setFiles={setFiles}] = useState([]);
@@ -40,7 +40,6 @@ export default function InputComponent({activeCommunity,
   const textareaRefCommunity = useRef(null);
   
 
-  const bottomRef = useRef(null);
   const fileInputRefCommunity = useRef(null);
 
 
@@ -96,8 +95,6 @@ export default function InputComponent({activeCommunity,
 const stopRecordingCommunity = async () => {
 
   const reply = replyingToCommunity;
-
-  // ✅ CLEAR UI IMMEDIATELY
   setReplyingToCommunity(null);
 
   const recorder =
@@ -135,11 +132,6 @@ const stopRecordingCommunity = async () => {
 
     const localUrl =
       URL.createObjectURL(blob);
-
-    // =====================================
-    // TEMP MESSAGE
-    // =====================================
-
     const tempMessage = {
 
       id: tempId,
@@ -169,11 +161,6 @@ const stopRecordingCommunity = async () => {
       created_at:
         new Date().toISOString(),
     };
-
-    // =====================================
-    // ADD TEMP MESSAGE
-    // =====================================
-
     setMessages((prev) => [
       ...prev,
       tempMessage,
@@ -189,11 +176,6 @@ const stopRecordingCommunity = async () => {
     });
 
     try {
-
-      // =====================================
-      // FORM DATA
-      // =====================================
-
       const form =
         new FormData();
 
@@ -207,8 +189,6 @@ const stopRecordingCommunity = async () => {
         blob,
         "voice.webm"
       );
-
-      // ✅ OPTIONAL TEXT
       if (
         textCommunity &&
         textCommunity.trim() !== ""
@@ -231,11 +211,6 @@ const stopRecordingCommunity = async () => {
           reply.id
         );
       }
-
-      // =====================================
-      // API
-      // =====================================
-
       const res =
         await api.post(
           "/api/community/voice",
@@ -247,11 +222,6 @@ const stopRecordingCommunity = async () => {
             },
           }
         );
-
-      // =====================================
-      // REPLACE TEMP MESSAGE
-      // =====================================
-
       setMessages((prev) =>
 
         prev.map((m) =>
@@ -368,251 +338,22 @@ const sendTextCommunity = async ({
 
   if (!textCommunity.trim()) return;
 
-  const reply =
-    replyingToCommunity;
-
-  // ✅ CLEAR REPLY UI
-  setReplyingToCommunity(null);
-
-  const tempId = Date.now();
-
-  // ✅ TEMP MESSAGE
-  const tempMessage = {
-
-    id: tempId,
-
-    message: textCommunity,
-
-    type: "text",
-
-    sender_id: authUser.id,
-
-    sender: authUser,
-
-    status: "sending",
-
-    created_at:
-      new Date().toISOString(),
-
-    replied_to:
-      reply || null,
-
-    // ✅ IMPORTANT
-    response_mode,
-  };
-
-  // ✅ SHOW IMMEDIATELY
-  setMessages((prev) => [
-
-    ...prev,
-    tempMessage
-
-  ]);
-
-  const originalText =
-    textCommunity;
-
-  // ✅ CLEAR INPUT
-  setTextCommunity("");
-
-  // ✅ CLOSE FLOAT
-  setShowSendOptions(false);
-
-  // ✅ SCROLL
-  requestAnimationFrame(() => {
-
-    bottomRef.current?.scrollIntoView({
-
-      behavior: "smooth",
-
-      block: "end",
-
-    });
-
-  });
-
-  try {
-
-    const { data } =
-      await api.post(
-
-      "/api/community/messages/send",
-
-      {
-
-        community_id:
-          activeCommunity.id,
-
-        message:
-          originalText,
-
-        type: "text",
-
-        replied_to:
-          reply
-            ? reply.id
-            : null,
-
-        // ✅ NEW
-        response_mode,
-      }
-
-    );
-
-    // ✅ BACKEND RETURNS ARRAY
-    const realMessage =
-      data.messages?.[0];
-
-    // ✅ REPLACE TEMP
-    setMessages((prev) =>
-
-      prev.map((m) =>
-
-        m.id === tempId
-
-          ? {
-
-              ...realMessage,
-
-              status: "sent",
-
-              replied_to:
-                realMessage?.replied_message
-                || reply,
-
-            }
-
-          : m
-      )
-    );
-
-  } catch (err) {
-
-    console.log(err);
-
-    // ✅ FAILED
-    setMessages((prev) =>
-
-      prev.map((m) =>
-
-        m.id === tempId
-
-          ? {
-
-              ...m,
-
-              status: "failed",
-
-            }
-
-          : m
-      )
-    );
-  }
-};
-
-  const sendFileCommunity = async (
-  response_mode = false // ✅ NEW
-) => {
-
-  if (!files.length) return;
-
   const reply = replyingToCommunity;
 
   setReplyingToCommunity(null);
 
   const tempId = Date.now();
 
-  const getType = (file) => {
-
-    if (file.type.startsWith("image/"))
-      return "image";
-
-    if (file.type.startsWith("video/"))
-      return "video";
-
-    if (file.type.startsWith("audio/"))
-      return "audio";
-
-    return "file";
-  };
-
-  const firstType = getType(files[0]);
-
-  const allSameType = files.every(
-    (f) => getType(f) === firstType
-  );
-
-  if (!allSameType) {
-
-    showToast(
-      "You cannot mix images, videos, and documents"
-    );
-
-    return;
-  }
-
-  const filesWithMeta = await Promise.all(
-
-    files.map(async (file, i) => {
-
-      const type = getType(file);
-
-      let duration = null;
-
-      if (type === "audio") {
-
-        duration =
-          await getAudioDuration(file);
-      }
-
-      const preview =
-        croppedImagesCommunity[i]
-          ? URL.createObjectURL(
-              croppedImagesCommunity[i]
-            )
-          : previewUrlsCommunity[i];
-
-      return {
-
-        file: preview,
-
-        file_url: preview,
-
-        file_name: file.name,
-
-        type,
-
-        duration,
-      };
-    })
-  );
-
   const tempMessage = {
-
     id: tempId,
-
-    type: firstType,
-
+    message: textCommunity,
+    type: "text",
     sender_id: authUser.id,
-
     sender: authUser,
-
     status: "sending",
-
-    files: filesWithMeta,
-
-    originalFiles: files,
-
-    message: captionCommunity,
-
+    created_at: new Date().toISOString(),
     replied_to: reply || null,
-
-    // ✅ NEW
-    response_mode: response_mode,
-
-    created_at:
-      new Date().toISOString(),
+    response_mode,
   };
 
   setMessages((prev) => [
@@ -620,163 +361,63 @@ const sendTextCommunity = async ({
     tempMessage,
   ]);
 
+  const originalText = textCommunity;
+
+  setTextCommunity("");
+
+  setShowSendOptions(false);
+
   requestAnimationFrame(() => {
-
     bottomRef.current?.scrollIntoView({
-
-      behavior: "auto",
-
+      behavior: "smooth",
       block: "end",
     });
   });
 
-  const form = new FormData();
-
-  // ✅ COMMUNITY ID
-  form.append(
-    "community_id",
-    activeCommunity.id
-  );
-
-  // ✅ RESPONSE ENABLED
-  form.append(
-    "response_enabled",
-    response_mode ? 1 : 0
-  );
-
-  files.forEach((file, i) => {
-
-    const isImage =
-      file.type.startsWith("image/");
-
-    if (isImage && croppedImagesCommunity[i]) {
-
-      form.append(
-        "files[]",
-        croppedImagesCommunity[i]
-      );
-
-    } else {
-
-      form.append(
-        "files[]",
-        file
-      );
-    }
-
-    form.append(
-      "types[]",
-      getType(file)
-    );
-  });
-
-  form.append(
-    "message",
-    captionCommunity || ""
-  );
-
-  if (reply?.id) {
-
-    form.append(
-      "replied_to",
-      reply.id
-    );
-  }
-
   try {
 
-    const res = await api.post(
-
-      "/api/community/messages",
-
-      form,
-
+    const { data } = await api.post(
+      "/api/community/messages/send",
       {
-        headers: {
-          "Content-Type":
-            "multipart/form-data",
-        },
+        action: "send",
+
+        community_id:
+          activeCommunity.id,
+
+        message: originalText,
+
+        type: "text",
+
+        replied_to:
+          reply ? reply.id : null,
+
+        response_mode,
       }
     );
 
-    const serverMessages =
-      res.data.messages || [];
+    // ✅ FIX
+    const realMessage = data.message;
 
-    const normalized =
-      serverMessages.map((msg) => ({
-
-        ...msg,
-
-        files: msg.file
-          ? [
-              {
-                file_url:
-                  msg.file.startsWith("http")
-                    ? msg.file
-                    : `http://127.0.0.1:8000/storage/${msg.file}`,
-
-                file_name:
-                  msg.file_name,
-
-                type: msg.type,
-              },
-            ]
-          : [],
-
-        replied_to: reply
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId
           ? {
-              id: reply.id,
+              ...realMessage,
 
-              message:
-                reply.message,
+              status: "sent",
 
-              type: reply.type,
-
-              sender:
-                reply.sender,
+              replied_to:
+                realMessage?.replied_message ||
+                reply ||
+                null,
             }
-          : msg.replied_to || null,
-
-        // ✅ KEEP RESPONSE
-        response_enabled:
-          msg.response_enabled ??
-          response_mode,
-
-        status: "sent",
-      }));
-
-    setMessages((prev) => {
-
-      const filtered =
-        prev.filter(
-          (m) => m.id !== tempId
-        );
-
-      return [
-        ...filtered,
-        ...normalized,
-      ];
-    });
-
-    requestAnimationFrame(() => {
-
-      bottomRef.current?.scrollIntoView({
-
-        behavior: "smooth",
-
-        block: "end",
-      });
-    });
+          : m
+      )
+    );
 
   } catch (err) {
 
     console.log(err);
-
-    const message =
-      err?.response?.data?.message ||
-      "Something went wrong";
-
-    showToast(message);
 
     setMessages((prev) =>
       prev.map((m) =>
@@ -789,34 +430,152 @@ const sendTextCommunity = async ({
       )
     );
   }
+};
 
+const sendFileCommunity = async (
+  response_mode = false
+) => {
+  if (!files.length) return;
+  const reply =
+    replyingToCommunity;
+  setReplyingToCommunity(null);
+  const tempId = Date.now();
+  const originalFile = files[0];
+  const getType = (file) => {
+    if (
+      file.type.startsWith("image/")
+    ) {
+      return "image";
+    }
+    if (
+      file.type.startsWith("video/")
+    ) {
+      return "video";
+    }
+    if (
+      file.type.startsWith("audio/")
+    ) {
+      return "audio";
+    }
+    return "file";
+  };
+  const type =
+    getType(originalFile);
+  let finalFile = originalFile;
+  if (
+    type === "image" &&
+    croppedImagesCommunity[0]
+  ) {
+    finalFile =
+      croppedImagesCommunity[0];
+  }
+  const preview =
+    URL.createObjectURL(finalFile);
+  const tempMessage = {
+    id: tempId,
+    type,
+    sender_id: authUser.id,
+    sender: authUser,
+    status: "sending",
+    message: captionCommunity,
+    response_mode,
+    created_at:
+      new Date().toISOString(),
+    replied_to:
+      reply || null,
+    files: [
+      {
+        file_url: preview,
+        file_name:
+          finalFile.name,
+        type,
+      },
+    ],
+  };
+  try {
+    const data =
+      await communityMessageAction({
+        action: "send",
+        file: finalFile,
+        type,
+        message:
+          captionCommunity,
+        replied_to:
+          reply?.id || null,
+        response_mode,
+        tempMessage,
+      });
+    const realMessage =
+      data.message;
+    const normalized = {
+      ...realMessage,
+      status: "sent",
+      files: realMessage.file
+        ? [
+            {
+              file_url:
+                realMessage.file.startsWith(
+                  "http"
+                )
+                  ? realMessage.file
+                  : `http://127.0.0.1:8000/storage/${realMessage.file}`,
+              type:
+                realMessage.type,
+            },
+          ]
+        : [],
+    };
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === tempId
+          ? normalized
+          : m
+      )
+    );
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    });
+  } catch (err) {
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === tempId
+          ? {
+              ...m,
+              status: "failed",
+            }
+          : m
+      )
+    );
+    showToast(
+      err?.response?.data
+        ?.message ||
+      "Failed to send"
+    );
+  }
   setShowPreviewCommunity(false);
-
   setFiles([]);
-
   setPreviewUrlsCommunity([]);
-
   setCaptionCommunity("");
-
   setCroppedImagesCommunity({});
-
-  setCropAppliedMapCommunity(false);
-
+  setCropAppliedMapCommunity(
+    false
+  );
   setCropCommunity({
     x: 0,
     y: 0,
   });
-
   setSelectedCommunity([]);
-
   setTrimMapCommunity({});
-
   setDurationMapCommunity({});
-
-  setTrimAppliedMapCommunity({});
-
-  if (fileInputRefCommunity.current) {
-
+  setTrimAppliedMapCommunity(
+    {}
+  );
+  if (
+    fileInputRefCommunity.current
+  ) {
     fileInputRefCommunity.current.value =
       "";
   }

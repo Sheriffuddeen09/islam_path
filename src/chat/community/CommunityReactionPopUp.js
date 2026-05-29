@@ -10,6 +10,8 @@ export default function CommunityReactionPopup({
   isMine,
 }) {
 
+ 
+
   const emojis = ["❤️","😂","😮","😢","🙏","👍"];
   const [openPicker, setOpenPicker] = useState(false);
 
@@ -17,6 +19,10 @@ export default function CommunityReactionPopup({
     setShowReactions(null);
     setOpenPicker(false);
   };
+
+   if (!message) {
+      return null;
+    }
 
   return (
     <div
@@ -42,12 +48,10 @@ export default function CommunityReactionPopup({
           <button
             key={emoji}
             onClick={() => {
-              onReact(
-                message.id,
-                emoji
-              );
-
-              closeAll();
+              if (!message) return;
+              if (!message?.id) return;
+              onReact(message.id, emoji);
+              onclose()
             }}
             className="
               text-lg

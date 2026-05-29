@@ -1,16 +1,14 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import api from "../../Api/axios";
 import InputComponent from "./InputComponent";
 import MessagesArea from "./MessageArea";
 import { ChatSkeleton } from "../chatbox/ChatSkeleton";
 
 export default function CommunityMessages({
-
   activeCommunity,
   messages,
   setMessages,
   onBack,
-  onOpenSettings,
   authUser,
   loadingMessages
 
@@ -18,7 +16,105 @@ export default function CommunityMessages({
 
     const [replyingToCommunity, setReplyingToCommunity] = useState(null);
     const [textCommunity, setTextCommunity] = useState("");
+    const [selectedMessage, setSelectedMessage] = useState(null);
+    const [showMessageMenu, setShowMessageMenu] = useState(false);
+    const [reactionMsg, setReactionMsg] = useState(null);
+    const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0,});
+
+    const bottomRef = useRef(null);
+
   
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+
+    
+const communityMessageAction = async ({
+  action = "send",
+  message_id = null,
+  message = "",
+  file = null,
+  type = "text",
+  replied_to = null,
+  response_mode = false,
+  tempMessage = null,
+}) => {
+  try {
+    if (tempMessage) {
+      setMessages(prev => [
+        ...prev,
+        tempMessage,
+      ]);
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({
+          behavior: "auto",
+          block: "end",
+        });
+
+      });
+    }
+    const form = new FormData();
+    form.append(
+      "action",
+      action
+    );
+    form.append(
+      "community_id",
+      activeCommunity.id
+    );
+    if (message_id) {
+      form.append(
+        "message_id",
+        message_id
+      );
+    }
+    if (message) {
+      form.append(
+        "message",
+        message
+      );
+    }
+    if (type) {
+      form.append(
+        "type",
+        type
+      );
+    }
+    if (replied_to) {
+      form.append(
+        "replied_to",
+        replied_to
+      );
+    }
+    form.append(
+      "response_mode",
+      response_mode ? 1 : 0
+    );
+    if (file) {
+      form.append(
+        "file",
+        file
+      );
+    }
+    const res = await api.post(
+      "/api/community/messages/send",
+      form,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } catch (err) {
+    console.log(
+      "❌ ACTION ERROR:",
+      err.response?.data || err
+    );
+    throw err;
+  }
+};
+
+
     const updateStatus = (id, status) => {
     setMessages(prev =>
       prev.map(m =>
@@ -46,188 +142,199 @@ export default function CommunityMessages({
     );
   };
 
-    const resendCommunityText = async (msg) => {
+    const resendCommunityText = async (
+  msg
+) => {
 
-        updateStatus(msg.id, "sending");
+  updateStatus(
+    msg.id,
+    "sending"
+  );
 
-        try {
+  try {
 
-          const { data } = await api.post(
-            "/api/community/messages/send",
-            {
-              community_id: activeCommunity.id,
-              message: msg.message,
-              type: "text",
-              replied_to: msg.replied_to?.id || null,
-            }
-          );
+    const { data } =
+      await api.post(
 
-          const message =
-            data.messages?.[0];
+      "/api/community/messages/send",
 
-          replaceMessage(msg.id, {
-            ...message,
-            sender:
-              message.sender || authUser,
-          });
+      {
 
-        } catch (err) {
+        action: "send",
 
-          console.log(err);
+        community_id:
+          activeCommunity.id,
 
-          updateStatus(msg.id, "failed");
-        }
-      };
+        message:
+          msg.message,
 
-        
-      const resendCommunityFile = async (
-        msg
-      ) => {
+        type: "text",
 
-        if (!msg.originalFiles) {
+        replied_to:
+          msg.replied_to?.id ||
+          null,
+      }
+    );
 
-          console.warn(
-            "❌ No original files"
-          );
+    const message =
+      data.message;
 
-          return;
-        }
+    replaceMessage(
+      msg.id,
+      {
 
-        updateStatus(msg.id, "sending");
+        ...message,
 
-        const form = new FormData();
+        sender:
+          message.sender ||
+          authUser,
+      }
+    );
 
-        form.append(
-          "community_id",
-          activeCommunity.id
-        );
+  } catch (err) {
 
-        const getType = (file) => {
+    console.log(err);
 
-          if (
-            file.type.startsWith(
-              "image/"
-            )
-          ) {
-            return "image";
-          }
+    updateStatus(
+      msg.id,
+      "failed"
+    );
+  }
+};
 
-          if (
-            file.type.startsWith(
-              "video/"
-            )
-          ) {
-            return "video";
-          }
+const resendCommunityFile =
+  async (msg) => {
 
-          if (
-            file.type.startsWith(
-              "audio/"
-            )
-          ) {
-            return "audio";
-          }
+  if (!msg.originalFiles) {
 
-          return "file";
-        };
+    console.warn(
+      "❌ No original files"
+    );
 
-        msg.originalFiles.forEach(
-          (file) => {
+    return;
+  }
 
-            form.append(
-              "files[]",
-              file
-            );
+  updateStatus(
+    msg.id,
+    "sending"
+  );
 
-            form.append(
-              "types[]",
-              getType(file)
-            );
-          }
-        );
+  const form =
+    new FormData();
 
-        if (msg.message) {
+  form.append(
+    "action",
+    "send"
+  );
 
-          form.append(
-            "message",
-            msg.message
-          );
-        }
+  form.append(
+    "community_id",
+    activeCommunity.id
+  );
 
-        if (msg.replied_to?.id) {
+  const getType = (file) => {
 
-          form.append(
-            "replied_to",
-            msg.replied_to.id
-          );
-        }
+    if (
+      file.type.startsWith(
+        "image/"
+      )
+    ) {
+      return "image";
+    }
 
-        try {
+    if (
+      file.type.startsWith(
+        "video/"
+      )
+    ) {
+      return "video";
+    }
 
-          const res = await api.post(
-            "/api/community/messages/send",
-            form,
-            {
-              headers: {
-                "Content-Type":
-                  "multipart/form-data",
-              },
-            }
-          );
+    if (
+      file.type.startsWith(
+        "audio/"
+      )
+    ) {
+      return "audio";
+    }
 
-          const serverMessages =
-            res.data.messages || [];
+    return "file";
+  };
 
-          let grouped;
+  msg.originalFiles.forEach(
+    (file) => {
 
-          if (
-            serverMessages[0]?.files
-          ) {
+      form.append(
+        "file",
+        file
+      );
 
-            grouped = {
-              ...serverMessages[0],
-              status: "sent",
-            };
+      form.append(
+        "type",
+        getType(file)
+      );
+    }
+  );
 
-          } else {
+  if (msg.message) {
 
-            grouped = {
-              ...serverMessages[0],
+    form.append(
+      "message",
+      msg.message
+    );
+  }
 
-              files:
-                serverMessages.map(
-                  (m) => ({
-                    file_url:
-                      m.file_url,
+  if (
+    msg.replied_to?.id
+  ) {
 
-                    file_name:
-                      m.file_name,
+    form.append(
+      "replied_to",
+      msg.replied_to.id
+    );
+  }
 
-                    type: m.type,
+  try {
 
-                    duration:
-                      m.duration,
-                  })
-                ),
+    const res =
+      await api.post(
 
-              status: "sent",
-            };
-          }
+      "/api/community/messages/send",
 
-          replaceMessage(
-            msg.id,
-            grouped
-          );
+      form,
 
-        } catch (err) {
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
 
-          console.log(err);
+    const serverMessage =
+      res.data.message;
 
-          updateStatus(msg.id, "failed");
-        }
-      };  
-  
-      const resendCommunityVoice = async (msg) => {
+    replaceMessage(
+      msg.id,
+      {
+
+        ...serverMessage,
+
+        status: "sent",
+      }
+    );
+
+  } catch (err) {
+
+    console.log(err);
+
+    updateStatus(
+      msg.id,
+      "failed"
+    );
+  }
+};  
+  const resendCommunityVoice = async (msg) => {
 
   if (!msg.localBlob) {
 
@@ -361,104 +468,125 @@ export default function CommunityMessages({
     <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
-      <div className="h-16 shadow-md flex items-center py-2 px-4">
+     
+          <div className="
+          h-16
+          shadow-md
+          flex
+          items-center
+          justify-between
+          py-2
+          px-4
+        ">
 
-        <div className="flex items-center gap-3">
+          {/* LEFT SIDE */}
+          <div className="flex items-center gap-3">
 
-          <button className="lg:hidden"
-          onClick={onBack}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="size-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-            />
-          </svg>
-        </button>
+            <button
+              className="lg:hidden"
+              onClick={onBack}
+            >
+              <button className="lg:hidden"
+                onClick={onBack}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                  />
+                </svg>
+              </button>
+            </button>
+            {activeCommunity.community_image && (
+              <img
+                src={getImage(
+                  activeCommunity.community_image
+                )}
+                alt={
+                  activeCommunity.community_name
+                }
+                className="
+                  w-12
+                  h-12
+                  rounded-full
+                  object-cover
+                "
+              />
+            )}
 
-           {activeCommunity.community_image ? (
+            <div>
+              <h2 className="font-semibold">
+                {activeCommunity.community_name}
+              </h2>
+            </div>
 
-                      <img
-
-                        src={getImage(
-                          activeCommunity.community_image
-                        )}
-
-                        alt={
-                          activeCommunity.community_name
-                        }
-
-                        className="
-
-                          w-12
-                          h-12
-                          rounded-full
-                          object-cover
-
-                        "
-
-                        onError={(e) => {
-
-                          e.target.style.display =
-                            "none";
-
-                          if (
-                            e.target.nextSibling
-                          ) {
-                            e.target.nextSibling.style.display =
-                              "flex";
-                          }
-                        }}
-
-                      />
-
-                    ) : null}
-          <div>
-
-            <h2 className="font-semibold">
-
-              {
-                activeCommunity.community_name
-              }
-
-            </h2>
-
-           
           </div>
 
-           <button
-          onClick={onOpenSettings}
-          className="text-sm"
-        >
+          {/* RIGHT SIDE */}
+          {isMobile && selectedMessage && (
+            <button
+              onClick={(e) => {
 
-          ⚙️
+                const rect =
+                  e.currentTarget.getBoundingClientRect();
 
-        </button>
+                setMenuPosition({
+                  x: rect.left - 180,
+                  y: rect.bottom + 10,
+                });
+
+                setShowMessageMenu(true);
+
+                setReactionMsg(null);
+
+              }}
+              className="
+                p-2
+                rounded-full
+                hover:bg-white/10
+                transition
+              "
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-8"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 6a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 6a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+                />
+              </svg>
+            </button>
+          )}
 
         </div>
 
-      </div>
-     <div
-         className="
-    flex-1
-    min-h-0
-    overflow-y-auto
-    scrollbar-thin
-    scrollbar-thumb-green-500
-    scrollbar-track-transparent
-    bg-[var(--primary-color)]
-    relative
-    px-1
-  "
-        >
+            <div
+                className="
+            flex-1
+            min-h-0
+            overflow-y-auto
+            scrollbar-thin
+            scrollbar-thumb-green-500
+            scrollbar-track-transparent
+            bg-[var(--primary-color)]
+            relative
+            px-1
+          "
+          >
           {loadingMessages ? (
 
             <ChatSkeleton
@@ -476,6 +604,11 @@ export default function CommunityMessages({
           setMessages={setMessages}
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
+          selectedMessage={selectedMessage} setSelectedMessage={setSelectedMessage}
+          showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
+          isMobile={isMobile} reactionMsg={reactionMsg} setReactionMsg={setReactionMsg}
+          setMenuPosition={setMenuPosition} menuPosition={menuPosition}
+          communityMessageAction={communityMessageAction}
           />            
        
           )}
@@ -489,6 +622,8 @@ export default function CommunityMessages({
           setReplyingToCommunity={setReplyingToCommunity}
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
+          communityMessageAction={communityMessageAction}
+          bottomRef={bottomRef}
        />
 
       </div>

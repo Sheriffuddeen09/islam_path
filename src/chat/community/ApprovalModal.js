@@ -10,7 +10,7 @@ export default function ApprovalModal({
   onReject,
 }) {
 
-  // loading per message/action
+  // loading per messages/send
   const [
     loadingAction,
     setLoadingAction

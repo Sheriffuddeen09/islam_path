@@ -9,8 +9,10 @@ export default function MessagesArea({
   retryCommunityMessage,
   setReplyingTo,
   activeCommunity,
-  setMessages,
-   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity
+  setMessages, setMenuPosition, menuPosition,
+  replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
+  setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
+  communityMessageAction
 }) {
 
   const [forwardMsg, setForwardMsg] =
@@ -26,7 +28,6 @@ export default function MessagesArea({
   ] = useState([]);
 
     const [hoverMsgId, setHoverMsgId] = useState(null);
-    const [reactionMsg, setReactionMsg] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const messageRefs = useRef({});
 
@@ -222,7 +223,6 @@ const react = async (messageId, emoji) => {
     setShowForwardModal(true);
   };
 
-  const isMobile = window.matchMedia("(pointer: coarse)").matches;
 
   const searchFilteredMessages =
   searchQuery.trim().length > 0
@@ -288,9 +288,8 @@ return (
         className={`
           px-3
           rounded
-          py-2
           transition
-          
+          py-0.5 lg:py-4
           ${
             searchQuery &&
             !isMatch
@@ -311,7 +310,7 @@ return (
 
       
 
-        {/* MESSAGE */}
+        {/* MESSAGE  setReplyingToCommunity*/}
         <MessageList
           msg={msg} activeCommunity={activeCommunity}
           isMine={isMine}
@@ -335,7 +334,11 @@ return (
           textCommunity={textCommunity}
           setTextCommunity={setTextCommunity}
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
-          messageRefs={messageRefs}
+          messageRefs={messageRefs} setReplyingToCommunity={setReplyingToCommunity}
+          selectedMessage={selectedMessage} setSelectedMessage={setSelectedMessage}
+          showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
+          setMenuPosition={setMenuPosition} menuPosition={menuPosition}
+          setMessages={setMessages} communityMessageAction={communityMessageAction}
         />
 
       </div>
