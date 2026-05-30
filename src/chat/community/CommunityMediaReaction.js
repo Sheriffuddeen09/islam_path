@@ -3,7 +3,7 @@
 import { useState } from "react";
 import EmojiPicker from "emoji-picker-react";
 
-export default function CommunityReactionPopup({
+export default function CommunityMediaReaction({
   onReact,
   setShowReactions,
   message,
@@ -26,9 +26,7 @@ export default function CommunityReactionPopup({
 
   return (
     <div
-      className={`absolute bottom-8 z-50 ${
-        isMine ? "right-0" : "left-0"
-      }`}
+      className={`absolute bottom-16 z-50 left-0 `}
       onClick={(e) => e.stopPropagation()}
     >
 

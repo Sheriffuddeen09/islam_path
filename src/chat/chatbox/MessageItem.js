@@ -404,12 +404,7 @@ const retryMessage = async () => {
   // ================= LONG PRESS REACTION =================
 
  const react = async (messageId, emoji) => {
-  if (typeof emoji !== "string") {
-    console.error("❌ Emoji must be string:", emoji);
-    return;
-  }
-
-  console.log("🔥 sending:", messageId, emoji);
+  if (typeof emoji !== "string") return;
 
   const { data } = await api.post("/api/messages/react", {
     message_id: messageId,
@@ -417,12 +412,24 @@ const retryMessage = async () => {
   });
 
   setMessages(prev =>
-    prev.map(m => (m.id === data.id ? data : m))
+    prev.map(m =>
+      m.id === data.id
+        ? {
+            ...m,
+
+            // ✅ KEEP YOUR DECRYPTED MESSAGE
+            message: m.message,
+            iv: m.iv,
+
+            // ✅ ONLY UPDATE REACTIONS
+            reactions: data.reactions,
+          }
+        : m
+    )
   );
 
   setShowReactionPopup(null);
 };
-
 
 useEffect(() => {
   if (!showReactionPopup) return; // ✅ don't interfere when opening
@@ -630,8 +637,14 @@ const isInteractive = (target) => {
   <>
     
     {preview && preview.items && preview.items.length > 0 && (
-  <MediaPreview preview={preview} setPreview={setPreview} />
-)}
+      <MediaPreview preview={preview} setPreview={setPreview}
+      activeChat={activeChat} msg={msg}
+      react={react} setShowReactions={setShowReactionPopup}
+      message={msg} showReactions={showReactionPopup} setSelectedMessages={setSelectedMessages}  
+      setSelectedMsg={setSelectedMsg} isMine={isMine} setUiState={setUiState} selectedMessages={selectedMessages}
+      setShowReactionPopup={setShowReactionPopup}
+      />
+    )}
     <div
     
         key={`${msg.id}-${selectedMessages.length}`}
@@ -815,7 +828,7 @@ onPointerCancel={() => {
           ${
             selectedMessages.includes(msg.id)
               ? "bg-blue-500 border-blue-500"
-              : "border-text-[var(--text-color)]"
+              : "border border-gray-500"
           }
         `}
       >
@@ -989,18 +1002,22 @@ onPointerCancel={() => {
 
   <>
     {msg.message && msg.type === "text" && (
-      <div
-        className={`text-[13px] mt-1 px-4 text-white ${
-          hasLink ? "w-56" : "w-auto"
-        }`}
-      >
-        <Linkify
-          options={{
-            target: "_blank",
-            className:
-              "text-blue-400 pointer-events-auto",
-          }}
-        >
+    <div
+    className="
+      text-[13px]
+      mt-1
+      text-white
+      w-fit
+      max-w-56
+      break-words
+    ">
+    <Linkify
+      options={{
+        target: "_blank",
+        className:
+          "text-blue-400 pointer-events-auto",
+      }}
+    >
     {displayText}
   </Linkify>
 

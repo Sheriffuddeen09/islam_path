@@ -5,7 +5,6 @@ export default function CommunityMessageMenu({
   isMobile,
   anchorPosition,
   selectedMessage,
-  authUser,
 
   onClose,
   onCopy,
@@ -17,7 +16,6 @@ export default function CommunityMessageMenu({
   setActionType,
   setActionMessage,
   setShowActionModal,
-  message,
   isAdmin
 
 }) {

@@ -7,6 +7,7 @@ import api from "../../Api/axios";
 import CommunityMessageMenu from "./CommunityMessageMenu";
 import MessageActionModal from "./MessageActionModal";
 import CommunityMediaMessage from "./CommunityMediaMessage";
+import MediaPreview from "./MediaPreview";
 
 export default function MessageList({msg, showForwardModal, forwardMsg, setReactionMsg, setShowForwardModal,
                                     reactionMsg, isMobile, isMine, authUser, retryCommunityMessage ,react,
@@ -880,6 +881,24 @@ const handleDownloadMessage =
     </div>
   )}
 
+    <MediaPreview 
+    showPreview={showPreview}
+    setShowPreview={setShowPreview}
+    previewMessage={previewMessage}
+    authUser={authUser}
+    isAdmin={isAdmin}
+    handleDownloadMessage={handleDownloadMessage}
+    setActionType={setActionType}
+    showToast={showToast}
+    setMessages={setMessages}
+    communityMessageAction={communityMessageAction}
+    react={react}
+    setActionMessage={setActionMessage}
+    msg={msg}
+    activeCommunity={activeCommunity}
+    reactionMsg={reactionMsg} setReactionMsg={setReactionMsg} isMine={isMine}
+     />
+
 
     <ApprovalModal
       open={approvalModal}
@@ -952,207 +971,6 @@ const handleDownloadMessage =
 
 
 
-{
-  showPreview &&
-  previewMessage && (
-
-    <div
-      onClick={() =>
-        setShowPreview(false)
-      }
-      className="
-        fixed
-        inset-0
-        z-[99999]
-        bg-black/70
-        backdrop-blur-md
-        pb-8
-
-        flex
-        justify-center
-      "
-    >
-
-      {/* TOP BAR */}
-
-      <div
-        className="
-          absolute
-          top-0
-          left-0
-          right-0
-
-          z-20
-
-          flex
-          items-center
-          justify-between
-
-          p-4
-
-          bg-gradient-to-b
-          from-black/80
-          to-transparent
-        "
-      >
-
-        <button
-          
-          className="
-            text-white
-          "
-        >
-
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="size-7"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-
-        </button>
-
-        <div
-          className="
-            flex
-            items-center
-            gap-3
-          "
-        >
-
-          {/* DOWNLOAD */}
-
-          <button
-            onClick={() =>
-              handleDownloadMessage(
-                previewMessage
-              )
-            }
-            className="
-              text-white
-            "
-          >
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 16.5v-9m0 9-3-3m3 3 3-3M3.75 15v3a2.25 2.25 0 0 0 2.25 2.25h12A2.25 2.25 0 0 0 20.25 18v-3"
-              />
-            </svg>
-
-          </button>
-
-            <CommunityMessageMenu
-                isAdmin={isAdmin}
-                open={showMessageMenu}
-                isMobile={isMobile}
-                selectedMessage={selectedMessage}
-                authUser={authUser}
-                anchorPosition={menuPosition}
-
-                onClose={() =>
-                  setShowMessageMenu(false)
-                }
-
-                onCopy={() => {
-
-                copyMessageText(
-                  selectedMessage?.msg
-                );
-
-                setShowMessageMenu(false);
-              }}
-              
-
-                onReply={() => {
-                  setReplyingToCommunity(
-                    selectedMessage
-                  );
-                  setShowMessageMenu(false);
-                }}
-
-                onShare={() => {
-                  handleForward(selectedMessage);
-                  setShowMessageMenu(false);}}
-                setShowMessageMenu={setShowMessageMenu}
-                showToast={showToast}
-                setMessages={setMessages}
-                communityMessageAction={communityMessageAction}
-                message={msg}
-                setActionType={setActionType}
-                setActionMessage={setActionMessage}
-                setShowActionModal={setShowActionModal}
-
-              />
-
-          
-        </div>
-
-      </div>
-
-      {/* IMAGE */}
-
-      {previewMessage.type ===
-        "image" && (
-
-        <img
-          src={
-            previewMessage.files?.[0]
-              ?.file_url
-          }
-          alt=""
-          className="
-            max-w-full
-            h-full
-            object-contain
-          "
-        />
-
-      )}
-
-      {/* VIDEO */}
-
-      {previewMessage.type ===
-        "video" && (
-
-        <video
-          controls
-          autoPlay
-          className="
-            max-w-full
-            h-full
-          "
-        >
-          <source
-            src={
-              previewMessage.files?.[0]
-                ?.file_url
-            }
-          />
-        </video>
-
-      )}
-
-    </div>
-
-  )
-}
 
     </div>
      )
