@@ -8,15 +8,34 @@ export default function CommunityRespondModal({
 }) {
 
 
-  // notification state
-  const [notify, setNotify] = useState({
+ const [notify, setNotify] = useState({
     show: false,
     type: "sending", // sending | success | failed
     text: "",
   });
 
-  // auto hide
-  useEffect(() => {
+
+
+  const files =
+    message?.files || [];
+
+  const media =
+    files?.[0] || null;
+
+  const mediaUrl =
+    media?.file_url ||
+    media?.file ||
+    "";
+
+  const isImage =
+    message?.type === "image";
+
+  const isVideo =
+    message?.type === "video";
+
+ 
+
+    useEffect(() => {
     if (!notify.show) return;
 
     if (notify.type === "sending") return;
@@ -70,6 +89,91 @@ export default function CommunityRespondModal({
     }
   };
 
+  if (!mediaUrl) {
+    return null;
+  }
+
+  const content = (
+
+    <div
+      className={`
+        relative
+        overflow-hidden
+        px-3
+        rounded-lg
+        w-full
+      `}
+    >
+
+      {/* TOP ACTIONS */}
+      {/* IMAGE */}
+
+      {isImage && (
+
+        <img
+          src={mediaUrl}
+          alt=""
+          className="
+            w-[150px]
+            mt-2
+            max-h-[150px]
+            object-cover
+            rounded-xl
+            cursor-pointer
+          "
+        />
+
+      )}
+
+      {/* VIDEO */}
+
+      {isVideo && (
+
+        <div
+          className="
+            relative
+            w-full
+            rounded-xl
+          "
+        >
+
+          <video
+            controls
+            poster={media?.thumbnail}
+            className="
+             w-[150px]
+            mt-2
+            max-h-[150px]
+            object-cover
+            rounded-xl
+            cursor-pointer
+
+            "
+          >
+            <source
+              src={mediaUrl}
+            />
+          </video>
+        </div>
+
+      )}
+
+      
+    </div>
+  );
+  
+  const truncateWords = (text, limit = 25) => {
+  if (!text) return "";
+
+  const words = text.split(" ");
+
+  return words.length > limit
+    ? words.slice(0, limit).join(" ") + "..."
+    : text;
+};
+
+  // auto hide
+  
   if (!open && !notify.show) return null;
 
   return (
@@ -133,22 +237,26 @@ export default function CommunityRespondModal({
               <div className="w-6" />
             </div>
 
-            {/* ORIGINAL MESSAGE */}
+            <div className="overflow-y-auto scrollbar-thin">
+
+            {content}
             <div
               className="
                 bg-[#202c33]
-                rounded-2xl
+                rounded-xl
                 px-4
                 py-3
                 text-white
                 text-sm
                 mb-4
+                mt-1 
                 break-words
               "
             >
-              {message?.message}
+               {truncateWords(message?.message, 25)}
             </div>
 
+          </div>
             {/* INPUT */}
             <div
               className="

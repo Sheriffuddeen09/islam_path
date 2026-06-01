@@ -2,18 +2,27 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import ReadMoreCaption from "./ReadMoreCaption";
 import ReactionMediaPopup from "./ReactionMediaPopup";
+import DeleteModal from "../chatcomponent/DeleteModal";
+import { ReportModal } from "../chatcomponent/ReportModal";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function MediaPreview({
   preview,
   setPreview,
   activeChat, 
   msg,
-  react, setSelectedMessages, setUiState, isMine, setSelectedMsg
+  react, setSelectedMessages, setUiState, isMine, setSelectedMsg, messages, selectedMessages, setForwardMessage,
+  togglePin, setMessages
 }) {
 
   const [showMenu, setShowMenu] = useState(false)
   const [showReactionPopupId, setShowReactionPopupId] = useState(null);
+  const [openDelete, setOpenDelete] = useState(false)
+  const [reportMessage, setReportMessage] = useState(false)
   const { items, index } = preview;
+
+  const { user } = useAuth();
+  
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -45,6 +54,57 @@ const avatarName = isGroup
   };
 
   const current = items[index];
+
+  const handleDeletePop = () => {
+    setOpenDelete(true);
+  };
+
+
+   const actions = [
+  {
+    label: "Delete",
+    show: true,
+    onClick: () => {handleDeletePop()},
+  },
+  {
+    label: "Forward",
+    show: true,
+    onClick: (m) => {
+  const safeMsg = m || msg;
+  let messagesToForward = [];
+  if (selectedMessages.length > 0) {
+    messagesToForward = messages.filter(x =>
+      selectedMessages.includes(x.id)
+    );
+  } else if (safeMsg) {
+    messagesToForward = [safeMsg];
+  }
+  setForwardMessage({
+    open: true,
+    messages: messagesToForward.filter(Boolean)
+  });
+  setSelectedMessages([])
+
+}
+  },
+  {
+    label: msg.is_pinned ? "Unpin" : "Pin",
+    show: true,
+    onClick: () => {togglePin(msg)},
+
+  },
+  {
+    label: "Report",
+    show: !isMine,
+    onClick: () => setReportMessage(true),
+
+  },
+
+
+
+].filter(a => a.show);
+
+
 
   // ESC CLOSE
   useEffect(() => {
@@ -237,16 +297,15 @@ const avatarName = isGroup
       {/* USER INFO */}
       <div className="flex flex-col min-w-0">
 
-        <h3
-          className="
-            font-bold
-            text-sm
-            truncate
-            text-white
-          "
-        >
-          {displayName}
-        </h3>
+        <h3 className="font-bold text-lg sm:block hidden truncate text-[var(--text-color)]">
+              {displayName}
+            </h3>
+
+            <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
+            {displayName?.length > 9
+              ? `${displayName.slice(0, 9)}...`
+              : displayName}
+          </h3>
         
         {isGroup && (
           <p
@@ -300,16 +359,16 @@ const avatarName = isGroup
       </button>
 
       {/* MENU */}
+    
+        <div className="relative">
+
       <button
         onClick={() =>
-          setShowMenu(prev => !prev)
+          setShowMenu(prev => (prev === msg.id ? null : msg.id))
         }
-        className="
-          text-white
-          hover:opacity-70
-        "
+        className="text-white hover:opacity-70"
       >
-        <svg
+     <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -325,6 +384,34 @@ const avatarName = isGroup
         </svg>
       </button>
 
+  {showMenu === msg.id && (
+    <div className="
+      absolute right-0 mt-2 w-44
+      bg-[#1d1d1d]
+      rounded-xl shadow-lg
+      overflow-hidden
+      z-50
+      animate-dropdown
+    ">
+      {actions.map((action, i) => (
+        <button
+          key={i}
+          onClick={() => {
+            action.onClick(msg);
+            setShowMenu(null);
+          }}
+          className="
+            w-full text-left px-4 py-2
+            text-sm text-white
+            hover:bg-white/10
+          "
+        >
+          {action.label}
+        </button>
+      ))}
+      </div>
+      )}
+    </div>
     </div>
   </div>
 
@@ -579,6 +666,21 @@ const avatarName = isGroup
       )}
     </div>
 
+      {openDelete && (
+        <DeleteModal
+          message={msg}
+          onClose={() => setOpenDelete(false)}
+          setMessages={setMessages}
+          currentUserId={user.id}
+        />
+      )}
+
+      {reportMessage && (
+        <ReportModal
+          activeChat={activeChat}
+          onClose={() => setReportMessage(false)}
+        />
+      )}
      
   </div>
 

@@ -8,6 +8,7 @@ export default function ApprovalModal({
   setMessages,
   onApprove,
   onReject,
+  message
 }) {
 
   // loading per messages/send
@@ -52,17 +53,25 @@ export default function ApprovalModal({
   try {
     setLoadingAction(`approve-${msg.id}`);
 
-    await onApprove({
+    const { data } = await onApprove({
       messageId: msg.id,
       text,
     });
 
-    // ✅ REMOVE IMMEDIATELY FROM UI
-    setMessages(prev =>
-      prev.filter(
-        m => m.id !== msg.id
-      )
-    );
+    const newMessages = [];
+
+    if (data?.message) {
+      newMessages.push(data.message);
+    }
+
+    if (data?.admin_message) {
+      newMessages.push(data.admin_message);
+    }
+
+    setMessages(prev => [
+      ...prev.filter(m => m.id !== msg.id),
+      ...newMessages
+    ]);
 
     setApproveTexts(prev => {
       const copy = { ...prev };
@@ -76,6 +85,8 @@ export default function ApprovalModal({
     setLoadingAction(null);
   }
 };
+
+
 
   // REJECT
   const handleReject = async (msg) => {
@@ -110,7 +121,16 @@ export default function ApprovalModal({
   }
 };
 
- 
+const truncateWords = (text, limit = 20) => {
+  if (!text) return "";
+
+  const words = text.split(" ");
+
+  return words.length > limit
+    ? words.slice(0, limit).join(" ") + "..."
+    : text;
+};
+
   if (!open) return null;
 
 
@@ -132,7 +152,7 @@ export default function ApprovalModal({
         bg-[var(--bg-color)]
         text-[var(--text-color)]
         w-full
-        max-w-md
+        max-w-xl
         rounded-3xl
         p-5
         relative
@@ -205,6 +225,22 @@ export default function ApprovalModal({
           const text =
             approveTexts[msg.id] || "";
 
+        const originalFiles =
+        msg?.original_message?.files || [];
+
+      const originalMedia =
+        originalFiles[0];
+
+      const originalMediaUrl =
+        originalMedia?.file_url ||
+        originalMedia?.file;
+
+      const isOriginalImage =
+        msg?.original_message?.type === "image";
+
+      const isOriginalVideo =
+        msg?.original_message?.type === "video";
+
           return (
 
             <div
@@ -218,8 +254,6 @@ export default function ApprovalModal({
                 border-white/5
               "
             >
-
-              {/* USER */}
               <div className="
                 text-xs
                 text-white
@@ -228,7 +262,66 @@ export default function ApprovalModal({
                 Pending User Message
               </div>
 
-              {/* MESSAGE */}
+               <div className="overflow-y-auto scrollbar-thin">
+
+               {msg?.original_message && (
+                <div className="
+                  bg-[#1a2a33]
+                  border-l-4
+                  border-blue-500
+                  rounded-xl
+                  px-3
+                  py-2
+                  text-white
+                  text-sm
+                  mb-3
+                ">
+
+                  <div className="text-blue-400 text-xs mb-2">
+                    Original Message
+                  </div>
+
+                  {msg.original_message.message && (
+                    <div className="mb-2 break-words">
+                      {truncateWords(msg.original_message.message, 20)}
+                    </div>
+                  )}
+
+                  {originalMediaUrl && isOriginalImage && (
+                    <img
+                      src={originalMediaUrl}
+                      alt=""
+                      className="
+                        w-[150px]
+                        mt-2
+                        max-h-[150px]
+                        object-cover
+                        rounded-xl
+                        cursor-pointer
+                      "
+                    />
+                  )}
+
+                  {originalMediaUrl && isOriginalVideo && (
+                    <video
+                      controls
+                      className="
+                        w-[150px]
+                        mt-2
+                        max-h-[150px]
+                        object-cover
+                        rounded-xl
+                        cursor-pointer
+                      "
+                    >
+                      <source src={originalMediaUrl} />
+                    </video>
+                  )}
+
+                </div>
+              )}
+            </div>
+
               <div className="
                 bg-[#202c33]
                 rounded-2xl

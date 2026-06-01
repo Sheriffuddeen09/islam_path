@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import ReadMoreCaption from "./ReadMoreCaption";
-import CommunityReactionPopup from "./CommunityReactionPopUp";
+import toast from "react-hot-toast";
 import CommunityMediaReaction from "./CommunityMediaReaction";
+import MessageMediaDelete from "./MessageMediaDelete";
+import DeleteMessageModal from "./DeleteMessageModal";
 
 export default function MediaPreview({
   showPreview,
@@ -9,25 +11,158 @@ export default function MediaPreview({
   previewMessage,
   authUser,
   isAdmin,
-  handleDownloadMessage,
-  handleDeleteMessage,
-  handleClearMessage,
   onShare,
   onForward,
   onReport,
   react,
   msg,
   activeCommunity,
-  reactionMsg, setReactionMsg, isMine
+  reactionMsg, setReactionMsg, communityMessageAction, actionType, onDelete,
+  setMessages, setShowActionModal, 
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [reactionOpen, setReactionOpen] = useState(false);
+  
+  const [showDeleteModal,
+  setShowDeleteModal] =
+  useState(false);
 
+const [selectedMessage,
+  setSelectedMessage] =
+  useState(null);
+
+  const [selectedMedia, setSelectedMedia] =
+  useState(null);
 
   if (!showPreview || !previewMessage) return null;
 
-  const isImage = previewMessage.type === "image";
-  const isVideo = previewMessage.type === "video";
+
+const handleDownloadMessage = async (message) => {
+  console.log("Downloading:", message);
+
+  const toastId = toast.loading(
+    `Downloading ${
+      message.file_name || "file"
+    }...`
+  );
+
+  try {
+    const token =
+      localStorage.getItem("token");
+
+    const response = await fetch(
+      `http://localhost:8000/api/community/messages/download/${message.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log(
+      "Status:",
+      response.status
+    );
+
+    if (!response.ok) {
+      const text =
+        await response.text();
+
+      console.log(
+        "Server error:",
+        text
+      );
+
+      throw new Error(
+        text || "Download failed"
+      );
+    }
+
+    const blob =
+      await response.blob();
+
+    const downloadUrl =
+      window.URL.createObjectURL(
+        blob
+      );
+
+    const a =
+      document.createElement("a");
+
+    a.href = downloadUrl;
+
+    a.download =
+      message.file_name ||
+      `file-${message.id}`;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+
+    window.URL.revokeObjectURL(
+      downloadUrl
+    );
+
+    toast.success(
+      "Download completed",
+      {
+        id: toastId,
+      }
+    );
+  } catch (err) {
+    console.error(
+      "Download error:",
+      err
+    );
+
+    toast.error(
+      err.message ||
+        "Failed to download file",
+      {
+        id: toastId,
+      }
+    );
+  }
+};
+
+
+    const handleDeleteMessage = async (
+      msg,
+      editedText
+    ) => {
+
+      try {
+
+        if (actionType === "delete") {
+
+          await communityMessageAction({
+            action: "delete",
+            message_id: msg.id,
+          });
+
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === msg.id
+                ? {
+                    ...m,
+                    deleted_at:
+                      new Date().toISOString(),
+                  }
+                : m
+            )
+          );
+        }
+
+       
+      } catch (err) {
+
+        console.log(err);
+
+      }
+
+      setShowActionModal(false);
+    };
 
   const getImage = (image) => {
 
@@ -93,9 +228,15 @@ export default function MediaPreview({
             )}
 
             <div>
-              <h2 className="font-semibold text-white">
+               <h3 className="font-bold block sm:hidden text-lg text-white">
+                {activeCommunity.community_name?.length > 9
+                  ? `${activeCommunity.community_name.slice(0, 9)}...`
+                  : activeCommunity.community_name}
+              </h3>
+
+              <h3 className="font-bold sm:block hidden text-lg text-white">
                 {activeCommunity.community_name}
-              </h2>
+              </h3>
             </div>
 
           </div>
@@ -192,22 +333,17 @@ export default function MediaPreview({
             {isAdmin && (
               <>
                 <MenuItem
-                  label="Delete"
-                  danger
-                  onClick={() =>
-                    handleDeleteMessage(
-                      previewMessage
-                    )
-                  }
-                />
+                label="Delete"
+                danger
+                 onClick={() =>
+                  onDelete(selectedMedia)
+                }
+              />
 
                 <MenuItem
-                  label="Clear"
-                  onClick={() =>
-                    handleClearMessage(
-                      previewMessage
-                    )
-                  }
+                  label="Pin"
+                  danger
+                  
                 />
               </>
             )}
@@ -374,6 +510,16 @@ export default function MediaPreview({
     </button>
 
   </div>
+
+  <DeleteMessageModal
+    open={showDeleteModal}
+    message={selectedMessage}
+    setMessages={setMessages}
+    onClose={() => {
+      setShowDeleteModal(false);
+      setSelectedMessage(null);
+    }}
+  />
    
 </div>
   );

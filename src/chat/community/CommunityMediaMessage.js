@@ -1,9 +1,8 @@
 export default function CommunityMediaMessage({
   msg,
-  isMobile,
+ 
   onPreview,
-  onDownload,
-  isAdmin
+  
 }) {
 
   const files =

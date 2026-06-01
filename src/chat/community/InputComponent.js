@@ -43,11 +43,6 @@ export default function InputComponent({activeCommunity,
   const fileInputRefCommunity = useRef(null);
 
 
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
  const role =
   activeCommunity?.my_role;
 
@@ -311,24 +306,7 @@ const stopRecordingCommunity = async () => {
     .forEach((t) => t.stop());
 };
 
-  const getAudioDuration = (file) => {
-      return new Promise((resolve) => {
-        const url = URL.createObjectURL(file);
-        const audio = new Audio(url);
-    
-        audio.onloadedmetadata = () => {
-          const duration = audio.duration || 0;
-          URL.revokeObjectURL(url);
-          resolve(duration);
-        };
-    
-        audio.onerror = () => {
-          URL.revokeObjectURL(url);
-          resolve(0);
-        };
-      });
-    };
-
+  
 const [showSendOptions, setShowSendOptions] =
   useState(false);
 
@@ -435,7 +413,16 @@ const sendTextCommunity = async ({
 const sendFileCommunity = async (
   response_mode = false
 ) => {
-  if (!files.length) return;
+  
+ if (!files.length) return;
+
+  // 🚫 Prevent more than 2 files
+  if (files.length > 2) {
+    toast.error(
+      "You can only send a maximum of 2 files at a time."
+    );
+    return;
+  }
   const reply =
     replyingToCommunity;
   setReplyingToCommunity(null);
@@ -549,7 +536,7 @@ const sendFileCommunity = async (
           : m
       )
     );
-    showToast(
+    toast.error(
       err?.response?.data
         ?.message ||
       "Failed to send"

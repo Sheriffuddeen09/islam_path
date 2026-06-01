@@ -643,13 +643,14 @@ const isInteractive = (target) => {
       message={msg} showReactions={showReactionPopup} setSelectedMessages={setSelectedMessages}  
       setSelectedMsg={setSelectedMsg} isMine={isMine} setUiState={setUiState} selectedMessages={selectedMessages}
       setShowReactionPopup={setShowReactionPopup}
+      messages={messages} setForwardMessage={setForwardMessage} togglePin={handlePin} setMessages={setMessages}
       />
     )}
     <div
     
         key={`${msg.id}-${selectedMessages.length}`}
         ref={messageRef}
-        className={`flex cursor-pointer px-4 ${
+        className={`flex cursor-pointer px-1 sm:px-4 ${
           isMine ? "justify-end" : "justify-start"
         } ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
       >
@@ -1105,7 +1106,7 @@ onPointerCancel={() => {
     </div>
     
      <MessageComponent
-     setChats={setChats}
+      setChats={setChats}
       openChat={openChat}
       msg={msg}
       togglePin={handlePin}

@@ -336,11 +336,7 @@ useEffect(() => {
     show: true,
     onClick: () => {togglePin(msg); setActiveMenuId(null)},
   },
-
-  // =========================
-  // ❌ ONLY RECEIVER MESSAGE
-  // =========================
-
+  
   {
     label: "Report",
     show: !isMine,

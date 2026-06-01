@@ -116,16 +116,10 @@ useEffect(() => {
       }),
     };
 
-    console.log("FORWARD PAYLOAD:", payload);
-
     const res = await api.post(
       "/api/messages/forward-multiple",
       payload
     );
-
-    console.log("FORWARD RESPONSE:", res.data);
-
-    // 🔥 USE BACKEND CHAT ID
     const chatId = res.data?.chat_id;
     const newMessages = res.data?.messages || [];
 
@@ -431,7 +425,7 @@ useEffect(() => {
             }
           >
             <div
-              className="absolute top-10 right-3 w-52 bg-black text-white backdrop-blur-md font-bold rounded-lg py-2"
+              className="absolute top-10 right-3 w-52 bg-black/80 text-white backdrop-blur-md font-bold rounded-lg py-2"
               onClick={(e) => e.stopPropagation()}
             >
               {/* MAIN */}
@@ -440,8 +434,6 @@ useEffect(() => {
                   <button
                     key={i}
                     onClick={() => {
-                      console.log("🔥 ACTION:", action.label, msg.id);
-
                       action.onClick(msg);
 
                       setUiState({
@@ -451,7 +443,7 @@ useEffect(() => {
                         showMore: false,
                       });
                     }}
-                    className="w-full text-left px-4 py-3 text-sm bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold"
+                    className="w-full text-left px-4 py-3 text-sm  text-white font-bold"
                   >
                     {action.label}
                   </button>
@@ -465,13 +457,13 @@ useEffect(() => {
 
                   <button
                     onClick={() => setShowMore(!showMore)}
-                    className="w-full text-left px-4 py-3 text-sm bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold"
+                    className="w-full text-left px-4 py-3 text-white font-bold"
                   >
                     More {showMore ? "▲" : "▼"}
                   </button>
 
                   {showMore && (
-                    <div className="border-t bg-gray-50">
+                    <div className="border-t">
                       {moreActions.map((action, i) => (
                         <button
                           key={i}
@@ -485,7 +477,7 @@ useEffect(() => {
                               showMore: false,
                             });
                           }}
-                          className="w-full text-left px-4 py-3 text-sm bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md font-bold"
+                          className="w-full text-left px-4 py-3 text-sm text-white font-bold"
                         >
                           {action.label}
                         </button>

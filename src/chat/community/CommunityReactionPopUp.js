@@ -7,7 +7,6 @@ export default function CommunityReactionPopup({
   onReact,
   setShowReactions,
   message,
-  isMine,
 }) {
 
  
@@ -26,9 +25,7 @@ export default function CommunityReactionPopup({
 
   return (
     <div
-      className={`absolute bottom-8 z-50 ${
-        isMine ? "right-0" : "left-0"
-      }`}
+      className={`absolute bottom-8 z-50 `}
       onClick={(e) => e.stopPropagation()}
     >
 
@@ -111,11 +108,7 @@ export default function CommunityReactionPopup({
             absolute
             bottom-14
             z-[999]
-            ${
-              isMine
-                ? "right-0"
-                : "left-0"
-            }
+            
           `}
         >
 

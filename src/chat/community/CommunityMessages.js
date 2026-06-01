@@ -523,9 +523,15 @@ const resendCommunityFile =
             )}
 
             <div>
-              <h2 className="font-semibold">
+             <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
+                {activeCommunity.community_name?.length > 9
+                  ? `${activeCommunity.community_name.slice(0, 9)}...`
+                  : activeCommunity.community_name}
+              </h3>
+
+              <h3 className="font-bold sm:block hidden text-lg text-[var(--text-color)]">
                 {activeCommunity.community_name}
-              </h2>
+              </h3>
             </div>
 
           </div>
@@ -579,6 +585,7 @@ const resendCommunityFile =
             flex-1
             min-h-0
             overflow-y-auto
+            overflow-hidden
             scrollbar-thin
             scrollbar-thumb-green-500
             scrollbar-track-transparent

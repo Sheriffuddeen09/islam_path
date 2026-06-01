@@ -8,6 +8,13 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
 
   const [showModal, setShowModal] = useState(false);
 
+  const truncateText = (text, max = 20) => {
+  if (!text) return "";
+  return text.length > max
+    ? text.slice(0, max) + "..."
+    : text;
+};
+
   const handlePin = async (msg) => {
     try {
       if (msg.is_pinned) {
@@ -46,10 +53,12 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
           <div className="truncate flex gap-2">
             <span>📌</span>
 
-            <span className="truncate">
-              {lastPinned.type === "text"
-                ? lastPinned.message
-                : lastPinned.file_name || `${lastPinned.type} message`}
+            <span>
+              {truncateText(
+                lastPinned.type === "text"
+                  ? lastPinned.message
+                  : lastPinned.file_name || `${lastPinned.type} message`
+              )}
             </span>
 
             {pinned.length > 1 && (
@@ -89,10 +98,12 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
                   setShowModal(false);
                 }}
               >
-                <span className="text-sm truncate">
-                  {msg.type === "text"
-                    ? msg.message
-                    : msg.file_name || `${msg.type} message`}
+                <span className="text-sm">
+                  {truncateText(
+                    msg.type === "text"
+                      ? msg.message
+                      : msg.file_name || `${msg.type} message`
+                  )}
                 </span>
 
                 <button

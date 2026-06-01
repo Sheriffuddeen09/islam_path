@@ -595,11 +595,11 @@ setMessages((prev) => {
     <div className="h-screen flex bg-[var(--bg-color)] text-[var(--text-color)] ">
        <div className={`
         w-full
-        md:w-[350px]
+        lg:w-[350px]
         ${mobileView === "chatlist"
           ? "flex"
           : "hidden"}
-        md:flex
+        lg:flex
         flex-col
       `}>
         <ChatList
@@ -624,7 +624,7 @@ setMessages((prev) => {
                : "hidden"}
              
              shadow-md
-             md:flex
+             lg:flex
              flex-col
      
            `}>
@@ -667,14 +667,14 @@ setMessages((prev) => {
      <div className={`
      
              w-full
-             md:w-[350px]
+             lg:w-[350px]
              shadow-md
      
              ${mobileView === "settings"
                ? "flex"
                : "hidden"}
      
-             md:flex
+             lg:flex
              flex-col
      
            `}>

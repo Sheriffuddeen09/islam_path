@@ -278,8 +278,8 @@ return (
       listToRender[index - 1];
 
 
-    const isMine =
-      msg.sender_id === authUser.id;
+    // const isMine =
+    //   msg.sender_id === authUser.id;
 
     return (
       <div
@@ -313,7 +313,6 @@ return (
         {/* MESSAGE  setReplyingToCommunity*/}
         <MessageList
           msg={msg} activeCommunity={activeCommunity}
-          isMine={isMine}
           authUser={authUser}
           showForwardModal={showForwardModal}
           forwardMsg={forwardMsg}

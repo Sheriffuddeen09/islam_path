@@ -639,6 +639,8 @@ const getPreviewSrc = (index) => {
         </button>
 
         {/* SEND WITH RESPOND */}
+        {
+          caption &&
         <button
           onClick={() => {
             onSend({
@@ -679,6 +681,8 @@ const getPreviewSrc = (index) => {
 
          Respond
         </button>
+
+        }
 
       </div>
     )}

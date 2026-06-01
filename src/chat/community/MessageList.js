@@ -10,7 +10,7 @@ import CommunityMediaMessage from "./CommunityMediaMessage";
 import MediaPreview from "./MediaPreview";
 
 export default function MessageList({msg, showForwardModal, forwardMsg, setReactionMsg, setShowForwardModal,
-                                    reactionMsg, isMobile, isMine, authUser, retryCommunityMessage ,react,
+                                    reactionMsg, isMobile, authUser, retryCommunityMessage ,react,
                                     approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
                                     setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
                                     pendingMessages, setPendingMessages, messageRefs, selectedMessage,
@@ -305,6 +305,8 @@ const handleDownloadMessage =
     }
 };
 
+
+
      return (
         <div>
           <div
@@ -316,11 +318,7 @@ const handleDownloadMessage =
               group
               transition-all
               cursor-pointer
-              ${
-                isMine
-                  ? "ml-auto bg-[#202c33]"
-                  : "bg-[#202c33]"
-              }
+              bg-[#202c33]
             `}
 
            style={{
@@ -481,24 +479,7 @@ const handleDownloadMessage =
 
               <>
               
-                {/* SENDER NAME */}
-                {/* {!msg.replied_to && (
-                  <p
-                    className="
-                      text-[12px]
-                      px-4
-                      font-semibold
-                      text-white
-                      pt-3
-                    "
-                  >
-                    <span>
-                      {msg.sender?.first_name || msg.sender?.name}
-                      {" "}
-                      {msg.sender?.last_name || ""}
-                    </span>
-                  </p>
-                )} */}
+                
 
                 {/* REPLY MESSAGE */}
                 {msg.replied_to && msg.replied_message && (
@@ -544,9 +525,28 @@ const handleDownloadMessage =
                           d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
                         />
                       </svg>
+                    <span className="sm:hidden block">
+                     {
+                        msg.replied_message?.message?.length > 40
+                          ? msg.replied_message.message.slice(0, 40) + "..."
+                          : msg.replied_message?.message
+                      }
+                      </span>
 
-                      {msg.replied_message.message}
+                      <span className="sm:block hidden">
+                     {
+                        msg.replied_message?.message?.length > 75
+                          ? msg.replied_message.message.slice(0, 75) + "..."
+                          : msg.replied_message?.message
+                      }
+                      </span>
                     </div>
+                    <br />
+                    <span className="text-[13px]">
+                    {
+                      msg.message
+                    }
+                    </span>
                   </div>
                 )}
 
@@ -563,6 +563,35 @@ const handleDownloadMessage =
                   msg={msg} 
                 
                  />
+                <div
+                        className={`text-[13px] pt-3 mt-1 px-4 text-white ${
+                          hasLink ? "w-56" : "w-auto"
+                        }`}
+                      >
+                        <Linkify
+                          options={{
+                            target: "_blank",
+                            className:
+                              "text-blue-400 pointer-events-auto",
+                          }}
+                        >
+
+                    {msg?.approvals?.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {msg.approvals.map(approval => (
+                        <div
+                          key={approval.id}
+                        >
+                            {approval.admin_response}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                        </Linkify>
+                  </div>
+                  
+                 {!msg.replied_to && !msg.replied_message && (
                  <div
                         className={`text-[13px] pt-3 mt-1 px-4 text-white ${
                           hasLink ? "w-56" : "w-auto"
@@ -576,6 +605,7 @@ const handleDownloadMessage =
                           }}
                         >
                     {displayText}
+                
                   </Linkify>
 
                   {shouldTrim && (
@@ -600,6 +630,7 @@ const handleDownloadMessage =
                     </button>
                   )}
                 </div>
+                 )}
               </>
             )}
             <div className="
@@ -611,12 +642,10 @@ const handleDownloadMessage =
             ">
               {!isMobile && hoverMsgId === msg.id && (
                 <div
-                    className={`absolute -bottom-7 flex bg-gray-50 shadow-md text-[var(--text-color)] p-1 px-1 gap-1 
-                        z-50 rounded-lg shadow-xl px-2 ${
-                    isMine ? "right-0" : "right-0"
-                    }`}
+                    className={`absolute -bottom-7 flex bg-gray-50 shadow-md text-black p-1 px-1 gap-1 
+                        z-50 rounded-lg shadow-xl px-2 right-0 `}
                 >
-              {Boolean(Number(msg.response_mode))  && msg.replied_to === null && isMine && (
+              {Boolean(Number(msg.response_mode))  && msg.replied_to === null && isAdmin && (
               <button
                 onClick={() =>
                   setReplyingToCommunity(true)
@@ -769,7 +798,7 @@ const handleDownloadMessage =
                 ))}
               </div>
             )}
-            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && !isMine && (
+            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && !isAdmin && (
             <div className="
               mx-auto
               text-center
@@ -790,14 +819,10 @@ const handleDownloadMessage =
             )}
            {reactionMsg?.id === msg.id && (
         <div className={`absolute  bottom-0 z-[9999] 
-        ${isMine ? "right-0" : "left-0"}`}>
+        `}>
             <CommunityReactionPopup
             onReact={react}
             message={reactionMsg}
-            isMine={
-              reactionMsg &&
-              reactionMsg.sender_id === authUser.id
-            }
             setShowReactions={() => setReactionMsg(null)}
             />
         </div>
@@ -894,9 +919,12 @@ const handleDownloadMessage =
     communityMessageAction={communityMessageAction}
     react={react}
     setActionMessage={setActionMessage}
+    actionMessage={actionMessage}
     msg={msg}
     activeCommunity={activeCommunity}
-    reactionMsg={reactionMsg} setReactionMsg={setReactionMsg} isMine={isMine}
+    reactionMsg={reactionMsg} setReactionMsg={setReactionMsg} 
+    actionType={actionType} setSelectedMessage={setSelectedMessage}
+    setShowActionModal={setShowActionModal} showActionModal={showActionModal}
      />
 
 
@@ -907,6 +935,7 @@ const handleDownloadMessage =
       setMessages={setPendingMessages}
       onApprove={approveMessage}
       onReject={rejectMessage}
+      msg={msg}
     />
     <CommunityMessageMenu
     isAdmin={isAdmin}
