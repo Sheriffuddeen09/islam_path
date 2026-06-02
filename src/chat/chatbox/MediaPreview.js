@@ -60,7 +60,62 @@ const avatarName = isGroup
   };
 
 
-   const actions = [
+  const getMediaUrl = (msg) => {
+  // 1. Laravel normalized files array (BEST CASE)
+  if (msg?.files?.length > 0) {
+    return msg.files[0]?.file_url || null;
+  }
+
+  // 2. direct file string
+  if (msg?.file) {
+    if (msg.file.startsWith("http")) return msg.file;
+    return `http://localhost:8000/storage/${msg.file}`;
+  }
+
+  return null;
+};
+
+  const actions = [
+
+    // COPY TEXT
+    {
+      label: copied ? "Copied ✓" : "Copy Text",
+      show:
+        msg.type === "text" ||
+        (
+          ["image", "video", "audio", "file"].includes(msg.type) &&
+          msg.message
+        ),
+      onClick: () => {
+        handleCopy(msg.message);
+        setActiveMenuId(null);
+      },
+    },
+
+    // COPY MEDIA LINK
+    {
+    label: "Copy Link",
+    show: ["image", "video", "audio", "file"].includes(msg.type),
+
+    onClick: async () => {
+      try {
+        const url = getMediaUrl(msg);
+
+        if (!url) {
+          showToast("No media link found", "error");
+          return;
+        }
+
+        await navigator.clipboard.writeText(url);
+
+        showToast("Link copied", "success");
+      } catch (err) {
+        showToast("Failed to copy link", "error");
+      }
+
+      setActiveMenuId(null);
+    },
+  },
   {
     label: "Delete",
     show: true,
@@ -297,11 +352,11 @@ const avatarName = isGroup
       {/* USER INFO */}
       <div className="flex flex-col min-w-0">
 
-        <h3 className="font-bold text-lg sm:block hidden truncate text-[var(--text-color)]">
+        <h3 className="font-bold text-lg sm:block hidden truncate text-white">
               {displayName}
             </h3>
 
-            <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
+            <h3 className="font-bold block sm:hidden text-lg text-white">
             {displayName?.length > 9
               ? `${displayName.slice(0, 9)}...`
               : displayName}

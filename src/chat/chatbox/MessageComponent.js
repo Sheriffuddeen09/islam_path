@@ -255,33 +255,100 @@ useEffect(() => {
   const status = (msg.status || "").toLowerCase().trim();
   
 
+  const getMediaUrl = (msg) => {
+  // 1. Laravel normalized files array (BEST CASE)
+  if (msg?.files?.length > 0) {
+    return msg.files[0]?.file_url || null;
+  }
+
+  // 2. direct file string
+  if (msg?.file) {
+    if (msg.file.startsWith("http")) return msg.file;
+    return `http://localhost:8000/storage/${msg.file}`;
+  }
+
+  return null;
+};
+
   const actions = [
 
+  // COPY TEXT
   {
-    label: copied ? "Copied ✓" : "Copy",
-    show: msg.type === "text", // ✅ only text
-    onClick: () => {handleCopy(); setActiveMenuId(null)},
+    label: copied ? "Copied ✓" : "Copy Text",
+    show:
+      msg.type === "text" ||
+      (
+        ["image", "video", "audio", "file"].includes(msg.type) &&
+        msg.message
+      ),
+    onClick: () => {
+      handleCopy(msg.message);
+      setActiveMenuId(null);
+    },
   },
 
+  // COPY MEDIA LINK
+  {
+  label: "Copy Link",
+  show: ["image", "video", "audio", "file"].includes(msg.type),
+
+  onClick: async () => {
+    try {
+      const url = getMediaUrl(msg);
+
+      if (!url) {
+        showToast("No media link found", "error");
+        return;
+      }
+
+      await navigator.clipboard.writeText(url);
+
+      showToast("Link copied", "success");
+    } catch (err) {
+      showToast("Failed to copy link", "error");
+    }
+
+    setActiveMenuId(null);
+  },
+},
+  // DOWNLOAD IMAGE
   {
     label: "Download Image",
     show: msg.type === "image" && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: () => {
+      handleDownload();
+      setActiveMenuId(null);
+    },
   },
+
+  // DOWNLOAD VIDEO
   {
     label: "Download Video",
     show: msg.type === "video" && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: () => {
+      handleDownload();
+      setActiveMenuId(null);
+    },
   },
+
+  // DOWNLOAD AUDIO
   {
     label: "Download Audio",
-    show: (msg.type === "audio") && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    show: msg.type === "audio" && !isMine,
+    onClick: () => {
+      handleDownload();
+      setActiveMenuId(null);
+    },
   },
+
+  // DOWNLOAD DOCUMENT
   {
     label: "Download Document",
     show: msg.type === "file" && !isMine,
-    onClick: () => {handleDownload(); setActiveMenuId(null)},
+    onClick: () => {
+      handleDownload();
+      setActiveMenuId(null);
+    },
   },
 
   {

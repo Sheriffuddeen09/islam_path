@@ -3,6 +3,7 @@ import api from "../../Api/axios";
 import InputComponent from "./InputComponent";
 import MessagesArea from "./MessageArea";
 import { ChatSkeleton } from "../chatbox/ChatSkeleton";
+import { PinnedCommunityBar } from "./PinnedCommunityBar";
 
 export default function CommunityMessages({
   activeCommunity,
@@ -23,8 +24,11 @@ export default function CommunityMessages({
 
     const [ approvalModal, setApprovalModal ] = useState(false);
     
-     const [ pendingMessages, setPendingMessages ] = useState([]);
-    const bottomRef = useRef(null);
+    const [ pendingMessages, setPendingMessages ] = useState([]);
+    const messageRefs = useRef({});
+
+    
+     const bottomRef = useRef(null);
 
     const role = activeCommunity?.my_role;
 
@@ -444,6 +448,16 @@ const resendCommunityFile =
   };
 
   
+   const handleScrollToMessage = (msg) => {
+    const el = messageRefs.current[msg.id];
+
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      el.classList.add("bg-yellow-200");
+      setTimeout(() => el.classList.remove("bg-yellow-200"), 1500);
+    }
+  };
 
    const getImage = (image) => {
 
@@ -611,6 +625,9 @@ const resendCommunityFile =
 
           ) : (
           <div>
+          <PinnedCommunityBar 
+          messages={messages} onSelect={handleScrollToMessage} setMessages={setMessages}
+          />
             
     {isAdmin &&
     pendingMessages.length > 0 && (
@@ -644,7 +661,7 @@ const resendCommunityFile =
           showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
           isMobile={isMobile} reactionMsg={reactionMsg} setReactionMsg={setReactionMsg}
           setMenuPosition={setMenuPosition} menuPosition={menuPosition}
-          communityMessageAction={communityMessageAction}
+          communityMessageAction={communityMessageAction} messageRefs={messageRefs}
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
           isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           />            

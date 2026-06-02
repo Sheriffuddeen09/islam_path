@@ -160,14 +160,25 @@ const displayText =
   setShowActionModal(false);
 };
 
-  const copyMessageText = async (
-  mgs
-) => {
+  const getMessageText = (msg) => {
+  // approval message exists
+  if (
+    msg?.approvals?.length > 0 &&
+    msg.approvals[0]?.admin_response
+  ) {
+    return msg.approvals[0].admin_response;
+  }
 
+  // normal message
+  return msg?.message || "";
+};
+
+const copyMessageText = async (msg) => {
   try {
+    const textToCopy = getMessageText(msg);
 
     await navigator.clipboard.writeText(
-      mgs || ""
+      textToCopy
     );
 
     showToast(
@@ -176,12 +187,10 @@ const displayText =
     );
 
   } catch (err) {
-
     showToast(
       "Failed to copy",
       "error"
     );
-
   }
 };
 
@@ -891,6 +900,7 @@ const handleDownloadMessage =
     reactionMsg={reactionMsg} setReactionMsg={setReactionMsg} 
     actionType={actionType} setSelectedMessage={setSelectedMessage}
     setShowActionModal={setShowActionModal} showActionModal={showActionModal}
+   
      />
 
 
@@ -904,13 +914,14 @@ const handleDownloadMessage =
       msg={msg}
     />
     <CommunityMessageMenu
+    setMessages={setMessages}
     isAdmin={isAdmin}
     open={showMessageMenu}
     isMobile={isMobile}
     selectedMessage={selectedMessage}
     authUser={authUser}
     anchorPosition={menuPosition}
-
+    setSelectedMessage={setSelectedMessage}
     onClose={() =>
       setShowMessageMenu(false)
     }
@@ -918,7 +929,7 @@ const handleDownloadMessage =
     onCopy={() => {
 
     copyMessageText(
-      selectedMessage?.msg
+      selectedMessage
     );
 
     setShowMessageMenu(false);
@@ -937,9 +948,8 @@ const handleDownloadMessage =
       setShowMessageMenu(false);}}
     setShowMessageMenu={setShowMessageMenu}
     showToast={showToast}
-    setMessages={setMessages}
     communityMessageAction={communityMessageAction}
-    message={msg}
+    msg={msg}
     setActionType={setActionType}
     setActionMessage={setActionMessage}
     setShowActionModal={setShowActionModal}

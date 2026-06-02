@@ -1,11 +1,12 @@
 import React from "react";
+import api from "../../Api/axios";
 
 export default function CommunityMessageMenu({
   open,
   isMobile,
   anchorPosition,
   selectedMessage,
-
+  setSelectedMessage,
   onClose,
   onCopy,
   onShare,
@@ -16,7 +17,9 @@ export default function CommunityMessageMenu({
   setActionType,
   setActionMessage,
   setShowActionModal,
-  isAdmin
+  isAdmin,
+  setMessages,
+  msg
 
 }) {
 
@@ -26,6 +29,44 @@ export default function CommunityMessageMenu({
 
   // FRONTEND DOWNLOAD
 
+  const handlePin = async (msg) => {
+  try {
+    if (msg.is_pinned) {
+      await api.delete("/api/community/messages/pin", {
+        data: { message_id: msg.id },
+      });
+    } else {
+      await api.put("/api/community/messages/pin", {
+        message_id: msg.id,
+      });
+    }
+
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === msg.id
+          ? {
+              ...m,
+              is_pinned: !m.is_pinned,
+            }
+          : m
+      )
+    );
+
+    setSelectedMessage(prev =>
+      prev?.id === msg.id
+        ? {
+            ...prev,
+            is_pinned: !prev.is_pinned,
+          }
+        : prev
+    );
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+  
 const handleDownloadMessage =
   async (message) => {
 
@@ -215,7 +256,7 @@ const handleDownloadMessage =
               label="Copy"
               onClick={() => {
 
-                onCopy?.();
+                onCopy();
 
                 onClose();
               }}
@@ -293,9 +334,48 @@ const handleDownloadMessage =
               }
             />
 
-            {/* OWNER ACTIONS */}
+            {/*OWNER ACTIONS*/}
             {isAdmin && (
               <>
+              {/* Pin  */}
+              <MenuButton
+              onClick={() => {
+                handlePin(selectedMessage);
+                setShowMessageMenu(false);
+              }}
+              label={
+                selectedMessage?.is_pinned
+                  ? "Unpin"
+                  : "Pin"
+              }
+              icon={
+                selectedMessage?.is_pinned ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    className="size-5"
+                  >
+                    <path d="M12 2a1 1 0 0 1 1 1v6.586l3.707 3.707A1 1 0 0 1 16 15H8a1 1 0 0 1-.707-1.707L11 9.586V3a1 1 0 0 1 1-1Z" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="size-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 3v6m0 0 3 3m-3-3-3 3m3-3v12"
+                    />
+                  </svg>
+                )
+              }
+            />
 
                 {/* EDIT */}
                 {selectedMessage?.replied_to === null && 

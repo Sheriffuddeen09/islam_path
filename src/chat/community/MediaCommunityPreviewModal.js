@@ -96,6 +96,7 @@ const handleDrag = (clientX, rect) => {
 
 const trackRef = useRef(null);
 
+
 useEffect(() => {
   const move = (e) => {
     if (!dragType || !trackRef.current) return;

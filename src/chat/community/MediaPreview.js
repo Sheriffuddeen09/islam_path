@@ -3,6 +3,7 @@ import ReadMoreCaption from "./ReadMoreCaption";
 import toast from "react-hot-toast";
 import CommunityMediaReaction from "./CommunityMediaReaction";
 import DeleteMessageModal from "./DeleteMessageModal";
+import api from "../../Api/axios";
 
 export default function MediaPreview({
   showPreview,
@@ -16,7 +17,7 @@ export default function MediaPreview({
   react,
   msg,
   activeCommunity,
-  reactionMsg, setReactionMsg, communityMessageAction, actionType, onDelete,
+  reactionMsg, setReactionMsg, communityMessageAction, actionType,
   setMessages, setShowActionModal, 
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,10 +30,47 @@ const [selectedMessage,
   setSelectedMessage] =
   useState(null);
 
-  const [selectedMedia, setSelectedMedia] =
-  useState(null);
+
 
   if (!showPreview || !previewMessage) return null;
+
+
+   const handlePin = async (msg) => {
+     try {
+       if (msg.is_pinned) {
+         await api.delete("/api/community/messages/pin", {
+           data: { message_id: msg.id },
+         });
+       } else {
+         await api.put("/api/community/messages/pin", {
+           message_id: msg.id,
+         });
+       }
+   
+       setMessages(prev =>
+         prev.map(m =>
+           m.id === msg.id
+             ? {
+                 ...m,
+                 is_pinned: !m.is_pinned,
+               }
+             : m
+         )
+       );
+   
+       setSelectedMessage(prev =>
+         prev?.id === msg.id
+           ? {
+               ...prev,
+               is_pinned: !prev.is_pinned,
+             }
+           : prev
+       );
+   
+     } catch (err) {
+       console.error(err);
+     }
+   };
 
 
 const handleDownloadMessage = async (message) => {
@@ -125,43 +163,88 @@ const handleDownloadMessage = async (message) => {
   }
 };
 
+const handleCopyLink = async (msg) => {
+  try {
+    let file = null;
 
-    const handleDeleteMessage = async (
-      msg,
-      editedText
-    ) => {
+    if (msg?.files?.length) {
+      file = msg.files[0]?.file_url;
+    } else if (msg?.file) {
+      file = getImage(msg.file);
+    }
 
-      try {
+    if (!file) {
+      toast.error(
+        "No media link found",
+        "error"
+      );
+      return;
+    }
 
-        if (actionType === "delete") {
+    await navigator.clipboard.writeText(
+      file
+    );
 
-          await communityMessageAction({
-            action: "delete",
-            message_id: msg.id,
-          });
+    toast.success(
+      "Media link copied",
+      "success"
+    );
+  } catch (err) {
+    console.error(err);
 
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === msg.id
-                ? {
-                    ...m,
-                    deleted_at:
-                      new Date().toISOString(),
-                  }
-                : m
-            )
-          );
-        }
+    toast.error(
+      "Failed to copy link",
+      "error"
+    );
+  }
+};
 
-       
-      } catch (err) {
+const handleCopyText = async (msg) => {
+  try {
 
-        console.log(err);
+    let text = "";
 
-      }
+    if (
+      msg?.approvals?.length > 0
+    ) {
+      const latestApproval =
+        msg.approvals[
+          msg.approvals.length - 1
+        ];
 
-      setShowActionModal(false);
-    };
+      text =
+        latestApproval?.admin_response ||
+        "";
+    } else {
+      text = msg?.message || "";
+    }
+
+    if (!text) {
+      toast.error(
+        "No text found",
+        "error"
+      );
+      return;
+    }
+
+    await navigator.clipboard.writeText(
+      text
+    );
+
+    toast.success(
+      "Text copied",
+      "success"
+    );
+
+  } catch (err) {
+    console.error(err);
+
+    toast.error(
+      "Failed to copy text",
+      "error"
+    );
+  }
+};
 
   const getImage = (image) => {
 
@@ -303,6 +386,7 @@ const handleDownloadMessage = async (message) => {
               bg-[#111]
               rounded-xl
 
+              w-40
               overflow-hidden
 
               shadow-xl
@@ -329,13 +413,78 @@ const handleDownloadMessage = async (message) => {
               }
             />
 
+
+            {(
+              previewMessage?.type === "image" ||
+              previewMessage?.type === "video"
+            ) && (
+              <MenuItem
+                label="Copy Link"
+                onClick={() => {
+                  handleCopyLink(
+                    previewMessage
+                  );
+                  setMenuOpen(false);
+                }}
+              />
+            )}
+
+            {(
+              previewMessage?.message ||
+              previewMessage?.approvals?.length
+            ) && (
+              <MenuItem
+                label="Copy Text"
+                onClick={() => {
+                  handleCopyText(
+                    previewMessage
+                  );
+                  setMenuOpen(false);
+                }}
+              />
+            )}
+
             {isAdmin && (
               <>
                 <MenuItem
-                  label="Pin"
-                  danger
-                  
-                />
+          onClick={() =>{
+            handlePin(previewMessage); setMenuOpen(false) }
+            }
+            label={
+              previewMessage.is_pinned
+                ? "Unpin"
+                : "Pin"
+            }
+            icon={
+              previewMessage.is_pinned ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  className="size-5"
+                >
+                  <path d="M12 2a1 1 0 0 1 1 1v6.586l3.707 3.707A1 1 0 0 1 16 15H8a1 1 0 0 1-.707-1.707L11 9.586V3a1 1 0 0 1 1-1Z" />
+                  <path d="M12 15v7" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 3v6m0 0 3 3m-3-3-3 3m3-3v12"
+                  />
+                </svg>
+              )
+            }
+          />
+
               </>
             )}
           </div>

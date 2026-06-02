@@ -13,7 +13,7 @@ export default function MessagesArea({
   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
   communityMessageAction, pendingMessages, isAdmin, setPendingMessages,
-  setApprovalModal, approvalModal
+  setApprovalModal, approvalModal, messageRefs
 }) {
 
   const [forwardMsg, setForwardMsg] =
@@ -27,7 +27,6 @@ export default function MessagesArea({
 
     const [hoverMsgId, setHoverMsgId] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const messageRefs = useRef({});
 
 
     

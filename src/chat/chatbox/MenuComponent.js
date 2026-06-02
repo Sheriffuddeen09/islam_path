@@ -267,20 +267,75 @@ useEffect(() => {
     setSelectedMsg(null);
   };
 
+  const handleCopyText = async (message) => {
+  try {
+    const text = message?.message || "";
+
+    if (!text.trim()) {
+      showToast("No text to copy", "error");
+      return;
+    }
+
+    await navigator.clipboard.writeText(text);
+
+    showToast("Text copied", "success");
+  } catch (err) {
+    showToast("Failed to copy", "error");
+  }
+};
+
+const handleCopyLink = async (message) => {
+  try {
+    let url = null;
+
+    if (message?.file_url) {
+      url = message.file_url;
+    } else if (message?.file) {
+      url = message.file.startsWith("http")
+        ? message.file
+        : `http://localhost:8000/storage/${message.file}`;
+    }
+
+    if (!url) {
+      showToast("No file link found", "error");
+      return;
+    }
+
+    await navigator.clipboard.writeText(url);
+
+    showToast("Link copied", "success");
+  } catch (err) {
+    showToast("Failed to copy link", "error");
+  }
+};
+
   // ================= ACTIONS =================
   const getActions = (message) => {
     if (!message) return [];
 
     return [
       {
-        label: copied ? "Copied ✓" : "Copy",
-        show: message.type === "text",
+        label: copied ? "Copied ✓" : "Copy Text",
+        show:
+          !!message.message,
         onClick: (m) => {
-          handleCopy(m);
+          handleCopyText(m);
           clearSelection();
         },
       },
-
+      {
+        label: "Copy Link",
+        show: [
+          "image",
+          "video",
+          "audio",
+          "file",
+        ].includes(message.type),
+        onClick: (m) => {
+          handleCopyLink(m);
+          clearSelection();
+        },
+      },
       {
         label: "Edit",
         show:
