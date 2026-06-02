@@ -15,16 +15,16 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
                                     setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
                                     pendingMessages, setPendingMessages, messageRefs, selectedMessage,
                                     setSelectedMessage, showMessageMenu, setShowMessageMenu, setReplyingToCommunity,
-                                    setMenuPosition, menuPosition, communityMessageAction, setMessages}){
+                                    setMenuPosition, menuPosition, communityMessageAction, setMessages,
+                                    approvalModal, setApprovalModal}){
 
                                 
                                       
   const [respondModal, setRespondModal] = useState(false);
 
-  
+  //setApprovalModal
 
   const [respondingMessage, setRespondingMessage] = useState("");
-  const [ approvalModal, setApprovalModal ] = useState(false);
   const [toast, setToast] = useState(false)
   const [showActionModal, setShowActionModal] = useState(false);
   const [actionType, setActionType] = useState(null);
@@ -871,40 +871,6 @@ const handleDownloadMessage =
     />
 
       
-    {isAdmin &&
- pendingMessages.length > 0 && (
-
-  <div
-    onClick={() =>
-      setApprovalModal(true)
-    }
-    className="
-      bg-[var(--bg-color)]
-      text-[var(--text-color)]
-      text-xs
-      px-3
-      py-1
-      cursor-pointer
-      font-semibold
-      fixed
-      top-16 w-full max-w-md  flex-1
-      left-1/2
-      -translate-x-1/2
-      z-50
-      shadow-md
-      flex justify-between items-center
-    "
-  >
-    <span>
-    Pending Approval
-    </span>
-
-    <span>
-    {pendingMessages.length}
-    </span>
-    
-    </div>
-  )}
 
     <MediaPreview 
     showPreview={showPreview}

@@ -2,7 +2,6 @@ import  { useState } from "react";
 import ReadMoreCaption from "./ReadMoreCaption";
 import toast from "react-hot-toast";
 import CommunityMediaReaction from "./CommunityMediaReaction";
-import MessageMediaDelete from "./MessageMediaDelete";
 import DeleteMessageModal from "./DeleteMessageModal";
 
 export default function MediaPreview({
@@ -332,14 +331,6 @@ const handleDownloadMessage = async (message) => {
 
             {isAdmin && (
               <>
-                <MenuItem
-                label="Delete"
-                danger
-                 onClick={() =>
-                  onDelete(selectedMedia)
-                }
-              />
-
                 <MenuItem
                   label="Pin"
                   danger

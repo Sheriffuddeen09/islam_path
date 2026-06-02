@@ -21,8 +21,17 @@ export default function CommunityMessages({
     const [reactionMsg, setReactionMsg] = useState(null);
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0,});
 
+    const [ approvalModal, setApprovalModal ] = useState(false);
+    
+     const [ pendingMessages, setPendingMessages ] = useState([]);
     const bottomRef = useRef(null);
 
+    const role = activeCommunity?.my_role;
+
+
+    const isAdmin =
+      role === "admin" ||
+      role === "owner";
   
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
 
@@ -601,6 +610,26 @@ const resendCommunityFile =
             />
 
           ) : (
+          <div>
+            
+    {isAdmin &&
+    pendingMessages.length > 0 && (
+
+      <div
+        onClick={() =>
+          setApprovalModal(true)
+        }
+        className="sticky top-0 z-20 text-xs font-semibold flex justify-between border-b-2 border-blue-800 py-2 cursor-pointer">
+        <span>
+        Pending Approval Message
+        </span>
+
+        <span>
+        {pendingMessages.length}
+        </span>
+        
+        </div>
+    )}
           
           <MessagesArea 
           messages={messages}
@@ -616,8 +645,10 @@ const resendCommunityFile =
           isMobile={isMobile} reactionMsg={reactionMsg} setReactionMsg={setReactionMsg}
           setMenuPosition={setMenuPosition} menuPosition={menuPosition}
           communityMessageAction={communityMessageAction}
+          pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
+          isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           />            
-       
+       </div>
           )}
           </div>
         <InputComponent

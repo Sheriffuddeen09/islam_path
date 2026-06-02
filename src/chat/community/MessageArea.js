@@ -12,7 +12,8 @@ export default function MessagesArea({
   setMessages, setMenuPosition, menuPosition,
   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
-  communityMessageAction
+  communityMessageAction, pendingMessages, isAdmin, setPendingMessages,
+  setApprovalModal, approvalModal
 }) {
 
   const [forwardMsg, setForwardMsg] =
@@ -22,20 +23,15 @@ export default function MessagesArea({
     setShowForwardModal] =
     useState(false);
 
-  const [
-  pendingMessages,
-  setPendingMessages
-  ] = useState([]);
+ 
 
     const [hoverMsgId, setHoverMsgId] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const messageRefs = useRef({});
 
-    const role = activeCommunity?.my_role;
 
-    const isAdmin =
-      role === "admin" ||
-      role === "owner";
+    
+    
       
 const sendTextCommunity = async ({
   response_mode = false,
@@ -313,6 +309,7 @@ return (
         {/* MESSAGE  setReplyingToCommunity*/}
         <MessageList
           msg={msg} activeCommunity={activeCommunity}
+          setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           authUser={authUser}
           showForwardModal={showForwardModal}
           forwardMsg={forwardMsg}
