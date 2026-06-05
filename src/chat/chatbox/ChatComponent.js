@@ -10,7 +10,9 @@ import {
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
     chatId, setMobileView, bottomRef, openChat,isLargeScreen, mobileView,
-    setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId
+    setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
+    communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
+    lastOpenedCommunity, messagesCache, openCommunity
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -603,6 +605,8 @@ setMessages((prev) => {
         flex-col
       `}>
         <ChatList
+          lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
+          openCommunity={openCommunity}
           chats={chats}
           openChat={openChat}
           chatFilter={chatFilter}
@@ -613,8 +617,14 @@ setMessages((prev) => {
           loadingChats={loadingChats}
           messages={messages}
           setUnreadCount={setUnreadCount}
-          unreadDividerRef={unreadDividerRef}
+          setActiveChat={setActiveChat}
           setLastReadMessageId={setLastReadMessageId}
+          communities={communities}
+          setCommunities={setCommunities}
+          activeCommunity={activeCommunity}
+          setActiveCommunity={setActiveCommunity}
+          loadingMessagesCommunity={loadingMessagesCommunity}
+
         />
       </div>
      <div className={`
@@ -629,6 +639,7 @@ setMessages((prev) => {
      
            `}>
         <MessageBox
+          openCommunity={openCommunity}
           unreadDividerRef={unreadDividerRef}
           setChats={setChats}
           openChat={openChat}
@@ -662,6 +673,7 @@ setMessages((prev) => {
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
           unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
+          communities={communities} setActiveCommunity={setActiveCommunity}
         />
       </div>
      <div className={`

@@ -4,31 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import CommunityRespondModal from "./CommunityRespondModal";
 import ApprovalModal from "./ApprovalModal";
 import api from "../../Api/axios";
-import CommunityMessageMenu from "./CommunityMessageMenu";
-import MessageActionModal from "./MessageActionModal";
 import CommunityMediaMessage from "./CommunityMediaMessage";
 import MediaPreview from "./MediaPreview";
 
-export default function MessageList({msg, showForwardModal, forwardMsg, setReactionMsg, setShowForwardModal,
+export default function MessageList({msg, setReactionMsg, 
                                     reactionMsg, isMobile, authUser, retryCommunityMessage ,react,
                                     approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
                                     setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
-                                    pendingMessages, setPendingMessages, messageRefs, selectedMessage,
-                                    setSelectedMessage, showMessageMenu, setShowMessageMenu, setReplyingToCommunity,
-                                    setMenuPosition, menuPosition, communityMessageAction, setMessages,
-                                    approvalModal, setApprovalModal}){
+                                    pendingMessages, setPendingMessages, messageRefs, 
+                                    setSelectedMessage, setShowMessageMenu, setReplyingToCommunity,
+                                    setMenuPosition,communityMessageAction, setMessages,
+                                    approvalModal, setApprovalModal, showActionModal, setShowActionModal,
+                                    actionType, setActionType, actionMessage, setActionMessage}){
 
                                 
-                                      
   const [respondModal, setRespondModal] = useState(false);
-
-  //setApprovalModal
 
   const [respondingMessage, setRespondingMessage] = useState("");
   const [toast, setToast] = useState(false)
-  const [showActionModal, setShowActionModal] = useState(false);
-  const [actionType, setActionType] = useState(null);
-  const [actionMessage, setActionMessage] = useState(null);
 
   const [expandedMessages, setExpandedMessages] = useState({});
 
@@ -50,8 +43,6 @@ export default function MessageList({msg, showForwardModal, forwardMsg, setReact
   /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi.test(
     msg.message || ""
   );
-
-
 
   const isExpanded =
   expandedMessages[msg.id];
@@ -83,116 +74,9 @@ const displayText =
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleConfirmAction = async (
-  msg,
-  editedText
-) => {
+  
+ 
 
-  try {
-
-    if (actionType === "delete") {
-
-      await communityMessageAction({
-        action: "delete",
-        message_id: msg.id,
-      });
-
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === msg.id
-            ? {
-                ...m,
-                deleted_at:
-                  new Date().toISOString(),
-              }
-            : m
-        )
-      );
-    }
-
-    if (actionType === "clear") {
-
-      await communityMessageAction({
-        action: "clear",
-        message_id: msg.id,
-      });
-
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === msg.id
-            ? {
-                ...m,
-                message: "",
-                file: null,
-              }
-            : m
-        )
-      );
-    }
-
-    if (actionType === "edit") {
-
-      await communityMessageAction({
-        action: "edit",
-        message_id: msg.id,
-        message: editedText,
-      });
-
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === msg.id
-            ? {
-                ...m,
-                message: editedText,
-                edited: true,
-              }
-            : m
-        )
-      );
-    }
-
-  } catch (err) {
-
-    console.log(err);
-
-  }
-
-  setShowActionModal(false);
-};
-
-  const getMessageText = (msg) => {
-  // approval message exists
-  if (
-    msg?.approvals?.length > 0 &&
-    msg.approvals[0]?.admin_response
-  ) {
-    return msg.approvals[0].admin_response;
-  }
-
-  // normal message
-  return msg?.message || "";
-};
-
-const copyMessageText = async (msg) => {
-  try {
-    const textToCopy = getMessageText(msg);
-
-    await navigator.clipboard.writeText(
-      textToCopy
-    );
-
-    showToast(
-      "Message copied",
-      "success"
-    );
-
-  } catch (err) {
-    showToast(
-      "Failed to copy",
-      "error"
-    );
-  }
-};
 
   const scrollToMessage =
   (id) => {
@@ -834,52 +718,19 @@ const handleDownloadMessage =
             message={reactionMsg}
             setShowReactions={() => setReactionMsg(null)}
             />
-        </div>
-        )}
-          </div>
-         {showForwardModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#202c33] rounded-2xl w-[90%] max-w-md p-4">
-            <h2 className="text-white text-lg font-bold mb-4">
-              Forward Message
-            </h2>
-            <div className="bg-black/30 rounded-xl p-3 text-white text-sm mb-4">
-              {forwardMsg?.message}
             </div>
-            <button
-              className="w-full bg-green-600 py-3 rounded-xl text-white font-semibold"
-              onClick={() => {
-                setShowForwardModal(
-                  false
-                );
-              }}
-            >
-              Forward
-            </button>
-            <button
-              className="w-full mt-3 py-3 rounded-xl bg-gray-700 text-white"
-              onClick={() =>
-                setShowForwardModal(
-                  false
-                )
-              }
-            >
-              Cancel
-            </button>
-          </div>
+            )}
         </div>
-      )}
+         
+
       <CommunityRespondModal
       open={respondModal}
       setOpen={setRespondModal}
       message={respondingMessage}
       onSend={sendTextCommunity}
-       text={textCommunity}
-        setText={setTextCommunity}
-      
+      text={textCommunity}
+      setText={setTextCommunity}
     />
-
-      
 
     <MediaPreview 
     showPreview={showPreview}
@@ -900,8 +751,7 @@ const handleDownloadMessage =
     reactionMsg={reactionMsg} setReactionMsg={setReactionMsg} 
     actionType={actionType} setSelectedMessage={setSelectedMessage}
     setShowActionModal={setShowActionModal} showActionModal={showActionModal}
-   
-     />
+    />
 
 
     <ApprovalModal
@@ -911,60 +761,11 @@ const handleDownloadMessage =
       setMessages={setPendingMessages}
       onApprove={approveMessage}
       onReject={rejectMessage}
-      msg={msg}
     />
-    <CommunityMessageMenu
-    setMessages={setMessages}
-    isAdmin={isAdmin}
-    open={showMessageMenu}
-    isMobile={isMobile}
-    selectedMessage={selectedMessage}
-    authUser={authUser}
-    anchorPosition={menuPosition}
-    setSelectedMessage={setSelectedMessage}
-    onClose={() =>
-      setShowMessageMenu(false)
-    }
+    
 
-    onCopy={() => {
 
-    copyMessageText(
-      selectedMessage
-    );
-
-    setShowMessageMenu(false);
-  }}
-   
-
-    onReply={() => {
-      setReplyingToCommunity(
-        selectedMessage
-      );
-      setShowMessageMenu(false);
-    }}
-
-    onShare={() => {
-      handleForward(selectedMessage);
-      setShowMessageMenu(false);}}
-    setShowMessageMenu={setShowMessageMenu}
-    showToast={showToast}
-    communityMessageAction={communityMessageAction}
-    msg={msg}
-    setActionType={setActionType}
-    setActionMessage={setActionMessage}
-    setShowActionModal={setShowActionModal}
-
-  />
-
-    <MessageActionModal
-    open={showActionModal}
-    type={actionType}
-    message={actionMessage}
-    onClose={() =>
-      setShowActionModal(false)
-    }
-    onConfirm={handleConfirmAction}
-  />
+            
 
     {toast && (
         <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50

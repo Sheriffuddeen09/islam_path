@@ -12,7 +12,7 @@ export default function MediaPreview({
   activeChat, 
   msg,
   react, setSelectedMessages, setUiState, isMine, setSelectedMsg, messages, selectedMessages, setForwardMessage,
-  togglePin, setMessages
+  togglePin, setMessages, setActiveMenuId
 }) {
 
   const [showMenu, setShowMenu] = useState(false)
@@ -75,6 +75,14 @@ const avatarName = isGroup
   return null;
 };
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(msg.message || "");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   const actions = [
 
     // COPY TEXT
@@ -102,15 +110,15 @@ const avatarName = isGroup
         const url = getMediaUrl(msg);
 
         if (!url) {
-          showToast("No media link found", "error");
+          toast.error("No media link found", "error");
           return;
         }
 
         await navigator.clipboard.writeText(url);
 
-        showToast("Link copied", "success");
+        toast.success("Link copied", "success");
       } catch (err) {
-        showToast("Failed to copy link", "error");
+        toast.error("Failed to copy link", "error");
       }
 
       setActiveMenuId(null);

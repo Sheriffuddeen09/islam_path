@@ -8,13 +8,14 @@ import CommunityPage from "../community/CommunityPage";
 import CreateCommunityModal from "../community/CreateCommunityModal";
 import api from "../../Api/axios";
 
+
 export default function ChatList({
   chats = [],
   openChat,
   loadingChats,
   chatFilter,
   setChatFilter,
-  activeChat, unreadDividerRef
+  activeChat, setActiveChat
 }) {
   const { user: authUser } = useAuth();
 
@@ -27,6 +28,25 @@ export default function ChatList({
   const [showCommunityModal,
   setShowCommunityModal] =
   useState(false);
+
+  const [communities,
+    setCommunities] =
+    useState([]);
+  const [activeCommunity,
+    setActiveCommunity] =
+    useState(null);
+     const [
+  loadingMessagesCommunity,
+  setLoadingMessagesCommunity
+  ] = useState(false);
+  const [messages,
+    setMessages] =
+    useState([]);
+  const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "sidebar");
+  
+
+  const messagesCache = useRef({});
+  const lastOpenedCommunity = useRef(null);
 
   const [
   hasViewedUnread,
@@ -99,6 +119,100 @@ export default function ChatList({
       return true;
     });
   }, [chatFilter, chats]);
+
+
+  
+  const openCommunity = async (
+    community,
+    skipMobile = false
+  ) => {
+  
+    setActiveCommunity(
+      community
+    );
+  
+    localStorage.setItem(
+      "last_opened_community",
+      community.id
+    );
+  
+    lastOpenedCommunity.current =
+      community;
+  
+    // DESKTOP
+    if (
+      window.innerWidth >= 768
+    ) {
+  
+      setMobileView(
+        "messages"
+      );
+    }
+  
+    // MOBILE
+    else if (!skipMobile) {
+  
+      setMobileView(
+        "messages"
+      );
+    }
+  
+    // START LOADING
+    setLoadingMessagesCommunity(true);
+  
+    // OPTIONAL:
+    // clear old messages
+    setMessages([]);
+  
+    // CACHE
+    if (
+      messagesCache.current[
+        community.id
+      ]
+    ) {
+  
+      setMessages(
+        messagesCache.current[
+          community.id
+        ]
+      );
+  
+      setLoadingMessagesCommunity(
+        false
+      );
+  
+      return;
+    }
+  
+    try {
+  
+      const res =
+        await api.get(
+          `/api/community/${community.id}/messages`
+        );
+  
+      const msgs =
+        res.data.messages || [];
+  
+      messagesCache.current[
+        community.id
+      ] = msgs;
+  
+      setMessages(msgs);
+  
+    } catch (err) {
+  
+      console.log(err);
+  
+    } finally {
+  
+      // STOP LOADING
+      setLoadingMessagesCommunity(
+        false
+      );
+    }
+  };
+  
 
   return (
     <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
@@ -280,7 +394,20 @@ export default function ChatList({
       <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
         <CommunityPage
           onClose={() => setShowChannel(false)}
+          onCloseChannel={() => setShowChannel(false)}
           authUser={authUser}
+          chats={chats}
+          loadingChats={loadingChats}
+          setActiveChat={setActiveChat}
+          communities={communities}
+          setCommunities={setCommunities}
+          activeCommunity={activeCommunity}
+          setActiveCommunity={setActiveCommunity}
+          openCommunity={openCommunity}
+          loadingMessages={loadingMessagesCommunity}
+          lastOpenedCommunity ={lastOpenedCommunity} messagesCache ={messagesCache}
+          openChat={openChat} messages={messages} setMessages={setMessages}
+          mobileView={mobileView} setMobileView={setMobileView}
         />
       </div>
 

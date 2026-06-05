@@ -1,9 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import api from "../../Api/axios";
 import MessageList from "./MessageList";
+import CommunityMessageMenu from "./CommunityMessageMenu";
+import toast from "react-hot-toast";
+import MessageActionModal from "./MessageActionModal";
+import { ForwardCommunityModal } from "./ForwardCommunityModal";
 
 export default function MessagesArea({
-
+  setActiveChat,
   messages,
   authUser,
   retryCommunityMessage,
@@ -13,24 +17,258 @@ export default function MessagesArea({
   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
   communityMessageAction, pendingMessages, isAdmin, setPendingMessages,
-  setApprovalModal, approvalModal, messageRefs
+  setApprovalModal, approvalModal, messageRefs, chatLoading, chats, openChat, onCloseChannel
 }) {
 
   const [forwardMsg, setForwardMsg] =
     useState(null);
+  const [forwardSuccess, setForwardSuccess] =
+  useState(null);
 
   const [showForwardModal,
     setShowForwardModal] =
     useState(false);
 
+  const [forwardMessages, setForwardMessages] = useState([]);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionType, setActionType] = useState(null);
+
+  const [actionMessage, setActionMessage] = useState(null);
+
+  const [hoverMsgId, setHoverMsgId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [groups, setGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
+
+  //
+  const openForwardedChat = async (
+  chatId,
+  messageId
+) => {
+  onCloseChannel?.();
+
+  const chat = chats.find(
+    c => Number(c.id) === Number(chatId)
+  );
+
+  if (!chat) return;
+
+  setActiveChat(chat);
+
+  try {
+
+    const res = await api.get(
+      `/api/chats/${chatId}/messages`
+    );
+
+    const chatMessages =
+      res.data.messages ||
+      res.data.data ||
+      res.data;
+
+    setMessages(
+      Array.isArray(chatMessages)
+        ? chatMessages
+        : []
+    );
+
+    setTimeout(() => {
+
+      const el =
+        document.getElementById(
+          `msg-${messageId}`
+        );
+
+      if (!el) {
+        console.log(
+          "Message not found",
+          messageId
+        );
+        return;
+      }
+
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      el.classList.add(
+        "ring-2",
+        "ring-green-500",
+        "ring-offset-2"
+      );
+
+      setTimeout(() => {
+        el.classList.remove(
+          "ring-2",
+          "ring-green-500",
+          "ring-offset-2"
+        );
+      }, 3000);
+
+    }, 800);
+
+    setForwardSuccess(null);
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+  useEffect(() => {
+  if (!forwardSuccess) return;
+
+  const timer = setTimeout(() => {
+    setForwardSuccess(null);
+  }, 5000);
+
+  return () => clearTimeout(timer);
+}, [forwardSuccess]);
+
+  const closeForward = () => {
+    setShowForwardModal(false);
+    setSelectedMessage([]);
+  };
+  
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        setLoadingGroups(true);
+  
+        const res = await api.get("/api/groups");
+  
+        setGroups(res.data);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+  
+    fetchGroups();
+  }, []);
+
+    const openForward = (msg) => {
+  
+    console.log("FORWARDING:", msg);
+    setForwardMessages([msg]);
+    setShowForwardModal(true);
+
+  };
+    
+   const getMessageText = (msg) => {
+  // approval message exists
+  if (
+    msg?.approvals?.length > 0 &&
+    msg.approvals[0]?.admin_response
+  ) {
+    return msg.approvals[0].admin_response;
+  }
+
+  // normal message
+  return msg?.message || "";
+};
+
+   const copyMessageText = async (msg) => {
+  try {
+    const textToCopy = getMessageText(msg);
+
+    await navigator.clipboard.writeText(
+      textToCopy
+    );
+
+    toast.success(
+      "Message copied",
+      "success"
+    );
+
+  } catch (err) {
+    toast.error(
+      "Failed to copy",
+      "error"
+    );
+  }
+};
  
 
-    const [hoverMsgId, setHoverMsgId] = useState(null);
-    const [searchQuery, setSearchQuery] = useState("");
+const handleConfirmAction = async (
+  msg,
+  editedText
+) => {
 
+  try {
 
-    
-    
+    if (actionType === "delete") {
+
+      await communityMessageAction({
+        action: "delete",
+        message_id: msg.id,
+      });
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === msg.id
+            ? {
+                ...m,
+                deleted_at:
+                  new Date().toISOString(),
+              }
+            : m
+        )
+      );
+    }
+
+    if (actionType === "clear") {
+
+      await communityMessageAction({
+        action: "clear",
+        message_id: msg.id,
+      });
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === msg.id
+            ? {
+                ...m,
+                message: "",
+                file: null,
+              }
+            : m
+        )
+      );
+    }
+
+    if (actionType === "edit") {
+
+      await communityMessageAction({
+        action: "edit",
+        message_id: msg.id,
+        message: editedText,
+      });
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === msg.id
+            ? {
+                ...m,
+                message: editedText,
+                edited: true,
+              }
+            : m
+        )
+      );
+    }
+
+  } catch (err) {
+
+    console.log(err);
+
+  }
+
+  setShowActionModal(false);
+};
+
       
 const sendTextCommunity = async ({
   response_mode = false,
@@ -269,17 +507,15 @@ return (
           searchQuery.toLowerCase()
         );
 
-    const prevMsg =
-      listToRender[index - 1];
-
-
-    // const isMine =
-    //   msg.sender_id === authUser.id;
-
     return (
       <div
         key={msg.id}
         id={`msg-${msg.id}`}
+        data-forwarded={
+          msg.is_forwarded
+            ? "true"
+            : "false"
+        }
         className={`
           px-3
           rounded
@@ -305,8 +541,10 @@ return (
 
       
 
-        {/* MESSAGE  setReplyingToCommunity*/}
+        {/* MESSAGE */}
         <MessageList
+          chatLoading={chatLoading}
+          chats={chats}
           msg={msg} activeCommunity={activeCommunity}
           setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           authUser={authUser}
@@ -334,6 +572,9 @@ return (
           showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
           setMenuPosition={setMenuPosition} menuPosition={menuPosition}
           setMessages={setMessages} communityMessageAction={communityMessageAction}
+          showActionModal={showActionModal} setShowActionModal={setShowActionModal}
+          actionType={actionType} setActionType={setActionType} forwardMessages={forwardMessages}
+          actionMessage={actionMessage} setActionMessage={setActionMessage}
         />
 
       </div>
@@ -343,6 +584,105 @@ return (
     
     </div>
 
+  <CommunityMessageMenu
+      setMessages={setMessages}
+      isAdmin={isAdmin}
+      open={showMessageMenu}
+      isMobile={isMobile}
+      selectedMessage={selectedMessage}
+      authUser={authUser}
+      anchorPosition={menuPosition}
+      setSelectedMessage={setSelectedMessage}
+      onClose={() => setShowMessageMenu(false) }
+      onCopy={() => { 
+        copyMessageText(selectedMessage);
+        setShowMessageMenu(false);
+      }}
+      onReply={() => { 
+        setReplyingToCommunity(selectedMessage);
+        setShowMessageMenu(false);
+      }}
+      onShare={() => {
+        handleForward(selectedMessage);
+        setShowMessageMenu(false);}}
+      setShowMessageMenu={setShowMessageMenu}
+      communityMessageAction={communityMessageAction}
+      setActionType={setActionType}
+      setActionMessage={setActionMessage}
+      setShowActionModal={setShowActionModal}
+      openForward={openForward}
+    />
+
+    
+        <MessageActionModal
+        open={showActionModal}
+        type={actionType}
+        message={actionMessage}
+        onClose={() =>
+          setShowActionModal(false)
+        }
+        onConfirm={handleConfirmAction}
+      />
+
+      <div>
+          {showForwardModal && (
+            <ForwardCommunityModal
+              users={chats}
+              groups={groups}
+              loadingChats={chatLoading}
+              loadingGroups={loadingGroups}
+              activeCommunity={activeCommunity}
+              messages={forwardMessages}
+              onClose={closeForward}   
+              setSelectedMessage={setSelectedMessage}
+              setShowForwardModal={setShowForwardModal}
+              forwardMessages={forwardMessages}
+              setForwardSuccess={setForwardSuccess}
+            />
+          )}
+          </div>
+
+         {forwardSuccess && (
+    <div
+      className="
+        fixed
+        bottom-6
+        right-6
+        bg-[#1f1f1f]
+        text-white
+        px-4
+        py-3
+        rounded-xl
+        shadow-lg
+        z-[9999]
+      "
+    >
+    <div>
+      Message forwarded
+    </div>
+
+    {forwardSuccess.targetCount === 1 && (
+      <button
+        onClick={() =>
+          openForwardedChat(
+            forwardSuccess.chatId,
+            forwardSuccess.messageId
+          )
+        }
+        className="
+          text-blue-400
+          text-sm
+          mt-2
+          hover:underline
+        "
+      >
+        View Chat
+      </button>
+    )}
+  
+    </div>
+  )
+}
 
     </>
   );

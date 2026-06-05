@@ -6,9 +6,14 @@ export function PinnedCommunityBar({
   onSelect,
   setMessages,
 }) {
-  const pinned = messages.filter(
-    m => m.is_pinned
-  );
+
+  const safeMessages = Array.isArray(messages)
+  ? messages
+  : [];
+
+  const pinned = safeMessages.filter(
+  (m) => m.is_pinned
+);
 
   const lastPinned = [...pinned].sort(
       (a, b) => b.id - a.id

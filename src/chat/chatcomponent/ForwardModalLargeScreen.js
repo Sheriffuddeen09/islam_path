@@ -88,6 +88,25 @@ const filteredTargets = useMemo(() => {
     );
   };
 
+  const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500"
+  ];
+
+  const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }; 
+
+  
   const getUrl = (f) => {
   if (f.file_url?.startsWith("blob:")) return f.file_url;
   if (f.file?.startsWith("blob:")) return f.file;
@@ -259,15 +278,20 @@ const filteredTargets = useMemo(() => {
 
                   {/* AVATAR */}
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                      isSelected
-                        ? "bg-white text-green-700"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
+                    className={`
+                      w-9
+                      h-9
+                      rounded-full
+                      flex
+                      items-center
+                      justify-center
+                      font-bold
+                      text-white
+                      ${getColor(item.name)}
+                    `}
                   >
-                    {item.name?.charAt(0)?.toUpperCase()}
+                    {getInitial(item.name)}
                   </div>
-
                   <div>
                     <div className="font-medium">
                       {item.name}

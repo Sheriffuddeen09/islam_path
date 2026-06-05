@@ -11,7 +11,8 @@ export default function CommunityMessages({
   setMessages,
   onBack,
   authUser,
-  loadingMessages
+  loadingMessages,
+  chatLoading, chats, openChat, onCloseChannel, setActiveChat
 
 }) {
 
@@ -654,7 +655,7 @@ const resendCommunityFile =
           retryCommunityMessage={retryCommunityMessage}
           setReplyingToCommunity={setReplyingToCommunity}
           activeCommunity={activeCommunity}
-          setMessages={setMessages}
+          setMessages={setMessages} setActiveChat={setActiveChat}
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
           selectedMessage={selectedMessage} setSelectedMessage={setSelectedMessage}
@@ -664,6 +665,7 @@ const resendCommunityFile =
           communityMessageAction={communityMessageAction} messageRefs={messageRefs}
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
           isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
+          chatLoading={chatLoading} chats={chats} openChat={openChat} onCloseChannel={onCloseChannel}
           />            
        </div>
           )}

@@ -12,33 +12,23 @@ import CommunitySettings from "./CommunitySettings";
 
 export default function CommunityPage({
   onClose,
-  authUser
+  authUser, chats, loadingChats, setActiveChat,
+  communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
+  messages, setMessages, mobileView, setMobileView
 }) {
 
-  const [
-  loadingMessages,
-  setLoadingMessages
-  ] = useState(false);
+ 
 
   const [loading, setLoading] =
   useState(true);
-  const [communities,
-    setCommunities] =
-    useState([]);
-  const [activeCommunity,
-    setActiveCommunity] =
-    useState(null);
+  
 
-  const [messages,
-    setMessages] =
-    useState([]);
+  
 
-  const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "sidebar");
 
    const hasLoaded = useRef(false);
   const communitiesCache = useRef([]);
-  const messagesCache = useRef({});
-  const lastOpenedCommunity = useRef(null);
+  
 
   useEffect(() => {
 
@@ -146,100 +136,6 @@ export default function CommunityPage({
   }
 };
 
-
-
-  const openCommunity = async (
-  community,
-  skipMobile = false
-) => {
-
-  setActiveCommunity(
-    community
-  );
-
-  localStorage.setItem(
-    "last_opened_community",
-    community.id
-  );
-
-  lastOpenedCommunity.current =
-    community;
-
-  // DESKTOP
-  if (
-    window.innerWidth >= 768
-  ) {
-
-    setMobileView(
-      "messages"
-    );
-  }
-
-  // MOBILE
-  else if (!skipMobile) {
-
-    setMobileView(
-      "messages"
-    );
-  }
-
-  // START LOADING
-  setLoadingMessages(true);
-
-  // OPTIONAL:
-  // clear old messages
-  setMessages([]);
-
-  // CACHE
-  if (
-    messagesCache.current[
-      community.id
-    ]
-  ) {
-
-    setMessages(
-      messagesCache.current[
-        community.id
-      ]
-    );
-
-    setLoadingMessages(
-      false
-    );
-
-    return;
-  }
-
-  try {
-
-    const res =
-      await api.get(
-        `/api/community/${community.id}/messages`
-      );
-
-    const msgs =
-      res.data.messages || [];
-
-    messagesCache.current[
-      community.id
-    ] = msgs;
-
-    setMessages(msgs);
-
-  } catch (err) {
-
-    console.log(err);
-
-  } finally {
-
-    // STOP LOADING
-    setLoadingMessages(
-      false
-    );
-  }
-};
-
-
   const openSettings = () => {
     setMobileView(
       "settings"
@@ -301,10 +197,13 @@ export default function CommunityPage({
       `}>
 
         <CommunityMessages
+          chatLoading={loadingChats}
           authUser={authUser}
+          chats={chats}
           activeCommunity={
             activeCommunity
           }
+          setActiveChat={setActiveChat}
           messages={messages}
 
           setMessages={
@@ -318,7 +217,8 @@ export default function CommunityPage({
           }
 
           loadingMessages={loadingMessages}
-
+          openChat={openChat}
+          onCloseChannel={onCloseChannel}
         />
 
       </div>

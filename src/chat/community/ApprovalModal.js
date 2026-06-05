@@ -8,7 +8,6 @@ export default function ApprovalModal({
   setMessages,
   onApprove,
   onReject,
-  message
 }) {
 
   // loading per messages/send

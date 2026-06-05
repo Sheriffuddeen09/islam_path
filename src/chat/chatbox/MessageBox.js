@@ -32,7 +32,7 @@ export default function MessageBox({
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
-  setLastReadMessageId
+  setLastReadMessageId, communities, setActiveCommunity, openCommunity
 }) {
   
 
@@ -787,6 +787,11 @@ const isFirstUnread =
     <div
       key={msg.id}
       id={`msg-${msg.id}`}
+      data-forwarded={
+          msg.is_forwarded
+            ? "true"
+            : "false"
+        }
       className={`px-3 rounded py-2 transition ${
         searchQuery && !isMatch ? "opacity-20" : "opacity-100"
       }`}
@@ -823,6 +828,8 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
+          communities={communities} setActiveCommunity={setActiveCommunity}
+          openCommunity={openCommunity}
           setLastReadMessageId={setLastReadMessageId}
           setChats={setChats}
           key={msg.id}

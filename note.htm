@@ -1,22 +1,5 @@
-{toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
-          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
-        `}>
-          {toast.message}
-        </div>
-      )}
-
-      const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-
-
-
 * forward messages
 * the total amount in order naira and dollar or pollar how to make it equal each other 
-
 
 {
     "message": "The selected replied to is invalid.",
@@ -25,3 +8,12 @@
             "The selected replied to is invalid."
         ]
     }
+
+
+    
+  Cannot read properties of undefined (reading 'find')
+    TypeError: Cannot read properties of undefined (reading 'find')
+    at openCommunityMessage
+
+    setOpen(true)
+    () => setShowChannel(true)

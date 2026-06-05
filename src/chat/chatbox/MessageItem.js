@@ -9,19 +9,20 @@ import MediaMessage from "./MediaMessage";
 import MediaPreview from "./MediaPreview";
 import AudioPlayer from "./AudioUi";
 import UserStatusDots from "../online/OnlineStatuesDots";
+import FromCommunityForward from "../chatcomponent/FromCommunityForward";
 
 export default function MessageItem({
   msg, authUser,
   isMine,
   setMessages,
   chatId,
-  activeChat, openChat, setChats,
+  activeChat, openChat, setChats, communities, setActiveCommunity,
   setToast, menuPosition, setMenuPosition, setSelectedMsg, uiState, setUiState,
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats, setLastReadMessageId
+  loadingChats, setLastReadMessageId, openCommunity
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -36,6 +37,7 @@ export default function MessageItem({
   ? messages[messages.length - 1]
   : null;
 
+  const isGroup = activeChat?.type === "group";
  
 
   useEffect(() => {
@@ -61,21 +63,82 @@ export default function MessageItem({
 
   const [expandedMessages, setExpandedMessages] = useState({});
 
-  const isExpanded =
+  const getMessageText = (msg) => {
+  if (
+    msg.approvals &&
+    msg.approvals.length > 0
+  ) {
+    return (
+      msg.approvals[
+        msg.approvals.length - 1
+      ]?.admin_response || ""
+    );
+  }
+
+  return msg.message || "";
+};
+
+const isExpanded =
   expandedMessages[msg.id];
 
 const messageText =
-  msg.message || "";
+  getMessageText(msg);
 
 const shouldTrim =
   messageText.length > 250;
 
 const displayText =
   shouldTrim && !isExpanded
-    ? messageText.slice(0, 250) + "..."
+    ? `${messageText.slice(0, 250)}...`
     : messageText;
+    
 
+    const openCommunityMessage = async (
+  communityId,
+  messageId
+) => {
 
+  const community =
+    communities.find(
+      c =>
+        Number(c.id) ===
+        Number(communityId)
+    );
+
+  if (!community) return;
+
+  setActiveCommunity(community);
+
+  await openCommunity(community);
+
+  setTimeout(() => {
+
+    const el =
+      document.getElementById(
+        `msg-${messageId}`
+      );
+
+    if (!el) return;
+
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+
+    el.classList.add(
+      "ring-2",
+      "ring-green-500"
+    );
+
+    setTimeout(() => {
+      el.classList.remove(
+        "ring-2",
+        "ring-green-500"
+      );
+    }, 3000);
+
+  }, 500);
+};
   
 useEffect(() => {
   if (!messageRef.current) return;
@@ -642,7 +705,7 @@ const isInteractive = (target) => {
       react={react} setShowReactions={setShowReactionPopup}
       message={msg} showReactions={showReactionPopup} setSelectedMessages={setSelectedMessages}  
       setSelectedMsg={setSelectedMsg} isMine={isMine} setUiState={setUiState} selectedMessages={selectedMessages}
-      setShowReactionPopup={setShowReactionPopup}
+      setShowReactionPopup={setShowReactionPopup} setActiveMenuId={setActiveMenuId} 
       messages={messages} setForwardMessage={setForwardMessage} togglePin={handlePin} setMessages={setMessages}
       />
     )}
@@ -927,9 +990,47 @@ onPointerCancel={() => {
   </div>
 )}
 
-    {msg.is_forwarded && (
+    
+       
+
+       {msg.deleted ? (
+
+  <div className="flex items-center gap-2 italic text-white text-sm">
+
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        className="size-5 text-white"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+        />
+      </svg>
+
+    <span>This message was deleted</span>
+
+  </div>
+
+) : (
+
+      <>
+
+      {
+        isGroup && (
+          <span className="text-blue-300 font-semibold mb-1">
+            {msg.sender.first_name} {msg.sender.last_name}
+          </span>
+          )
+        }
+
+      {msg.is_forwarded && (
       
-      <div className="flex items-center italic gap-1 text-xs text-gray-300 mb-1 opacity-80">
+      <div className="flex items-center italic gap-1 text-xs text-gray-100 mb-1 mt-0.5 opacity-80">
 
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -974,102 +1075,103 @@ onPointerCancel={() => {
         </div>
       )}
 
-       
+        {msg.is_forwarded &&(
+          <FromCommunityForward msg={msg} 
+          />
+        )}
+        {msg.message && msg.type === "text" && (
+        <div
+        className="
+          text-[13px]
+          mt-1
+          text-white
+          w-fit
+          max-w-56
+          break-words
+        ">
+        <Linkify
+          options={{
+            target: "_blank",
+            className:
+              "text-blue-400 pointer-events-auto",
+          }}
+        >
+        {displayText}
+      </Linkify>
 
-       {msg.deleted ? (
+      {shouldTrim && (
+        <button
+          onClick={() =>
+            setExpandedMessages((prev) => ({
+              ...prev,
+              [msg.id]:
+                !prev[msg.id],
+            }))
+          }
+          className="
+            ml-2
+            text-green-400
+            text-xs
+            font-semibold
+            hover:underline
+          "
+        >
+          {isExpanded
+            ? "See less"
+            : "See more"}
+        </button>
+      )}
 
-  <div className="flex items-center gap-2 italic text-white text-sm">
+          </div>
+        )}
 
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="currentColor"
-        className="size-5 text-white"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-        />
-      </svg>
+        {(msg.type === "image" ||
+          msg.type === "video") && (
+          <MediaMessage
+            msg={msg}
+            setPreview={setPreview}
+          />
+        )}
+      </>
 
-    <span>This message was deleted</span>
-
-  </div>
-
-) : (
-
-  <>
-    {msg.message && msg.type === "text" && (
-    <div
-    className="
-      text-[13px]
-      mt-1
-      text-white
-      w-fit
-      max-w-56
-      break-words
-    ">
-    <Linkify
-      options={{
-        target: "_blank",
-        className:
-          "text-blue-400 pointer-events-auto",
-      }}
-    >
-    {displayText}
-  </Linkify>
-
-  {shouldTrim && (
-    <button
-      onClick={() =>
-        setExpandedMessages((prev) => ({
-          ...prev,
-          [msg.id]:
-            !prev[msg.id],
-        }))
-      }
-      className="
-        ml-2
-        text-green-400
-        text-xs
-        font-semibold
-        hover:underline
-      "
-    >
-      {isExpanded
-        ? "See less"
-        : "See more"}
-    </button>
-  )}
-
-      </div>
     )}
 
-    {(msg.type === "image" ||
-      msg.type === "video") && (
-      <MediaMessage
-        msg={msg}
-        setPreview={setPreview}
-      />
-    )}
-  </>
-
-)}
+    
        {/* ================= FILES (ALWAYS FIRST) ================= */}
          
 
-        {msg.files?.some(f =>
-            f.type === "audio" || f.type === "voice"
-          ) && (
-            <AudioPlayer msg={msg} isMine={isMine} />
-          )}
+            {msg.files?.some(f =>
+                f.type === "audio" || f.type === "voice"
+              ) && (
+                <AudioPlayer msg={msg} isMine={isMine} />
+              )}
 
-        {msg.files?.some(f => f.type === "file") && (
-            <DocumentMessage msg={msg} />
-          )}
+            {msg.files?.some(f => f.type === "file") && (
+                <DocumentMessage msg={msg} />
+              )}
+
+              {
+                msg.is_forwarded && 
+                <button
+          onClick={(e) => {
+            e.stopPropagation();
+
+            openCommunityMessage?.(
+              msg.forward_source_community_id,
+              msg.forward_source_message_id
+            );
+          }}
+          className="
+            text-xs
+            text-blue-400
+            hover:text-blue-300
+            whitespace-nowrap
+          "
+        >
+          View Channel
+        </button>
+
+          }
 
         {/* =================  TIME + STATUS svg ================= */}
         <div className="flex justify-end items-center z-50 gap-2 mt-1">
