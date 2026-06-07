@@ -11,24 +11,18 @@ export default function MediaPreview({
   previewMessage,
   authUser,
   isAdmin,
-  onShare,
-  onForward,
   onReport,
   react,
   msg,
   activeCommunity,
-  reactionMsg, setReactionMsg, communityMessageAction, actionType,
-  setMessages, setShowActionModal, 
+  reactionMsg, setReactionMsg, 
+  setMessages, openForward, setSelectedMessage, selectedMessage
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   
   const [showDeleteModal,
   setShowDeleteModal] =
   useState(false);
-
-const [selectedMessage,
-  setSelectedMessage] =
-  useState(null);
 
 
 
@@ -349,18 +343,6 @@ const handleCopyText = async (msg) => {
 
       </button>
 
-      {/* SHARE */}
-      <button
-        onClick={() =>
-          onShare?.(previewMessage)
-        }
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-white">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
-</svg>
-
-      </button>
-
       {/* MENU */}
       <div className="relative">
 
@@ -397,10 +379,26 @@ const handleCopyText = async (msg) => {
           >
             <MenuItem
               label="Forward"
-              onClick={() =>
-                onForward?.(
-                  previewMessage
-                )
+              onClick={() => {
+                openForward(previewMessage);
+                setMenuOpen(false);
+                setShowPreview(false)
+              }}
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                  />
+                </svg>
               }
             />
 

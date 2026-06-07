@@ -11,9 +11,9 @@ export default function MessageList({msg, setReactionMsg,
                                     reactionMsg, isMobile, authUser, retryCommunityMessage ,react,
                                     approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
                                     setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
-                                    pendingMessages, setPendingMessages, messageRefs, 
+                                    pendingMessages, setPendingMessages, messageRefs, selectedMessage,
                                     setSelectedMessage, setShowMessageMenu, setReplyingToCommunity,
-                                    setMenuPosition,communityMessageAction, setMessages,
+                                    setMenuPosition,communityMessageAction, setMessages, openForward,
                                     approvalModal, setApprovalModal, showActionModal, setShowActionModal,
                                     actionType, setActionType, actionMessage, setActionMessage}){
 
@@ -567,17 +567,20 @@ const handleDownloadMessage =
                 </button>
 
                 <button
-                  onClick={(e) => {
+                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   setSelectedMessage(msg);
                   const rect =
                     e.currentTarget.getBoundingClientRect();
                   setMenuPosition({
-                    x: rect.left,
+                    x: rect.left - 180,
                     y: rect.bottom + 10,
                   });
+                  setReactionMsg(null);
                   setShowMessageMenu(true);
-                }}>
+                }}
+                 >
 
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -746,10 +749,10 @@ const handleDownloadMessage =
     react={react}
     setActionMessage={setActionMessage}
     actionMessage={actionMessage}
-    msg={msg}
+    msg={msg} openForward={openForward}
     activeCommunity={activeCommunity}
     reactionMsg={reactionMsg} setReactionMsg={setReactionMsg} 
-    actionType={actionType} setSelectedMessage={setSelectedMessage}
+    actionType={actionType} setSelectedMessage={setSelectedMessage} selectedMessage={selectedMessage}
     setShowActionModal={setShowActionModal} showActionModal={showActionModal}
     />
 

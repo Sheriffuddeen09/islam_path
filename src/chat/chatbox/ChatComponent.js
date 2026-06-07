@@ -12,7 +12,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     chatId, setMobileView, bottomRef, openChat,isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
     communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
-    lastOpenedCommunity, messagesCache, openCommunity
+    lastOpenedCommunity, messagesCache, openCommunity, messagesCacheRef
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -606,7 +606,7 @@ setMessages((prev) => {
       `}>
         <ChatList
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
-          openCommunity={openCommunity}
+          openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats}
           openChat={openChat}
           chatFilter={chatFilter}
@@ -624,7 +624,7 @@ setMessages((prev) => {
           activeCommunity={activeCommunity}
           setActiveCommunity={setActiveCommunity}
           loadingMessagesCommunity={loadingMessagesCommunity}
-
+          setMessages={setMessages}
         />
       </div>
      <div className={`

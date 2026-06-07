@@ -2,13 +2,13 @@ import { useState } from "react";
 import api from "../../Api/axios";
 
 export function PinnedCommunityBar({
-  messages,
+  communityMessages,
   onSelect,
   setMessages,
 }) {
 
-  const safeMessages = Array.isArray(messages)
-  ? messages
+  const safeMessages = Array.isArray(communityMessages)
+  ? communityMessages
   : [];
 
   const pinned = safeMessages.filter(

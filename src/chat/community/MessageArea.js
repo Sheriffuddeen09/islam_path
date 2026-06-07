@@ -8,16 +8,16 @@ import { ForwardCommunityModal } from "./ForwardCommunityModal";
 
 export default function MessagesArea({
   setActiveChat,
-  messages,
+  communityMessages,
   authUser,
   retryCommunityMessage,
   setReplyingTo,
   activeCommunity,
-  setMessages, setMenuPosition, menuPosition,
+  setCommunityMessages, setMenuPosition, menuPosition,
   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
-  communityMessageAction, pendingMessages, isAdmin, setPendingMessages,
-  setApprovalModal, approvalModal, messageRefs, chatLoading, chats, openChat, onCloseChannel
+  communityMessageAction, pendingMessages, isAdmin, setPendingMessages, messagesCacheRef,
+  setApprovalModal, approvalModal, messageRefs, chatLoading, chats, openChat, onCloseChannel, setChats
 }) {
 
   const [forwardMsg, setForwardMsg] =
@@ -42,51 +42,22 @@ export default function MessagesArea({
   const [loadingGroups, setLoadingGroups] = useState(true);
 
   //
-  const openForwardedChat = async (
-  chatId,
+
+  const scrollToForwardedMessage = (
   messageId
 ) => {
-  onCloseChannel?.();
 
-  const chat = chats.find(
-    c => Number(c.id) === Number(chatId)
-  );
+  let attempts = 0;
 
-  if (!chat) return;
+  const interval = setInterval(() => {
 
-  setActiveChat(chat);
-
-  try {
-
-    const res = await api.get(
-      `/api/chats/${chatId}/messages`
+    const el = document.getElementById(
+      `msg-${messageId}`
     );
 
-    const chatMessages =
-      res.data.messages ||
-      res.data.data ||
-      res.data;
+    if (el) {
 
-    setMessages(
-      Array.isArray(chatMessages)
-        ? chatMessages
-        : []
-    );
-
-    setTimeout(() => {
-
-      const el =
-        document.getElementById(
-          `msg-${messageId}`
-        );
-
-      if (!el) {
-        console.log(
-          "Message not found",
-          messageId
-        );
-        return;
-      }
+      clearInterval(interval);
 
       el.scrollIntoView({
         behavior: "smooth",
@@ -107,12 +78,65 @@ export default function MessagesArea({
         );
       }, 3000);
 
+      return;
+    }
+
+    attempts++;
+
+    if (attempts > 20) {
+      clearInterval(interval);
+    }
+
+  }, 300);
+};
+
+  const openForwardedChat = async (
+  chatId,
+  messageId
+) => {
+
+  try {
+
+    onCloseChannel?.();
+
+    const chatsRes =
+      await api.get("/api/chats");
+
+    const allChats =
+      chatsRes.data.chats ||
+      chatsRes.data;
+
+    setChats(allChats);
+
+    const chat = allChats.find(
+      c => Number(c.id) === Number(chatId)
+    );
+
+    if (!chat) return;
+
+    // 🔥 FORCE REFRESH
+    delete messagesCacheRef.current[
+      chat.id
+    ];
+
+    setActiveChat(chat);
+
+    await openChat(chat);
+
+    setTimeout(() => {
+
+      scrollToForwardedMessage(
+        messageId
+      );
+
     }, 800);
 
     setForwardSuccess(null);
 
   } catch (err) {
+
     console.error(err);
+
   }
 };
 
@@ -206,7 +230,7 @@ const handleConfirmAction = async (
         message_id: msg.id,
       });
 
-      setMessages(prev =>
+      setCommunityMessages(prev =>
         prev.map(m =>
           m.id === msg.id
             ? {
@@ -226,7 +250,7 @@ const handleConfirmAction = async (
         message_id: msg.id,
       });
 
-      setMessages(prev =>
+      setCommunityMessages(prev =>
         prev.map(m =>
           m.id === msg.id
             ? {
@@ -247,7 +271,7 @@ const handleConfirmAction = async (
         message: editedText,
       });
 
-      setMessages(prev =>
+      setCommunityMessages(prev =>
         prev.map(m =>
           m.id === msg.id
             ? {
@@ -303,7 +327,7 @@ const sendTextCommunity = async ({
     response_mode,
   };
 
-  setMessages(prev => [...prev, tempMessage]);
+  setCommunityMessages(prev => [...prev, tempMessage]);
 
   setTextCommunity("");
   setReplyingToCommunity(null);
@@ -324,7 +348,7 @@ const sendTextCommunity = async ({
 
     const realMessage = data.message || data.messages?.[0];
 
-    setMessages(prev =>
+    setCommunityMessages(prev =>
       prev.map(m =>
         m.id === tempId
           ? {
@@ -337,7 +361,7 @@ const sendTextCommunity = async ({
 
   } catch (err) {
 
-    setMessages(prev =>
+    setCommunityMessages(prev =>
       prev.map(m =>
         m.id === tempId
           ? { ...m, status: "failed" }
@@ -372,7 +396,7 @@ const sendTextCommunity = async ({
   );
 
   // ADD TO CHAT
-  setMessages(prev => [
+  setCommunityMessages(prev => [
     ...prev,
     data.message
   ]);
@@ -432,7 +456,7 @@ const react = async (messageId, emoji) => {
       }
     );
 
-    setMessages((prev) =>
+    setCommunityMessages((prev) =>
       prev.map((m) =>
         m.id === data.id
           ? data
@@ -459,14 +483,14 @@ const react = async (messageId, emoji) => {
 
   const searchFilteredMessages =
   searchQuery.trim().length > 0
-    ? messages.filter(m =>
+    ? communityMessages.filter(m =>
         m.message?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : messages;
+    : communityMessages;
 
 // 👇 THIS is what you asked about
 const listToRender =
-  searchQuery.trim().length > 0 ? searchFilteredMessages : messages;
+  searchQuery.trim().length > 0 ? searchFilteredMessages : communityMessages;
 
 
 return (
@@ -565,13 +589,13 @@ return (
           approveMessage={approveMessage}
           rejectMessage={rejectMessage}
           textCommunity={textCommunity}
-          setTextCommunity={setTextCommunity}
+          setTextCommunity={setTextCommunity} openForward={openForward}
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
           messageRefs={messageRefs} setReplyingToCommunity={setReplyingToCommunity}
           selectedMessage={selectedMessage} setSelectedMessage={setSelectedMessage}
           showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
           setMenuPosition={setMenuPosition} menuPosition={menuPosition}
-          setMessages={setMessages} communityMessageAction={communityMessageAction}
+          setMessages={setCommunityMessages} communityMessageAction={communityMessageAction}
           showActionModal={showActionModal} setShowActionModal={setShowActionModal}
           actionType={actionType} setActionType={setActionType} forwardMessages={forwardMessages}
           actionMessage={actionMessage} setActionMessage={setActionMessage}
@@ -585,7 +609,7 @@ return (
     </div>
 
   <CommunityMessageMenu
-      setMessages={setMessages}
+      setMessages={setCommunityMessages}
       isAdmin={isAdmin}
       open={showMessageMenu}
       isMobile={isMobile}
@@ -646,7 +670,7 @@ return (
     <div
       className="
         fixed
-        bottom-6
+        bottom-10
         right-6
         bg-[#1f1f1f]
         text-white
@@ -672,6 +696,7 @@ return (
         className="
           text-blue-400
           text-sm
+          font-bold
           mt-2
           hover:underline
         "
@@ -683,6 +708,8 @@ return (
     </div>
   )
 }
+
+
 
     </>
   );

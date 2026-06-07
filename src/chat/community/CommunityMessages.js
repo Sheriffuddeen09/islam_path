@@ -7,12 +7,12 @@ import { PinnedCommunityBar } from "./PinnedCommunityBar";
 
 export default function CommunityMessages({
   activeCommunity,
-  messages,
-  setMessages,
+  communityMessages,
+  setCommunityMessages,
   onBack,
   authUser,
-  loadingMessages,
-  chatLoading, chats, openChat, onCloseChannel, setActiveChat
+  loadingMessages, messagesCacheRef,
+  chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages
 
 }) {
 
@@ -53,7 +53,7 @@ const communityMessageAction = async ({
 }) => {
   try {
     if (tempMessage) {
-      setMessages(prev => [
+      setCommunityMessages(prev => [
         ...prev,
         tempMessage,
       ]);
@@ -130,7 +130,7 @@ const communityMessageAction = async ({
 
 
     const updateStatus = (id, status) => {
-    setMessages(prev =>
+    setCommunityMessages(prev =>
       prev.map(m =>
         m.id === id
           ? { ...m, status }
@@ -143,7 +143,7 @@ const communityMessageAction = async ({
 
   const replaceMessage = (id, newMsg) => {
 
-    setMessages(prev =>
+    setCommunityMessages(prev =>
       prev.map(m =>
         m.id === id
           ? {
@@ -627,7 +627,7 @@ const resendCommunityFile =
           ) : (
           <div>
           <PinnedCommunityBar 
-          messages={messages} onSelect={handleScrollToMessage} setMessages={setMessages}
+          communityMessages={communityMessages} onSelect={handleScrollToMessage} setCommunityMessages={setCommunityMessages}
           />
             
     {isAdmin &&
@@ -650,12 +650,13 @@ const resendCommunityFile =
     )}
           
           <MessagesArea 
-          messages={messages}
-          authUser={authUser}
+          setChats={setChats} setMessages={setMessages}
+          communityMessages={communityMessages}
+          authUser={authUser} messagesCacheRef={messagesCacheRef}
           retryCommunityMessage={retryCommunityMessage}
           setReplyingToCommunity={setReplyingToCommunity}
           activeCommunity={activeCommunity}
-          setMessages={setMessages} setActiveChat={setActiveChat}
+          setCommunityMessages={setCommunityMessages} setActiveChat={setActiveChat}
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
           selectedMessage={selectedMessage} setSelectedMessage={setSelectedMessage}
@@ -674,7 +675,7 @@ const resendCommunityFile =
           activeCommunity={
             activeCommunity
           }
-          setMessages={setMessages}
+          setCommunityMessages={setCommunityMessages}
           authUser={authUser}
           setReplyingToCommunity={setReplyingToCommunity}
           replyingToCommunity={replyingToCommunity}

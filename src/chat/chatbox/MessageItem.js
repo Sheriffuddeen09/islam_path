@@ -1162,10 +1162,11 @@ onPointerCancel={() => {
             );
           }}
           className="
-            text-xs
+            text-sm font-bold
             text-blue-400
             hover:text-blue-300
             whitespace-nowrap
+            mx-auto pt-4 flex items-center justify-center 
           "
         >
           View Channel

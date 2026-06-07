@@ -257,7 +257,8 @@ const scrollToMessage = (messages, lastReadId, forceBottom = false) => {
 const openChat = async (
   chat,
   skipMobile = false,
-  userTriggered = false
+  userTriggered = false,
+  forceRefresh = false
 ) => {
 
   if (loadingChatRef.current && loadingChatRef.current !== chat.id) {
@@ -279,20 +280,21 @@ const openChat = async (
     }
 
   const cached =
-    messagesCacheRef.current[
-      chat.id
-    ];
+  messagesCacheRef.current[chat.id];
 
-  if (cached) {
+if (cached && !forceRefresh) {
 
-    setLoadingMessages(false);
-    setActiveChat(chat);
+  setLoadingMessages(false);
+  setActiveChat(chat);
 
-    openedChatsRef.current[chat.id] = true;
+  openedChatsRef.current[chat.id] = true;
 
-    if (!isLargeScreen) {
-      setShowList(false);
-    }
+  if (!isLargeScreen) {
+    setShowList(false);
+  }
+
+  setMessages(cached);
+
     localStorage.setItem(
       "lastChatId",
       String(chat.id)
@@ -307,7 +309,6 @@ const openChat = async (
           : c
       )
     );
-    setMessages(cached);
     setLastReadMessageId(
       chat.last_read_message_id ||
       null
@@ -320,13 +321,14 @@ const openChat = async (
       scrollToMessage(
         cached,
         chat.last_read_message_id,
-        true // ALWAYS bottom when reopening cached chat
+        true 
       );
     });
   });
     api.post(
       `/api/chats/${chat.id}/read`
     ).catch(() => {});
+
     return;
   }
   loadingChatRef.current =
@@ -541,6 +543,7 @@ useEffect(() => {
       unreadCount={unreadCount} setUnreadCount={setUnreadCount}
       lastReadMessageId={lastReadMessageId}
       setLastReadMessageId={setLastReadMessageId}
+      messagesCacheRef={messagesCacheRef}
     
     />
   );

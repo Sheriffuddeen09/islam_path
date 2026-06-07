@@ -239,15 +239,15 @@ export function ForwardCommunityModal({
       {messages.map((m) => {
 
         const approvalText =
-          m.approvals?.length > 0
-            ? m.approvals[
-                m.approvals.length - 1
+          m?.approvals?.length > 0
+            ? m?.approvals[
+                m?.approvals.length - 1
               ]?.admin_response
             : null;
 
       const previewText =
         approvalText ||
-        m.message ||
+        m?.message ||
         "";
 
       const fileUrl =

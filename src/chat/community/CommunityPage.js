@@ -11,19 +11,16 @@ import CommunityMessages from "./CommunityMessages";
 import CommunitySettings from "./CommunitySettings";
 
 export default function CommunityPage({
-  onClose,
+  onClose, messagesCacheRef,
   authUser, chats, loadingChats, setActiveChat,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
-  messages, setMessages, mobileView, setMobileView
+  communityMessages, setCommunityMessages, mobileView, setMobileView, setChats, setMessages
 }) {
 
  
 
   const [loading, setLoading] =
   useState(true);
-  
-
-  
 
 
    const hasLoaded = useRef(false);
@@ -197,17 +194,19 @@ export default function CommunityPage({
       `}>
 
         <CommunityMessages
+          setChats={setChats} messagesCacheRef={messagesCacheRef}
           chatLoading={loadingChats}
           authUser={authUser}
+          setMessages={setMessages}
           chats={chats}
           activeCommunity={
             activeCommunity
           }
           setActiveChat={setActiveChat}
-          messages={messages}
+          communityMessages={communityMessages}
 
-          setMessages={
-            setMessages
+          setCommunityMessages={
+            setCommunityMessages
           }
           onOpenSettings={
             openSettings

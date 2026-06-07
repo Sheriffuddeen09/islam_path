@@ -15,7 +15,7 @@ export default function ChatList({
   loadingChats,
   chatFilter,
   setChatFilter,
-  activeChat, setActiveChat
+  activeChat, setActiveChat, setChats, setMessages, messagesCacheRef
 }) {
   const { user: authUser } = useAuth();
 
@@ -39,8 +39,8 @@ export default function ChatList({
   loadingMessagesCommunity,
   setLoadingMessagesCommunity
   ] = useState(false);
-  const [messages,
-    setMessages] =
+  const [communityMessages,
+  setCommunityMessages] =
     useState([]);
   const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "sidebar");
   
@@ -162,7 +162,7 @@ export default function ChatList({
   
     // OPTIONAL:
     // clear old messages
-    setMessages([]);
+    setCommunityMessages([]);
   
     // CACHE
     if (
@@ -171,7 +171,7 @@ export default function ChatList({
       ]
     ) {
   
-      setMessages(
+      setCommunityMessages(
         messagesCache.current[
           community.id
         ]
@@ -198,7 +198,7 @@ export default function ChatList({
         community.id
       ] = msgs;
   
-      setMessages(msgs);
+      setCommunityMessages(msgs);
   
     } catch (err) {
   
@@ -395,7 +395,7 @@ export default function ChatList({
         <CommunityPage
           onClose={() => setShowChannel(false)}
           onCloseChannel={() => setShowChannel(false)}
-          authUser={authUser}
+          authUser={authUser} messagesCacheRef={messagesCacheRef}
           chats={chats}
           loadingChats={loadingChats}
           setActiveChat={setActiveChat}
@@ -406,8 +406,9 @@ export default function ChatList({
           openCommunity={openCommunity}
           loadingMessages={loadingMessagesCommunity}
           lastOpenedCommunity ={lastOpenedCommunity} messagesCache ={messagesCache}
-          openChat={openChat} messages={messages} setMessages={setMessages}
+          openChat={openChat} communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
           mobileView={mobileView} setMobileView={setMobileView}
+          setChats={setChats} setMessages={setMessages}
         />
       </div>
 

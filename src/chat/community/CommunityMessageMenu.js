@@ -1,4 +1,3 @@
-import React from "react";
 import api from "../../Api/axios";
 
 export default function CommunityMessageMenu({
@@ -22,8 +21,6 @@ export default function CommunityMessageMenu({
   if (!open || !selectedMessage) {
     return null;
   }
-
-  // FRONTEND DOWNLOAD
 
   const handlePin = async (msg) => {
   try {
@@ -129,14 +126,11 @@ const handleDownloadMessage =
           fixed
           inset-0
           z-[9998]
-
-          bg-black/20
-          backdrop-blur-sm
-
+          lg:bg-black/20
+          lg:backdrop-blur-sm
           flex
           justify-center
-          items-center
-        "
+          items-center"
       >
 
         {/* MENU */}
@@ -146,22 +140,16 @@ const handleDownloadMessage =
           }
           className={`
             z-[9999]
-
             overflow-hidden
-
             animate-in
             fade-in
             zoom-in-95
             duration-150
-
             bg-[var(--bg-color)]
             text-[var(--text-color)]
-
             border
             border-white/10
-
             shadow-2xl
-
             flex
             flex-col
 
@@ -306,7 +294,6 @@ const handleDownloadMessage =
             <MenuButton
               label="Forward"
               onClick={() => {
-                console.log("selectedMessage", selectedMessage);
                 openForward(selectedMessage);
                 onClose();
               }}
