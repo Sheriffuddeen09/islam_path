@@ -402,17 +402,7 @@ const handleCopyText = async (msg) => {
               }
             />
 
-            <MenuItem
-              label="Report"
-              onClick={() =>
-                onReport?.(
-                  previewMessage
-                )
-              }
-            />
-
-
-            {(
+              {(
               previewMessage?.type === "image" ||
               previewMessage?.type === "video"
             ) && (

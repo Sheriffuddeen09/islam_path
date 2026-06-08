@@ -24,15 +24,15 @@ export default function MessageBox({
   bottomRef,
   setToast,
   setActiveChat,
-  chats,
+  chats, setCommunityMessages,
   setReplyingTo, replyingTo, setChats,
-  paused, trimMap, trimAppliedMap, unreadDividerRef,
+  paused, trimMap, trimAppliedMap, unreadDividerRef, 
   stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
-  setLastReadMessageId, communities, setActiveCommunity, openCommunity
+  setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel
 }) {
   
 
@@ -832,7 +832,7 @@ const isFirstUnread =
           openCommunity={openCommunity}
           setLastReadMessageId={setLastReadMessageId}
           setChats={setChats}
-          key={msg.id}
+          key={msg.id} setShowChannel={setShowChannel}
           openChat={openChat}      
           messages={messages}
           activeChat={activeChat}
@@ -862,7 +862,7 @@ const isFirstUnread =
           setSelectedMsg={setSelectedMsg} uiState={uiState} activeMenuId={activeMenuId} setActiveMenuId={setActiveMenuId}
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
-          loadingChats={loadingChats}
+          loadingChats={loadingChats} setCommunityMessages={setCommunityMessages}
         />
         )}
       </div>

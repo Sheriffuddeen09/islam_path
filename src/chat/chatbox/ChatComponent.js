@@ -11,8 +11,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
     chatId, setMobileView, bottomRef, openChat,isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
-    communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
-    lastOpenedCommunity, messagesCache, openCommunity, messagesCacheRef
+    messagesCacheRef
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -39,6 +38,27 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const [showPreview, setShowPreview] = useState(false);
 
     const timerRef = useRef(null)
+
+    const [showChannel, setShowChannel] = useState(false);
+
+  const [communities,
+    setCommunities] =
+    useState([]);
+  const [activeCommunity,
+    setActiveCommunity] =
+    useState(null);
+
+
+    const [
+  loadingMessagesCommunity,
+  setLoadingMessagesCommunity
+  ] = useState(false);
+  const [communityMessages,
+  setCommunityMessages] =
+    useState([]);
+  const messagesCache = useRef({});
+  const lastOpenedCommunity = useRef(null);
+
     const unreadDividerRef =
   useRef(null);
     
@@ -68,6 +88,97 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setTimeout(() => setToast(null), 3000);
   };
 
+  const openCommunity = async (
+      community,
+      skipMobile = false
+    ) => {
+    
+      setActiveCommunity(
+        community
+      );
+    
+      localStorage.setItem(
+        "last_opened_community",
+        community.id
+      );
+    
+      lastOpenedCommunity.current =
+        community;
+    
+      // DESKTOP
+      if (
+        window.innerWidth >= 768
+      ) {
+    
+        setMobileView(
+          "messages"
+        );
+      }
+    
+      // MOBILE
+      else if (!skipMobile) {
+    
+        setMobileView(
+          "messages"
+        );
+      }
+    
+      // START LOADING
+      setLoadingMessagesCommunity(true);
+    
+      // OPTIONAL:
+      // clear old messages
+      setCommunityMessages([]);
+    
+      // CACHE
+      if (
+        messagesCache.current[
+          community.id
+        ]
+      ) {
+    
+        setCommunityMessages(
+          messagesCache.current[
+            community.id
+          ]
+        );
+    
+        setLoadingMessagesCommunity(
+          false
+        );
+    
+        return;
+      }
+    
+      try {
+    
+        const res =
+          await api.get(
+            `/api/community/${community.id}/messages`
+          );
+    
+        const msgs =
+          res.data.messages || [];
+    
+        messagesCache.current[
+          community.id
+        ] = msgs;
+    
+        setCommunityMessages(msgs);
+    
+      } catch (err) {
+    
+        console.log(err);
+    
+      } finally {
+    
+        // STOP LOADING
+        setLoadingMessagesCommunity(
+          false
+        );
+      }
+    };
+    
     const sendText = async () => {
   if (!text.trim()) return;
 
@@ -625,6 +736,9 @@ setMessages((prev) => {
           setActiveCommunity={setActiveCommunity}
           loadingMessagesCommunity={loadingMessagesCommunity}
           setMessages={setMessages}
+          showChannel={showChannel} setShowChannel={setShowChannel}
+          setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
+          communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
         />
       </div>
      <div className={`
@@ -674,6 +788,7 @@ setMessages((prev) => {
           unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
           communities={communities} setActiveCommunity={setActiveCommunity}
+          setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
         />
       </div>
      <div className={`

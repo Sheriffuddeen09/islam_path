@@ -8,7 +8,6 @@ export default function CommunityMessageMenu({
   setSelectedMessage,
   onClose,
   onCopy,
-  onShare,
   openForward,
   setShowMessageMenu,
   setActionType,
@@ -314,32 +313,7 @@ const handleDownloadMessage =
                 </svg>
               }
             />
-            <MenuButton
-              label="Share"
-              onClick={() => {
-
-                onShare?.();
-
-                onClose();
-              }}
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  className="size-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.195.022.393.033.593.033 1.438 0 2.69-.685 3.5-1.741m-4.093 3.894c.195-.022.393-.033.593-.033 1.438 0 2.69.685 3.5 1.741m0-7.482a2.25 2.25 0 1 0 3.182-3.182 2.25 2.25 0 0 0-3.182 3.182Zm0 7.482a2.25 2.25 0 1 0 3.182 3.182 2.25 2.25 0 0 0-3.182-3.182Z"
-                  />
-                </svg>
-              }
-            />
-
+           
             {/*OWNER ACTIONS*/}
             {isAdmin && (
               <>

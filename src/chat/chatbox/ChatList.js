@@ -15,7 +15,10 @@ export default function ChatList({
   loadingChats,
   chatFilter,
   setChatFilter,
-  activeChat, setActiveChat, setChats, setMessages, messagesCacheRef
+  activeChat, setActiveChat, setChats, setMessages, messagesCacheRef, showChannel, setShowChannel,
+  communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
+  communityMessages, setCommunityMessages, lastOpenedCommunity,
+  messagesCache, openCommunity
 }) {
   const { user: authUser } = useAuth();
 
@@ -23,31 +26,15 @@ export default function ChatList({
 
   const navigate = useNavigate();
 
-  const [showChannel, setShowChannel] = useState(false);
-
   const [showCommunityModal,
   setShowCommunityModal] =
   useState(false);
 
-  const [communities,
-    setCommunities] =
-    useState([]);
-  const [activeCommunity,
-    setActiveCommunity] =
-    useState(null);
-     const [
-  loadingMessagesCommunity,
-  setLoadingMessagesCommunity
-  ] = useState(false);
-  const [communityMessages,
-  setCommunityMessages] =
-    useState([]);
+  
+    
   const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "sidebar");
   
-
-  const messagesCache = useRef({});
-  const lastOpenedCommunity = useRef(null);
-
+  
   const [
   hasViewedUnread,
   setHasViewedUnread
@@ -122,96 +109,6 @@ export default function ChatList({
 
 
   
-  const openCommunity = async (
-    community,
-    skipMobile = false
-  ) => {
-  
-    setActiveCommunity(
-      community
-    );
-  
-    localStorage.setItem(
-      "last_opened_community",
-      community.id
-    );
-  
-    lastOpenedCommunity.current =
-      community;
-  
-    // DESKTOP
-    if (
-      window.innerWidth >= 768
-    ) {
-  
-      setMobileView(
-        "messages"
-      );
-    }
-  
-    // MOBILE
-    else if (!skipMobile) {
-  
-      setMobileView(
-        "messages"
-      );
-    }
-  
-    // START LOADING
-    setLoadingMessagesCommunity(true);
-  
-    // OPTIONAL:
-    // clear old messages
-    setCommunityMessages([]);
-  
-    // CACHE
-    if (
-      messagesCache.current[
-        community.id
-      ]
-    ) {
-  
-      setCommunityMessages(
-        messagesCache.current[
-          community.id
-        ]
-      );
-  
-      setLoadingMessagesCommunity(
-        false
-      );
-  
-      return;
-    }
-  
-    try {
-  
-      const res =
-        await api.get(
-          `/api/community/${community.id}/messages`
-        );
-  
-      const msgs =
-        res.data.messages || [];
-  
-      messagesCache.current[
-        community.id
-      ] = msgs;
-  
-      setCommunityMessages(msgs);
-  
-    } catch (err) {
-  
-      console.log(err);
-  
-    } finally {
-  
-      // STOP LOADING
-      setLoadingMessagesCommunity(
-        false
-      );
-    }
-  };
   
 
   return (

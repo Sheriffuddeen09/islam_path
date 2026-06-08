@@ -22,7 +22,7 @@ export default function MessageItem({
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats, setLastReadMessageId, openCommunity
+  loadingChats, setLastReadMessageId, openCommunity, setShowChannel
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -92,54 +92,61 @@ const displayText =
     ? `${messageText.slice(0, 250)}...`
     : messageText;
     
+    const openCommunityMessage = async (communityId, messageId) => {
 
-    const openCommunityMessage = async (
-  communityId,
-  messageId
-) => {
-
-  const community =
-    communities.find(
-      c =>
-        Number(c.id) ===
-        Number(communityId)
+  try {
+    const community = communities.find(
+      (c) => Number(c.id) === Number(communityId)
     );
 
-  if (!community) return;
 
-  setActiveCommunity(community);
+    setShowChannel(true);
 
-  await openCommunity(community);
+    await openCommunity(community);
 
-  setTimeout(() => {
+    let attempts = 0;
 
-    const el =
-      document.getElementById(
-        `msg-${messageId}`
-      );
+    const interval = setInterval(() => {
+      const el =
+        messageRefs.current?.[messageId] ||
+        document.getElementById(`msg-${messageId}`);
 
-    if (!el) return;
+      if (el) {
+        clearInterval(interval);
 
-    el.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
 
-    el.classList.add(
-      "ring-2",
-      "ring-green-500"
-    );
+        el.classList.add(
+          "ring-2",
+          "ring-green-500",
+          "ring-offset-2"
+        );
 
-    setTimeout(() => {
-      el.classList.remove(
-        "ring-2",
-        "ring-green-500"
-      );
-    }, 3000);
+        setTimeout(() => {
+          el.classList.remove(
+            "ring-2",
+            "ring-green-500",
+            "ring-offset-2"
+          );
+        }, 3000);
 
-  }, 500);
+      }
+
+      attempts++;
+      if (attempts > 40) {
+        clearInterval(interval);
+      }
+    }, 150);
+
+  } catch (err) {
+    console.error("🔥 ERROR:", err);
+  }
 };
-  
+
+
 useEffect(() => {
   if (!messageRef.current) return;
   if (msg.sender_id === authUser.id) return;
@@ -1153,14 +1160,14 @@ onPointerCancel={() => {
               {
                 msg.is_forwarded && 
                 <button
-          onClick={(e) => {
-            e.stopPropagation();
+         onClick={(e) => {
+          e.stopPropagation();
 
-            openCommunityMessage?.(
-              msg.forward_source_community_id,
-              msg.forward_source_message_id
-            );
-          }}
+          const communityId = msg.forward_source_community_id;
+          const messageId = msg.forward_source_message_id;
+
+          openCommunityMessage?.(communityId, messageId);
+        }}
           className="
             text-sm font-bold
             text-blue-400
