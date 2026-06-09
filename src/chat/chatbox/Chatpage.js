@@ -256,7 +256,6 @@ const scrollToMessage = (messages, lastReadId, forceBottom = false) => {
 //messagesCacheRef.current[chat.id] = decrypted;
 const openChat = async (
   chat,
-  skipMobile = false,
   userTriggered = false,
   forceRefresh = false
 ) => {
@@ -427,39 +426,34 @@ if (cached && !forceRefresh) {
   
 };
 
+  const isNavigatingRef = useRef(false);
+
 useEffect(() => {
   if (!isLargeScreen) return;
 
-  if (restoredChatRef.current) {
-    return;
-  }
-  if (!chats.length) {
-    return;
-  }
-  const lastChatId =
-    localStorage.getItem(
-      "lastChatId"
-    );
+  if (restoredChatRef.current) return;
 
-  if (!lastChatId) {
-    return;
-  }
+  if (isNavigatingRef.current) return; // 🔥 IMPORTANT FIX
+
+  if (!chats.length) return;
+
+  const lastChatId = localStorage.getItem("lastChatId");
+
+  if (!lastChatId) return;
+
   const lastChat = chats.find(
-    c =>
-      String(c.id) ===
-      String(lastChatId)
+    c => String(c.id) === String(lastChatId)
   );
+
   if (!lastChat) {
-    localStorage.removeItem(
-      "lastChatId"
-    );
+    localStorage.removeItem("lastChatId");
     return;
   }
+
   restoredChatRef.current = true;
+
   openChat(lastChat);
-
 }, [chats, isLargeScreen]);
-
 
 const openedRef = useRef(null);
 
@@ -544,6 +538,7 @@ useEffect(() => {
       lastReadMessageId={lastReadMessageId}
       setLastReadMessageId={setLastReadMessageId}
       messagesCacheRef={messagesCacheRef}
+      isNavigatingRef={isNavigatingRef} 
     
     />
   );

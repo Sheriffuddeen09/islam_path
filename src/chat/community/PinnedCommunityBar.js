@@ -1,15 +1,18 @@
 import { useState } from "react";
 import api from "../../Api/axios";
+import { Loader2 } from "lucide-react";
 
 export function PinnedCommunityBar({
   communityMessages,
   onSelect,
-  setMessages,
+  setMessages, isAdmin
 }) {
 
   const safeMessages = Array.isArray(communityMessages)
   ? communityMessages
   : [];
+
+  const [loadingPin, setLoadingPin ] = useState(false)
 
   const pinned = safeMessages.filter(
   (m) => m.is_pinned
@@ -64,6 +67,8 @@ export function PinnedCommunityBar({
   };
 
   const handlePin = async (msg) => {
+
+    setLoadingPin(true)
     try {
       if (msg.is_pinned) {
         await api.delete(
@@ -100,6 +105,9 @@ export function PinnedCommunityBar({
         err
       );
     }
+    finally{
+      setLoadingPin(false)
+    }
   };
 
   if (!pinned.length) return null;
@@ -121,6 +129,7 @@ export function PinnedCommunityBar({
           px-3
           py-2
           cursor-pointer
+          text-black
         "
       >
         <div className="
@@ -153,7 +162,7 @@ export function PinnedCommunityBar({
               </span>
             )}
           </div>
-
+            {isAdmin &&
           <button
             onClick={e => {
               e.stopPropagation();
@@ -173,8 +182,14 @@ export function PinnedCommunityBar({
               hover:bg-gray-800
             "
           >
-            Unpin
+            {
+              loadingPin ? 
+              <Loader2 />
+              : 
+              'Unpin'
+            }
           </button>
+          }
         </div>
       </div>
 
@@ -195,6 +210,7 @@ export function PinnedCommunityBar({
             max-h-[70vh]
             overflow-y-auto
             rounded-lg
+            text-black
             p-4
           ">
             <div className="
@@ -246,7 +262,7 @@ export function PinnedCommunityBar({
                     175
                   )}
                 </span>
-
+                {isAdmin &&
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -261,8 +277,14 @@ export function PinnedCommunityBar({
                     text-xs
                   "
                 >
-                  Unpin
+                  {
+                    loadingPin ? 
+                    <Loader2 />
+                    : 
+                    'Unpin'
+                  }
                 </button>
+              }
               </div>
             ))}
           </div>

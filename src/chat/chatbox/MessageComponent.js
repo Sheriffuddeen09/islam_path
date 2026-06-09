@@ -400,7 +400,7 @@ useEffect(() => {
   },
   {
     label: msg.is_pinned ? "Unpin" : "Pin",
-    show: true,
+    show: isMine,
     onClick: () => {togglePin(msg); setActiveMenuId(null)},
   },
   

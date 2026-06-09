@@ -1,12 +1,18 @@
 import { useState } from "react";
 import api from "../../Api/axios";
+import { Loader2 } from "lucide-react";
 
-export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
+export function PinnedMessagesBar({ messages, onSelect, setMessages, authUser }) {
   const pinned = messages.filter(m => m.is_pinned);
 
   const lastPinned = pinned[pinned.length - 1];
 
   const [showModal, setShowModal] = useState(false);
+
+  const canUnpinLastPinned =
+  lastPinned?.sender_id === authUser?.id;
+
+  const [loadingPin, setLoadingPin] = useState(false)
 
   const truncateText = (text, max = 20) => {
   if (!text) return "";
@@ -16,7 +22,10 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
 };
 
   const handlePin = async (msg) => {
+
+    setLoadingPin(true)
     try {
+
       if (msg.is_pinned) {
         await api.delete("/api/messages/pin", {
           data: { message_id: msg.id },
@@ -37,6 +46,10 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
 
     } catch (err) {
       console.error("Pin error:", err);
+    }
+    finally{
+    setLoadingPin(true)
+
     }
   };
 
@@ -67,6 +80,9 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
               </span>
             )}
           </div>
+          {
+            canUnpinLastPinned &&
+          
            <button
             onClick={(e) => {
               e.stopPropagation();
@@ -74,8 +90,14 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
             }}
             className="text-red-500 text-xs bg-gray-700 text-white px-2 py-1 rounded hover:bg-gray-800"
           >
-            Unpin
+            {
+                loadingPin ? 
+                <Loader2 />
+                : 
+                'Unpin'
+              }
           </button>
+          }
         </div>
       </div>
 
@@ -106,6 +128,8 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
                   )}
                 </span>
 
+              {
+                canUnpinLastPinned &&
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -113,8 +137,14 @@ export function PinnedMessagesBar({ messages, onSelect, setMessages }) {
                   }}
                   className="text-red-500 text-xs"
                 >
-                  Unpin
+                   {
+                      loadingPin ? 
+                      <Loader2 />
+                      : 
+                      'Unpin'
+                    }
                 </button>
+                }
               </div>
             ))}
 

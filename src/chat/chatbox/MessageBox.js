@@ -32,7 +32,8 @@ export default function MessageBox({
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
-  setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel
+  setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, 
+  setMobileView, mobileView
 }) {
   
 
@@ -51,7 +52,59 @@ export default function MessageBox({
   });
 
   
-  const members = activeChat?.members || [];
+  
+  const openChannel = async (community) => {
+    await openCommunity(community);
+    setShowChannel(true);
+  };
+  
+
+  const openCommunityMessage = async (communityId, messageId) => {
+    try {
+      const community = communities.find(
+        (c) => Number(c.id) === Number(communityId)
+      );
+  
+      if (!community) return;
+  
+      setShowChannel(true)
+  
+      await openChannel(community); // ✅ SECOND
+  
+      // scroll
+      let attempts = 0;
+  
+      const interval = setInterval(() => {
+        const el =
+          messageRefs.current?.[messageId] ||
+          document.getElementById(`msg-${messageId}`);
+  
+        if (el) {
+          clearInterval(interval);
+  
+          el.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+  
+          el.classList.add("bg-yellow-200");
+  
+          setTimeout(() => {
+            el.classList.remove("bg-yellow-200");
+          }, 3000);
+  
+        }
+  
+        if (++attempts > 40) {
+          clearInterval(interval);
+        }
+      }, 150);
+  
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
 
   useEffect(() => {
 
@@ -714,6 +767,8 @@ const firstUnreadMessageId =
         messages={messages}
         onSelect={handleScrollToMessage}
         setMessages={setMessages}
+        authUser={authUser}
+        
       />
     {searchQuery && searchFilteredMessages.length === 0 ? (
   <div className="text-center text-[var(--text-color)] mt-10 space-y-3">
@@ -829,7 +884,7 @@ const isFirstUnread =
       ) : (
          <MessageItem
           communities={communities} setActiveCommunity={setActiveCommunity}
-          openCommunity={openCommunity}
+          openCommunity={openCommunity} onBack={onBack} openCommunityMessage={openCommunityMessage}
           setLastReadMessageId={setLastReadMessageId}
           setChats={setChats}
           key={msg.id} setShowChannel={setShowChannel}
@@ -863,6 +918,7 @@ const isFirstUnread =
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           loadingChats={loadingChats} setCommunityMessages={setCommunityMessages}
+          setMobileView={setMobileView} mobileView={mobileView}
         />
         )}
       </div>

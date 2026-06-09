@@ -419,7 +419,7 @@ const handleCopyLink = async (message) => {
 
       {
         label: message.is_pinned ? "Unpin" : "Pin",
-        show: true,
+        show: isMine,
         onClick: (m) => {
           togglePin(m);
           clearSelection();

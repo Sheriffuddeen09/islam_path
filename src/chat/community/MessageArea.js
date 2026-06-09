@@ -65,16 +65,12 @@ export default function MessagesArea({
       });
 
       el.classList.add(
-        "ring-2",
-        "ring-green-500",
-        "ring-offset-2"
+        "bg-yellow-200"
       );
 
       setTimeout(() => {
         el.classList.remove(
-          "ring-2",
-          "ring-green-500",
-          "ring-offset-2"
+          "bg-yellow-200"
         );
       }, 3000);
 

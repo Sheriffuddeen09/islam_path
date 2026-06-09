@@ -627,7 +627,9 @@ const resendCommunityFile =
           ) : (
           <div>
           <PinnedCommunityBar 
-          communityMessages={communityMessages} onSelect={handleScrollToMessage} setCommunityMessages={setCommunityMessages}
+          communityMessages={communityMessages} onSelect={handleScrollToMessage} 
+          setMessages={setCommunityMessages}
+          isAdmin={isAdmin}
           />
             
     {isAdmin &&

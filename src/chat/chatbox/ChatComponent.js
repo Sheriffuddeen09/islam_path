@@ -9,9 +9,9 @@ import {
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
-    chatId, setMobileView, bottomRef, openChat,isLargeScreen, mobileView,
+    chatId, setMobileView, bottomRef, openChat, isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
-    messagesCacheRef
+    messagesCacheRef, isNavigatingRef
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -68,19 +68,19 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     );
   };
 
+
   const goBack = () => {
-    if (
-      mobileView === "settings"
-    ) {
-      setMobileView(
-        "messages"
-      );
+  return new Promise((resolve) => {
+    if (mobileView === "settings") {
+      setMobileView("messages");
     } else {
-      setMobileView(
-        "chatlist"
-      );
+      setMobileView("chatlist");
     }
-  };
+
+    setTimeout(resolve, 250);
+  });
+};
+
 
       
     const showToast = (message, type = "success") => {
@@ -753,6 +753,7 @@ setMessages((prev) => {
      
            `}>
         <MessageBox
+          showChannel={showChannel} 
           openCommunity={openCommunity}
           unreadDividerRef={unreadDividerRef}
           setChats={setChats}
@@ -789,6 +790,7 @@ setMessages((prev) => {
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
+          isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
         />
       </div>
      <div className={`

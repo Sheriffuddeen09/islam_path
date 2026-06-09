@@ -16,13 +16,13 @@ export default function MessageItem({
   isMine,
   setMessages,
   chatId,
-  activeChat, openChat, setChats, communities, setActiveCommunity,
+  activeChat, openChat, setChats,
   setToast, menuPosition, setMenuPosition, setSelectedMsg, uiState, setUiState,
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats, setLastReadMessageId, openCommunity, setShowChannel
+  loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -63,6 +63,8 @@ export default function MessageItem({
 
   const [expandedMessages, setExpandedMessages] = useState({});
 
+  const [pendingCommunity, setPendingCommunity] = useState(null);
+
   const getMessageText = (msg) => {
   if (
     msg.approvals &&
@@ -92,60 +94,23 @@ const displayText =
     ? `${messageText.slice(0, 250)}...`
     : messageText;
     
-    const openCommunityMessage = async (communityId, messageId) => {
+    const goToCommunityMessage = async (communityId, messageId) => {
+      openCommunityMessage(communityId, messageId);
+    };
 
-  try {
-    const community = communities.find(
-      (c) => Number(c.id) === Number(communityId)
+    useEffect(() => {
+  if (
+    mobileView === "chatlist" &&
+    pendingCommunity
+  ) {
+    goToCommunityMessage(
+      pendingCommunity.communityId,
+      pendingCommunity.messageId
     );
 
-
-    setShowChannel(true);
-
-    await openCommunity(community);
-
-    let attempts = 0;
-
-    const interval = setInterval(() => {
-      const el =
-        messageRefs.current?.[messageId] ||
-        document.getElementById(`msg-${messageId}`);
-
-      if (el) {
-        clearInterval(interval);
-
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-
-        el.classList.add(
-          "ring-2",
-          "ring-green-500",
-          "ring-offset-2"
-        );
-
-        setTimeout(() => {
-          el.classList.remove(
-            "ring-2",
-            "ring-green-500",
-            "ring-offset-2"
-          );
-        }, 3000);
-
-      }
-
-      attempts++;
-      if (attempts > 40) {
-        clearInterval(interval);
-      }
-    }, 150);
-
-  } catch (err) {
-    console.error("🔥 ERROR:", err);
+    setPendingCommunity(null);
   }
-};
-
+}, [mobileView, pendingCommunity]);
 
 useEffect(() => {
   if (!messageRef.current) return;
@@ -1159,15 +1124,16 @@ onPointerCancel={() => {
 
               {
                 msg.is_forwarded && 
-                <button
-         onClick={(e) => {
-          e.stopPropagation();
+               <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPendingCommunity({
+                  communityId: msg.forward_source_community_id,
+                  messageId: msg.forward_source_message_id,
+                });
+                onBack();
+              }}
 
-          const communityId = msg.forward_source_community_id;
-          const messageId = msg.forward_source_message_id;
-
-          openCommunityMessage?.(communityId, messageId);
-        }}
           className="
             text-sm font-bold
             text-blue-400
