@@ -22,7 +22,7 @@ export default function MessageItem({
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView
+  loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView, showScrollButton
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -1219,6 +1219,8 @@ onPointerCancel={() => {
       setShowReactions={setShowReactionPopup}
       loadingChats={loadingChats}
     />
+
+    {showScrollButton &&
     <div
       onClick={async () => {
 
@@ -1288,6 +1290,8 @@ onPointerCancel={() => {
       </svg>
 
     </div>
+     }
+     
   </>
 );
   }

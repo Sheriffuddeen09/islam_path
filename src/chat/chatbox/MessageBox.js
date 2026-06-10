@@ -51,6 +51,51 @@ export default function MessageBox({
     messages: []
   });
 
+  const [showScrollButton, setShowScrollButton] =
+  useState(false);
+
+  const messagesContainerRef = useRef(null);
+
+  useEffect(() => {
+
+  const container =
+    messagesContainerRef.current;
+
+  if (!container) return;
+
+  const handleScroll = () => {
+
+    const threshold = 100;
+
+    const isAtBottom =
+      container.scrollHeight -
+      container.scrollTop -
+      container.clientHeight <
+      threshold;
+
+    setShowScrollButton(
+      !isAtBottom
+    );
+  };
+
+  container.addEventListener(
+    "scroll",
+    handleScroll
+  );
+
+  handleScroll();
+
+  return () => {
+
+    container.removeEventListener(
+      "scroll",
+      handleScroll
+    );
+  };
+
+}, [
+  messages,
+]);
   
   
   const openChannel = async (community) => {
@@ -673,6 +718,7 @@ const firstUnreadMessageId =
 
       {/* CHAT BODY */}
       <div
+        ref={messagesContainerRef}
         className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
         scrollbar-thumb-green-500 scrollbar-track-transparent space-y-3 bg-[var(--primary-color)] relative">
 
@@ -883,6 +929,7 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
+          showScrollButton={showScrollButton}
           communities={communities} setActiveCommunity={setActiveCommunity}
           openCommunity={openCommunity} onBack={onBack} openCommunityMessage={openCommunityMessage}
           setLastReadMessageId={setLastReadMessageId}

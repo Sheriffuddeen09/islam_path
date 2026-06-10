@@ -57,10 +57,14 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   setCommunityMessages] =
     useState([]);
   const messagesCache = useRef({});
+  const communitiesCache = useRef({});
   const lastOpenedCommunity = useRef(null);
 
     const unreadDividerRef =
   useRef(null);
+
+  const messageCommunityRefs = useRef({});
+  const messagesEndRef = useRef(null);
     
     const openSettings = () => {
     setMobileView(
@@ -81,7 +85,11 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   });
 };
 
-
+  
+  const [
+  firstUnreadMessageId,
+  setFirstUnreadMessageId,
+] = useState(null);
       
     const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -89,95 +97,160 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   };
 
   const openCommunity = async (
-      community,
-      skipMobile = false
-    ) => {
-    
-      setActiveCommunity(
-        community
+  community,
+  skipMobile = false
+) => {
+
+  setActiveCommunity(
+    community
+  );
+
+  localStorage.setItem(
+    "last_opened_community",
+    community.id
+  );
+
+  lastOpenedCommunity.current =
+    community;
+
+  if (
+    window.innerWidth >= 768
+  ) {
+
+    setMobileView(
+      "messages"
+    );
+
+  } else if (
+    !skipMobile
+  ) {
+
+    setMobileView(
+      "messages"
+    );
+  }
+
+  setLoadingMessagesCommunity(
+    true
+  );
+
+  setCommunityMessages([]);
+
+  try {
+
+    const res =
+      await api.get(
+        `/api/community/${community.id}/messages`
       );
-    
-      localStorage.setItem(
-        "last_opened_community",
-        community.id
+
+    const msgs =
+      res.data.messages || [];
+
+    const firstUnreadId =
+      res.data
+        .first_unread_message_id;
+
+    console.log(
+      "Backend first unread:",
+      firstUnreadId
+    );
+
+    setCommunityMessages(
+      msgs
+    );
+
+    setFirstUnreadMessageId(
+      firstUnreadId
+    );
+
+    setCommunities(prev => {
+
+      const updated =
+        prev.map(c =>
+
+          c.id === community.id
+
+            ? {
+                ...c,
+                unread_count: 0,
+              }
+
+            : c
+        );
+
+      communitiesCache.current =
+        updated;
+
+      return updated;
+    });
+
+    if (msgs.length > 0) {
+
+      api.post(
+        `/api/communities/${community.id}/mark-read`
+      )
+      .catch(
+        console.error
       );
-    
-      lastOpenedCommunity.current =
-        community;
-    
-      // DESKTOP
-      if (
-        window.innerWidth >= 768
-      ) {
-    
-        setMobileView(
-          "messages"
-        );
-      }
-    
-      // MOBILE
-      else if (!skipMobile) {
-    
-        setMobileView(
-          "messages"
-        );
-      }
-    
-      // START LOADING
-      setLoadingMessagesCommunity(true);
-    
-      // OPTIONAL:
-      // clear old messages
-      setCommunityMessages([]);
-    
-      // CACHE
-      if (
-        messagesCache.current[
-          community.id
-        ]
-      ) {
-    
-        setCommunityMessages(
-          messagesCache.current[
-            community.id
-          ]
-        );
-    
-        setLoadingMessagesCommunity(
-          false
-        );
-    
-        return;
-      }
-    
-      try {
-    
-        const res =
-          await api.get(
-            `/api/community/${community.id}/messages`
-          );
-    
-        const msgs =
-          res.data.messages || [];
-    
-        messagesCache.current[
-          community.id
-        ] = msgs;
-    
-        setCommunityMessages(msgs);
-    
-      } catch (err) {
-    
-        console.log(err);
-    
-      } finally {
-    
-        // STOP LOADING
-        setLoadingMessagesCommunity(
-          false
-        );
-      }
-    };
+    }
+
+  } catch (err) {
+
+    console.log(err);
+
+  } finally {
+
+    setLoadingMessagesCommunity(
+      false
+    );
+  }
+};
+
+useEffect(() => {
+
+  if (!communityMessages.length) return;
+
+  let attempts = 0;
+
+  const tryScroll = () => {
+
+    const el =
+      messageCommunityRefs.current[firstUnreadMessageId];
+
+    console.log("scroll attempt:", attempts, el);
+
+    if (el) {
+
+      el.scrollIntoView({
+        behavior: "auto",
+        block: "start",
+      });
+
+      return;
+    }
+
+    attempts++;
+
+    if (attempts < 20) {
+
+      requestAnimationFrame(tryScroll);
+
+    } else {
+
+      console.log("fallback scroll to bottom");
+
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "end",
+      });
+    }
+  };
+
+  requestAnimationFrame(tryScroll);
+
+}, [communityMessages, firstUnreadMessageId]);
+
+
     
     const sendText = async () => {
   if (!text.trim()) return;
@@ -718,7 +791,7 @@ setMessages((prev) => {
         <ChatList
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
-          chats={chats}
+          chats={chats} authUserId={authUser.id}
           openChat={openChat}
           chatFilter={chatFilter}
           setChatFilter={setChatFilter}
@@ -739,6 +812,7 @@ setMessages((prev) => {
           showChannel={showChannel} setShowChannel={setShowChannel}
           setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
           communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
+          messageRefs={messageCommunityRefs} messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
         />
       </div>
      <div className={`

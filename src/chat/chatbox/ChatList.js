@@ -6,7 +6,7 @@ import ChatItem from "./ChatItem";
 import CommunityButton from "../community/CommunityButton";
 import CommunityPage from "../community/CommunityPage";
 import CreateCommunityModal from "../community/CreateCommunityModal";
-import api from "../../Api/axios";
+
 
 
 export default function ChatList({
@@ -17,8 +17,8 @@ export default function ChatList({
   setChatFilter,
   activeChat, setActiveChat, setChats, setMessages, messagesCacheRef, showChannel, setShowChannel,
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
-  communityMessages, setCommunityMessages, lastOpenedCommunity,
-  messagesCache, openCommunity
+  communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
+  messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId
 }) {
   const { user: authUser } = useAuth();
 
@@ -305,7 +305,9 @@ export default function ChatList({
           lastOpenedCommunity ={lastOpenedCommunity} messagesCache ={messagesCache}
           openChat={openChat} communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
           mobileView={mobileView} setMobileView={setMobileView}
-          setChats={setChats} setMessages={setMessages}
+          setChats={setChats} setMessages={setMessages} messageRefs={messageRefs}
+          messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
+          authUserId={authUserId} setLastReadMessageId={setLastReadMessageId}
         />
       </div>
 

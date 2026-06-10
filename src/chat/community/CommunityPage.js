@@ -12,9 +12,10 @@ import CommunitySettings from "./CommunitySettings";
 
 export default function CommunityPage({
   onClose, messagesCacheRef,
-  authUser, chats, loadingChats, setActiveChat,
+  authUser, chats, loadingChats, setActiveChat, messagesEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
-  communityMessages, setCommunityMessages, mobileView, setMobileView, setChats, setMessages
+  communityMessages, setCommunityMessages, mobileView, setMobileView, setChats, setMessages, messageRefs,
+  setLastReadMessageId
 }) {
 
  
@@ -35,7 +36,6 @@ export default function CommunityPage({
 
   const fetchCommunities = async () => {
 
-  // ✅ USE CACHE
   if (
     hasLoaded.current &&
     communitiesCache.current.length
@@ -102,6 +102,7 @@ export default function CommunityPage({
       localStorage.getItem(
         "last_opened_community"
       );
+       
 
     if (lastId) {
 
@@ -121,6 +122,8 @@ export default function CommunityPage({
           true
         );
       }
+      
+     
     }
 
   } catch (err) {
@@ -195,10 +198,10 @@ export default function CommunityPage({
 
         <CommunityMessages
           setChats={setChats} messagesCacheRef={messagesCacheRef}
-          chatLoading={loadingChats}
-          authUser={authUser}
+          chatLoading={loadingChats} messagesEndRef={messagesEndRef}
+          authUser={authUser} firstUnreadMessageId={firstUnreadMessageId}
           setMessages={setMessages}
-          chats={chats}
+          chats={chats} authUserId={authUserId}
           activeCommunity={
             activeCommunity
           }
@@ -218,6 +221,9 @@ export default function CommunityPage({
           loadingMessages={loadingMessages}
           openChat={openChat}
           onCloseChannel={onCloseChannel}
+          messageRefs = {messageRefs}
+          setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
+          
         />
 
       </div>

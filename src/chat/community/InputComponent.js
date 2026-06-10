@@ -343,6 +343,14 @@ const sendTextCommunity = async ({
 
   setTextCommunity("");
 
+
+  requestAnimationFrame(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "auto",
+      block: "end",
+    });
+  });
+
   setShowSendOptions(false);
 
   requestAnimationFrame(() => {
@@ -479,6 +487,14 @@ const sendFileCommunity = async (
       },
     ],
   };
+
+  requestAnimationFrame(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "auto",
+      block: "end",
+    });
+  });
+  
   try {
     const data =
       await communityMessageAction({

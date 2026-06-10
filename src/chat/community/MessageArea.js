@@ -17,7 +17,8 @@ export default function MessagesArea({
   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
   communityMessageAction, pendingMessages, isAdmin, setPendingMessages, messagesCacheRef,
-  setApprovalModal, approvalModal, messageRefs, chatLoading, chats, openChat, onCloseChannel, setChats
+  setApprovalModal, approvalModal, messageRefs, chatLoading, chats, openChat, onCloseChannel, setChats,
+  firstUnreadMessageId, authUserId, setLastReadMessageId, setCommunities
 }) {
 
   const [forwardMsg, setForwardMsg] =
@@ -488,6 +489,11 @@ const react = async (messageId, emoji) => {
 const listToRender =
   searchQuery.trim().length > 0 ? searchFilteredMessages : communityMessages;
 
+  const unreadCount =
+  communityMessages.filter(msg =>
+    msg.id >= firstUnreadMessageId &&
+    msg.sender_id !== authUserId
+  ).length;
 
 return (
 
@@ -559,10 +565,37 @@ return (
         }}
       >
 
-      
+        {
+  firstUnreadMessageId &&
+  communityMessages.length > 0 &&
+  msg.id === firstUnreadMessageId &&
+  msg.sender_id !== authUserId && (
+
+    <div className="
+      flex
+      justify-center
+      my-4
+    ">
+
+      <span className="
+        px-3
+        py-1
+        rounded-full
+        bg-blue-600
+        text-white
+        text-xs
+      ">
+        {unreadCount} Unread Update
+
+      </span>
+
+    </div>
+  )
+}
 
         {/* MESSAGE */}
         <MessageList
+          setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
           chatLoading={chatLoading}
           chats={chats}
           msg={msg} activeCommunity={activeCommunity}

@@ -15,7 +15,8 @@ export default function MessageList({msg, setReactionMsg,
                                     setSelectedMessage, setShowMessageMenu, setReplyingToCommunity,
                                     setMenuPosition,communityMessageAction, setMessages, openForward,
                                     approvalModal, setApprovalModal, showActionModal, setShowActionModal,
-                                    actionType, setActionType, actionMessage, setActionMessage}){
+                                    actionType, setActionType, actionMessage, setActionMessage,
+                                  }){
 
                                 
   const [respondModal, setRespondModal] = useState(false);
@@ -391,7 +392,7 @@ const handleDownloadMessage =
                       cursor-pointer
                       text-white
                       -translate-y-
-                      -mb-4
+                      -mb-4 break-words
                     "
                   >
                     <div
@@ -401,7 +402,7 @@ const handleDownloadMessage =
                         truncate
                         inline-flex
                         gap-2
-                        items-center
+                        items-center break-words
                       "
                     >
                       <svg
@@ -418,7 +419,7 @@ const handleDownloadMessage =
                           d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
                         />
                       </svg>
-                    <span className="sm:hidden block">
+                    <span className="sm:hidden block break-words">
                      {
                         msg.replied_message?.message?.length > 40
                           ? msg.replied_message.message.slice(0, 40) + "..."
@@ -426,7 +427,7 @@ const handleDownloadMessage =
                       }
                       </span>
 
-                      <span className="sm:block hidden">
+                      <span className="sm:block hidden break-words">
                      {
                         msg.replied_message?.message?.length > 75
                           ? msg.replied_message.message.slice(0, 75) + "..."
@@ -435,7 +436,7 @@ const handleDownloadMessage =
                       </span>
                     </div>
                     <br />
-                    <span className="text-[13px]">
+                    <span className="text-[13px] break-words">
                     {
                       msg.message
                     }
@@ -457,7 +458,7 @@ const handleDownloadMessage =
                 
                  />
                 <div
-                        className={`text-[13px] pt-3 mt-1 px-4 text-white ${
+                        className={`text-[13px] pt-3 mt-1 px-4 text-white break-words ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -465,12 +466,12 @@ const handleDownloadMessage =
                           options={{
                             target: "_blank",
                             className:
-                              "text-blue-400 pointer-events-auto",
+                              "text-blue-400 pointer-events-auto break-words",
                           }}
                         >
 
                     {msg?.approvals?.length > 0 && (
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 space-y-2 break-words">
                       {msg.approvals.map(approval => (
                         <div
                           key={approval.id}
@@ -486,7 +487,7 @@ const handleDownloadMessage =
                   
                  {!msg.replied_to && !msg.replied_message && (
                  <div
-                        className={`text-[13px] pt-3 mt-1 px-4 text-white ${
+                        className={`text-[13px] pt-3 mt-1 px-4 text-white break-words ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -494,7 +495,7 @@ const handleDownloadMessage =
                           options={{
                             target: "_blank",
                             className:
-                              "text-blue-400 pointer-events-auto",
+                              "text-blue-400 pointer-events-auto break-words",
                           }}
                         >
                     {displayText}

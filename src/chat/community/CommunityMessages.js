@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import api from "../../Api/axios";
 import InputComponent from "./InputComponent";
 import MessagesArea from "./MessageArea";
@@ -11,8 +11,9 @@ export default function CommunityMessages({
   setCommunityMessages,
   onBack,
   authUser,
-  loadingMessages, messagesCacheRef,
-  chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages
+  loadingMessages, messagesCacheRef, messagesEndRef, firstUnreadMessageId, authUserId,
+  chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageRefs, 
+  setLastReadMessageId, setCommunities
 
 }) {
 
@@ -26,12 +27,66 @@ export default function CommunityMessages({
     const [ approvalModal, setApprovalModal ] = useState(false);
     
     const [ pendingMessages, setPendingMessages ] = useState([]);
-    const messageRefs = useRef({});
+    const [showScrollButton, setShowScrollButton] = useState(false);
 
-    
-     const bottomRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+
+
+    useEffect(() => {
+
+    const container =
+      messagesContainerRef.current;
+
+    if (!container) return;
+
+    const handleScroll = () => {
+
+      const threshold = 100;
+
+      const isAtBottom =
+        container.scrollHeight -
+        container.scrollTop -
+        container.clientHeight <
+        threshold;
+
+      setShowScrollButton(
+        !isAtBottom
+      );
+    };
+
+    container.addEventListener(
+      "scroll",
+      handleScroll
+    );
+
+    handleScroll();
+
+    return () => {
+
+      container.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+    };
+
+  }, [
+    communityMessages,
+  ]);
+
+    const unreadCount =
+  communityMessages.filter(msg =>
+    msg.id >= firstUnreadMessageId &&
+    msg.sender_id !== authUserId
+  ).length;
+
 
     const role = activeCommunity?.my_role;
+
+    const myId = authUser.id;
+    
+    const latestMessage = communityMessages?.length
+    ? communityMessages[communityMessages.length - 1]
+    : null;
 
 
     const isAdmin =
@@ -58,7 +113,7 @@ const communityMessageAction = async ({
         tempMessage,
       ]);
       requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({
+        messagesEndRef.current?.scrollIntoView({
           behavior: "auto",
           block: "end",
         });
@@ -605,7 +660,8 @@ const resendCommunityFile =
         </div>
 
             <div
-                className="
+            ref={messagesContainerRef}
+            className="
             flex-1
             min-h-0
             overflow-y-auto
@@ -625,7 +681,7 @@ const resendCommunityFile =
             />
 
           ) : (
-          <div>
+          <div >
           <PinnedCommunityBar 
           communityMessages={communityMessages} onSelect={handleScrollToMessage} 
           setMessages={setCommunityMessages}
@@ -633,31 +689,27 @@ const resendCommunityFile =
           />
             
     {isAdmin &&
-    pendingMessages.length > 0 && (
-
+      pendingMessages.length > 0 && (
       <div
         onClick={() =>
           setApprovalModal(true)
         }
         className="sticky top-0 z-20 text-xs font-semibold flex justify-between border-b-2 border-blue-800 py-2 cursor-pointer">
         <span>
-        Pending Approval Message
+          Pending Approval Message
         </span>
-
         <span>
         {pendingMessages.length}
         </span>
-        
         </div>
     )}
-          
           <MessagesArea 
           setChats={setChats} setMessages={setMessages}
           communityMessages={communityMessages}
           authUser={authUser} messagesCacheRef={messagesCacheRef}
           retryCommunityMessage={retryCommunityMessage}
           setReplyingToCommunity={setReplyingToCommunity}
-          activeCommunity={activeCommunity}
+          activeCommunity={activeCommunity} firstUnreadMessageId={firstUnreadMessageId}
           setCommunityMessages={setCommunityMessages} setActiveChat={setActiveChat}
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
@@ -669,21 +721,125 @@ const resendCommunityFile =
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
           isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           chatLoading={chatLoading} chats={chats} openChat={openChat} onCloseChannel={onCloseChannel}
-          />            
+          authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
+          />             
        </div>
           )}
+
+          <div ref={messagesEndRef} />
           </div>
+
+          {
+          showScrollButton && (
+
+            <div
+              onClick={async () => {
+
+                messagesEndRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "end",
+                });
+
+                setShowScrollButton(false);
+
+                const latestMessage =
+                  communityMessages[
+                    communityMessages.length - 1
+                  ];
+
+                if (latestMessage) {
+
+                  setLastReadMessageId(
+                    latestMessage.id
+                  );
+                }
+
+                setCommunities(prev =>
+                  prev.map(c =>
+                    c.id === activeCommunity?.id
+                      ? {
+                          ...c,
+                          unread_count: 0,
+                        }
+                      : c
+                  )
+                );
+
+                try {
+
+                  await api.post(
+                    `/api/communities/${activeCommunity.id}/mark-read`
+                  );
+
+                } catch (err) {
+
+                  console.error(
+                    "Failed to mark read",
+                    err
+                  );
+                }
+
+              }}
+              className="
+                fixed
+                bottom-28
+                lg:right-80
+                right-6
+                lg:-translate-x-16
+                inline-flex
+                items-center
+                gap-1
+                bg-blue-800
+                text-white
+                px-2
+                py-1
+                rounded-full
+                cursor-pointer
+              "
+            >
+
+              {
+                unreadCount > 0 &&
+                latestMessage?.sender_id !== myId && (
+
+                  <span className="text-xs font-semibold">
+
+                    {unreadCount}
+
+                  </span>
+                )
+              }
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-3"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+                />
+              </svg>
+
+            </div>
+          )
+        }
+
         <InputComponent
           activeCommunity={
             activeCommunity
           }
-          setCommunityMessages={setCommunityMessages}
+          setMessages={setCommunityMessages}
           authUser={authUser}
           setReplyingToCommunity={setReplyingToCommunity}
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
           communityMessageAction={communityMessageAction}
-          bottomRef={bottomRef}
+          bottomRef={messagesEndRef}
        />
 
       </div>
