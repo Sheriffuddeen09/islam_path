@@ -759,12 +759,14 @@ export default function ActiveUsers({
           chat={activeChat}
           currentUserId={activeChat.id}
           onClose={() => setShowRemoveModal(false)}
+          setActiveChat={setActiveChat}
         />
       )}
 
 
       {showAddModal && (
         <AddMemberModal
+            setActiveChat={setActiveChat}
             chat={{
                 ...activeChat,
                 all_chats: chats

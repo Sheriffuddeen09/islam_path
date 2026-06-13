@@ -40,6 +40,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const timerRef = useRef(null)
 
     const [showChannel, setShowChannel] = useState(false);
+    const [mobileViewCommunity, setMobileViewCommunity] = useState(window.innerWidth >= 768 ? "communityMessages" : "sidebar");
+    
 
   const [communities,
     setCommunities] =
@@ -67,7 +69,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   const messagesEndRef = useRef(null);
     
     const openSettings = () => {
-    setMobileView(
+    setMobileViewCommunity(
       "settings"
     );
   };
@@ -117,16 +119,16 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     window.innerWidth >= 768
   ) {
 
-    setMobileView(
-      "messages"
+    setMobileViewCommunity(
+      "communityMessages"
     );
 
   } else if (
     !skipMobile
   ) {
 
-    setMobileView(
-      "messages"
+    setMobileViewCommunity(
+      "communityMessages"
     );
   }
 
@@ -149,11 +151,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const firstUnreadId =
       res.data
         .first_unread_message_id;
-
-    console.log(
-      "Backend first unread:",
-      firstUnreadId
-    );
 
     setCommunityMessages(
       msgs
@@ -217,8 +214,6 @@ useEffect(() => {
     const el =
       messageCommunityRefs.current[firstUnreadMessageId];
 
-    console.log("scroll attempt:", attempts, el);
-
     if (el) {
 
       el.scrollIntoView({
@@ -236,8 +231,6 @@ useEffect(() => {
       requestAnimationFrame(tryScroll);
 
     } else {
-
-      console.log("fallback scroll to bottom");
 
       messagesEndRef.current?.scrollIntoView({
         behavior: "auto",
@@ -789,6 +782,8 @@ setMessages((prev) => {
         flex-col
       `}>
         <ChatList
+          chatCommunitys={chats}
+          setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}

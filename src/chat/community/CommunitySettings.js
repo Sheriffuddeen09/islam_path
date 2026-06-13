@@ -1,12 +1,29 @@
 // CommunitySettings.jsx
 
+import CommunityActions from "./CommunityActions";
+import MembersList from "./MembersList";
+
 export default function CommunitySettings({
-
   activeCommunity,
-
-  onBack
-
+  authUser,
+  onBack,
+  setActiveCommunity,
+  setCommunityMessages,
+  community, 
+  setExploreCommunities,
+  setCommunities,
+  communities,
+  chats, activeChat
 }) {
+
+
+  const role = activeCommunity?.my_role;
+
+
+  const isAdmin =
+    role === "admin" ||
+    role === "owner";
+
 
   if (!activeCommunity) {
 
@@ -76,43 +93,19 @@ export default function CommunitySettings({
         </div>
 
         {/* MEMBERS */}
-        <div className="mt-6">
+        <MembersList activeCommunity={activeCommunity} currentUser={authUser} />
 
-          <h3 className="font-bold mb-3">
-
-            Members
-
-          </h3>
-
-          {activeCommunity.members?.map(user => (
-
-            <div
-              key={user.id}
-              className="flex items-center justify-between py-3 border-b border-gray-700"
-            >
-
-              <div>
-
-                <p>
-
-                  {user.first_name} {user.last_name}
-
-                </p>
-
-                <p className="text-xs text-gray-400">
-
-                  {user.pivot.role}
-
-                </p>
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
-
+        <CommunityActions isAdmin={isAdmin} 
+          community={community}
+          setCommunities={setCommunities}
+          setExploreCommunities={setExploreCommunities}
+          activeCommunity={activeCommunity}
+          setActiveCommunity={setActiveCommunity}
+          setCommunityMessages={setCommunityMessages}
+          communities={communities} chats={chats} 
+          activeChat={activeChat}
+          authUser={authUser}
+          />
       </div>
 
     </div>

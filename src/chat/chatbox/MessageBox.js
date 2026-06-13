@@ -904,7 +904,7 @@ const isFirstUnread =
     >
       {/* 📅 DATE */}
       {showDate && (
-        <div className="text-center text-xs text-[var(--text-color)] my-2">
+        <div className="text-center text-[9px] mb-5 text-[var(--text-color)]">
           {formatDateHeader(msg.created_at)}
         </div>
       )}
@@ -923,7 +923,7 @@ const isFirstUnread =
 
       {isSystem ? (
         <div className="flex justify-center">
-          <div className="bg-[var(--bg-color)] shadow-md text-[var(--text-color)] px-1 py-1 text-[9px] rounded-full">
+          <div className="text-[var(--text-color)] px-1 py-1 text-[9px]">
             {formatSystemMessage(msg)}
           </div>
         </div>

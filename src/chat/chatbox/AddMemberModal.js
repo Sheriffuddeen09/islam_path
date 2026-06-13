@@ -3,7 +3,7 @@ import api from "../../Api/axios";
 import { toast } from "react-hot-toast";
 import { Loader2, X } from "lucide-react";
 
-export default function AddMemberModal({ chat, onClose }) {
+export default function AddMemberModal({ chat, onClose, setActiveChat }) {
   const [chatUsers, setChatUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true); // ✅ NEW
   const [loadingId, setLoadingId] = useState(null);
@@ -84,26 +84,62 @@ export default function AddMemberModal({ chat, onClose }) {
 }, [search, chatUsers, memberIds]);
 
   const addMember = async (userId) => {
-    try {
-      setLoadingId(userId);
+  try {
 
-      await api.post(`/api/groups/${chat.id}/add-member`, {
+    setLoadingId(userId);
+
+    const user = chatUsers.find(
+      (u) => u.id === userId
+    );
+
+    await api.post(
+      `/api/groups/${chat.id}/add-member`,
+      {
         user_id: userId,
-      });
+      }
+    );
 
-      toast.success("Member added");
+    toast.success("Member added");
 
-      setChatUsers((prev) =>
-        prev.filter((u) => u.id !== userId)
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to add member");
-    } finally {
-      setLoadingId(null);
-    }
-  };
+    // Remove from modal list
+    setChatUsers((prev) =>
+      prev.filter((u) => u.id !== userId)
+    );
 
+    // Add immediately to group members
+    setActiveChat((prev) => {
+
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+
+        members: [
+          ...(prev.members || []),
+
+          {
+            ...user,
+
+            role: "member",
+          },
+        ],
+      };
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    toast.error(
+      "Failed to add member"
+    );
+
+  } finally {
+
+    setLoadingId(null);
+
+  }
+};
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center z-50">
 

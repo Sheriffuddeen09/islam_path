@@ -18,7 +18,8 @@ export default function ChatList({
   activeChat, setActiveChat, setChats, setMessages, messagesCacheRef, showChannel, setShowChannel,
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
-  messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId
+  messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId,
+  mobileView, setMobileView, chatCommunitys
 }) {
   const { user: authUser } = useAuth();
 
@@ -32,7 +33,6 @@ export default function ChatList({
 
   
     
-  const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "sidebar");
   
   
   const [
@@ -86,7 +86,7 @@ export default function ChatList({
       const isAllowedGroupUser =
         !isGroup ||
         (isGroup &&
-          (membershipStatus === "approved" || chat.my_role === "admin"));
+        (membershipStatus === "approved" || chat.my_role === "admin"));
 
       if (chatFilter === "all") {
         return true;
@@ -290,6 +290,8 @@ export default function ChatList({
 
       <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
         <CommunityPage
+          chatCommunitys={chatCommunitys}
+          activeChat={activeChat}
           onClose={() => setShowChannel(false)}
           onCloseChannel={() => setShowChannel(false)}
           authUser={authUser} messagesCacheRef={messagesCacheRef}

@@ -3,11 +3,11 @@ import api from "../../Api/axios";
 import { toast } from "react-hot-toast";
 import { Loader2, X } from "lucide-react";
 
-export default function RemoveMemberModal({
+export default function RemoveCommunityMemberModal({
   chat,
   onClose,
   currentUserId,
-  setActiveChat
+  setActiveCommunity,
 }) {
   const [members, setMembers] = useState(chat.members || []);
   const [loadingId, setLoadingId] = useState(null);
@@ -35,12 +35,18 @@ export default function RemoveMemberModal({
     try {
       setLoadingId(userId);
 
-      await api.post(`/api/groups/${chat.id}/remove-member`, {
-        user_id: userId,
-      });
+      await api.post(
+        `/api/communities/${chat.id}/remove-member`,
+        {
+          user_id: userId,
+        }
+      );
 
-      setMembers((prev) => prev.filter((m) => m.id !== userId));
-      setActiveChat((prev) => {
+      setMembers((prev) =>
+        prev.filter((m) => m.id !== userId)
+      );
+
+      setActiveCommunity((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
@@ -58,7 +64,7 @@ export default function RemoveMemberModal({
     }
   };
 
-  
+  // ❌ hide admin + current user
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
       return (

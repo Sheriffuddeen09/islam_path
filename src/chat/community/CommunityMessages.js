@@ -13,7 +13,7 @@ export default function CommunityMessages({
   authUser,
   loadingMessages, messagesCacheRef, messagesEndRef, firstUnreadMessageId, authUserId,
   chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageRefs, 
-  setLastReadMessageId, setCommunities
+  setLastReadMessageId, setCommunities, onOpenSettings
 
 }) {
 
@@ -30,6 +30,25 @@ export default function CommunityMessages({
     const [showScrollButton, setShowScrollButton] = useState(false);
 
     const messagesContainerRef = useRef(null);
+
+    const [isMobiled, setIsMobiled] = useState(
+      window.innerWidth < 1024
+    );
+
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobiled(window.innerWidth < 1024);
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      return () =>
+        window.removeEventListener(
+          "resize",
+          handleResize
+        );
+    }, []);
+
 
 
     useEffect(() => {
@@ -94,6 +113,24 @@ export default function CommunityMessages({
       role === "owner";
   
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
+
+    const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500"
+  ];
+
+  const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }; 
 
     
 const communityMessageAction = async ({
@@ -559,15 +596,19 @@ const resendCommunityFile =
         ">
 
           {/* LEFT SIDE */}
-          <div className="flex items-center gap-3">
+          <div
+            onClick={() => {
+              if (isMobiled) {
+                onOpenSettings?.();
+              }
+            }}
+            className="flex items-center gap-3"
+          >
 
             <button
               className="lg:hidden"
               onClick={onBack}
             >
-              <button className="lg:hidden"
-                onClick={onBack}
-              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -582,25 +623,45 @@ const resendCommunityFile =
                     d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
                   />
                 </svg>
-              </button>
             </button>
-            {activeCommunity.community_image && (
-              <img
-                src={getImage(
-                  activeCommunity.community_image
-                )}
-                alt={
+            {activeCommunity.community_image ? (
+            <img
+              src={getImage(
+                activeCommunity.community_image
+              )}
+              alt={
+                activeCommunity.community_name
+              }
+              className="
+                w-12
+                h-12
+                rounded-full
+                object-cover
+              "
+            />
+          ) : (
+            <div
+              className={`
+                w-12
+                h-12
+                rounded-full
+                flex
+                items-center
+                justify-center
+                font-bold
+                text-lg
+                text-white
+                shrink-0
+                ${getColor(
                   activeCommunity.community_name
-                }
-                className="
-                  w-12
-                  h-12
-                  rounded-full
-                  object-cover
-                "
-              />
-            )}
-
+                )}
+              `}
+            >
+              {getInitial(
+                activeCommunity.community_name
+              )}
+            </div>
+          )}
             <div>
              <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
                 {activeCommunity.community_name?.length > 9
