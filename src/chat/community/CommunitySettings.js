@@ -13,10 +13,29 @@ export default function CommunitySettings({
   setExploreCommunities,
   setCommunities,
   communities,
-  chats, activeChat
+  chats, activeChat,
+  setMessages
 }) {
 
 
+   const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500"
+  ];
+
+  const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }; 
+  
   const role = activeCommunity?.my_role;
 
 
@@ -40,17 +59,14 @@ export default function CommunitySettings({
         {/* MOBILE BACK */}
         <button
           onClick={onBack}
-          className="md:hidden"
-        >
-
-          ←
-
+          className="md:hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
         </button>
 
         <h2 className="font-bold">
-
           Community Settings
-
         </h2>
 
       </div>
@@ -70,7 +86,30 @@ export default function CommunitySettings({
 
           ) : (
 
-            <div className="w-24 h-24 rounded-full bg-gray-700" />
+           <>
+            <div
+              className={`
+                w-24
+                h-24
+                rounded-full
+                flex
+                items-center
+                justify-center
+                font-bold
+                text-4xl
+                text-white
+                shrink-0
+                ${getColor(
+                  community.community_name
+                )}
+              `}
+            >
+              {getInitial(
+                community?.community_name
+              )}
+            </div>
+            
+           </>
 
           )}
 
@@ -105,6 +144,7 @@ export default function CommunitySettings({
           communities={communities} chats={chats} 
           activeChat={activeChat}
           authUser={authUser}
+          setMessages={setMessages}
           />
       </div>
 

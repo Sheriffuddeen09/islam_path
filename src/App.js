@@ -45,6 +45,7 @@ import JoinGroup from "./chat/chatbox/JoinGroup";
 import ThemeLoader from "./layout/ThemeLoader";
 import VerifyTwoStep from "./studentdashboard/VerifyTwoStep";
 import About from "./pages/about/About";
+import JoinCommunity from "./chat/community/JoinCommunity";
 
    
 function App() {
@@ -488,6 +489,7 @@ function App() {
         />} />
 
         <Route path="/invite/group/:token" element={<JoinGroup />} /> 
+        <Route path="/invite/community/:token" element={<JoinCommunity/>} /> 
 
           {/* Home Post Page*/}
       <Route path="/" element={

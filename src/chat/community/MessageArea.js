@@ -44,6 +44,14 @@ export default function MessagesArea({
 
   //
 
+  const systemMessages = communityMessages.filter(
+  (msg) => msg.is_system
+  );
+
+  const normalMessages = communityMessages.filter(
+    (msg) => !msg.is_system
+  );
+
   const scrollToForwardedMessage = (
   messageId
 ) => {
@@ -592,7 +600,7 @@ return (
     </div>
   )
 }
-
+  
         {/* MESSAGE */}
         <MessageList
           setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}

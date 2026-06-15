@@ -1,9 +1,15 @@
 import { useState } from "react";
-import { BellOff, EyeOff, LogOut, Shield, UserCircle } from "lucide-react";
+import { BellOff, Delete, EyeOff, Link2, LogOut, Shield, Trash, UserCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../Api/axios";
 import AddCommunityMemberModal from "./AddCommunityMemberModal";
 import RemoveCommunityMemberModal from "./RemoveCommunityMemberModal";
+import CommunitySearch from "./CommunitySearch";
+import ClearCommunityModal from "./ClearCommunityModal";
+import DeleteCommunityModal from "./DeleteCommunityModal";
+import AdminDeleteCommunityModal from "./AdminDeleteCommunityModal";
+import InviteViaLinkModal from "./InviteViaLinkModal";
+import { ReportCommunityModal } from "./ReportCommunityModal";
 
 export default function CommunityActions({
   community,
@@ -13,7 +19,8 @@ export default function CommunityActions({
   setActiveCommunity,
   setCommunityMessages,
   isAdmin,
-  authUser
+  authUser,
+  setMessages
 }) {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
@@ -22,6 +29,33 @@ export default function CommunityActions({
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showCommunitySearchModal, setShowCommunitySearchModal] = useState(false);
+  const [communityClearMessage, setCommunityClearMessage] = useState(false);
+  const [communityDeleteMessage, setCommunityDeleteMessage] = useState(false);
+  const [adminCommunityDeleteMessage, setAdminCommunityDeleteMessage] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showReportCommunityModal, setShowReportCommunityModal] = useState(false);
+
+
+  const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500"
+  ];
+
+  const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }; 
+
+const members = activeCommunity?.members || [];
 
   
 
@@ -109,6 +143,14 @@ export default function CommunityActions({
     <>
       {/* MENU BUTTON */}
 
+        
+        <MenuButton
+            label= "Search"
+            icon= {Shield}
+            onClick= {() => {
+              setShowCommunitySearchModal(true);
+            }}
+      />
       {
         isAdmin &&
       <MenuButton
@@ -116,6 +158,29 @@ export default function CommunityActions({
             icon= {UserCircle}
             onClick= {() => {
               setShowAddModal(true);
+            }}
+      />
+      }
+
+      {
+        !isAdmin &&
+      <MenuButton
+            label= "Report Channel"
+            icon= {UserCircle}
+            onClick= {() => {
+              setShowReportCommunityModal(true);
+            }}
+      />
+      }
+
+  
+      {
+        isAdmin &&
+      <MenuButton
+            label= "Invite Via Link"
+            icon= {Link2}
+            onClick= {() => {
+              setShowInviteModal(true);
             }}
       />
       }
@@ -139,6 +204,39 @@ export default function CommunityActions({
             onClick= {() => {
               setSelectedCommunity(community);
               setShowLeaveModal(true);
+            }}
+      />
+      }
+
+      {
+        isAdmin &&
+      <MenuButton
+            label= "Clear Channel Message"
+            icon= {Delete}
+            onClick= {() => {
+              setCommunityClearMessage(true);
+            }}
+      />
+      }
+
+      {
+        !isAdmin &&
+      <MenuButton
+            label= "Delete Channel"
+            icon= {Trash}
+            onClick= {() => {
+              setCommunityDeleteMessage(true);
+            }}
+      />
+      }
+
+      {
+        isAdmin &&
+      <MenuButton
+            label= "Delete Channel"
+            icon= {Trash}
+            onClick= {() => {
+              setAdminCommunityDeleteMessage(true);
             }}
       />
       }
@@ -212,6 +310,75 @@ export default function CommunityActions({
       />
     }
 
+    {showCommunitySearchModal && (
+      <ModalOverlay onClose={() => setShowCommunitySearchModal(false)}>
+          <CommunitySearch
+            members={members}
+            getColor={getColor}
+            getInitial={getInitial}
+            showCommunitySearchModal={showCommunitySearchModal} 
+            setShowCommunitySearchModal={setShowCommunitySearchModal}
+    
+          />
+    </ModalOverlay>
+    
+    )}
+
+     {showReportCommunityModal && (
+        <ModalOverlay onClose={() => setShowReportCommunityModal(false)}>
+      
+          <ReportCommunityModal
+            community={activeCommunity}
+            onClose={() => setShowReportCommunityModal(false)}
+          />
+      
+        </ModalOverlay>
+      )}
+    
+    {communityClearMessage && (
+            <ClearCommunityModal
+              communityId={activeCommunity?.id}
+              onClose={() => setCommunityClearMessage(false)}
+              onCleared={() => setMessages([])}
+            />
+          )}
+   
+
+        
+        
+        {communityDeleteMessage && (
+                <ModalOverlay onClose={() => setCommunityDeleteMessage(false)}>
+                  <DeleteCommunityModal
+                    community={activeCommunity}
+                    onClose={() => setCommunityDeleteMessage(false)}
+                    setCommunities={setCommunities}
+                    setActiveCommunity={setActiveCommunity}
+                  />
+                </ModalOverlay>
+              )}
+
+              
+              {showInviteModal && (
+                      <InviteViaLinkModal
+                        community={activeCommunity}
+                        onClose={() => setShowInviteModal(false)}
+                      />
+                    )}
+              
+
+        {adminCommunityDeleteMessage && (
+                <ModalOverlay onClose={() => setAdminCommunityDeleteMessage(false)}>
+                  <AdminDeleteCommunityModal
+                    activeCommunity={activeCommunity}
+                    onClose={() => setAdminCommunityDeleteMessage(false)}
+                    setCommunities={setCommunities}
+                    setActiveCommunity={setActiveCommunity}
+                  />
+                </ModalOverlay>
+              )}
+
+       
+
     </>
   );
 
@@ -222,23 +389,42 @@ function MenuButton({
   label,
   onClick,
   icon: Icon,
-  danger = false,
 }) {
   return (
     <button
       onClick={onClick}
       className={`
         w-full flex items-center justify-between
-        px-4 py-3 rounded-2xl
+        px-4 py-3 rounded-xl
+        gap-3
         transition-all duration-200
-        hover:bg-white/10
-        ${danger ? "text-red-500" : "text-[var(--text-color)]"}
+        hover:bg-gray-500 hover:text-white
       `}
     >
       <div className="flex items-center gap-3">
-        {Icon && <Icon size={18} />}
-        <span className="font-medium text-sm">{label}</span>
+        {Icon && <Icon size={25} />}
+        <span className="font-medium text-[16px">{label}</span>
       </div>
     </button>
+  );
+}
+
+
+function ModalOverlay({ children, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+
+      {/* BACKDROP */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn"
+      />
+
+      {/* CONTENT */}
+      <div className="relative z-10">
+        {children}
+      </div>
+
+    </div>
   );
 }

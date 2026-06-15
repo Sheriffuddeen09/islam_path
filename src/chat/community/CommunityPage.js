@@ -16,7 +16,7 @@ export default function CommunityPage({
   authUser, chats, loadingChats, setActiveChat, messagesEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
   communityMessages, setCommunityMessages, mobileView, setMobileView, setChats, setMessages, messageRefs,
-  setLastReadMessageId, setActiveCommunity, chatCommunitys, activeChat
+  setLastReadMessageId, setActiveCommunity, activeChat
 }) {
 
  
@@ -368,6 +368,7 @@ const handleHide = async (
           communities={communities}
           chats={chats}
           activeChat={activeChat}
+          setMessages={setCommunityMessages}
         />
 
       </div>

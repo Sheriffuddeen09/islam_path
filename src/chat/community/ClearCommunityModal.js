@@ -2,26 +2,40 @@ import toast from "react-hot-toast";
 import api from "../../Api/axios";
 import { useState } from "react";
 
-export default function ClearChatModal({ chatId, onClose, onCleared }) {
+export default function ClearCommunityModal({ communityId, onClose, onCleared }) {
 
     const [loading, setLoading] = useState(false)
 
+const clearCommunity = async () => {
+  setLoading(true);
 
-  const clearChat = async () => {
-    setLoading(true)
-    try {
-      await api.delete(`/api/chats/${chatId}/clear`);
-      toast.success("Chat cleared");
-      onCleared();   // update UI
-      onClose();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to clear chat");
-    }
-    finally{
-    setLoading(false)
+  try {
+    await api.delete(
+      `/api/communities/${communityId}/clear`
+    );
 
-    }
-  };
+    toast.success(
+      "Community chat cleared"
+    );
+
+    onCleared?.();
+
+    onClose();
+
+  } catch (err) {
+
+    toast.error(
+      err.response?.data?.message ||
+      "Failed to clear community"
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+
   return (
     <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
     text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
@@ -53,7 +67,7 @@ export default function ClearChatModal({ chatId, onClose, onCleared }) {
           </button>
 
           <button
-            onClick={clearChat}
+            onClick={clearCommunity}
             className="px-4 py-2 bg-red-600 text-sm text-white rounded"
           >
             {

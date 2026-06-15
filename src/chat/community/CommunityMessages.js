@@ -764,6 +764,23 @@ const resendCommunityFile =
         </span>
         </div>
     )}
+            {activeCommunity?.is_deleted ? (
+
+            <div
+              className="
+                flex
+                items-center
+                justify-center
+                h-[400px]
+                text-gray-500
+                text-sm
+                text-center
+              "
+            >
+              This channel has been deleted by the administrator.
+            </div>
+
+          ) : (
           <MessagesArea 
           setChats={setChats} setMessages={setMessages}
           communityMessages={communityMessages}
@@ -783,7 +800,8 @@ const resendCommunityFile =
           isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           chatLoading={chatLoading} chats={chats} openChat={openChat} onCloseChannel={onCloseChannel}
           authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
-          />             
+          />  
+        )}           
        </div>
           )}
 

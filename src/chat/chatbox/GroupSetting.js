@@ -94,8 +94,8 @@ export default function GroupSettingsModal({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                  No Image
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
+                  {chat?.name?.charAt(0)?.toUpperCase() || "?"}
                 </div>
               )}
             </div>

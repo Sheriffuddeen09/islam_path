@@ -32,6 +32,8 @@ export default function MessageList({msg, setReactionMsg,
   const [showPreview, setShowPreview] =
   useState(false);
 
+  const isSystem = msg.is_system === true || msg.is_system === 1;
+
   
   const startX = useRef(0);
   const dragX = useRef(0);
@@ -199,20 +201,23 @@ const handleDownloadMessage =
     }
 };
 
+    console.log(msg);
 
 
      return (
         <div>
           <div
             key={msg.id}
+           
             className={`
-              max-w-md w-full mx-auto
-              rounded-2xl
               relative
               group
               transition-all
               cursor-pointer
-              bg-[#202c33]
+              ${msg.is_system === 1
+                ? "w-full flex justify-center text-[--text-color]"
+                : "max-w-md w-full mx-auto rounded-2xl bg-[#202c33] text-white"
+              }
             `}
 
            style={{
@@ -348,7 +353,7 @@ const handleDownloadMessage =
             }}
           >
             
-            {msg.deleted_at ? (
+            {msg.deleted_at  ? (
 
               <div className="flex items-center py-2 px-4 gap-2 italic text-white text-sm">
                 <svg
@@ -436,7 +441,12 @@ const handleDownloadMessage =
                       </span>
                     </div>
                     <br />
-                    <span className="text-[13px] break-words">
+                    <span className={`text-[13px] break-words`}>
+
+                      ${msg.is_system === 1
+                      ? "text-[--text-color]"
+                      : "text-white"
+                    }
                     {
                       msg.message
                     }
@@ -458,7 +468,7 @@ const handleDownloadMessage =
                 
                  />
                 <div
-                        className={`text-[13px] pt-3 mt-1 px-4 text-white break-words ${
+                        className={`text-[13px] pt-3 mt-1 px-4 break-words ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -487,7 +497,7 @@ const handleDownloadMessage =
                   
                  {!msg.replied_to && !msg.replied_message && (
                  <div
-                        className={`text-[13px] pt-3 mt-1 px-4 text-white break-words ${
+                        className={`text-[13px] pt-3 mt-1 px-4 break-words ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -534,7 +544,7 @@ const handleDownloadMessage =
               px-4
               mt-3
             ">
-              {!isMobile && hoverMsgId === msg.id && (
+              {!isMobile && hoverMsgId === msg.id && msg.is_system === 0 && (
                 <div
                     className={`absolute -bottom-7 flex bg-gray-50 shadow-md text-black p-1 px-1 gap-1 
                         z-50 rounded-lg shadow-xl px-2 right-0 `}
@@ -624,12 +634,14 @@ const handleDownloadMessage =
                       edited
                     </span>
                   )}
-                <div className="text-center text-[9px] text-white my-2">
-                  {new Date(msg.created_at).toLocaleTimeString([], {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </div>
+                {msg.is_system === 0 && (
+                  <div className="text-center text-[9px] text-white my-2">
+                    {new Date(msg.created_at).toLocaleTimeString([], {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                )}
                  {msg.status ===
                 "failed" && (
                 <button
