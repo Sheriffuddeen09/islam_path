@@ -218,42 +218,32 @@ const restoredChatRef = useRef(false);
 const loadingChatRef = useRef(null);
 const openedChatsRef = useRef({});
 
-const scrollToMessage = (messages, lastReadId, forceBottom = false) => {
+const scrollToMessage = (messages, lastReadId) => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       const container = messagesEndRef.current?.parentElement;
       if (!container) return;
 
-      // ✅ ALWAYS BOTTOM = SIMPLE RULE
-      if (forceBottom) {
-        container.scrollTop = container.scrollHeight;
+      const lastRead = Number(lastReadId || 0);
+
+      const firstUnread = messages.find(
+        msg => Number(msg.id) > lastRead
+      );
+
+      if (firstUnread && messageRefs.current[firstUnread.id]) {
+        messageRefs.current[firstUnread.id].scrollIntoView({
+          behavior: "auto",
+          block: "center",
+        });
         return;
       }
 
-      const unreadMessages = messages.filter(
-        msg => Number(msg.id) > Number(lastReadId || 0)
-      );
-
-      const firstUnread = unreadMessages[0];
-
-      if (firstUnread) {
-        const target = messageRefs.current[firstUnread.id];
-
-        if (target) {
-          target.scrollIntoView({
-            behavior: "auto",
-            block: "center",
-          });
-          return;
-        }
-      }
-
+      // fallback → bottom
       container.scrollTop = container.scrollHeight;
     });
   });
 };
 
-//messagesCacheRef.current[chat.id] = decrypted;
 const openChat = async (
   chat,
   userTriggered = false,
@@ -317,11 +307,7 @@ if (cached && !forceRefresh) {
     );
     requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      scrollToMessage(
-        cached,
-        chat.last_read_message_id,
-        true 
-      );
+      scrollToMessage(cached, chat.last_read_message_id);
     });
   });
     api.post(
@@ -398,11 +384,7 @@ if (cached && !forceRefresh) {
 
     openedChatsRef.current[chat.id] = true;
 
-    scrollToMessage(
-      decrypted,
-      res.data.last_read_message_id,
-      true // consistent behavior
-    );
+    scrollToMessage(decrypted, res.data.last_read_message_id);
 
       setTimeout(() => {
 

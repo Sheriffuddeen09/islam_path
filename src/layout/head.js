@@ -1,8 +1,10 @@
-import {  useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import logos from './image/favicon.png'
 import { Bell, Book, BookOpen, BookTemplateIcon, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2 } from "lucide-react";
 import { useAuth } from './AuthProvider';
+import LiveClass from '../chat/LiveClass';
+import api from '../Api/axios';
 import LogoutButton from '../Form/LogOut';
 import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
@@ -101,7 +103,7 @@ console.log('currentUser', user)
 
     return (
       <>
-        <header className="z-10 bg-white  fixed w-full z-10 border-b- shadow px-2 sm:py-2 py-2 sm:mb-6 ">
+        <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-2 sm:py-2 py-2 sm:mb-6 ">
         
 
           <nav className='flex flex-row justify-between items-center '>
@@ -296,15 +298,12 @@ console.log('currentUser', user)
         </div>
         </header>
 
-          {/* 
-          
-          <div className={`${messageOpen ? 'block' : 'hidden'}`}>
+        <div className={`${messageOpen ? 'block' : 'hidden'}`}>
           <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} 
           setMessageOpen={setMessageOpen} chats={chats} setChats={setChats}
           activeChat={activeChat} setActiveChat={setActiveChat} messageOpen={messageOpen}/>
           </div>
-          
-          */}
+
           {
             dashboardToggle && (
             <div className="fixed sm:top-16 top-36 right-10 mt-2 w-40  bg-white border rounded shadow-lg z-50">
