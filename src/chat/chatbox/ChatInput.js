@@ -423,7 +423,16 @@ const getPreviewText = (msg) => {
   selected={selected}
   zoomMap={zoomMap}
   setZoomMap={setZoomMap}
-  onClose={() => setShowPreview(false)}
+  onClose={() => {
+  setShowPreview(false);
+  setCaption("");
+  setShowEmoji(false);
+  setFiles([]);
+  setPreviewUrls([]);
+  setSelected([]);
+  setCroppedImages([]);
+  setTrimMap({});
+  }}
   onSend={({ selectedFiles }) => {
     sendFile(selectedFiles); // 👈 pass only selected
     setShowPreview(false);

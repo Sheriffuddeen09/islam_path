@@ -10,6 +10,7 @@ import MediaPreview from "./MediaPreview";
 import AudioPlayer from "./AudioUi";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import FromCommunityForward from "../chatcomponent/FromCommunityForward";
+import { decryptMessage, encryptMessage } from "../../utils/encryption";
 
 export default function MessageItem({
   msg, authUser,
@@ -213,8 +214,8 @@ useEffect(() => {
     prev.map(m =>
       m.id === id
         ? {
-            ...m,          // keep existing UI structure
-            ...newMsg,     // override with server data
+            ...m,          
+            ...newMsg,    
             status: "sent"
           }
         : m
@@ -222,165 +223,582 @@ useEffect(() => {
   );
 };
 
-  const resendText = async () => {
-      updateStatus(msg.id, "sending");
-  
-      try {
-        const { data } = await api.post("/api/messages", {
-          chat_id: chatId,
-          message: msg.message,
-          type: "text",
-        });
-  
-        replaceMessage(msg.id, data);
-      } catch {
-        updateStatus(msg.id, "failed");
+ const resendText = async () => {
+
+  updateStatus(msg.id, "sending");
+
+  try {
+
+    // ================= CHAT KEY =================
+
+    const chatKey = localStorage.getItem(
+      `chat_key_${chatId}`
+    );
+
+    if (!chatKey) {
+      throw new Error("Missing chat key");
+    }
+
+    // ================= ENCRYPT AGAIN =================
+
+    const {
+      encrypted,
+      iv,
+    } = await encryptMessage(
+      msg.message,
+      chatKey
+    );
+
+    const { data } = await api.post(
+      "/api/messages",
+      {
+        chat_id: chatId,
+        message: encrypted,
+        iv: iv,
+        type: "text",
+
+        replied_to:
+          msg.replied_to?.id ||
+          msg.replied_message?.id ||
+          null,
       }
-    };
+    );
+
+    replaceMessage(
+      msg.id,
+      {
+        ...data,
+        status: "sent",
+      }
+    );
+
+  } catch (err) {
+
+    console.log(
+      err?.response?.data || err
+    );
+
+    updateStatus(
+      msg.id,
+      "failed"
+    );
+  }
+};
+
+
 
     const resendVoice = async () => {
-  console.log("Retrying voice:", msg);
 
-  if (!msg.localBlob) {
-    console.warn("❌ No local blob, cannot retry voice");
-    return;
-  }
-
-  // 1. SET STATUS → sending
-  setMessages((prev) =>
-    prev.map((m) =>
-      m.id === msg.id ? { ...m, status: "sending" } : m
+  setMessages(prev =>
+    prev.map(m =>
+      m.id === msg.id
+        ? {
+            ...m,
+            status: "sending",
+          }
+        : m
     )
   );
 
-  const form = new FormData();
-  form.append("chat_id", chatId);
-  form.append("voice", msg.localBlob, "voice.webm");
-
-  if (msg.replied_to?.id) {
-    form.append("replied_to", msg.replied_to.id);
-  }
-
   try {
-    const res = await api.post("/api/messages/voice", form, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
 
-    // 3. REPLACE MESSAGE (same pattern as stopRecording)
-    setMessages((prev) =>
-      prev.map((m) =>
+    // ================= CHAT KEY =================
+
+    const chatKey = localStorage.getItem(
+      `chat_key_${chatId}`
+    );
+
+    // ================= REPLY =================
+
+    const reply =
+      msg.replied_to ||
+      msg.replied_message ||
+      null;
+
+    // ================= BLOB =================
+
+    const blob = msg.localBlob;
+
+    if (!blob) {
+      throw new Error(
+        "Voice blob not found"
+      );
+    }
+
+    // ================= ENCRYPT REPLY =================
+
+    let encryptedReply = null;
+
+    if (reply?.message && chatKey) {
+
+      encryptedReply =
+        await encryptMessage(
+          reply.message,
+          chatKey
+        );
+    }
+
+    // ================= FORM DATA =================
+
+    const form = new FormData();
+
+    form.append(
+      "chat_id",
+      chatId
+    );
+
+    form.append(
+      "voice",
+      blob,
+      "voice.webm"
+    );
+
+    if (
+      reply?.id &&
+      !isNaN(reply.id)
+    ) {
+
+      form.append(
+        "replied_to",
+        reply.id
+      );
+    }
+
+    const res =
+      await api.post(
+        "/api/messages/voice",
+        form,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
+
+    setMessages(prev =>
+      prev.map(m =>
+
         m.id === msg.id
           ? {
-              ...m, // keep local preview
+
+              ...m,
+
               ...res.data.message,
-              sender: res.data.message.sender || authUser,
-              status: "sent",
+
+              replied_to:
+                reply
+                  ? {
+                      ...reply,
+                      sender:
+                        reply.sender ||
+                        reply.sender_data,
+                    }
+                  : res.data.message
+                      .replied_message ||
+                    null,
+
+              files:
+                res.data.message
+                  .files || [
+                  {
+                    file_url:
+                      res.data
+                        .message
+                        .file_url ||
+                      res.data
+                        .message
+                        .file,
+
+                    type:
+                      res.data
+                        .message
+                        .type,
+                  },
+                ],
+
+              local: null,
+
+              sender:
+                res.data
+                  .message
+                  .sender ||
+                authUser,
+
+              status:
+                "sent",
             }
+
           : m
       )
     );
 
+    requestAnimationFrame(() => {
 
-    setReplyingTo(null);
+      bottomRef.current
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+
+    });
 
   } catch (err) {
-    console.log(err?.response?.data);
 
-    // 5. FAIL STATE
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === msg.id ? { ...m, status: "failed" } : m
+    console.log(
+      err?.response?.data || err
+    );
+
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === msg.id
+          ? {
+              ...m,
+              status: "failed",
+            }
+          : m
       )
     );
   }
 };
 
 const resendFile = async () => {
-  if (!msg.originalFiles) {
-    console.warn("❌ No original files to retry");
-    return;
-  }
 
   updateStatus(msg.id, "sending");
 
-  const form = new FormData();
-  form.append("chat_id", chatId);
+  try {
 
-  const getType = (file) => {
-    if (file.type.startsWith("image/")) return "image";
-    if (file.type.startsWith("video/")) return "video";
-    if (file.type.startsWith("audio/")) return "audio";
-    return "file";
-  };
+    const reply =
+      msg.replied_to ||
+      msg.replied_message ||
+      null;
 
-  // ✅ GENERATE GROUP ID AGAIN
-  const isMediaGroup =
-    msg.originalFiles.length > 1 &&
-    msg.originalFiles.every(f =>
-      f.type.startsWith("image/") || f.type.startsWith("video/")
+    const originalFiles =
+      msg.originalFiles || [];
+
+    if (!originalFiles.length) {
+      throw new Error(
+        "Original files missing"
+      );
+    }
+
+    const form = new FormData();
+
+    form.append(
+      "chat_id",
+      chatId
     );
 
-  const groupId = isMediaGroup ? `grp_${Date.now()}` : null;
+    const getType = (file) => {
 
-  msg.originalFiles.forEach(file => {
-    form.append("files[]", file);
-    form.append("types[]", getType(file));
-    form.append("trim_start[]", 0);
-    form.append("trim_end[]", 0);
-  });
+      if (
+        file.type.startsWith(
+          "image/"
+        )
+      ) {
+        return "image";
+      }
 
-  if (msg.message) {
-    form.append("message", msg.message);
-  }
+      if (
+        file.type.startsWith(
+          "video/"
+        )
+      ) {
+        return "video";
+      }
 
-  if (groupId) {
-    form.append("group_id", groupId);
-  }
+      if (
+        file.type.startsWith(
+          "audio/"
+        )
+      ) {
+        return "audio";
+      }
 
-  try {
-    const res = await api.post("/api/messages", form, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      return "file";
+    };
+
+    originalFiles.forEach(
+      (file, i) => {
+
+        const cropped =
+          msg
+            .originalCroppedImages?.[
+            i
+          ];
+
+        const trim =
+          msg.originalTrimMap?.[
+            i
+          ] || {
+            start: 0,
+            end: 0,
+          };
+
+        const isImage =
+          file.type.startsWith(
+            "image/"
+          );
+
+        const isVideo =
+          file.type.startsWith(
+            "video/"
+          );
+
+        if (
+          isImage &&
+          cropped
+        ) {
+
+          form.append(
+            "files[]",
+            cropped
+          );
+
+        } else {
+
+          form.append(
+            "files[]",
+            file
+          );
+        }
+
+        form.append(
+          "types[]",
+          getType(file)
+        );
+
+        form.append(
+          "trim_start[]",
+          isVideo
+            ? trim.start
+            : 0
+        );
+
+        form.append(
+          "trim_end[]",
+          isVideo
+            ? trim.end
+            : 0
+        );
+      }
+    );
+
+    // ================= CAPTION =================
+
+    if (
+      msg.message &&
+      msg.message.trim() !== ""
+    ) {
+
+      const chatKey =
+        localStorage.getItem(
+          `chat_key_${chatId}`
+        );
+
+      if (!chatKey) {
+
+        throw new Error(
+          "Encryption key missing"
+        );
+      }
+
+      const encrypted =
+        await encryptMessage(
+          msg.message,
+          chatKey
+        );
+
+      form.append(
+        "message",
+        encrypted.encrypted
+      );
+
+      form.append(
+        "iv",
+        encrypted.iv
+      );
+
+    } else {
+
+      form.append(
+        "message",
+        ""
+      );
+
+      form.append(
+        "iv",
+        ""
+      );
+    }
+
+    // ================= REPLY =================
+
+    if (
+      reply?.id &&
+      !isNaN(reply.id)
+    ) {
+
+      form.append(
+        "replied_to",
+        reply.id
+      );
+    }
+
+    // ================= SEND =================
+
+    const res =
+      await api.post(
+        "/api/messages",
+        form,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
+
+    const serverMessages =
+      res.data.messages;
+
+    const chatKey =
+      localStorage.getItem(
+        `chat_key_${chatId}`
+      );
+
+    const normalized =
+      await Promise.all(
+
+        serverMessages.map(
+          async serverMsg => {
+
+            let decrypted =
+              serverMsg.message;
+
+            if (
+              serverMsg.message &&
+              serverMsg.iv
+            ) {
+
+              try {
+
+                decrypted =
+                  await decryptMessage(
+                    serverMsg.message,
+                    serverMsg.iv,
+                    chatKey
+                  );
+
+              } catch (
+                err
+              ) {
+
+                console.log(
+                  "Decrypt failed",
+                  err
+                );
+              }
+            }
+
+            return {
+
+              ...serverMsg,
+
+              message:
+                decrypted,
+
+              files:
+                serverMsg.files
+                  ?.length
+                  ? serverMsg.files
+                  : serverMsg.file_url
+                  ? [
+                      {
+                        file_url:
+                          serverMsg.file_url,
+
+                        file_name:
+                          serverMsg.file_name,
+
+                        type:
+                          serverMsg.type,
+
+                        duration:
+                          serverMsg.duration,
+                      },
+                    ]
+                  : [],
+
+              replied_to:
+                reply
+                  ? {
+                      id:
+                        reply.id,
+
+                      message:
+                        reply.message,
+
+                      type:
+                        reply.type,
+
+                      sender:
+                        reply.sender,
+                    }
+                  : serverMsg
+                      .replied_to ||
+                    null,
+
+              status:
+                "sent",
+            };
+          }
+        )
+      );
+
+    setMessages(prev => {
+
+      const filtered =
+        prev.filter(
+          m =>
+            m.id !== msg.id
+        );
+
+      return [
+        ...filtered,
+        ...normalized,
+      ];
     });
 
-    const serverMessages = res.data.messages;
+    requestAnimationFrame(
+      () => {
 
-    let grouped;
+        bottomRef.current
+          ?.scrollIntoView(
+            {
+              behavior:
+                "smooth",
 
-    // ✅ CASE 1: backend already grouped
-    if (serverMessages[0]?.files) {
-      grouped = {
-        ...serverMessages[0],
-        status: "sent",
-      };
-    }
-
-    // ✅ CASE 2: backend returns separate
-    else {
-      grouped = {
-        ...serverMessages[0],
-        group_id: serverMessages[0].group_id,
-        files: serverMessages.map((m) => ({
-          file: m.file_url,
-          file_url: m.file_url,
-          file_name: m.file_name,
-          type: m.type,
-          duration: m.duration,
-        })),
-        status: "sent",
-      };
-    }
-
-    replaceMessage(msg.id, grouped);
+              block:
+                "end",
+            }
+          );
+      }
+    );
 
   } catch (err) {
-    updateStatus(msg.id, "failed");
+
+    console.log(
+      err?.response?.data ||
+      err
+    );
+
+    updateStatus(
+      msg.id,
+      "failed"
+    );
   }
 };
-
 
 const retryMessage = async () => {
   console.log("Retrying message:", msg);

@@ -490,7 +490,7 @@ useEffect(() => {
 
     
     
-    
+const originalCaption = caption;    
 
     const sendFile = async () => {
   if (!files.length) return;
@@ -558,6 +558,21 @@ useEffect(() => {
 
   setMessages((prev) => [...prev, tempMessage]);
 
+  // ✅ CLEAR UI IMMEDIATELY
+  setShowPreview(false);
+  setFiles([]);
+  setPreviewUrls([]);
+  setCaption("");
+  setCroppedImages({});
+  setCropAppliedMap(false);
+  setCrop({ x: 0, y: 0 });
+  setZoomMap({});
+  setCroppedAreaPixels(null);
+  setSelected([]);
+  setTrimMap({});
+  setDurationMap({});
+  setTrimAppliedMap({});
+
   requestAnimationFrame(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "auto",
@@ -590,7 +605,7 @@ useEffect(() => {
     form.append("types[]", getType(file));
     });
 
-    if (caption && caption.trim() !== "") {
+    if (originalCaption && originalCaption.trim() !== "") {
       const chatKey = localStorage.getItem(`chat_key_${chatId}`);
 
       if (!chatKey) {
@@ -598,7 +613,10 @@ useEffect(() => {
         return;
       }
 
-      const encrypted = await encryptMessage(caption, chatKey);
+      const encrypted = await encryptMessage(
+        originalCaption,
+        chatKey
+      );
 
       form.append("message", encrypted.encrypted);
       form.append("iv", encrypted.iv);
