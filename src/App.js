@@ -13,7 +13,7 @@ import TeacherDashboardLayout from "./teacherdashboard/TeacherDashboard";
 import {  useEffect, useState } from "react";
 import ProtectedRoute from "./ProtectedRoute";
 import ReportList from "./report/ReportList";
-import ReportChat from "./chat/chatcomponent/ReportChat";
+import ChatReport from "./report/ChatReport";
 import StudentAssignment from "./assignment/StudentAssignment";
 import StudentExam from "./exam/StudentExam";
 import StudentDashboard from "./studentdashboard/StudentDashboard";
@@ -33,7 +33,7 @@ import Friend from "./pages/friend/Friend";
 import PostId from "./pages/post/PostId";
 import api from "./Api/axios";
 import Notifications from "./pages/notification/Notifications";
-import ChatReportUser from "./report/ChatReportUser";
+import ChatReportId from "./report/ChatReportId";
 import PostReportUser from "./report/PostReportUser";
 import CommentReportUser from "./report/CommentReportUser";
 import ProductPage from "./pages/sales/Product";
@@ -46,6 +46,8 @@ import ThemeLoader from "./layout/ThemeLoader";
 import VerifyTwoStep from "./studentdashboard/VerifyTwoStep";
 import About from "./pages/about/About";
 import JoinCommunity from "./chat/community/JoinCommunity";
+import CommunityReportId from "./report/CommunityReportId";
+import CommunityReport from "./report/CommunityReport";
 
    
 function App() {
@@ -290,7 +292,11 @@ function App() {
           <Notifications handleMessageOpen={handleMessageOpen} />
       } />
 
-      <Route path="/chat/report/:chatId" element={<ChatReportUser />} />
+      <Route path="/chat/report/:id" element={<ChatReportId />} />
+      <Route
+        path="/community/report/:id"
+        element={<CommunityReportId />}
+      />
 
       <Route path="/post/report/:postId" element={<PostReportUser />} />
 
@@ -301,8 +307,12 @@ function App() {
       } />
 
       {/* /chat/reports */}
-      <Route path="/report-chat" element={
-          <ReportChat />
+      <Route path="/chat/report" element={
+          <ChatReport />
+      } />
+
+      <Route path="/community/report" element={
+          <CommunityReport />
       } />
 
       <Route path="/online-sale" element={

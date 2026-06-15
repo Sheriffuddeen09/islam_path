@@ -3,16 +3,16 @@ import { useParams } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import api from "../Api/axios";
 
-const ChatReportUser = () => {
-  const { chatId } = useParams();
+const ChatReportId = () => {
+  const { id } = useParams();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const { data } = await api.get(`/api/chat/report/${chatId}`);
-        setReport(data);
+        const { data } = await api.get(`/api/chat/report/${id}`);
+        setReport(data.report);
       } catch (error) {
         console.error(error);
       } finally {
@@ -20,16 +20,21 @@ const ChatReportUser = () => {
       }
     };
     fetchReport();
-  }, [chatId]);
+  }, [id]);
 
   if (loading) return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
-  if (!report)
-    return <div className="p-6 text-center text-red-500">Report is not found</div>;
-
+    
+  if (!report) {
+  return (
+    <div className="p-6 text-center text-red-500">
+      Report is not found
+    </div>
+  );
+}
   return (
   <div className="min-h-screen bg-gray-50 py-16 px-4">
     <div className="max-w-3xl mt-10 mx-auto">
@@ -54,26 +59,29 @@ const ChatReportUser = () => {
           <div className="flex items-center justify-between flex-wrap gap-4">
 
             <div className="flex items-center gap-4">
+
               {/* Avatar */}
               <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-xl">
-                {report.reporter.name.charAt(0).toUpperCase()}
+                {report.reporter?.first_name?.charAt(0)?.toUpperCase() || "?"}
               </div>
 
               <div>
                 <p className="text-lg font-semibold text-gray-800">
-                  {report.reporter.name}
+                  {report.reporter?.first_name} {report.reporter?.last_name}
                 </p>
+
                 <p className="text-sm text-gray-500">
-                  {report.reporter.email}
+                  {report.reporter?.email}
                 </p>
               </div>
+
             </div>
 
             <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
               {new Date(report.created_at).toLocaleString()}
             </div>
-          </div>
 
+          </div>
           <hr />
 
           {/* Reason */}
@@ -95,18 +103,42 @@ const ChatReportUser = () => {
           <hr />
 
           {/* Post Section */}
-          <div className="space-y-4">
+         {/* Community Info */}
+<div className="space-y-3">
 
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">
-                Chat ID
-              </p>
-              <h3 className="text-xl font-semibold text-gray-800">
-                {report.chat_id}
-              </h3>
-            </div>
+  <p className="text-sm font-medium text-gray-500">
+    Chat Information
+  </p>
 
-          </div>
+  <div className="flex items-center gap-3">
+
+    {/* Image */}
+    {report.chat?.image_url ? (
+      <img
+        src={report.chat.image_url}
+        alt="community"
+        className="w-12 h-12 rounded-full object-cover"
+      />
+    ) : (
+      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+        {report.chat?.name?.charAt(0)?.toUpperCase() || "C"}
+      </div>
+    )}
+
+    {/* Name */}
+    <div>
+      <p className="font-semibold text-gray-800">
+        {report.chat?.name}
+      </p>
+
+      <p className="text-xs text-gray-500">
+        ID: {report.chat?.id}
+      </p>
+    </div>
+
+  </div>
+
+</div>
 
         </div>
       </div>
@@ -116,4 +148,4 @@ const ChatReportUser = () => {
 );
 };
 
-export default ChatReportUser;
+export default ChatReportId;

@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
-import api from "../../Api/axios";
+import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 
-export default function ReportChat() {
+export default function ChatReport() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await api.get("/api/chat/reports");
+        const res = await api.get("/api/chat/report");
         setReports(res.data || []);
-        toast.success(res.data.message || "Message reported successfully");
 
       } catch (err) {
         toast.error("Failed to load reports");
@@ -36,7 +39,7 @@ export default function ReportChat() {
   /* ---------------- EMPTY ---------------- */
   if (!reports.length) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-gray-900  ">
         No reports found.
       </div>
     );
@@ -59,6 +62,9 @@ export default function ReportChat() {
               <th className="px-4 py-3 text-left text-sm font-semibold">Reason</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Description</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -92,6 +98,25 @@ export default function ReportChat() {
                 <td className="px-4 py-3 text-sm text-gray-500">
                   {new Date(r.created_at).toLocaleString()}
                 </td>
+                <td className="px-4 py-3">
+                <button
+                  onClick={() =>
+                    navigate(`/chat/report/${r.id}`)
+                  }
+                  className="
+                    bg-blue-600
+                    hover:bg-blue-700
+                    text-white
+                    text-sm
+                    px-4
+                    py-2
+                    rounded-lg
+                    transition
+                  "
+                >
+                  View
+                </button>
+              </td>
               </tr>
             ))}
           </tbody>
@@ -133,6 +158,24 @@ export default function ReportChat() {
             <p className="text-sm text-gray-600">
               <strong>Description:</strong> {r.details}
             </p>
+            <button
+            onClick={() =>
+              navigate(`/chat/report/${r.id}`)
+            }
+            className="
+              w-full
+              mt-3
+              bg-blue-600
+              hover:bg-blue-700
+              text-white
+              py-2
+              rounded-lg
+              transition
+            "
+          >
+            View Details
+          </button>
+
           </div>
         ))}
       </div>
