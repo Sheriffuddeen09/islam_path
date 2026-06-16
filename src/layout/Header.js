@@ -6,11 +6,13 @@ import { useAuth } from './AuthProvider';
 import LogoutButton from '../Form/LogOut';
 import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
+import ChatPage from '../chat/chatbox/Chatpage';
 
 function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, 
   handleMessageClick, videoCount, fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick,
-  handleNotification, unreadNotification
+  handleNotification, unreadNotification, showSettings, setShowSettings, uiMode, setUiMode, messagesMap, setMessagesMap,
+  setMessages, togglePopup
 }) {
 
       const [menu, setMenu] = useState(false)
@@ -162,7 +164,7 @@ console.log('currentUser', user)
               </Link>
                 {/* Message */}
                 <button
-                  onClick={() => {handleMessageOpenHeader(); handleMessageClick();}}
+                  onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
                   className={`${
                     messageOpen
                       ? "text-blue-600"
@@ -296,15 +298,21 @@ console.log('currentUser', user)
         </div>
         </header>
 
-          {/* 
-          
-          <div className={`${messageOpen ? 'block' : 'hidden'}`}>
-          <LiveClass  fetchUnreadCount={fetchUnreadCount} handleMessageOpen={handleMessageOpen} 
-          setMessageOpen={setMessageOpen} chats={chats} setChats={setChats}
-          activeChat={activeChat} setActiveChat={setActiveChat} messageOpen={messageOpen}/>
-          </div>
-          
-          */}
+           <ChatPage
+                chats={chats}
+                setChats={setChats}
+                activeChat={activeChat}
+                setActiveChat={setActiveChat}
+                messagesMap={messagesMap}
+                setMessagesMap={setMessagesMap}
+                setUiMode={setUiMode}
+                uiMode={uiMode}
+                togglePopup={togglePopup}
+                showSettings={showSettings}
+                setShowSettings={setShowSettings}
+                setMessages={setMessages}
+              
+              />
           {
             dashboardToggle && (
             <div className="fixed sm:top-16 top-36 right-10 mt-2 w-40  bg-white border rounded shadow-lg z-50">

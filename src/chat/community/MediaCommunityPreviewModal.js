@@ -18,6 +18,10 @@ export default function MediaCommunityPreviewModal({
   setTrimAppliedMap, trimAppliedMap, setCroppedImages, showSendOptions, setShowSendOptions
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const selectedCount = files.filter((_, i) => selected[i]).length;
+
+  const isLimitExceeded = selectedCount > 1;
  
 
   const [showEmoji, setShowEmoji] = useState(false);
@@ -584,7 +588,7 @@ const getPreviewSrc = (index) => {
               </div>
              {/* SEND BUTTON */}
   <div className="relative">
-
+    
     {/* FLOAT ACTIONS */}
     {showSendOptions && (
       <div className="
@@ -600,7 +604,10 @@ const getPreviewSrc = (index) => {
 
         {/* NORMAL SEND */}
         <button
+          disabled={isLimitExceeded}
           onClick={() => {
+            if (isLimitExceeded) return;
+
             onSend({
               selectedFiles: files.filter((_, i) => selected[i]),
               cropData: croppedImages,
@@ -643,15 +650,18 @@ const getPreviewSrc = (index) => {
         {
           caption &&
         <button
-          onClick={() => {
-            onSend({
-              selectedFiles: files.filter((_, i) => selected[i]),
-              cropData: croppedImages,
-              trimData: trimMap,
-            });
+            disabled={isLimitExceeded}
+            onClick={() => {
+              if (isLimitExceeded) return;
 
-            setShowSendOptions(false);
-          }}
+              onSend({
+                selectedFiles: files.filter((_, i) => selected[i]),
+                cropData: croppedImages,
+                trimData: trimMap,
+              });
+
+              setShowSendOptions(false);
+            }}
           className="
             w-full
             flex
@@ -690,32 +700,47 @@ const getPreviewSrc = (index) => {
 
     {/* MAIN BUTTON */}
     <button
-      onClick={() =>
-        setShowSendOptions(prev => !prev)
-      }
-      className="
-        bg-green-600
-        text-white
+      disabled={isLimitExceeded}
+      onClick={() => {
+        if (isLimitExceeded) return;
+
+        setShowSendOptions(prev => !prev);
+      }}
+      className={`
         px-4
         py-2
         rounded-full
         shadow-lg
-      "
+        text-white
+        transition
+
+        ${
+          isLimitExceeded
+            ? "bg-gray-500 cursor-not-allowed opacity-60"
+            : "bg-green-600 hover:bg-green-700"
+        }
+      `}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="currentColor"
-        className="size-6"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-        />
-      </svg>
+      {isLimitExceeded ? (
+        <span className="text-sm">
+          1 image or video or file only
+        </span>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="size-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+          />
+        </svg>
+      )}
     </button>
 
   </div>

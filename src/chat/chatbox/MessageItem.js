@@ -23,7 +23,8 @@ export default function MessageItem({
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView, showScrollButton
+  loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView, showScrollButton,
+  isMinimize
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -1638,7 +1639,7 @@ onPointerCancel={() => {
       loadingChats={loadingChats}
     />
 
-    {showScrollButton &&
+    {showScrollButton && !isMinimize &&
     <div
       onClick={async () => {
 
@@ -1683,7 +1684,7 @@ onPointerCancel={() => {
           );
         }
       }}
-      className="fixed bottom-28 lg:right-80 right-6 lg:-translate-x-10 inline-flex items-center gap- bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
+      className="fixed bottom-28 right-6 lg:-translate-x-10 inline-flex items-center gap- bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
     >
 
       {unreadCount > 0 && latestMessage?.sender_id !== myId &&  (

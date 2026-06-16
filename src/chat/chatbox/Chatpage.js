@@ -12,8 +12,8 @@ export default function ChatPage({
   setChats,
   activeChat,
   setActiveChat,
-  messagesMap, setMessagesMap, setMessages
-
+  messagesMap, setMessagesMap, setMessages,
+  setUiMode, uiMode, togglePopup, showSettings, setShowSettings
 }) {
   const { user: authUser } = useAuth();
 
@@ -39,12 +39,21 @@ export default function ChatPage({
   const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "chatlist");
 
 
+  const goBack = () => {
+    setActiveChat(null);
+    setShowSettings(false);
+    setUiMode("popup");
+  };
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   const chatIdFromUrl = searchParams.get("chatId");
 
+  const [isMinimized, setIsMinimized] = useState(false);
 
+  //  const messages = Array.isArray(messagesMap[activeChat])
+  //   ? messagesMap[activeChat]
+  //   : [];
   const messages = Array.isArray(messagesMap[activeChat?.id])
     ? messagesMap[activeChat?.id]
     : [];
@@ -249,6 +258,9 @@ const openChat = async (
   userTriggered = false,
   forceRefresh = false
 ) => {
+
+
+  setUiMode("closed");        
 
   if (loadingChatRef.current && loadingChatRef.current !== chat.id) {
         loadingChatRef.current = null;
@@ -521,7 +533,13 @@ useEffect(() => {
       setLastReadMessageId={setLastReadMessageId}
       messagesCacheRef={messagesCacheRef}
       isNavigatingRef={isNavigatingRef} 
-    
+      isMinimized={isMinimized}
+      setShowSettings={setShowSettings}
+      showSettings={showSettings}
+      uiMode={uiMode}
+      setIsMinimized={setIsMinimized}
+      onSeeAll={() => setUiMode("full")}
+      setUiMode={setUiMode}
     />
   );
 }

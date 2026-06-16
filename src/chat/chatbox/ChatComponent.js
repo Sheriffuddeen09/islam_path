@@ -11,7 +11,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
     chatId, setMobileView, bottomRef, openChat, isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
-    messagesCacheRef, isNavigatingRef
+    messagesCacheRef, isNavigatingRef, setShowSettings, showSettings, uiMode, isMinimized,
+    setIsMinimized, onSeeAll, setUiMode
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -67,6 +68,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
   const messageCommunityRefs = useRef({});
   const messagesEndRef = useRef(null);
+  const communityMessagesCache =
+  useRef({});
     
     const openSettings = () => {
     setMobileViewCommunity(
@@ -74,6 +77,17 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     );
   };
 
+  const toggleMinimize = () => {
+    setIsMinimized((prev) => !prev);
+  };
+
+  const toggleSettings = () => {
+    setShowSettings((prev) => !prev);
+  };
+
+  const handleSeeAll = () => {
+    setUiMode("full");
+  };
 
   const goBack = () => {
   return new Promise((resolve) => {
@@ -100,12 +114,11 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
   const openCommunity = async (
   community,
-  skipMobile = false
+  skipMobile = false,
+  forceRefresh = false
 ) => {
 
-  setActiveCommunity(
-    community
-  );
+  setActiveCommunity(community);
 
   localStorage.setItem(
     "last_opened_community",
@@ -115,28 +128,58 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   lastOpenedCommunity.current =
     community;
 
-  if (
-    window.innerWidth >= 768
-  ) {
+  if (window.innerWidth >= 768) {
 
     setMobileViewCommunity(
       "communityMessages"
     );
 
-  } else if (
-    !skipMobile
-  ) {
+  } else if (!skipMobile) {
 
     setMobileViewCommunity(
       "communityMessages"
     );
   }
+  const cached =
+    communityMessagesCache.current[
+      community.id
+    ];
+
+  if (cached && !forceRefresh) {
+
+    setCommunityMessages(
+      cached.messages
+    );
+
+    setFirstUnreadMessageId(
+      cached.firstUnreadMessageId
+    );
+
+    setCommunities(prev =>
+      prev.map(c =>
+        c.id === community.id
+          ? {
+              ...c,
+              unread_count: 0,
+            }
+          : c
+      )
+    );
+
+    if (
+      cached.messages.length > 0
+    ) {
+      api.post(
+        `/api/communities/${community.id}/mark-read`
+      ).catch(() => {});
+    }
+
+    return; // 🚀 NO LOADING
+  }
 
   setLoadingMessagesCommunity(
     true
   );
-
-  setCommunityMessages([]);
 
   try {
 
@@ -152,6 +195,16 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
       res.data
         .first_unread_message_id;
 
+    /* SAVE CACHE */
+
+    communityMessagesCache.current[
+      community.id
+    ] = {
+      messages: msgs,
+      firstUnreadMessageId:
+        firstUnreadId,
+    };
+
     setCommunityMessages(
       msgs
     );
@@ -164,14 +217,11 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
       const updated =
         prev.map(c =>
-
           c.id === community.id
-
             ? {
                 ...c,
                 unread_count: 0,
               }
-
             : c
         );
 
@@ -185,10 +235,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
       api.post(
         `/api/communities/${community.id}/mark-read`
-      )
-      .catch(
-        console.error
-      );
+      ).catch(() => {});
     }
 
   } catch (err) {
@@ -789,17 +836,18 @@ setMessages((prev) => {
     
 
     return (
-    <div className="h-screen flex bg-[var(--bg-color)] text-[var(--text-color)] ">
-       <div className={`
-        w-full
-        lg:w-[350px]
-        ${mobileView === "chatlist"
-          ? "flex"
-          : "hidden"}
-        lg:flex
-        flex-col
-      `}>
-        <ChatList
+      <>
+      
+
+    {/* 🟦 LEFT CHAT LIST */}
+    {uiMode === "popup" && !activeChat && (
+      <div className="
+        fixed z-50 bg-white shadow-xl
+        right-4 top-16
+        w-full h-full
+        sm:w-[400px] sm:h-auto sm:rounded-xl
+      ">
+      <ChatList
           chatCommunitys={chats}
           setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
@@ -826,20 +874,30 @@ setMessages((prev) => {
           setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
           communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
           messageRefs={messageCommunityRefs} messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
-        />
-      </div>
-     <div className={`
-             flex-1
-             ${mobileView === "messages"
-               ? "flex"
-               : "hidden"}
-             
-             shadow-md
-             lg:flex
-             flex-col
-     
-           `}>
-        <MessageBox
+          onSeeAll={handleSeeAll}
+          onMinimize={toggleMinimize}
+          onToggleSettings={toggleSettings}
+          isMinimized={isMinimized}
+          setIsMinimized={setIsMinimized}
+          setUiMode={setUiMode}
+          setShowSettings={setShowSettings}
+       />
+    </div>
+    )}
+     {uiMode !== "full" && activeChat && (
+      <div
+        className={`
+          fixed z-50 bg-white shadow-md flex flex-col
+
+          bottom-0 right-0
+          w-full h-full rounded-none
+
+          sm:bottom-0 sm:right-10 border-2 
+          sm:w-[350px] sm:rounded-t-2xl
+          ${isMinimized ? "sm:h-[80px]" : "sm:h-[500px]"}
+        `}
+      >
+      <MessageBox
           showChannel={showChannel} 
           openCommunity={openCommunity}
           unreadDividerRef={unreadDividerRef}
@@ -878,22 +936,109 @@ setMessages((prev) => {
           communities={communities} setActiveCommunity={setActiveCommunity}
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
           isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
+          setIsMinimized={setIsMinimized} isMinimized={isMinimized}
         />
-      </div>
-     <div className={`
-     
-             w-full
-             lg:w-[350px]
-             shadow-md
-     
-             ${mobileView === "settings"
-               ? "flex"
-               : "hidden"}
-     
-             lg:flex
-             flex-col
-     
-           `}>
+       
+    </div>
+  )}
+
+  {uiMode === "full" && (
+      <div className="flex h-screen w-full">
+       <div className="w-[320px] border-r hidden sm:block">
+      <ChatList
+          chatCommunitys={chats}
+          setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
+          lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
+          openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
+          chats={chats} authUserId={authUser.id}
+          openChat={openChat}
+          chatFilter={chatFilter}
+          setChatFilter={setChatFilter}
+          unreadTotal={unreadTotal}
+          activeChat={activeChat}
+          setChats={setChats}
+          loadingChats={loadingChats}
+          messages={messages}
+          setUnreadCount={setUnreadCount}
+          setActiveChat={setActiveChat}
+          setLastReadMessageId={setLastReadMessageId}
+          communities={communities}
+          setCommunities={setCommunities}
+          activeCommunity={activeCommunity}
+          setActiveCommunity={setActiveCommunity}
+          loadingMessagesCommunity={loadingMessagesCommunity}
+          setMessages={setMessages}
+          showChannel={showChannel} setShowChannel={setShowChannel}
+          setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
+          communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
+          messageRefs={messageCommunityRefs} messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
+          onSeeAll={handleSeeAll}
+          onMinimize={toggleMinimize}
+          onToggleSettings={toggleSettings}
+          isMinimized={isMinimized}
+          setIsMinimized={setIsMinimized}
+          setUiMode={setUiMode}
+          setShowSettings={setShowSettings}
+       />
+       </div>
+
+       <div className="flex-1">
+          {activeChat ? (
+            <MessageBox
+          showChannel={showChannel} 
+          openCommunity={openCommunity}
+          unreadDividerRef={unreadDividerRef}
+          setChats={setChats}
+          openChat={openChat}
+          messageRefs={messageRefs}
+          setLastReadMessageId={setLastReadMessageId}
+          activeChat={activeChat}
+          messages={messages}
+          setMessages={setMessages}
+          authUser={authUser}
+          loadingMessages={loadingMessages}
+          isTyping={isTyping}
+          setIsTyping={setIsTyping}
+          onHeaderClick={openSettings}
+          onBack={goBack}
+          chatId={chatId}
+          bottomRef={bottomRef}
+          setToast={setToast}
+          setActiveChat={setActiveChat}
+          chats={chats}
+          replyingTo={replyingTo}
+          setReplyingTo={setReplyingTo}
+          paused={paused} trimMap={trimMap} trimAppliedMap={trimAppliedMap} stopRecording={stopRecording} 
+          sendText={sendText} sendFile={sendFile} zoomMap={zoomMap} setTrimAppliedMap={setTrimAppliedMap} 
+          setTrimMap={setTrimMap} recording={recording} setDurationMap={setDurationMap} setShowPreview={setShowPreview}
+          durationMap={durationMap} setZoomMap={setZoomMap} selected={selected} cropAppliedMap={cropAppliedMap} 
+          croppedAreaPixels={croppedAreaPixels} setCrop={setCrop} crop={crop} setCropAppliedMap={setCropAppliedMap}
+          setCroppedImages={setCroppedImages} croppedImages={croppedImages} setCroppedAreaPixels={setCroppedAreaPixels}
+          setCaption={setCaption} caption={caption} previewUrls={previewUrls} files={files} showPreview={showPreview}
+          text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
+          setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
+          audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
+          loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
+          communities={communities} setActiveCommunity={setActiveCommunity}
+          setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
+          isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
+          setIsMinimized={setIsMinimized} isMinimized={isMinimized}
+        />
+       ) : (
+            <div className="h-full flex items-center justify-center text-gray-400">
+              Select a chat
+            </div>
+          )}
+        </div>
+
+    {showSettings && activeChat && (
+      <div
+        className="
+          w-[350px] border-l bg-gray-50
+          hidden lg:flex flex-col
+        "
+      >
         <ActiveUsers
           chats={chats}
           activeChat={activeChat}
@@ -902,10 +1047,15 @@ setMessages((prev) => {
           openChat={openChat}
           loadingChats={loadingChats}
           setMessages={setMessages}
-          onBack={goBack}
+          onHeaderClick={() => setShowSettings(false)}
         />
-      </div>
+       </div>
+        )}
 
-    </div>
+      </div>
+    )}
+
+  </>
+
   );
 }

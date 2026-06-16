@@ -8,7 +8,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     handleMessageOpen, activeChat, handleMessageOpenHeader, setActiveChat, setUnreadCount, unreadCount,
     friendCount, setFriendCount, homeCount, setHomeCount, videoCount, setVideoCount, fetchUnreadCount,
     handleFriendClick, handleVideoClick, handleHomeClick, handleMessageClick, handleNotification, unreadNotification,
-    setUnreadNotification
+    setUnreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup, showSettings,
+    setShowSettings, setMessages
   }) {
 
 
@@ -25,7 +26,17 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       unreadNotification={unreadNotification}
       setUnreadNotification={setUnreadNotification}
       setMessageOpen={setMessageOpen} activeChat={activeChat} setActiveChat={setActiveChat}
-      chats={chats} setChats={setChats} handleMessageOpenHeader={handleMessageOpenHeader} />
+      chats={chats} setChats={setChats} handleMessageOpenHeader={handleMessageOpenHeader}
+      messagesMap={messagesMap}
+      setMessagesMap={setMessagesMap}
+      setUiMode={setUiMode}
+      uiMode={uiMode}
+      togglePopup={togglePopup}
+      showSettings={showSettings} 
+      setShowSettings={setShowSettings} setMessages={setMessages}
+      />
+
+
       <PostFeed posts={posts} setPosts={setPosts} 
       image={image} setImage={setImage} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
       newComment={newComment} setNewComment={setNewComment}
@@ -37,6 +48,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       setMessageOpen={setMessageOpen}
       chats={chats}
       setChats={setChats}
+      
        />
     </div>
   )

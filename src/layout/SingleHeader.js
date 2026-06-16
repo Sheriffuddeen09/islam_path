@@ -6,12 +6,13 @@ import { useAuth } from './AuthProvider';
 import LogoutButton from '../Form/LogOut';
 import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
+import ChatPage from '../chat/chatbox/Chatpage';
 
 function SingleHeader({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
   fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
-  handleNotification, unreadNotification
-}) {
+  handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
+  showSettings, setShowSettings, setMessages}) {
 
       const [menu, setMenu] = useState(false)
       const [dashboardToggle, setDashboardToggle] = useState(false)
@@ -198,7 +199,7 @@ console.log('currentUser', user)
               </Link>
                 {/* Message */}
                 <button
-                  onClick={() => {handleMessageOpenHeader(); handleMessageClick()}}
+                  onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
                   className={`${
                     messageOpen
                       ? "text-blue-600"
@@ -332,6 +333,20 @@ console.log('currentUser', user)
         </section>
         </div>
         </header>
+
+        <ChatPage
+              chats={chats}
+              setChats={setChats}
+              activeChat={activeChat}
+              setActiveChat={setActiveChat}
+              messagesMap={messagesMap} setMessagesMap={setMessagesMap}
+              setMessages={setMessages}
+              setUiMode={setUiMode}
+              uiMode={uiMode}
+              togglePopup={togglePopup}
+              showSettings={showSettings}
+              setShowSettings={setShowSettings}
+            />
           {
             dashboardToggle && (
             <div className="fixed sm:top-16 top-36 right-10 mt-2 w-40  bg-white border rounded shadow-lg z-50">

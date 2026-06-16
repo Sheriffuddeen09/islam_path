@@ -40,7 +40,6 @@ import ProductPage from "./pages/sales/Product";
 import SingleProduct from "./pages/sales/SingleProduct";
 import CartPage from "./pages/sales/cart/CartPage";
 import WishlistPage from "./pages/sales/cart/WishlishPage";
-import ChatPage from "./chat/chatbox/Chatpage";
 import JoinGroup from "./chat/chatbox/JoinGroup";
 import ThemeLoader from "./layout/ThemeLoader";
 import VerifyTwoStep from "./studentdashboard/VerifyTwoStep";
@@ -73,7 +72,17 @@ function App() {
     const [messageOpen, setMessageOpen] = useState(false);
     const [activeChat, setActiveChat] = useState(null);
     const [messagesMap, setMessagesMap] = useState({});
-    
+    const [uiMode, setUiMode] = useState("closed"); 
+    const [showSettings, setShowSettings] = useState(false);
+
+   const togglePopup = () => {
+      setUiMode(prev => (prev === "popup" ? "closed" : "popup"));
+    };
+
+    useEffect(() => {
+        console.log("uiMode changed:", uiMode);
+      }, [uiMode]);
+
       const setMessages = (chatId, updater) => {
       setMessagesMap(prev => {
         const current = prev[chatId] || [];
@@ -110,9 +119,9 @@ function App() {
 
 
       // Product
-        const [products, setProducts] = useState([]);
-        const [savedCount, setSavedCount] = useState(0);
-        const [orderCount, setOrderCount] = useState(0);
+      const [products, setProducts] = useState([]);
+      const [savedCount, setSavedCount] = useState(0);
+      const [orderCount, setOrderCount] = useState(0);
         
         
       
@@ -226,6 +235,14 @@ function App() {
       <Routes>
     <Route element={<LayoutWithHeader
           handleMessageOpen={handleMessageOpen}
+          messagesMap={messagesMap}
+          setMessagesMap={setMessagesMap}
+          setUiMode={setUiMode}
+          uiMode={uiMode}
+          togglePopup={togglePopup}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          setMessages={setMessages}
           messageOpen={messageOpen}
           activeChat={activeChat}
           chats={chats}
@@ -434,19 +451,6 @@ function App() {
         </ProtectedRoute>
       } />
 
-      <Route 
-          path="/chat" 
-          element={
-      <ChatPage
-      chats={chats}
-      setChats={setChats}
-      activeChat={activeChat}
-      setActiveChat={setActiveChat}
-      messagesMap={messagesMap} setMessagesMap={setMessagesMap}
-      setMessages={setMessages}
-    />
-          } />
-
       <Route
           path="/student/dashboard"
           element={
@@ -517,6 +521,14 @@ function App() {
         activeChat={activeChat}
         setActiveChat={setActiveChat}
         handleMessageOpenHeader={handleMessageOpenHeader}
+        messagesMap={messagesMap}
+        setMessagesMap={setMessagesMap}
+        setUiMode={setUiMode}
+        uiMode={uiMode}
+        togglePopup={togglePopup}
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        setMessages={setMessages}
         unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         friendCount={friendCount} setFriendCount={setFriendCount}
         homeCount={homeCount} setHomeCount={setHomeCount}
@@ -583,7 +595,14 @@ function LayoutWithHeader({
   handleMessageClick,
   handleNotification,
   unreadNotification,
-  setUnreadNotification
+  setUnreadNotification,
+  messagesMap,
+  setMessagesMap,
+  setUiMode,
+  uiMode,
+  togglePopup,
+  showSettings,
+  setShowSettings
 }) {
   return (
     <div>
@@ -608,6 +627,13 @@ function LayoutWithHeader({
         handleNotification={handleNotification}
         unreadNotification={unreadNotification}
         setUnreadNotification={setUnreadNotification}
+        messagesMap={messagesMap}
+        setMessagesMap={setMessagesMap}
+        setUiMode={setUiMode}
+        uiMode={uiMode}
+        togglePopup={togglePopup}
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
       />
 
       {/* 🔥 THIS IS REQUIRED */}

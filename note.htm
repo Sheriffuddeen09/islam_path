@@ -10,4 +10,116 @@
     }
 
 
-    
+    solve out exactly the way it was in the picture in full component 
+    or exactly like facebook if i handleMessageClick in header to make my chatlist pop and if i click chat user
+    it will open message and if i click the user profile on message header it will open setting 
+    1. header toggle to open chatlist 
+    2. minimize, setting, see all message icon and new message icon on top of chatlist 
+    3. if i click see all message it should make the full width left chatlist middle message and right side settings
+    const handleMessageOpen = (studentId) => { 
+      if (!studentId) return; // ✅ block
+      setActiveChat(studentId);
+      setMessageOpen(true);
+    };  <ChatPage
+      chats={chats}
+      setChats={setChats}
+      activeChat={activeChat}
+      setActiveChat={setActiveChat}
+      messagesMap={messagesMap} setMessagesMap={setMessagesMap}
+      setMessages={setMessages}
+    /> <div>
+       <div>
+        <ChatList
+          chatCommunitys={chats}
+          setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
+          lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
+          openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
+          chats={chats} authUserId={authUser.id}
+          openChat={openChat}
+          chatFilter={chatFilter}
+          setChatFilter={setChatFilter}
+          unreadTotal={unreadTotal}
+          activeChat={activeChat}
+          setChats={setChats}
+          loadingChats={loadingChats}
+          messages={messages}
+          setUnreadCount={setUnreadCount}
+          setActiveChat={setActiveChat}
+          setLastReadMessageId={setLastReadMessageId}
+          communities={communities}
+          setCommunities={setCommunities}
+          activeCommunity={activeCommunity}
+          setActiveCommunity={setActiveCommunity}
+          loadingMessagesCommunity={loadingMessagesCommunity}
+          setMessages={setMessages}
+          showChannel={showChannel} setShowChannel={setShowChannel}
+          setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
+          communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
+          messageRefs={messageCommunityRefs} messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
+        />
+      </div>
+     <div>
+        <MessageBox
+          showChannel={showChannel} 
+          openCommunity={openCommunity}
+          unreadDividerRef={unreadDividerRef}
+          setChats={setChats}
+          openChat={openChat}
+          messageRefs={messageRefs}
+          setLastReadMessageId={setLastReadMessageId}
+          activeChat={activeChat}
+          messages={messages}
+          setMessages={setMessages}
+          authUser={authUser}
+          loadingMessages={loadingMessages}
+          isTyping={isTyping}
+          setIsTyping={setIsTyping}
+          onHeaderClick={openSettings}
+          onBack={goBack}
+          chatId={chatId}
+          bottomRef={bottomRef}
+          setToast={setToast}
+          setActiveChat={setActiveChat}
+          chats={chats}
+          replyingTo={replyingTo}
+          setReplyingTo={setReplyingTo}
+          paused={paused} trimMap={trimMap} trimAppliedMap={trimAppliedMap} stopRecording={stopRecording} 
+          sendText={sendText} sendFile={sendFile} zoomMap={zoomMap} setTrimAppliedMap={setTrimAppliedMap} 
+          setTrimMap={setTrimMap} recording={recording} setDurationMap={setDurationMap} setShowPreview={setShowPreview}
+          durationMap={durationMap} setZoomMap={setZoomMap} selected={selected} cropAppliedMap={cropAppliedMap} 
+          croppedAreaPixels={croppedAreaPixels} setCrop={setCrop} crop={crop} setCropAppliedMap={setCropAppliedMap}
+          setCroppedImages={setCroppedImages} croppedImages={croppedImages} setCroppedAreaPixels={setCroppedAreaPixels}
+          setCaption={setCaption} caption={caption} previewUrls={previewUrls} files={files} showPreview={showPreview}
+          text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
+          setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
+          audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
+          loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
+          communities={communities} setActiveCommunity={setActiveCommunity}
+          setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
+          isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
+        />
+      </div>
+     <div className={`
+             w-full
+             lg:w-[350px]
+             shadow-md
+             ${mobileView === "settings"
+               ? "flex"
+               : "hidden"}
+             lg:flex
+             flex-col
+           `}>
+        <ActiveUsers
+          chats={chats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          setChats={setChats}
+          openChat={openChat}
+          loadingChats={loadingChats}
+          setMessages={setMessages}
+          onBack={goBack}
+        />
+      </div>
+    </div>
+  );

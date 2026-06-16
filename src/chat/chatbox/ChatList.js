@@ -19,7 +19,7 @@ export default function ChatList({
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
   messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId,
-  mobileView, setMobileView, chatCommunitys
+  mobileView, setMobileView, chatCommunitys,  onSeeAll,  onToggleSettings
 }) {
   const { user: authUser } = useAuth();
 
@@ -31,7 +31,6 @@ export default function ChatList({
   setShowCommunityModal] =
   useState(false);
 
-  
     
   
   
@@ -115,6 +114,30 @@ export default function ChatList({
     <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
+
+      <div className="flex items-center justify-between p-3 border-b">
+
+        <div className="flex gap-3 ml-auto">
+
+          <button onClick={onToggleSettings}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+            </svg>
+
+          </button>
+
+          {onSeeAll && (
+            <div className="p-3 text-center border-t">
+              <button title="See all in Messenger" onClick={onSeeAll} className="text-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+
+              </button>
+            </div>
+          )}
+        </div>
+        </div>
       <div className="p-3 font-bold text-2xl shadow-md inline-flex gap-3 items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"

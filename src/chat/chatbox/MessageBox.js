@@ -33,7 +33,7 @@ export default function MessageBox({
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, 
-  setMobileView, mobileView
+  setMobileView, mobileView, setIsMinimized, isMinimized
 }) {
   
 
@@ -482,7 +482,9 @@ const firstUnreadMessageId =
             
               <div className="flex flex-col lg:mt-2">
                   <h3 className="font-bold text-lg truncate text-[var(--text-color)]">
-                    {displayName}
+                    {displayName?.length > 9
+                      ? `${displayName.slice(0, 9)}...`
+                      : displayName}
                   </h3>
                 {!isGroup && <UserStatusDots user={activeChat.other_user} />}
 
@@ -494,7 +496,7 @@ const firstUnreadMessageId =
               </div>
 
         </div>
-       <div className="flex gap-3 text-xl">
+       <div className="flex gap-1 text-xl">
 
         {/* Forward */}
           {selectedMessages.length > 1 && (
@@ -511,7 +513,7 @@ const firstUnreadMessageId =
                 messages: messagesToForward
               });
             }}
-            className="hover:bg-gray-200 hover:text-white text-[var(--text-color)] p-2 rounded-full"
+            className="hover:bg-gray-200 hover:text-white text-[var(--text-color)] p-1 rounded-full"
           >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -519,7 +521,7 @@ const firstUnreadMessageId =
       viewBox="0 0 24 24"
       strokeWidth="1.5"
       stroke="currentColor"
-      className="size-6 text-[var(--text-color)]"
+      className="size-5 text-[var(--text-color)]"
     >
       <path
         strokeLinecap="round"
@@ -532,9 +534,9 @@ const firstUnreadMessageId =
           {/* VIDEO */}
           <button
               onClick={() => setCallMode("video")}
-            className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
+            className="hover:bg-gray-200 hover:text-white p-1 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
+             stroke-width="1.5" stroke="currentColor" class="size-5 text-[var(--text-color)]">
             <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
 
@@ -542,13 +544,41 @@ const firstUnreadMessageId =
           </button>
 
           {/* AUDIO */}
-          <button onClick={() => setCallMode("audio")} className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
+          <button onClick={() => setCallMode("audio")} className="hover:bg-gray-200 hover:text-white p-1 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
             stroke-width="1.5" stroke="currentColor" class="size-5 text-[var(--text-color)] ">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
           </svg>
 
           </button>
+
+           <button
+                onClick={() => setIsMinimized(prev => !prev)}
+                className="hidden sm:block"
+              >
+                {isMinimized ? 
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                </svg>
+                : 
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                  </svg>
+                  }
+              </button>
+
+              {/* CLOSE → ALWAYS */}
+        <button
+          onClick={() => {
+            setActiveChat(null);
+            setIsMinimized(false);
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+
+        </button>
 
         </div>
       </div>
@@ -571,8 +601,11 @@ const firstUnreadMessageId =
             strokeWidth="1.5"
             stroke="currentColor"
             className="size-6 cursor-pointer flex-shrink-0 text-[var(--text-color)]"
-            onClick={onBack}
-          >
+          onClick={() => {
+            setActiveChat(null);
+            setIsMinimized(false);
+          }}
+        >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
 
@@ -965,7 +998,7 @@ const isFirstUnread =
           setShowReactionPopup={setShowReactionPopup} showReactionPopup={showReactionPopup}
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           loadingChats={loadingChats} setCommunityMessages={setCommunityMessages}
-          setMobileView={setMobileView} mobileView={mobileView}
+          setMobileView={setMobileView} mobileView={mobileView} isMinimize={isMinimized}
         />
         )}
       </div>
