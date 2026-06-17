@@ -35,7 +35,7 @@ export default function ActiveUsers({
   chats,
   openChat, 
   setMessages,
-  onBack,
+  onHeaderClick,
 }) {
 
   const [copiedField, setCopiedField] = useState(null);
@@ -250,7 +250,7 @@ export default function ActiveUsers({
 
   return (
     <div
-      className={`h-full flex flex-col bg-[var(--bg-color)] transition-all duration-500 ease-in-out ${
+      className={`h-full flex flex-col border rounded-xl bg-[var(--bg-color)] transition-all duration-500 ease-in-out ${
         animate ? "opacity-100 translate-x-0" : "opacity-0 translate-x-5"
       }`}
     >
@@ -258,7 +258,7 @@ export default function ActiveUsers({
       {/* HEADER */}
       <div className="flex flex-row justify-between px-3 py-5 items-center shadow-md ">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
-          stroke="currentColor" class="size-6 cursor-pointer text-[var(--text-color)] lg:hidden" onClick={onBack}>
+          stroke="currentColor" class="size-6 cursor-pointer text-[var(--text-color)]" onClick={onHeaderClick}>
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
 
@@ -270,7 +270,7 @@ export default function ActiveUsers({
       ) :  (
          <div className="font-bold flex items-center gap-2 text-[var(--text-color)] text-xl ">
 
-          <UserCircle size={24} /> User's Info
+          <UserCircle size={24} /> User's Profile
         </div> 
       ) }
       </div>

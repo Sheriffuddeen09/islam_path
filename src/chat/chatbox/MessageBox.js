@@ -32,8 +32,8 @@ export default function MessageBox({
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
-  setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, 
-  setMobileView, mobileView, setIsMinimized, isMinimized
+  setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
+  setMobileView, mobileView, setIsMinimized, isMinimized, 
 }) {
   
 
@@ -463,7 +463,7 @@ const firstUnreadMessageId =
       <div className="hidden lg:block">
      <div className="px-3 border-b-2 shadow py-1 border-white flex justify-between items-center bg-[var(--bg-color)] text-[var(--text-color)]">
          
-          <div className="inline-flex gap-4 items-center">
+          <div onClick={onToggleSettings} className="inline-flex gap-4 items-center cursor-pointer">
              <div
                 className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
                   avatarName
@@ -482,8 +482,8 @@ const firstUnreadMessageId =
             
               <div className="flex flex-col lg:mt-2">
                   <h3 className="font-bold text-lg truncate text-[var(--text-color)]">
-                    {displayName?.length > 9
-                      ? `${displayName.slice(0, 9)}...`
+                    {displayName?.length > 12
+                      ? `${displayName.slice(0, 12)}..`
                       : displayName}
                   </h3>
                 {!isGroup && <UserStatusDots user={activeChat.other_user} />}
@@ -633,8 +633,8 @@ const firstUnreadMessageId =
             </h3>
 
             <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
-            {displayName?.length > 9
-              ? `${displayName.slice(0, 9)}...`
+            {displayName?.length > 12
+              ? `${displayName.slice(0, 12)}..`
               : displayName}
           </h3>
           </div>

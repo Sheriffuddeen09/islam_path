@@ -6,6 +6,7 @@ export default function ChatItem({
   authUser,
   activeChat,
   openChat, 
+  setUiMode
 }) {
   const other = chat.other_user || {};
 
@@ -123,6 +124,7 @@ export default function ChatItem({
       onClick={() => {
         if (blockedMe) return;
         openChat(chat);
+        // setUiMode("closed");        
       }}
       className={`flex gap-3 p-4 border-b transition relative
         ${blockedMe ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-r-4 border-blue-800 border-b-0"}

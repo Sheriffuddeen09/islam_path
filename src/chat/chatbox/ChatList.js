@@ -19,7 +19,7 @@ export default function ChatList({
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
   messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId,
-  mobileView, setMobileView, chatCommunitys,  onSeeAll,  onToggleSettings
+  mobileView, setMobileView, chatCommunitys,  onSeeAll,  setUiMode, uiMode
 }) {
   const { user: authUser } = useAuth();
 
@@ -111,57 +111,62 @@ export default function ChatList({
   
 
   return (
-    <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="h-full max-h-full rounded-xl flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] relative">
 
-      {/* HEADER */}
+      <div className="flex items-center justify-between px-3 py-2 border-b">
+        <h1 className="text-2xl font-bold inline-flex gap-2 items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z" />
+          </svg>
+        <p>Chat</p>
+          
+          </h1>
+        <div className="flex gap-3 ml-auto items-center">
 
-      <div className="flex items-center justify-between p-3 border-b">
-
-        <div className="flex gap-3 ml-auto">
-
-          <button onClick={onToggleSettings}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-            </svg>
-
-          </button>
+          {uiMode === "full" && (
+            <button
+              onClick={() => {
+                setActiveChat(null);
+                setUiMode("closed");
+              }}
+              className="p-1 rounded-full hover:bg-gray-100 transition"
+              title="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
 
           {onSeeAll && (
-            <div className="p-3 text-center border-t">
-              <button title="See all in Messenger" onClick={onSeeAll} className="text-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                </svg>
-
-              </button>
-            </div>
-          )}
+          <button
+            title={uiMode === "popup" ? "See all in Messenger" : "Minimize"}
+            onClick={() => {
+              if (uiMode === "popup") {
+                onSeeAll(); 
+              } else {
+                setUiMode("popup"); 
+              }
+            }}
+            className="p-1 rounded-full hover:bg-gray-100 transition text-blue-500"
+          >
+            {uiMode === "popup" ? (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+              </svg>
+            )}
+          </button>
+        )}
         </div>
         </div>
-      <div className="p-3 font-bold text-2xl shadow-md inline-flex gap-3 items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="size-6 cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 19.5 8.25 12l7.5-7.5"
-          />
-        </svg>
+     
 
-        Messages
-      </div>
-
-      {/* FILTERS */}
       <div className="flex gap-2 p-3 flex-wrap">
 
-        {/* ALL */}
         <button
           onClick={() => setChatFilter("all")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
@@ -204,7 +209,7 @@ export default function ChatList({
       </div>
 
       {/* CHAT LIST shadow */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
 
         {loadingChats && <ChatSkeleton type="list" />}
 
@@ -298,6 +303,7 @@ export default function ChatList({
               authUser={authUser}
               activeChat={activeChat}
               openChat={openChat}
+              setUiMode={setUiMode}
             />
           ))}
       </div>
@@ -332,7 +338,7 @@ export default function ChatList({
           mobileView={mobileView} setMobileView={setMobileView}
           setChats={setChats} setMessages={setMessages} messageRefs={messageRefs}
           messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
-          authUserId={authUserId} setLastReadMessageId={setLastReadMessageId}
+          authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} uiMode={uiMode}
         />
       </div>
 

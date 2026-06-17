@@ -16,7 +16,7 @@ export default function CommunityPage({
   authUser, chats, loadingChats, setActiveChat, messagesEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
   communityMessages, setCommunityMessages, mobileView, setMobileView, setChats, setMessages, messageRefs,
-  setLastReadMessageId, setActiveCommunity, activeChat
+  setLastReadMessageId, setActiveCommunity, activeChat, uiMode
 }) {
 
  
@@ -284,17 +284,32 @@ const handleHide = async (
 
   return (
 
-    <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)] flex overflow-hidden">
+    <div
+  className={`
+    ${uiMode === "popup" ? "fixed right-4 top-16 z-50" : "flex"}
+    
+    bg-[var(--bg-color)] overflow-hidden
 
-      <div className={`
-        w-full
-        lg:w-[370px]
-        ${mobileView === "sidebar"
-          ? "flex"
-          : "hidden"}
-        lg:flex
-        flex-col
-      `}>
+    ${uiMode === "popup"
+      ? "w-full h-full sm:w-[370px] sm:h-auto sm:rounded-xl shadow-xl"
+      : "h-screen w-full"}
+  `}
+>
+
+      <div
+        className={`
+          w-full
+          lg:w-[370px]
+
+          ${uiMode === "popup"
+            ? "flex"
+            : mobileView === "sidebar"
+            ? "flex"
+            : "hidden"}
+
+          lg:flex flex-col
+        `}
+      >
 
         <CommunityList
           communities={communities}
@@ -308,17 +323,19 @@ const handleHide = async (
 
       </div>
 
-      <div className={`
-        flex-1
-        ${mobileView === "communityMessages"
-          ? "flex"
-          : "hidden"}
-        
-        shadow-md
-        lg:flex
-        flex-col
+      <div
+        className={`
+          flex-1
 
-      `}>
+          ${uiMode === "popup"
+            ? "hidden"
+            : mobileView === "communityMessages"
+            ? "flex"
+            : "hidden"}
+
+          lg:flex flex-col
+        `}
+      >
 
         <CommunityMessages
           setChats={setChats} messagesCacheRef={messagesCacheRef}
@@ -341,20 +358,20 @@ const handleHide = async (
         />
 
       </div>
-      <div className={`
-
+      <div
+      className={`
         w-full
         lg:w-[370px]
-        shadow-md
 
-        ${mobileView === "settingCommunitys"
+        ${uiMode === "popup"
+          ? "hidden"
+          : mobileView === "settingCommunitys"
           ? "flex"
           : "hidden"}
 
-        lg:flex
-        flex-col
-
-      `}>
+        lg:flex flex-col
+      `}
+    >
 
         <CommunitySettings
           activeCommunity={activeCommunity}

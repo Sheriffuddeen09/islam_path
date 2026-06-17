@@ -8,7 +8,7 @@ import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
 import ChatPage from '../chat/chatbox/Chatpage';
 
-function SingleHeader({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
+function SingleHeader({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
   fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,

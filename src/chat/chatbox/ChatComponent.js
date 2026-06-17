@@ -6,6 +6,7 @@ import MessageBox from "./MessageBox";
 import {
   encryptMessage, decryptMessage
 } from "../../utils/encryption";
+import { MessageCircle } from "lucide-react";
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
@@ -842,10 +843,10 @@ setMessages((prev) => {
     {/* 🟦 LEFT CHAT LIST */}
     {uiMode === "popup" && !activeChat && (
       <div className="
-        fixed z-50 bg-white shadow-xl
-        right-4 top-16
+        fixed z-50 shadow-xl
+        right-0 sm:right-10 sm:top-16
         w-full h-full
-        sm:w-[400px] sm:h-auto sm:rounded-xl
+        sm:w-[340px] sm:h-[400px] sm:rounded-xl
       ">
       <ChatList
           chatCommunitys={chats}
@@ -887,7 +888,7 @@ setMessages((prev) => {
      {uiMode !== "full" && activeChat && (
       <div
         className={`
-          fixed z-50 bg-white shadow-md flex flex-col
+          fixed z-50 shadow-md flex flex-col
 
           bottom-0 right-0
           w-full h-full rounded-none
@@ -898,6 +899,7 @@ setMessages((prev) => {
         `}
       >
       <MessageBox
+          onToggleSettings={toggleSettings}
           showChannel={showChannel} 
           openCommunity={openCommunity}
           unreadDividerRef={unreadDividerRef}
@@ -936,16 +938,43 @@ setMessages((prev) => {
           communities={communities} setActiveCommunity={setActiveCommunity}
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
           isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
-          setIsMinimized={setIsMinimized} isMinimized={isMinimized}
+          setUiMode={setUiMode} isMinimized={isMinimized}
+          setIsMinimized={setIsMinimized}
         />
        
     </div>
+
+
   )}
 
-  {uiMode === "full" && (
-      <div className="flex h-screen w-full">
-       <div className="w-[320px] border-r hidden sm:block">
-      <ChatList
+  {uiMode !== "full" && activeChat && showSettings && (
+      <div
+        className="
+           fixed z-50 shadow-xl
+          right-0 sm:right-96 sm:bottom-16
+          w-full h-full
+          sm:w-[340px] sm:h-[440px] sm:rounded-xl
+        "
+      >
+        <ActiveUsers
+          chats={chats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          setChats={setChats}
+          openChat={openChat}
+          loadingChats={loadingChats}
+          setMessages={setMessages}
+          onHeaderClick={() => setShowSettings(false)}
+        />
+       </div>
+        )}
+
+        {uiMode === "full" && (
+  <div className="flex h-screen w-full overflow-hidden z-50 fixed flex flex-row bg-[var(--bg-color)]
+  text-[var(--text-color)]">
+
+    <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
+     <ChatList
           chatCommunitys={chats}
           setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
@@ -979,12 +1008,17 @@ setMessages((prev) => {
           setIsMinimized={setIsMinimized}
           setUiMode={setUiMode}
           setShowSettings={setShowSettings}
+          uiMode={uiMode}
        />
-       </div>
+    </div>
 
-       <div className="flex-1">
-          {activeChat ? (
-            <MessageBox
+    {/* 🟩 MIDDLE: MESSAGE BOX */}
+    <div className="flex-1 flex flex-col min-w-0">
+
+      {activeChat ? (
+        <MessageBox
+
+          onToggleSettings={toggleSettings}
           showChannel={showChannel} 
           openCommunity={openCommunity}
           unreadDividerRef={unreadDividerRef}
@@ -1025,36 +1059,67 @@ setMessages((prev) => {
           isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
           setIsMinimized={setIsMinimized} isMinimized={isMinimized}
         />
-       ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
-              Select a chat
-            </div>
-          )}
+      ) : (
+       <div className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+
+          <div className="mx-auto mb-6 rounded-full flex items-center justify-center shadow-sm">
+            <MessageCircle size={25} />
+          </div>
+
+          <h2 className="text-xl font-semibold ">
+            No chat selected
+          </h2>
+
+          <p className="text-sm mt-2 leading-relaxed font-bold">
+            Choose a conversation from the left to start messaging.
+          </p>
+
+          <button className="mt-0.5 px-4 py-2 text-sm font-medium rounded-lg transition">
+            Start new conversation
+          </button>
+
         </div>
-
-    {showSettings && activeChat && (
-      <div
-        className="
-          w-[350px] border-l bg-gray-50
-          hidden lg:flex flex-col
-        "
-      >
-        <ActiveUsers
-          chats={chats}
-          activeChat={activeChat}
-          setActiveChat={setActiveChat}
-          setChats={setChats}
-          openChat={openChat}
-          loadingChats={loadingChats}
-          setMessages={setMessages}
-          onHeaderClick={() => setShowSettings(false)}
-        />
-       </div>
-        )}
-
       </div>
-    )}
+            )}
 
+    </div>
+
+<div className="w-[350px] border-l hidden lg:flex flex-col">
+
+  {activeChat ? (
+    <ActiveUsers
+      chats={chats}
+      activeChat={activeChat}
+      setActiveChat={setActiveChat}
+      setChats={setChats}
+      openChat={openChat}
+      loadingChats={loadingChats}
+      setMessages={setMessages}
+      onHeaderClick={() => setShowSettings(false)}
+    />
+  ) : (
+    <div className="flex-1 flex items-center justify-center px-6">
+      <div className="text-center max-w-xs">
+      <div className="mx-auto mb-6 w-20 h-20 rounded-full flex items-center justify-center shadow-sm">
+        <span className="text-3xl">👤</span>
+      </div>
+    <h2 className="text-base font-semibold text-xl">
+      No profile selected
+    </h2>
+    <p className="text-sm mt-2 leading-relaxed font-semibold">
+      Select a chat to view user details and settings.
+    </p>
+  </div>
+</div>
+  )}
+
+</div>
+
+  </div>
+)}
+
+    
   </>
 
   );

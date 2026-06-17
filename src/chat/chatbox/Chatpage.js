@@ -13,7 +13,7 @@ export default function ChatPage({
   activeChat,
   setActiveChat,
   messagesMap, setMessagesMap, setMessages,
-  setUiMode, uiMode, togglePopup, showSettings, setShowSettings
+  setUiMode, uiMode, showSettings, setShowSettings
 }) {
   const { user: authUser } = useAuth();
 
@@ -260,7 +260,6 @@ const openChat = async (
 ) => {
 
 
-  setUiMode("closed");        
 
   if (loadingChatRef.current && loadingChatRef.current !== chat.id) {
         loadingChatRef.current = null;
@@ -421,52 +420,6 @@ if (cached && !forceRefresh) {
 };
 
   const isNavigatingRef = useRef(false);
-
-useEffect(() => {
-  if (!isLargeScreen) return;
-
-  if (restoredChatRef.current) return;
-
-  if (isNavigatingRef.current) return; // 🔥 IMPORTANT FIX
-
-  if (!chats.length) return;
-
-  const lastChatId = localStorage.getItem("lastChatId");
-
-  if (!lastChatId) return;
-
-  const lastChat = chats.find(
-    c => String(c.id) === String(lastChatId)
-  );
-
-  if (!lastChat) {
-    localStorage.removeItem("lastChatId");
-    return;
-  }
-
-  restoredChatRef.current = true;
-
-  openChat(lastChat);
-}, [chats, isLargeScreen]);
-
-const openedRef = useRef(null);
-
-useEffect(() => {
-  if (!chatIdFromUrl || !chats.length) return;
-
-  // ✅ PREVENT RE-RUNNING SAME CHAT
-  if (openedRef.current === chatIdFromUrl) return;
-  openedRef.current = chatIdFromUrl;
-
-  const chat = chats.find(
-    c => String(c.id) === String(chatIdFromUrl)
-  );
-
-  if (chat) {
-    openChat(chat);
-  }
-}, [chatIdFromUrl, chats]);
-
 
 
 useEffect(() => {

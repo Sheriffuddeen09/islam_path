@@ -8,7 +8,7 @@ import { linkList } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
 import ChatPage from '../chat/chatbox/Chatpage';
 
-function Navbar({handleMessageOpen, messageOpen, setMessageOpen, activeChat, setActiveChat,
+function Navbar({messageOpen,  activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, 
   handleMessageClick, videoCount, fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick,
   handleNotification, unreadNotification, showSettings, setShowSettings, uiMode, setUiMode, messagesMap, setMessagesMap,
