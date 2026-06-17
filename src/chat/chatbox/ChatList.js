@@ -19,7 +19,7 @@ export default function ChatList({
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
   messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId,
-  mobileView, setMobileView, chatCommunitys,  onSeeAll,  setUiMode, uiMode
+  mobileViewCommunity, setMobileView, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll
 }) {
   const { user: authUser } = useAuth();
 
@@ -121,52 +121,57 @@ export default function ChatList({
         <p>Chat</p>
           
           </h1>
-        <div className="flex gap-3 ml-auto items-center">
+         {/* 🔳 SEE ALL (ONLY IN POPUP MODE) */}
+<div className="flex gap-3 ml-auto items-center">
 
-          {uiMode === "full" && (
-            <button
-              onClick={() => {
-                setActiveChat(null);
-                setUiMode("closed");
-              }}
-              className="p-1 rounded-full hover:bg-gray-100 transition"
-              title="Close"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
+  {/* ❌ CLOSE BUTTON (ONLY IN FULL MODE) */}
+  {uiMode === "full" && (
+    <button
+      onClick={() => {
+        setActiveChat(null);
+        setUiMode("closed");
+      }}
+      className="p-1 rounded-full hover:bg-gray-100 transition"
+      title="Close"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </button>
+  )}
 
-          {onSeeAll && (
-          <button
-            title={uiMode === "popup" ? "See all in Messenger" : "Minimize"}
-            onClick={() => {
-              if (uiMode === "popup") {
-                onSeeAll(); 
-              } else {
-                setUiMode("popup"); 
-              }
-            }}
-            className="p-1 rounded-full hover:bg-gray-100 transition text-blue-500"
-          >
-            {uiMode === "popup" ? (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
-              </svg>
-            )}
-          </button>
-        )}
-        </div>
+  {/* 🔳 SEE ALL (ONLY IN POPUP MODE) */}
+      {uiMode !== "full" && onSeeAll && (
+        <button
+          title="See all in Messenger"
+          onClick={onSeeAll}
+          className="p-1 rounded-full hover:bg-gray-100 transition text-blue-800"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+        </button>
+      )}
+
+      {uiMode === "full" && onCloseAll && (
+        <button
+          title="Minimize Messenger"
+          onClick={onCloseAll}
+          className="p-1 rounded-full hover:bg-gray-100 transition text-blue-800"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+        </svg>
+        </button>
+      )}
+
+</div>
         </div>
      
 
       <div className="flex gap-2 p-3 flex-wrap">
 
+        {/* ALL */}
         <button
           onClick={() => setChatFilter("all")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
@@ -335,7 +340,7 @@ export default function ChatList({
           loadingMessages={loadingMessagesCommunity}
           lastOpenedCommunity ={lastOpenedCommunity} messagesCache ={messagesCache}
           openChat={openChat} communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
-          mobileView={mobileView} setMobileView={setMobileView}
+          mobileViewCommunity={mobileViewCommunity} setMobileView={setMobileView}
           setChats={setChats} setMessages={setMessages} messageRefs={messageRefs}
           messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
           authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} uiMode={uiMode}

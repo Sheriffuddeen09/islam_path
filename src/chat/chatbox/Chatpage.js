@@ -452,7 +452,6 @@ useEffect(() => {
 
   
 
-  if (loadingChats) return <UserSkeleton />;
 
   return (
     <ChatComponent

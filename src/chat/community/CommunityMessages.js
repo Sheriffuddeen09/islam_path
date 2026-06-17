@@ -13,7 +13,7 @@ export default function CommunityMessages({
   authUser,
   loadingMessages, messagesCacheRef, messagesEndRef, firstUnreadMessageId, authUserId,
   chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageRefs, 
-  setLastReadMessageId, setCommunities, onOpenSettings
+  setLastReadMessageId, setCommunities, onOpenSettings, uiMode
 
 }) {
 
@@ -581,7 +581,7 @@ const resendCommunityFile =
 
   return (
 
-    <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="h-full max-h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
      
@@ -596,17 +596,9 @@ const resendCommunityFile =
         ">
 
           {/* LEFT SIDE */}
-          <div
-            onClick={() => {
-              if (isMobiled) {
-                onOpenSettings?.();
-              }
-            }}
-            className="flex items-center gap-3"
-          >
-
-            <button
-              className="lg:hidden"
+          <div className="inline-flex items-center gap-3"> 
+           <button
+              className={`${uiMode !== 'full' ? 'block' : 'hidden' }`}
               onClick={onBack}
             >
                 <svg
@@ -624,6 +616,16 @@ const resendCommunityFile =
                   />
                 </svg>
             </button>
+         <div
+        onClick={() => {
+          if (uiMode !== "full") {
+            onOpenSettings?.();
+          }
+        }}
+        className="flex items-center gap-3 cursor-pointer"
+      >
+
+           
             {activeCommunity.community_image ? (
             <img
               src={getImage(
@@ -673,7 +675,7 @@ const resendCommunityFile =
                 {activeCommunity.community_name}
               </h3>
             </div>
-
+            </div>
           </div>
 
           {/* RIGHT SIDE */}

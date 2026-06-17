@@ -33,7 +33,7 @@ export default function MessageBox({
   text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
-  setMobileView, mobileView, setIsMinimized, isMinimized, 
+  setMobileView, mobileView, setIsMinimized, isMinimized, uiMode
 }) {
   
 
@@ -551,7 +551,8 @@ const firstUnreadMessageId =
           </svg>
 
           </button>
-
+          {uiMode !== 'full' &&
+          <>
            <button
                 onClick={() => setIsMinimized(prev => !prev)}
                 className="hidden sm:block"
@@ -579,7 +580,8 @@ const firstUnreadMessageId =
           </svg>
 
         </button>
-
+        </>
+      }
         </div>
       </div>
       </div>
@@ -739,17 +741,16 @@ const firstUnreadMessageId =
 
       {!isGroup && <UserStatusDots user={activeChat.other_user} />}
       {isGroup && (
-                  <p className="text-[9px] pt-0.5 pb-2 relative left-20">
-                    {activeChat.members_count || activeChat.members?.length || 0} members
-                  </p>
-                )}
+        <p className="text-[9px] pt-0.5 pb-2 relative left-20">
+          {activeChat.members_count || activeChat.members?.length || 0} members
+        </p>
+      )}
     </div>
 
   </div>
 </div>
  
 
-      {/* CHAT BODY */}
       <div
         ref={messagesContainerRef}
         className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
@@ -822,18 +823,6 @@ const firstUnreadMessageId =
   ) : messages.length === 0 ? (
     // comment 1
      <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="mb-10 text-center mx-auto bg-gray-800 text-white rounded-lg sm:w-80 w-72 text-xs p-3">
-        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
-        Learn More.
-      </div>
-        <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
-
-        <p className="text-[var(--text-color)] max-w-md">
-          Messages, and updates will appear here.
-        </p>
-        <div className="mt-6 mb-6 text-sm text-[var(--text-color)]">
-          💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
-        </div>
       </div>
   ) : (
     <>

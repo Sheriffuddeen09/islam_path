@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { Copy,  Shield, Flag, UserCircle, MessageCircleHeart, Search, Group, GroupIcon, Link2Icon, Settings, TimerReset } from "lucide-react";
-import { ChatSkeleton } from "./ChatSkeleton";
 import { useAuth } from "../../layout/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -29,13 +28,13 @@ const socket = io("http://localhost:8000");
 // members
 export default function ActiveUsers({
   activeChat,
-  loadingChats,
   setActiveChat,
   setChats,
   chats,
   openChat, 
   setMessages,
   onHeaderClick,
+  uiMode
 }) {
 
   const [copiedField, setCopiedField] = useState(null);
@@ -231,23 +230,6 @@ export default function ActiveUsers({
 }, [searchTerm, chats]);
 
 
-  // 🔥 LOADING STATE
-  if (loadingChats) {
-  return (
-    <div className="h-full bg-white transition-all duration-300">
-      <ChatSkeleton type="info" />
-    </div>
-  );
-}
-
-  if (!activeChat) {
-    return (
-      <div className="h-full flex items-center justify-center text-gray-400">
-        Select a chat to view info
-      </div>
-    );
-  }
-
   return (
     <div
       className={`h-full flex flex-col border rounded-xl bg-[var(--bg-color)] transition-all duration-500 ease-in-out ${
@@ -257,10 +239,12 @@ export default function ActiveUsers({
 
       {/* HEADER */}
       <div className="flex flex-row justify-between px-3 py-5 items-center shadow-md ">
+         {uiMode !== 'full' &&
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
           stroke="currentColor" class="size-6 cursor-pointer text-[var(--text-color)]" onClick={onHeaderClick}>
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
+          }
 
       {isGroup  ?  (
          <div className="font-bold flex items-center gap-2 text-[var(--text-color)] text-xl ">

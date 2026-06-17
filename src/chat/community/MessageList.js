@@ -213,7 +213,7 @@ const handleDownloadMessage =
               relative
               group
               transition-all
-              cursor-pointer
+              cursor-pointer whitespace-nowrap
               ${msg.is_system === 1
                 ? "w-full flex justify-center text-[--text-color]"
                 : "max-w-md w-full mx-auto rounded-2xl bg-[#202c33] text-white"

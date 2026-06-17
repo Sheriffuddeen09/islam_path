@@ -72,7 +72,7 @@ export default function CommunityButton({
   return (
 
     <div
-      className={`absolute bottom-10 right-3 transition-all duration-300 ${
+      className={`relative transition-all duration-300 ${
         visible
           ? "translate-y-0 opacity-100"
           : "translate-y-24 opacity-0"
@@ -82,7 +82,7 @@ export default function CommunityButton({
       {/* MENU */}
       {open && (
 
-        <div className="flex flex-col items-end gap-3 mb-4">
+        <div className="-translate-y-20 flex flex-col items-end gap-3 mb-4">
 
           {/* CHANNEL */}
           <button
@@ -96,9 +96,9 @@ export default function CommunityButton({
             className="flex items-center gap-3 bg-[#202c33] text-white px-5 py-3 rounded-2xl shadow-xl"
           >
 
-            <Megaphone size={22} />
+            <Megaphone size={17} />
 
-            <span className="font-medium">
+            <span className="font-medium text-sm">
               Channel
             </span>
 
@@ -115,10 +115,10 @@ export default function CommunityButton({
             className="flex items-center gap-3 bg-[#202c33] text-white px-5 py-3 rounded-2xl shadow-xl"
           >
 
-            <Users size={22} />
+            <Users size={17} />
 
-            <span className="font-medium">
-              Create Community
+            <span className="font-medium text-sm">
+              Create Channel
             </span>
 
           </button>
@@ -131,7 +131,7 @@ export default function CommunityButton({
         onClick={() =>
           setOpen(prev => !prev)
         }
-        className="w-12 h-12 rounded-full bg-[#00a884] shadow-2xl flex items-center justify-center text-white"
+        className=" absolute bottom-10 right-3 w-12 h-12 rounded-full bg-[#00a884] shadow-2xl flex items-center justify-center text-white"
       >
 
         <Plus size={35} />

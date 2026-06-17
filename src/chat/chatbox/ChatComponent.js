@@ -90,6 +90,10 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setUiMode("full");
   };
 
+  const onCloseAll = () => {
+    setUiMode("popup");
+  };
+
   const goBack = () => {
   return new Promise((resolve) => {
     if (mobileView === "settings") {
@@ -850,7 +854,7 @@ setMessages((prev) => {
       ">
       <ChatList
           chatCommunitys={chats}
-          setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
+          setMobileView={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
@@ -881,7 +885,7 @@ setMessages((prev) => {
           isMinimized={isMinimized}
           setIsMinimized={setIsMinimized}
           setUiMode={setUiMode}
-          setShowSettings={setShowSettings}
+          setShowSettings={setShowSettings} onCloseAll={onCloseAll}
        />
     </div>
     )}
@@ -939,7 +943,7 @@ setMessages((prev) => {
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
           isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
           setUiMode={setUiMode} isMinimized={isMinimized}
-          setIsMinimized={setIsMinimized}
+          setIsMinimized={setIsMinimized} uiMode={uiMode}
         />
        
     </div>
@@ -965,6 +969,7 @@ setMessages((prev) => {
           loadingChats={loadingChats}
           setMessages={setMessages}
           onHeaderClick={() => setShowSettings(false)}
+          uiMode={uiMode}
         />
        </div>
         )}
@@ -976,7 +981,7 @@ setMessages((prev) => {
     <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
      <ChatList
           chatCommunitys={chats}
-          setMobileView={setMobileViewCommunity} mobileView={mobileViewCommunity}
+          setMobileView={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
@@ -1008,7 +1013,7 @@ setMessages((prev) => {
           setIsMinimized={setIsMinimized}
           setUiMode={setUiMode}
           setShowSettings={setShowSettings}
-          uiMode={uiMode}
+          uiMode={uiMode} onCloseAll={onCloseAll}
        />
     </div>
 
@@ -1057,7 +1062,7 @@ setMessages((prev) => {
           communities={communities} setActiveCommunity={setActiveCommunity}
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
           isNavigatingRef={isNavigatingRef} setMobileView={setMobileView} mobileView={mobileView}
-          setIsMinimized={setIsMinimized} isMinimized={isMinimized}
+          setIsMinimized={setIsMinimized} isMinimized={isMinimized} uiMode={uiMode}
         />
       ) : (
        <div className="flex-1 flex items-center justify-center px-6">
@@ -1097,6 +1102,7 @@ setMessages((prev) => {
       loadingChats={loadingChats}
       setMessages={setMessages}
       onHeaderClick={() => setShowSettings(false)}
+      uiMode={uiMode}
     />
   ) : (
     <div className="flex-1 flex items-center justify-center px-6">

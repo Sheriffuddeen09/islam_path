@@ -15,7 +15,7 @@ export default function CommunityPage({
   onClose, messagesCacheRef,
   authUser, chats, loadingChats, setActiveChat, messagesEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
-  communityMessages, setCommunityMessages, mobileView, setMobileView, setChats, setMessages, messageRefs,
+  communityMessages, setCommunityMessages, mobileViewCommunity, setMobileView, setChats, setMessages, messageRefs,
   setLastReadMessageId, setActiveCommunity, activeChat, uiMode
 }) {
 
@@ -121,35 +121,6 @@ export default function CommunityPage({
     hasLoaded.current = true;
 
     setCommunities(data);
-
-    // ✅ AUTO OPEN LAST COMMUNITY
-    const lastId =
-      localStorage.getItem(
-        "last_opened_community"
-      );
-       
-
-    if (lastId) {
-
-      const found = data.find(
-        (c) =>
-          Number(c.id) ===
-          Number(lastId)
-      );
-
-      if (
-        found &&
-        window.innerWidth >= 768
-      ) {
-
-        openCommunity(
-          found,
-          true
-        );
-      }
-      
-     
-    }
 
   } catch (err) {
 
@@ -269,47 +240,55 @@ const handleHide = async (
   };
 
   const goBack = () => {
-    if (
-      mobileView === "settingCommunitys"
-    ) {
       setMobileView(
         "communityMessages"
       );
-    } else {
-      setMobileView(
+  };
+
+  const goBackChannel = () => {
+     setMobileView(
         "sidebar"
       );
-    }
-  };
+  }
+
+
+
+  const isPopup = uiMode !== "full";
+
 
   return (
 
     <div
   className={`
-    ${uiMode === "popup" ? "fixed right-4 top-16 z-50" : "flex"}
-    
-    bg-[var(--bg-color)] overflow-hidden
+    ${isPopup ? "fixed z-40 shadow-xl" : "flex"}
 
-    ${uiMode === "popup"
-      ? "w-full h-full sm:w-[370px] sm:h-auto sm:rounded-xl shadow-xl"
-      : "h-screen w-full"}
+    ${isPopup ? "right-0 sm:right-10 sm:top-16" : ""}
+
+    ${isPopup
+      ? "w-full h-full sm:w-[340px] sm:h-[420px] sm:rounded-xl"
+      : "flex-1 h-screen w-full"
+    }
+
+    flex flex-col overflow-hidden
   `}
 >
-
-      <div
-        className={`
-          w-full
-          lg:w-[370px]
-
-          ${uiMode === "popup"
+     <div
+      className={`
+        w-full lg:w-[370px]
+        z-40
+        ${
+          isPopup
+            ? mobileViewCommunity === "sidebar"
+              ? "flex"
+              : "hidden"
+            : mobileViewCommunity === "sidebar"
             ? "flex"
-            : mobileView === "sidebar"
-            ? "flex"
-            : "hidden"}
-
-          lg:flex flex-col
-        `}
-      >
+            : "hidden"
+        }
+        sm:h-[420px]
+        lg:flex flex-col
+      `}
+    >
 
         <CommunityList
           communities={communities}
@@ -322,20 +301,32 @@ const handleHide = async (
         />
 
       </div>
-
+{activeCommunity && (
       <div
-        className={`
-          flex-1
+  className={`
+    ${
+      isPopup
+        ? mobileViewCommunity === "communityMessages"
+          ? "flex"
+          : "hidden"
+        : "flex-1"
+    }
 
-          ${uiMode === "popup"
-            ? "hidden"
-            : mobileView === "communityMessages"
-            ? "flex"
-            : "hidden"}
+    w-full
+    sm:w-[370px]
 
-          lg:flex flex-col
-        `}
-      >
+    fixed right-10
+    z-50
+
+    ${
+      isPopup
+        ? "sm:w-[370px] sm:h-[420px] sm:rounded-xl shadow-xl"
+        : ""
+    }
+
+    flex-col
+  `}
+>
 
         <CommunityMessages
           setChats={setChats} messagesCacheRef={messagesCacheRef}
@@ -348,24 +339,29 @@ const handleHide = async (
           communityMessages={communityMessages}
           setCommunityMessages={setCommunityMessages}
           onOpenSettings={openSettings}
-          onBack={goBack}
+          onBack={goBackChannel}
           loadingMessages={loadingMessages}
           openChat={openChat}
           onCloseChannel={onCloseChannel}
           messageRefs = {messageRefs}
           setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
+          uiMode={uiMode}
           
         />
 
       </div>
+)}
+{activeCommunity && mobileViewCommunity === 'settingCommunitys' && (
       <div
       className={`
         w-full
         lg:w-[370px]
+        z-50 fixed right-10
+        sm:h-[420px]
 
         ${uiMode === "popup"
           ? "hidden"
-          : mobileView === "settingCommunitys"
+          : mobileViewCommunity === "settingCommunitys"
           ? "flex"
           : "hidden"}
 
@@ -373,7 +369,7 @@ const handleHide = async (
       `}
     >
 
-        <CommunitySettings
+        <CommunitySettings uiMode={uiMode}
           activeCommunity={activeCommunity}
           authUser={authUser}
           onBack={goBack}
@@ -389,7 +385,101 @@ const handleHide = async (
         />
 
       </div>
+    )}
+          <div
+  className={`
+    ${isPopup
+      ? mobileViewCommunity === "communityMessages"
+        ? "flex"
+        : "hidden"
+      : "flex-1"
+    }
 
+    w-full
+    lg:w-auto
+    flex flex-col
+  `}
+>
+  {activeCommunity ? (
+    <CommunityMessages
+      setChats={setChats}
+      messagesCacheRef={messagesCacheRef}
+      chatLoading={loadingChats}
+      messagesEndRef={messagesEndRef}
+      authUser={authUser}
+      firstUnreadMessageId={firstUnreadMessageId}
+      setMessages={setMessages}
+      chats={chats}
+      authUserId={authUserId}
+      activeCommunity={activeCommunity}
+      setActiveChat={setActiveChat}
+      communityMessages={communityMessages}
+      setCommunityMessages={setCommunityMessages}
+      onOpenSettings={openSettings}
+      onBack={goBackChannel}
+      loadingMessages={loadingMessages}
+      openChat={openChat}
+      onCloseChannel={onCloseChannel}
+      messageRefs={messageRefs}
+      setLastReadMessageId={setLastReadMessageId}
+      setCommunities={setCommunities}
+      uiMode={uiMode}
+    />
+  ) : (
+    !isPopup && (
+      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
+        <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
+          💬
+        </div>
+        <p className="font-medium">No channel selected</p>
+        <p className="text-sm mt-1">
+          Select a channel to view messages
+        </p>
+      </div>
+    )
+  )}
+</div>
+
+{/* <div
+  className={`
+    w-full lg:w-[370px]
+
+    ${isPopup
+      ? "hidden"
+      : mobileViewCommunity === "settingCommunitys"
+      ? "flex"
+      : "hidden"}
+
+    lg:flex flex-col
+  `}
+>
+  {activeCommunity ? (
+    <CommunitySettings uiMode={uiMode}
+      activeCommunity={activeCommunity}
+      authUser={authUser}
+      onBack={goBack}
+      setActiveCommunity={setActiveCommunity}
+      setCommunityMessages={setCommunityMessages}
+      community={activeCommunity}
+      setExploreCommunities={setExploreCommunities}
+      setCommunities={setCommunities}
+      communities={communities}
+      chats={chats}
+      activeChat={activeChat}
+      setMessages={setCommunityMessages}
+    />
+  ) : (
+    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
+      <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
+        ⚙️
+      </div>
+      <p className="font-medium">No channel selected</p>
+      <p className="text-sm mt-1">
+        Select a channel to view settings
+      </p>
+    </div>
+  )}
+</div> */}
     </div>
   );
 }

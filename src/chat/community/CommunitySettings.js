@@ -14,7 +14,7 @@ export default function CommunitySettings({
   setCommunities,
   communities,
   chats, activeChat,
-  setMessages
+  setMessages, uiMode
 }) {
 
 
@@ -51,7 +51,7 @@ export default function CommunitySettings({
 
   return (
 
-    <div className="w-full h-full">
+    <div className="h-full max-h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
       <div className="h-16 shadow-md flex items-center gap-3 px-4">
@@ -59,14 +59,14 @@ export default function CommunitySettings({
         {/* MOBILE BACK */}
         <button
           onClick={onBack}
-          className="md:hidden">
+          className={`${uiMode !== "full" ? "block" : "hidden"}`}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
         </button>
-
+{/*   */}
         <h2 className="font-bold">
-          Community Settings
+          Channel Settings
         </h2>
 
       </div>
@@ -133,7 +133,8 @@ export default function CommunitySettings({
 
         {/* MEMBERS */}
         <MembersList activeCommunity={activeCommunity} currentUser={authUser} />
-
+        <div className={`flex-1 border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
+            ${uiMode !== "full" ? "overflow-y-auto h-32" : ""}`}>
         <CommunityActions isAdmin={isAdmin} 
           community={community}
           setCommunities={setCommunities}
@@ -146,6 +147,7 @@ export default function CommunitySettings({
           authUser={authUser}
           setMessages={setMessages}
           />
+          </div>
       </div>
 
     </div>
