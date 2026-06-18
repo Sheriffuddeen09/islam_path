@@ -150,6 +150,22 @@ const fetchChats = async () => {
       })
     );
 
+    const sorted = [...normalized].sort((a, b) => {
+      const aTime =
+        a.latest_message?.created_at ||
+        a.created_at ||
+        0;
+
+      const bTime =
+        b.latest_message?.created_at ||
+        b.created_at ||
+        0;
+
+      return new Date(bTime) - new Date(aTime);
+    });
+
+    setChats(sorted);
+
     setChats(normalized);
 
   } catch (err) {

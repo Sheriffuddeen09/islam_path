@@ -1,5 +1,6 @@
 import { Check, CheckCheck } from "lucide-react";
 import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
+import { useState } from "react";
 
 export default function ChatItem({
   chat,
@@ -9,6 +10,8 @@ export default function ChatItem({
   setUiMode
 }) {
   const other = chat.other_user || {};
+
+  const [showAvatarPreview, setShowAvatarPreview] = useState(false);
 
   const isRestrictedMember =
     chat.type === "group" &&
@@ -121,50 +124,46 @@ export default function ChatItem({
 
   return (
     <div
-      onClick={() => {
-        if (blockedMe) return;
-        openChat(chat);
-        // setUiMode("closed");        
-      }}
+     
       className={`flex gap-3 p-4 border-b transition relative
         ${blockedMe ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-r-4 border-blue-800 border-b-0"}
         ${activeChat?.id === chat.id ? "border-l-4 border-blue-800 border-b-0" : ""}
       `}
     >
       {/* AVATAR */}
-      <div className={`relative w-12 h-12 rounded-full overflow-hidden flex items-center 
-      justify-center font-bold text-2xl text-white ${getColor(
-            avatarName
-          )}`}>
-          {isGroup && chat.image_url ? (
-            <img
-              src={chat.image_url}
-              alt={displayName}   
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            getInitial(avatarName)
-          )}
+     <div
+  onClick={() => setShowAvatarPreview(true)}
+  className={`relative w-12 h-12 rounded-full overflow-hidden flex items-center 
+  justify-center font-bold text-2xl text-white cursor-pointer ${getColor(avatarName)}`}
+>
+  {isGroup && chat.image_url ? (
+    <img
+      src={chat.image_url}
+      alt={displayName}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    getInitial(avatarName)
+  )}
 
+  {/* ONLINE */}
+  {isOnline && (
+    <span className="absolute bottom-1 right-1 z-50 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+  )}
 
-        {/* ONLINE */}
-        {isOnline && (
-          <span className="absolute bottom-1 right-1 z-50 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
-        )}
-
-        {/* BLOCK OVERLAY */}
-        {blockedMe && (
-        <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white text-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-          </svg>
-
-        </div>
-      )}
-      </div>
+  {/* BLOCK OVERLAY */}
+  {blockedMe && (
+    <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
+      🔒
+    </div>
+  )}
+</div>
 
       {/* RIGHT bg-[var(--bg-color)] text-[var(--text-color)]*/}
-      <div className="flex-1 bg-[var(--bg-color)]">
+      <div className="flex-1 bg-[var(--bg-color)]"  onClick={() => {
+        if (blockedMe) return;
+        openChat(chat);      
+      }}>
 
         {/* TOP */}
         <div className="flex justify-between items-center">
@@ -178,7 +177,11 @@ export default function ChatItem({
         </div>
 
         {/* MESSAGE */}
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-2"
+         onClick={() => {
+        if (blockedMe) return;
+              openChat(chat);
+            }}>
 
           <span className="truncate max-w-[200px] text-sm">
             {isRestrictedMember ? (
@@ -261,6 +264,42 @@ export default function ChatItem({
           </span>
         )}
       </div>
+
+      {showAvatarPreview && (
+  <div
+    className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center"
+    onClick={() => setShowAvatarPreview(false)}
+  >
+    <div
+      className="relative"
+      onClick={(e) => e.stopPropagation()} // prevent close when clicking image
+    >
+      {isGroup && chat.image_url ? (
+        <img
+          src={chat.image_url}
+          alt={displayName}
+          className="w-72 h-64 sm:w-80 sm:h-80 object-cover rounded-xl shadow-2xl"
+        />
+      ) : (
+        <div
+          className={`w-64 h-72 sm:w-80 sm:h-80 flex items-center justify-center font-bold rounded-full text-white text-[180px] ${getColor(
+            avatarName
+          )}`}
+        >
+          {getInitial(avatarName)}
+        </div>
+      )}
+
+      {/* CLOSE BUTTON */}
+      {/* <button
+        onClick={() => setShowAvatarPreview(false)}
+        className="absolute -top-4 -right-4 bg-white text-black rounded-full py-1 px-2 shadow"
+      >
+        ✕
+      </button> */}
+    </div>
+  </div>
+)}
     </div>
   );
 }

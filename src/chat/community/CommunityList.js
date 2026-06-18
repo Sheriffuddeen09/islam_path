@@ -9,13 +9,15 @@ export default function CommunityList({
   setActiveCommunity,
   onClose,
   loading,
-  exploreCommunities, handleFollow, handleHide, followLoading
+  exploreCommunities, handleFollow, handleHide, followLoading, uiMode
 
 }) {
 
   const [showExplore, setShowExplore] =
   useState(false);
 
+  const [showAvatarPreview, setShowAvatarPreview] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
 
   
 
@@ -180,7 +182,7 @@ export default function CommunityList({
       ">
 
       {/* HEADER */}
-      <div className="h-16 px-4 sm:px-8 shadow-md  flex items-center justify-between">
+      <div className="h-16 px-4 shadow-md  flex items-center justify-between">
       <div className="inline-flex gap-3 items-center">
         <button
           onClick={onClose}
@@ -210,8 +212,8 @@ export default function CommunityList({
         onClick={() =>
           setShowExplore(true)
         }
-        className="font-bold text-lg px-2 py-0.5  rounded-xl border border-green-600 
-        inline-flex items-center gap-1"
+        className={`font-bold  text-lg px-2 py-0.5  rounded-xl border border-green-600 
+        inline-flex items-center gap-1 ${uiMode !== 'full' ? '-translate-x-7'  : '' }`}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
@@ -257,11 +259,7 @@ export default function CommunityList({
               return (
                 <button
                   key={community.id}
-                  onClick={() =>
-                    setActiveCommunity(
-                      community
-                    )
-                  }
+                  
                   className={`
                     w-full
                     p-4
@@ -284,7 +282,9 @@ export default function CommunityList({
                     }
                   `}
                 >
-               <div className="relative flex-shrink-0">
+               <div className="relative flex-shrink-0"
+               
+               >
                     {community.community_image ? (
                       <img
                         src={getImage(
@@ -309,9 +309,25 @@ export default function CommunityList({
                               "flex";
                           }
                         }}
+
+                        onClick={() => {
+                          setPreviewData({
+                            image: community.community_image,
+                            name: community.community_name,
+                          });
+                          setShowAvatarPreview(true);
+                        }}
                       />
                     ) : null}
                     <div
+
+                    onClick={() => {
+                      setPreviewData({
+                        image: community.community_image,
+                        name: community.community_name,
+                      });
+                      setShowAvatarPreview(true);
+                    }}
                       className={`
                         w-14
                         h-14
@@ -336,7 +352,12 @@ export default function CommunityList({
                       )}
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 text-left">
+                  <div className="flex-1 min-w-0 text-left"
+                  onClick={() =>
+                    setActiveCommunity(
+                      community
+                    )
+                  }>
                     <div className="flex items-center justify-between gap-2">
                       <h2 className="font-semibold truncate">
                         {
@@ -395,6 +416,7 @@ export default function CommunityList({
                 px-4
                 py-3
               "
+
             >
               {
                 community.community_image ? (
@@ -409,6 +431,13 @@ export default function CommunityList({
                       rounded-full
                       object-cover
                     "
+                     onClick={() => {
+                      setPreviewData({
+                        image: community.community_image,
+                        name: community.community_name,
+                      });
+                      setShowAvatarPreview(true);
+                    }}
                   />
                 ) : (
                   <div
@@ -428,6 +457,14 @@ export default function CommunityList({
                         )
                       }
                     `}
+
+                     onClick={() => {
+                        setPreviewData({
+                          image: community.community_image,
+                          name: community.community_name,
+                        });
+                        setShowAvatarPreview(true);
+                      }}
                   >
                     {
                       getInitial(
@@ -613,6 +650,14 @@ export default function CommunityList({
                         rounded-full
                         object-cover
                       "
+
+                       onClick={() => {
+                          setPreviewData({
+                            image: community.community_image,
+                            name: community.community_name,
+                          });
+                          setShowAvatarPreview(true);
+                        }}
                     />
 
                   ) : (
@@ -632,6 +677,13 @@ export default function CommunityList({
                           community.community_name
                         )}
                       `}
+                       onClick={() => {
+                        setPreviewData({
+                          image: community.community_image,
+                          name: community.community_name,
+                        });
+                        setShowAvatarPreview(true);
+                      }}
                     >
                       {getInitial(
                         community.community_name
@@ -711,7 +763,33 @@ export default function CommunityList({
 
   )
 }
-
+{showAvatarPreview && (
+  <div
+    className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center"
+    onClick={() => setShowAvatarPreview(false)}
+  >
+    <div
+      className="relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {previewData?.image ? (
+        <img
+          src={previewData.image}
+          alt={previewData.name}
+          className="w-72 h-64 sm:w-80 sm:h-80 object-cover rounded-xl shadow-2xl"
+        />
+      ) : (
+        <div
+          className={`w-64 h-72 sm:w-80 sm:h-80 flex items-center justify-center font-bold rounded-full text-white text-[180px] ${getColor(
+            previewData?.name
+          )}`}
+        >
+          {getInitial(previewData?.name)}
+        </div>
+      )}
+    </div>
+  </div>
+)}
     </div>
   );
 }

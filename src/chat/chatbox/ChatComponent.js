@@ -45,6 +45,34 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const [mobileViewCommunity, setMobileViewCommunity] = useState(window.innerWidth >= 768 ? "communityMessages" : "sidebarCommunitys");
     
 
+    const [showAvatarPreview, setShowAvatarPreview] = useState(false);
+    const isGroup = activeChat?.type === "group";
+    const displayName = isGroup
+      ? activeChat?.group_name || activeChat?.name || "Unnamed Group"
+      : `${activeChat?.other_user?.first_name || ""} ${activeChat?.other_user?.last_name || ""}`;
+  
+    const avatarName = isGroup
+      ? displayName
+      : activeChat?.other_user?.first_name;
+    
+    const colors = [
+        "bg-orange-500",
+        "bg-blue-500",
+        "bg-green-500",
+        "bg-purple-500",
+        "bg-pink-500"
+      ];
+    
+      const getColor = (name = "") => {
+        const index = name.charCodeAt(0) % colors.length;
+        return colors[index];
+      };
+    
+      const getInitial = (name) => {
+        if (!name) return "?";
+        return name.charAt(0).toUpperCase();
+      }; 
+
   const [communities,
     setCommunities] =
     useState([]);
@@ -117,34 +145,26 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   forceRefresh = false
 ) => {
 
+  setCommunityMessages([]);
+  setFirstUnreadMessageId(null);
+  setActiveChat(null); // 🔥 important if input depends on it
+
   setActiveCommunity(community);
 
-  localStorage.setItem(
-    "last_opened_community",
-    community.id
-  );
-
-  lastOpenedCommunity.current =
-    community;
+  localStorage.setItem("last_opened_community", community.id);
+  lastOpenedCommunity.current = community;
 
   if (window.innerWidth >= 768) {
-
-    setMobileViewCommunity(
-      "communityMessages"
-    );
-
+    setMobileViewCommunity("communityMessages");
   } else if (!skipMobile) {
-
-    setMobileViewCommunity(
-      "communityMessages"
-    );
+    setMobileViewCommunity("communityMessages");
   }
   const cached =
     communityMessagesCache.current[
       community.id
     ];
 
-  if (cached && !forceRefresh) {
+  if (cached && !forceRefresh && cached.messages?.length > 0) {
 
     setCommunityMessages(
       cached.messages
@@ -879,7 +899,7 @@ setMessages((prev) => {
           isMinimized={isMinimized}
           setIsMinimized={setIsMinimized}
           setUiMode={setUiMode}
-          setShowSettings={setShowSettings} onCloseAll={onCloseAll}
+          setShowSettings={setShowSettings} onCloseAll={onCloseAll} uiMode={uiMode}
        />
     </div>
     )}
@@ -890,7 +910,7 @@ setMessages((prev) => {
 
           bottom-0 right-0
           w-full h-full rounded-none
-
+          
           lg:bottom-0 lg:right-10 border-2 
           lg:w-[350px] lg:rounded-t-2xl
           ${isMinimized ? "lg:h-[80px]" : "lg:h-[500px]"}
@@ -943,38 +963,42 @@ setMessages((prev) => {
 
 
   )}
+{uiMode !== "full" && activeChat && showSettings && (
+  <div
+    className="
+      fixed inset-0 z-50   /* ✅ FULL SCREEN on mobile */
+      bg-white
 
-  {uiMode !== "full" && activeChat && showSettings && (
-      <div
-        className="
-           fixed z-50 shadow-xl
-          right-0 lg:right-96 lg:bottom-16
-          w-full h-full
-          lg:w-[340px] lg:h-[440px] lg:rounded-xl
-        "
-      >
-        <ActiveUsers
-          chats={chats}
-          activeChat={activeChat}
-          setActiveChat={setActiveChat}
-          setChats={setChats}
-          openChat={openChat}
-          loadingChats={loadingChats}
-          setMessages={setMessages}
-          onHeaderClick={() => setShowSettings(false)}
-          uiMode={uiMode}
-        />
-       </div>
-        )}
+      lg:inset-auto        /* reset for desktop */
+      lg:right-96 lg:bottom-16
+      lg:w-[340px] lg:h-[440px]
+      lg:rounded-xl shadow-xl
+    "
+  >
+    <ActiveUsers
+      avatarName={avatarName} isGroup={isGroup} displayName={displayName} 
+      getColor={getColor} getInitial={getInitial} 
+      setShowAvatarPreview={setShowAvatarPreview} 
+      chats={chats}
+      activeChat={activeChat}
+      setActiveChat={setActiveChat}
+      setChats={setChats}
+      openChat={openChat}
+      loadingChats={loadingChats}
+      setMessages={setMessages}
+      onHeaderClick={() => setShowSettings(false)}
+      uiMode={uiMode}
+    />
+  </div>
+)}
 
-        {uiMode === "full" && (
+  {uiMode === "full" && (
   <div className="flex h-screen w-full overflow-hidden z-50 fixed flex flex-row bg-[var(--bg-color)]
   text-[var(--text-color)]">
 
     <div className="w-[320px] border-r hidden lg:flex flex-col h-full">
      <ChatList
-          chatCommunitys={chats}
-          setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
+          chatCommunitys={chats} setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
@@ -1086,6 +1110,9 @@ setMessages((prev) => {
 
   {activeChat ? (
     <ActiveUsers
+      avatarName={avatarName} isGroup={isGroup} displayName={displayName} 
+      getColor={getColor} getInitial={getInitial} 
+      setShowAvatarPreview={setShowAvatarPreview} 
       chats={chats}
       activeChat={activeChat}
       setActiveChat={setActiveChat}
@@ -1117,6 +1144,38 @@ setMessages((prev) => {
   </div>
 )}
 
+
+{showAvatarPreview && (
+  <div
+    className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center"
+    onClick={() => setShowAvatarPreview(false)}
+  >
+    <div
+      className="relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {isGroup && activeChat?.image_url ? (
+        <img
+          src={activeChat.image_url}
+          alt={displayName}
+          className="w-72 h-72 sm:w-96 sm:h-96 object-cover rounded-2xl shadow-2xl"
+        />
+      ) : (
+        <div
+          className={`w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center 
+            text-white text-[180px] font-bold rounded-full ${getColor(
+            avatarName
+          )}`}
+        >
+          {getInitial(avatarName)}
+        </div>
+      )}
+
+      {/* CLOSE */}
+     
+    </div>
+  </div>
+)}
     
   </>
 

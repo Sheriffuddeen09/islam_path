@@ -1,5 +1,6 @@
 // CommunitySettings.jsx
 
+import { useState } from "react";
 import CommunityActions from "./CommunityActions";
 import MembersList from "./MembersList";
 
@@ -17,6 +18,9 @@ export default function CommunitySettings({
   setMessages, uiMode
 }) {
 
+
+    const [showAvatarPreview, setShowAvatarPreview] = useState(false);
+    const [previewData, setPreviewData] = useState(null);
 
    const colors = [
     "bg-orange-500",
@@ -81,7 +85,15 @@ export default function CommunitySettings({
               src={`
                 http://127.0.0.1:8000/storage/${activeCommunity.community_image}
               `}
-              className="w-24 h-24 rounded-full object-cover"
+              className="w-24 h-24 rounded-full object-cover cursor-pointer"
+
+               onClick={() => {
+                setPreviewData({
+                  image: activeCommunity.community_image,
+                  name: activeCommunity.community_name,
+                });
+                setShowAvatarPreview(true);
+              }}
             />
 
           ) : (
@@ -90,6 +102,7 @@ export default function CommunitySettings({
             <div
               className={`
                 w-24
+                cursor-pointer
                 h-24
                 rounded-full
                 flex
@@ -103,6 +116,13 @@ export default function CommunitySettings({
                   community.community_name
                 )}
               `}
+              onClick={() => {
+                setPreviewData({
+                  image: activeCommunity.community_image,
+                  name: activeCommunity.community_name,
+                });
+                setShowAvatarPreview(true);
+              }}
             >
               {getInitial(
                 community?.community_name
@@ -165,6 +185,34 @@ export default function CommunitySettings({
           />
           </div>
       </div>
+
+    {showAvatarPreview && (
+  <div
+    className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center"
+    onClick={() => setShowAvatarPreview(false)}
+  >
+    <div
+      className="relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {previewData?.image ? (
+        <img
+          src={previewData.image}
+          alt={previewData.name}
+          className="w-72 h-64 sm:w-80 sm:h-80 object-cover rounded-xl shadow-2xl"
+        />
+      ) : (
+        <div
+          className={`w-64 h-72 sm:w-80 sm:h-80 flex items-center justify-center font-bold rounded-full text-white text-[180px] ${getColor(
+            previewData?.name
+          )}`}
+        >
+          {getInitial(previewData?.name)}
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
     </div>
   );

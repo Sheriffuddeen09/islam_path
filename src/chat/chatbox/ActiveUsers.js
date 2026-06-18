@@ -34,7 +34,7 @@ export default function ActiveUsers({
   openChat, 
   setMessages,
   onHeaderClick,
-  uiMode
+  uiMode, setShowAvatarPreview, getColor, getInitial, avatarName, isGroup, displayName
 }) {
 
   const [copiedField, setCopiedField] = useState(null);
@@ -51,7 +51,6 @@ export default function ActiveUsers({
   
 
   const blockedMe = activeChat?.block_info?.blocked_me;
-
 
 
   const navigate = useNavigate();
@@ -149,30 +148,14 @@ export default function ActiveUsers({
   };
 
   
-   const colors = [
-    "bg-orange-500",
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-purple-500",
-    "bg-pink-500"
-  ];
-
-  const getColor = (name = "") => {
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
-
-  const getInitial = (name) => {
-    if (!name) return "?";
-    return name.charAt(0).toUpperCase();
-  }; 
+   
 
   const [showMembers, setShowMembers] = useState(false);
 
   
 
 
-    const isGroup = activeChat?.type === "group";
+    
     
 
     const members = activeChat?.members || [];
@@ -189,13 +172,7 @@ export default function ActiveUsers({
     const visibleMembers = sortedMembers.slice(0, 2);
     const extraCount = members.length - 2;
 
-  const displayName = isGroup
-    ? activeChat?.group_name || activeChat?.name || "Unnamed Group"
-    : `${activeChat?.other_user?.first_name || ""} ${activeChat?.other_user?.last_name || ""}`;
-
-  const avatarName = isGroup
-    ? displayName
-    : activeChat?.other_user?.first_name;
+  
 
 
   const filteredSearch = useMemo(() => {
@@ -261,10 +238,11 @@ export default function ActiveUsers({
      
 
       {/* PROFILE */}
-      <div className="flex flex-col items-center p-4 border-b bg-[var(--bg-color)] transition-all duration-300">
+     <div className="flex flex-col items-center p-4 border-b bg-[var(--bg-color)] transition-all duration-300">
 
         <div
-          className={`w-24 h-24 rounded-full mb-3 shadow-md hover:scale-105 transition flex items-center justify-center font-bold text-[60px] text-white ${getColor(
+          onClick={() => setShowAvatarPreview(true)}
+          className={`w-24 h-24 rounded-full mb-3 shadow-md hover:scale-105 transition cursor-pointer flex items-center justify-center font-bold text-[60px] text-white ${getColor(
             avatarName
           )}`}
         >
@@ -276,10 +254,9 @@ export default function ActiveUsers({
           ) : (
             getInitial(avatarName)
           )}
+        </div>
 
-      </div>
-
-        <h2 className="font-semibold text-lg font-bold inline-flex gap-2 items-center text-[var(--text-color)] font-bold">
+        <h2 className="font-semibold text-lg flex gap-2 items-center text-[var(--text-color)]">
           {displayName}
         </h2>
 
@@ -867,6 +844,8 @@ export default function ActiveUsers({
           chats={chats}
           onClose={() => setShowModal(false)}
           loadingUsers={loadingUsers}
+          setChats={setChats}
+          setActiveChat={setActiveChat}
         />
       )}
 

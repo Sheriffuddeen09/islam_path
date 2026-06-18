@@ -169,7 +169,8 @@ export default function AddMemberModal({ chat, onClose, setActiveChat }) {
         </div>
 
         {/* LIST */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thumb-green-500 scrollbar-track-transparent
+        scrollbar-thin">
 
           {/* 🔥 LOADING SKELETON */}
           {loadingUsers ? (

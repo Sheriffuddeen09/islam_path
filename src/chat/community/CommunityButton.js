@@ -15,7 +15,8 @@ export default function CommunityButton({
 
   chatListRef,
   onOpenChannel,
-  setShowCommunityModal
+  setShowCommunityModal,
+  
 
 }) {
 
@@ -72,17 +73,13 @@ export default function CommunityButton({
   return (
 
     <div
-      className={`relative transition-all duration-300 ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "translate-y-24 opacity-0"
-      }`}
+      className={`relative transition-all duration-300`}
     >
 
       {/* MENU */}
       {open && (
 
-        <div className="-translate-y-24 -translate-x-2 flex flex-col items-end gap-3 mb-4">
+        <div className=" absolute right-4 bottom-20 flex flex-col items-end gap-3 mb-4">
 
           {/* CHANNEL */}
           <button

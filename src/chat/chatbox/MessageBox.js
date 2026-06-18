@@ -455,12 +455,14 @@ const firstUnreadMessageId =
 
 
   return (
-    <div className="flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative">
+    <div className={`flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative
+      ${uiMode !== 'full' ? 'border lg:rounded-2xl' : ''}`}>
 
-      {/* HEADER yet */}
+      {/* HEADER yet  */}
       
       <div className="hidden lg:block">
-     <div className="px-3 border-b-2 shadow py-1 border-white flex justify-between items-center bg-[var(--bg-color)] text-[var(--text-color)]">
+     <div className={`px-3 border-b-2 shadow py-1 border-white flex justify-between items-center 
+      bg-[var(--bg-color)] text-[var(--text-color)] ${uiMode !== 'full' ? 'border lg:rounded-tr-2xl lg:rounded-tl-2xl' : ''}`}>
          
           <div onClick={onToggleSettings} className="inline-flex gap-4 items-center cursor-pointer">
              <div

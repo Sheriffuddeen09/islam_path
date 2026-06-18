@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../Api/imageAxios";
 import { CheckCircle, Circle, Loader2 } from "lucide-react";
 
-export default function CreateGroupModal({ chats = [], onClose, loadingUsers }) {
+export default function CreateGroupModal({ chats = [], onClose, loadingUsers, setChats, setActiveChat }) {
   const [step, setStep] = useState(1);
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -57,9 +57,6 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers }) 
 
   });
 
-  // =============================
-  // Avatar Preview
-  // =============================
   useEffect(() => {
     if (!groupImage) return;
     const url = URL.createObjectURL(groupImage);
@@ -68,9 +65,7 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers }) 
     return () => URL.revokeObjectURL(url);
   }, [groupImage]);
 
-  // =============================
-  // Group Users by First Letter
-  // =============================
+ 
   const groupedSelected = selectedUsers.reduce((acc, user) => {
     const letter = user.first_name.charAt(0).toUpperCase();
     if (!acc[letter]) acc[letter] = [];
@@ -78,42 +73,57 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers }) 
     return acc;
   }, {});
 
-  // =============================
-  // Create Group API
-  // =============================
-  const createGroup = async () => {
+ 
+ const createGroup = async () => { 
   if (!groupName.trim()) return setToast("Group name required");
 
   const formData = new FormData();
   formData.append("name", groupName);
   formData.append("only_admin_send", onlyAdminCanSend ? 1 : 0);
 
-  console.log("groupImage:", groupImage);
-  console.log("type:", typeof groupImage);
-
   selectedUsers.forEach((u) => {
     formData.append("users[]", u.id);
   });
 
-  if (groupImage && groupImage instanceof File) {
+  if (groupImage instanceof File) {
     formData.append("image", groupImage);
-  } else {
-    console.log("Invalid image file:", groupImage);
   }
 
   setCreateLoading(true);
 
   try {
-    await api.post("/api/groups", formData); // no headers needed
+    const res = await api.post("/api/groups", formData);
+
+    const newGroup =
+      res.data.group ||
+      res.data.data ||
+      res.data;
+
+    const normalizedGroup = {
+      ...newGroup,
+      membership_status: "approved",
+      my_role: "admin",
+      only_admin_send: onlyAdminCanSend ? 1 : 0,
+      unread_count: 0,
+      type: "group",
+    };
+
+    setChats(prev => [normalizedGroup, ...prev]);
+
+   
+    setToast("Group created successfully");
+
     onClose();
+
   } catch (err) {
     console.error(err.response?.data || err.message);
+    setToast("Failed to create group");
   } finally {
     setCreateLoading(false);
   }
 };
 
-  
+
   const colors = [
       "bg-orange-500",
       "bg-blue-500",
@@ -143,7 +153,8 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers }) 
     };
 
   return (
-    <div className="fixed inset-0 bg-[#0B141A] text-white z-50 overflow-auto">
+    <div className="fixed inset-0 bg-[#0B141A] text-white z-50 overflow-auto scrollbar-thumb-green-500 scrollbar-track-transparent
+        scrollbar-thin">
 
       {/* ===================== STEP 1 ===================== */}
       {step === 1 && (

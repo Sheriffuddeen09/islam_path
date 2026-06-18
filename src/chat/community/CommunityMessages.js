@@ -749,6 +749,11 @@ const resendCommunityFile =
           setMessages={setCommunityMessages}
           isAdmin={isAdmin}
           />
+
+        <div className="mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold rounded-lg sm:w-80 w-72 text-[10px] p-3">
+          Messages in this channel are end-to-end encrypted. Only members of this channel can view or interact with posts.
+          Admins can share updates and content. Calls and video calls are not available in channels.
+        </div>
             
     {isAdmin &&
       pendingMessages.length > 0 && (

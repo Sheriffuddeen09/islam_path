@@ -26,6 +26,9 @@ export default function CommunityInput({
       showSendOptions, setShowSendOptions}) {
 
 
+        
+
+
     const handleFileChange = (e) => {
   const selectedFiles = Array.from(e.target.files);
 

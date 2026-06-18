@@ -15,6 +15,9 @@ export default function CreateCommunityModal({
   chats = [],
   onClose,
   loadingUsers,
+  setActiveCommunity,
+  setCommunities,
+  setMobileViewCommunity
 
 }) {
 
@@ -144,82 +147,57 @@ export default function CreateCommunityModal({
   };
 
 
-  const createCommunity =
-  async () => {
+  const createCommunity = async () => {
+  if (!communityName.trim()) return;
 
-    if (
-      !communityName.trim()
-    ) return;
+  const formData = new FormData();
 
-    const formData =
-      new FormData();
+  formData.append("community_name", communityName);
+  formData.append("community_description", description);
+  formData.append("only_admin_can_message", onlyAdminCanSend ? 1 : 0);
 
-    formData.append(
-      "community_name",
-      communityName
+  selectedUsers.forEach(user => {
+    formData.append("users[]", user.id);
+  });
+
+  if (communityImage instanceof File) {
+    formData.append("community_image", communityImage);
+  }
+
+  setCreateLoading(true);
+
+  try {
+    const res = await api.post(
+      "/api/communities/create",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
-    formData.append(
-      "community_description",
-      description
-    );
+   const newCommunity = res.data.community;
 
-    formData.append(
-      "only_admin_can_message",
-      onlyAdminCanSend
-        ? 1
-        : 0
-    );
+    newCommunity.is_admin = true;
+    newCommunity.role = "admin";
+    newCommunity.status = "approved";
 
-    selectedUsers.forEach(
-      user => {
+    setCommunities(prev => [newCommunity, ...prev]);
 
-      formData.append(
-        "users[]",
-        user.id
-      );
+    setActiveCommunity(null);
+    setMobileViewCommunity("sidebarCommunitys");
 
-    });
+onClose();
 
-    if (
-      communityImage instanceof File
-    ) {
+    onClose();
 
-      formData.append(
-        "community_image",
-        communityImage
-      );
-    }
-
-    setCreateLoading(true);
-
-    try {
-
-      await api.post(
-                "/api/communities/create",
-                formData,
-                {
-                    headers: {
-                    "Content-Type": "multipart/form-data",
-                    },
-                }
-        );
-
-      onClose();
-
-    } catch (err) {
-
-      console.log(
-        err.response?.data ||
-        err.message
-      );
-
-    } finally {
-
-      setCreateLoading(false);
-    }
-  };
-
+  } catch (err) {
+    console.log(err.response?.data || err.message);
+  } finally {
+    setCreateLoading(false);
+  }
+};
 
   const groupedSelected =
     selectedUsers.reduce(
@@ -248,7 +226,7 @@ export default function CreateCommunityModal({
 
       {step === 1 && (
 
-        <div className=" relative p-4 w-full max-w-md flex h-full shadow-md rounded-lg overflow-auto-y flex-col mx-auto bg-[var(--bg-color)]
+        <div className=" relative p-4 w-full max-w-md border flex h-full shadow-md rounded-xl overflow-auto-y flex-col mx-auto bg-[var(--bg-color)]
          text-[var(--text-color)]">
 
           <div className="flex items-center gap-3 mb-4">
@@ -486,7 +464,7 @@ export default function CreateCommunityModal({
       {/* STEP 2 */}
       {step === 2 && (
 
-         <div className=" relative p-4 w-full max-w-md flex h-full shadow-sm rounded-lg overflow-auto-y flex-col mx-auto bg-[var(--bg-color)]
+         <div className=" relative p-4 w-full max-w-md flex h-full border flex h-full shadow-md rounded-xl overflow-auto-y flex-col mx-auto bg-[var(--bg-color)]
          text-[var(--text-color)]">
 
 
@@ -681,7 +659,7 @@ export default function CreateCommunityModal({
                       className="text-red-400"
                     >
 
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
 

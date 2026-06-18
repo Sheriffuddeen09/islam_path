@@ -244,13 +244,9 @@ const handleHide = async (
   };
 
   const goBackChannel = () => {
-  console.log("CLICKED BACK");
   setMobileViewCommunity("sidebarCommunitys");
 };
 
-useEffect(() => {
-  console.log("community view:", mobileViewCommunity);
-}, [mobileViewCommunity]);
 
 
   const isPopup = uiMode !== "full";
@@ -260,29 +256,29 @@ useEffect(() => {
     <>
     <div
   className={`
-    ${isPopup ? "fixed z-40 shadow-xl" : "flex"}
+    ${isPopup ? "fixed z-50" : "flex"}
 
     ${isPopup ? "right-0 lg:right-10 lg:top-16" : ""}
 
     ${isPopup
-      ? "w-full h-full lg:w-[340px] lg:h-[420px] lg:rounded-xl"
+      ? "w-full h-full lg:w-[340px] lg:h-[410px] lg:rounded-xl"
       : "flex-1 lg:h-screen w-full"
     }
 
-    flex flex-col overflow-hidden
+    flex flex-col overflow-hidden shadow-md border 
   `}
 >
   {uiMode !== "full" &&
       <div
         className={`
-          w-full lg:w-[370px]
-          z-40
+          w-full lg:w-[370px] lg:h-[410px]
+          z-50
           ${mobileViewCommunity === "sidebarCommunitys" ? "flex" : "hidden"}
           lg:flex flex-col
         `}
       >
 
-        <CommunityList
+        <CommunityList uiMode={uiMode}
           communities={communities}
           activeCommunity={activeCommunity}
           followLoading={followLoading}
@@ -377,7 +373,7 @@ useEffect(() => {
   text-[var(--text-color)]">
 
     <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
-      <CommunityList
+      <CommunityList uiMode={uiMode}
           communities={communities}
           activeCommunity={activeCommunity}
           followLoading={followLoading}

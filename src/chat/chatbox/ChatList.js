@@ -248,7 +248,8 @@ export default function ChatList({
       </div>
 
       {/* CHAT LIST shadow */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thumb-gray-50 scrollbar-track-transparent 
+      scrollbar-thin">
 
         {loadingChats && <ChatSkeleton type="list" />}
 
@@ -350,7 +351,7 @@ export default function ChatList({
           }
       </div>
       {
-        <div className={`${showChannel === true ? 'hidden' : 'block'}`}>
+        <div className={`bg-transparent ${showChannel === true ? 'hidden' : 'block'}`}>
 
       <CommunityButton
         chatListRef={chatListRef}
@@ -392,6 +393,10 @@ export default function ChatList({
         onClose={() =>
           setShowCommunityModal(false)
         }
+        setActiveCommunity={setActiveCommunity}
+        setCommunities={setCommunities}
+        setMobileViewCommunity={setMobileViewCommunity}
+        openCommunity={openCommunity}
       />
     )}
 

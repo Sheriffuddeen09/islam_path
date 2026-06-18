@@ -45,17 +45,14 @@ export default function InputComponent({activeCommunity,
   const fileInputRefCommunity = useRef(null);
 
 
- const role =
-  activeCommunity?.my_role;
-
   const status =
     activeCommunity?.membership_status;
-  // ✅ OWNER OR ADMIN
-  const isAdmin =
-    role === "admin" ||
-    role === "owner";
 
-  // ✅ COMMUNITY SETTING
+    const isAdmin =
+  activeCommunity?.creator_id === authUser.id ||
+  activeCommunity?.owner_id === authUser.id;
+
+
   const onlyAdminSend =
     Boolean(
       activeCommunity?.only_admin_can_message
@@ -74,19 +71,15 @@ export default function InputComponent({activeCommunity,
 
   // ✅ SEND LOGIC
   const canSendMessage =
-    isAdmin ||
-    (
-      status === "approved" &&
-      !onlyAdminSend
-    );
+  isAdmin ||
+  (status === "approved" && !onlyAdminSend);
 
   // ✅ FINAL BLOCK
   const blockAllInput =
-
-    isPending ||
-    isRejected ||
-    isRemoved ||
-    !canSendMessage;
+  isPending === true ||
+  isRejected === true ||
+  isRemoved === true ||
+  (status && !canSendMessage);
 
     
 const stopRecordingCommunity = async () => {
@@ -585,6 +578,8 @@ const sendFileCommunity = async (
       "";
   }
 };
+
+
 
 
 return (
