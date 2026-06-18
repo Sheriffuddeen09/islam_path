@@ -19,7 +19,6 @@ export default function MessageBox({
   isTyping,
   setIsTyping,
   onBack,
-  onHeaderClick,
   chatId,
   bottomRef,
   setToast,
@@ -595,24 +594,17 @@ const firstUnreadMessageId =
 
         {/* LEFT */}
         <div className="inline-flex gap-3 items-center flex-1 min-w-0">
-          
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="size-6 cursor-pointer flex-shrink-0 text-[var(--text-color)]"
-          onClick={() => {
+           onClick={() => {
             setActiveChat(null);
             setIsMinimized(false);
           }}
-        >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
+          stroke="currentColor" class="size-6 cursor-pointer text-[var(--text-color)]">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
-
           <div
-            onClick={onHeaderClick}
+            onClick={onToggleSettings}
             className="flex items-center gap-2 min-w-0"
           >
               <div

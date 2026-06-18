@@ -201,8 +201,6 @@ const handleDownloadMessage =
     }
 };
 
-    console.log(msg);
-
 
      return (
         <div>

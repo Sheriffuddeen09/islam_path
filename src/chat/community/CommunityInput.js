@@ -3,6 +3,7 @@ import VoiceWave from "../chatbox/VoiceWave";
 import EmojiPicker from "emoji-picker-react";
 import MediaCommunityPreviewModal from "./MediaCommunityPreviewModal";
 import AttachmentMenuCommunity from "./AttachmentMenuCommunity";
+import api from "../../Api/axios";
 
 
 export default function CommunityInput({
@@ -10,7 +11,7 @@ export default function CommunityInput({
    activeCommunity, authUser,sendFileCommunity, files, fileInputRefCommunity,
         stopRecordingCommunity, sendTextCommunity, showEmojiCommunity,setShowEmojiCommunity,
         holdTimeoutCommunity,duration, setDuration, showMenuCommunity, setShowMenuCommunity,
-        showConfirmCommunity, setShowConfirmCommunity, fileTypeCommunity, setFileTypeCommunity,
+        setShowConfirmCommunity, fileTypeCommunity, setFileTypeCommunity,
         setSelectedTypeCommunity, dragTypeCommunity, setDragTypeCommunity,
         pausedRefCommunity, textareaRefCommunity, paused, setPaused, showPreviewCommunity,
         setShowPreviewCommunity, selectedCommunity,setSelectedCommunity, cropAppliedMapCommunity,
@@ -18,7 +19,9 @@ export default function CommunityInput({
         durationMapCommunity, setDurationMapCommunity, trimAppliedMapCommunity, setTrimAppliedMapCommunity,
         recordingCommunity, setRecordingCommunity, setFiles, previewUrlsCommunity, status,
         setPreviewUrlsCommunity, captionCommunity, setCaptionCommunity, replyingToCommunity, blockAllInput,
-       textCommunity, setTextCommunity, onlyAdminSend, isAdmin, setReplyingToCommunity, timerRefCommunity,
+       textCommunity, setTextCommunity, unreadCount, showScrollButton, setShowScrollButton, communityMessages,
+       setLastReadMessageId, myId, setCommunities, latestMessage, messagesEndRef,
+       setReplyingToCommunity, timerRefCommunity,
        audioChunksRefCommunity, mediaRecorderRefCommunity, croppedImagesCommunity, setCroppedImagesCommunity,
       showSendOptions, setShowSendOptions}) {
 
@@ -186,7 +189,107 @@ const handlePick = (type) => {
 
 
   return (
-      <>
+      <div className="relative">
+
+      
+          {
+          showScrollButton && (
+
+            <div
+              onClick={async () => {
+
+                messagesEndRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "end",
+                });
+
+                setShowScrollButton(false);
+
+                const latestMessage =
+                  communityMessages[
+                    communityMessages.length - 1
+                  ];
+
+                if (latestMessage) {
+
+                  setLastReadMessageId(
+                    latestMessage.id
+                  );
+                }
+
+                setCommunities(prev =>
+                  prev.map(c =>
+                    c.id === activeCommunity?.id
+                      ? {
+                          ...c,
+                          unread_count: 0,
+                        }
+                      : c
+                  )
+                );
+
+                try {
+
+                  await api.post(
+                    `/api/communities/${activeCommunity.id}/mark-read`
+                  );
+
+                } catch (err) {
+
+                  console.error(
+                    "Failed to mark read",
+                    err
+                  );
+                }
+
+              }}
+              className="
+              
+                absolute
+                right-6
+                inline-flex
+                items-center
+                bottom-20
+                gap-1
+                bg-blue-800
+                text-white
+                px-2
+                py-1
+                rounded-full
+                cursor-pointer
+              "
+            >
+
+              {
+                unreadCount > 0 &&
+                latestMessage?.sender_id !== myId && (
+
+                  <span className="text-xs font-semibold">
+
+                    {unreadCount}
+
+                  </span>
+                )
+              }
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-3"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+                />
+              </svg>
+
+            </div>
+          )
+        }
   
     {!blockAllInput && (
       <>
@@ -504,6 +607,6 @@ const handlePick = (type) => {
     showSendOptions={showSendOptions} setShowSendOptions={setShowSendOptions}
   />
   
-      </> 
+      </div> 
   )
   }

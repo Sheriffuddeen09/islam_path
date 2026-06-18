@@ -82,7 +82,7 @@ export default function CommunityButton({
       {/* MENU */}
       {open && (
 
-        <div className="-translate-y-20 flex flex-col items-end gap-3 mb-4">
+        <div className="-translate-y-24 -translate-x-2 flex flex-col items-end gap-3 mb-4">
 
           {/* CHANNEL */}
           <button

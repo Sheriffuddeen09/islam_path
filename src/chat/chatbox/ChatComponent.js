@@ -13,7 +13,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     chatId, setMobileView, bottomRef, openChat, isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
     messagesCacheRef, isNavigatingRef, setShowSettings, showSettings, uiMode, isMinimized,
-    setIsMinimized, onSeeAll, setUiMode
+    setIsMinimized,  setUiMode
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -42,7 +42,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const timerRef = useRef(null)
 
     const [showChannel, setShowChannel] = useState(false);
-    const [mobileViewCommunity, setMobileViewCommunity] = useState(window.innerWidth >= 768 ? "communityMessages" : "sidebar");
+    const [mobileViewCommunity, setMobileViewCommunity] = useState(window.innerWidth >= 768 ? "communityMessages" : "sidebarCommunitys");
     
 
   const [communities,
@@ -72,12 +72,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   const communityMessagesCache =
   useRef({});
     
-    const openSettings = () => {
-    setMobileViewCommunity(
-      "settings"
-    );
-  };
-
   const toggleMinimize = () => {
     setIsMinimized((prev) => !prev);
   };
@@ -848,13 +842,13 @@ setMessages((prev) => {
     {uiMode === "popup" && !activeChat && (
       <div className="
         fixed z-50 shadow-xl
-        right-0 sm:right-10 sm:top-16
+        right-0 lg:right-10 lg:top-16
         w-full h-full
-        sm:w-[340px] sm:h-[400px] sm:rounded-xl
+        lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
       <ChatList
           chatCommunitys={chats}
-          setMobileView={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
+          setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
@@ -897,9 +891,9 @@ setMessages((prev) => {
           bottom-0 right-0
           w-full h-full rounded-none
 
-          sm:bottom-0 sm:right-10 border-2 
-          sm:w-[350px] sm:rounded-t-2xl
-          ${isMinimized ? "sm:h-[80px]" : "sm:h-[500px]"}
+          lg:bottom-0 lg:right-10 border-2 
+          lg:w-[350px] lg:rounded-t-2xl
+          ${isMinimized ? "lg:h-[80px]" : "lg:h-[500px]"}
         `}
       >
       <MessageBox
@@ -918,7 +912,6 @@ setMessages((prev) => {
           loadingMessages={loadingMessages}
           isTyping={isTyping}
           setIsTyping={setIsTyping}
-          onHeaderClick={openSettings}
           onBack={goBack}
           chatId={chatId}
           bottomRef={bottomRef}
@@ -955,9 +948,9 @@ setMessages((prev) => {
       <div
         className="
            fixed z-50 shadow-xl
-          right-0 sm:right-96 sm:bottom-16
+          right-0 lg:right-96 lg:bottom-16
           w-full h-full
-          sm:w-[340px] sm:h-[440px] sm:rounded-xl
+          lg:w-[340px] lg:h-[440px] lg:rounded-xl
         "
       >
         <ActiveUsers
@@ -978,10 +971,10 @@ setMessages((prev) => {
   <div className="flex h-screen w-full overflow-hidden z-50 fixed flex flex-row bg-[var(--bg-color)]
   text-[var(--text-color)]">
 
-    <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
+    <div className="w-[320px] border-r hidden lg:flex flex-col h-full">
      <ChatList
           chatCommunitys={chats}
-          setMobileView={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
+          setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
@@ -1038,7 +1031,6 @@ setMessages((prev) => {
           loadingMessages={loadingMessages}
           isTyping={isTyping}
           setIsTyping={setIsTyping}
-          onHeaderClick={openSettings}
           onBack={goBack}
           chatId={chatId}
           bottomRef={bottomRef}

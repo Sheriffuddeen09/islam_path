@@ -9,7 +9,7 @@ export default function CommunityMessages({
   activeCommunity,
   communityMessages,
   setCommunityMessages,
-  onBack,
+  goBackChannel,
   authUser,
   loadingMessages, messagesCacheRef, messagesEndRef, firstUnreadMessageId, authUserId,
   chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageRefs, 
@@ -581,7 +581,7 @@ const resendCommunityFile =
 
   return (
 
-    <div className="h-full max-h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
      
@@ -597,26 +597,25 @@ const resendCommunityFile =
 
           {/* LEFT SIDE */}
           <div className="inline-flex items-center gap-3"> 
-           <button
-              className={`${uiMode !== 'full' ? 'block' : 'hidden' }`}
-              onClick={onBack}
+          <button
+            className={`z-50 ${uiMode !== "full" ? "block" : "hidden"}`}
+            onClick={goBackChannel}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-6"
             >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  className="size-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                  />
-                </svg>
-            </button>
-         <div
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+              />
+            </svg>
+          </button>         <div
         onClick={() => {
           if (uiMode !== "full") {
             onOpenSettings?.();
@@ -810,105 +809,6 @@ const resendCommunityFile =
           <div ref={messagesEndRef} />
           </div>
 
-          {
-          showScrollButton && (
-
-            <div
-              onClick={async () => {
-
-                messagesEndRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "end",
-                });
-
-                setShowScrollButton(false);
-
-                const latestMessage =
-                  communityMessages[
-                    communityMessages.length - 1
-                  ];
-
-                if (latestMessage) {
-
-                  setLastReadMessageId(
-                    latestMessage.id
-                  );
-                }
-
-                setCommunities(prev =>
-                  prev.map(c =>
-                    c.id === activeCommunity?.id
-                      ? {
-                          ...c,
-                          unread_count: 0,
-                        }
-                      : c
-                  )
-                );
-
-                try {
-
-                  await api.post(
-                    `/api/communities/${activeCommunity.id}/mark-read`
-                  );
-
-                } catch (err) {
-
-                  console.error(
-                    "Failed to mark read",
-                    err
-                  );
-                }
-
-              }}
-              className="
-                fixed
-                bottom-28
-                lg:right-80
-                right-6
-                lg:-translate-x-16
-                inline-flex
-                items-center
-                gap-1
-                bg-blue-800
-                text-white
-                px-2
-                py-1
-                rounded-full
-                cursor-pointer
-              "
-            >
-
-              {
-                unreadCount > 0 &&
-                latestMessage?.sender_id !== myId && (
-
-                  <span className="text-xs font-semibold">
-
-                    {unreadCount}
-
-                  </span>
-                )
-              }
-
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                className="size-3"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
-                />
-              </svg>
-
-            </div>
-          )
-        }
 
         <InputComponent
           activeCommunity={
@@ -921,6 +821,9 @@ const resendCommunityFile =
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
           communityMessageAction={communityMessageAction}
           bottomRef={messagesEndRef}
+          unreadCount={unreadCount} showScrollButton={showScrollButton} setShowScrollButton={setShowScrollButton}
+          communityMessages={communityMessages} setLastReadMessageId={setLastReadMessageId} myId={myId} 
+          setCommunities={setCommunities} latestMessage={latestMessage} messagesEndRef={messagesEndRef}
        />
 
       </div>

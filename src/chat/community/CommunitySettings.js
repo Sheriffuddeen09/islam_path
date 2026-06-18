@@ -133,8 +133,24 @@ export default function CommunitySettings({
 
         {/* MEMBERS */}
         <MembersList activeCommunity={activeCommunity} currentUser={authUser} />
-        <div className={`flex-1 border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
+        <div className={`lg:block hidden border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
             ${uiMode !== "full" ? "overflow-y-auto h-32" : ""}`}>
+        <CommunityActions isAdmin={isAdmin} 
+          community={community}
+          setCommunities={setCommunities}
+          setExploreCommunities={setExploreCommunities}
+          activeCommunity={activeCommunity}
+          setActiveCommunity={setActiveCommunity}
+          setCommunityMessages={setCommunityMessages}
+          communities={communities} chats={chats} 
+          activeChat={activeChat}
+          authUser={authUser}
+          setMessages={setMessages}
+          />
+          </div>
+
+          <div className={`lg:hidden block border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
+            ${uiMode !== "full" ? "md:h-full h-60" : ""}`}>
         <CommunityActions isAdmin={isAdmin} 
           community={community}
           setCommunities={setCommunities}

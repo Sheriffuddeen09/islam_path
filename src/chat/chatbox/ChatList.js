@@ -19,7 +19,7 @@ export default function ChatList({
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
   messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId,
-  mobileViewCommunity, setMobileView, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll
+  mobileViewCommunity, setMobileViewCommunity, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll
 }) {
   const { user: authUser } = useAuth();
 
@@ -113,7 +113,7 @@ export default function ChatList({
   return (
     <div className="h-full max-h-full rounded-xl flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] relative">
 
-      <div className="flex items-center justify-between px-3 py-2 border-b">
+      <div className="flex items-center justify-between px-3 lg:py-2 py-4 border-b">
         <h1 className="text-2xl font-bold inline-flex gap-2 items-center">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z" />
@@ -121,7 +121,9 @@ export default function ChatList({
         <p>Chat</p>
           
           </h1>
-         {/* 🔳 SEE ALL (ONLY IN POPUP MODE) */}
+         {/* 🔳 SEE ALL (ONLY IN POPUP MODE)
+          
+          */}
 <div className="flex gap-3 ml-auto items-center">
 
   {/* ❌ CLOSE BUTTON (ONLY IN FULL MODE) */}
@@ -140,12 +142,44 @@ export default function ChatList({
     </button>
   )}
 
+  {uiMode !== "full" && (
+    <button
+      onClick={() => {
+        setActiveChat(null);
+        setUiMode("closed");
+      }}
+      className="p-1 rounded-full lg:hidden block hover:bg-gray-100 transition"
+      title="Close"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
+          stroke="currentColor" class="size-6 cursor-pointer text-[var(--text-color)] rotate-180">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+    </button>
+  )}
+
+  {uiMode !== "full" && (
+    <button
+      onClick={() => {
+        setActiveChat(null);
+        setUiMode("closed");
+      }}
+      className="p-1 rounded-full lg:block hidden  hover:bg-gray-100 transition"
+      title="Close"
+    >
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+
+    </button>
+  )}
+
   {/* 🔳 SEE ALL (ONLY IN POPUP MODE) */}
       {uiMode !== "full" && onSeeAll && (
         <button
           title="See all in Messenger"
           onClick={onSeeAll}
-          className="p-1 rounded-full hover:bg-gray-100 transition text-blue-800"
+          className="p-1 rounded-full hover:bg-gray-100 lg:block hidden transition text-blue-800"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -315,12 +349,17 @@ export default function ChatList({
           
           }
       </div>
+      {
+        <div className={`${showChannel === true ? 'hidden' : 'block'}`}>
 
       <CommunityButton
         chatListRef={chatListRef}
         onOpenChannel={() => setShowChannel(true)}
         setShowCommunityModal={setShowCommunityModal}
       />
+      
+        </div>
+      }
 
       <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
         <CommunityPage
@@ -340,7 +379,7 @@ export default function ChatList({
           loadingMessages={loadingMessagesCommunity}
           lastOpenedCommunity ={lastOpenedCommunity} messagesCache ={messagesCache}
           openChat={openChat} communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
-          mobileViewCommunity={mobileViewCommunity} setMobileView={setMobileView}
+          mobileViewCommunity={mobileViewCommunity} setMobileViewCommunity={setMobileViewCommunity}
           setChats={setChats} setMessages={setMessages} messageRefs={messageRefs}
           messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
           authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} uiMode={uiMode}

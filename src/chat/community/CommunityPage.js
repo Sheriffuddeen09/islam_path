@@ -3,9 +3,7 @@ import {
   useRef,
   useState
 } from "react";
-
 import api from "../../Api/axios";
-
 import CommunityList from "./CommunityList";
 import CommunityMessages from "./CommunityMessages";
 import CommunitySettings from "./CommunitySettings";
@@ -15,7 +13,7 @@ export default function CommunityPage({
   onClose, messagesCacheRef,
   authUser, chats, loadingChats, setActiveChat, messagesEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
-  communityMessages, setCommunityMessages, mobileViewCommunity, setMobileView, setChats, setMessages, messageRefs,
+  communityMessages, setCommunityMessages, mobileViewCommunity, setMobileViewCommunity, setChats, setMessages, messageRefs,
   setLastReadMessageId, setActiveCommunity, activeChat, uiMode
 }) {
 
@@ -234,61 +232,55 @@ const handleHide = async (
 };
 
   const openSettings = () => {
-    setMobileView(
+    setMobileViewCommunity(
       "settingCommunitys"
     );
   };
 
   const goBack = () => {
-      setMobileView(
+      setMobileViewCommunity(
         "communityMessages"
       );
   };
 
   const goBackChannel = () => {
-     setMobileView(
-        "sidebar"
-      );
-  }
+  console.log("CLICKED BACK");
+  setMobileViewCommunity("sidebarCommunitys");
+};
 
+useEffect(() => {
+  console.log("community view:", mobileViewCommunity);
+}, [mobileViewCommunity]);
 
 
   const isPopup = uiMode !== "full";
 
 
   return (
-
+    <>
     <div
   className={`
     ${isPopup ? "fixed z-40 shadow-xl" : "flex"}
 
-    ${isPopup ? "right-0 sm:right-10 sm:top-16" : ""}
+    ${isPopup ? "right-0 lg:right-10 lg:top-16" : ""}
 
     ${isPopup
-      ? "w-full h-full sm:w-[340px] sm:h-[420px] sm:rounded-xl"
-      : "flex-1 h-screen w-full"
+      ? "w-full h-full lg:w-[340px] lg:h-[420px] lg:rounded-xl"
+      : "flex-1 lg:h-screen w-full"
     }
 
     flex flex-col overflow-hidden
   `}
 >
-     <div
-      className={`
-        w-full lg:w-[370px]
-        z-40
-        ${
-          isPopup
-            ? mobileViewCommunity === "sidebar"
-              ? "flex"
-              : "hidden"
-            : mobileViewCommunity === "sidebar"
-            ? "flex"
-            : "hidden"
-        }
-        sm:h-[420px]
-        lg:flex flex-col
-      `}
-    >
+  {uiMode !== "full" &&
+      <div
+        className={`
+          w-full lg:w-[370px]
+          z-40
+          ${mobileViewCommunity === "sidebarCommunitys" ? "flex" : "hidden"}
+          lg:flex flex-col
+        `}
+      >
 
         <CommunityList
           communities={communities}
@@ -301,30 +293,23 @@ const handleHide = async (
         />
 
       </div>
-{activeCommunity && (
+    }
+{uiMode !== "full" &&
+ activeCommunity &&
+ mobileViewCommunity === "communityMessages" && (
       <div
   className={`
-    ${
-      isPopup
-        ? mobileViewCommunity === "communityMessages"
-          ? "flex"
-          : "hidden"
-        : "flex-1"
-    }
+    ${isPopup ? "fixed" : "flex-1"}
 
     w-full
-    sm:w-[370px]
+    lg:w-[370px]
 
-    fixed right-10
     z-50
+    flex flex-col
 
-    ${
-      isPopup
-        ? "sm:w-[370px] sm:h-[420px] sm:rounded-xl shadow-xl"
-        : ""
-    }
+    ${isPopup ? "inset-0 sm:inset-auto sm:right-10 sm:top-16" : ""}
 
-    flex-col
+    ${isPopup ? "h-full sm:h-[420px]" : "min-h-0"}
   `}
 >
 
@@ -339,7 +324,7 @@ const handleHide = async (
           communityMessages={communityMessages}
           setCommunityMessages={setCommunityMessages}
           onOpenSettings={openSettings}
-          onBack={goBackChannel}
+          goBackChannel={goBackChannel}
           loadingMessages={loadingMessages}
           openChat={openChat}
           onCloseChannel={onCloseChannel}
@@ -356,14 +341,12 @@ const handleHide = async (
       className={`
         w-full
         lg:w-[370px]
-        z-50 fixed right-10
-        sm:h-[420px]
+        z-50 fixed lg:right-10 h-full
+        lg:h-[420px]
 
         ${uiMode === "popup"
-          ? "hidden"
-          : mobileViewCommunity === "settingCommunitys"
           ? "flex"
-          : "hidden"}
+          : mobileViewCommunity === "settingCommunitys" ? "flex" : "hidden"}
 
         lg:flex flex-col
       `}
@@ -386,21 +369,28 @@ const handleHide = async (
 
       </div>
     )}
-          <div
-  className={`
-    ${isPopup
-      ? mobileViewCommunity === "communityMessages"
-        ? "flex"
-        : "hidden"
-      : "flex-1"
-    }
 
-    w-full
-    lg:w-auto
-    flex flex-col
-  `}
->
-  {activeCommunity ? (
+    </div>
+
+{uiMode === "full" && (
+  <div className="flex h-screen w-full overflow-hidden z-50 fixed inset-0 flex flex-row bg-[var(--bg-color)]
+  text-[var(--text-color)]">
+
+    <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
+      <CommunityList
+          communities={communities}
+          activeCommunity={activeCommunity}
+          followLoading={followLoading}
+          setActiveCommunity={openCommunity}
+          loading={loading}
+          onClose={onClose}
+          exploreCommunities={exploreCommunities} handleFollow={handleFollow} handleHide={handleHide}
+        />
+    </div>
+
+    <div className="flex-1 flex flex-col min-w-0">
+
+      {activeCommunity ? (
     <CommunityMessages
       setChats={setChats}
       messagesCacheRef={messagesCacheRef}
@@ -416,7 +406,7 @@ const handleHide = async (
       communityMessages={communityMessages}
       setCommunityMessages={setCommunityMessages}
       onOpenSettings={openSettings}
-      onBack={goBackChannel}
+      goBackChannel={goBackChannel}
       loadingMessages={loadingMessages}
       openChat={openChat}
       onCloseChannel={onCloseChannel}
@@ -426,7 +416,6 @@ const handleHide = async (
       uiMode={uiMode}
     />
   ) : (
-    !isPopup && (
       <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
         <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
           💬
@@ -436,50 +425,39 @@ const handleHide = async (
           Select a channel to view messages
         </p>
       </div>
-    )
-  )}
-</div>
+    )}
 
-{/* <div
-  className={`
-    w-full lg:w-[370px]
-
-    ${isPopup
-      ? "hidden"
-      : mobileViewCommunity === "settingCommunitys"
-      ? "flex"
-      : "hidden"}
-
-    lg:flex flex-col
-  `}
->
-  {activeCommunity ? (
-    <CommunitySettings uiMode={uiMode}
-      activeCommunity={activeCommunity}
-      authUser={authUser}
-      onBack={goBack}
-      setActiveCommunity={setActiveCommunity}
-      setCommunityMessages={setCommunityMessages}
-      community={activeCommunity}
-      setExploreCommunities={setExploreCommunities}
-      setCommunities={setCommunities}
-      communities={communities}
-      chats={chats}
-      activeChat={activeChat}
-      setMessages={setCommunityMessages}
-    />
-  ) : (
-    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
-      <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
-        ⚙️
+    </div>
+    <div className="w-[350px] border-l hidden lg:flex flex-col">
+    {activeCommunity ? (
+        <CommunitySettings uiMode={uiMode}
+          activeCommunity={activeCommunity}
+          authUser={authUser}
+          onBack={goBack}
+          setActiveCommunity={setActiveCommunity}
+          setCommunityMessages={setCommunityMessages}
+          community={activeCommunity}
+          setExploreCommunities={setExploreCommunities}
+          setCommunities={setCommunities}
+          communities={communities}
+          chats={chats}
+          activeChat={activeChat}
+          setMessages={setCommunityMessages}
+        />
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
+          <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
+            ⚙️
+          </div>
+          <p className="font-medium">No channel selected</p>
+          <p className="text-sm mt-1">
+            Select a channel to view settings
+          </p>
+        </div>
+      )}
       </div>
-      <p className="font-medium">No channel selected</p>
-      <p className="text-sm mt-1">
-        Select a channel to view settings
-      </p>
-    </div>
+      </div>
   )}
-</div> */}
-    </div>
+    </>
   );
 }

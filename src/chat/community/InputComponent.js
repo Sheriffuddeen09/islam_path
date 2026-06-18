@@ -4,7 +4,9 @@ import api from "../../Api/axios";
 
 export default function InputComponent({activeCommunity,
   setMessages, textCommunity, setTextCommunity,
-  authUser, replyingToCommunity, setReplyingToCommunity, communityMessageAction, bottomRef}){
+  authUser, replyingToCommunity, setReplyingToCommunity, communityMessageAction, bottomRef,
+ unreadCount, showScrollButton, setShowScrollButton, communityMessages,
+ setLastReadMessageId, myId, setCommunities, latestMessage, messagesEndRef,}){
 
     
   const [files, setFiles={setFiles}] = useState([]);
@@ -622,6 +624,9 @@ return (
         audioChunksRefCommunity={audioChunksRefCommunity} mediaRecorderRefCommunity={mediaRecorderRefCommunity}
         croppedImagesCommunity={croppedImagesCommunity} setCroppedImagesCommunity={setCroppedImagesCommunity}
         showSendOptions={showSendOptions} setShowSendOptions={setShowSendOptions}
+        unreadCount={unreadCount} showScrollButton={showScrollButton} setShowScrollButton={setShowScrollButton}
+        communityMessages={communityMessages} setLastReadMessageId={setLastReadMessageId} myId={myId} 
+        setCommunities={setCommunities} latestMessage={latestMessage} messagesEndRef={messagesEndRef}
         />
     </div>
 )
