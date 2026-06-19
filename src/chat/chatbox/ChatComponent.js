@@ -139,6 +139,54 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setTimeout(() => setToast(null), 3000);
   };
 
+
+
+  useEffect(() => {
+  if (!communityMessages.length) return;
+
+  const container = messageRefs.current;
+  if (!container) return;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+
+      if (firstUnreadMessageId) {
+        const el = document.getElementById(
+          `msg-${firstUnreadMessageId}`
+        );
+
+        if (el) {
+          el.scrollIntoView({
+            behavior: "auto",
+            block: "center",
+          });
+          return;
+        }
+      }
+
+      // ✅ FORCE bottom
+      container.scrollTop = container.scrollHeight;
+
+    });
+  });
+
+}, [communityMessages, firstUnreadMessageId]);
+
+// useEffect(() => {
+//   const container = messageRefs.current;
+//   if (!container) return;
+
+//   const images = container.querySelectorAll("img");
+
+//   images.forEach(img => {
+//     img.onload = () => {
+//       container.scrollTop = container.scrollHeight;
+//     };
+//   });
+
+// }, [communityMessages]);
+
+
   const openCommunity = async (
   community,
   skipMobile = false,
@@ -147,11 +195,10 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
   setCommunityMessages([]);
   setFirstUnreadMessageId(null);
-  setActiveChat(null); // 🔥 important if input depends on it
+  setActiveChat(null); 
 
   setActiveCommunity(community);
 
-  localStorage.setItem("last_opened_community", community.id);
   lastOpenedCommunity.current = community;
 
   if (window.innerWidth >= 768) {
@@ -173,6 +220,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setFirstUnreadMessageId(
       cached.firstUnreadMessageId
     );
+
 
     setCommunities(prev =>
       prev.map(c =>
@@ -231,6 +279,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setFirstUnreadMessageId(
       firstUnreadId
     );
+
 
     setCommunities(prev => {
 
@@ -866,7 +915,7 @@ setMessages((prev) => {
         w-full h-full
         lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
-      <ChatList
+      <ChatList 
           chatCommunitys={chats}
           setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
           lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
@@ -993,7 +1042,7 @@ setMessages((prev) => {
 )}
 
   {uiMode === "full" && (
-  <div className="flex h-screen w-full overflow-hidden z-50 fixed flex flex-row bg-[var(--bg-color)]
+  <div className="flex h-screen lg:block hidden w-full overflow-hidden z-50 fixed flex flex-row bg-[var(--bg-color)]
   text-[var(--text-color)]">
 
     <div className="w-[320px] border-r hidden lg:flex flex-col h-full">

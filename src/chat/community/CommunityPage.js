@@ -256,27 +256,26 @@ const handleHide = async (
     <>
     <div
   className={`
-    ${isPopup ? "fixed z-50" : "flex"}
+    ${isPopup ? "fixed inset-0 z-50" : "flex"}
 
     ${isPopup ? "right-0 lg:right-10 lg:top-16" : ""}
 
     ${isPopup
-      ? "w-full h-full lg:w-[340px] lg:h-[410px] lg:rounded-xl"
+      ? "w-full h-96 lg:w-[340px] lg:h-[410px] lg:rounded-xl"
       : "flex-1 lg:h-screen w-full"
     }
 
     flex flex-col overflow-hidden shadow-md border 
-  `}
->
+  `}>
   {uiMode !== "full" &&
       <div
-        className={`
-          w-full lg:w-[370px] lg:h-[410px]
-          z-50
-          ${mobileViewCommunity === "sidebarCommunitys" ? "flex" : "hidden"}
-          lg:flex flex-col
-        `}
-      >
+         className={` ${isPopup ? "fixed" : "flex-1"}
+                      w-full
+                      lg:w-[370px]
+                      z-50
+                      flex flex-col
+                      ${isPopup ? "inset-0 sm:inset-auto sm:right-10 sm:top-16" : ""}
+                      ${isPopup ? "h-full sm:h-[420px]" : "min-h-0"} `}>
 
         <CommunityList uiMode={uiMode}
           communities={communities}

@@ -395,7 +395,7 @@ const handleDownloadMessage =
                       cursor-pointer
                       text-white
                       -translate-y-
-                      -mb-4 break-words
+                      -mb-4 break-words whitespace-pre-wrap
                     "
                   >
                     <div
@@ -405,7 +405,7 @@ const handleDownloadMessage =
                         truncate
                         inline-flex
                         gap-2
-                        items-center break-words
+                        items-center
                       "
                     >
                       <svg
@@ -439,7 +439,7 @@ const handleDownloadMessage =
                       </span>
                     </div>
                     <br />
-                    <span className={`text-[13px] break-words`}>
+                    <span className={`text-[13px] break-words whitespace-pre-wrap`}>
 
                       ${msg.is_system === 1
                       ? "text-[--text-color]"
@@ -466,7 +466,7 @@ const handleDownloadMessage =
                 
                  />
                 <div
-                        className={`text-[13px] pt-3 mt-1 px-4 break-words ${
+                        className={`text-[13px] pt-3 mt-1 px-4 ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -474,12 +474,12 @@ const handleDownloadMessage =
                           options={{
                             target: "_blank",
                             className:
-                              "text-blue-400 pointer-events-auto break-words",
+                              "text-blue-400 pointer-events-auto",
                           }}
                         >
 
                     {msg?.approvals?.length > 0 && (
-                    <div className="mt-3 space-y-2 break-words">
+                    <div className="mt-3 space-y-2 break-words whitespace-pre-wrap">
                       {msg.approvals.map(approval => (
                         <div
                           key={approval.id}
