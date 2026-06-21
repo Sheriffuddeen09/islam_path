@@ -6,14 +6,17 @@ import MessageBox from "./MessageBox";
 import {
   encryptMessage, decryptMessage
 } from "../../utils/encryption";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, MessageCircleCodeIcon, User } from "lucide-react";
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
     chatId, setMobileView, bottomRef, openChat, isLargeScreen, mobileView,
     setMessages, messages, messageRefs, unreadCount, setUnreadCount, lastReadMessageId, setLastReadMessageId,
     messagesCacheRef, isNavigatingRef, setShowSettings, showSettings, uiMode, isMinimized,
-    setIsMinimized,  setUiMode
+    setIsMinimized,  setUiMode, loadingExploring, exploreCommunities, setExploreCommunities, loading, communities, setCommunities,
+    openCommunity, setMobileViewCommunity, mobileViewCommunity, lastOpenedCommunity, activeCommunity,
+    setActiveCommunity, loadingMessagesCommunity, setLoadingMessagesCommunity, communityMessages, setCommunityMessages,
+    messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef
 }) {
 
     const [recording, setRecording] = useState(false);
@@ -42,7 +45,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const timerRef = useRef(null)
 
     const [showChannel, setShowChannel] = useState(false);
-    const [mobileViewCommunity, setMobileViewCommunity] = useState(window.innerWidth >= 768 ? "communityMessages" : "sidebarCommunitys");
     
 
     const [showAvatarPreview, setShowAvatarPreview] = useState(false);
@@ -73,32 +75,6 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
         return name.charAt(0).toUpperCase();
       }; 
 
-  const [communities,
-    setCommunities] =
-    useState([]);
-  const [activeCommunity,
-    setActiveCommunity] =
-    useState(null);
-
-
-    const [
-  loadingMessagesCommunity,
-  setLoadingMessagesCommunity
-  ] = useState(false);
-  const [communityMessages,
-  setCommunityMessages] =
-    useState([]);
-  const messagesCache = useRef({});
-  const communitiesCache = useRef({});
-  const lastOpenedCommunity = useRef(null);
-
-    const unreadDividerRef =
-  useRef(null);
-
-  const messageCommunityRefs = useRef({});
-  const messagesEndRef = useRef(null);
-  const communityMessagesCache =
-  useRef({});
     
   const toggleMinimize = () => {
     setIsMinimized((prev) => !prev);
@@ -129,237 +105,13 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 };
 
   
-  const [
-  firstUnreadMessageId,
-  setFirstUnreadMessageId,
-] = useState(null);
+ 
       
     const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-
-
-  useEffect(() => {
-  if (!communityMessages.length) return;
-
-  const container = messageRefs.current;
-  if (!container) return;
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-
-      if (firstUnreadMessageId) {
-        const el = document.getElementById(
-          `msg-${firstUnreadMessageId}`
-        );
-
-        if (el) {
-          el.scrollIntoView({
-            behavior: "auto",
-            block: "center",
-          });
-          return;
-        }
-      }
-
-      // ✅ FORCE bottom
-      container.scrollTop = container.scrollHeight;
-
-    });
-  });
-
-}, [communityMessages, firstUnreadMessageId]);
-
-// useEffect(() => {
-//   const container = messageRefs.current;
-//   if (!container) return;
-
-//   const images = container.querySelectorAll("img");
-
-//   images.forEach(img => {
-//     img.onload = () => {
-//       container.scrollTop = container.scrollHeight;
-//     };
-//   });
-
-// }, [communityMessages]);
-
-
-  const openCommunity = async (
-  community,
-  skipMobile = false,
-  forceRefresh = false
-) => {
-
-  setCommunityMessages([]);
-  setFirstUnreadMessageId(null);
-  setActiveChat(null); 
-
-  setActiveCommunity(community);
-
-  lastOpenedCommunity.current = community;
-
-  if (window.innerWidth >= 768) {
-    setMobileViewCommunity("communityMessages");
-  } else if (!skipMobile) {
-    setMobileViewCommunity("communityMessages");
-  }
-  const cached =
-    communityMessagesCache.current[
-      community.id
-    ];
-
-  if (cached && !forceRefresh && cached.messages?.length > 0) {
-
-    setCommunityMessages(
-      cached.messages
-    );
-
-    setFirstUnreadMessageId(
-      cached.firstUnreadMessageId
-    );
-
-
-    setCommunities(prev =>
-      prev.map(c =>
-        c.id === community.id
-          ? {
-              ...c,
-              unread_count: 0,
-            }
-          : c
-      )
-    );
-
-    if (
-      cached.messages.length > 0
-    ) {
-      api.post(
-        `/api/communities/${community.id}/mark-read`
-      ).catch(() => {});
-    }
-
-    return; // 🚀 NO LOADING
-  }
-
-  setLoadingMessagesCommunity(
-    true
-  );
-
-  try {
-
-    const res =
-      await api.get(
-        `/api/community/${community.id}/messages`
-      );
-
-    const msgs =
-      res.data.messages || [];
-
-    const firstUnreadId =
-      res.data
-        .first_unread_message_id;
-
-    /* SAVE CACHE */
-
-    communityMessagesCache.current[
-      community.id
-    ] = {
-      messages: msgs,
-      firstUnreadMessageId:
-        firstUnreadId,
-    };
-
-    setCommunityMessages(
-      msgs
-    );
-
-    setFirstUnreadMessageId(
-      firstUnreadId
-    );
-
-
-    setCommunities(prev => {
-
-      const updated =
-        prev.map(c =>
-          c.id === community.id
-            ? {
-                ...c,
-                unread_count: 0,
-              }
-            : c
-        );
-
-      communitiesCache.current =
-        updated;
-
-      return updated;
-    });
-
-    if (msgs.length > 0) {
-
-      api.post(
-        `/api/communities/${community.id}/mark-read`
-      ).catch(() => {});
-    }
-
-  } catch (err) {
-
-    console.log(err);
-
-  } finally {
-
-    setLoadingMessagesCommunity(
-      false
-    );
-  }
-};
-
-useEffect(() => {
-
-  if (!communityMessages.length) return;
-
-  let attempts = 0;
-
-  const tryScroll = () => {
-
-    const el =
-      messageCommunityRefs.current[firstUnreadMessageId];
-
-    if (el) {
-
-      el.scrollIntoView({
-        behavior: "auto",
-        block: "start",
-      });
-
-      return;
-    }
-
-    attempts++;
-
-    if (attempts < 20) {
-
-      requestAnimationFrame(tryScroll);
-
-    } else {
-
-      messagesEndRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "end",
-      });
-    }
-  };
-
-  requestAnimationFrame(tryScroll);
-
-}, [communityMessages, firstUnreadMessageId]);
-
-
-    
     const sendText = async () => {
   if (!text.trim()) return;
 
@@ -907,7 +659,11 @@ setMessages((prev) => {
       <>
       
 
-    {/* 🟦 LEFT CHAT LIST */}
+    {/* 🟦 LEFT CHAT LIST 
+   
+    
+    
+    */}
     {uiMode === "popup" && !activeChat && (
       <div className="
         fixed z-50 shadow-xl
@@ -916,9 +672,12 @@ setMessages((prev) => {
         lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
       <ChatList 
-          chatCommunitys={chats}
+          communityContainerRef={communityContainerRef}
+          setExploreCommunities={setExploreCommunities}
+          exploreCommunities={exploreCommunities} loading={loading}
+          chatCommunitys={chats} loadingExploring={loadingExploring}
           setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
-          lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
+          lastOpenedCommunity={lastOpenedCommunity} 
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
           openChat={openChat}
@@ -941,7 +700,7 @@ setMessages((prev) => {
           showChannel={showChannel} setShowChannel={setShowChannel}
           setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
           communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
-          messageRefs={messageCommunityRefs} messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
+          messageCommunityRefs={messageCommunityRefs} messagesCommunityEndRef={messagesCommunityEndRef} firstUnreadMessageId={firstUnreadMessageId}
           onSeeAll={handleSeeAll}
           onMinimize={toggleMinimize}
           onToggleSettings={toggleSettings}
@@ -1042,13 +801,16 @@ setMessages((prev) => {
 )}
 
   {uiMode === "full" && (
-  <div className="flex h-screen lg:block hidden w-full overflow-hidden z-50 fixed flex flex-row bg-[var(--bg-color)]
+  <div className="flex h-screen w-full overflow-hidden z-50 fixed inset-0 flex flex-row bg-[var(--bg-color)]
   text-[var(--text-color)]">
 
-    <div className="w-[320px] border-r hidden lg:flex flex-col h-full">
-     <ChatList
+    <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
+     <ChatList 
+        communityContainerRef={communityContainerRef}
+          setExploreCommunities={setExploreCommunities}
+          exploreCommunities={exploreCommunities} loading={loading}
           chatCommunitys={chats} setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}
-          lastOpenedCommunity={lastOpenedCommunity} messagesCache ={messagesCache}
+          lastOpenedCommunity={lastOpenedCommunity} 
           openCommunity={openCommunity} messagesCacheRef={messagesCacheRef}
           chats={chats} authUserId={authUser.id}
           openChat={openChat}
@@ -1071,7 +833,7 @@ setMessages((prev) => {
           showChannel={showChannel} setShowChannel={setShowChannel}
           setLoadingMessagesCommunity={setLoadingMessagesCommunity} 
           communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
-          messageRefs={messageCommunityRefs} messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
+          messageCommunityRefs={messageCommunityRefs} messagesCommunityEndRef={messagesCommunityEndRef} firstUnreadMessageId={firstUnreadMessageId}
           onSeeAll={handleSeeAll}
           onMinimize={toggleMinimize}
           onToggleSettings={toggleSettings}
@@ -1131,24 +893,21 @@ setMessages((prev) => {
         />
       ) : (
        <div className="flex-1 flex items-center justify-center px-6">
-        <div className="text-center max-w-sm">
+        <div className="text-center max-w-sm flex items-center justify-center flex-col">
 
-          <div className="mx-auto mb-6 rounded-full flex items-center justify-center shadow-sm">
-            <MessageCircle size={25} />
+          <div className="w-28 h-28 rounded-full border-4 border-green-200 flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-full border-2 border-gray-400 flex items-center justify-center">
+            <MessageCircleCodeIcon size={38} />
+          </div>
           </div>
 
-          <h2 className="text-xl font-semibold ">
-            No chat selected
+          <h2 className="text-lg font-semibold text-green-500 ">
+            No Chat Selected
           </h2>
 
-          <p className="text-sm mt-2 leading-relaxed font-bold">
-            Choose a conversation from the left to start messaging.
+          <p  className="text-lg font-semibold mb-3">
+            Choose a Conversation from the left to Start Chatting.
           </p>
-
-          <button className="mt-0.5 px-4 py-2 text-sm font-medium rounded-lg transition">
-            Start new conversation
-          </button>
-
         </div>
       </div>
             )}
@@ -1173,19 +932,25 @@ setMessages((prev) => {
       uiMode={uiMode}
     />
   ) : (
-    <div className="flex-1 flex items-center justify-center px-6">
-      <div className="text-center max-w-xs">
-      <div className="mx-auto mb-6 w-20 h-20 rounded-full flex items-center justify-center shadow-sm">
-        <span className="text-3xl">👤</span>
+
+<div className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center max-w-sm flex items-center justify-center flex-col">
+
+          <div className="w-28 h-28 rounded-full border-4 border-green-200 flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-full border-2 border-gray-400 flex items-center justify-center">
+            <User size={38} />
+          </div>
+          </div>
+
+          <h2 className="text-lg font-semibold text-green-500 ">
+            No Profile Selected
+          </h2>
+
+          <p  className="text-lg font-semibold mb-3">
+            Select a Chat to View User Profile and settings.
+          </p>
+        </div>
       </div>
-    <h2 className="text-base font-semibold text-xl">
-      No profile selected
-    </h2>
-    <p className="text-sm mt-2 leading-relaxed font-semibold">
-      Select a chat to view user details and settings.
-    </p>
-  </div>
-</div>
   )}
 
 </div>
@@ -1193,7 +958,7 @@ setMessages((prev) => {
   </div>
 )}
 
-
+      
 {showAvatarPreview && (
   <div
     className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center"
@@ -1219,13 +984,9 @@ setMessages((prev) => {
           {getInitial(avatarName)}
         </div>
       )}
-
-      {/* CLOSE */}
-     
     </div>
   </div>
 )}
-    
   </>
 
   );

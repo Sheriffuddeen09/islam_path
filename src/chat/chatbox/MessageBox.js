@@ -750,6 +750,7 @@ const firstUnreadMessageId =
         className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
         scrollbar-thumb-green-500 scrollbar-track-transparent space-y-3 bg-[var(--primary-color)] relative">
 
+
   {isRestrictedGroupUser ? (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">
 
@@ -816,11 +817,17 @@ const firstUnreadMessageId =
     <ChatSkeleton type="messages" />
   ) : messages.length === 0 ? (
     // comment 1
-     <div className="flex flex-col items-center justify-center h-full text-center p-6">
-      </div>
+     <div className={`mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold 
+        rounded-lg    text-[10px] p-3 ${uiMode !== 'full' ? "text-[10px] md:text-[14px] lg:text-[10px] w-72 lg:w-72 md:w-[500px]" 
+        : 'sm:text-[12px] sm:w-[500px]'}`}>
+        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
+        Learn More.
+        </div>
   ) : (
     <>
-      <div className="mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold rounded-lg sm:w-80 w-72 text-[10px] p-3">
+      <div className={`mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold 
+        rounded-lg    text-[10px] p-3 ${uiMode !== 'full' ? "text-[10px] md:text-[14px] lg:text-[10px] w-72 lg:w-72 md:w-[500px]" 
+        : 'sm:text-[12px] sm:w-[500px]'}`}>
         Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
         Learn More.
       </div>
@@ -945,7 +952,7 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
-          showScrollButton={showScrollButton}
+          showScrollButton={showScrollButton} isFirstUnread={isFirstUnread} myId={myId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           openCommunity={openCommunity} onBack={onBack} openCommunityMessage={openCommunityMessage}
           setLastReadMessageId={setLastReadMessageId}

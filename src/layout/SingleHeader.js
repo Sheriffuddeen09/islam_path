@@ -29,7 +29,6 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
   user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
 
 
-console.log('currentUser', user)
 
     const check = (
       <div>

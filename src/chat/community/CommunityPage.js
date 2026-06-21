@@ -8,128 +8,22 @@ import CommunityList from "./CommunityList";
 import CommunityMessages from "./CommunityMessages";
 import CommunitySettings from "./CommunitySettings";
 import toast from "react-hot-toast";
+import { MessageCircleCodeIcon, Settings } from "lucide-react";
 
 export default function CommunityPage({
   onClose, messagesCacheRef,
-  authUser, chats, loadingChats, setActiveChat, messagesEndRef, firstUnreadMessageId, authUserId,
+  authUser, chats, loadingChats, setActiveChat, messagesCommunityEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
-  communityMessages, setCommunityMessages, mobileViewCommunity, setMobileViewCommunity, setChats, setMessages, messageRefs,
-  setLastReadMessageId, setActiveCommunity, activeChat, uiMode
+  communityMessages, setCommunityMessages, mobileViewCommunity, setMobileViewCommunity, setChats, setMessages, messageCommunityRefs,
+  setLastReadMessageId, setActiveCommunity, activeChat, uiMode, loading, loadingExploring, exploreCommunities,
+  setExploreCommunities, communityContainerRef
 }) {
 
  
+ const [followLoading, setFollowLoading] = useState(null);
 
-  const [loading, setLoading] =
-  useState(true);
-
-
-  const hasLoaded = useRef(false);
-  const communitiesCache = useRef([]);
-
-  const [exploreCommunities, setExploreCommunities] = useState([]);
-  const [followLoading, setFollowLoading] =
-  useState(null);
 
   
-
-  useEffect(() => {
-
-    fetchCommunities();
-    fetchExploreCommunities();
-  }, []);
-
-
-  const fetchExploreCommunities = async () => {
-    try {
-
-      const res = await api.get(
-        "/api/communities/explore"
-      );
-
-      setExploreCommunities(
-        res.data.communities || []
-      );
-
-    } catch (err) {
-
-      console.log(err);
-
-    }
-  };
-
-  const fetchCommunities = async () => {
-
-  if (
-    hasLoaded.current &&
-    communitiesCache.current.length
-  ) {
-
-    setCommunities(
-      communitiesCache.current
-    );
-
-    setLoading(false);
-
-    // ✅ AUTO OPEN LAST CHAT
-    const lastId =
-      localStorage.getItem(
-        "last_opened_community"
-      );
-
-    if (lastId) {
-
-      const found =
-        communitiesCache.current.find(
-          (c) =>
-            Number(c.id) ===
-            Number(lastId)
-        );
-
-      // ✅ ONLY LARGE SCREEN
-      if (
-        found &&
-        window.innerWidth >= 768
-      ) {
-
-        openCommunity(
-          found,
-          true
-        );
-      }
-    }
-
-    return;
-  }
-
-  try {
-
-    setLoading(true);
-
-    const res =
-      await api.get(
-        "/api/communities"
-      );
-
-    const data =
-      res.data.communities || [];
-
-    communitiesCache.current =
-      data;
-
-    hasLoaded.current = true;
-
-    setCommunities(data);
-
-  } catch (err) {
-
-    console.log(err);
-
-  } finally {
-
-    setLoading(false);
-  }
-};
-
 
 const handleHide = async (
   communityId
@@ -274,17 +168,19 @@ const handleHide = async (
                       lg:w-[370px]
                       z-50
                       flex flex-col
-                      ${isPopup ? "inset-0 sm:inset-auto sm:right-10 sm:top-16" : ""}
-                      ${isPopup ? "h-full sm:h-[420px]" : "min-h-0"} `}>
+                      ${isPopup ? "inset-0 lg:inset-auto lg:right-10 lg:top-16" : ""}
+                      ${isPopup ? "h-full lg:h-[420px]" : "min-h-0"} `}>
 
         <CommunityList uiMode={uiMode}
           communities={communities}
           activeCommunity={activeCommunity}
           followLoading={followLoading}
-          setActiveCommunity={openCommunity}
+          openCommunity={openCommunity}
+          setActiveCommunity={setActiveCommunity}
           loading={loading}
           onClose={onClose}
           exploreCommunities={exploreCommunities} handleFollow={handleFollow} handleHide={handleHide}
+          loadingExploring={loadingExploring}
         />
 
       </div>
@@ -302,15 +198,16 @@ const handleHide = async (
     z-50
     flex flex-col
 
-    ${isPopup ? "inset-0 sm:inset-auto sm:right-10 sm:top-16" : ""}
+    ${isPopup ? "inset-0 lg:inset-auto lg:right-10 lg:top-16" : ""}
 
-    ${isPopup ? "h-full sm:h-[420px]" : "min-h-0"}
+    ${isPopup ? "h-full lg:h-[420px]" : "min-h-0"}
   `}
 >
 
         <CommunityMessages
+          communityContainerRef={communityContainerRef}
           setChats={setChats} messagesCacheRef={messagesCacheRef}
-          chatLoading={loadingChats} messagesEndRef={messagesEndRef}
+          chatLoading={loadingChats} messagesCommunityEndRef={messagesCommunityEndRef}
           authUser={authUser} firstUnreadMessageId={firstUnreadMessageId}
           setMessages={setMessages}
           chats={chats} authUserId={authUserId}
@@ -323,15 +220,15 @@ const handleHide = async (
           loadingMessages={loadingMessages}
           openChat={openChat}
           onCloseChannel={onCloseChannel}
-          messageRefs = {messageRefs}
+          messageCommunityRefs = {messageCommunityRefs}
           setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
           uiMode={uiMode}
           
         />
 
       </div>
-)}
-{activeCommunity && mobileViewCommunity === 'settingCommunitys' && (
+    )}
+    {activeCommunity && mobileViewCommunity === 'settingCommunitys' && (
       <div
       className={`
         w-full
@@ -341,13 +238,10 @@ const handleHide = async (
 
         ${uiMode === "popup"
           ? "flex"
-          : mobileViewCommunity === "settingCommunitys" ? "flex" : "hidden"}
+          : mobileViewCommunity === "settingCommunitys" ? "flex" : "hidden"} lg:flex flex-col`}>
 
-        lg:flex flex-col
-      `}
-    >
-
-        <CommunitySettings uiMode={uiMode}
+        <CommunitySettings 
+          uiMode={uiMode}
           activeCommunity={activeCommunity}
           authUser={authUser}
           onBack={goBack}
@@ -376,10 +270,12 @@ const handleHide = async (
           communities={communities}
           activeCommunity={activeCommunity}
           followLoading={followLoading}
-          setActiveCommunity={openCommunity}
+          openCommunity={openCommunity}
+          setActiveCommunity={setActiveCommunity}
           loading={loading}
           onClose={onClose}
           exploreCommunities={exploreCommunities} handleFollow={handleFollow} handleHide={handleHide}
+          loadingExploring={loadingExploring}
         />
     </div>
 
@@ -387,10 +283,11 @@ const handleHide = async (
 
       {activeCommunity ? (
     <CommunityMessages
+        communityContainerRef={communityContainerRef}
       setChats={setChats}
       messagesCacheRef={messagesCacheRef}
       chatLoading={loadingChats}
-      messagesEndRef={messagesEndRef}
+      messagesCommunityEndRef={messagesCommunityEndRef}
       authUser={authUser}
       firstUnreadMessageId={firstUnreadMessageId}
       setMessages={setMessages}
@@ -405,20 +302,30 @@ const handleHide = async (
       loadingMessages={loadingMessages}
       openChat={openChat}
       onCloseChannel={onCloseChannel}
-      messageRefs={messageRefs}
+      messageCommunityRefs={messageCommunityRefs}
       setLastReadMessageId={setLastReadMessageId}
       setCommunities={setCommunities}
       uiMode={uiMode}
+      
     />
   ) : (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
-        <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
-          💬
+       <div className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center max-w-sm flex items-center justify-center flex-col">
+
+          <div className="w-28 h-28 rounded-full border-4 border-green-200 flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-full border-2 border-gray-400 flex items-center justify-center">
+            <MessageCircleCodeIcon size={38} />
+          </div>
+          </div>
+
+          <h2 className="text-lg font-semibold text-green-500 ">
+            No Channel Selected
+          </h2>
+
+          <p  className="text-lg font-semibold mb-3">
+            Select a Channel from the Left to View Message.
+          </p>
         </div>
-        <p className="font-medium">No channel selected</p>
-        <p className="text-sm mt-1">
-          Select a channel to view messages
-        </p>
       </div>
     )}
 
@@ -440,15 +347,24 @@ const handleHide = async (
           setMessages={setCommunityMessages}
         />
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-center">
-          <div className="w-16 h-16 rounded-full border flex items-center justify-center mb-4">
-            ⚙️
+         <div className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center max-w-sm flex items-center justify-center flex-col">
+
+          <div className="w-28 h-28 rounded-full border-4 border-green-200 flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-full border-2 border-gray-400 flex items-center justify-center">
+            <Settings size={38} />
           </div>
-          <p className="font-medium">No channel selected</p>
-          <p className="text-sm mt-1">
-            Select a channel to view settings
+          </div>
+
+          <h2 className="text-lg font-semibold text-green-500 ">
+            No Channel Selected
+          </h2>
+
+          <p  className="text-lg font-semibold mb-3">
+            Select Channel to View Settings
           </p>
         </div>
+      </div>
       )}
       </div>
       </div>

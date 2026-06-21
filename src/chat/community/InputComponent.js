@@ -6,7 +6,7 @@ export default function InputComponent({activeCommunity,
   setMessages, textCommunity, setTextCommunity,
   authUser, replyingToCommunity, setReplyingToCommunity, communityMessageAction, bottomRef,
  unreadCount, showScrollButton, setShowScrollButton, communityMessages,
- setLastReadMessageId, myId, setCommunities, latestMessage, messagesEndRef,}){
+ setLastReadMessageId, myId, setCommunities, latestMessage, messagesCommunityEndRef,}){
 
     
   const [files, setFiles={setFiles}] = useState([]);
@@ -621,7 +621,7 @@ return (
         showSendOptions={showSendOptions} setShowSendOptions={setShowSendOptions}
         unreadCount={unreadCount} showScrollButton={showScrollButton} setShowScrollButton={setShowScrollButton}
         communityMessages={communityMessages} setLastReadMessageId={setLastReadMessageId} myId={myId} 
-        setCommunities={setCommunities} latestMessage={latestMessage} messagesEndRef={messagesEndRef}
+        setCommunities={setCommunities} latestMessage={latestMessage} messagesCommunityEndRef={messagesCommunityEndRef}
         />
     </div>
 )

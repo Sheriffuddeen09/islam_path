@@ -14,12 +14,12 @@ export default function ChatList({
   openChat,
   loadingChats,
   chatFilter,
-  setChatFilter,
+  setChatFilter, communityContainerRef, 
   activeChat, setActiveChat, setChats, setMessages, messagesCacheRef, showChannel, setShowChannel,
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
-  communityMessages, setCommunityMessages, lastOpenedCommunity, messageRefs, messagesEndRef,
-  messagesCache, openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId,
-  mobileViewCommunity, setMobileViewCommunity, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll
+  communityMessages, setCommunityMessages, lastOpenedCommunity, messageCommunityRefs, messagesCommunityEndRef, exploreCommunities,
+  openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId, setExploreCommunities,
+  mobileViewCommunity, setMobileViewCommunity, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll, loadingExploring
 }) {
   const { user: authUser } = useAuth();
 
@@ -364,6 +364,8 @@ export default function ChatList({
 
       <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
         <CommunityPage
+          setExploreCommunities={setExploreCommunities} exploreCommunities={exploreCommunities}
+          loadingExploring={loadingExploring} communityContainerRef={communityContainerRef}
           chatCommunitys={chatCommunitys}
           activeChat={activeChat}
           onClose={() => setShowChannel(false)}
@@ -378,11 +380,11 @@ export default function ChatList({
           setActiveCommunity={setActiveCommunity}
           openCommunity={openCommunity}
           loadingMessages={loadingMessagesCommunity}
-          lastOpenedCommunity ={lastOpenedCommunity} messagesCache ={messagesCache}
+          lastOpenedCommunity ={lastOpenedCommunity} 
           openChat={openChat} communityMessages={communityMessages} setCommunityMessages={setCommunityMessages}
           mobileViewCommunity={mobileViewCommunity} setMobileViewCommunity={setMobileViewCommunity}
-          setChats={setChats} setMessages={setMessages} messageRefs={messageRefs}
-          messagesEndRef={messagesEndRef} firstUnreadMessageId={firstUnreadMessageId}
+          setChats={setChats} setMessages={setMessages} messageCommunityRefs={messageCommunityRefs}
+          messagesCommunityEndRef={messagesCommunityEndRef} firstUnreadMessageId={firstUnreadMessageId}
           authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} uiMode={uiMode}
         />
       </div>

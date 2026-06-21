@@ -79,9 +79,7 @@ function App() {
       setUiMode(prev => (prev === "popup" ? "closed" : "popup"));
     };
 
-    useEffect(() => {
-        console.log("uiMode changed:", uiMode);
-      }, [uiMode]);
+   
 
       const setMessages = (chatId, updater) => {
       setMessagesMap(prev => {

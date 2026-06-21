@@ -17,7 +17,7 @@ export default function MessagesArea({
   replyingToCommunity, textCommunity, setTextCommunity, setReplyingToCommunity, selectedMessage,
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
   communityMessageAction, pendingMessages, isAdmin, setPendingMessages, messagesCacheRef,
-  setApprovalModal, approvalModal, messageRefs, chatLoading, chats, openChat, onCloseChannel, setChats,
+  setApprovalModal, approvalModal, messageCommunityRefs, chatLoading, chats, openChat, onCloseChannel, setChats,
   firstUnreadMessageId, authUserId, setLastReadMessageId, setCommunities
 }) {
 
@@ -407,11 +407,11 @@ const sendTextCommunity = async ({
   ]);
 
   // UPDATE CACHE
-  messageRefs.current[
+  messageCommunityRefs.current[
     activeCommunity.id
   ] = [
     ...(
-      messageRefs.current[
+      messageCommunityRefs.current[
         activeCommunity.id
       ] || []
     ),
@@ -503,6 +503,10 @@ const listToRender =
     msg.sender_id !== authUserId
   ).length;
 
+  useEffect(() => {
+  console.log("MESSAGE CONTAINER MOUNT");
+}, []);
+
 return (
 
   <>
@@ -566,7 +570,7 @@ return (
 
           if (el) {
 
-            messageRefs.current[
+            messageCommunityRefs.current[
               msg.id
             ] = el;
           }
@@ -628,7 +632,7 @@ return (
           textCommunity={textCommunity}
           setTextCommunity={setTextCommunity} openForward={openForward}
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
-          messageRefs={messageRefs} setReplyingToCommunity={setReplyingToCommunity}
+          messageCommunityRefs={messageCommunityRefs} setReplyingToCommunity={setReplyingToCommunity}
           selectedMessage={selectedMessage} setSelectedMessage={setSelectedMessage}
           showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
           setMenuPosition={setMenuPosition} menuPosition={menuPosition}

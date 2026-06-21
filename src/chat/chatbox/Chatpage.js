@@ -39,25 +39,376 @@ export default function ChatPage({
   const [mobileView, setMobileView] = useState(window.innerWidth >= 768 ? "messages" : "chatlist");
 
 
-  const goBack = () => {
-    setActiveChat(null);
-    setShowSettings(false);
-    setUiMode("popup");
-  };
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const chatIdFromUrl = searchParams.get("chatId");
-
   const [isMinimized, setIsMinimized] = useState(false);
 
-  //  const messages = Array.isArray(messagesMap[activeChat])
-  //   ? messagesMap[activeChat]
-  //   : [];
   const messages = Array.isArray(messagesMap[activeChat?.id])
     ? messagesMap[activeChat?.id]
     : [];
 
+    const hasLoaded = useRef(false);
+      const communitiesCache = useRef([]);
+    
+      const [exploreCommunities, setExploreCommunities] = useState([]);
+     
+      const [loadingExploring, setLoadingExploring] = useState(false)
+    
+      const [loading, setLoading] = useState(true);
+      const [communities, setCommunities] = useState([]);
+    
+      const [mobileViewCommunity, setMobileViewCommunity] = useState(window.innerWidth >= 768 ? "communityMessages" : "sidebarCommunitys");
+    
+  const [activeCommunity,
+    setActiveCommunity] =
+    useState(null);
+
+
+    const [
+  loadingMessagesCommunity,
+  setLoadingMessagesCommunity
+  ] = useState(false);
+  const [communityMessages,
+  setCommunityMessages] =
+    useState([]);
+  const communitiesCacheRef = useRef({});
+  const lastOpenedCommunity = useRef(null);
+
+    const unreadDividerRef =
+  useRef(null);
+
+  const communityContainerRef =
+  useRef(null);
+  const messageCommunityRefs = useRef({});
+  const messagesCommunityEndRef = useRef(null);
+  const communityMessagesCache = useRef({});
+
+   const [
+  firstUnreadMessageId,
+  setFirstUnreadMessageId,
+] = useState(null);
+  
+      const openedCommunitiesRef = useRef({});
+
+
+    useEffect(() => {
+
+      if (!communityMessages.length) {
+        return;
+      }
+
+      const container =
+        communityContainerRef.current;
+
+      if (!container) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+
+        // first open
+        if (firstUnreadMessageId) {
+
+          const el =
+            messageCommunityRefs.current[
+              firstUnreadMessageId
+            ];
+
+          if (el) {
+
+            el.scrollIntoView({
+              behavior: "auto",
+              block: "center",
+            });
+
+            return;
+          }
+        }
+
+        // reopen
+        container.scrollTop =
+          container.scrollHeight;
+
+      });
+
+    }, [
+      communityMessages,
+      firstUnreadMessageId,
+    ]);
+
+        
+        const openCommunity = async (
+        community,
+        skipMobile = false,
+        forceRefresh = false
+      ) => {
+      
+         const sameCommunity =
+        activeCommunity?.id === community.id;
+        
+        const cached =
+          communityMessagesCache.current[
+            community.id
+          ];
+
+        if (!cached || forceRefresh) {
+          setCommunityMessages([]);
+          setFirstUnreadMessageId(null);
+        }
+
+        setActiveChat(null); 
+      
+        setActiveCommunity(community);
+      
+        lastOpenedCommunity.current = community;
+      
+        if (window.innerWidth >= 768) {
+          setMobileViewCommunity("communityMessages");
+        } else if (!skipMobile) {
+          setMobileViewCommunity("communityMessages");
+        }
+       
+      
+        if (cached && !forceRefresh && cached.messages?.length > 0) {
+      
+          setCommunityMessages(
+            cached.messages
+          );
+      
+          setFirstUnreadMessageId(
+            sameCommunity
+              ? null
+              : cached.firstUnreadMessageId
+          );
+      
+           openedCommunitiesRef.current[
+              community.id
+            ] = true;
+
+      
+          setCommunities(prev =>
+            prev.map(c =>
+              c.id === community.id
+                ? {
+                    ...c,
+                    unread_count: 0,
+                  }
+                : c
+            )
+          );
+
+      
+            requestAnimationFrame(() => {
+
+              const container =
+                communityContainerRef.current;
+
+              if (
+                sameCommunity &&
+                container
+              ) {
+
+                container.scrollTop =
+                  container.scrollHeight;
+
+              }
+
+            });
+
+
+          if (
+            cached.messages.length > 0
+          ) {
+            api.post(
+              `/api/communities/${community.id}/mark-read`
+            ).catch(() => {});
+          }
+      
+          return; // 🚀 NO LOADING
+        }
+      
+        setLoadingMessagesCommunity(
+          true
+        );
+      
+        try {
+      
+          const res =
+            await api.get(
+              `/api/community/${community.id}/messages`
+            );
+      
+          const msgs =
+            res.data.messages || [];
+      
+          const firstUnreadId =
+            res.data
+              .first_unread_message_id;
+      
+          /* SAVE CACHE */
+      
+          communityMessagesCache.current[
+            community.id
+          ] = {
+            messages: msgs,
+            firstUnreadMessageId:
+              firstUnreadId,
+          };
+      
+          setCommunityMessages(
+            msgs
+          );
+      
+          setFirstUnreadMessageId(
+            sameCommunity
+              ? null
+              : firstUnreadId
+          );
+      
+
+           openedCommunitiesRef.current[
+              community.id
+            ] = true;
+
+      
+          setCommunities(prev => {
+      
+            const updated =
+              prev.map(c =>
+                c.id === community.id
+                  ? {
+                      ...c,
+                      unread_count: 0,
+                    }
+                  : c
+              );
+      
+            communitiesCache.current =
+              updated;
+      
+            return updated;
+          });
+      
+          if (msgs.length > 0) {
+      
+            api.post(
+              `/api/communities/${community.id}/mark-read`
+            ).catch(() => {});
+          }
+      
+        } catch (err) {
+      
+          console.log(err);
+      
+        } finally {
+      
+          setLoadingMessagesCommunity(
+            false
+          );
+        }
+      }
+
+
+      useEffect(() => {
+    
+        fetchCommunities();
+        fetchExploreCommunities();
+      }, []);
+    
+    
+      const fetchExploreCommunities = async () => {
+          setLoadingExploring(true)
+
+        try {
+    
+          const res = await api.get(
+            "/api/communities/explore"
+          );
+    
+          setExploreCommunities(
+            res.data.communities || []
+          );
+    
+        } catch (err) {
+    
+          console.log(err);
+    
+        }
+        finally{
+          setLoadingExploring(false)
+        }
+      };
+    
+      const fetchCommunities = async () => {
+    
+      if (
+        hasLoaded.current &&
+        communitiesCacheRef.current.length
+      ) {
+    
+        setCommunities(
+          communitiesCacheRef.current
+        );
+    
+        setLoading(false);
+    
+        // ✅ AUTO OPEN LAST CHAT
+        const lastId =
+          localStorage.getItem(
+            "last_opened_community"
+          );
+    
+        if (lastId) {
+    
+          const found =
+            communitiesCacheRef.current.find(
+              (c) =>
+                Number(c.id) ===
+                Number(lastId)
+            );
+    
+          // ✅ ONLY LARGE SCREEN
+          if (
+            found &&
+            window.innerWidth >= 768
+          ) {
+    
+            openCommunity(
+              found,
+              true
+            );
+          }
+        }
+    
+        return;
+      }
+    
+      try {
+    
+        setLoading(true);
+    
+        const res =
+          await api.get(
+            "/api/communities"
+          );
+    
+        const data =
+          res.data.communities || [];
+    
+        communitiesCacheRef.current =
+          data;
+    
+        hasLoaded.current = true;
+    
+        setCommunities(data);
+    
+      } catch (err) {
+    
+        console.log(err);
+    
+      } finally {
+    
+        setLoading(false);
+      }
+    };
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -349,7 +700,6 @@ if (cached && !forceRefresh) {
   setMessages([]);
 
   setActiveChat(chat);
-  setSearchParams({ chatId: chat.id }); // 👈 ADD THIS
   
   if (!isLargeScreen) {
     setShowList(false);
@@ -507,7 +857,17 @@ useEffect(() => {
       uiMode={uiMode}
       setIsMinimized={setIsMinimized}
       onSeeAll={() => setUiMode("full")}
-      setUiMode={setUiMode}
+      setUiMode={setUiMode} loadingExploring={loadingExploring}
+      exploreCommunities={exploreCommunities} loading={loading}
+      setCommunities={setCommunities} communities={communities}
+      setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity} 
+      lastOpenedCommunity={lastOpenedCommunity} activeCommunity={activeCommunity}
+      setActiveCommunity={setActiveCommunity} loadingMessagesCommunity={loadingMessagesCommunity} 
+      setLoadingMessagesCommunity={setLoadingMessagesCommunity} communityMessages={communityMessages} 
+      setCommunityMessages={setCommunityMessages} messageCommunityRefs={messageCommunityRefs} 
+      messagesCommunityEndRef={messagesCommunityEndRef} firstUnreadMessageId={firstUnreadMessageId} 
+      unreadDividerRef={unreadDividerRef} setExploreCommunities={setExploreCommunities}
+      openCommunity={openCommunity} communityContainerRef={communityContainerRef}
     />
   );
 }

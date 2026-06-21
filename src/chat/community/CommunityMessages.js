@@ -11,9 +11,9 @@ export default function CommunityMessages({
   setCommunityMessages,
   goBackChannel,
   authUser,
-  loadingMessages, messagesCacheRef, messagesEndRef, firstUnreadMessageId, authUserId,
-  chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageRefs, 
-  setLastReadMessageId, setCommunities, onOpenSettings, uiMode
+  loadingMessages, messagesCacheRef, messagesCommunityEndRef, firstUnreadMessageId, authUserId,
+  chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageCommunityRefs, 
+  setLastReadMessageId, setCommunities, onOpenSettings, uiMode, communityContainerRef
 
 }) {
 
@@ -29,7 +29,6 @@ export default function CommunityMessages({
     const [ pendingMessages, setPendingMessages ] = useState([]);
     const [showScrollButton, setShowScrollButton] = useState(false);
 
-    const messagesContainerRef = useRef(null);
 
     const [isMobiled, setIsMobiled] = useState(
       window.innerWidth < 1024
@@ -54,7 +53,7 @@ export default function CommunityMessages({
     useEffect(() => {
 
     const container =
-      messagesContainerRef.current;
+      communityContainerRef.current;
 
     if (!container) return;
 
@@ -150,7 +149,7 @@ const communityMessageAction = async ({
         tempMessage,
       ]);
       requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({
+        messagesCommunityEndRef.current?.scrollIntoView({
           behavior: "auto",
           block: "end",
         });
@@ -542,7 +541,7 @@ const resendCommunityFile =
 
   
    const handleScrollToMessage = (msg) => {
-    const el = messageRefs.current[msg.id];
+    const el = messageCommunityRefs.current[msg.id];
 
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -651,6 +650,7 @@ const resendCommunityFile =
                 justify-center
                 font-bold
                 text-lg
+                sm:text-2xl
                 text-white
                 shrink-0
                 ${getColor(
@@ -722,7 +722,7 @@ const resendCommunityFile =
         </div>
 
             <div
-            ref={messagesContainerRef}
+           ref={communityContainerRef}
             className="
             flex-1
             min-h-0
@@ -750,7 +750,9 @@ const resendCommunityFile =
           isAdmin={isAdmin}
           />
 
-        <div className="mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold rounded-lg sm:w-80 w-72 text-[10px] p-3">
+        <div className={`mb-4 text-center mt-4 mx-auto bg-gray-300 text-green-700 font-semibold 
+        rounded-lg    text-[10px] p-3 ${uiMode !== 'full' ? "text-[10px] md:text-[14px] lg:text-[10px] w-72 lg:w-72 md:w-[500px]" 
+        : 'sm:text-[12px] sm:w-[500px]'}`}>
           Messages in this channel are end-to-end encrypted. Only members of this channel can view or interact with posts.
           Admins can share updates and content. Calls and video calls are not available in channels.
         </div>
@@ -801,7 +803,7 @@ const resendCommunityFile =
           showMessageMenu={showMessageMenu} setShowMessageMenu={setShowMessageMenu}
           isMobile={isMobile} reactionMsg={reactionMsg} setReactionMsg={setReactionMsg}
           setMenuPosition={setMenuPosition} menuPosition={menuPosition}
-          communityMessageAction={communityMessageAction} messageRefs={messageRefs}
+          communityMessageAction={communityMessageAction} messageCommunityRefs={messageCommunityRefs}
           pendingMessages={pendingMessages} setPendingMessages={setPendingMessages}
           isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           chatLoading={chatLoading} chats={chats} openChat={openChat} onCloseChannel={onCloseChannel}
@@ -811,7 +813,7 @@ const resendCommunityFile =
        </div>
           )}
 
-          <div ref={messagesEndRef} />
+          <div ref={messagesCommunityEndRef} />
           </div>
 
 
@@ -825,10 +827,10 @@ const resendCommunityFile =
           replyingToCommunity={replyingToCommunity}
           textCommunity={textCommunity} setTextCommunity={setTextCommunity}
           communityMessageAction={communityMessageAction}
-          bottomRef={messagesEndRef}
+          bottomRef={messagesCommunityEndRef}
           unreadCount={unreadCount} showScrollButton={showScrollButton} setShowScrollButton={setShowScrollButton}
           communityMessages={communityMessages} setLastReadMessageId={setLastReadMessageId} myId={myId} 
-          setCommunities={setCommunities} latestMessage={latestMessage} messagesEndRef={messagesEndRef}
+          setCommunities={setCommunities} latestMessage={latestMessage} messagesCommunityEndRef={messagesCommunityEndRef}
        />
 
       </div>

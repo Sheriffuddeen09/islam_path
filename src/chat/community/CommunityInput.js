@@ -8,7 +8,7 @@ import api from "../../Api/axios";
 
 export default function CommunityInput({
 
-   activeCommunity, authUser,sendFileCommunity, files, fileInputRefCommunity,
+        activeCommunity, authUser,sendFileCommunity, files, fileInputRefCommunity,
         stopRecordingCommunity, sendTextCommunity, showEmojiCommunity,setShowEmojiCommunity,
         holdTimeoutCommunity,duration, setDuration, showMenuCommunity, setShowMenuCommunity,
         setShowConfirmCommunity, fileTypeCommunity, setFileTypeCommunity,
@@ -19,11 +19,11 @@ export default function CommunityInput({
         durationMapCommunity, setDurationMapCommunity, trimAppliedMapCommunity, setTrimAppliedMapCommunity,
         recordingCommunity, setRecordingCommunity, setFiles, previewUrlsCommunity, status,
         setPreviewUrlsCommunity, captionCommunity, setCaptionCommunity, replyingToCommunity, blockAllInput,
-       textCommunity, setTextCommunity, unreadCount, showScrollButton, setShowScrollButton, communityMessages,
-       setLastReadMessageId, myId, setCommunities, latestMessage, messagesEndRef,
-       setReplyingToCommunity, timerRefCommunity,
-       audioChunksRefCommunity, mediaRecorderRefCommunity, croppedImagesCommunity, setCroppedImagesCommunity,
-      showSendOptions, setShowSendOptions}) {
+        textCommunity, setTextCommunity, unreadCount, showScrollButton, setShowScrollButton, communityMessages,
+        setLastReadMessageId, myId, setCommunities, latestMessage, messagesCommunityEndRef,
+        setReplyingToCommunity, timerRefCommunity,
+        audioChunksRefCommunity, mediaRecorderRefCommunity, croppedImagesCommunity, setCroppedImagesCommunity,
+        showSendOptions, setShowSendOptions}) {
 
 
         
@@ -201,7 +201,7 @@ const handlePick = (type) => {
             <div
               onClick={async () => {
 
-                messagesEndRef.current?.scrollIntoView({
+                messagesCommunityEndRef.current?.scrollIntoView({
                   behavior: "smooth",
                   block: "end",
                 });

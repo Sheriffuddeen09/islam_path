@@ -11,7 +11,7 @@ export default function MessageList({msg, setReactionMsg,
                                     reactionMsg, isMobile, authUser, retryCommunityMessage ,react,
                                     approveMessage, rejectMessage, handleForward, hoverMsgId, isAdmin,
                                     setHoverMsgId, sendTextCommunity, setTextCommunity, textCommunity, activeCommunity,
-                                    pendingMessages, setPendingMessages, messageRefs, selectedMessage,
+                                    pendingMessages, setPendingMessages, messageCommunityRefs, selectedMessage,
                                     setSelectedMessage, setShowMessageMenu, setReplyingToCommunity,
                                     setMenuPosition,communityMessageAction, setMessages, openForward,
                                     approvalModal, setApprovalModal, showActionModal, setShowActionModal,
@@ -85,7 +85,7 @@ const displayText =
   (id) => {
 
   const el =
-    messageRefs.current[id];
+    messageCommunityRefs.current[id];
 
   if (!el) return;
 

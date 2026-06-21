@@ -6,10 +6,10 @@ export default function CommunityList({
 
   communities,
   activeCommunity,
-  setActiveCommunity,
+  openCommunity,
   onClose,
   loading,
-  exploreCommunities, handleFollow, handleHide, followLoading, uiMode
+  exploreCommunities, handleFollow, handleHide, followLoading, uiMode, loadingExploring
 
 }) {
 
@@ -352,9 +352,9 @@ export default function CommunityList({
                       )}
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 text-left"
+                  <div className="flex-1 min-w-0 text-left cursor-pointer"
                   onClick={() =>
-                    setActiveCommunity(
+                    openCommunity(
                       community
                     )
                   }>
@@ -364,14 +364,14 @@ export default function CommunityList({
                           community.community_name
                         }
                       </h2>
-                      <span className="text-xs text-[var(--text-color)] whitespace-nowrap">
+                      <span className="text-xs font-semibold text-[var(--text-color)] whitespace-nowrap">
                         {formatTime(
                           community.last_message?.created_at
                         )}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-[var(--text-color)] line-clamp-1 mt-2">
+                    <p className="text-xs font-semibold text-[var(--text-color)] line-clamp-1 mt-2">
                       {getLastMessage(
                         community
                       )}
@@ -393,8 +393,29 @@ export default function CommunityList({
             }
           )
         )}
-        {
-        exploreCommunities.length > 0 && (
+        
+       {loadingExploring ? (
+          <div className="p-3">
+            {Array.from({
+              length: 8
+            }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 p-3 animate-pulse">
+                <div className="w-14 h-14 rounded-full bg-[#202c33]" />
+                <div className="flex-1">
+                  <div className="h-4 w-32 rounded bg-[#202c33] mb-2" />
+                  <div className="h-3 w-48 rounded bg-[#202c33]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : communities.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-400 p-6 text-center">
+            No communities found
+          </div>
+        ) : (
+ exploreCommunities.length > 0 && (
     <>
       <div className="
         px-4
@@ -477,6 +498,7 @@ export default function CommunityList({
               <div className="
                 flex-1
                 min-w-0
+                cursor-pointer
               ">
                 <h2 className="
                   font-semibold
@@ -549,6 +571,7 @@ export default function CommunityList({
       }
     </>
 
+  )
   )
 }
 

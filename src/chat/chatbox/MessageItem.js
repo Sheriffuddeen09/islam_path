@@ -24,7 +24,7 @@ export default function MessageItem({
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
   loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView, showScrollButton,
-  isMinimize
+  isMinimize, myIds, isFirstUnread, 
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -1687,12 +1687,17 @@ onPointerCancel={() => {
       className="fixed bottom-28 right-6 lg:-translate-x-10 inline-flex items-center gap- bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
     >
 
-      {unreadCount > 0 && latestMessage?.sender_id !== myId &&  (
-        <span className="text-xs font-semibold">
-          {unreadCount}
-        </span>
-      )}
+      {isFirstUnread &&
+        unreadCount > 0 && 
+        msg.sender_id !== myId && (
+        <div className="flex items-center gap-3 my-4 px-2">
 
+          <div className="text-xs font-semibold">
+            {unreadCount} 
+          </div>
+
+        </div>
+      )}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
