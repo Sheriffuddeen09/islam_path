@@ -338,46 +338,36 @@ export default function ChatPage({
       };
     
       const fetchCommunities = async () => {
-    
+          
       if (
         hasLoaded.current &&
         communitiesCacheRef.current.length
       ) {
-    
-        setCommunities(
-          communitiesCacheRef.current
+        const sorted = [...communitiesCacheRef.current].sort(
+          (a, b) =>
+            new Date(b.last_activity_at || b.created_at || 0) -
+            new Date(a.last_activity_at || a.created_at || 0)
         );
-    
+
+        setCommunities(sorted);
         setLoading(false);
-    
-        // ✅ AUTO OPEN LAST CHAT
-        const lastId =
-          localStorage.getItem(
-            "last_opened_community"
+
+        const lastId = localStorage.getItem("last_opened_community");
+
+        if (
+          uiMode === "full" &&
+          lastId &&
+          window.innerWidth >= 768
+        ) {
+          const found = sorted.find(
+            c => Number(c.id) === Number(lastId)
           );
-    
-        if (lastId) {
-    
-          const found =
-            communitiesCacheRef.current.find(
-              (c) =>
-                Number(c.id) ===
-                Number(lastId)
-            );
-    
-          // ✅ ONLY LARGE SCREEN
-          if (
-            found &&
-            window.innerWidth >= 768
-          ) {
-    
-            openCommunity(
-              found,
-              true
-            );
+
+          if (found) {
+            openCommunity(found, true);
           }
         }
-    
+
         return;
       }
     
@@ -398,7 +388,14 @@ export default function ChatPage({
     
         hasLoaded.current = true;
     
-        setCommunities(data);
+        const sorted = [...data].sort(
+            (a, b) =>
+              new Date(b.last_activity_at || 0) -
+              new Date(a.last_activity_at || 0)
+          );
+
+          communitiesCacheRef.current = sorted;
+          setCommunities(sorted);
     
       } catch (err) {
     
@@ -414,7 +411,9 @@ export default function ChatPage({
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
-const fetchChats = async () => {
+
+
+  const fetchChats = async () => {
 
   if (!authUser) return;
 
@@ -516,9 +515,7 @@ const fetchChats = async () => {
     });
 
     setChats(sorted);
-
-    setChats(normalized);
-
+    
   } catch (err) {
 
     console.error(err);
@@ -536,6 +533,33 @@ useEffect(() => {
   fetchChats();
 
 }, [authUser]);
+
+useEffect(() => {
+
+  if (
+    uiMode !== "full" ||
+    chats.length === 0
+  ) {
+    return;
+  }
+
+  const lastChatId = localStorage.getItem(
+    "last_opened_chat"
+  );
+
+  if (!lastChatId) return;
+
+  const foundChat = chats.find(
+    chat =>
+      Number(chat.id) ===
+      Number(lastChatId)
+  );
+
+  if (foundChat && !activeChat) {
+    openChat(foundChat, false);
+  }
+
+}, [chats, uiMode]);
 
 
   const [isLargeScreen, setIsLargeScreen] = useState(
@@ -590,43 +614,69 @@ const decryptMessages = async (incoming, chatId) => {
 
 
 const messagesCacheRef = useRef({});
-const restoredChatRef = useRef(false);
 const loadingChatRef = useRef(null);
 const openedChatsRef = useRef({});
 
-const scrollToMessage = (messages, lastReadId) => {
+const scrollToMessage = (
+  messages,
+  lastReadId
+) => {
+
   requestAnimationFrame(() => {
+
     requestAnimationFrame(() => {
-      const container = messagesEndRef.current?.parentElement;
+
+      const container =
+        messagesEndRef.current?.parentElement;
+
       if (!container) return;
 
-      const lastRead = Number(lastReadId || 0);
+      // NO READ ID
+      if (!lastReadId) {
 
-      const firstUnread = messages.find(
-        msg => Number(msg.id) > lastRead
-      );
+        container.scrollTop =
+          container.scrollHeight;
 
-      if (firstUnread && messageRefs.current[firstUnread.id]) {
-        messageRefs.current[firstUnread.id].scrollIntoView({
-          behavior: "auto",
-          block: "center",
-        });
         return;
       }
 
-      // fallback → bottom
-      container.scrollTop = container.scrollHeight;
+      const firstUnread =
+        messages.find(
+          msg =>
+            Number(msg.id) >
+            Number(lastReadId)
+        );
+
+      if (
+        firstUnread &&
+        messageRefs.current[firstUnread.id]
+      ) {
+
+        messageRefs.current[
+          firstUnread.id
+        ].scrollIntoView({
+          behavior: "auto",
+          block: "center",
+        });
+
+        return;
+      }
+
+      container.scrollTop =
+        container.scrollHeight;
+
     });
+
   });
+
 };
+
 
 const openChat = async (
   chat,
   userTriggered = false,
   forceRefresh = false
 ) => {
-
-
 
   if (loadingChatRef.current && loadingChatRef.current !== chat.id) {
         loadingChatRef.current = null;
@@ -663,7 +713,7 @@ if (cached && !forceRefresh) {
   setMessages(cached);
 
     localStorage.setItem(
-      "lastChatId",
+      "last_opened_chat",
       String(chat.id)
     );
     setChats(prev =>
@@ -705,9 +755,9 @@ if (cached && !forceRefresh) {
     setShowList(false);
   }
   localStorage.setItem(
-    "lastChatId",
-    String(chat.id)
-  );
+  "last_opened_chat",
+  String(chat.id)
+);
   setChats(prev =>
     prev.map(c =>
       c.id === chat.id

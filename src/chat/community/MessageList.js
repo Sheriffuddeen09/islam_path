@@ -626,6 +626,7 @@ const handleDownloadMessage =
                 flex gap-1
                 justify-end
                 flex-1
+                mb-2
               ">
                  {Boolean(Number(msg.edited)) && (
                     <span className="text-[12px] text-white italic">

@@ -246,28 +246,21 @@ const handlePick = (type) => {
                 }
 
               }}
-              className="
-              
-                absolute
-                right-6
-                inline-flex
-                items-center
-                bottom-20
-                gap-1
-                bg-blue-800
-                text-white
-                px-2
-                py-1
-                rounded-full
-                cursor-pointer
-              "
+              className={`
+              absolute rounded-full inline-flex
+              rounded-full p-1
+              items-center
+              z-50 bg-blue-800
+              cursor-pointer
+              text-white
+            ${blockAllInput ? 'bottom-6 right-2 ' : "bottom-20 -translate-y- right-3 "}`}
             >
 
               {
                 unreadCount > 0 &&
                 latestMessage?.sender_id !== myId && (
 
-                  <span className="text-xs font-semibold">
+                  <span className="text-[10px] font-semibold">
 
                     {unreadCount}
 

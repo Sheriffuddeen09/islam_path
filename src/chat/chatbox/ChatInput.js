@@ -10,8 +10,8 @@ export default function ChatInput({ authUser,  activeChat, replyingTo, setReplyi
   stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
-  text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
-  mediaRecorderRef,setPaused }) {
+  text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
+  mediaRecorderRef,setPaused, blockAllInput, status, onlyAdminSend, isAdmin }) {
 
   const [showEmoji, setShowEmoji] = useState(false);
   const holdTimeout = useRef(null);
@@ -158,31 +158,7 @@ const handlePick = (type) => {
 };
 
 
-  const status = activeChat?.membership_status;
-const role = activeChat?.my_role;
-
-const isGroupChat = activeChat?.type === "group";
-const isAdmin = role === "admin";
-
-const onlyAdminSend = activeChat?.only_admin_send === 1;
-
-const isPending = status === "pending";
-const isRejected = status === "rejected";
-const isRemoved = status === "removed"; // ✅ FIXED
-
-const canSendMessage = isGroupChat
-  ? (isAdmin || (status === "approved" && !onlyAdminSend))
-  : true;
-
-const blockAllInput = isGroupChat
-  ? (
-      isPending ||
-      isRejected ||
-      isRemoved ||
-      !canSendMessage
-    )
-  : false;
-
+  
 
 const handleFileChange = (e) => {
   const selectedFiles = Array.from(e.target.files);

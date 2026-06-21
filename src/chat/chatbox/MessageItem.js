@@ -24,7 +24,7 @@ export default function MessageItem({
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
   showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
   loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView, showScrollButton,
-  isMinimize, myIds, isFirstUnread, 
+  isMinimize, blockAllInput
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -257,7 +257,8 @@ useEffect(() => {
         message: encrypted,
         iv: iv,
         type: "text",
-
+        sender: authUser,
+        sender_id: authUser.id,
         replied_to:
           msg.replied_to?.id ||
           msg.replied_message?.id ||
@@ -1411,13 +1412,15 @@ onPointerCancel={() => {
 
       <>
 
-      {
-        isGroup && (
-          <span className="text-blue-300 font-semibold mb-1">
-            {msg.sender.first_name} {msg.sender.last_name}
-          </span>
-          )
-        }
+      {isGroup && (
+        <span className="text-blue-300 text-[10px] font-semibold mb-1">
+          {msg.sender_id === authUser.id
+            ? "You"
+            : [msg.sender?.first_name, msg.sender?.last_name]
+                .filter(Boolean)
+                .join(" ")}
+        </span>
+      )}
 
       {msg.is_forwarded && (
       
@@ -1639,72 +1642,89 @@ onPointerCancel={() => {
       loadingChats={loadingChats}
     />
 
-    {showScrollButton && !isMinimize &&
-    <div
-      onClick={async () => {
 
-        bottomRef.current?.scrollIntoView({
-          behavior: "smooth",
-        });
+{showScrollButton && !isMinimize && (
+  <div
+    onClick={async () => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
 
-        const latestMessage =
-          messages[messages.length - 1];
+      const latestMessage =
+        messages[messages.length - 1];
 
-        if (latestMessage) {
-
-          setLastReadMessageId(
-            latestMessage.id
-          );
-        }
-
-        setUnreadCount(0);
-
-        setChats(prev =>
-          prev.map(chat =>
-            chat.id === activeChat?.id
-              ? {
-                  ...chat,
-                  unread_count: 0,
-                }
-              : chat
-          )
+      if (latestMessage) {
+        setLastReadMessageId(
+          latestMessage.id
         );
+      }
 
-        try {
+      setUnreadCount(0);
 
-          await api.post(
-            `/api/chats/${activeChat.id}/read`
-          );
+      setChats(prev =>
+        prev.map(chat =>
+          chat.id === activeChat?.id
+            ? {
+                ...chat,
+                unread_count: 0,
+              }
+            : chat
+        )
+      );
 
-        } catch (err) {
-
-          console.error(
-            "Failed to mark read",
-            err
-          );
-        }
-      }}
-      className="fixed bottom-28 right-6 lg:-translate-x-10 inline-flex items-center gap- bg-gray-800 text-white px-1 py-1 rounded-full cursor-pointer"
+      try {
+        await api.post(
+          `/api/chats/${activeChat.id}/read`
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }}
+    className={`
+      fixed
+      right-6
+      lg:right-14
+      z-50
+      cursor-pointer
+     ${blockAllInput ? 'bottom-20' : "bottom-28 -translate-y-3"}`}
+  >
+    <div
+      className={`
+        flex
+        flex-row
+        items-center
+        justify-center
+        px-1 py-1
+        rounded-full
+        bg-gray-900
+        border
+        whitespace-nowrap
+      `}
     >
-
-      {isFirstUnread &&
-        unreadCount > 0 && 
-        msg.sender_id !== myId && (
-        <div className="flex items-center gap-3 my-4 px-2">
-
-          <div className="text-xs font-semibold">
-            {unreadCount} 
-          </div>
-
-        </div>
+      {unreadCount > 0 && (
+        <span
+          className="
+            text-[9px]
+            font-bold
+            text-white
+            leading-none
+          "
+        >
+          {unreadCount}
+        </span>
       )}
+
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
-        strokeWidth="1.5"
+        strokeWidth="2"
         stroke="currentColor"
-        className="size-3"
+        className="
+          w-3
+          h-3
+          text-white
+        "
       >
         <path
           strokeLinecap="round"
@@ -1712,9 +1732,9 @@ onPointerCancel={() => {
           d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
         />
       </svg>
-
     </div>
-     }
+  </div>
+)}
      
   </>
 );

@@ -19,6 +19,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef
 }) {
 
+   
+
     const [recording, setRecording] = useState(false);
     const [text, setText] = useState("");
 
@@ -126,6 +128,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     message: text,
     type: "text",
     sender_id: authUser.id,
+    sender: authUser,
     status: "sending",
     created_at: new Date().toISOString(),
     replied_to: reply || null, // ✅ still preserved
@@ -714,13 +717,13 @@ setMessages((prev) => {
      {uiMode !== "full" && activeChat && (
       <div
         className={`
-          fixed z-50 shadow-md flex flex-col
+          fixed z-50 flex flex-col
 
           bottom-0 right-0
           w-full h-full rounded-none
           
-          lg:bottom-0 lg:right-10 border-2 
-          lg:w-[350px] lg:rounded-t-2xl
+          lg:bottom-10 lg:right-10 border
+          lg:w-[350px] lg:rounded-2xl
           ${isMinimized ? "lg:h-[80px]" : "lg:h-[500px]"}
         `}
       >

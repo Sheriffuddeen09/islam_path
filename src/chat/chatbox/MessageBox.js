@@ -36,6 +36,31 @@ export default function MessageBox({
 }) {
   
 
+    const status = activeChat?.membership_status;
+    const role = activeChat?.my_role;
+  
+    const isGroupChat = activeChat?.type === "group";
+    const isAdmin = role === "admin";
+  
+    const onlyAdminSend = activeChat?.only_admin_send === 1;
+  
+    const isPending = status === "pending";
+    const isRejected = status === "rejected";
+    const isRemoved = status === "removed"; // ✅ FIXED
+  
+    const canSendMessage = isGroupChat
+      ? (isAdmin || (status === "approved" && !onlyAdminSend))
+      : true;
+  
+    const blockAllInput = isGroupChat
+    ? (
+        isPending ||
+        isRejected ||
+        isRemoved ||
+        !canSendMessage
+      )
+    : false;
+  
 
   const [callMode, setCallMode] = useState(null); 
   const [showNewBtn, setShowNewBtn] = useState(false);
@@ -341,7 +366,6 @@ useEffect(() => {
   };
 
 
-  const status = activeChat?.membership_status; // pending | approved | rejected | null
 
   const isRestrictedGroupUser =
   activeChat?.type === "group" &&
@@ -952,6 +976,7 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
+          blockAllInput={blockAllInput} 
           showScrollButton={showScrollButton} isFirstUnread={isFirstUnread} myId={myId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           openCommunity={openCommunity} onBack={onBack} openCommunityMessage={openCommunityMessage}
@@ -1006,6 +1031,7 @@ const isFirstUnread =
       {/* INPUT */}
       <div className="px-3 border-t bg-[var(--bg-color)]">
         <ChatInput
+          blockAllInput={blockAllInput} status={status} onlyAdminSend={onlyAdminSend} isAdmin={isAdmin}
           authUser={authUser}
           setIsTyping={setIsTyping}
           replyingTo={replyingTo}
