@@ -205,7 +205,9 @@ export default function VoiceUI({ msg, isMine }) {
       : 0;
 
   return (
-    <div className={`p-2 rounded-2xl w-56 ${isMine ? "bg-green-200" : "bg-gray-100"}`}>
+    <div className={`p-2 rounded-2xl ${isMine ? "bg-green-200" : "bg-gray-100"}
+     ${uiMode === 'full' ? 'w-64' : 'w-56 lg:w-56 md:w-96 p-2'}
+    `}>
       <div className="flex items-center gap-2">
 
         <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center">

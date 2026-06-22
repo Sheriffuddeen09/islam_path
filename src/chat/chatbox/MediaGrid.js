@@ -1,6 +1,6 @@
 import MediaItem from './MediaItem'
 
-export default function MediaGrid({ msg, setPreview }) {
+export default function MediaGrid({ msg, setPreview, uiMode }) {
   const files = msg.files || [msg];
   const total = files.length;
 
@@ -36,7 +36,8 @@ export default function MediaGrid({ msg, setPreview }) {
 
   if (total === 1) {
   return (
-    <div className="w-56 h-44 rounded-xl overflow-hidden">
+    <div className={`rounded-xl overflow-hidden 
+    ${uiMode === 'full' ? 'w-64 h-44' : 'w-56 h-44 lg:h-44 lg:w-56 md:w-96 md:h-64'}`}>
       <MediaItem file={files[0]} index={0} openPreview={openPreview} />
     </div>
   );
@@ -44,7 +45,8 @@ export default function MediaGrid({ msg, setPreview }) {
 
   if (total === 2) {
   return (
-    <div className="w-56 h-44 grid grid-cols-2 gap-1 rounded-xl object-cover overflow-hidden">
+    <div className={` grid grid-cols-2 gap-1 rounded-xl object-cover overflow-hidden
+    ${uiMode === 'full' ? 'w-64 h-44' : 'w-56 h-44 lg:h-44 lg:w-56 md:w-96 md:h-64'}`}>
       {files.map((file, i) => (
         <MediaItem
           key={i}
@@ -58,8 +60,10 @@ export default function MediaGrid({ msg, setPreview }) {
 }
 
   return (
-  <div className="w-56 rounded-xl overflow-hidden flex object-cover flex-col gap-1">
-    <div className="w-full h-32">
+  <div className={`rounded-xl overflow-hidden flex object-cover flex-col gap-1 
+    
+  `}>
+    <div className={`${uiMode === 'full' ? 'w-64 h-32' : 'w-56 h-44 lg:h-24 lg:w-56 md:w-96 md:h-32'}`}>
       <MediaItem
         file={files[0]}
         index={0}
@@ -67,7 +71,7 @@ export default function MediaGrid({ msg, setPreview }) {
         big
       />
     </div>
-    <div className="grid grid-cols-2 gap-2">
+    <div className={`grid grid-cols-2 gap-2 ${uiMode === 'full' ? 'w-64 h-24' : 'w-56 h-24 lg:h-24 lg:w-56 md:w-96 md:h-36'}`}>
       {files.slice(1, 3).map((file, i) => {
         const realIndex = i + 1;
         const isLast = realIndex === 2 && total > 3;
@@ -75,7 +79,7 @@ export default function MediaGrid({ msg, setPreview }) {
         return (
           <div
               key={realIndex}
-              className="relative"
+              className={` relative `}
               onClick={() => openPreview(realIndex)}
             >
               <MediaItem

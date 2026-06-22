@@ -976,7 +976,7 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
-          blockAllInput={blockAllInput} 
+          blockAllInput={blockAllInput}  uiMode={uiMode}
           showScrollButton={showScrollButton} isFirstUnread={isFirstUnread} myId={myId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           openCommunity={openCommunity} onBack={onBack} openCommunityMessage={openCommunityMessage}
@@ -1030,10 +1030,10 @@ const isFirstUnread =
 
       {/* INPUT */}
       <div className="px-3 border-t bg-[var(--bg-color)]">
-        <ChatInput
+        <ChatInput setChats={setChats} messages={messages} unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           blockAllInput={blockAllInput} status={status} onlyAdminSend={onlyAdminSend} isAdmin={isAdmin}
-          authUser={authUser}
-          setIsTyping={setIsTyping}
+          authUser={authUser} showScrollButton={showScrollButton} isMinimized={isMinimized}
+          setIsTyping={setIsTyping} setLastReadMessageId={setLastReadMessageId} bottomRef={bottomRef}
           replyingTo={replyingTo}
           setReplyingTo={setReplyingTo}
           activeChat={activeChat} 

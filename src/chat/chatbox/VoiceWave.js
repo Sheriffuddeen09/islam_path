@@ -22,7 +22,7 @@ export default function VoiceWave({ active }) {
         <div
           key={i}
           style={{ height: h }}
-          className="w-[2px] bg-red-500 rounded"
+          className="w-[5px] bg-red-500 rounded"
         />
       ))}
     </div>

@@ -25,6 +25,7 @@ export function ChatSkeleton({ type = "list" }) {
   // 🔹 MESSAGE BOX SKELETON
   if (type === "messages") {
     return (
+      <div className="md:hidden lg:block block">
       <div className="flex flex-col p-6 space-y-2 animate-pulse">
         {[1, 2, 3, 4, 5, 6].map(i => (
           <div
@@ -45,10 +46,40 @@ export function ChatSkeleton({ type = "list" }) {
           </div>
         ))}
       </div>
+      </div>
     );
   }
 
-  // 🔹 ACTIVE USER / CHAT INFO SKELETON
+
+  if (type === "messages") {
+    return (
+      <div className="md:block lg:hidden hidden">
+      <div className="flex flex-col p-6 space-y-2 animate-pulse">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => (
+          <div
+            key={i}
+            className={`flex ${
+              i % 2 === 0 ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`rounded-lg p-3 max-w-xs ${
+                i % 2 === 0 ? "bg-gray-200" : "bg-gray-200"
+              }`}
+            >
+              <div className="h-3 bg-gray-400 rounded w-40 mb-2" />
+              <div className="h-3 bg-gray-300 rounded w-32 mb-2" />
+              <div className="h-3 bg-gray-300 rounded w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+      </div>
+    );
+  }
+
+    //  </div>
+  // 🔹 ACTIVE USER / CHAT INFO SKELETON 
   if (type === "info") {
   return (
     <div className="h-full bg-[var(--bg-color)] animate-pulse">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function AudioBubble({ file, msg, isMine, index }) {
+export default function AudioBubble({ file, msg, isMine, index, uiMode }) {
 
   const audioRef = useRef(null);
 
@@ -148,9 +148,11 @@ export default function AudioBubble({ file, msg, isMine, index }) {
 
   return (
     <div
-      className={`p-2 rounded-2xl w-56 my-2  text-black ${
+      className={`p-2 rounded-2xl my-2  text-black ${
         isMine ? "bg-green-200" : "bg-gray-100"
-      }`}
+      } 
+      ${uiMode === 'full' ? 'w-64' : 'w-56 lg:w-56 md:w-96'}
+      `}
     >
       <div className="flex items-center gap-1">
         {!playing && (

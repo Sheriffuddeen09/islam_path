@@ -290,13 +290,7 @@ export default function ChatItem({
         </div>
       )}
 
-      {/* CLOSE BUTTON */}
-      {/* <button
-        onClick={() => setShowAvatarPreview(false)}
-        className="absolute -top-4 -right-4 bg-white text-black rounded-full py-1 px-2 shadow"
-      >
-        ✕
-      </button> */}
+     
     </div>
   </div>
 )}

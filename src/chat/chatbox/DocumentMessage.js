@@ -1,6 +1,6 @@
 import { BookOpen } from "lucide-react";
 
-export default function DocumentMessage({ msg }) {
+export default function DocumentMessage({ msg, uiMode }) {
 
   const files = msg.files?.length
     ? msg.files
@@ -58,9 +58,10 @@ export default function DocumentMessage({ msg }) {
           <div
             key={index}
             onClick={openFile}
-            className="bg-gray-100 p-3 rounded-xl w-56 cursor-pointer hover:bg-gray-200 transition my-1"
+            className={`bg-gray-100  rounded-xl cursor-pointer hover:bg-gray-200 transition my-1 
+               `}
           >
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 p-3 lg:p-3 md:p-4 ${uiMode === 'full' ? 'w-64' : 'w-56 lg:w-56 md:w-96'}`}>
 
               <div className="w-10 h-10 flex items-center justify-center text-xl">
                 <BookOpen className="w-6 h-6 text-gray-900" />
@@ -71,12 +72,12 @@ export default function DocumentMessage({ msg }) {
                 <div className="flex items-center gap-1 font-bold">
                   {getFileIcon(fileName)}
 
-                  <p className="text-sm font-bold capitalize text-gray-900 truncate max-w-[150px]">
+                  <p className="text-sm lg:text-sm md:text-lg font-bold capitalize text-gray-900 truncate max-w-[150px]">
                     {fileName}
                   </p>
                 </div>
 
-                <p className="text-xs text-gray-900 mt-1 font-semibold">
+                <p className="text-xs lg:text-xs md:text-sm text-gray-900 mt-1 font-semibold">
                   Tap to open
                 </p>
 

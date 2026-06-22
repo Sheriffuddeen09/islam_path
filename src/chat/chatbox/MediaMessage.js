@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function MediaMessage({
   msg,
-  setPreview,
+  setPreview, uiMode
 }) {
 
   const [expandedMessages, setExpandedMessages] = useState({});
@@ -32,10 +32,6 @@ export default function MediaMessage({
   )
     return null;
 
-  const hasLink =
-    /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi.test(
-      msg.message || ""
-    );
 
     const cleanMessage =
   typeof msg.message === "string"
@@ -43,25 +39,26 @@ export default function MediaMessage({
     : "";
 
   return (
-    <div className="max-w-xs">
+    <div className="w-full">
 
       <MediaGrid
         msg={msg}
         setPreview={setPreview}
+        uiMode={uiMode}
       />
 
       {/* caption */}
        {cleanMessage !== "" && (
       
         <div
-            className="
-              text-[13px]
-              mt-1
-              text-white
-              w-fit
-              max-w-56
-              break-words
-            ">
+            className={`
+          text-[13px] lg:text-[13px] md:text-[16px]
+          mt-1
+          text-white
+          w-fit
+          break-words
+          ${uiMode === 'full' ? 'max-w-64' : 'max-w-56 lg:max-w-56 md:max-w-96 '}
+        `}>
             <Linkify
               options={{
                 target: "_blank",

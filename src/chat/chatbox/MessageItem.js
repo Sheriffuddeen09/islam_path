@@ -22,9 +22,8 @@ export default function MessageItem({
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
-  showReactionPopup, setShowReactionPopup, messageRefs, unreadCount, bottomRef, setUnreadCount,
-  loadingChats, setLastReadMessageId, onBack, openCommunityMessage, mobileView, showScrollButton,
-  isMinimize, blockAllInput
+  showReactionPopup, setShowReactionPopup, messageRefs, bottomRef, 
+  loadingChats, onBack, openCommunityMessage, mobileView,  uiMode
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -1088,6 +1087,7 @@ const isInteractive = (target) => {
 };
 
 
+
   return (
   <>
     
@@ -1101,107 +1101,93 @@ const isInteractive = (target) => {
       messages={messages} setForwardMessage={setForwardMessage} togglePin={handlePin} setMessages={setMessages}
       />
     )}
+    <div className={`flex flex-row items-start ${
+        isMine ? "justify-end" : "justify-start"
+      }`}>
+      {isGroup && !isMine && (
+          <div
+            className={`flex items-center mb-1 `}
+          >
+            <div
+              className={`
+                w-8 h-8
+                flex items-center justify-center
+                rounded-full
+                text-white
+                text-[20px]
+                font-bold
+                ${getColor(
+                  msg.sender_id === authUser.id
+                    ? "You"
+                    : msg.sender?.first_name
+                )}
+              `}
+            >
+              {getInitial(msg.sender?.first_name)}
+            </div>
+          </div>
+        )}
     <div
-    
-        key={`${msg.id}-${selectedMessages.length}`}
-        ref={messageRef}
-        className={`flex cursor-pointer px-1 sm:px-4 ${
-          isMine ? "justify-end" : "justify-start"
-        } ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
-      >
+      key={msg.id} 
+      ref={messageRef}
+      className={`flex cursor-pointer px-1
+         ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
+      style={{
+        touchAction: "none",
+      }}
+    >
+
      <div
-  className={`relative group p-2 my-1 rounded-lg max-w-xs text-sm transition
+  className={`relative group p-2 my-1 rounded-lg max-w-md text-sm transition
     ${isMine 
       ? "ml-auto bg-green-800 text-white" 
       : "mr-auto bg-blue-900 text-white"
     }
   `}
-  style={{
+ style={{
   transform: `translateX(${translateX}px)`,
-  transition: translateX === 0 ? "transform 0.2s ease" : "none",
-  touchAction: "none",
+  transition:
+    translateX === 0
+      ? "transform 0.2s ease"
+      : "none",
+  touchAction: "pan-y",
 }}
 
-onPointerDown={(e) => {
-  if (isInteractive(e.target)) return;
-
-  longPressTriggered.current = false;
-  isDragging.current = true;
-
-  startX.current = e.clientX;
-  dragX.current = 0;
-
-  pressTimer.current = setTimeout(() => {
-    longPressTriggered.current = true;
-    setIsLongPress(true);
-    toggleSelect(msg);
-    setShowReactionPopup(msg.id);
-  }, 500);
+onTouchStart={(e) => {
+  startX.current =
+    e.touches[0].clientX;
 }}
 
-onPointerMove={(e) => {
-  if (isInteractive(e.target)) return;
-  if (!isDragging.current) return;
+onTouchMove={(e) => {
+  const diff =
+    e.touches[0].clientX -
+    startX.current;
 
-  const diff = e.clientX - startX.current;
-
-  // ❌ cancel long press if movement starts
-  if (Math.abs(diff) > 10) {
-    clearTimeout(pressTimer.current);
-  }
-
-  // 👉 ONLY RIGHT SWIPE
   if (diff > 0) {
-    const MAX = 80;
-
-    const x = Math.min(diff, MAX);
-
-    dragX.current = diff;
-    setTranslateX(x);
+    setTranslateX(
+      Math.min(diff, 80)
+    );
   }
 }}
 
-onPointerUp={(e) => {
-  isDragging.current = false;
-  clearTimeout(pressTimer.current);
-
-  const diff = dragX.current;
-
-  setTranslateX(0);
-  dragX.current = 0;
-
-  // 🔥 SWIPE THRESHOLD
-  if (diff > 60) {
+onTouchEnd={() => {
+  if (translateX > 35) {
     setReplyingTo(msg);
   }
 
-  // ❗ DO NOT block click
-}}
-
-
-onPointerCancel={() => {
-  clearTimeout(pressTimer.current);
-  isDragging.current = false;
   setTranslateX(0);
-  dragX.current = 0;
 }}
 
-  // ================= CLICK =================
+
   onClick={(e) => {
   e.stopPropagation();
-
   if (isInteractive(e.target)) return;
-
-  // ❌ prevent double toggle after long press
   if (longPressTriggered.current) return;
-
-  // ✅ selection mode
   if (selectionMode || selectedMessages.length > 0) {
     toggleSelect(msg);
     return;
   }
 
-  // normal behavior
   if (!forwardMode) {
     if (isMobile) setShowActions(prev => !prev);
     return;
@@ -1469,20 +1455,20 @@ onPointerCancel={() => {
         </div>
       )}
 
-        {msg.is_forwarded &&(
+        {msg.is_forwarded && msg.forward_source_name  && (
           <FromCommunityForward msg={msg} 
           />
         )}
         {msg.message && msg.type === "text" && (
         <div
-        className="
-          text-[13px]
+        className={`
+          text-[13px] lg:text-[13px] md:text-[16px]
           mt-1
           text-white
           w-fit
-          max-w-56
           break-words
-        ">
+          ${uiMode === 'full' ? 'max-w-64' : 'max-w-56 lg:max-w-56 md:max-w-96 '}
+        `}>
         <Linkify
           options={{
             target: "_blank",
@@ -1524,24 +1510,22 @@ onPointerCancel={() => {
           <MediaMessage
             msg={msg}
             setPreview={setPreview}
+            uiMode={uiMode}
           />
         )}
       </>
 
     )}
 
-    
-       {/* ================= FILES (ALWAYS FIRST) ================= */}
-         
 
             {msg.files?.some(f =>
                 f.type === "audio" || f.type === "voice"
               ) && (
-                <AudioPlayer msg={msg} isMine={isMine} />
+                <AudioPlayer msg={msg} isMine={isMine} uiMode={uiMode} />
               )}
 
             {msg.files?.some(f => f.type === "file") && (
-                <DocumentMessage msg={msg} />
+                <DocumentMessage msg={msg} uiMode={uiMode} />
               )}
 
               {
@@ -1576,7 +1560,7 @@ onPointerCancel={() => {
           edited
         </span>
        )}
-          <span className="text-[10px]">
+          <span className={`text-[7px] lg:text-[7px] md:text-[10px] `}>
             {formatTime(msg.created_at)}
           </span>
 
@@ -1602,7 +1586,30 @@ onPointerCancel={() => {
         )}
       </div>
     </div>
-    
+    {isGroup && isMine && (
+          <div
+            className={`flex items-center mb-1 `}
+          >
+            <div
+              className={`
+                w-8 h-8
+                flex items-center justify-center
+                rounded-full
+                text-white
+                text-[20px]
+                font-bold
+                ${getColor(
+                  msg.sender_id === authUser.id
+                    ? "You"
+                    : msg.sender?.first_name
+                )}
+              `}
+            >
+              {getInitial(msg.sender?.first_name)}
+            </div>
+          </div>
+        )}
+    </div>
      <MessageComponent
       setChats={setChats}
       openChat={openChat}
@@ -1642,100 +1649,7 @@ onPointerCancel={() => {
       loadingChats={loadingChats}
     />
 
-
-{showScrollButton && !isMinimize && (
-  <div
-    onClick={async () => {
-      bottomRef.current?.scrollIntoView({
-        behavior: "smooth",
-      });
-
-      const latestMessage =
-        messages[messages.length - 1];
-
-      if (latestMessage) {
-        setLastReadMessageId(
-          latestMessage.id
-        );
-      }
-
-      setUnreadCount(0);
-
-      setChats(prev =>
-        prev.map(chat =>
-          chat.id === activeChat?.id
-            ? {
-                ...chat,
-                unread_count: 0,
-              }
-            : chat
-        )
-      );
-
-      try {
-        await api.post(
-          `/api/chats/${activeChat.id}/read`
-        );
-      } catch (err) {
-        console.error(err);
-      }
-    }}
-    className={`
-      fixed
-      right-6
-      lg:right-14
-      z-50
-      cursor-pointer
-     ${blockAllInput ? 'bottom-20' : "bottom-28 -translate-y-3"}`}
-  >
-    <div
-      className={`
-        flex
-        flex-row
-        items-center
-        justify-center
-        px-1 py-1
-        rounded-full
-        bg-gray-900
-        border
-        whitespace-nowrap
-      `}
-    >
-      {unreadCount > 0 && (
-        <span
-          className="
-            text-[9px]
-            font-bold
-            text-white
-            leading-none
-          "
-        >
-          {unreadCount}
-        </span>
-      )}
-
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="2"
-        stroke="currentColor"
-        className="
-          w-3
-          h-3
-          text-white
-        "
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
-        />
-      </svg>
-    </div>
-  </div>
-)}
-     
+   
   </>
 );
   }

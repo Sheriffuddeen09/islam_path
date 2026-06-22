@@ -11,7 +11,8 @@ export default function ChatInput({ authUser,  activeChat, replyingTo, setReplyi
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
-  mediaRecorderRef,setPaused, blockAllInput, status, onlyAdminSend, isAdmin }) {
+  mediaRecorderRef,setPaused, blockAllInput, status, onlyAdminSend, isAdmin, setChats, messages, unreadCount,
+  setUnreadCount, showScrollButton, isMinimized, setLastReadMessageId, bottomRef }) {
 
   const [showEmoji, setShowEmoji] = useState(false);
   const holdTimeout = useRef(null);
@@ -202,7 +203,106 @@ const getPreviewText = (msg) => {
 };
   
   return (
-    <>
+    <div className="relative">
+
+    
+    
+    
+{showScrollButton && !isMinimized && (
+  <div
+    onClick={async () => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+
+      const latestMessage =
+        messages[messages.length - 1];
+
+      if (latestMessage) {
+        setLastReadMessageId(
+          latestMessage.id
+        );
+      }
+
+      setUnreadCount(0);
+
+      setChats(prev =>
+        prev.map(chat =>
+          chat.id === activeChat?.id
+            ? {
+                ...chat,
+                unread_count: 0,
+              }
+            : chat
+        )
+      );
+
+      try {
+        await api.post(
+          `/api/chats/${activeChat.id}/read`
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }}
+    className={`
+              absolute rounded-full inline-flex
+              rounded-full p-1
+              items-center
+              z-50 bg-blue-800
+              cursor-pointer
+              text-white
+            ${blockAllInput ? 'bottom-6 right-2 ' : "bottom-20 -translate-y- right-3 "}`}
+  >
+    <div
+      className={`
+        flex
+        flex-row
+        items-center
+        justify-center
+        px-1 py-1
+        rounded-full
+        whitespace-nowrap
+      `}
+    >
+      {unreadCount > 0 && (
+        <span
+          className="
+            text-[9px]
+            font-bold
+            text-white
+            leading-none
+          "
+        >
+          {unreadCount}
+        </span>
+      )}
+
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="2"
+        stroke="currentColor"
+        className="
+          w-3
+          h-3
+          text-white
+        "
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5"
+        />
+      </svg>
+    </div>
+  </div>
+)}
+
+   
+
+
 
   {!isAdmin && onlyAdminSend && status === "approved" && (
     <div className="text-center text-gray-500 text-sm py-2">
@@ -224,7 +324,7 @@ const getPreviewText = (msg) => {
           : replyingTo?.sender?.first_name || "User"}
       </p>
 
-      <p className="truncate opacity-80 text-white">
+      <p className="truncate opacity-80 text-white text-xs sm:text-sm">
         {getPreviewText(replyingTo)}
       </p>
     </div>
@@ -286,6 +386,7 @@ const getPreviewText = (msg) => {
               onChange={(e) => setText(e.target.value)}
               className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
           />
+          {!text && 
         <button className="absolute top-3 right-3" onClick={() => setShowEmoji(prev => !prev)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
           class="size-6">
@@ -293,6 +394,7 @@ const getPreviewText = (msg) => {
           </svg>
 
         </button>
+          }
       </div>
   
       {!recording && text && (
@@ -419,6 +521,6 @@ const getPreviewText = (msg) => {
   setTrimAppliedMap={setTrimAppliedMap}
 />
 
-    </> 
+    </div> 
 )
 }

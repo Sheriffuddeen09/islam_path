@@ -217,7 +217,7 @@ const filteredTargets = useMemo(() => {
             ✕
           </button>
         </div>
-        <div className="max-h-40 overflow-y-auto mb-3 space-y-2 border p-2 rounded">
+        <div className="max-h-40 overflow-y-auto scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin mb-3 space-y-2 border p-2 rounded">
           {messages.map((msg) => (
             <div key={msg.id} className="p-2 bg-gray-100 rounded-lg">
               <p className="text-sm truncate">

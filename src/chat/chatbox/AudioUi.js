@@ -1,6 +1,6 @@
 import AudioBubble from "./AudioBubble";
 
-export default function AudioPlayer({ msg, isMine }) {
+export default function AudioPlayer({ msg, isMine, uiMode }) {
 
   const files = msg.files?.length
     ? msg.files
@@ -20,6 +20,7 @@ export default function AudioPlayer({ msg, isMine }) {
           msg={msg}
           isMine={isMine}
           index={index}
+          uiMode={uiMode}
         />
       ))}
     </>

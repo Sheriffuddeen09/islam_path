@@ -1,4 +1,4 @@
-export default function FromCommunityForward ({ msg, onViewChannel }){
+export default function FromCommunityForward({ msg }) {
 
   const colors = [
     "bg-orange-500",
@@ -10,8 +10,7 @@ export default function FromCommunityForward ({ msg, onViewChannel }){
 
   const getColor = (name = "") => {
     const index =
-      (name?.charCodeAt?.(0) || 0) %
-      colors.length;
+      (name?.charCodeAt?.(0) || 0) % colors.length;
 
     return colors[index];
   };
@@ -21,18 +20,18 @@ export default function FromCommunityForward ({ msg, onViewChannel }){
   };
 
   const sourceName =
-    msg.forward_source_name ||
-    "Forwarded Message";
+    msg.forward_source_name || "Forwarded Message";
 
   const sourceImage =
     msg.forward_source_image;
 
-
+  const isFromCommunity =
+    msg.forward_from_type === "community"; // ✅ key check
 
   return (
     <div className="overflow-hidden">
 
-      {msg.is_forwarded && (
+      {msg.is_forwarded && isFromCommunity && (
         <div className="flex items-center gap-2 py-2">
 
           {sourceImage ? (
@@ -44,15 +43,8 @@ export default function FromCommunityForward ({ msg, onViewChannel }){
           ) : (
             <div
               className={`
-                w-10
-                h-10
-                rounded-full
-                flex
-                items-center
-                justify-center
-                text-white
-                font-bold
-                text-2xl
+                w-10 h-10 rounded-full flex items-center justify-center
+                text-white font-bold text-2xl
                 ${getColor(sourceName)}
               `}
             >
@@ -65,11 +57,10 @@ export default function FromCommunityForward ({ msg, onViewChannel }){
               {sourceName}
             </div>
           </div>
+
         </div>
       )}
 
-     
-      
     </div>
   );
-};
+}
