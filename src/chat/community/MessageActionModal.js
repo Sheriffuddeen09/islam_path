@@ -110,7 +110,6 @@ export default function MessageActionModal({
         z-[99999]
 
         bg-black/50
-        backdrop-blur-sm
 
         flex
         items-center
@@ -129,14 +128,14 @@ export default function MessageActionModal({
         className="
           w-full
           max-w-md
-
           bg-[var(--bg-color)]
           text-[var(--text-color)]
-
+          relative
           rounded-3xl
 
           shadow-2xl
 
+          text-center
           border
           border-white/10
 
@@ -149,52 +148,7 @@ export default function MessageActionModal({
         "
       >
 
-        {/* HEADER */}
-
-        <div
-          className="
-            px-5
-            py-4
-
-            border-b
-            border-white/10
-
-            flex
-            items-center
-            justify-between
-          "
-        >
-
-          <div>
-
-            <h2
-              className="
-                text-lg
-                font-bold
-              "
-            >
-              {titles[type]}
-            </h2>
-
-            <p
-              className="
-                text-xs
-                opacity-70
-                mt-1
-                font-semibold
-                text-[var(--text-color)]
-              "
-            >
-              {
-                descriptions[
-                  type
-                ]
-              }
-            </p>
-
-          </div>
-
-          <button
+        <button
             onClick={
               handleClose
             }
@@ -204,7 +158,7 @@ export default function MessageActionModal({
               rounded-full
 
               hover:bg-white/10
-
+              absolute right-4 top-4
               transition
 
               disabled:opacity-50
@@ -227,6 +181,54 @@ export default function MessageActionModal({
             </svg>
 
           </button>
+        {/* HEADER */}
+
+        <div
+          className="
+            px-5
+            py-4
+
+            border-b
+            border-white/10
+
+            flex
+            items-center
+            justify-between
+            flex-col
+          "
+        >
+
+          <div>
+
+            <h2
+              className="
+                text-lg
+                font-bold
+              "
+            >
+              {titles[type]}
+            </h2>
+
+            <p
+              className="
+                text-sm 
+                text-center
+                opacity-70
+                mt-3
+                font-semibold
+                text-[var(--text-color)]
+              "
+            >
+              {
+                descriptions[
+                  type
+                ]
+              }
+            </p>
+
+          </div>
+
+          
 
         </div>
 
@@ -288,6 +290,7 @@ export default function MessageActionModal({
               className="
                 text-sm
                 opacity-80
+                -mt-8
               "
             >
               This action cannot be
@@ -304,6 +307,7 @@ export default function MessageActionModal({
               className="
                 text-sm
                 opacity-80
+                -mt-8
               "
             >
               Message text and files

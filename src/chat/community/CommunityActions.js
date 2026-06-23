@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellOff, Delete, EyeOff, Link2, LogOut, Shield, Trash, UserCircle } from "lucide-react";
+import { BellOff, Delete, EyeOff, Link2, LogOut, Search, Shield, Trash, UserCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../Api/axios";
 import AddCommunityMemberModal from "./AddCommunityMemberModal";
@@ -146,7 +146,7 @@ const members = activeCommunity?.members || [];
         
         <MenuButton
             label= "Search"
-            icon= {Shield}
+            icon= {Search}
             onClick= {() => {
               setShowCommunitySearchModal(true);
             }}
@@ -243,14 +243,14 @@ const members = activeCommunity?.members || [];
 
       {/* MODAL */}
       {showLeaveModal && selectedCommunity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm rounded-2xl bg-white text-center p-6">
 
             <h2 className="text-lg text-black font-semibold">
               Unfollow Channel?
             </h2>
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-800">
               You will stop receiving updates from{" "}
               <span className="font-semibold">
                 {selectedCommunity.community_name}
@@ -292,12 +292,12 @@ const members = activeCommunity?.members || [];
         </div>
       )}
     {
-      showAddModal &&
+      showAddModal &&(
       <AddCommunityMemberModal 
        communityId={activeCommunity.id}
        onClose={() =>setShowAddModal(false)}
        setActiveCommunity={setActiveCommunity}
-      />
+      />)
     }
 
     {
@@ -311,7 +311,6 @@ const members = activeCommunity?.members || [];
     }
 
     {showCommunitySearchModal && (
-      <ModalOverlay onClose={() => setShowCommunitySearchModal(false)}>
           <CommunitySearch
             members={members}
             getColor={getColor}
@@ -320,19 +319,16 @@ const members = activeCommunity?.members || [];
             setShowCommunitySearchModal={setShowCommunitySearchModal}
     
           />
-    </ModalOverlay>
     
     )}
 
      {showReportCommunityModal && (
-        <ModalOverlay onClose={() => setShowReportCommunityModal(false)}>
       
           <ReportCommunityModal
             community={activeCommunity}
             onClose={() => setShowReportCommunityModal(false)}
           />
       
-        </ModalOverlay>
       )}
     
     {communityClearMessage && (
@@ -347,14 +343,12 @@ const members = activeCommunity?.members || [];
         
         
         {communityDeleteMessage && (
-                <ModalOverlay onClose={() => setCommunityDeleteMessage(false)}>
                   <DeleteCommunityModal
                     community={activeCommunity}
                     onClose={() => setCommunityDeleteMessage(false)}
                     setCommunities={setCommunities}
                     setActiveCommunity={setActiveCommunity}
                   />
-                </ModalOverlay>
               )}
 
               
@@ -367,14 +361,12 @@ const members = activeCommunity?.members || [];
               
 
         {adminCommunityDeleteMessage && (
-                <ModalOverlay onClose={() => setAdminCommunityDeleteMessage(false)}>
                   <AdminDeleteCommunityModal
                     activeCommunity={activeCommunity}
                     onClose={() => setAdminCommunityDeleteMessage(false)}
                     setCommunities={setCommunities}
                     setActiveCommunity={setActiveCommunity}
                   />
-                </ModalOverlay>
               )}
 
        
@@ -396,7 +388,7 @@ function MenuButton({
       className={`
         w-full flex items-center justify-between
         px-4 py-3 rounded-xl
-        gap-3
+        gap- lg:px-4 md:px-10
         transition-all duration-200
         hover:bg-gray-500 hover:text-white
       `}

@@ -194,23 +194,14 @@ const handleDownloadMessage =
             "
           >
 
-            <div>
-              <p className="font-semibold text-sm">
-                Message Actions
-              </p>
-
-              <p className="text-xs opacity-60">
-                Manage messages
-              </p>
-            </div>
-
             <button
               onClick={onClose}
               className="
                 p-2
                 rounded-full
                 hover:bg-white/10
-                transition
+                transition 
+                float-right
               "
             >
               <svg
@@ -240,7 +231,7 @@ const handleDownloadMessage =
               onClick={() => {
 
                 onCopy();
-
+                setSelectedMessage(null)
                 onClose();
               }}
               icon={
@@ -270,7 +261,9 @@ const handleDownloadMessage =
       ) && (
         <MenuButton
           label="Download"
-          onClick={ () => { handleDownloadMessage(); onClose();}}
+          onClick={ () => { 
+            setSelectedMessage(null)
+            handleDownloadMessage(); onClose();}}
           icon={
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -293,8 +286,10 @@ const handleDownloadMessage =
             <MenuButton
               label="Forward"
               onClick={() => {
+                setShowMessageMenu(false);
                 openForward(selectedMessage);
                 onClose();
+                setSelectedMessage(null)
               }}
               icon={
                 <svg
@@ -321,6 +316,7 @@ const handleDownloadMessage =
               <MenuButton
               onClick={() => {
                 handlePin(selectedMessage);
+                setSelectedMessage(null)
                 setShowMessageMenu(false);
               }}
               label={
@@ -365,7 +361,7 @@ const handleDownloadMessage =
                   onClick={() => {
 
                     setActionType("edit");
-
+                    setSelectedMessage(null)
                     setActionMessage(
                       selectedMessage
                     );
@@ -403,6 +399,7 @@ const handleDownloadMessage =
                   onClick={() => {
 
                     setActionType("clear");
+                    setSelectedMessage(null)
 
                     setActionMessage(
                       selectedMessage
@@ -440,6 +437,7 @@ const handleDownloadMessage =
                   label="Delete"
                   onClick={() => {
                     setActionType("delete");
+                    setSelectedMessage(null)
                     setActionMessage(
                       selectedMessage
                     );

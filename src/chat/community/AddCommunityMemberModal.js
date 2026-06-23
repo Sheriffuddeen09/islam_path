@@ -223,7 +223,7 @@ export default function AddCommunityMemberModal({
 
   return (
 
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/40  flex items-center justify-center z-50">
 
       <div className="bg-white w-80 rounded-lg shadow-lg flex flex-col max-h-[500px]">
 

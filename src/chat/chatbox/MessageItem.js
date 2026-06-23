@@ -1081,6 +1081,8 @@ const scrollToMessage = (messageId) => {
   return msg.message;
 };
 
+const touchTimer = useRef(null);
+const isSwiping = useRef(false);
 
 const isInteractive = (target) => {
   return target.closest("img, video, audio, button, a");
@@ -1103,7 +1105,9 @@ const isInteractive = (target) => {
     )}
     <div className={`flex flex-row items-start ${
         isMine ? "justify-end" : "justify-start"
-      }`}>
+      }
+       ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}
+      `}>
       {isGroup && !isMine && (
           <div
             className={`flex items-center mb-1 `}
@@ -1130,8 +1134,7 @@ const isInteractive = (target) => {
     <div
       key={msg.id} 
       ref={messageRef}
-      className={`flex cursor-pointer px-1
-         ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}`}
+      className={`flex cursor-pointer px-1`}
       style={{
         touchAction: "none",
       }}
@@ -1153,15 +1156,31 @@ const isInteractive = (target) => {
   touchAction: "pan-y",
 }}
 
+
 onTouchStart={(e) => {
-  startX.current =
-    e.touches[0].clientX;
+  startX.current = e.touches[0].clientX;
+
+  isSwiping.current = false;
+
+  touchTimer.current = setTimeout(() => {
+    setSelectedMsg(msg);
+    toggleSelect(msg);
+
+  }, 500);
 }}
 
 onTouchMove={(e) => {
   const diff =
     e.touches[0].clientX -
     startX.current;
+
+  if (Math.abs(diff) > 10) {
+    isSwiping.current = true;
+
+    clearTimeout(
+      touchTimer.current
+    );
+  }
 
   if (diff > 0) {
     setTranslateX(
@@ -1171,6 +1190,17 @@ onTouchMove={(e) => {
 }}
 
 onTouchEnd={() => {
+  clearTimeout(
+    touchTimer.current
+  );
+
+  if (
+    !isSwiping.current &&
+    translateX === 0
+  ) {
+    return;
+  }
+
   if (translateX > 35) {
     setReplyingTo(msg);
   }
@@ -1195,6 +1225,7 @@ onTouchEnd={() => {
 
   toggleSelect(msg);
 }}
+
 >
 
     {translateX > 20 && (

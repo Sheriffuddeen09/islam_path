@@ -30,9 +30,9 @@ export default function InviteViaLinkModal({ community, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center backdrop-blur-md justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-      <div className="bg-white w-80 rounded-lg shadow-lg p-4 relative">
+      <div className="bg-white text-black w-80 rounded-lg shadow-lg p-4 relative">
 
         {/* ❌ CLOSE */}
         <button

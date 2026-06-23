@@ -654,7 +654,7 @@ export default function ActiveUsers({
         Block User's {user.first_name}
       </h2>
 
-      <p className="text-sm text-gray-500 mb-5">
+      <p className="text-sm text-gray-800 text-center mb-5">
         {
             !activeChat?.block_info?.blocked ? 
             <span>
@@ -908,7 +908,7 @@ export default function ActiveUsers({
                     {user?.first_name} {user?.last_name}
                   </p>
                 </div>
-
+                  
               </div>
             );
           })

@@ -566,6 +566,23 @@ const resendCommunityFile =
   };
 
 
+  const getFollowerLabel = (count) => {
+  return count === 1 ? "Follower" : "Followers";
+};
+  const formatCount = (num) => {
+  if (!num) return "0";
+
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(".0", "") + "M";
+  }
+
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(".0", "") + "k";
+  }
+
+  return num;
+};
+
   if (!activeCommunity) {
 
     return (
@@ -663,7 +680,7 @@ const resendCommunityFile =
               )}
             </div>
           )}
-            <div>
+            <div className="flex flex-col gap-1">
              <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
                 {activeCommunity.community_name?.length > 9
                   ? `${activeCommunity.community_name.slice(0, 9)}...`
@@ -673,6 +690,13 @@ const resendCommunityFile =
               <h3 className="font-bold sm:block hidden text-lg text-[var(--text-color)]">
                 {activeCommunity.community_name}
               </h3>
+
+              <p className="text-xs text-[var(--text-color)]">
+                {activeCommunity.members_count === 0 ? "No followers" :
+                `${formatCount(activeCommunity.members_count)}${" "} ${getFollowerLabel(activeCommunity.members_count)}`
+                }
+              </p>
+              
             </div>
             </div>
           </div>
@@ -790,6 +814,7 @@ const resendCommunityFile =
 
           ) : (
           <MessagesArea 
+          
           setChats={setChats} setMessages={setMessages}
           communityMessages={communityMessages}
           authUser={authUser} messagesCacheRef={messagesCacheRef}

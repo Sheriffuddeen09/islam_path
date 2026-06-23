@@ -106,7 +106,6 @@ export default function DeleteMessageModal({
         fixed
         inset-0
         bg-black/70
-        backdrop-blur-sm
         flex
         items-center
         justify-center

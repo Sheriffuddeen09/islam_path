@@ -371,7 +371,7 @@ export default function CommunityList({
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-[var(--text-color)] line-clamp-1 mt-2">
+                    <p className="text-xs text-[var(--text-color)] line-clamp-1 mt-2">
                       {getLastMessage(
                         community
                       )}

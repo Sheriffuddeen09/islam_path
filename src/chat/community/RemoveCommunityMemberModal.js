@@ -75,9 +75,9 @@ export default function RemoveCommunityMemberModal({
   }, [members, currentUserId]);
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-      <div className="bg-white w-80 rounded-lg shadow-lg flex flex-col max-h-[400px]">
+      <div className="bg-white text-black w-80 rounded-lg shadow-lg flex flex-col max-h-[400px]">
 
         {/* HEADER */}
         <div className="flex items-center justify-between p-3 border-b">

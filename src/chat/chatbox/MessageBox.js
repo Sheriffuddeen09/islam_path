@@ -433,29 +433,11 @@ const handlePin = async (msg) => {
     setSearchMode(true);
     setSearchQuery(text);
   };
-
+const menuRef = useRef(null);
  
 
     {loadingMessages && <ChatSkeleton type="messages" />}
 
-  if (!activeChat) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="mb-10 text-center mx-auto rounded-lg sm:w-80 w-72 text-xs p-3">
-        Messages and calls are end-to-end encrypted Only people in this chat can read. listen to or share them 
-        Learn More.
-      </div>
-        <img src={logo} alt="Logo" className="h-14 mb-4 -mt-6 opacity-80" />
-
-        <p className="text-[var(--text-color)] max-w-md">
-          Messages, and updates will appear here.
-        </p>
-        <div className="mt-6 mb-6 text-sm text-[var(--text-color)]">
-          💬 Stay connected • 📚 Learn together • 🔔 Get instant updates
-        </div>
-      </div>
-    );
-  }
 
 const isGroup = activeChat?.type === "group";
 
@@ -476,6 +458,7 @@ const avatarName = isGroup
 
 const firstUnreadMessageId =
   firstUnreadMessage?.id ?? null;
+
 
 
   return (
@@ -689,7 +672,7 @@ const firstUnreadMessageId =
             </svg>
           </button>
 
-          {selectedMessages.length > 1 && (
+          { selectedMessages.length === 1 && (
         <button
            onClick={() => {
             const messagesToForward = messages.filter(msg =>
@@ -700,7 +683,7 @@ const firstUnreadMessageId =
               messages: messagesToForward
             });
           }}
-          className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
+          className="hover:bg-gray-200 p-2  text-[var(--text-color)] rounded-full cursor-pointer"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -718,7 +701,7 @@ const firstUnreadMessageId =
           </svg>
         </button>
       )}
-
+    
        {hasSelection && selectedMessages.length === 1 && (
           <button
           className="cursor-pointer"
@@ -951,7 +934,7 @@ const isFirstUnread =
     >
       {/* 📅 DATE */}
       {showDate && (
-        <div className="text-center text-[9px] mb-5 text-[var(--text-color)]">
+        <div className="text-center text-[10px] mb-5 text-[var(--text-color)]">
           {formatDateHeader(msg.created_at)}
         </div>
       )}

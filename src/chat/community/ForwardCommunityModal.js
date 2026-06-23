@@ -228,24 +228,24 @@ export function ForwardCommunityModal({
 
   return (
     <div className="fixed inset-0 z-[999] bg-black/60 flex items-center justify-center">
-      <div className="w-[95%] max-w-md bg-white rounded-xl p-4">
+      <div className="w-[95%] max-w-md bg-white text-black rounded-xl p-4">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold">
             Forward ({messages.length})
           </h2>
-          <button onClick={onClose}>✕</button>
+          <button onClick={() =>  {onClose(); setSelectedMessage(null)}}>✕</button>
         </div>
         <div className="max-h-40 overflow-y-auto bg-gray-100 p-2 rounded mb-3 space-y-2">
       {messages.map((m) => {
 
         const approvalText =
-          m?.approvals?.length > 0
-            ? m?.approvals[
-                m?.approvals.length - 1
-              ]?.admin_response
-            : null;
+        m?.approvals?.length > 0
+        ? m?.approvals[
+        m?.approvals.length - 1
+        ]?.admin_response
+        : null;
 
-      const previewText =
+        const previewText =
         approvalText ||
         m?.message ||
         "";
@@ -377,7 +377,7 @@ export function ForwardCommunityModal({
           )}
         </div>
         <button
-          onClick={handleSend}
+          onClick={() =>{handleSend(); setSelectedMessage(null)}}
           disabled={!selectedTargets.length || sending}
           className="w-full mt-3 bg-blue-600 text-white py-2 rounded disabled:bg-gray-400"
         >

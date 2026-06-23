@@ -205,7 +205,7 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
         <div>
           {loadingUsers ? (
             // ================= SKELETON =================
-            Array.from({ length: 8 }).map((_, i) => (
+            Array.from({ length: 14 }).map((_, i) => (
               <div
                 key={i}
                 className="flex items-center justify-between p-3 border-b border-gray-700 animate-pulse"

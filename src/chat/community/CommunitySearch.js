@@ -25,18 +25,13 @@ export default function CommunitySearch({
   return (
     <>
       {/* SEARCH BUTTON */}
-      <button
-        onClick={() => setShowCommunitySearchModal(true)}
-        className="p-2 hover:bg-gray-100 rounded-full"
-      >
-        <Search size={20} />
-      </button>
+    
 
       {/* MODAL */}
       {showCommunitySearchModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-          <div className="bg-white w-full max-w-md h-[500px] rounded-xl shadow-lg flex flex-col">
+          <div className="bg-white  w-full max-w-md h-[500px] rounded-xl text-black shadow-lg flex flex-col">
 
             {/* HEADER */}
             <div className="p-4 border-b flex justify-between items-center">

@@ -272,15 +272,15 @@ useEffect(() => {
     const text = message?.message || "";
 
     if (!text.trim()) {
-      showToast("No text to copy", "error");
+      toast.error("No text to copy", "error");
       return;
     }
 
     await navigator.clipboard.writeText(text);
 
-    showToast("Text copied", "success");
+    toast.success("Text copied", "success");
   } catch (err) {
-    showToast("Failed to copy", "error");
+    toast.error("Failed to copy", "error");
   }
 };
 
@@ -297,15 +297,15 @@ const handleCopyLink = async (message) => {
     }
 
     if (!url) {
-      showToast("No file link found", "error");
+      toast.error("No file link found", "error");
       return;
     }
 
     await navigator.clipboard.writeText(url);
 
-    showToast("Link copied", "success");
+    toast.success("Link copied", "success");
   } catch (err) {
-    showToast("Failed to copy link", "error");
+    toast.error("Failed to copy link", "error");
   }
 };
 

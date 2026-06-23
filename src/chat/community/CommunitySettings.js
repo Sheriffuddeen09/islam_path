@@ -21,6 +21,8 @@ export default function CommunitySettings({
 
     const [showAvatarPreview, setShowAvatarPreview] = useState(false);
     const [previewData, setPreviewData] = useState(null);
+    const [expandedMessages, setExpandedMessages] = useState({});
+    
 
    const colors = [
     "bg-orange-500",
@@ -47,6 +49,19 @@ export default function CommunitySettings({
     role === "admin" ||
     role === "owner";
 
+        const isExpanded =
+      expandedMessages[activeCommunity.id];
+
+    const messageText =
+      activeCommunity.community_description || "";
+
+    const shouldTrim =
+      messageText.length > 250;
+
+    const displayText =
+      shouldTrim && !isExpanded
+        ? messageText.slice(0, 250) + " "
+        : messageText;
 
   if (!activeCommunity) {
 
@@ -55,7 +70,8 @@ export default function CommunitySettings({
 
   return (
 
-    <div className="h-full max-h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="h-full max-h-full overflow-y-auto scrollbar-thumb-gray-200 scrollbar-track-transparent
+    scrollbar-thin flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
 
       {/* HEADER */}
       <div className="h-16 shadow-md flex items-center gap-3 px-4">
@@ -133,7 +149,7 @@ export default function CommunitySettings({
 
           )}
 
-          <h2 className="mt-3 text-xl font-bold">
+          <h2 className="mt-2 text-xl font-bold">
 
             {
               activeCommunity.community_name
@@ -141,12 +157,31 @@ export default function CommunitySettings({
 
           </h2>
 
-          <p className="text-gray-400 text-sm text-center mt-2">
+          <p className="text-sm text-center mb-2 mt-1">
 
-            {
-              activeCommunity.community_description
-            }
+            {displayText}
 
+            {shouldTrim && (
+                    <button
+                      onClick={() =>
+                        setExpandedMessages((prev) => ({
+                          ...prev,
+                          [activeCommunity.id]:
+                            !prev[activeCommunity.id],
+                        }))
+                      }
+                      className="
+                        text-green-400
+                        text-xs
+                        font-semibold
+                        hover:underline
+                      "
+                    >
+                      {isExpanded
+                        ? ""
+                        : "See more"}
+                    </button>
+                  )}
           </p>
 
         </div>

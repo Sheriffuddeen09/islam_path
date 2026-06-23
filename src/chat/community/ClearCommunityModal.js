@@ -38,7 +38,7 @@ const clearCommunity = async () => {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
-    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+    text-[var(--text-color)] flex items-center justify-center p-4">
 
       <div
         className="w-full max-w-xs sm:max-w-sm

@@ -32,7 +32,6 @@ export default function MessageList({msg, setReactionMsg,
   const [showPreview, setShowPreview] =
   useState(false);
 
-  const isSystem = msg.is_system === true || msg.is_system === 1;
 
   
   const startX = useRef(0);
@@ -353,7 +352,7 @@ const handleDownloadMessage =
             
             {msg.deleted_at  ? (
 
-              <div className="flex items-center py-2 px-4 gap-2 italic text-white text-sm">
+              <div className="flex items-center py-2 px-4 gap-2 italic text-white text-sm lg:text-sm md:text-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -401,6 +400,7 @@ const handleDownloadMessage =
                     <div
                       className="
                         text-xs
+                        lg:text-sm md:text-sm
                         opacity-80
                         truncate
                         inline-flex
@@ -439,7 +439,7 @@ const handleDownloadMessage =
                       </span>
                     </div>
                     <br />
-                    <span className={`text-[13px] break-words whitespace-pre-wrap`}>
+                    <span className={`text-[13px] lg:text-[13px] md:text-[17px] break-words whitespace-pre-wrap`}>
 
                       ${msg.is_system === 1
                       ? "text-[--text-color]"
@@ -466,7 +466,7 @@ const handleDownloadMessage =
                 
                  />
                 <div
-                        className={`text-[13px] pt-3 mt-1 px-4 ${
+                        className={`text-[13px] lg:text-[13px] md:text-[17px] pt-3 mt-1 px-4 ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -495,7 +495,7 @@ const handleDownloadMessage =
                   
                  {!msg.replied_to && !msg.replied_message && (
                  <div
-                        className={`text-[13px] pt-3 mt-1 px-4 break-words ${
+                        className={`text-[13px] lg:text-[13px] md:text-[17px] pt-3 mt-1 px-4 break-words ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -621,6 +621,7 @@ const handleDownloadMessage =
               )}
               <div className="
                 text-[10px]
+                lg:text-[11px] md:text-[12px]
                 text-white
                 items-center
                 flex gap-1
@@ -629,12 +630,14 @@ const handleDownloadMessage =
                 mb-2
               ">
                  {Boolean(Number(msg.edited)) && (
-                    <span className="text-[12px] text-white italic">
+                    <span className="text-[12px]
+                    sm:text-[13px] text-white italic">
                       edited
                     </span>
                   )}
                 {msg.is_system === 0 && (
-                  <div className="text-center text-[9px] text-white my-2">
+                  <div className="text-center text-[9px]
+                lg:text-[10px] md:text-[12px] text-white my-2">
                     {new Date(msg.created_at).toLocaleTimeString([], {
                       hour: "numeric",
                       minute: "2-digit",
@@ -712,6 +715,7 @@ const handleDownloadMessage =
               text-center
               mt-3
               text-sm
+              sm:text-lg
               text-green-800 font-bold 
               border-t py-2
             ">
@@ -778,21 +782,6 @@ const handleDownloadMessage =
       onReject={rejectMessage}
     />
     
-
-
-            
-
-    {toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
-          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
-        `}>
-          {toast.message}
-        </div>
-      )}
-
-
-
-
     </div>
      )
 }

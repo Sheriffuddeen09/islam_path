@@ -42,7 +42,7 @@ export function ReportCommunityModal({ community, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white sm:w-96 w-72 rounded shadow p-4">
+      <div className="bg-white text-black sm:w-96 w-72 rounded shadow p-4">
 
         <h2 className="font-semibold mb-3">
           Report Group

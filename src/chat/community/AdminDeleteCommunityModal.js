@@ -51,7 +51,8 @@ export default function AdminDeleteCommunityModal({
 };
 
   return (
-    <div className="bg-white w-80 rounded-xl p-5 shadow-lg text-center">
+    <div className="fixed inset-0 bg-black/40  flex items-center justify-center z-50">
+    <div className="bg-white text-black w-80 rounded-xl p-5 shadow-lg text-center">
 
       <h2 className="text-lg font-semibold text-gray-900">
         Delete Channel
@@ -86,6 +87,7 @@ export default function AdminDeleteCommunityModal({
           )}
         </button>
 
+      </div>
       </div>
     </div>
   );
