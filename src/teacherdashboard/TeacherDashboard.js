@@ -20,11 +20,14 @@ import MyProducts from "../pages/sales/MyProduct";
 import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
+import ChatPage from "../chat/chatbox/Chatpage";
 
-export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers, handleMessageOpen,
-  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
+        image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,  orderCount, setOrderCount,
-        savedCount, setSavedCount, setActiveChat, setMessages
+        savedCount, setSavedCount, setActiveChat, setMessages,
+        togglePopup, activeChat, setChats, messagesMap,
+        setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -190,6 +193,24 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 
 
   return (
+    <>
+
+        <ChatPage
+          chats={chats}
+          setChats={setChats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          messagesMap={messagesMap}
+          setMessagesMap={setMessagesMap}
+          setUiMode={setUiMode}
+          uiMode={uiMode}
+          togglePopup={togglePopup}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          setMessages={setMessages}
+        
+        />
+
     <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside
   className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
@@ -197,7 +218,8 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
     lg:translate-x-0
     overflow-y-auto overflow-x-hidden
-    scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+    scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+`}
 >
         {/* CLOSE BUTTON (Mobile Only) */}
         <button
@@ -342,12 +364,15 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
       </aside>
 
       {/* ---------------- MOBILE MENU BUTTON ---------------- */}
-      <button
-        className={`lg:hidden fixed top-10 right-4 z-50 bg-[var(--bg-color)] text-[var(--text-color)] p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
-        onClick={handleOpenModel}
-      >
-        ☰
-      </button>
+     <button
+      className={`lg:hidden fixed top-10 right-4 z-50 bg-[var(--bg-color)] text-[var(--text-color)] p-2 rounded-lg shadow
+        ${sidebarOpen ? "hidden" : "block"}
+        ${uiMode !== "closed" ? "hidden" : "block"}
+      `}
+      onClick={handleOpenModel}
+    >
+      ☰
+    </button>
 
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
@@ -357,7 +382,8 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
     ${sidebarOpen ? " block" : "hidden"}
     lg:translate-x-0
     overflow-y-auto overflow-x-hidden
-    scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+    scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+`}
 >
         {/* CLOSE BUTTON (Mobile Only) */}
         <button
@@ -519,13 +545,14 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
       <section className="flex-1 sm:p-6 p-2 transition-all">
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <ProfilePage chats={chats} handleVisible={handleVisible} user={user} setUser={setUser} 
-        teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} handleMessageOpen={handleMessageOpen}
+        teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} togglePopup={togglePopup}
         image={image} setImage={setImage} onProfileCompleted={onProfileCompleted}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
+        emojiList={emojiList} setEmojiList={setEmojiList} setMessages={setMessages} setActiveChat={setActiveChat}
+        
          />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
@@ -564,7 +591,10 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
-        <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+        <Order
+        setChats={setChats} 
+        togglePopup={togglePopup}
+        chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div> 
         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
@@ -577,13 +607,17 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         <MyProducts   />
         </div>
         <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
-        <Order  setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+        <Order
+        setChats={setChats}  
+        togglePopup={togglePopup}
+        setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
           <div className={`${visible === 25 ? 'block' : 'hidden'}`}>
           <SaveOrder  />
           </div> 
       </section>
     </div>
+    </>
   );
 }
 

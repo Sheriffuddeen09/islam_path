@@ -12,8 +12,8 @@ import MyImages from "./mediaprofile/ImageProfile";
 import BiodataDashboard from "./BioDataDashboard";
 
 
-export default function StudentProfilePage({handleMessageOpen,  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats}) {
+export default function StudentProfilePage({togglePopup,  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats,  setMessages, setActiveChat}) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -128,7 +128,7 @@ const badge = (
   )
   
 
-  if (loadingProfile) return <Loader />;
+  if (loadingProfile) return <Loader  />
 
   if (!profile) return <p>Profile not found</p>;
 
@@ -315,7 +315,8 @@ const content = (
         {content}
         <BiodataDashboard profile={profile} visibility={visibility}
          handleToggleVisibility={handleToggleVisibility} editVisibility={editVisibility} />
-        <StudentProfileFriendDashboard  handleMessageOpen={handleMessageOpen} />
+        <StudentProfileFriendDashboard  togglePopup={togglePopup} setActiveChat={setActiveChat}
+         setMessages={setMessages} />
         {profile_content}
 
     </div>

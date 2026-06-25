@@ -10,6 +10,7 @@ export function ForwardModalLargeScreen({
   loading,
   loadingChats = false,
   loadingGroups = false,
+  handleSendMeeting
 }) {
   const [selectedTargets, setSelectedTargets] = useState([]);
   const [search, setSearch] = useState("");
@@ -233,7 +234,7 @@ const filteredTargets = useMemo(() => {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full border p-2 rounded mb-2"
         />
-        <div className="max-h-52 overflow-y-auto space-y-2">
+        <div className="max-h-52 overflow-y-auto scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin space-y-2">
 
   {/* SKELETON LOADING */}
   {isLoading && (
@@ -316,7 +317,7 @@ const filteredTargets = useMemo(() => {
         )}
       </div>
        <button
-            onClick={handleSend}
+            onClick={() => {handleSend(); handleSendMeeting()}}
             disabled={loading || selectedTargets.length === 0}
             className={`px-4 py-3 mt-4 rounded text-white w-full ${
               loading

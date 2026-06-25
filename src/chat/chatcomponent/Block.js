@@ -79,7 +79,15 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
             loading 
             ? 
             <p className="inline-flex gap-2 items-center text-sm font-bold text-green-800 rounded hover:text-green-700">
-               <Loader2 /> Blocking
+               <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " /> Blocking
             </p>
 
             :
@@ -104,7 +112,15 @@ export default function BlockButton({ activeChat, authUser, chatPartner, setActi
             loading 
             ? 
                  <p className="inline-flex gap-2 items-center text-sm font-bold text-green-800 rounded hover:text-green-700">
-                <Loader2 /> Unblocking
+                <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " /> Unblocking
             </p>
             :
             "Unblock"

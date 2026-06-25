@@ -184,7 +184,15 @@ export function PinnedCommunityBar({
           >
             {
               loadingPin ? 
-              <Loader2 />
+              <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " />
               : 
               'Unpin'
             }
@@ -279,7 +287,15 @@ export function PinnedCommunityBar({
                 >
                   {
                     loadingPin ? 
-                    <Loader2 />
+                    <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " />
                     : 
                     'Unpin'
                   }

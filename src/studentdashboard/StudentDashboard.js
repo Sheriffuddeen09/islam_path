@@ -15,10 +15,12 @@ import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText, ClipboardList, CheckCircle,
   BarChart3, ShoppingCart, Bookmark } from "lucide-react";
+import ChatPage from "../chat/chatbox/Chatpage";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
-         handleMessageOpen, savedCount, setSavedCount, setActiveChat, setMessages}){
+        togglePopup, savedCount, setSavedCount, setActiveChat, setMessages,
+        setChats, activeChat, messagesMap, setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings}){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -114,6 +116,23 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         };
 
   return (
+<>
+
+        <ChatPage
+          chats={chats}
+          setChats={setChats}
+          activeChat={activeChat}
+          setActiveChat={setActiveChat}
+          messagesMap={messagesMap}
+          setMessagesMap={setMessagesMap}
+          setUiMode={setUiMode}
+          uiMode={uiMode}
+          togglePopup={togglePopup}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          setMessages={setMessages}
+        
+        />
 
     <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside
@@ -122,7 +141,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
         overflow-y-auto overflow-x-hidden
-        scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+        scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin`}
     >
                {/* CLOSE BUTTON (Mobile Only) */}
        
@@ -262,7 +281,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                   ${sidebarOpen ? " block" : "hidden"}
                   lg:translate-x-0
                   overflow-y-auto overflow-x-hidden
-                  scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+                  scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin`}
               >
                       {/* CLOSE BUTTON (Mobile Only) */}
                       <button
@@ -394,8 +413,8 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                        <section className="flex-1 sm:p-6 p-2 transition-all">
                         
                         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
-                         <StudentProfilePage handleMessageOpen={handleMessageOpen} 
-                         chats={chats} 
+                         <StudentProfilePage togglePopup={togglePopup} setActiveChat={setActiveChat}
+                         chats={chats} setMessages={setMessages}
                         image={image} setImage={setImage}
                         postComments={postComments} setPostComments={setPostComments} loading={loading} 
                         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -436,5 +455,6 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                        </section>
        
     </div>
+    </>
   )
 }

@@ -9,7 +9,8 @@ export default function ChatItem({
   openChat, 
   setUiMode
 }) {
-  const other = chat.other_user || {};
+
+  const other = chat?.other_user ?? chat?.other ?? null;
 
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
 
@@ -98,22 +99,32 @@ export default function ChatItem({
   if (message.type === "video") return "🎥 Video";
   if (message.type === "image") return "🖼 Photo";
   if (message.type === "file") return "📎 Document";
+  if (message.type === "meeting_invite")
+  return message.message;
 
-  return "Start chatting";
-}
+    if (message.type === "text")
+      return message.message;
+
+      return "Start chatting";
+    }
   
 
     const isRead = chat.latest_message_status === "read";
 
     const isGroup = chat.type === "group";
 
-      const displayName = isGroup
-        ? chat.name || "Unnamed Group"
-        : `${other?.first_name} ${other?.last_name}`;
+     const displayName = isGroup
+      ? chat?.name || "Unnamed Group"
+      : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim() || "Unknown User";
 
-      const avatarName = isGroup
-        ? displayName
-        : other?.first_name;
+    
+
+     const avatarName = isGroup
+      ? displayName
+      : chat?.other
+        ? chat.other.first_name
+        : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim() || "Unknown User";
+
 
       const senderName =
       isGroup && !isRestrictedMember

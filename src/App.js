@@ -47,6 +47,7 @@ import About from "./pages/about/About";
 import JoinCommunity from "./chat/community/JoinCommunity";
 import CommunityReportId from "./report/CommunityReportId";
 import CommunityReport from "./report/CommunityReport";
+import MeetingRoom from "./chat/chatbox/MeetingRoom";
 
    
 function App() {
@@ -231,6 +232,71 @@ function App() {
     <div className="">
    <ThemeLoader />
       <Routes>
+
+      <Route
+          path="/student/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboard onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
+              chats={chats} togglePopup={togglePopup} 
+              image={image} setImage={setImage}
+              postComments={postComments} setPostComments={setPostComments} loading={loading} 
+              setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+              newComment={newComment} setNewComment={setNewComment}
+              showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+              emojiList={emojiList} setEmojiList={setEmojiList}
+              savedCount={savedCount} setSavedCount={setSavedCount}
+              setActiveChat={setActiveChat} setMessages={setMessages}
+              setChats={setChats}
+              activeChat={activeChat}
+              messagesMap={messagesMap}
+              setMessagesMap={setMessagesMap}
+              setUiMode={setUiMode}
+              uiMode={uiMode}
+              showSettings={showSettings}
+              setShowSettings={setShowSettings}
+               />
+            </ProtectedRoute>
+          }
+      />
+      <Route path="/admin/dashboard" element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <TeacherDashboardLayout 
+          togglePopup={togglePopup}
+          onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
+          teachers={teachers} setTeachers={setTeachers} chats={chats} 
+          image={image} setImage={setImage}
+          postComments={postComments} setPostComments={setPostComments} loading={loading} 
+          setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+          newComment={newComment} setNewComment={setNewComment}
+          showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+          emojiList={emojiList} setEmojiList={setEmojiList}
+          savedCount={savedCount} setSavedCount={setSavedCount}
+          orderCount={orderCount} setOrderCount={setOrderCount}
+          onProfileCompleted={setUser}
+          setActiveChat={setActiveChat} setMessages={setMessages}
+          handleMessageOpen={handleMessageOpen} messageOpen={messageOpen} unreadCount={unreadCount} 
+          setUnreadCount={setUnreadCount} friendCount={friendCount} setFriendCount={setFriendCount}
+          homeCount={homeCount} setHomeCount={setHomeCount}
+          videoCount={videoCount} setVideoCount={setVideoCount}
+          fetchUnreadCount={fetchUnreadCount} handleMessageClick={handleMessageClick}
+          handleFriendClick={handleFriendClick}
+          handleHomeClick={handleHomeClick}
+          handleVideoClick={handleVideoClick} handleNotification={handleNotification}
+          unreadNotification={unreadNotification}
+          setUnreadNotification={setUnreadNotification}
+          setMessageOpen={setMessageOpen} activeChat={activeChat}
+          setChats={setChats} handleMessageOpenHeader={handleMessageOpenHeader}
+          messagesMap={messagesMap}
+          setMessagesMap={setMessagesMap}
+          setUiMode={setUiMode}
+          uiMode={uiMode}
+          showSettings={showSettings} 
+          setShowSettings={setShowSettings} 
+          />
+        </ProtectedRoute>
+      } />
+        
     <Route element={<LayoutWithHeader
           handleMessageOpen={handleMessageOpen}
           messagesMap={messagesMap}
@@ -261,6 +327,8 @@ function App() {
           unreadNotification={unreadNotification}
           setUnreadNotification={setUnreadNotification}
           />}>
+
+        
 
       <Route path="/about" element={<About />} />
 
@@ -354,9 +422,13 @@ function App() {
            />
       } />
 
-
+      <Route
+        path="/meeting/:roomId"
+        element={<MeetingRoom />}
+      />
       {/* profile  */}
       <Route path="/profile" element={<ProfileRouter 
+      togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat}
       requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
       chats={chats} 
       image={image} setImage={setImage}
@@ -431,42 +503,9 @@ function App() {
       } />
     </Route>
     <Route element={<LayoutWithOutHeader />}>
-      <Route path="/admin/dashboard" element={
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <TeacherDashboardLayout onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
-          teachers={teachers} setTeachers={setTeachers} chats={chats} 
-          image={image} setImage={setImage}
-          postComments={postComments} setPostComments={setPostComments} loading={loading} 
-          setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-          newComment={newComment} setNewComment={setNewComment}
-          showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-          emojiList={emojiList} setEmojiList={setEmojiList}
-          savedCount={savedCount} setSavedCount={setSavedCount}
-          orderCount={orderCount} setOrderCount={setOrderCount}
-          onProfileCompleted={setUser}
-          setActiveChat={setActiveChat} setMessages={setMessages}
-          />
-        </ProtectedRoute>
-      } />
+      
 
-      <Route
-          path="/student/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
-              chats={chats} 
-              image={image} setImage={setImage}
-              postComments={postComments} setPostComments={setPostComments} loading={loading} 
-              setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-              newComment={newComment} setNewComment={setNewComment}
-              showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-              emojiList={emojiList} setEmojiList={setEmojiList}
-              savedCount={savedCount} setSavedCount={setSavedCount}
-              setActiveChat={setActiveChat} setMessages={setMessages}
-               />
-            </ProtectedRoute>
-          }
-      />
+      
       <Route path="/post/image//" element={<PostImagePageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -504,6 +543,7 @@ function App() {
         <Route path="/invite/community/:token" element={<JoinCommunity/>} /> 
 
           {/* Home Post Page*/}
+      
       <Route path="/" element={
       <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 

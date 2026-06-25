@@ -7,8 +7,9 @@ import { PinnedMessagesBar } from "./PinnedMessagesBar";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import CallModal from "./CallModal";
 import MenuComponent from "./MenuComponent";
-import logo from "../../layout/image/favicon.png";
-
+import GenerateLinkCall from "./GenerateLinkCall";
+import MeetingForwardModal from "./MeetingForwardModal";
+import toast from "react-hot-toast";
 export default function MessageBox({
   openChat,
   activeChat,
@@ -29,12 +30,42 @@ export default function MessageBox({
   stopRecording, sendText, sendFile, zoomMap, setTrimAppliedMap, setTrimMap, recording, setDurationMap, setShowPreview,
   durationMap, setZoomMap, selected, cropAppliedMap, croppedAreaPixels, setCrop, crop, setCropAppliedMap,
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
-  text, setText, fileInputRef, toast, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
+  text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
-  setMobileView, mobileView, setIsMinimized, isMinimized, uiMode
+  setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings
 }) {
   
+  const [incomingCall, setIncomingCall] = useState(null);
+  const [callMode, setCallMode] = useState(null); 
+
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [generatedMeeting, setGeneratedMeeting] = useState(null);
+  const [selectedExpiry, setSelectedExpiry] = useState("1h");
+  const [meetingData, setMeetingData] = useState(null);
+  const [isCaller, setIsCaller] = useState(false);
+  
+  const [groups, setGroups] = useState([]);
+const [loadingGroups, setLoadingGroups] = useState(true);
+
+useEffect(() => {
+  const fetchGroups = async () => {
+    try {
+      setLoadingGroups(true);
+
+      const res = await api.get("/api/groups");
+
+      setGroups(res.data);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  fetchGroups();
+}, []);
+
 
     const status = activeChat?.membership_status;
     const role = activeChat?.my_role;
@@ -47,6 +78,7 @@ export default function MessageBox({
     const isPending = status === "pending";
     const isRejected = status === "rejected";
     const isRemoved = status === "removed"; // ✅ FIXED
+
   
     const canSendMessage = isGroupChat
       ? (isAdmin || (status === "approved" && !onlyAdminSend))
@@ -62,7 +94,6 @@ export default function MessageBox({
     : false;
   
 
-  const [callMode, setCallMode] = useState(null); 
   const [showNewBtn, setShowNewBtn] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,8 +157,44 @@ export default function MessageBox({
     await openCommunity(community);
     setShowChannel(true);
   };
-  
 
+
+  const handleSendMeeting = async (
+  meeting,
+  selectedTargets
+) => {
+
+  const targets =
+    selectedTargets.map(item => {
+
+      const [type, id] =
+        item.split("-");
+
+      return {
+        type,
+        id: Number(id),
+      };
+    });
+
+  await api.post(
+    "/api/meeting/send",
+    {
+      meeting,
+      targets,
+    }
+  );
+
+  console.log(
+    "FORWARDING MEETING:",
+    meeting
+  );
+
+  toast.success(
+    "Meeting invitation sent"
+  );
+};
+
+ 
   const openCommunityMessage = async (communityId, messageId) => {
     try {
       const community = communities.find(
@@ -439,16 +506,22 @@ const menuRef = useRef(null);
     {loadingMessages && <ChatSkeleton type="messages" />}
 
 
-const isGroup = activeChat?.type === "group";
+    const isGroup = activeChat?.type === "group";
 
-const displayName = isGroup
-  ? activeChat?.group_name || activeChat?.name || "Unnamed Group"
-  : `${activeChat?.other_user?.first_name || ""} ${activeChat?.other_user?.last_name || ""}`;
+    const other =
+      activeChat?.other_user ||
+      activeChat?.other ||
+      null;
 
-const avatarName = isGroup
-  ? displayName
-  : activeChat?.other_user?.first_name;
+    const displayName = isGroup
+      ? activeChat?.group_name ||
+        activeChat?.name ||
+        "Unnamed Group"
+      : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim();
 
+    const avatarName = isGroup
+      ? displayName
+      : other?.first_name ?? "";
   
   const firstUnreadMessage = messages.find(
   (m) =>
@@ -460,6 +533,18 @@ const firstUnreadMessageId =
   firstUnreadMessage?.id ?? null;
 
 
+  const startCall = (type) => {
+  setIsCaller(true);
+
+  setCallMode(type);
+
+  // caller should NOT get incoming call
+  setIncomingCall(null);
+};
+
+console.log("isCaller:", isCaller);
+console.log("activeChat:", activeChat);
+console.log("incomingCall:", incomingCall);
 
   return (
     <div className={`flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative
@@ -468,10 +553,10 @@ const firstUnreadMessageId =
       {/* HEADER yet  */}
       
       <div className="hidden lg:block">
-     <div className={`px-3 border-b-2 shadow py-1 border-white flex justify-between items-center 
+     <div className={`px-3 border-b-2 shadow py-1 border-white flex justify-between items-start 
       bg-[var(--bg-color)] text-[var(--text-color)] ${uiMode !== 'full' ? 'border lg:rounded-tr-2xl lg:rounded-tl-2xl' : ''}`}>
          
-          <div onClick={onToggleSettings} className="inline-flex gap-4 items-center cursor-pointer">
+          <div onClick={onToggleSettings} className="inline-flex gap-2 items-center cursor-pointer">
              <div
                 className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
                   avatarName
@@ -504,7 +589,27 @@ const firstUnreadMessageId =
               </div>
 
         </div>
-       <div className="flex gap-1 text-xl">
+       <div className="flex gap-1 text-xl mt-2">
+
+        
+
+        {uiMode !== 'full' && !showSettings && selectedMessages.length === 0  && (
+          <button
+          className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSettings()
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+              stroke-width="1.5" stroke="currentColor" class="size-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+            </svg>
+          </button>
+        )
+        
+        }
+
 
         {/* Forward */}
           {selectedMessages.length > 1 && (
@@ -521,30 +626,42 @@ const firstUnreadMessageId =
                 messages: messagesToForward
               });
             }}
-            className="hover:bg-gray-200 hover:text-white text-[var(--text-color)] p-1 rounded-full"
+            className=" text-[var(--text-color)]"
           >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth="1.5"
-      stroke="currentColor"
-      className="size-5 text-[var(--text-color)]"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
-      />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-5 text-[var(--text-color)]"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+                  />
+                </svg>
+              </button>
+            )}
+
+            <button
+            onClick={() =>
+              setShowMeetingModal(true)
+            }
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
     </svg>
-  </button>
-)}
+
+          </button>
+        
           {/* VIDEO */}
           <button
-              onClick={() => setCallMode("video")}
-            className="hover:bg-gray-200 hover:text-white p-1 rounded-full">
+              onClick={() => startCall("video")}
+            className="px-1">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor" class="size-5 text-[var(--text-color)]">
+             stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
             <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
 
@@ -552,7 +669,7 @@ const firstUnreadMessageId =
           </button>
 
           {/* AUDIO */}
-          <button onClick={() => setCallMode("audio")} className="hover:bg-gray-200 hover:text-white p-1 rounded-full">
+          <button onClick={() => startCall("audio")} className="">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
             stroke-width="1.5" stroke="currentColor" class="size-5 text-[var(--text-color)] ">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
@@ -596,13 +713,13 @@ const firstUnreadMessageId =
 
       {/* Mobile Header */}
    <div className="lg:hidden block ">
-  <div className="px-4 py-2 border-b flex justify-between items-center bg-[var(--bg-color)] overflow-hidden">
+  <div className="px-2 py-2 md:py-3 md:px-4 border-b flex justify-between items-center bg-[var(--bg-color)] overflow-hidden">
 
     <div className="flex flex-col flex-1 min-w-0">
       <div className="flex justify-between items-center flex-1 min-w-0">
 
         {/* LEFT */}
-        <div className="inline-flex gap-3 items-center flex-1 min-w-0">
+        <div className="inline-flex md:gap-3 gap-2 items-center flex-1 min-w-0">
           <svg
            onClick={() => {
             setActiveChat(null);
@@ -617,7 +734,7 @@ const firstUnreadMessageId =
             className="flex items-center gap-2 min-w-0"
           >
               <div
-                className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
+                className={`w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] md:text-[25px] text-white ${getColor(
                   avatarName
                 )}`}
               >
@@ -631,34 +748,45 @@ const firstUnreadMessageId =
                 )}
 
               </div>
-            <h3 className="font-bold text-lg sm:block hidden truncate text-[var(--text-color)]">
+            <h3 className="font-bold text-xl sm:block hidden truncate text-[var(--text-color)]">
               {displayName}
             </h3>
 
             <h3 className="font-bold block sm:hidden text-lg text-[var(--text-color)]">
-            {displayName?.length > 12
-              ? `${displayName.slice(0, 12)}..`
+            {displayName?.length > 9
+              ? `${displayName.slice(0, 9)}`
               : displayName}
           </h3>
           </div>
         </div>
 
         {/* RIGHT */}
-        <div className="flex text-xl flex-shrink-0">
+        <div className="flex text-xl flex-shrink-0 gap-1 md:gap-3">
+          <button
+            onClick={() =>
+              setShowMeetingModal(true)
+            }
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+            stroke-width="1.5" stroke="currentColor" class="md:size-10 size-6">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+    </svg>
+
+          </button>
         
           <button
-              onClick={() => setCallMode("video")}
-            className="hover:bg-gray-200 hover:text-white p-2 rounded-full">
+              onClick={() => startCall("video")}
+            className="cursor-pointer px-1">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor" class="size-6 text-[var(--text-color)]">
+             stroke-width="1.5" stroke="currentColor" class="md:size-10 size-6 text-[var(--text-color)]">
             <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
 
           </button>
 
           <button
-            onClick={() => setCallMode("audio")}
-            className="hover:bg-gray-200 p-2 rounded-full cursor-pointer"
+            onClick={() => startCall("audio")}
+            className="cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -666,7 +794,7 @@ const firstUnreadMessageId =
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="size-5 text-[var(--text-color)]"
+              className="size-6 md:size-10 text-[var(--text-color)]"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
             </svg>
@@ -683,7 +811,7 @@ const firstUnreadMessageId =
               messages: messagesToForward
             });
           }}
-          className="hover:bg-gray-200 p-2  text-[var(--text-color)] rounded-full cursor-pointer"
+          className="cursor-pointer px-1"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -691,7 +819,7 @@ const firstUnreadMessageId =
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6 text-[var(--text-color)]"
+            className="md:size-10 size-6 text-[var(--text-color)]"
           >
             <path
               strokeLinecap="round"
@@ -702,6 +830,23 @@ const firstUnreadMessageId =
         </button>
       )}
     
+      {uiMode !== 'full' && !showSettings && selectedMessages.length === 0  && (
+          <button
+          className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSettings()
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+              stroke-width="1.5" stroke="currentColor" class="size-8 md:size-12">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+            </svg>
+
+          </button>
+        )
+        
+        }
        {hasSelection && selectedMessages.length === 1 && (
           <button
           className="cursor-pointer"
@@ -720,20 +865,11 @@ const firstUnreadMessageId =
               }
             }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-10 text-[var(--text-color)] rotate-90"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375"
-              />
+           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+              stroke-width="1.5" stroke="currentColor" class="size-8 md:size-12">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
             </svg>
+
           </button>
         )}
 
@@ -959,7 +1095,8 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
-          blockAllInput={blockAllInput}  uiMode={uiMode}
+          handleSendMeeting={handleSendMeeting} setMeetingData={setMeetingData}
+          blockAllInput={blockAllInput}  uiMode={uiMode} 
           showScrollButton={showScrollButton} isFirstUnread={isFirstUnread} myId={myId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           openCommunity={openCommunity} onBack={onBack} openCommunityMessage={openCommunityMessage}
@@ -1027,7 +1164,7 @@ const isFirstUnread =
           croppedAreaPixels={croppedAreaPixels} setCrop={setCrop} crop={crop} setCropAppliedMap={setCropAppliedMap}
           setCroppedImages={setCroppedImages} croppedImages={croppedImages} setCroppedAreaPixels={setCroppedAreaPixels}
           setCaption={setCaption} caption={caption} previewUrls={previewUrls} files={files} showPreview={showPreview}
-          text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
+          text={text} setText={setText} fileInputRef={fileInputRef} setPreviewUrls={setPreviewUrls} 
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
           
@@ -1039,12 +1176,24 @@ const isFirstUnread =
           activeChat={activeChat}
           callMode={callMode}
           setCallMode={setCallMode}
+          incomingCall={incomingCall} 
+          meetingData={meetingData}
+          setIncomingCall={setIncomingCall}
+          isCaller={isCaller}
         />
       )}
+    <GenerateLinkCall 
+    incomingCall={incomingCall} setIncomingCall={setIncomingCall}
+    showMeetingModal={showMeetingModal} setShowMeetingModal={setShowMeetingModal}
+    generatedMeeting={generatedMeeting} setGeneratedMeeting={setGeneratedMeeting}
+    selectedExpiry={selectedExpiry} setSelectedExpiry={setSelectedExpiry}
+    setForwardMessage={setForwardMessage} setCallMode={setCallMode}
 
+    />
 
       {messages.map((msg) => (
       <MenuComponent 
+      handleSendMeeting={handleSendMeeting}
       setChats={setChats}
       openChat={openChat}
       msg={msg}
@@ -1084,6 +1233,25 @@ const isFirstUnread =
       loadingChats={loadingChats}
       />
       ))}
+
+      {
+        forwardMessage?.open &&
+        forwardMessage?.type === "meeting" && (
+          <MeetingForwardModal
+            meeting={forwardMessage.meeting}
+            users={chats}
+            groups={groups}
+            onClose={() =>
+              setForwardMessage({
+                open: false,
+                type: null,
+                meeting: null
+              })
+            }
+            onSend={handleSendMeeting}
+          />
+        )
+      }
 
        
     </div>

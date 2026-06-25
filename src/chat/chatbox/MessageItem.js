@@ -11,6 +11,8 @@ import AudioPlayer from "./AudioUi";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import FromCommunityForward from "../chatcomponent/FromCommunityForward";
 import { decryptMessage, encryptMessage } from "../../utils/encryption";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function MessageItem({
   msg, authUser,
@@ -22,8 +24,8 @@ export default function MessageItem({
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
-  showReactionPopup, setShowReactionPopup, messageRefs, bottomRef, 
-  loadingChats, onBack, openCommunityMessage, mobileView,  uiMode
+  showReactionPopup, setShowReactionPopup, messageRefs, bottomRef, setMeetingData,
+  handleSendMeeting, loadingChats, onBack, openCommunityMessage, mobileView,  uiMode, setCallMode, 
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -32,6 +34,8 @@ export default function MessageItem({
 
 
   const [selectionMode, setSelectionMode] = useState(false);
+
+  const navigate = useNavigate();
 
   const myId = authUser.id;
   const latestMessage = messages?.length
@@ -818,11 +822,30 @@ const retryMessage = async () => {
 };
 
 
- const hasLink =
-  /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi.test(
-    msg.message || ""
-  );
+    const joinMeeting = async (
+      roomId
+    ) => {
+      const res = await api.get(
+        `/api/meeting/${roomId}`
+      );
 
+      const meeting =
+        res.data.meeting;
+
+      if (
+        new Date(meeting.expires_at) <
+        new Date()
+      ) {
+        toast.error(
+          "Meeting link expired"
+        );
+        return;
+      }
+
+      navigate(
+        `/meeting/${roomId}`
+      );
+    };
 
   // ================= PIN MESSAGE =================
   const handlePin = async (msg) => {
@@ -1106,8 +1129,26 @@ const isInteractive = (target) => {
     <div className={`flex flex-row items-start ${
         isMine ? "justify-end" : "justify-start"
       }
-       ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2" : ""}
-      `}>
+       ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2 cursor-pointer" : ""}
+      `}
+      onClick={(e) => {
+          e.stopPropagation();
+          if (isInteractive(e.target)) return;
+          if (longPressTriggered.current) return;
+          if (selectionMode || selectedMessages.length > 0) {
+            toggleSelect(msg);
+            return;
+          }
+
+          if (!forwardMode) {
+            if (isMobile) setShowActions(prev => !prev);
+            return;
+          }
+
+          toggleSelect(msg);
+        }}
+
+      >
       {isGroup && !isMine && (
           <div
             className={`flex items-center mb-1 `}
@@ -1584,6 +1625,69 @@ onTouchEnd={() => {
 
           }
 
+         {msg.type === "meeting_invite" && (
+  <div
+   
+    className={`
+          bg-green-700
+          text-white
+          p-3
+          rounded-lg
+          ${uiMode === 'full' ? 'max-w-64' : 'max-w-56 lg:max-w-56 md:max-w-96 '}
+        `}
+  >
+    <div>
+      {msg.message}
+    </div>
+
+    {/* Display only - NOT clickable */}
+    <div
+      className="
+        break-all
+        text-xs
+        mt-2
+        bg-black/20
+        p-2
+        rounded
+        select-all
+      "
+    >
+      {msg.meeting_link}
+    </div>
+
+    <div
+      className="
+        text-xs
+        opacity-80
+        mt-2
+      "
+    >
+      Expires:
+       {" "}
+      {new Date(
+        msg.meeting_expires_at
+      ).toLocaleString()}
+    </div>
+
+    <button
+      className="
+        bg-white
+        text-black
+        px-3
+        py-1
+        rounded
+        mt-2
+      "
+      onClick={() =>
+        joinMeeting(
+          msg.meeting_room_id
+        )
+      }
+    >
+      Join Meeting Link
+    </button>
+  </div>
+)}
         {/* =================  TIME + STATUS svg ================= */}
         <div className="flex justify-end items-center z-50 gap-2 mt-1">
           {msg.edited && (
@@ -1642,6 +1746,7 @@ onTouchEnd={() => {
         )}
     </div>
      <MessageComponent
+      handleSendMeeting={handleSendMeeting}
       setChats={setChats}
       openChat={openChat}
       msg={msg}

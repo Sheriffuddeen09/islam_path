@@ -9,12 +9,15 @@ import AppearanceModal from "../layout/ThemeSetting";
 import { useAuth } from "../layout/AuthProvider";
 import PasskeysModal from "./PassKeysModal";
 import BiodataModal from "./BioDataModal";
+import toast from "react-hot-toast";
 
 
 export default function Setting({editingTeacher, handleClose, handleUpdate, handleEdit}) {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [editVisibility, setEditVisibility] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [editVisibility, setEditVisibility] = useState(false);  
+  const [loadingVisibility, setLoadingVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
@@ -134,10 +137,6 @@ const handleOpenVisibility = () =>{
   setOpenVisibility(!openVisibility)
 }
 
-const handleOpenProfile = () =>{
-
-  setOpenProfile(!openProfile)
-}
 
 
 
@@ -180,19 +179,18 @@ const fetchProfile = async () => {
   };
 
   const saveVisibility = async () => {
-  setLoading(true);
+  setLoadingVisibility(true);
   try {
     await api.put("/api/profile/visibility", { visibility });
 
     setEditVisibility(false);
-    showNotification("success", "Profile visibility updated 👁️");
+    toast.success("Profile visibility updated 👁️");
   } catch (err) {
-    showNotification(
-      "error",
+    toast.error(
       err.response?.data?.message || "Failed to update visibility ❌"
     );
   } finally {
-    setLoading(false);
+    setLoadingVisibility(false);
   }
 };
 
@@ -203,21 +201,28 @@ const fetchProfile = async () => {
   };
 
   const saveProfile = async () => {
-  setLoading(true);
+
+  setLoadingProfile(true);
+
   try {
     await api.put("/api/profile", editForm);
 
-    await fetchProfile(); // ✅ THIS FIXES IT
+    await fetchProfile();
+
+    toast.success(
+      "Profile updated successfully ✅"
+    );
+
+    // Close modal ONLY after success
     setShowEditModal(false);
 
-    showNotification("success", "Profile updated successfully ✅");
   } catch (err) {
-    showNotification(
-      "error",
-      err.response?.data?.message || "Failed to update profile ❌"
+    toast.error(
+      err.response?.data?.message ||
+      "Failed to update profile ❌"
     );
   } finally {
-    setLoading(false);
+    setLoadingProfile(false);
   }
 };
 
@@ -238,11 +243,6 @@ const fetchProfile = async () => {
 }, [profile]);
 
 const [visibleProfile, setVisibleProfile] = useState(1)
-  
-    const handleVisibleProfile = (id) => {
-      setVisibleProfile(id)
-    }
-
 
 
   if (loading) return <Loader />;
@@ -552,28 +552,28 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       {editVisibility && (
         <div className="mt-6 flex justify-end">
           <button onClick={saveVisibility} className="px-2 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            {loading ? (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  ) : 
+            {loadingVisibility ? (
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg>
+            ) : 
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
             </svg>
@@ -682,7 +682,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 onClick={saveProfile}
                 className="px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
-              {loading ? (
+              {loadingProfile ? (
     <svg
       className="animate-spin h-5 w-5 text-white"
       xmlns="http://www.w3.org/2000/svg"

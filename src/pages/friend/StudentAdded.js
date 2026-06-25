@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 
 
-export default function StudentAdded({handleMessageOpen}) {
+export default function StudentAdded({togglePopup,  setActiveChat, setMessages}) {
   const { id } = useParams();               // ✅ FIX 1
 
   const [status, setStatus] = useState("none");
@@ -14,6 +14,20 @@ export default function StudentAdded({handleMessageOpen}) {
   const [btnLoading, setBtnLoading] = useState(false);
   const [student, setStudent] = useState(null)
 
+
+    const openChat = async (chat) => {
+      if (!chat?.id) return;
+
+      console.log("OPEN CHAT RECEIVED", chat);
+
+      setActiveChat(chat); // now has `other`
+
+      const res = await api.get(
+        `/api/chats/${chat.id}/messages`
+      );
+
+      setMessages(res.data.messages || []);
+    };
   // 🔹 Fetch student profile + friend status
   useEffect(() => {
   api.get(`/api/student/profile/${id}`)
@@ -59,14 +73,36 @@ export default function StudentAdded({handleMessageOpen}) {
 
       {/* Action Button */}
       {status === "accepted" && (
-        <button
-        onClick={() => handleMessageOpen(student.id)}
+      <button
+        onClick={async () => {
+          try {
+            // 1. open popup first
+            togglePopup();
+
+            // 2. create or get chat
+            const res = await api.post(
+              "/api/chat/create",
+              {
+                user_id: student.id,
+              }
+            );
+
+            const chat = res.data.chat;
+
+            // 3. open chat
+            await openChat(chat);
+
+          } catch (err) {
+            toast.error("Failed to open chat");
+            console.error(err);
+          }
+        }}
         className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
       >
         💬 Message
       </button>
+    )}
 
-      )}
 
       {status === "pending" && (
         <button disabled className="bg-gray-500 px-5 py-2 rounded">

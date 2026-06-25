@@ -209,7 +209,7 @@ export default function ActiveUsers({
 
   return (
     <div
-      className={`h-full flex flex-col border rounded-xl bg-[var(--bg-color)] transition-all duration-500 ease-in-out ${
+      className={`h-full flex flex-col  border rounded-xl bg-[var(--bg-color)] transition-all duration-500 ease-in-out ${
         animate ? "opacity-100 translate-x-0" : "opacity-0 translate-x-5"
       }`}
     >
@@ -350,7 +350,8 @@ export default function ActiveUsers({
         {/* BUTTON */}
         <button
           onClick={() => setShowDisappear(true)}
-          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 hover:text-white px-6"
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 hover:text-white 
+          lg:px-6 px-6 md:px-10"
         >
 
           <div className="inline-flex gap-5 items-center">
@@ -484,7 +485,7 @@ export default function ActiveUsers({
 
         <button
           onClick={() => setShowDisappear(true)}
-          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 hover:text-white px-6"
+          className="w-full flex items-center justify-between py-3 hover:bg-gray-900 hover:text-white lg:px-6 px-6 md:px-10"
         >
           <div className="inline-flex gap-2 items-center">
             <TimerReset size={24} />
@@ -954,7 +955,7 @@ function ActionButton({ icon, label, onClick, danger, warning }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-4 w-full py-3 px-6  transition-all duration-200 transform active:scale-95
+      className={`flex items-center gap-4 w-full py-3 lg:px-6 px-6 md:px-10 transition-all duration-200 transform active:scale-95
         ${
           danger
             ? "text-red-600 hover:bg-red-100"
@@ -977,7 +978,7 @@ function ModalOverlay({ children, onClose }) {
       {/* BACKDROP */}
       <div
         onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn"
+        className="absolute inset-0 bg-black/40 animate-fadeIn"
       />
 
       {/* CONTENT */}

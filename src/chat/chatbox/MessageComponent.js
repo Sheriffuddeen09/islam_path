@@ -20,7 +20,7 @@ export default function MessageComponent({
   openChat,
   setSelectedMessages,
   chats, setChats, setActiveChat,
-  searchMode, searchQuery, setSearchMode, forwardMessage, messages,loadingChats, 
+  searchMode, searchQuery, setSearchMode, forwardMessage, messages,loadingChats, handleSendMeeting,
   setSearchQuery, setForwardMessage, menuPosition, activeMenuId, setActiveMenuId, setMenuPosition
 }) {
   const { user } = useAuth();
@@ -588,6 +588,7 @@ useEffect(() => {
                         groups={groups}
                         loadingChats={loadingChats}
                         loadingGroups={loadingGroups}
+                        handleSendMeeting={handleSendMeeting}
                       />
             </div>
         )}

@@ -723,11 +723,12 @@ setMessages((prev) => {
           w-full h-full rounded-none
           
           lg:bottom-10 lg:right-10 border
-          lg:w-[350px] lg:rounded-2xl
+          lg:w-[375px] lg:rounded-2xl
           ${isMinimized ? "lg:h-[80px]" : "lg:h-[500px]"}
         `}
       >
       <MessageBox
+          showSettings={showSettings}
           onToggleSettings={toggleSettings}
           showChannel={showChannel} 
           openCommunity={openCommunity}
@@ -853,6 +854,7 @@ setMessages((prev) => {
 
       {activeChat ? (
         <MessageBox
+            showSettings={showSettings}
 
           onToggleSettings={toggleSettings}
           showChannel={showChannel} 

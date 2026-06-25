@@ -441,7 +441,15 @@ const openSearchModal = () => {
                   {isOwner
                     ? "Your Product"
                     : isLoading
-                    ? <span className="flex items-center gap-2"><Loader2 /> Ordering...</span>
+                    ? <span className="flex items-center gap-2"><span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " /> Ordering...</span>
                     : "Order Now"}
                 </button>
                 <Link to={`/product/${p.id}`}> 

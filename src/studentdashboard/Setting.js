@@ -7,11 +7,14 @@ import SwitchAccountModal from "./SwitchAccountModal";
 import AppearanceModal from "../layout/ThemeSetting";
 import PasskeysModal from "./PassKeysModal";
 import BiodataModal from "./BioDataModal";
+import toast from "react-hot-toast";
 
 
 export default function Setting() {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [loadingVisibility, setLoadingVisibility] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [showEditModal, setShowEditModal] = useState(false);
@@ -144,19 +147,19 @@ const fetchProfile = async () => {
   };
 
   const saveVisibility = async () => {
-  setLoading(true);
+  setLoadingVisibility(true);
   try {
     await api.put("/api/profile/visibility", { visibility });
 
     setEditVisibility(false);
-    showNotification("success", "Profile visibility updated 👁️");
+    toast.success("Profile visibility updated 👁️");
   } catch (err) {
-    showNotification(
+    toast.success(
       "error",
       err.response?.data?.message || "Failed to update visibility ❌"
     );
   } finally {
-    setLoading(false);
+    setLoadingVisibility(false);
   }
 };
 
@@ -167,21 +170,28 @@ const fetchProfile = async () => {
   };
 
   const saveProfile = async () => {
-  setLoading(true);
+
+  setLoadingProfile(true);
+
   try {
     await api.put("/api/profile", editForm);
 
-    await fetchProfile(); // ✅ THIS FIXES IT
+    await fetchProfile();
+
+    toast.success(
+      "Profile updated successfully ✅"
+    );
+
+    // Close modal ONLY after success
     setShowEditModal(false);
 
-    showNotification("success", "Profile updated successfully ✅");
   } catch (err) {
-    showNotification(
-      "error",
-      err.response?.data?.message || "Failed to update profile ❌"
+    toast.error(
+      err.response?.data?.message ||
+      "Failed to update profile ❌"
     );
   } finally {
-    setLoading(false);
+    setLoadingProfile(false);
   }
 };
 
@@ -201,15 +211,10 @@ const fetchProfile = async () => {
   }
 }, [profile]);
 
-const [visibleProfile, setVisibleProfile] = useState(1)
-  
-    const handleVisibleProfile = (id) => {
-      setVisibleProfile(id)
-    }
 
 
 
-  if (loading) return <Loader />;
+  if (loading) return <Loader />
 
   
   const profileCotent = (
@@ -493,7 +498,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
       {editVisibility && (
         <div className="mt-6 flex justify-end">
           <button onClick={saveVisibility} className="px-2 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            {loading ? (
+            {loadingVisibility ? (
     <svg
       className="animate-spin h-5 w-5 text-white"
       xmlns="http://www.w3.org/2000/svg"
@@ -610,7 +615,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
                 onClick={saveProfile}
                 className="px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
-              {loading ? (
+              {loadingProfile ? (
     <svg
       className="animate-spin h-5 w-5 text-white"
       xmlns="http://www.w3.org/2000/svg"

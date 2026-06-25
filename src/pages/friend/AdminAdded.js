@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 
 
 
-export default function AdminAdded({handleMessageOpen}) {
+export default function AdminAdded({togglePopup, setActiveChat, setMessages }) {
   const { id } = useParams();               // ✅ FIX 1
 
   const [status, setStatus] = useState("none");
@@ -45,6 +45,20 @@ export default function AdminAdded({handleMessageOpen}) {
     }
   };
 
+  const openChat = async (chat) => {
+      if (!chat?.id) return;
+
+      console.log("OPEN CHAT RECEIVED", chat);
+
+      setActiveChat(chat); // now has `other`
+
+      const res = await api.get(
+        `/api/chats/${chat.id}/messages`
+      );
+
+      setMessages(res.data.messages || []);
+    };
+
   if (loading) {
     return <p  className="bg-green-800 px-5 py-2 rounded">
       <p className=" rounded-lg text-xs flex items-center gap-2">
@@ -62,14 +76,35 @@ export default function AdminAdded({handleMessageOpen}) {
 
       {/* Action Button */}
       {status === "accepted" && (
-       <button
-      onClick={() => handleMessageOpen(admin.id)}
-      className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
-    >
-      💬 Message
-    </button>
+      <button
+        onClick={async () => {
+          try {
+            // 1. open popup first
+            togglePopup();
 
-      )}
+            // 2. create or get chat
+            const res = await api.post(
+              "/api/chat/create",
+              {
+                user_id: admin.id,
+              }
+            );
+
+            const chat = res.data.chat;
+
+            // 3. open chat
+            await openChat(chat);
+
+          } catch (err) {
+            toast.error("Failed to open chat");
+            console.error(err);
+          }
+        }}
+        className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
+      >
+        💬 Message
+      </button>
+    )}
 
       {status === "pending" && (
         <button disabled className="bg-gray-500 px-5 py-2 rounded">

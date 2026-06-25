@@ -13,9 +13,10 @@ import TeacherOnboarding from "../Form/TeacherOnboarding";
 import Notification from "../notification/Notification";
 
 
-export default function ProfilePage({teachers, chats, setTeachers, handleEdit, handleMessageOpen, 
+export default function ProfilePage({teachers, chats, setTeachers, handleEdit, togglePopup, 
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, onProfileCompleted
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, onProfileCompleted,
+        setMessages, setActiveChat
 }) {
   const [profile, setProfile] = useState(null);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -122,7 +123,7 @@ const [visibleProfile, setVisibleProfile] = useState(1)
   
 
 
-  if (profileLoading) return <Loader />;
+  if (profileLoading) return <Loader  />
 
   if (!profile) return <p>Profile not found</p>;
 
@@ -382,7 +383,7 @@ const content = (
         {content}
         <BiodataDashboard profile={profile} visibility={visibility}
          handleToggleVisibility={handleToggleVisibility} editVisibility={editVisibility} />
-        <AdminProfileFriendDashboard handleMessageOpen={handleMessageOpen}/>
+        <AdminProfileFriendDashboard togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat}/>
         {profile_content}
         {
           teacherFillForm && (

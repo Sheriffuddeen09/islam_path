@@ -21,7 +21,7 @@ export default function MenuComponent({
   searchQuery,
   setSearchMode, setChats,
   setSearchQuery, chats, selectedMessages, activeChat, forwardMessage, messagesEndRef, 
-  messages, setShowReactions, loadingChats, setActiveChat
+  messages, setShowReactions, loadingChats, setActiveChat, handleSendMeeting
 }) {
   const [showMore, setShowMore] = useState(false);
 
@@ -592,6 +592,7 @@ const handleCopyLink = async (message) => {
                           groups={groups}
                           loadingChats={loadingChats}
                           loadingGroups={loadingGroups}
+                          handleSendMeeting={handleSendMeeting}
                         />
               </div>
           )}

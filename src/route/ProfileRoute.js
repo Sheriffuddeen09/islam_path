@@ -4,7 +4,8 @@ import ProfileId from "./ProfileId";
 
 export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, openChat, togglePopup,
+        setActiveChat, setMessages
 }) {
   const { id } = useParams();
   const { user } = useAuth();
@@ -13,8 +14,8 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
   return (
     <div>
       <ProfileId profileId={id} handleMessageOpen={handleMessageOpen} requests={requestStatus}
-       chats={chats} 
-      image={image} setImage={setImage}
+       chats={chats} setMessages={setMessages} setActiveChat={setActiveChat}
+      image={image} setImage={setImage} openChat={openChat} togglePopup={togglePopup}
       postComments={postComments} setPostComments={setPostComments} loading={loading} 
       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
       newComment={newComment} setNewComment={setNewComment}

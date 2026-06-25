@@ -4,7 +4,7 @@ import { useAuth } from "../../../layout/AuthProvider";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Order = ({chats, setActiveChat, setMessages}) => {
+const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -98,28 +98,25 @@ const Order = ({chats, setActiveChat, setMessages}) => {
     const openChat = async (chat) => {
       if (!chat?.id) return;
 
-      const res = await api.get(`/api/chats/${chat.id}/messages`);
+      console.log("OPEN CHAT RECEIVED", chat);
 
-      setActiveChat(chat);
+      setActiveChat(chat); // now has `other`
+
+      const res = await api.get(
+        `/api/chats/${chat.id}/messages`
+      );
+
       setMessages(res.data.messages || []);
-
-      // ✅ update URL without changing route
-      navigate(`/chat?chatId=${chat.id}`);
     };
+    const handleMessageUser = async (
+  order
+) => {
+  if (!order) return;
 
+  const currentUserId =
+    authUserId;
 
-  const handleMessageUser = async (order) => {
-  if (!order) {
-    console.error("❌ order is undefined");
-    return;
-  }
-
-  const currentUserId = authUserId;
-
-  if (!currentUserId) {
-    console.error("❌ authUser not ready");
-    return;
-  }
+  if (!currentUserId) return;
 
   const otherUserId =
     order.user_id === currentUserId
@@ -129,26 +126,52 @@ const Order = ({chats, setActiveChat, setMessages}) => {
   try {
     setChatLoading(order.id);
 
-    const res = await api.post("/api/chat/create", {
-      user_id: otherUserId,
-      order_id: order.id,
+          const res = await api.post(
+        "/api/chat/create",
+        {
+          user_id: otherUserId,
+          order_id: order.id,
+        }
+      );
+
+      const rawChat = res.data.chat;
+
+      // build "other" manually
+      const other = {
+        id: otherUserId,
+        first_name: order.first_name ?? "User",
+        last_name: order.last_name ?? "Name",
+      };
+
+      // FINAL chat object (IMPORTANT)
+      const chat = {
+        ...rawChat,
+        other,
+      };
+    setChats((prev) => {
+      const exists = prev.some(
+        (c) => c.id === chat.id
+      );
+
+      if (exists) return prev;
+
+      return [chat, ...prev];
     });
 
-     const chat = res.data.chat;
+    togglePopup();
 
-    setActiveChats(prev => [...prev, order.id]);
-
-
-     openChat(chat);
-
-
+    await openChat(chat);
 
   } catch (err) {
-    console.error("Chat failed", err);
+    console.error(
+      "Chat failed",
+      err
+    );
   } finally {
     setChatLoading(null);
   }
 };
+
 
   const handleCancel = async (id) => {
   try {
@@ -496,7 +519,15 @@ const Order = ({chats, setActiveChat, setMessages}) => {
           className="px-4 py-2 text-sm bg-red-700 over:bg-red-800 text-white rounded"
         >
           {
-            cancelingId ? <Loader2 /> : "Yes, Cancel"
+            cancelingId ? <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " /> : "Yes, Cancel"
           }
           
         </button>

@@ -21,8 +21,9 @@ import BioDataProfile from "./BiodataProfile";
 
 
 export default function ProfileId({handleMessageOpen, profileId, chats,
-  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList
+        image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, togglePopup, setActiveChat,
+        setMessages
 }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -33,7 +34,7 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
   const [editContent, setEditContent] = useState("");
 
   
-
+   
   const { user: authUser } = useAuth();
   const fetchProfile = async () => {
   if (!profileId) return;
@@ -95,7 +96,7 @@ const showAdminFriend = () => {
 
 
 
-  if (loadingProfile) return <Loader />;
+  if (loadingProfile) return <Loader  />
 
   if (!profile) return <p>Profile not found</p>;
 
@@ -312,11 +313,11 @@ const content = (
 
                 
         {showStudentFriend() && (
-          <StudentAdded handleMessageOpen={handleMessageOpen} />
+          <StudentAdded  togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat} />
         )}
 
         {showAdminFriend() && (
-          <AdminAdded handleMessageOpen={handleMessageOpen} />
+          <AdminAdded  togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat} />
         )}
 
       </div>

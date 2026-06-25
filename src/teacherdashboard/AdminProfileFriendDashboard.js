@@ -5,9 +5,8 @@ import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
 import { Loader } from "lucide-react";
 
-export default function AdminProfileFriendDashboard({handleMessageOpen}) {
+export default function AdminProfileFriendDashboard({togglePopup, setMessages, setActiveChat}) {
 
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [acceptedAdmins, setAcceptedAdmins] = useState([]);
@@ -15,6 +14,21 @@ export default function AdminProfileFriendDashboard({handleMessageOpen}) {
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
+
+
+  const openChat = async (chat) => {
+        if (!chat?.id) return;
+  
+        console.log("OPEN CHAT RECEIVED", chat);
+  
+        setActiveChat(chat); // now has `other`
+  
+        const res = await api.get(
+          `/api/chats/${chat.id}/messages`
+        );
+  
+        setMessages(res.data.messages || []);
+      };
 
   useEffect(() => {
   
@@ -103,7 +117,29 @@ export default function AdminProfileFriendDashboard({handleMessageOpen}) {
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-                onClick={() => handleMessageOpen(admin.id)}
+                onClick={async () => {
+                  try {
+                    // 1. open popup first
+                    togglePopup();
+
+                    // 2. create or get chat
+                    const res = await api.post(
+                      "/api/chat/create",
+                      {
+                        user_id: admin.id,
+                      }
+                    );
+
+                    const chat = res.data.chat;
+
+                    // 3. open chat
+                    await openChat(chat);
+
+                  } catch (err) {
+                    toast.error("Failed to open chat");
+                    console.error(err);
+                  }
+                }}
                 className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
               >
                 💬 Message

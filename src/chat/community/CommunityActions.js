@@ -401,22 +401,3 @@ function MenuButton({
   );
 }
 
-
-function ModalOverlay({ children, onClose }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-
-      {/* BACKDROP */}
-      <div
-        onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn"
-      />
-
-      {/* CONTENT */}
-      <div className="relative z-10">
-        {children}
-      </div>
-
-    </div>
-  );
-}
