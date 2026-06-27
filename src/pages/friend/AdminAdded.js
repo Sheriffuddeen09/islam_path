@@ -60,11 +60,19 @@ export default function AdminAdded({togglePopup, setActiveChat, setMessages }) {
     };
 
   if (loading) {
-    return <p  className="bg-green-800 px-5 py-2 rounded">
-      <p className=" rounded-lg text-xs flex items-center gap-2">
-      <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span>
-    </p></p>;
-  }
+  return (
+    <div
+      className="
+        animate-pulse
+        h-10
+        w-32
+        rounded-lg
+        bg-gray-300
+        dark:bg-gray-700
+      "
+    />
+  );
+}
 
   if (!admin) {
     return <p className="text-center mt-10">admin not found</p>;

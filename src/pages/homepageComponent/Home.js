@@ -9,7 +9,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     friendCount, setFriendCount, homeCount, setHomeCount, videoCount, setVideoCount, fetchUnreadCount,
     handleFriendClick, handleVideoClick, handleHomeClick, handleMessageClick, handleNotification, unreadNotification,
     setUnreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup, showSettings,
-    setShowSettings, setMessages
+    setShowSettings, setMessages, callMode, setCallMode, incomingCall, setIncomingCall, meetingData, setMeetingData
   }) {
 
 
@@ -34,6 +34,12 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       togglePopup={togglePopup}
       showSettings={showSettings} 
       setShowSettings={setShowSettings} setMessages={setMessages}
+      setCallMode={setCallMode}
+      callMode={callMode}
+      setIncomingCall={setIncomingCall}
+      incomingCall={incomingCall}
+      setMeetingData={setMeetingData}
+      meetingData={meetingData}
       />
 
 

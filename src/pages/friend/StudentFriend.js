@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import StudentFriendCard from "./StudentFriendCard";
 import toast, { Toaster } from "react-hot-toast";
+import SidebarLeft from "./SidebarLeft";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests}) {
  
@@ -13,8 +15,11 @@ export default function StudentFriend({students, setStudents, setIncomingRequest
   const [loadingAction, setLoadingAction] = useState(null);
   const [visibleMyRequests, setVisibleMyRequests] = useState(2);
   const [visibleIncomingRequests, setVisibleIncomingRequests] = useState(2);
+  const [showSeeLess, setShowSeeLess] = useState(false);
+  const [showIncomingSeeLess, setShowIncomingSeeLess] = useState(false);
 
 
+  const navigate = useNavigate()
 
 
   useEffect(() => {
@@ -78,69 +83,174 @@ useEffect(() => {
 }, []);
 
 
-if (loading)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
-      </div>
-    );
+useEffect(() => {
+  setShowSeeLess(false);
+  setVisibleMyRequests(2);
+}, [myRequests.length]);
 
-const myRequestList = (
-  <div className="max-w-xl space-y-3 mt-2">
-    {myRequests.slice(0, visibleMyRequests).map(req => (
-      <div
-        key={req.id}
-        className="flex items-center justify-between bg-white p-4 rounded-lg shadow"
-      >
-        <div className="flex items-center gap-3">
-          <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center mx-auto justify-center text-[80px] font-bold text-gray-600">
-          {req.student?.first_name?.[0]}
-        </div>
-          <div>
-            <p className="font-semibold">
-              {req.student?.first_name} {req.student?.last_name}
-            </p>
-            <p className="text-sm mt-2 font-bold bg-gray-800 p-1 text-white rounded px-3 py-1">
-              Pending request
-            </p>
+useEffect(() => {
+  setShowIncomingSeeLess(false);
+  setVisibleIncomingRequests(2);
+}, [incomingRequests.length]);
+
+if (loading) {
+  return (
+    <>
+      <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--bg-color)]">
+        {/* Sidebar Skeleton */}
+        <aside className="hidden lg:block mt-20 lg:w-72 p-4">
+          <div className="animate-pulse space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="h-12 bg-gray-200 rounded-lg"
+              />
+            ))}
+          </div>
+        </aside>
+
+        {/* Main Content Skeleton */}
+        <div className="flex-1 p-4 mt-20">
+          <div className="animate-pulse space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-lg shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Avatar */}
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200" />
+
+                    {/* Text */}
+                    <div className="space-y-3">
+                      <div className="h-5 w-40 bg-gray-200 rounded" />
+                      <div className="h-4 w-24 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex gap-2">
+                    <div className="h-10 w-24 bg-gray-200 rounded" />
+                    <div className="h-10 w-24 bg-gray-200 rounded" />
+                    <div className="h-10 w-28 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
+
           </div>
         </div>
       </div>
-    ))}
+    </>
+  );
+}
 
-    {myRequests.length > visibleMyRequests && (
-      <button
-        onClick={() => setVisibleMyRequests(prev => prev + 2)}
-        className="w-full mt-3 py-2 bg-gray-200 hover:bg-gray-300 rounded font-semibold"
-      >
-        See more
-      </button>
-    )}
+const myRequestList = (
+  <div className="w-full space-y-3 mt-2 mb-10">
+    {myRequests
+      .slice(0, visibleMyRequests)
+      .map(req => (
+        <div
+          key={req.id}
+          className="flex items-center justify-between bg-white p-4 rounded-lg shadow border border-green-300"
+        >
+          {/* Left Side */}
+          <div className="flex items-center gap-3">
+            <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-[80px] font-bold text-gray-600">
+              {req.student?.first_name?.[0]}
+            </div>
 
+            <div>
+              <p className="font-semibold">
+                {req.student?.first_name}{" "}
+                {req.student?.last_name}
+              </p>
+
+              <p className="text-sm mt-2 font-bold bg-gray-800 p-1 text-white rounded px-3 py-1 inline-block">
+                Pending request
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side */}
+          <button
+            onClick={() =>
+              navigate(
+                `/profile/${req.student?.id}`
+              )
+            }
+            className="
+              px-4
+              py-2
+              bg-blue-600
+              hover:bg-blue-700
+              text-white
+              rounded-lg
+              font-medium
+              transition
+            "
+          >
+            View Profile
+          </button>
+        </div>
+      ))}
+
+    
+    {myRequests.length > 2 && (
+  <button
+    onClick={() => {
+      if (!showSeeLess) {
+        const next = visibleMyRequests + 2;
+
+        if (next >= myRequests.length) {
+          setVisibleMyRequests(myRequests.length);
+          setShowSeeLess(true);
+        } else {
+          setVisibleMyRequests(next);
+        }
+      } else {
+        setVisibleMyRequests(2);
+        setShowSeeLess(false);
+      }
+    }}
+    className="w-32 float-right mt-3 mb-10 py-2 text-blue-700 hover:text-blue-800 rounded font-bold text-sm"
+  >
+    {showSeeLess ? "See less" : "See more"}
+  </button>
+)}
+   
   </div>
+);
 
-)
+
 const requestList = (
-  <div className="space-y-3 w-full max-w-xl mt-2">
+  <div className="space-y-3 w-full mt-2 mb-10">
       {incomingRequests.slice(0, visibleIncomingRequests).map(req => (
 
       <div
         key={req.id}
-        className="flex items-center justify-between bg-white p-4 rounded shadow"
+        className="flex items-center justify-between bg-white p-4 rounded shadow border border-green-300"
       >
-        <div className="flex items-center gap-3">
+        <div 
+         onClick={() =>
+            navigate(
+              `/profile/${req.requester?.id}`
+            )
+          }
+        className="flex items-center gap-3 cursor-pointer">
            <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center mx-auto justify-center text-[80px] font-bold text-gray-600">
           {req.requester?.first_name?.[0]}
         </div>
           <div>
-            <p className="font-semibold">
+            <p className="font-semibold text-lg">
               {req.requester?.first_name} {req.requester?.last_name}
             </p>
-            <p className="text-xs text-gray-500">sent you a request</p>
+            <p className="text-sm text-gray-500">sent you a request</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <button
             onClick={() => respond(req.id, "accepted")}
             disabled={
@@ -214,12 +324,26 @@ const requestList = (
       </div>
     ))}
 
-    {incomingRequests.length > visibleIncomingRequests && (
+     {incomingRequests.length > 2 && (
   <button
-    onClick={() => setVisibleIncomingRequests(prev => prev + 2)}
-    className="w-full mt-3 py-2 bg-gray-200 hover:bg-gray-300 rounded font-semibold"
+    onClick={() => {
+      if (!showIncomingSeeLess) {
+        const next = visibleIncomingRequests + 2;
+
+        if (next >= incomingRequests.length) {
+          setVisibleIncomingRequests(incomingRequests.length);
+          setShowIncomingSeeLess(true);
+        } else {
+          setVisibleIncomingRequests(next);
+        }
+      } else {
+        setVisibleIncomingRequests(2);
+        setShowIncomingSeeLess(false);
+      }
+    }}
+    className="w-32 float-right mt-3 py-2 text-blue-700 hover:text-blue-800 rounded font-semibold"
   >
-    See more
+    {showIncomingSeeLess ? "See less" : "See more"}
   </button>
 )}
 
@@ -232,19 +356,9 @@ const requestList = (
     
    
    <Toaster position="top-right" />
-      <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
-        {/* Sidebar */}
-        <aside
-          className={`fixed hidden lg:block top-[85px] left-2 rounded-xl h-full lg:w-72 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
-            transform transition-transform duration-300
-            overflow-y-auto overflow-x-hidden
-            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-        >
+          <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
 
-          
-         
-        
-        </aside>
+           <SidebarLeft />
 
         {/* Main Content */}
         <div className="flex-1 transition-all p-4 mt-20 lg:ml-72">
@@ -259,7 +373,7 @@ const requestList = (
          
             <>
              
-            <p className="text-lg lg:ml-8 mb-4  font-bold text-start border-b-2 border-gray-800 pb-2 "> Friend You May Know </p>
+            <p className="text-lg mb-4  font-bold text-start border-b-2 border-blue-800 pb-2 "> Friend You May Know </p>
               {/* Video List */}
               <ul className="grid 
                 grid-cols-1 
@@ -289,7 +403,7 @@ const requestList = (
             </>
          
           {students.length === 0 && (
-            <p className="text-lg sm:text-2xl lg:ml-64 font-bold text-start p-2 ">No Friend Available</p>
+            <p className="text-lg sm:text-xl text-center lg:ml-64 font-bold text-start p-2 ">No Friend Available</p>
           )}
         
         </div>

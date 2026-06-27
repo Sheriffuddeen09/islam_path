@@ -76,6 +76,10 @@ function App() {
     const [uiMode, setUiMode] = useState("closed"); 
     const [showSettings, setShowSettings] = useState(false);
 
+    const [incomingCall, setIncomingCall] = useState(null);
+    const [callMode, setCallMode] = useState(null); 
+    const [meetingData, setMeetingData] = useState(null);
+
    const togglePopup = () => {
       setUiMode(prev => (prev === "popup" ? "closed" : "popup"));
     };
@@ -255,6 +259,12 @@ function App() {
               uiMode={uiMode}
               showSettings={showSettings}
               setShowSettings={setShowSettings}
+              setCallMode={setCallMode}
+              callMode={callMode}
+              setIncomingCall={setIncomingCall}
+              incomingCall={incomingCall}
+              setMeetingData={setMeetingData}
+              meetingData={meetingData}
                />
             </ProtectedRoute>
           }
@@ -293,6 +303,12 @@ function App() {
           uiMode={uiMode}
           showSettings={showSettings} 
           setShowSettings={setShowSettings} 
+          setCallMode={setCallMode}
+          callMode={callMode}
+          setIncomingCall={setIncomingCall}
+          incomingCall={incomingCall}
+          setMeetingData={setMeetingData}
+          meetingData={meetingData}
           />
         </ProtectedRoute>
       } />
@@ -326,6 +342,12 @@ function App() {
           handleNotification={handleNotification}
           unreadNotification={unreadNotification}
           setUnreadNotification={setUnreadNotification}
+          setCallMode={setCallMode}
+          callMode={callMode}
+          setIncomingCall={setIncomingCall}
+          incomingCall={incomingCall}
+          setMeetingData={setMeetingData}
+          meetingData={meetingData}
           />}>
 
         
@@ -424,7 +446,14 @@ function App() {
 
       <Route
         path="/meeting/:roomId"
-        element={<MeetingRoom />}
+        element={<MeetingRoom 
+                activeChat={activeChat}
+                callMode={callMode}
+                setCallMode={setCallMode}
+                incomingCall={incomingCall}
+                setIncomingCall={setIncomingCall}
+                meetingData={meetingData}
+                 />}
       />
       {/* profile  */}
       <Route path="/profile" element={<ProfileRouter 
@@ -579,7 +608,12 @@ function App() {
         handleNotification={handleNotification}
         unreadNotification={unreadNotification}
         setUnreadNotification={setUnreadNotification}
-        
+        setCallMode={setCallMode}
+        callMode={callMode}
+        setIncomingCall={setIncomingCall}
+        incomingCall={incomingCall}
+        setMeetingData={setMeetingData}
+        meetingData={meetingData}
          />   
       } />
 
@@ -640,7 +674,11 @@ function LayoutWithHeader({
   uiMode,
   togglePopup,
   showSettings,
-  setShowSettings
+  setShowSettings,
+  meetingData, setMeetingData, 
+  callMode, setCallMode, 
+  incomingCall, setIncomingCall,
+  setMessages
 }) {
   return (
     <div>
@@ -672,9 +710,15 @@ function LayoutWithHeader({
         togglePopup={togglePopup}
         showSettings={showSettings}
         setShowSettings={setShowSettings}
+        setMessages={setMessages}
+        setCallMode={setCallMode}
+        callMode={callMode}
+        setIncomingCall={setIncomingCall}
+        incomingCall={incomingCall}
+        setMeetingData={setMeetingData}
+        meetingData={meetingData}
       />
 
-      {/* 🔥 THIS IS REQUIRED */}
       <Outlet />
     </div>
   );

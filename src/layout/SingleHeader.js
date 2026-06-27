@@ -10,9 +10,10 @@ import ChatPage from '../chat/chatbox/Chatpage';
 
 function SingleHeader({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
-  fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
+  handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
-  showSettings, setShowSettings, setMessages}) {
+  showSettings, setShowSettings, setMessages, incomingCall, setIncomingCall, callMode, setCallMode,
+  meetingData, setMeetingData}) {
 
       const [menu, setMenu] = useState(false)
       const [dashboardToggle, setDashboardToggle] = useState(false)
@@ -334,18 +335,28 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
         </header>
 
         <ChatPage
-              chats={chats}
-              setChats={setChats}
-              activeChat={activeChat}
-              setActiveChat={setActiveChat}
-              messagesMap={messagesMap} setMessagesMap={setMessagesMap}
-              setMessages={setMessages}
-              setUiMode={setUiMode}
-              uiMode={uiMode}
-              togglePopup={togglePopup}
-              showSettings={showSettings}
-              setShowSettings={setShowSettings}
-            />
+                        chats={chats}
+                        setChats={setChats}
+                        activeChat={activeChat}
+                        setActiveChat={setActiveChat}
+                        messagesMap={messagesMap}
+                        setMessagesMap={setMessagesMap}
+                        setUiMode={setUiMode}
+                        uiMode={uiMode}
+                        togglePopup={togglePopup}
+                        showSettings={showSettings}
+                        setShowSettings={setShowSettings}
+                        setMessages={setMessages}
+                        setCallMode={setCallMode}
+                        callMode={callMode}
+                        setIncomingCall={setIncomingCall}
+                        incomingCall={incomingCall}
+                        setMeetingData={setMeetingData}
+                        meetingData={meetingData}
+                        
+                      
+                      />
+
           {
             dashboardToggle && (
             <div className="fixed sm:top-16 top-36 right-10 mt-2 w-40  bg-white border rounded shadow-lg z-50">

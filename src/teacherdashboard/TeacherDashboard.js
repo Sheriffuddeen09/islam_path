@@ -27,7 +27,8 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,  orderCount, setOrderCount,
         savedCount, setSavedCount, setActiveChat, setMessages,
         togglePopup, activeChat, setChats, messagesMap,
-        setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings
+        setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
+        callMode, setCallMode, meetingData, setMeetingData
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -196,21 +197,27 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
     <>
 
         <ChatPage
-          chats={chats}
-          setChats={setChats}
-          activeChat={activeChat}
-          setActiveChat={setActiveChat}
-          messagesMap={messagesMap}
-          setMessagesMap={setMessagesMap}
-          setUiMode={setUiMode}
-          uiMode={uiMode}
-          togglePopup={togglePopup}
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
-          setMessages={setMessages}
-        
-        />
-
+                        chats={chats}
+                        setChats={setChats}
+                        activeChat={activeChat}
+                        setActiveChat={setActiveChat}
+                        messagesMap={messagesMap}
+                        setMessagesMap={setMessagesMap}
+                        setUiMode={setUiMode}
+                        uiMode={uiMode}
+                        togglePopup={togglePopup}
+                        showSettings={showSettings}
+                        setShowSettings={setShowSettings}
+                        setMessages={setMessages}
+                        setCallMode={setCallMode}
+                        callMode={callMode}
+                        setIncomingCall={setIncomingCall}
+                        incomingCall={incomingCall}
+                        setMeetingData={setMeetingData}
+                        meetingData={meetingData}
+                        
+                      
+                      />
     <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside
   className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40

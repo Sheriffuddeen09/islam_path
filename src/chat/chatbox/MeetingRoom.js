@@ -4,7 +4,9 @@ import api from "../../Api/axios";
 import CallModal from "./CallModal";
 import { toast } from "react-hot-toast";
 
-export default function MeetingRoom() {
+export default function MeetingRoom({ incomingCall, setIncomingCall, callMode, setCallMode, meetingData, 
+                                      activeChat, setActiveChat, setMeetingData
+                                        }) {
   const { roomId } = useParams();
 
   const navigate = useNavigate();
@@ -12,22 +14,7 @@ export default function MeetingRoom() {
   const [loading, setLoading] =
     useState(true);
 
-  const [meetingData, setMeetingData] =
-    useState(null);
-
-  const [callMode, setCallMode] =
-    useState(null);
-
-  const [incomingCall, setIncomingCall] =
-    useState(null);
-
-  const [activeChat, setActiveChat] =
-    useState({
-      id: roomId,
-      other_user: {
-        first_name: "Meeting",
-      },
-    });
+  
 
   useEffect(() => {
     loadMeeting();

@@ -20,7 +20,9 @@ import ChatPage from "../chat/chatbox/Chatpage";
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
         togglePopup, savedCount, setSavedCount, setActiveChat, setMessages,
-        setChats, activeChat, messagesMap, setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings}){
+        setChats, activeChat, messagesMap, setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings,
+        incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData
+      }){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
       
@@ -118,21 +120,28 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
   return (
 <>
 
-        <ChatPage
-          chats={chats}
-          setChats={setChats}
-          activeChat={activeChat}
-          setActiveChat={setActiveChat}
-          messagesMap={messagesMap}
-          setMessagesMap={setMessagesMap}
-          setUiMode={setUiMode}
-          uiMode={uiMode}
-          togglePopup={togglePopup}
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
-          setMessages={setMessages}
-        
-        />
+      <ChatPage
+                      chats={chats}
+                      setChats={setChats}
+                      activeChat={activeChat}
+                      setActiveChat={setActiveChat}
+                      messagesMap={messagesMap}
+                      setMessagesMap={setMessagesMap}
+                      setUiMode={setUiMode}
+                      uiMode={uiMode}
+                      togglePopup={togglePopup}
+                      showSettings={showSettings}
+                      setShowSettings={setShowSettings}
+                      setMessages={setMessages}
+                      setCallMode={setCallMode}
+                      callMode={callMode}
+                      setIncomingCall={setIncomingCall}
+                      incomingCall={incomingCall}
+                      setMeetingData={setMeetingData}
+                      meetingData={meetingData}
+                      
+                    
+                    />
 
     <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside

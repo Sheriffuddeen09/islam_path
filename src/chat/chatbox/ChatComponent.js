@@ -6,7 +6,7 @@ import MessageBox from "./MessageBox";
 import {
   encryptMessage, decryptMessage
 } from "../../utils/encryption";
-import { MessageCircle, MessageCircleCodeIcon, User } from "lucide-react";
+import { MessageCircleCodeIcon, User } from "lucide-react";
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
@@ -16,7 +16,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setIsMinimized,  setUiMode, loadingExploring, exploreCommunities, setExploreCommunities, loading, communities, setCommunities,
     openCommunity, setMobileViewCommunity, mobileViewCommunity, lastOpenedCommunity, activeCommunity,
     setActiveCommunity, loadingMessagesCommunity, setLoadingMessagesCommunity, communityMessages, setCommunityMessages,
-    messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef
+    messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef,
+    incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData
 }) {
 
    
@@ -728,6 +729,9 @@ setMessages((prev) => {
         `}
       >
       <MessageBox
+          incomingCall={incomingCall} setIncomingCall={setIncomingCall}
+          meetingData={meetingData} setMeetingData={setMeetingData}
+          callMode={callMode} setCallMode={setCallMode}
           showSettings={showSettings}
           onToggleSettings={toggleSettings}
           showChannel={showChannel} 
@@ -853,9 +857,11 @@ setMessages((prev) => {
     <div className="flex-1 flex flex-col min-w-0">
 
       {activeChat ? (
-        <MessageBox
-            showSettings={showSettings}
-
+      <MessageBox
+          incomingCall={incomingCall} setIncomingCall={setIncomingCall}
+          meetingData={meetingData} setMeetingData={setMeetingData}
+          callMode={callMode} setCallMode={setCallMode}
+          showSettings={showSettings}
           onToggleSettings={toggleSettings}
           showChannel={showChannel} 
           openCommunity={openCommunity}

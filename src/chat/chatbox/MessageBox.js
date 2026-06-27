@@ -33,16 +33,15 @@ export default function MessageBox({
   text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
-  setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings
+  setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings,
+  incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData
 }) {
   
-  const [incomingCall, setIncomingCall] = useState(null);
-  const [callMode, setCallMode] = useState(null); 
+  
 
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [generatedMeeting, setGeneratedMeeting] = useState(null);
   const [selectedExpiry, setSelectedExpiry] = useState("1h");
-  const [meetingData, setMeetingData] = useState(null);
   const [isCaller, setIsCaller] = useState(false);
   
   const [groups, setGroups] = useState([]);
@@ -645,6 +644,7 @@ console.log("incomingCall:", incomingCall);
               </button>
             )}
 
+            {!isGroup &&
             <button
             onClick={() =>
               setShowMeetingModal(true)
@@ -654,9 +654,11 @@ console.log("incomingCall:", incomingCall);
       <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
     </svg>
 
-          </button>
+          </button> 
+          }
         
           {/* VIDEO */}
+          {!isGroup &&
           <button
               onClick={() => startCall("video")}
             className="px-1">
@@ -667,8 +669,9 @@ console.log("incomingCall:", incomingCall);
 
 
           </button>
-
-          {/* AUDIO */}
+            }
+        {!isGroup && 
+         
           <button onClick={() => startCall("audio")} className="">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
             stroke-width="1.5" stroke="currentColor" class="size-5 text-[var(--text-color)] ">
@@ -676,6 +679,7 @@ console.log("incomingCall:", incomingCall);
           </svg>
 
           </button>
+      }
           {uiMode !== 'full' &&
           <>
            <button

@@ -4,17 +4,18 @@ import StudentFriend from "./StudentFriend";
 
 export default function Friend ({students, setStudents, setIncomingRequests, incomingRequests, admins, setAdmins}) {
 
-    const {user} = useAuth()
-    console.log('user', user)
+    const auth = useAuth();
+
+    console.log('user', auth)
     
     return (
         <div>
-        {user.role === "student" && (
+        {auth.user?.role === "student" && (
         <StudentFriend students={students} setStudents={setStudents} 
         incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
         />
         )}
-        {user.role === "admin" && (
+        {auth.user?.role === "admin" && (
         <AdminFriend admins={admins} setAdmins={setAdmins} 
         incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
         />

@@ -10,9 +10,9 @@ import ChatPage from '../chat/chatbox/Chatpage';
 
 function Navbar({messageOpen,  activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, 
-  handleMessageClick, videoCount, fetchUnreadCount, handleFriendClick, handleHomeClick, handleVideoClick,
+  handleMessageClick, videoCount, handleFriendClick, handleHomeClick, handleVideoClick,
   handleNotification, unreadNotification, showSettings, setShowSettings, uiMode, setUiMode, messagesMap, setMessagesMap,
-  setMessages, togglePopup
+  setMessages, togglePopup, incomingCall, setIncomingCall, meetingData, setMeetingData, callMode, setCallMode
 }) {
 
       const [menu, setMenu] = useState(false)
@@ -310,6 +310,13 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
                 showSettings={showSettings}
                 setShowSettings={setShowSettings}
                 setMessages={setMessages}
+                setCallMode={setCallMode}
+                callMode={callMode}
+                setIncomingCall={setIncomingCall}
+                incomingCall={incomingCall}
+                setMeetingData={setMeetingData}
+                meetingData={meetingData}
+
               
               />
           {

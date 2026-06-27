@@ -13,7 +13,8 @@ export default function ChatPage({
   activeChat,
   setActiveChat,
   messagesMap, setMessagesMap, setMessages,
-  setUiMode, uiMode, showSettings, setShowSettings
+  setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
+  callMode, setCallMode, meetingData, setMeetingData
 }) {
   const { user: authUser } = useAuth();
 
@@ -918,6 +919,9 @@ useEffect(() => {
       messagesCommunityEndRef={messagesCommunityEndRef} firstUnreadMessageId={firstUnreadMessageId} 
       unreadDividerRef={unreadDividerRef} setExploreCommunities={setExploreCommunities}
       openCommunity={openCommunity} communityContainerRef={communityContainerRef}
+      incomingCall={incomingCall} setIncomingCall={setIncomingCall}
+      meetingData={meetingData} setMeetingData={setMeetingData}
+      callMode={callMode} setCallMode={setCallMode}
     />
   );
 }

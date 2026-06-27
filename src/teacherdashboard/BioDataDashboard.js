@@ -46,15 +46,7 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
   };
 
   // ================= LOADING =================
-  if (loading) return <span className="
-                animate-spin
-                h-4
-                w-4
-                border-2
-                border-white
-                border-t-transparent
-                rounded-full inline-flex items-center gap-2
-            " />
+  if (loading) return <Loader />
 
   // ================= EMPTY =================
   if (!bio) {

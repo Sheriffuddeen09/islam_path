@@ -115,7 +115,7 @@ export default function ChatItem({
 
      const displayName = isGroup
       ? chat?.name || "Unnamed Group"
-      : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim() || "Unknown User";
+      : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim() || `${other?.first_name} ${other?.last_name}`;
 
     
 
@@ -123,7 +123,7 @@ export default function ChatItem({
       ? displayName
       : chat?.other
         ? chat.other.first_name
-        : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim() || "Unknown User";
+        : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim() || `${other?.first_name} ${other?.last_name}`;
 
 
       const senderName =
