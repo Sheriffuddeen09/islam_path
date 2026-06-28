@@ -12,7 +12,8 @@ export default function CallModal({
   const [ready, setReady] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [speakerOn, setSpeakerOn] = useState(false);
-
+  const [participants, setParticipants] = useState([]);
+  const [showAllParticipants, setShowAllParticipants] = useState(false);
 
   const [isMuted, setIsMuted] = useState(false);
 
@@ -94,30 +95,65 @@ export default function CallModal({
     setConnecting(true);
 
     apiRef.current = new window.JitsiMeetExternalAPI("meet.jit.si", {
-      roomName: meetingData?.room_id || `chat_${activeChat.id}`,
-      parentNode: containerRef.current,
-      width: "100%",
-      height: "100%",
-
-      configOverwrite: {
+    roomName: meetingData?.room_id || `chat_${activeChat.id}`,
+    parentNode: containerRef.current,
+    width: "100%",
+    height: "100%",
+    configOverwrite: {
         startWithAudioMuted: false,
         startWithVideoMuted: callMode === "audio",
         prejoinPageEnabled: false,
-      },
-
-      interfaceConfigOverwrite: {
+    },
+    interfaceConfigOverwrite: {
         DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-      },
+    },
+    });
+
+    // Local user joined
+    apiRef.current.addEventListener("videoConferenceJoined", (e) => {
+        setConnecting(false);
+
+        setParticipants([
+            {
+                id: e.id,
+                name: e.displayName || "You",
+            },
+        ]);
+    });
+
+    // Remote participant joined
+    apiRef.current.addEventListener("participantJoined", (e) => {
+        setParticipants(prev => {
+            if (prev.find(p => p.id === e.id)) return prev;
+
+            return [
+                ...prev,
+                {
+                    id: e.id,
+                    name: e.displayName || "Guest",
+                },
+            ];
+        });
+    });
+
+    // Remote participant left
+    apiRef.current.addEventListener("participantLeft", (e) => {
+        setParticipants(prev =>
+            prev.filter(p => p.id !== e.id)
+        );
+    });
+
+    apiRef.current.addEventListener("readyToClose", () => {
+        setParticipants([]);
+        setCallMode(null);
+        setIncomingCall(null);
     });
 
     apiRef.current.addEventListener("videoConferenceJoined", () => {
       setConnecting(false);
     });
 
-    apiRef.current.addEventListener("readyToClose", () => {
-      setCallMode(null);
-      setIncomingCall(null);
-    });
+
 
     return () => {
       apiRef.current?.dispose();

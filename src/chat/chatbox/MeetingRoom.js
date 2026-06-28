@@ -42,19 +42,22 @@ export default function MeetingRoom({ incomingCall, setIncomingCall, callMode, s
 
         return;
       }
+      console.log("Meeting API:", res.data);
+        console.log("setMeetingData:", setMeetingData);
 
       setMeetingData(meeting);
 
       setCallMode(
         meeting.call_type
       );
-    } catch (error) {
-      toast.error(
-        "Meeting not found"
-      );
+    } catch (err) {
+    console.log(err);
+    console.log(err.response);
 
-      navigate("/");
-    } finally {
+    toast.error("Meeting not found");
+
+    // navigate("/");
+} finally {
       setLoading(false);
     }
   };

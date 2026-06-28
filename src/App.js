@@ -446,15 +446,17 @@ function App() {
 
       <Route
         path="/meeting/:roomId"
-        element={<MeetingRoom 
+        element={ <MeetingRoom
                 activeChat={activeChat}
+                setActiveChat={setActiveChat}
                 callMode={callMode}
                 setCallMode={setCallMode}
                 incomingCall={incomingCall}
                 setIncomingCall={setIncomingCall}
                 meetingData={meetingData}
-                 />}
-      />
+                setMeetingData={setMeetingData}
+            />}
+        />
       {/* profile  */}
       <Route path="/profile/:id" element={<ProfileRouter 
       togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat}

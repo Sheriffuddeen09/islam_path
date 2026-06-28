@@ -45,7 +45,7 @@ export default function MessageBox({
   const [isCaller, setIsCaller] = useState(false);
   
   const [groups, setGroups] = useState([]);
-const [loadingGroups, setLoadingGroups] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
 useEffect(() => {
   const fetchGroups = async () => {

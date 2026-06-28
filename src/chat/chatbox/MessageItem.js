@@ -821,31 +821,31 @@ const retryMessage = async () => {
   }
 };
 
+   const [loading, setLoading] = useState(false);
 
-    const joinMeeting = async (
-      roomId
-    ) => {
-      const res = await api.get(
-        `/api/meeting/${roomId}`
-      );
+const joinMeeting = async (roomId) => {
+  try {
+    setLoading(true);
 
-      const meeting =
-        res.data.meeting;
+    const res = await api.get(`/api/meeting/${roomId}`);
 
-      if (
-        new Date(meeting.expires_at) <
-        new Date()
-      ) {
-        toast.error(
-          "Meeting link expired"
-        );
-        return;
-      }
+    const meeting = res.data.meeting;
 
-      navigate(
-        `/meeting/${roomId}`
-      );
-    };
+    if (new Date(meeting.expires_at) < new Date()) {
+      toast.error("Meeting link expired");
+      return;
+    }
+
+    navigate(`/meeting/${roomId}`);
+  } catch (err) {
+    toast.error(
+      err.response?.data?.message ||
+      "Meeting not found"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ================= PIN MESSAGE =================
   const handlePin = async (msg) => {
@@ -1684,7 +1684,18 @@ onTouchEnd={() => {
         )
       }
     >
-      Join Meeting Link
+      {
+        loading ? <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-blue-900
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " /> :
+      "Join Meeting Link"
+      }
     </button>
   </div>
 )}
