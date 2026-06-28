@@ -5,7 +5,8 @@ import { useAuth } from "../../layout/AuthProvider";
 
 
 
-export default function StudentFriendCard({loadingId, requestStatus, setLoadingId, student, setStudents, setRequestStatus}) {
+export default function StudentFriendCard({loadingId, requestStatus, setLoadingId, student, setStudents, 
+                                           setRequestStatus, getInitial, getColor}) {
  
  const { user } = useAuth();
   const authReady = user !== null;
@@ -72,12 +73,10 @@ export default function StudentFriendCard({loadingId, requestStatus, setLoadingI
     className="bg-white rounded-lg w-64 lg:w-56 md:w-60 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform transition duration-300 flex flex-col mx-auto justify-center relative"
   > 
       <Link to={`/profile/${student.id}`}>
-
-        <div className="w-32 h-32 rounded-full bg-gray-200 mb-2 text-center flex items-center mx-auto justify-center text-[102px] font-bold text-gray-600">
-         <p> 
-          {student.first_name?.[0]} 
-         </p>
-        </div>
+        <div className={`sm:w-32 sm:h-32 w-24 h-24 rounded-full flex items-center 
+        justify-center text-[80px] font-bold text-white mx-auto ${getColor(student.first_name)}`}>
+          {getInitial(student.first_name)}
+        </div> 
 
           <h3 className="font-semibold text-xs mb-1 text-black text-center">
             {student.role}

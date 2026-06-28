@@ -456,7 +456,7 @@ function App() {
                  />}
       />
       {/* profile  */}
-      <Route path="/profile" element={<ProfileRouter 
+      <Route path="/profile/:id" element={<ProfileRouter 
       togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat}
       requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
       chats={chats} 

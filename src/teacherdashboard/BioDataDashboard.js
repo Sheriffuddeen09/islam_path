@@ -267,34 +267,33 @@ function InfoRow({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="p-2 lg:ml-64 animate-pulse bg-[#17191c] rounded-2xl">
-
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="bg-white/30 border border-white/10 rounded-3xl p-5">
-
+    <div className="w-full p-4 lg:ml-64 animate-pulse">
+      <div className="w-full space-y-6">
+        <div className="w-full bg-gray-500 border border-white/10 rounded-3xl p-5">
+          {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/10" />
             <div className="h-5 w-40 rounded bg-white/10" />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
-
-            {[1, 2, 3, 4].map((item) => (
+          {/* Content */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
                 key={item}
                 className="flex items-start gap-3"
               >
-                <div className="w-10 h-10 rounded-xl bg-white/10" />
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex-shrink-0" />
 
                 <div className="flex-1 space-y-2">
                   <div className="h-3 w-24 rounded bg-white/10" />
                   <div className="h-4 w-full rounded bg-white/10" />
+                  <div className="h-4 w-4/5 rounded bg-white/10" />
                 </div>
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

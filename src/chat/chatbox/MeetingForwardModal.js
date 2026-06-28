@@ -70,21 +70,21 @@ export default function MeetingForwardModal({
         )
     );
 
-  const toggleTarget = (
-    item
-  ) => {
+  const toggleTarget = (item) => {
+  const id =
+    item.__type === "user"
+      ? item.user_id
+      : item.id;
 
-    const key =
-      `${item.__type}-${item.id}`;
+  const key = `${item.__type}-${id}`;
 
-    setSelectedTargets(prev =>
-      prev.includes(key)
-        ? prev.filter(
-            x => x !== key
-          )
-        : [...prev, key]
-    );
-  };
+  setSelectedTargets(prev =>
+    prev.includes(key)
+      ? prev.filter(x => x !== key)
+      : [...prev, key]
+  );
+};
+
 
   const handleCopyLink =
   async () => {
@@ -316,26 +316,24 @@ export default function MeetingForwardModal({
           {filteredTargets.map(
             item => {
 
-              const key =
-                `${item.__type}-${item.id}`;
+              const targetId =
+              item.__type === "user"
+                ? item.user_id
+                : item.id;
 
-              const selected =
-                selectedTargets.includes(
-                  key
-                );
+            const key = `${item.__type}-${targetId}`;
 
+            const selected = selectedTargets.includes(key);
+
+            
               return (
                 <div
                   key={key}
-                  onClick={() =>
-                    toggleTarget(
-                      item
-                    )
-                  }
-                  className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer ${
+                  onClick={() => toggleTarget(item)}
+                  className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-all ${
                     selected
                       ? "bg-green-100 border-green-500"
-                      : ""
+                      : "bg-white border-gray-200 hover:bg-gray-50"
                   }`}
                 >
 

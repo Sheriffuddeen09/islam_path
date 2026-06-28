@@ -14,21 +14,8 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
+  const [loadingMessages, setLoadingMessages] = useState(false)
 
-
-  const openChat = async (chat) => {
-        if (!chat?.id) return;
-  
-        console.log("OPEN CHAT RECEIVED", chat);
-  
-        setActiveChat(chat); // now has `other`
-  
-        const res = await api.get(
-          `/api/chats/${chat.id}/messages`
-        );
-  
-        setMessages(res.data.messages || []);
-      };
 
   useEffect(() => {
   
@@ -66,7 +53,6 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
 
   if (loading) return (
       <div className="flex items-center justify-center mt-10">
-        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
 
@@ -117,34 +103,40 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-                onClick={async () => {
-                  try {
-                    // 1. open popup first
-                    togglePopup();
+          onClick={async () => {
+            try {
+              setLoadingMessages(true)
+              const { data } = await api.get(
+                  `/api/chat/user/${admin.id}`
+                );
 
-                    // 2. create or get chat
-                    const res = await api.post(
-                      "/api/chat/create",
-                      {
-                        user_id: admin.id,
-                      }
-                    );
+                setActiveChat(data.chat);
+                setMessages(data.messages);
 
-                    const chat = res.data.chat;
+                togglePopup();
 
-                    // 3. open chat
-                    await openChat(chat);
-
-                  } catch (err) {
-                    toast.error("Failed to open chat");
-                    console.error(err);
-                  }
-                }}
-                className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
-              >
-                💬 Message
-              </button>
-
+            } catch (err) {
+              toast.error("Failed to open chat");
+              console.error(err);
+            }
+            finally{
+              setLoadingMessages(false)
+            }
+          }}
+          className="mt-1 px-4 bg-blue-800 hover:bg-blue-700 text-white text-sm py-3 rounded-lg"
+        >{ loadingMessages ?
+          <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " />
+          :
+          "💬 Message"}
+        </button>
               ) : status === "pending" ? (
                 <button
                   disabled

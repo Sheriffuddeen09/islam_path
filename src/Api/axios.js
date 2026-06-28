@@ -48,6 +48,3 @@ export const respondToRequest = (id, action) => {
   return api.post(`/api/live-class/respond/${id}`, { action });
 };
 
-export const studentRespondToRequest = (id, action) => {
-  return api.post(`/api/student-friend/respond/${id}`, { action });
-};

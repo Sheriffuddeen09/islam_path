@@ -3,12 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../layout/AuthProvider";
-import { Loader } from "lucide-react";
 
-export default function AdminProfileFriend({handleMessageOpen}) {
-
+export default function AdminProfileFriend({setMessages, setActiveChat, togglePopup}) {
   const { id: profileId } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [acceptedAdmins, setAcceptedAdmins] = useState([]);
@@ -16,6 +13,7 @@ export default function AdminProfileFriend({handleMessageOpen}) {
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
+  const [loadingMessages, setLoadingMessages] = useState(false)
 
   useEffect(() => {
     if (!profileId) return;
@@ -51,11 +49,7 @@ export default function AdminProfileFriend({handleMessageOpen}) {
       }
     };
 
-  if (loading) return (
-      <div className="flex items-center justify-center mt-10">
-        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
-      </div>
-    );
+  if (loading) return <Loader />
 
   if (!acceptedAdmins.length) {
     return (
@@ -70,7 +64,7 @@ export default function AdminProfileFriend({handleMessageOpen}) {
   const showLess = () => setVisibleCount(4);
 
   return (
-    <div className="mt-6 max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <Toaster position="top-right" />
 
       {/* HEADER */}
@@ -103,12 +97,42 @@ export default function AdminProfileFriend({handleMessageOpen}) {
 
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
-                <button
-                  onClick={() => handleMessageOpen(admin.id)}
-                  className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
-                >
-                  💬 Message
-                </button>
+                 <button
+          onClick={async () => {
+            try {
+              setLoadingMessages(true)
+              const { data } = await api.get(
+                  `/api/chat/user/${admin.id}`
+                );
+
+                setActiveChat(data.chat);
+                setMessages(data.messages);
+
+                togglePopup();
+
+            } catch (err) {
+              toast.error("Failed to open chat");
+              console.error(err);
+            }
+            finally{
+              setLoadingMessages(false)
+            }
+          }}
+          className="mt-1 px-4 bg-blue-800 hover:bg-blue-700 text-white text-sm py-3 rounded-lg"
+        >{ loadingMessages ?
+          <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " />
+          :
+          "💬 Message"
+          }
+        </button>
 
               ) : status === "pending" ? (
                 <button
@@ -151,6 +175,118 @@ export default function AdminProfileFriend({handleMessageOpen}) {
             Show less
           </button>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Loader() {
+  return (
+    <div className="p-4 animate-pulse">
+
+      <div className="flex flex-row mx-auto gap-2">
+        
+        <div className="bg-gray-500 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/10" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/10" />
+                  <div className="h-4 w-full rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+         <div className="bg-gray-500 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/10" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/10" />
+                  <div className="h-4 w-full rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+         <div className="bg-gray-500 border lg:block hidden border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/10" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/10" />
+                  <div className="h-4 w-full rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+         <div className="bg-gray-500 border lg:block hidden border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/10" />
+            <div className="h-5 w-40 rounded bg-white/10" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/10" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/10" />
+                  <div className="h-4 w-full rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -146,23 +146,44 @@ if (loading) {
   );
 }
 
+  const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500"
+  ];
+
+  const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }; 
+
+
 const myRequestList = (
-  <div className="w-full space-y-3 mt-2 mb-10">
+  <div className="w-full space-y-3 mt-2">
     {myRequests
       .slice(0, visibleMyRequests)
       .map(req => (
         <div
           key={req.id}
-          className="flex items-center justify-between bg-white p-4 rounded-lg shadow border border-green-300"
+          className="flex items-center mb-10 justify-between flex-wrap bg-white p-4 rounded-lg shadow border border-green-300"
         >
-          {/* Left Side */}
+          {/* Left Side
+          
+          */}
           <div className="flex items-center gap-3">
-            <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-[80px] font-bold text-gray-600">
-              {req.student?.first_name?.[0]}
+            <div className={`sm:w-32 sm:h-32 w-24 h-24 rounded-full flex items-center 
+            justify-center text-[80px] font-bold text-white ${getColor(req.student?.first_name)}`}>
+              {getInitial(req.student?.first_name)}
             </div>
-
             <div>
-              <p className="font-semibold">
+              <p className="font-semibold text-black">
                 {req.student?.first_name}{" "}
                 {req.student?.last_name}
               </p>
@@ -225,12 +246,12 @@ const myRequestList = (
 
 
 const requestList = (
-  <div className="space-y-3 w-full mt-2 mb-10">
+  <div className="space-y-3 w-full mt-2">
       {incomingRequests.slice(0, visibleIncomingRequests).map(req => (
 
       <div
         key={req.id}
-        className="flex items-center justify-between bg-white p-4 rounded shadow border border-green-300"
+        className="flex items-center mb-10 justify-between flex-wrap bg-white p-4 rounded-lg shadow border border-green-300"
       >
         <div 
          onClick={() =>
@@ -239,18 +260,20 @@ const requestList = (
             )
           }
         className="flex items-center gap-3 cursor-pointer">
-           <div className="sm:w-32 sm:h-32 w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center mx-auto justify-center text-[80px] font-bold text-gray-600">
-          {req.requester?.first_name?.[0]}
+          {/*  */}
+           <div className={`sm:w-32 sm:h-32 w-24 h-24 rounded-full mb-4 flex 
+           items-center mx-auto justify-center text-[80px] font-bold text-white ${getColor(req.requester?.first_name)}`}>
+          {getInitial(req.requester?.first_name)}
         </div>
           <div>
-            <p className="font-semibold text-lg">
+            <p className="font-semibold text-lg text-black">
               {req.requester?.first_name} {req.requester?.last_name}
             </p>
             <p className="text-sm text-gray-500">sent you a request</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 float-right">
           <button
             onClick={() => respond(req.id, "accepted")}
             disabled={
@@ -392,6 +415,7 @@ const requestList = (
                  <StudentFriendCard student={student}
                  loadingId={loadingId} notification={notification} setLoadingId={setLoadingId}
                  setRequestStatus={setRequestStatus} requestStatus={requestStatus} setStudents={setStudents}
+                 getColor={getColor} getInitial={getInitial}
                  />
                 </div>
               </li>

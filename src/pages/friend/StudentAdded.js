@@ -13,22 +13,9 @@ export default function StudentAdded({togglePopup,  setActiveChat, setMessages})
   const [loading, setLoading] = useState(true);
   const [btnLoading, setBtnLoading] = useState(false);
   const [student, setStudent] = useState(null)
+  const [loadingMessages, setLoadingMessages] = useState(false)
 
 
-    const openChat = async (chat) => {
-      if (!chat?.id) return;
-
-      console.log("OPEN CHAT RECEIVED", chat);
-
-      setActiveChat(chat); // now has `other`
-
-      const res = await api.get(
-        `/api/chats/${chat.id}/messages`
-      );
-
-      setMessages(res.data.messages || []);
-    };
-  // 🔹 Fetch student profile + friend status
   useEffect(() => {
   api.get(`/api/student/profile/${id}`)
     .then(res => {
@@ -82,33 +69,40 @@ export default function StudentAdded({togglePopup,  setActiveChat, setMessages})
       {/* Action Button */}
       {status === "accepted" && (
       <button
-        onClick={async () => {
-          try {
-            // 1. open popup first
-            togglePopup();
+          onClick={async () => {
+            try {
+              setLoadingMessages(true)
+              const { data } = await api.get(
+                  `/api/chat/user/${student.id}`
+                );
 
-            // 2. create or get chat
-            const res = await api.post(
-              "/api/chat/create",
-              {
-                user_id: student.id,
-              }
-            );
+                setActiveChat(data.chat);
+                setMessages(data.messages);
 
-            const chat = res.data.chat;
+                togglePopup();
 
-            // 3. open chat
-            await openChat(chat);
-
-          } catch (err) {
-            toast.error("Failed to open chat");
-            console.error(err);
-          }
-        }}
-        className="mt-1 px-4 bg-blue-800 hover:bg-purple-700 text-white text-sm py-3 rounded-lg"
-      >
-        💬 Message
-      </button>
+            } catch (err) {
+              toast.error("Failed to open chat");
+              console.error(err);
+            }
+            finally{
+              setLoadingMessages(false)
+            }
+          }}
+          className="mt-1 px-4 bg-blue-800 hover:bg-blue-700 text-white text-sm py-3 rounded-lg"
+        >{ loadingMessages ?
+          <span className="
+                animate-spin
+                h-4
+                w-4
+                border-2
+                border-white
+                border-t-transparent
+                rounded-full inline-flex items-center gap-2
+            " />
+          :
+          "💬 Message"}
+        </button>
     )}
 
 

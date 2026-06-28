@@ -20,15 +20,12 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
   const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
 
-  const navigate = useNavigate();
 
 
   const { user } = useAuth();
 
   const authUserId = user?.id;
 
-  console.log("order", authUserId)
-  
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -49,7 +46,6 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
       if (res.data.success) {
         setOrders(res.data.orders);
 
-        // setOrderCount(res.data.count || 0);
       }
     } catch (error) {
       setToast({ type: "error", message: "Failed to fetch orders" });

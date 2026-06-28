@@ -241,10 +241,11 @@ const getInitial = (name) => {
 };
 
 const content = (
-  <div className="max-w-6xl lg:ml-64 mx-auto px-4 py-4">
+  <div className="max-w-6xl mx-auto px-4 mt py-4">
 
     {/* PROFILE CARD */}
-    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-2xl">
+    <div className="relative overflow-hidden mt-16 rounded-3xl border border-white/10
+     bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-sm">
 
       {/* TOP BANNER */}
       <div className="h-36 sm:h-44 bg-gradient-to-r from-cyan-500 via-gray-600 to-purple-600" />
@@ -305,11 +306,7 @@ const content = (
             </div>
           </div>
 
-        </div>
-      </div>
-
-      {/* OVERLAY */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+               <div className="" />
 
                 
         {showStudentFriend() && (
@@ -322,6 +319,11 @@ const content = (
 
       </div>
 
+        </div>
+      </div>
+
+      {/* OVERLAY */}
+     
       {/* Profile Details */}
      <BioDataProfile userId={authUser.id} handleToggleVisibility={handleToggleVisibility}
      profile={profile} visibility={visibility}
@@ -337,7 +339,7 @@ const content = (
          {
             authUser.role === "student" &&
           (
-            <StudentProfileFriend handleMessageOpen={handleMessageOpen} />
+            <StudentProfileFriend togglePopup={togglePopup} setActiveChat={setActiveChat} setMessages={setMessages} />
           )
         }
         {
@@ -376,10 +378,77 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
 
 
 function Loader() {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+  return (
+    <div className="min-h-screen p-2 lg:ml-64 animate-pulse bg-gray-700 rounded-2xl">
+
+      <div className="max-w-5xl mx-auto space-y-3">
+
+        {/* HEADER */}
+        <div className="flex justify-end mb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-32 rounded bg-white/50" />
+            <div className="h-10 w-10 rounded-full bg-white/50" />
+          </div>
+        </div>
+
+        {/* PROFILE CARD */}
+        <div className="bg-white/60 border border-white/10 rounded-3xl overflow-hidden">
+
+          {/* COVER */}
+          <div className="h-32 bg-white/50" />
+
+          <div className="p-6 relative">
+
+            {/* AVATAR */}
+            <div className="absolute -top-12 left-6">
+              <div className="w-24 h-24 rounded-full bg-white/50 border-4 border-[#0b1120]" />
+            </div>
+
+            {/* CONTENT */}
+            <div className="pt-8 space-y-4">
+
+              <div className="h-6 w-52 rounded bg-white/50" />
+
+              <div className="h-4 w-full rounded bg-white/50" />
+
+              <div className="h-4 w-3/4 rounded bg-white/50" />
+
+              <div className="flex gap-3 mt-4">
+                <div className="h-8 w-24 rounded-full bg-white/50" />
+                <div className="h-8 w-24 rounded-full bg-white/50" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PERSONAL INFO */}
+        <div className="bg-white/50 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/50" />
+            <div className="h-5 w-40 rounded bg-white/50" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/50" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/50" />
+                  <div className="h-4 w-full rounded bg-white/50" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
       </div>
-    );
-    
+    </div>
+  );
 }

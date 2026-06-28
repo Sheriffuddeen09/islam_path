@@ -280,7 +280,7 @@ useEffect(() => {
 
 
 const slugSort = selectedParent?.slug;
-console.log("slug:", slugSort);
+
 
 
 const toSlug = (text) =>
@@ -295,7 +295,6 @@ const slug =
   toSlug(newSubcategory) ||
   toSlug(newParent);
 
-console.log("slug:", slug);
 
 
   const parentSlug =

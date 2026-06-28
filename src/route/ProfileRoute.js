@@ -8,7 +8,6 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
         setActiveChat, setMessages
 }) {
   const { id } = useParams();
-  const { user } = useAuth();
 
   
   return (
