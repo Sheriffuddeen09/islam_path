@@ -16,7 +16,7 @@ export default function StudentProfileFriendDashboard({togglePopup, setActiveCha
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
-  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [loadingMessageId, setLoadingMessageId] = useState(null);
 
   useEffect(() => {
   
@@ -75,8 +75,8 @@ export default function StudentProfileFriendDashboard({togglePopup, setActiveCha
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg text-black font-semibold">
-          Students ({acceptedStudents.length})
+        <h3 className="text-lg text-[var(--text-color)] font-semibold">
+          Friend's ({acceptedStudents.length})
         </h3>
       </div>
 
@@ -104,28 +104,28 @@ export default function StudentProfileFriendDashboard({togglePopup, setActiveCha
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-          onClick={async () => {
-            try {
-              setLoadingMessages(true)
-              const { data } = await api.get(
-                  `/api/chat/user/${student.id}`
-                );
+                  onClick={async () => {
+                    try {
+                      setLoadingMessageId(student.id);
 
-                setActiveChat(data.chat);
-                setMessages(data.messages);
+                      const { data } = await api.get(
+                        `/api/chat/user/${student.id}`
+                      );
 
-                togglePopup();
+                      setActiveChat(data.chat);
+                      setMessages(data.messages);
 
-            } catch (err) {
-              toast.error("Failed to open chat");
-              console.error(err);
-            }
-            finally{
-              setLoadingMessages(false)
-            }
-          }}
-          className="mt-1 px-4 bg-blue-800 hover:bg-blue-700 text-white text-sm py-3 rounded-lg"
-        >{ loadingMessages ?
+                      togglePopup();
+                    } catch (err) {
+                      toast.error("Failed to open chat");
+                      console.error(err);
+                    } finally {
+                      setLoadingMessageId(null);
+                    }
+                  }}
+                  disabled={isOwnerUser || loadingMessageId === student.id}
+           className={`mt-1 px-4  text-sm py-3 rounded-lg ${isOwnerUser ? 'bg-gray-100 text-gray-500' : "bg-blue-800 hover:bg-blue-700 text-white"}`}
+        >{ loadingMessageId === student.id ?
           <span className="
                 animate-spin
                 h-4

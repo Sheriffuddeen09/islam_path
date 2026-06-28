@@ -46,9 +46,7 @@ export default function BioDataProfile({ userId, visibility, handleToggleVisibil
   // ================= LOADING =================
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-10">
         <Loader />
-      </div>
     );
   }
 
@@ -262,11 +260,11 @@ function InfoRow({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="w-full p-4 animate-pulse">
-      <div className="w-full space-y-6">
+    <div className="w-full py-4 animate-pulse">
+      <div className="w-full">
         <div className="w-full bg-gray-500 border border-white/10 rounded-3xl p-5">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center flex-wrap gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/10" />
             <div className="h-5 w-40 rounded bg-white/10" />
           </div>

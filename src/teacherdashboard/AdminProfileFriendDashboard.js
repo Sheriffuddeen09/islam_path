@@ -14,7 +14,7 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
-  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [loadingMessageId, setLoadingMessageId] = useState(null);
 
 
   useEffect(() => {
@@ -68,14 +68,16 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
     setVisibleCount(prev => Math.min(prev + 4, acceptedAdmins.length));
   const showLess = () => setVisibleCount(4);
 
+  
+
   return (
     <div className="mt-6 max-w-5xl lg:ml-64 mx-auto">
       <Toaster position="top-right" />
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg text-black font-semibold">
-          Admins ({acceptedAdmins.length})
+        <h3 className="text-lg text-[var(--text-color)] font-semibold">
+          Friend's ({acceptedAdmins.length})
         </h3>
       </div>
 
@@ -103,28 +105,29 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
               {/* BUTTON */}
               {isOwner || status === "accepted" ? (
                 <button
-          onClick={async () => {
-            try {
-              setLoadingMessages(true)
-              const { data } = await api.get(
-                  `/api/chat/user/${admin.id}`
-                );
+                  onClick={async () => {
+                    try {
+                      setLoadingMessageId(admin.id);
 
-                setActiveChat(data.chat);
-                setMessages(data.messages);
+                      const { data } = await api.get(
+                        `/api/chat/user/${admin.id}`
+                      );
 
-                togglePopup();
+                      setActiveChat(data.chat);
+                      setMessages(data.messages);
 
-            } catch (err) {
-              toast.error("Failed to open chat");
-              console.error(err);
-            }
-            finally{
-              setLoadingMessages(false)
-            }
-          }}
-          className="mt-1 px-4 bg-blue-800 hover:bg-blue-700 text-white text-sm py-3 rounded-lg"
-        >{ loadingMessages ?
+                      togglePopup();
+                    } catch (err) {
+                      toast.error("Failed to open chat");
+                      console.error(err);
+                    } finally {
+                      setLoadingMessageId(null);
+                    }
+                  }}
+                  disabled={isOwnerUser || loadingMessageId === admin.id}
+                 className={`mt-1 px-4  text-sm py-3 rounded-lg ${isOwnerUser ? 'bg-gray-100 text-gray-500' : "bg-blue-800 hover:bg-blue-700 text-white"}`}
+              >
+          { loadingMessageId === admin.id ?
           <span className="
                 animate-spin
                 h-4
@@ -135,8 +138,10 @@ export default function AdminProfileFriendDashboard({togglePopup, setMessages, s
                 rounded-full inline-flex items-center gap-2
             " />
           :
-          "💬 Message"}
+          "💬 Message"
+          }
         </button>
+
               ) : status === "pending" ? (
                 <button
                   disabled

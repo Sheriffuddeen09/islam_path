@@ -441,7 +441,8 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                          <Setting />
                          </div>
                          <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-                         <StudentRequest handleVisible={handleVisible} />
+                         <StudentRequest togglePopup={togglePopup} setActiveChat={setActiveChat}
+                         chats={chats} setMessages={setMessages} />
                          </div>
                          <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
                          <AssignmentLibrary  />

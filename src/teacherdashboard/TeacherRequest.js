@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import api, { respondToRequest } from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
+export default function TeacherLiveRequests({ pendingCount, setPendingCount, setMessages, setActiveChat, togglePopup }) {
   const [requests, setRequests] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [loadingMessageId, setLoadingMessageId] = useState(null);
+
 
   const fetchRequests = async () => {
     try {
@@ -149,10 +151,42 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount }) {
           <div className="flex items-center gap-2">
             {req.status === "accepted" && (
               <button
-                className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-md hover:bg-green-700 font-semibold transition"
-              >
-                         Added to Your Message List
-              </button>
+                                onClick={async () => {
+                                  try {
+                                    setLoadingMessageId(req.id);
+              
+                                    const { data } = await api.get(
+                                      `/api/chat/profile/${req.id}`
+                                    );
+              
+                                    setActiveChat(data.chat);
+                                    setMessages(data.messages);
+              
+                                    togglePopup();
+                                  } catch (err) {
+                                    toast.error("Failed to open chat");
+                                    console.error(err);
+                                  } finally {
+                                    setLoadingMessageId(null);
+                                  }
+                                }}
+                                disabled={loadingMessageId === req.id}
+                        className={`mt-1 px-4  text-sm py-3 rounded-lg bg-blue-800 hover:bg-blue-700 text-white`}
+                      >{ loadingMessageId === req.id ?
+                        <span className="
+                              animate-spin
+                              h-4
+                              w-4
+                              border-2
+                              border-white
+                              border-t-transparent
+                              rounded-full inline-flex items-center gap-2
+                          " />
+                        :
+                        "💬 Message"
+                        }
+                      </button>
+              
             )}
           {req.status !== "pending" && (
           <button

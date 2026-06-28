@@ -577,7 +577,10 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         </div>
 
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-        <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount} 
+        setChats={setChats} 
+        togglePopup={togglePopup}
+        chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
         <CreateAssignment  />

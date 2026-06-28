@@ -14,7 +14,7 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(4);
   const [btnLoading, setBtnLoading] = useState(false)
-  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [loadingMessageId, setLoadingMessageId] = useState(null);
 
   useEffect(() => {
     if (!profileId) return;
@@ -52,17 +52,11 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
 
   if (loading) return <Loader />
 
-  if (!acceptedStudents.length) {
-    return (
-      <p className="text-gray-500 text-center mt-6">
-       
-      </p>
-    );
-  }
 
   const showMore = () =>
     setVisibleCount(prev => Math.min(prev + 4, acceptedStudents.length));
   const showLess = () => setVisibleCount(4);
+
 
 
 
@@ -72,8 +66,8 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-2  py-2 px-4">
-        <h3 className="text-lg text-black font-semibold border-b-2 border-blue-400 w-full pb-2">
-          Students ({acceptedStudents.length})
+        <h3 className="text-lg text-[var(--text-color)] font-semibold border-b-2 border-blue-400 w-full pb-2">
+          Friend's ({acceptedStudents.length})
         </h3>
       </div>
 
@@ -82,6 +76,7 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
         {acceptedStudents.slice(0, visibleCount).map(student => {
           const status = student.status ?? 'none'; 
           const isOwnerUser = user?.id === student.id;
+
 
           return (
             <div
@@ -98,64 +93,74 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
                 {isOwnerUser ? "You" : `${student.first_name} ${student.last_name?.[0]}`}
               </p>
 
-              {/* BUTTON */}
-              {isOwner || status === "accepted" ? (
-                 <button
-                          onClick={async () => {
-                            try {
-                              setLoadingMessages(true)
-                              const { data } = await api.get(
-                                  `/api/chat/user/${student.id}`
-                                );
-                
-                                setActiveChat(data.chat);
-                                setMessages(data.messages);
-                
-                                togglePopup();
-                
-                            } catch (err) {
-                              toast.error("Failed to open chat");
-                              console.error(err);
-                            }
-                            finally{
-                              setLoadingMessages(false)
-                            }
-                          }}
-                          className="mt-1 px-4 bg-blue-800 hover:bg-blue-700 text-white text-sm py-3 rounded-lg"
-                        >{ loadingMessages ?
-                          <span className="
-                                animate-spin
-                                h-4
-                                w-4
-                                border-2
-                                border-white
-                                border-t-transparent
-                                rounded-full inline-flex items-center gap-2
-                            " />
-                          :
-                          "💬 Message"
+                    {isOwnerUser ? (
+                      <button
+                        disabled
+                        className="mt-1 px-4 py-3 text-sm rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                      >
+                        None
+                      </button>
+                    ) : status === "accepted" ? (
+                      <button
+                        onClick={async () => {
+                          try {
+                            setLoadingMessageId(student.id);
+  
+                            const { data } = await api.get(
+                              `/api/chat/user/${student.id}`
+                            );
+  
+                            setActiveChat(data.chat);
+                            setMessages(data.messages);
+  
+                            togglePopup();
+                          } catch (err) {
+                            toast.error("Failed to open chat");
+                            console.error(err);
+                          } finally {
+                            setLoadingMessageId(null);
                           }
-                        </button>
-
-              ) : status === "pending" ? (
-                <button
-                  disabled
-                  className="mt-3 w-full bg-gray-400 text-white text-sm py-3 px-4 rounded-lg cursor-not-allowed"
-                >
-                  Pending
-                </button>
-              ) : (
-                <button onClick={sendFriendRequest} className="bg-blue-800 mt-2 px-4 px-5 py-2 rounded">
-                {
-                  btnLoading ?
-                  <p className=" rounded-lg text-xs flex items-center gap-2">
-            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-          </p>
-                :
-                "➕ Add Friend"
-              }
-        </button>
-              )}
+                        }}
+                        disabled={loadingMessageId === student.id}
+                        className="mt-1 px-4 py-3 text-sm rounded-lg bg-blue-800 hover:bg-blue-700 text-white"
+                      >
+                        {loadingMessageId === student.id ? (
+                          <span
+                            className="
+                              animate-spin
+                              h-4
+                              w-4
+                              border-2
+                              border-white
+                              border-t-transparent
+                              rounded-full
+                              inline-flex
+                            "
+                          />
+                        ) : (
+                          "💬 Message"
+                        )}
+                      </button>
+                    ) : status === "pending" ? (
+                      <button
+                        disabled
+                        className="mt-3 w-full bg-gray-400 text-white text-sm py-2 rounded-lg cursor-not-allowed"
+                      >
+                        Pending
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => sendFriendRequest(student.id)}
+                        className="text-white whitespace-nowrap bg-blue-800 mt-2 px-5 py-2 rounded"
+                      >
+                        {btnLoading ? (
+                          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block" />
+                        ) : (
+                          "➕ Add Friend"
+                        )}
+                      </button>
+                    )}
+  
             </div>
           );
         })}
@@ -186,9 +191,9 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
 
 function Loader() {
   return (
-    <div className="p-4 animate-pulse">
+    <div className="animate-pulse w-full">
 
-      <div className="flex flex-row mx-auto gap-2">
+      <div className="w-full px-4 flex flex-row justify-center mx-auto gap-2">
         
         <div className="bg-gray-500 border border-white/10 rounded-3xl p-5">
 
@@ -215,7 +220,7 @@ function Loader() {
           </div>
         </div>
 
-         <div className="bg-gray-500 border border-white/10 rounded-3xl p-5">
+         <div className="bg-gray-500 border sm:block hidden border-white/10 rounded-3xl p-5">
 
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/10" />
@@ -264,33 +269,6 @@ function Loader() {
             ))}
           </div>
         </div>
-
-
-         <div className="bg-gray-500 border lg:block hidden border-white/10 rounded-3xl p-5">
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-white/10" />
-            <div className="h-5 w-40 rounded bg-white/10" />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-5">
-
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="flex items-start gap-3"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/10" />
-
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-24 rounded bg-white/10" />
-                  <div className="h-4 w-full rounded bg-white/10" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
     </div>
   );

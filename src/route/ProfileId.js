@@ -379,9 +379,9 @@ function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="min-h-screen p-2 lg:ml-64 animate-pulse bg-gray-700 rounded-2xl">
+    <div className="min-h-screen sm:p-12 px-4 py-10 animate-pulse bg-gray-700 rounded-2xl">
 
-      <div className="max-w-5xl mx-auto space-y-3">
+      <div className=" mx-auto mt-12 sm:mt-12 space-y-3">
 
         {/* HEADER */}
         <div className="flex justify-end mb-4">
@@ -423,6 +423,31 @@ function Loader() {
 
         {/* PERSONAL INFO */}
         <div className="bg-white/50 border border-white/10 rounded-3xl p-5">
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/50" />
+            <div className="h-5 w-40 rounded bg-white/50" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/50" />
+
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-white/50" />
+                  <div className="h-4 w-full rounded bg-white/50" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+         <div className="bg-white/50 border border-white/10 rounded-3xl p-5 md:block lg:hidden hidden">
 
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/50" />

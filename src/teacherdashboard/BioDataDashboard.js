@@ -267,7 +267,7 @@ function InfoRow({ icon, label, value, editable, onToggle, isVisible }) {
 
 function Loader() {
   return (
-    <div className="w-full p-4 lg:ml-64 animate-pulse">
+    <div className="max-w-5xl p-4 lg:ml-64 animate-pulse">
       <div className="w-full space-y-6">
         <div className="w-full bg-gray-500 border border-white/10 rounded-3xl p-5">
           {/* Header */}

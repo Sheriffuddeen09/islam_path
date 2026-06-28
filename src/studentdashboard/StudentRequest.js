@@ -4,11 +4,12 @@ import { Link } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
 
-export default function StudentRequest({handleVisible}) {
+export default function StudentRequest({setMessages, setActiveChat, togglePopup}) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [loadingMessageId, setLoadingMessageId] = useState(null);
 
   const fetchRequests = async () => {
     try {
@@ -105,11 +106,41 @@ export default function StudentRequest({handleVisible}) {
                   </td>
                   <td className="px-4 py-3 space-x-2 whitespace-nowrap">
                     {req.status === "accepted" && (
-                      <button 
-                       
-                        className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-md hover:bg-green-700 font-semibold transition"
-                      >
-                      Added to Your Message List
+                      <button
+                                onClick={async () => {
+                                  try {
+                                    setLoadingMessageId(req.id);
+              
+                                    const { data } = await api.get(
+                                      `/api/chat/profile/${req.id}`
+                                    );
+              
+                                    setActiveChat(data.chat);
+                                    setMessages(data.messages);
+              
+                                    togglePopup();
+                                  } catch (err) {
+                                    toast.error("Failed to open chat");
+                                    console.error(err);
+                                  } finally {
+                                    setLoadingMessageId(null);
+                                  }
+                                }}
+                                disabled={loadingMessageId === req.id}
+                        className={`mt-1 px-4  text-sm py-3 rounded-lg bg-blue-800 hover:bg-blue-700 text-white`}
+                      >{ loadingMessageId === req.id ?
+                        <span className="
+                              animate-spin
+                              h-4
+                              w-4
+                              border-2
+                              border-white
+                              border-t-transparent
+                              rounded-full inline-flex items-center gap-2
+                          " />
+                        :
+                        "💬 Message"
+                        }
                       </button>
                     )}
                     {req.status === "declined" && (
@@ -118,11 +149,11 @@ export default function StudentRequest({handleVisible}) {
                         disabled={actionLoading[req.id]}
                         className="bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 transition disabled:opacity-50"
                       >
-                        {actionLoading[req.id] ? "Resending..." : "Resend"}
+                        {actionLoading[req.id] ? "Resending" : "Resend"}
                       </button>
                     )}
                     {req.status === "pending" && (
-                      <span className="text-gray-500 italic">Waiting...</span>
+                      <span className="text-gray-500 italic">Pending</span>
                     )}
                   </td>
                   <td>
