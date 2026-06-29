@@ -386,19 +386,107 @@ export default function CallModal({
       )}
 
       {/* User Name */}
-      <div className="flex justify-center">
-        <div
-          className="
-            bg-black/60
-            text-white
-            px-4
-            py-2
-            rounded-full
-          "
-        >
-          {/* {callerName} */}
+     <div className="flex justify-center">
+  <div
+    className="
+      bg-black/70
+      text-white
+      px-5
+      py-3
+      rounded-xl
+      min-w-[320px]
+      shadow-lg
+    "
+  >
+    <div className="font-semibold text-center">
+      {callMode === "video"
+        ? "📹 Video Call"
+        : "📞 Audio Call"}
+    </div>
+
+    <div className="text-xs text-center text-white mt-1">
+      {participants.length > 1
+        ? `${participants.length} participants`
+        : "Waiting for others..."}
+    </div>
+
+    <div className="mt-3 border-t border-white/20 pt-2">
+      <p className="text-xs text-white mb-2">
+        Users in call
+      </p>
+
+      {participants.length === 0 ? (
+        <div className="text-sm text-white">
+          No user available in call
         </div>
-      </div>
+      ) : (
+        <>
+          <div
+            className={`space-y-1 ${
+              showAllParticipants
+                ? "max-h-40 overflow-y-auto pr-2"
+                : ""
+            }`}
+          >
+            {(showAllParticipants
+              ? participants
+              : participants.slice(0, 3)
+            ).map(user => (
+              <div
+                key={user.id}
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  py-1
+                "
+              >
+                <div
+                  className="
+                    w-7
+                    h-7
+                    rounded-full
+                    bg-green-600
+                    flex
+                    items-center
+                    justify-center
+                    text-xs
+                    font-bold
+                  "
+                >
+                  {user.name?.charAt(0)?.toUpperCase()}
+                </div>
+
+                <span className="text-sm truncate">
+                  {user.name}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {participants.length > 3 && (
+            <button
+              onClick={() =>
+                setShowAllParticipants(prev => !prev)
+              }
+              className="
+                mt-2
+                text-xs
+                text-blue-400
+                hover:text-blue-300
+                underline
+              "
+            >
+              {showAllParticipants
+                ? "Show Less"
+                : `See More (${participants.length - 3})`}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  </div>
+</div>
 
     </div>
 
