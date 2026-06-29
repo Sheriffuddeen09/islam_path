@@ -100,7 +100,7 @@ if (loading) {
         {/* Sidebar Skeleton */}
         <aside className="hidden lg:block mt-20 lg:w-72 p-4">
           <div className="animate-pulse space-y-4">
-            {[...Array(6)].map((_, i) => (
+            {[...Array(14)].map((_, i) => (
               <div
                 key={i}
                 className="h-12 bg-gray-200 rounded-lg"

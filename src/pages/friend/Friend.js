@@ -6,7 +6,6 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
 
     const auth = useAuth();
 
-    console.log('user', auth)
     
     return (
         <div>

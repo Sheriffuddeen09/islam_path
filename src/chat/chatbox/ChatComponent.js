@@ -740,7 +740,7 @@ setMessages((prev) => {
           w-full h-full rounded-none
           
           lg:bottom-10 lg:right-10 border
-          lg:w-[375px] lg:rounded-2xl
+          lg:w-[375px] lg:rounded-xl
           ${isMinimized ? "lg:h-[80px]" : "lg:h-[500px]"}
         `}
       >

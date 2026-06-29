@@ -597,7 +597,8 @@ const resendCommunityFile =
 
   return (
 
-    <div className="h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className={`flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative
+      ${uiMode !== 'full' ? 'border lg:rounded-xl' : ''}`}>
 
       {/* HEADER */}
      
@@ -833,6 +834,7 @@ const resendCommunityFile =
           isAdmin={isAdmin} setApprovalModal={setApprovalModal} approvalModal={approvalModal}
           chatLoading={chatLoading} chats={chats} openChat={openChat} onCloseChannel={onCloseChannel}
           authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
+          goBackChannel={goBackChannel}
           />  
         )}           
        </div>

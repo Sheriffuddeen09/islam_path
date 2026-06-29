@@ -8,6 +8,7 @@ export default function CreatePollVotingModal({
     community,
     setMessages,
     onClose,
+    onBack
 }) {
 
     const [question, setQuestion] = useState("");
@@ -81,19 +82,21 @@ export default function CreatePollVotingModal({
                 }
             );
 
-        setMessages(prev => [
+     const newMessage = {
+            ...data.message,
+            poll: data.message.poll,
+        };
 
-            ...prev,
-
-            data.message
-
-        ]);
+        setMessages(prev => [...prev, newMessage]);
+      
+        console.log("Created Poll:", data.message);
 
         toast.success(
             "Poll created."
         );
 
         onClose();
+        
 
     } catch {
 
@@ -169,7 +172,7 @@ onClick={onClose}
 
 <div className="p-5 space-y-5">
 
-<input
+<textarea
 
 value={question}
 
@@ -181,7 +184,7 @@ e.target.value
 
 placeholder="Ask a question..."
 
-className="w-full border rounded-lg p-3"
+className="w-full border rounded-lg p-3 scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin"
 
 />
 
@@ -260,15 +263,16 @@ Add option
 
 <div className="flex items-center justify-between">
 
-<label>
+<label className="text-sm font-semibold">
 
-Multiple Choice
+Multiple Choices
 
 </label>
 
 <input
 
 type="checkbox"
+className='w-5 h-5 cursor-pointer rounded-full'
 
 checked={multipleChoice}
 
@@ -288,7 +292,7 @@ e.target.checked
 
 <div>
 
-<label>
+<label className="text-sm font-semibold">
 
 Expires
 
@@ -310,7 +314,7 @@ e.target.value
 
 }
 
-className="w-full border rounded-lg p-3 mt-2"
+className="w-full border rounded-lg p-3 mt-2 text-sm"
 
 />
 

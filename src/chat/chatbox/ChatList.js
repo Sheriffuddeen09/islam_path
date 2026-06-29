@@ -111,7 +111,7 @@ export default function ChatList({
   
 
   return (
-    <div className="h-full max-h-full flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] relative">
+    <div className="h-full max-h-full lg:rounded-xl rounded-0 rounded-none flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] relative">
 
       <div className="flex items-center justify-between px-3 lg:py-2 py-4 border-b">
         <h1 className="text-2xl font-bold inline-flex gap-2 items-center">

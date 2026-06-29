@@ -190,7 +190,7 @@ export default function CommunitySettings({
         <MembersList activeCommunity={activeCommunity} currentUser={authUser} />
         <div className={`lg:block hidden border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
             ${uiMode !== "full" ? "overflow-y-auto h-32" : ""}`}>
-        <CommunityActions isAdmin={isAdmin} 
+        <CommunityActions isAdmin={isAdmin} onBack={onBack}
           community={community}
           setCommunities={setCommunities}
           setExploreCommunities={setExploreCommunities}
@@ -206,7 +206,7 @@ export default function CommunitySettings({
 
           <div className={`lg:hidden block border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
             ${uiMode !== "full" ? "md:h-full h-60" : ""}`}>
-        <CommunityActions isAdmin={isAdmin} 
+        <CommunityActions isAdmin={isAdmin} onBack={onBack}
           community={community}
           setCommunities={setCommunities}
           setExploreCommunities={setExploreCommunities}

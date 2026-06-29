@@ -514,26 +514,25 @@ return (
     <div
   
 >
+
 {listToRender
   .filter((msg) => {
 
-    // admin / owner sees everything
     if (isAdmin) {
-      return true;
+        return true;
     }
 
-    // sender sees own pending
+    if (msg.sender_id === authUser.id) {
+        return true;
+    }
+
     if (
-      msg.sender_id === authUser.id
+        msg.approval_status === "approved" ||
+        msg.approval_status == null
     ) {
-      return true;
+        return true;
     }
 
-    // everyone else sees approved only
-    return (
-      msg.approval_status ===
-      "approved"
-    );
   })
   .map((msg, index) => {
 
@@ -606,6 +605,8 @@ return (
 }
   
         {/* MESSAGE */}
+
+        
         <MessageList
           setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities}
           chatLoading={chatLoading}

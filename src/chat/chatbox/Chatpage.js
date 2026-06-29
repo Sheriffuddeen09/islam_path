@@ -151,7 +151,7 @@ export default function ChatPage({
           ];
 
         if (!cached || forceRefresh) {
-          setCommunityMessages([]);
+          // setCommunityMessages([]);
           setFirstUnreadMessageId(null);
         }
 

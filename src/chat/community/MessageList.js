@@ -206,6 +206,7 @@ const handleDownloadMessage =
 
      return (
         <div>
+          
           <div
             key={msg.id}
            
@@ -213,7 +214,8 @@ const handleDownloadMessage =
               relative
               group
               transition-all
-              cursor-pointer 
+              cursor-pointer  
+              mb-5
               ${msg.is_system === 1
                 ? "w-full flex justify-center text-[--text-color]"
                 : "max-w-md w-full mx-auto rounded-2xl bg-[#202c33] text-white"
@@ -378,16 +380,7 @@ const handleDownloadMessage =
 
               <>
               
-              {
-                  msg.type === "poll" && (
-                      <PollMessage
-                          key={msg.id}
-                          message={msg}
-                          currentUser={authUser}
-                          isAdmin={isAdmin}
-                      />
-                  )
-              }
+              
                 
 
                 {/* REPLY MESSAGE */}
@@ -452,7 +445,7 @@ const handleDownloadMessage =
                       </span>
                     </div>
                     <br />
-                    <span className={`text-[13px] lg:text-[13px] md:text-[17px] break-words whitespace-pre-wrap`}>
+                    <span className={`text-[13px] lg:text-[15px] md:text-[17px] break-words whitespace-pre-wrap`}>
 
                       ${msg.is_system === 1
                       ? "text-[--text-color]"
@@ -479,7 +472,7 @@ const handleDownloadMessage =
                 
                  />
                 <div
-                        className={`text-[13px] lg:text-[13px] md:text-[17px] pt-3 mt-1 px-4 ${
+                        className={`text-[13px] lg:text-[15px] md:text-[17px] pt-3 mt-1 px-4 ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -508,7 +501,7 @@ const handleDownloadMessage =
                   
                  {!msg.replied_to && !msg.replied_message && (
                  <div
-                        className={`text-[13px] lg:text-[13px] md:text-[17px] pt-3 mt-1 px-4 break-words ${
+                        className={`text-[13px] lg:text-[15px] md:text-[17px] pt-3 mt-1 px-4 break-words ${
                           hasLink ? "w-56" : "w-auto"
                         }`}
                       >
@@ -546,8 +539,20 @@ const handleDownloadMessage =
                   )}
                 </div>
                  )}
+
+                 {
+                  msg.type === "poll" && (
+                      <PollMessage
+                          key={msg.id}
+                          message={msg}
+                          currentUser={authUser}
+                          isAdmin={isAdmin}
+                      />
+                  )
+              }
               </>
             )}
+
             <div className="
               flex
               items-center

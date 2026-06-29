@@ -11,7 +11,9 @@ import OptionVotersModal from "./OptionVotersModal";
 export default function PollMessage({
   message, isAdmin
 }) {
-  const poll = message.poll_data;
+  const poll = message.poll_data ?? message.poll;
+
+
 
   const [loading, setLoading] =
     useState(false);
@@ -19,13 +21,20 @@ export default function PollMessage({
   const [selected, setSelected] =
     useState([]);
 
-const [selectedOption, setSelectedOption] = useState(null);
-const [showVoters, setShowVoters] = useState(false);
+    const [selectedOption, setSelectedOption] = useState(null);
+    const [showVoters, setShowVoters] = useState(false);
+
 
   if (!poll) return null;
 
-  const totalVotes =
-    poll.total_votes || 0;
+
+  const disableVote =
+  isAdmin ||
+  loading ||
+  alreadyVoted ||
+  isExpired;
+
+
 
   const isExpired =
     poll.expires_at &&
@@ -95,235 +104,275 @@ const [showVoters, setShowVoters] = useState(false);
     }
   };
 
+  
+
   return (
-    <div
-      className="
-      bg-white
-      rounded-2xl
-      shadow
-      border
-      border-gray-200
-      p-4
-      max-w-md
-      w-full
-      "
-    >
-      <div className="flex items-center justify-between">
+  <div className="px-4 mt-3">
 
-        <h3 className="font-semibold text-gray-900 text-lg">
-          📊 {poll.question}
-        </h3>
+    <div className="mb-4">
 
-        {poll.multiple_choice && (
-          <span className="text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-1">
-            Multiple
-          </span>
-        )}
-      </div>
-
-      <div className="mt-5 space-y-3">
-
-        {poll.options.map(option => (
-
-          <button
-            key={option.id}
-            disabled={
-              loading ||
-              alreadyVoted ||
-              isExpired
-            }
-            onClick={() =>
-              submitVote(option.id)
-            }
-            className="
-              relative
-              overflow-hidden
-              w-full
-              rounded-xl
-              border
-              border-gray-300
-              p-3
-              text-left
-              hover:border-green-500
-              transition
-            "
-          >
-                {isAdmin && (
-
-            <button
-                onClick={() => {
-
-                    setSelectedOption(option);
-
-                    setShowVoters(true);
-
-                }}
-                className="
-                    text-xs
-                    text-blue-600
-                    hover:underline
-                    ml-2
-                "
-            >
-                View Voters
-            </button>
-
-        )}
-            <div
-              className="
-                absolute
-                left-0
-                top-0
-                bottom-0
-                bg-green-200
-                transition-all
-              "
-              style={{
-                width: `${option.percentage}%`,
-              }}
-            />
-
-            <div className="relative flex justify-between items-center">
-
-              <div className="flex items-center gap-2">
-
-                {option.user_voted && (
-                  <CheckCircle2
-                    size={18}
-                    className="text-green-600"
-                  />
-                )}
-
-                <span className="font-medium">
-                  {option.option}
-                </span>
-
-              </div>
-
-              <span className="font-semibold">
-                {option.percentage}%
-              </span>
-
-            </div>
-
-            <div className="relative mt-2 text-xs text-gray-500">
-
-              {option.votes} vote
-              {option.votes !== 1
-                ? "s"
-                : ""}
-
-            </div>
-
-          </button>
-
-        ))}
-
-        
-      </div>
-      {/* Footer */}
-      <div className="mt-5 border-t pt-4">
-
-        <div className="flex items-center justify-between text-sm text-gray-600">
-
-          <div className="font-medium">
-            Total Votes:{" "}
-            <span className="font-bold">
-              {poll.total_votes}
-            </span>
-          </div>
-
-          {poll.expires_at && (
-            <div className="flex items-center gap-1">
-
-              <Clock size={15} />
-
-              <span>
-                {new Date(
-                  poll.expires_at
-                ).toLocaleString()}
-              </span>
-
-            </div>
-          )}
-
-        </div>
-
-        {isExpired && (
-          <div
-            className="
-              mt-3
-              rounded-lg
-              bg-red-50
-              border
-              border-red-200
-              text-red-600
-              text-sm
-              p-3
-              text-center
-              font-semibold
-            "
-          >
-            Poll Closed
-          </div>
-        )}
-
-        {!isExpired &&
-          alreadyVoted && (
-            <div
-              className="
-                mt-3
-                rounded-lg
-                bg-green-50
-                border
-                border-green-200
-                text-green-700
-                text-sm
-                p-3
-                text-center
-                font-semibold
-              "
-            >
-              ✓ You have already voted.
-            </div>
-          )}
-
-        {!alreadyVoted &&
-          !isExpired && (
-            <div className="mt-3 text-xs text-gray-500 text-center">
-
-              Tap an option to vote.
-
-            </div>
-          )}
-
-        {loading && (
-
-          <div className="flex justify-center mt-4">
-
-            <Loader2
-              size={24}
-              className="animate-spin text-green-600"
-            />
-
-          </div>
-
-        )}
-
-      </div>
-
-      {showVoters && selectedOption && (
-            <OptionVotersModal
-                option={selectedOption}
-                onClose={() => {
-                    setShowVoters(false);
-                    setSelectedOption(null);
-                }}
-            />
-        )}
+      {poll.multiple_choice && (
+        <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-1">
+          Multiple Choice
+        </span>
+      )}
 
     </div>
 
-  );
+    {/* Options */}
+    <div className="space-y-4">
+
+      {poll.options.map(option => (
+<button
+    key={option.id}
+    disabled={disableVote}
+    onClick={() => {
+        if (!disableVote) {
+            submitVote(option.id);
+        }
+    }}
+    className={`
+        relative
+        overflow-hidden
+        w-full
+        rounded-xl
+        border
+        border-gray-300
+        p-3
+        text-left
+        transition
+        bg-white
+
+        ${
+            disableVote
+                ? "cursor-not-allowed opacity-90"
+                : "cursor-pointer hover:border-green-500"
+        }
+    `}
+    >
+
+          {isAdmin && (
+
+            <div className="flex justify-end mb-2">
+
+              <button
+                onClick={(e) => {
+
+                  e.stopPropagation();
+
+                  setSelectedOption(option);
+
+                  setShowVoters(true);
+
+                }}
+                className="
+                  text-xs
+                  text-blue-600
+                  hover:underline
+                "
+              >
+                View Voters
+              </button>
+
+            </div>
+
+          )}
+
+          {/* Option */}
+          <div className="flex justify-between items-center">
+
+            <div className="flex items-center gap-3">
+
+              {option.user_voted ? (
+
+                <CheckCircle2
+                  size={22}
+                  className="text-green-600"
+                />
+
+              ) : (
+
+                <div
+                  className="
+                    w-5
+                    h-5
+                    rounded-full
+                    border-2
+                    border-gray-500
+                    bg-white
+                    flex-shrink-0
+                  "
+                />
+
+              )}
+
+              <span className="text-black font-medium">
+
+                {option.option}
+
+              </span>
+
+            </div>
+
+            <span className="text-black font-semibold">
+
+              {option.votes}
+
+            </span>
+
+          </div>
+
+          {/* Progress Bar */}
+
+          <div className="mt-3">
+
+            <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+
+              <div
+                className="
+                  h-full
+                  bg-green-500
+                  transition-all
+                  duration-500
+                "
+                style={{
+                  width: `${option.percentage}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        </button>
+
+      ))}
+
+    </div>
+
+    {/* Footer */}
+
+    <div className="mt-6 border-t border-gray-600 pt-4">
+
+      <div className="flex justify-between items-center text-sm text-white">
+
+        <div>
+
+          Total Votes
+
+          <span className="ml-2 font-bold">
+
+            {poll.total_votes}
+
+          </span>
+
+        </div>
+
+        {poll.expires_at && (
+
+          <div className="flex items-center gap-1">
+
+            <Clock size={15} />
+
+            <span>
+
+              {new Date(
+                poll.expires_at
+              ).toLocaleString()}
+
+            </span>
+
+          </div>
+
+        )}
+
+      </div>
+
+      {isExpired && (
+
+        <div
+          className="
+            mt-4
+            bg-red-100
+            text-red-600
+            rounded-lg
+            p-3
+            text-center
+            font-semibold
+          "
+        >
+          Poll Closed
+        </div>
+
+      )}
+
+      {!isExpired &&
+        alreadyVoted && (
+
+        <div
+          className="
+            mt-4
+            bg-green-100
+            text-green-700
+            rounded-lg
+            p-3
+            text-center
+            font-semibold
+          "
+        >
+          ✓ You have already voted.
+        </div>
+
+      )}
+
+      {!alreadyVoted &&
+        !isExpired &&
+        !isAdmin && (
+
+        <div className="mt-4 text-center text-sm text-gray-300">
+
+          Tap any option to vote.
+
+        </div>
+
+      )}
+
+      {loading && (
+
+        <div className="flex justify-center mt-4">
+
+          <Loader2
+            className="
+              animate-spin
+              text-green-600
+            "
+            size={24}
+          />
+
+        </div>
+
+      )}
+
+    </div>
+
+    {showVoters &&
+      selectedOption && (
+
+      <OptionVotersModal
+        option={selectedOption}
+        onClose={() => {
+
+          setShowVoters(false);
+
+          setSelectedOption(null);
+
+        }}
+      />
+
+    )}
+
+  </div>
+);
+
 
 }

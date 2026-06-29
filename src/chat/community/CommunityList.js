@@ -50,41 +50,46 @@ export default function CommunityList({
       .charAt(0)
       .toUpperCase();
   };
-
-  const getLastMessage = (community) => {
+const getLastMessage = (community) => {
 
     if (!community.last_message)
-      return "Start Conservation";
+        return "Start Conversation";
 
     if (
-      community.last_message.message
+        community.last_message.type === "text" &&
+        community.last_message.message
     ) {
-      return community.last_message.message;
+        return community.last_message.message;
     }
 
-    switch (
-      community.last_message.type
-    ) {
+    switch (community.last_message.type) {
 
-      case "image":
-        return "📷 Photo";
+        case "poll":
+            return `📊 ${
+                community.last_message?.message ??
+                "Poll Vote"
+            }`;
 
-      case "video":
-        return "🎥 Video";
+        case "image":
+            return "📷 Photo";
 
-      case "voice":
-        return "🎤 Voice message";
+        case "video":
+            return "🎥 Video";
 
-      case "audio":
-        return "🎵 Audio";
+        case "voice":
+            return "🎤 Voice message";
 
-      case "file":
-        return "📄 File";
+        case "audio":
+            return "🎵 Audio";
 
-      default:
-        return "Start Conservation";
+        case "file":
+            return "📄 File";
+
+        default:
+            return "Start Conversation";
     }
-  };
+
+};
 
   const formatTime = (date) => {
 
@@ -171,17 +176,17 @@ export default function CommunityList({
 
   return (
 
-    <div className="
-        w-full
+    <div className={` w-full
         h-full
         border-gray-700
         bg-[var(--bg-color)]
         text-[var(--text-color)]
         flex
         flex-col
-      ">
+      ${uiMode !== 'full' ? 'border lg:rounded-xl' : ''}`}
+      >
 
-      {/* HEADER */}
+      {/* HEADER <div>*/}
       <div className="h-16 px-4 shadow-md  flex items-center justify-between">
       <div className="inline-flex gap-3 items-center">
         <button

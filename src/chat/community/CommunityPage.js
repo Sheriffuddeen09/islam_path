@@ -150,12 +150,12 @@ const handleHide = async (
     <>
     <div
   className={`
-    ${isPopup ? "fixed inset-0 z-50" : "flex"}
+    ${isPopup ? "fixed inset-0 z-50 lg:rounded-xl rounded-0 rounded-none" : "flex"}
 
-    ${isPopup ? "right-0 lg:right-10 lg:top-16" : ""}
+    ${isPopup ? "right-0 lg:right-10 lg:top-16 lg:rounded-xl rounded-0 rounded-none" : ""}
 
     ${isPopup
-      ? "w-full h-96 lg:w-[340px] lg:h-[410px] lg:rounded-xl"
+      ? "w-full h-96 lg:w-[340px] lg:h-[410px] lg:rounded-xl rounded-0 rounded-none"
       : "flex-1 lg:h-screen w-full"
     }
 
@@ -166,8 +166,8 @@ const handleHide = async (
          className={` ${isPopup ? "fixed" : "flex-1"}
                       w-full
                       lg:w-[370px]
-                      z-50
-                      flex flex-col
+                      z-50 border border-gray-300
+                      flex flex-col lg:rounded-xl rounded-0 rounded-none
                       ${isPopup ? "inset-0 lg:inset-auto lg:right-10 lg:top-16" : ""}
                       ${isPopup ? "h-full lg:h-[420px]" : "min-h-0"} `}>
 
@@ -197,6 +197,7 @@ const handleHide = async (
 
     z-50
     flex flex-col
+    lg:rounded-xl rounded-0 rounded-none shadow-sm border border-gray-300
 
     ${isPopup ? "inset-0 lg:inset-auto lg:right-10 lg:top-16" : ""}
 
@@ -235,7 +236,7 @@ const handleHide = async (
         lg:w-[370px]
         z-50 fixed lg:right-10 h-full
         lg:h-[420px]
-
+        lg:rounded-xl rounded-0 rounded-none
         ${uiMode === "popup"
           ? "flex"
           : mobileViewCommunity === "settingCommunitys" ? "flex" : "hidden"} lg:flex flex-col`}>
