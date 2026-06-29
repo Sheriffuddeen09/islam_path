@@ -7,6 +7,7 @@ import {
   encryptMessage, decryptMessage
 } from "../../utils/encryption";
 import { MessageCircleCodeIcon, User } from "lucide-react";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function ChatComponent ({replyingTo, setReplyingTo, chats, setChats, activeChat, setActiveChat,
     setChatFilter, chatFilter, loadingChats, loadingMessages, unreadTotal, authUser, isTyping, setIsTyping,
@@ -52,13 +53,28 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
 
     const [showAvatarPreview, setShowAvatarPreview] = useState(false);
     const isGroup = activeChat?.type === "group";
+
+    const { user } = useAuth();
+    
+
+    const other =
+      activeChat?.other_user ??
+      activeChat?.other ?? 
+      (
+        activeChat?.teacher_id === user?.id
+          ? activeChat?.student
+          : activeChat?.teacher
+      )
+
     const displayName = isGroup
-      ? activeChat?.group_name || activeChat?.name || "Unnamed Group"
-      : `${activeChat?.other_user?.first_name || ""} ${activeChat?.other_user?.last_name || ""}`;
-  
+      ? activeChat?.group_name ||
+        activeChat?.name ||
+        "Unnamed Group"
+      : `${other?.first_name ?? ""} ${other?.last_name ?? ""}`.trim();
+
     const avatarName = isGroup
       ? displayName
-      : activeChat?.other_user?.first_name;
+      : other?.first_name ?? "";
     
     const colors = [
         "bg-orange-500",

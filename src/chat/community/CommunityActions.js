@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellOff, Delete, EyeOff, Link2, LogOut, Search, Shield, Trash, UserCircle } from "lucide-react";
+import { BellOff, Delete, EyeOff, Link2, LogOut, Search, Shield, Trash, UserCircle, Vote } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../Api/axios";
 import AddCommunityMemberModal from "./AddCommunityMemberModal";
@@ -10,6 +10,7 @@ import DeleteCommunityModal from "./DeleteCommunityModal";
 import AdminDeleteCommunityModal from "./AdminDeleteCommunityModal";
 import InviteViaLinkModal from "./InviteViaLinkModal";
 import { ReportCommunityModal } from "./ReportCommunityModal";
+import PollVotingModal from "./poll/CreatePollVotingModal";
 
 export default function CommunityActions({
   community,
@@ -28,6 +29,7 @@ export default function CommunityActions({
   const [unfollowLoading, setUnfollowLoading] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showPollVotingModal, setShowPollVotingModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [showCommunitySearchModal, setShowCommunitySearchModal] = useState(false);
   const [communityClearMessage, setCommunityClearMessage] = useState(false);
@@ -158,6 +160,17 @@ const members = activeCommunity?.members || [];
             icon= {UserCircle}
             onClick= {() => {
               setShowAddModal(true);
+            }}
+      />
+      }
+
+      {
+        isAdmin &&
+      <MenuButton
+            label= "Poll Voting"
+            icon= {Vote}
+            onClick= {() => {
+              setShowPollVotingModal(true);
             }}
       />
       }
@@ -369,7 +382,17 @@ const members = activeCommunity?.members || [];
                   />
               )}
 
-       
+       {
+          showPollVotingModal &&
+          <PollVotingModal
+          community={activeCommunity}
+          setMessages={setMessages}
+          onClose={()=>
+          setShowPollVotingModal(false)
+          }
+          />
+
+      }
 
     </>
   );

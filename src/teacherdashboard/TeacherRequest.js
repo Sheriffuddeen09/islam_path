@@ -81,7 +81,11 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
         <p className="text-gray-500">No pending requests</p>
       )}
 
-      {requests.map((req) => (
+      {requests.map((req) => {
+
+        console.log(req);
+
+        return (
         <div
           key={req.id}
           className="border p-4 rounded-lg mb-3 flex flex-wrap justify-between items-center"
@@ -156,7 +160,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
                                     setLoadingMessageId(req.id);
               
                                     const { data } = await api.get(
-                                      `/api/chat/profile/${req.id}`
+                                      `/api/chat/user/${req.student.id}`
                                     );
               
                                     setActiveChat(data.chat);
@@ -171,7 +175,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
                                   }
                                 }}
                                 disabled={loadingMessageId === req.id}
-                        className={`mt-1 px-4  text-sm py-3 rounded-lg bg-blue-800 hover:bg-blue-700 text-white`}
+                        className={`mt-1 px-4  text-sm py-2 rounded-lg bg-blue-800 hover:bg-blue-700 text-white`}
                       >{ loadingMessageId === req.id ?
                         <span className="
                               animate-spin
@@ -191,7 +195,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
           {req.status !== "pending" && (
           <button
             onClick={() => clearByTeacher(req.id)}
-             className="px-3 py-1 text-white rounded bg-gray-900 hover:bg-gray-700 flex items-center gap-2"
+             className="px-3 py-1 text-white rounded bg-red-800 hover:bg-red-700 flex items-center gap-2"
               >{
             deleteLoading ? 
             (
@@ -224,7 +228,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
         )}
         </div>
         </div>
-      ))}
+      )})}
     </div>
   );
 }

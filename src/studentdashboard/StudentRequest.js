@@ -67,7 +67,7 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
     );
 
   return (
-    <div className="p- lg:p-6 lg:ml-60 max-w-7xl mx-auto">
+    <div className="p- lg:p-6 lg:ml-60 max-w-7xl mx-auto overflow-hidden">
       <Toaster position="top-right" autoClose={3000} />
       <h2 className="text-xl font-bold mb-6 text-black pb-2 text-start border-b-2 border-blue-500">Live Class Requests</h2>
 
@@ -104,7 +104,7 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">Pending</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 space-x-2 whitespace-nowrap">
+                  <td className="px-4 py-2 space-x-2 whitespace-nowrap">
                     {req.status === "accepted" && (
                       <button
                                 onClick={async () => {
@@ -112,7 +112,7 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
                                     setLoadingMessageId(req.id);
               
                                     const { data } = await api.get(
-                                      `/api/chat/profile/${req.id}`
+                                      `/api/chat/user/${req.teacher_id}`
                                     );
               
                                     setActiveChat(data.chat);

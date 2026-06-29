@@ -592,7 +592,8 @@ onClose();
           </div>
 
           {/* MEMBERS */}
-          <div className="mt-6">
+          <div className="mt-6 scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin 
+          overflow-y-auto">
 
             <p className="text-[var(--text-color)] mb-4">
 
@@ -610,12 +611,6 @@ onClose();
                 key={letter}
                 className="mb-5"
               >
-
-                <p className="text-[var(--text-color)] font-bold mb-2">
-
-                  {letter}
-
-                </p>
 
                 {groupedSelected[
                   letter

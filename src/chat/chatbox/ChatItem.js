@@ -1,6 +1,7 @@
 import { Check, CheckCheck } from "lucide-react";
 import { useUserOnlineStatus } from "../online/UseUserOnlineStatus";
 import { useState } from "react";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function ChatItem({
   chat,
@@ -10,7 +11,16 @@ export default function ChatItem({
   setUiMode
 }) {
 
-  const other = chat?.other_user ?? chat?.other ?? null;
+  const { user } = useAuth();
+  
+  const other =
+  chat?.other_user ??
+  chat?.other ??
+  (
+    chat.teacher_id === user.id
+      ? chat.student
+      : chat.teacher
+  );
 
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
 

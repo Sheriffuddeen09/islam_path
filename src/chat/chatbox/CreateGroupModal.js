@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import api from "../../Api/imageAxios";
 import { CheckCircle, Circle, Loader2 } from "lucide-react";
+import { useAuth } from "../../layout/AuthProvider";
+
 
 export default function CreateGroupModal({ chats = [], onClose, loadingUsers, setChats, setActiveChat }) {
   const [step, setStep] = useState(1);
@@ -16,16 +18,10 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
 
   const [toast, setToast] = useState(false)
 
+  const { user: authUser } = useAuth();
+  
 
   
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  // =============================
-  // Select / Remove User
-  // =============================
   const toggleUser = (user) => {
     setSelectedUsers((prev) => {
       const exists = prev.find((u) => u.id === user.id);
@@ -38,24 +34,35 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
     setSelectedUsers((prev) => prev.filter((u) => u.id !== id));
   };
 
-  // =============================
-  // Search Filter
-  // =============================
-  const filteredUsers =
-  chats.filter(chat => {
+ 
 
-    const user =
-      chat.user ||
-      chat.receiver ||
-      chat.other_user;
+      const filteredUsers = chats.filter(chat => {
 
-    if (!user) return false;
+      let user = null;
 
-    return `${user.first_name} ${user.last_name}`
-      .toLowerCase()
-      .includes(search.toLowerCase());
+      if (chat.user) {
+        user = chat.user;
+      } else if (chat.receiver) {
+        user = chat.receiver;
+      } else if (chat.other_user) {
+        user = chat.other_user;
+      } else if (chat.teacher || chat.student) {
+        user =
+          chat.teacher_id === authUser?.id
+            ? chat.student
+            : chat.teacher;
+      }
 
-  });
+      if (!user) return false;
+
+      const fullName =
+        `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+
+      return fullName
+        .toLowerCase()
+        .includes(search.toLowerCase());
+    });
+
 
   useEffect(() => {
     if (!groupImage) return;
@@ -95,20 +102,38 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
     const res = await api.post("/api/groups", formData);
 
     const newGroup =
+      res.data.chat ||
       res.data.group ||
       res.data.data ||
       res.data;
 
     const normalizedGroup = {
       ...newGroup,
+      users: [
+        {
+          id: authUser.id,
+          first_name: authUser.first_name,
+          last_name: authUser.last_name,
+          pivot: {
+            role: "admin",
+          },
+        },
+        ...selectedUsers.map(user => ({
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          pivot: {
+            role: "member",
+          },
+        })),
+      ],
+      users_count: selectedUsers.length + 1,
       membership_status: "approved",
       my_role: "admin",
-      only_admin_send: onlyAdminCanSend ? 1 : 0,
-      unread_count: 0,
-      type: "group",
     };
 
     setChats(prev => [normalizedGroup, ...prev]);
+    setActiveChat(normalizedGroup);
 
    
     setToast("Group created successfully");
@@ -232,7 +257,13 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
             const user =
               chat.user ||
               chat.receiver ||
-              chat.other_user;
+              chat.other_user || (
+              chat.teacher || chat.student
+                ? (chat.teacher_id === authUser.id
+                    ? chat.student
+                    : chat.teacher)
+                : null
+            );
               const selected = selectedUsers.find((u) => u.id === user.id);
 
               return (
@@ -251,7 +282,7 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
                     </div>
 
                     <p>
-                      {user.first_name} {user.last_name}
+                      {user?.first_name} {user?.last_name}
                     </p>
                   </div>
 
@@ -367,14 +398,14 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
           </div>
 
           {/* Members */}
-          <div>
+           <div className="mt-6 scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin 
+          overflow-y-auto">
             <p className="text-gray-400 mb-2 mt-2 border-b pb-2 border-white">
               Members: {selectedUsers.length}
             </p>
 
             {Object.keys(groupedSelected).map((letter) => (
               <div key={letter} className="mb-3">
-                <p className="text-sm text-gray-500">{letter}</p>
 
                 {groupedSelected[letter].map((user) => (
                   <div
@@ -413,7 +444,7 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
             className="fixed bottom-6 mx-auto z-50  right-6 bg-[#25D366] w-14 h-14 rounded-full text-black text-xl"
           >
             {
-              createLoading ? <Loader2 className="mx-auto text-white" /> :
+              createLoading ? <Loader2 className="animate-spin text-white mx-auto" /> :
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mx-auto text-white">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
           </svg>
@@ -422,13 +453,7 @@ export default function CreateGroupModal({ chats = [], onClose, loadingUsers, se
         </div>
       )}
 
-      {/* {toast && (
-        <div className={`fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg text-white z-50
-          ${toast.type === "error" ? "bg-red-500" : "bg-green-600"}
-        `}>
-          {toast.message}
-        </div>
-      )} */}
+     
     </div>
   );
 }

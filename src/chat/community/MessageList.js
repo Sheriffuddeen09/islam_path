@@ -6,6 +6,8 @@ import ApprovalModal from "./ApprovalModal";
 import api from "../../Api/axios";
 import CommunityMediaMessage from "./CommunityMediaMessage";
 import MediaPreview from "./MediaPreview";
+import PollMessage from "./poll/PollMessage";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function MessageList({msg, setReactionMsg, 
                                     reactionMsg, isMobile, authUser, retryCommunityMessage ,react,
@@ -15,7 +17,7 @@ export default function MessageList({msg, setReactionMsg,
                                     setSelectedMessage, setShowMessageMenu, setReplyingToCommunity,
                                     setMenuPosition,communityMessageAction, setMessages, openForward,
                                     approvalModal, setApprovalModal, showActionModal, setShowActionModal,
-                                    actionType, setActionType, actionMessage, setActionMessage,
+                                    actionType, setActionType, actionMessage, setActionMessage
                                   }){
 
                                 
@@ -32,6 +34,7 @@ export default function MessageList({msg, setReactionMsg,
   const [showPreview, setShowPreview] =
   useState(false);
 
+  const {user} = useAuth()
 
   
   const startX = useRef(0);
@@ -375,6 +378,16 @@ const handleDownloadMessage =
 
               <>
               
+              {
+                  msg.type === "poll" && (
+                      <PollMessage
+                          key={msg.id}
+                          message={msg}
+                          currentUser={authUser}
+                          isAdmin={isAdmin}
+                      />
+                  )
+              }
                 
 
                 {/* REPLY MESSAGE */}

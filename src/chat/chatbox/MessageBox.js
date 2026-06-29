@@ -10,6 +10,7 @@ import MenuComponent from "./MenuComponent";
 import GenerateLinkCall from "./GenerateLinkCall";
 import MeetingForwardModal from "./MeetingForwardModal";
 import toast from "react-hot-toast";
+import { useAuth } from "../../layout/AuthProvider";
 export default function MessageBox({
   openChat,
   activeChat,
@@ -351,9 +352,7 @@ useEffect(() => {
   const hasSelection = selectedMessages.length > 0;
 
   const myId = authUser.id;
-  const latestMessage = messages?.length
-  ? messages[messages.length - 1]
-  : null;
+  
 
   const colors = [
     "bg-orange-500",
@@ -507,10 +506,17 @@ const menuRef = useRef(null);
 
     const isGroup = activeChat?.type === "group";
 
+    const { user } = useAuth();
+    
+
     const other =
-      activeChat?.other_user ||
-      activeChat?.other ||
-      null;
+      activeChat?.other_user ??
+      activeChat?.other ?? 
+      (
+        activeChat.teacher_id === user.id
+          ? activeChat.student
+          : activeChat.teacher
+      )
 
     const displayName = isGroup
       ? activeChat?.group_name ||
@@ -582,7 +588,7 @@ console.log("incomingCall:", incomingCall);
 
                 {isGroup && (
                   <p className="text-[9px] pt-0.5 pb-2">
-                    {activeChat.members_count || activeChat.members?.length || 0} members
+                    {activeChat.members_count || activeChat.members?.length || activeChat.users_count || activeChat.users?.length || 0} members
                   </p>
                 )}
               </div>
@@ -883,7 +889,7 @@ console.log("incomingCall:", incomingCall);
       {!isGroup && <UserStatusDots user={activeChat.other_user} />}
       {isGroup && (
         <p className="text-[9px] pt-0.5 pb-2 relative left-20">
-          {activeChat.members_count || activeChat.members?.length || 0} members
+          {activeChat.members_count || activeChat.members?.length || activeChat.users_count || activeChat.users?.length || 0} members
         </p>
       )}
     </div>

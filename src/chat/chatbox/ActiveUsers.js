@@ -54,8 +54,14 @@ export default function ActiveUsers({
 
 
   const navigate = useNavigate();
-  const user = activeChat?.other_user || {};
   const {user: authUser} = useAuth()
+  const user = activeChat?.other_user ??
+      activeChat?.other ?? 
+      (
+        activeChat?.teacher_id === authUser?.id
+          ? activeChat?.student
+          : activeChat?.teacher
+      )
 
   const [showModal, setShowModal] = useState(false);
   const [users, setUsers] = useState([]) 
@@ -80,7 +86,6 @@ export default function ActiveUsers({
   const [encryption, setEncryption] = useState(false);
 
   const isAdmin = activeChat?.my_role === "admin";
-
 
 
 
@@ -177,15 +182,21 @@ export default function ActiveUsers({
 
   const filteredSearch = useMemo(() => {
 
-  const privateChats =
-    chats.filter(chat =>
+  const privateChats = chats.filter(chat => {
+    if (chat.is_group) return false;
 
-      // ✅ ONLY PRIVATE USER CHAT
-      !chat.is_group &&
+    const other =
+      chat.other_user ??
+      (
+        chat.teacher || chat.student
+          ? (chat.teacher_id === authUser.id
+              ? chat.student
+              : chat.teacher)
+          : null
+      );
 
-      // ✅ MUST HAVE USER
-      chat.other_user
-    );
+    return !!other;
+  });
 
   if (!searchTerm) {
     return privateChats;
@@ -193,19 +204,26 @@ export default function ActiveUsers({
 
   return privateChats.filter(chat => {
 
-    const name =
-      `${chat.other_user?.first_name || ""}
-       ${chat.other_user?.last_name || ""}`
-      .toLowerCase();
+    const other =
+      chat.other_user ??
+      (
+        chat.teacher || chat.student
+          ? (chat.teacher_id === authUser.id
+              ? chat.student
+              : chat.teacher)
+          : null
+      );
 
-    return name.includes(
-      searchTerm.toLowerCase()
-    );
+    const name =
+      `${other?.first_name ?? ""} ${other?.last_name ?? ""}`
+        .trim()
+        .toLowerCase();
+
+    return name.includes(searchTerm.toLowerCase());
 
   });
 
-}, [searchTerm, chats]);
-
+}, [searchTerm, chats, authUser.id]);
 
   return (
     <div
@@ -308,7 +326,7 @@ export default function ActiveUsers({
 
         {isGroup && (
             <p className="text-xs text-gray-500">
-              {activeChat.members_count || activeChat.members?.length || 0} members
+              {activeChat.members_count || activeChat.members?.length || activeChat.users_count || activeChat.users?.length || 0} members
             </p>
           )}
 
@@ -320,7 +338,8 @@ export default function ActiveUsers({
               Pending Members ({pendingCount})
             </button>
           )}
-
+        {!isGroup && (
+          <>
         {user.email && (
           <div className="flex justify-between items-center group  text-[var(--text-color)] text-sm">
             <div className="flex items-center gap-2">
@@ -333,6 +352,8 @@ export default function ActiveUsers({
             </div>
           </div>
         )}
+        </>
+      )}
       </div>
           {/* Disappearing Message  hover*/}
 
@@ -882,7 +903,12 @@ export default function ActiveUsers({
           </p>
         ) : (
           filteredSearch.map(chat => {
-            const user = chat.other_user;
+            const user = chat.other_user ??
+            (
+              chat.teacher_id === authUser.id
+                ? chat.student
+                : chat.teacher
+            );
 
             return (
               <div
