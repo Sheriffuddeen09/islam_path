@@ -650,7 +650,7 @@ console.log("incomingCall:", incomingCall);
               </button>
             )}
 
-            {!isGroup &&
+            {!isGroup && !loadingMessages &&
             <button
             onClick={() =>
               setShowMeetingModal(true)
@@ -772,6 +772,7 @@ console.log("incomingCall:", incomingCall);
 
         {/* RIGHT */}
         <div className="flex text-xl flex-shrink-0 gap-1 md:gap-3">
+          {!isGroup && !loadingMessages &&
           <button
             onClick={() =>
               setShowMeetingModal(true)
@@ -779,11 +780,11 @@ console.log("incomingCall:", incomingCall);
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
             stroke-width="1.5" stroke="currentColor" class="md:size-10 size-6">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-    </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+          </svg>
 
           </button>
-        
+        }
           <button
               onClick={() => startCall("video")}
             className="cursor-pointer px-1">
@@ -1160,7 +1161,9 @@ const isFirstUnread =
 
       {/* INPUT */}
       <div className="px-3 border-t bg-[var(--bg-color)]">
-        <ChatInput setChats={setChats} messages={messages} unreadCount={unreadCount} setUnreadCount={setUnreadCount}
+        <ChatInput 
+          loadingMessages={loadingMessages}
+          setChats={setChats} messages={messages} unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           blockAllInput={blockAllInput} status={status} onlyAdminSend={onlyAdminSend} isAdmin={isAdmin}
           authUser={authUser} showScrollButton={showScrollButton} isMinimized={isMinimized}
           setIsTyping={setIsTyping} setLastReadMessageId={setLastReadMessageId} bottomRef={bottomRef}

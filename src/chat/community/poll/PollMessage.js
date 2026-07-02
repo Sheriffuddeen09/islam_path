@@ -6,10 +6,9 @@ import {
   Clock,
   Loader2,
 } from "lucide-react";
-import OptionVotersModal from "./OptionVotersModal";
 
 export default function PollMessage({
-  message, isAdmin
+  message, isAdmin, selectedOption, setSelectedOption, showVoters, setShowVoters
 }) {
   const poll = message.poll_data ?? message.poll;
 
@@ -21,18 +20,8 @@ export default function PollMessage({
   const [selected, setSelected] =
     useState([]);
 
-    const [selectedOption, setSelectedOption] = useState(null);
-    const [showVoters, setShowVoters] = useState(false);
-
 
   if (!poll) return null;
-
-
-  const disableVote =
-  isAdmin ||
-  loading ||
-  alreadyVoted ||
-  isExpired;
 
 
 
@@ -46,65 +35,53 @@ export default function PollMessage({
       option.user_voted
     );
 
-  const submitVote = async (
-    optionId
-  ) => {
+  const submitVote = async (optionId) => {
+
     if (
-      loading ||
-      isExpired ||
-      alreadyVoted
-    )
-      return;
+        loading ||
+        isExpired ||
+        alreadyVoted
+    ) return;
 
     try {
-      setLoading(true);
 
-      await api.post(
-        "/api/community/poll/vote",
-        {
-          poll_id: poll.id,
-          option_id: optionId,
-        }
-      );
+        setLoading(true);
 
-      poll.options =
-        poll.options.map(option => {
-          if (
-            option.id === optionId
-          ) {
-            option.votes += 1;
-            option.user_voted = true;
-          }
+        const { data } = await api.post(
+            "/api/community/poll/vote",
+            {
+                poll_id: poll.id,
+                option_ids: [optionId], // ✅ send an array
+            }
+        );
 
-          return option;
-        });
+        // Replace the poll with the updated poll from Laravel
+        poll.options = data.poll.options;
+        poll.total_votes = data.poll.total_votes;
 
-      poll.total_votes += 1;
+        toast.success("Vote submitted");
 
-      poll.options.forEach(option => {
-        option.percentage =
-          poll.total_votes
-            ? Math.round(
-                (option.votes /
-                  poll.total_votes) *
-                  100
-              )
-            : 0;
-      });
-
-      toast.success(
-        "Vote submitted"
-      );
     } catch (err) {
-      toast.error(
-        "Unable to vote"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
+        console.log(err.response?.data);
+
+        toast.error(
+            err.response?.data?.message ||
+            "Unable to vote"
+        );
+
+    } finally {
+
+        setLoading(false);
+
+    }
+};
   
+  const disableVote =
+  isAdmin ||
+  loading ||
+  alreadyVoted ||
+  isExpired;
 
   return (
   <div className="px-4 mt-3">
@@ -123,37 +100,19 @@ export default function PollMessage({
     <div className="space-y-4">
 
       {poll.options.map(option => (
-<button
+<div
     key={option.id}
     disabled={disableVote}
-    onClick={() => {
-        if (!disableVote) {
-            submitVote(option.id);
-        }
-    }}
-    className={`
-        relative
-        overflow-hidden
-        w-full
-        rounded-xl
+    className="rounded-xl
         border
-        border-gray-300
+        border-gray-300 
         p-3
-        text-left
-        transition
-        bg-white
-
-        ${
-            disableVote
-                ? "cursor-not-allowed opacity-90"
-                : "cursor-pointer hover:border-green-500"
-        }
-    `}
+        bg-white"
     >
 
           {isAdmin && (
 
-            <div className="flex justify-end mb-2">
+            <div className="flex justify-end mb-2 z-50">
 
               <button
                 onClick={(e) => {
@@ -167,7 +126,7 @@ export default function PollMessage({
                 }}
                 className="
                   text-xs
-                  text-blue-600
+                  text-blue-800
                   hover:underline
                 "
               >
@@ -177,7 +136,26 @@ export default function PollMessage({
             </div>
 
           )}
+  <button
+        type="button"
+        disabled={disableVote}
+        onClick={() => submitVote(option.id)}
+        className={`
+        relative
+        overflow-hidden
+        w-full
+        text-left
+        transition
+        bg-white
 
+        ${
+            disableVote
+                ? "cursor-not-allowed opacity-90"
+                : "cursor-pointer hover:border-green-500"
+        }
+    `}
+        
+    >
           {/* Option */}
           <div className="flex justify-between items-center">
 
@@ -243,8 +221,8 @@ export default function PollMessage({
             </div>
 
           </div>
-
         </button>
+        </div>
 
       ))}
 
@@ -270,20 +248,21 @@ export default function PollMessage({
 
         {poll.expires_at && (
 
-          <div className="flex items-center gap-1">
-
+          <div className="flex items-center text-xs gap-1">
             <Clock size={15} />
 
             <span>
-
-              {new Date(
-                poll.expires_at
-              ).toLocaleString()}
-
+              {new Date(message.created_at).toLocaleDateString("en-US", {
+                month: "2-digit",
+                day: "2-digit",
+                year: "numeric",
+              })}{" "}
+              {new Date(message.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
-
           </div>
-
         )}
 
       </div>
@@ -329,7 +308,7 @@ export default function PollMessage({
         !isExpired &&
         !isAdmin && (
 
-        <div className="mt-4 text-center text-sm text-gray-300">
+        <div className="mt-4 text-center text-xs lg:text-xs md::text-sm text-gray-300">
 
           Tap any option to vote.
 
@@ -355,21 +334,7 @@ export default function PollMessage({
 
     </div>
 
-    {showVoters &&
-      selectedOption && (
-
-      <OptionVotersModal
-        option={selectedOption}
-        onClose={() => {
-
-          setShowVoters(false);
-
-          setSelectedOption(null);
-
-        }}
-      />
-
-    )}
+   
 
   </div>
 );

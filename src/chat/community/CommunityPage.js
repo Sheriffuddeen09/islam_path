@@ -16,7 +16,7 @@ export default function CommunityPage({
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
   communityMessages, setCommunityMessages, mobileViewCommunity, setMobileViewCommunity, setChats, setMessages, messageCommunityRefs,
   setLastReadMessageId, setActiveCommunity, activeChat, uiMode, loading, loadingExploring, exploreCommunities,
-  setExploreCommunities, communityContainerRef
+  setExploreCommunities, communityContainerRef, communityMessagesCache
 }) {
 
  
@@ -206,6 +206,7 @@ const handleHide = async (
 >
 
         <CommunityMessages
+          communityMessagesCache={communityMessagesCache}
           communityContainerRef={communityContainerRef}
           setChats={setChats} messagesCacheRef={messagesCacheRef}
           chatLoading={loadingChats} messagesCommunityEndRef={messagesCommunityEndRef}
@@ -242,6 +243,7 @@ const handleHide = async (
           : mobileViewCommunity === "settingCommunitys" ? "flex" : "hidden"} lg:flex flex-col`}>
 
         <CommunitySettings 
+          communityMessagesCache={communityMessagesCache} 
           uiMode={uiMode}
           activeCommunity={activeCommunity}
           authUser={authUser}
@@ -284,6 +286,7 @@ const handleHide = async (
 
       {activeCommunity ? (
     <CommunityMessages
+        communityMessagesCache={communityMessagesCache}
         communityContainerRef={communityContainerRef}
       setChats={setChats}
       messagesCacheRef={messagesCacheRef}
@@ -333,7 +336,8 @@ const handleHide = async (
     </div>
     <div className="w-[350px] border-l hidden lg:flex flex-col">
     {activeCommunity ? (
-        <CommunitySettings uiMode={uiMode}
+        <CommunitySettings 
+          communityMessagesCache={communityMessagesCache} uiMode={uiMode}
           activeCommunity={activeCommunity}
           authUser={authUser}
           onBack={goBack}

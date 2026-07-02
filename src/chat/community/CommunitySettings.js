@@ -15,7 +15,7 @@ export default function CommunitySettings({
   setCommunities,
   communities,
   chats, activeChat,
-  setMessages, uiMode
+  setMessages, uiMode, communityMessagesCache
 }) {
 
 
@@ -191,7 +191,7 @@ export default function CommunitySettings({
         <div className={`lg:block hidden border-t pt-3 scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-transparent
             ${uiMode !== "full" ? "overflow-y-auto h-32" : ""}`}>
         <CommunityActions isAdmin={isAdmin} onBack={onBack}
-          community={community}
+          community={community} communityMessagesCache={communityMessagesCache}
           setCommunities={setCommunities}
           setExploreCommunities={setExploreCommunities}
           activeCommunity={activeCommunity}
@@ -215,7 +215,7 @@ export default function CommunitySettings({
           setCommunityMessages={setCommunityMessages}
           communities={communities} chats={chats} 
           activeChat={activeChat}
-          authUser={authUser}
+          authUser={authUser} communityMessagesCache={communityMessagesCache}
           setMessages={setMessages}
           />
           </div>

@@ -21,7 +21,7 @@ export default function CommunityInput({
         setPreviewUrlsCommunity, captionCommunity, setCaptionCommunity, replyingToCommunity, blockAllInput,
         textCommunity, setTextCommunity, unreadCount, showScrollButton, setShowScrollButton, communityMessages,
         setLastReadMessageId, myId, setCommunities, latestMessage, messagesCommunityEndRef,
-        setReplyingToCommunity, timerRefCommunity,
+        setReplyingToCommunity, timerRefCommunity, loadingMessages,
         audioChunksRefCommunity, mediaRecorderRefCommunity, croppedImagesCommunity, setCroppedImagesCommunity,
         showSendOptions, setShowSendOptions}) {
 
@@ -196,7 +196,7 @@ const handlePick = (type) => {
 
       
           {
-          showScrollButton && (
+          showScrollButton && !loadingMessages && (
 
             <div
               onClick={async () => {
@@ -287,7 +287,7 @@ const handlePick = (type) => {
           )
         }
   
-    {!blockAllInput && (
+    {!blockAllInput && !loadingMessages && (
       <>
   
      {replyingToCommunity && (

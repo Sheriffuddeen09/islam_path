@@ -6,7 +6,7 @@ import api from "../../../Api/axios";
 
 export default function CreatePollVotingModal({
     community,
-    setMessages,
+    communityMessagesCache, activeCommunity, setCommunityMessages,
     onClose,
     onBack
 }) {
@@ -87,15 +87,35 @@ export default function CreatePollVotingModal({
             poll: data.message.poll,
         };
 
-        setMessages(prev => [...prev, newMessage]);
+        setCommunityMessages(prev => {
+
+                const updated = [
+                    ...prev,
+                    newMessage,
+                ];
+
+                communityMessagesCache.current[
+                    activeCommunity.id
+                ] = {
+
+                    ...communityMessagesCache.current[
+                        activeCommunity.id
+                    ],
+
+                    messages: updated,
+
+                };
+
+                return updated;
+            });
       
-        console.log("Created Poll:", data.message);
 
         toast.success(
             "Poll created."
         );
 
         onClose();
+        onBack()
         
 
     } catch {

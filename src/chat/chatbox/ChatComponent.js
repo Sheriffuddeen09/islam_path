@@ -18,7 +18,8 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     openCommunity, setMobileViewCommunity, mobileViewCommunity, lastOpenedCommunity, activeCommunity,
     setActiveCommunity, loadingMessagesCommunity, setLoadingMessagesCommunity, communityMessages, setCommunityMessages,
     messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef,
-    incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData
+    incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, communityMessagesCache,
+    hasUnreadCommunity
 }) {
 
    
@@ -692,6 +693,7 @@ setMessages((prev) => {
         lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
       <ChatList 
+          communityMessagesCache={communityMessagesCache} hasUnreadCommunity={hasUnreadCommunity}
           communityContainerRef={communityContainerRef}
           setExploreCommunities={setExploreCommunities}
           exploreCommunities={exploreCommunities} loading={loading}
@@ -830,7 +832,8 @@ setMessages((prev) => {
 
     <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
      <ChatList 
-        communityContainerRef={communityContainerRef}
+          communityMessagesCache={communityMessagesCache} hasUnreadCommunity={hasUnreadCommunity}
+          communityContainerRef={communityContainerRef}
           setExploreCommunities={setExploreCommunities}
           exploreCommunities={exploreCommunities} loading={loading}
           chatCommunitys={chats} setMobileViewCommunity={setMobileViewCommunity} mobileViewCommunity={mobileViewCommunity}

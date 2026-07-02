@@ -7,7 +7,7 @@ import api from "../../Api/axios";
 import CommunityMediaMessage from "./CommunityMediaMessage";
 import MediaPreview from "./MediaPreview";
 import PollMessage from "./poll/PollMessage";
-import { useAuth } from "../../layout/AuthProvider";
+import OptionVotersModal from "./poll/OptionVotersModal";
 
 export default function MessageList({msg, setReactionMsg, 
                                     reactionMsg, isMobile, authUser, retryCommunityMessage ,react,
@@ -34,7 +34,9 @@ export default function MessageList({msg, setReactionMsg,
   const [showPreview, setShowPreview] =
   useState(false);
 
-  const {user} = useAuth()
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [showVoters, setShowVoters] = useState(false);
+
 
   
   const startX = useRef(0);
@@ -547,6 +549,11 @@ const handleDownloadMessage =
                           message={msg}
                           currentUser={authUser}
                           isAdmin={isAdmin}
+                          selectedOption={selectedOption}
+                          setShowVoters={setShowVoters}
+                          setSelectedOption={setSelectedOption}
+                          showVoters={showVoters}
+
                       />
                   )
               }
@@ -560,7 +567,7 @@ const handleDownloadMessage =
               px-4
               mt-3
             ">
-              {!isMobile && hoverMsgId === msg.id && msg.is_system === 0 && (
+              {!isMobile && hoverMsgId === msg.id && (
                 <div
                     className={`absolute -bottom-7 flex bg-gray-50 shadow-md text-black p-1 px-1 gap-1 
                         z-50 rounded-lg shadow-xl px-2 right-0 `}
@@ -727,7 +734,9 @@ const handleDownloadMessage =
                 ))}
               </div>
             )}
-            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && !isAdmin && (
+            
+            {Boolean(Number(msg.response_mode))  && msg.replied_to === null && !isAdmin && 
+            msg.type !== "poll" && (
             <div className="
               mx-auto
               text-center
@@ -799,6 +808,22 @@ const handleDownloadMessage =
       onApprove={approveMessage}
       onReject={rejectMessage}
     />
+
+     {showVoters &&
+      selectedOption && (
+
+      <OptionVotersModal
+        option={selectedOption}
+        onClose={() => {
+
+          setShowVoters(false);
+
+          setSelectedOption(null);
+
+        }}
+      />
+
+    )}
     
     </div>
      )

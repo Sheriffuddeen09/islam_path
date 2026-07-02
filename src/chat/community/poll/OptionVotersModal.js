@@ -1,14 +1,54 @@
+import { useEffect, useState } from "react";
 import { X, Users } from "lucide-react";
+import api from "../../../Api/axios";
 
 export default function OptionVotersModal({
     option,
     onClose,
 }) {
 
-    if (!option) return null;
+    const [loading, setLoading] =
+        useState(true);
 
-    const voters =
-        option.voters || [];
+    const [voters, setVoters] =
+        useState([]);
+
+    useEffect(() => {
+
+        if (!option) return;
+
+        fetchVoters();
+
+    }, [option]);
+
+    const fetchVoters = async () => {
+
+        try {
+
+            setLoading(true);
+
+            const { data } =
+                await api.get(
+                    `/api/community/poll/options/${option.id}/voters`
+                );
+
+            setVoters(data.voters || []);
+
+        } catch (err) {
+
+            console.log(err);
+
+            setVoters([]);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    if (!option) return null;
 
     return (
 
@@ -99,116 +139,167 @@ export default function OptionVotersModal({
                 {/* Body */}
 
                 <div
+    className="
+        max-h-[450px]
+        overflow-y-auto
+    "
+>
+
+    {loading ? (
+
+        [...Array(6)].map((_, index) => (
+
+            <div
+                key={index}
+                className="
+                    flex
+                    items-center
+                    gap-3
+                    px-5
+                    py-4
+                    border-b
+                    animate-pulse
+                "
+            >
+
+                <div
                     className="
-                        max-h-[450px]
-                        overflow-y-auto
+                        w-12
+                        h-12
+                        rounded-full
+                        bg-gray-300
                     "
-                >
+                />
 
-                    {voters.length === 0 ? (
+                <div className="flex-1">
 
-                        <div className="p-8 text-center text-gray-500">
+                    <div
+                        className="
+                            h-4
+                            w-40
+                            bg-gray-300
+                            rounded
+                            mb-2
+                        "
+                    />
 
-                            Nobody has voted yet.
-
-                        </div>
-
-                    ) : (
-
-                        voters.map(voter => (
-
-                            <div
-                                key={voter.id}
-                                className="
-                                    flex
-                                    items-center
-                                    justify-between
-                                    px-5
-                                    py-3
-                                    border-b
-                                    hover:bg-gray-50
-                                "
-                            >
-
-                                <div className="flex items-center gap-3">
-
-                                    {voter.image ? (
-
-                                        <img
-                                            src={voter.image}
-                                            alt=""
-                                            className="
-                                                w-12
-                                                h-12
-                                                rounded-full
-                                                object-cover
-                                            "
-                                        />
-
-                                    ) : (
-
-                                        <div
-                                            className="
-                                                w-12
-                                                h-12
-                                                rounded-full
-                                                bg-blue-600
-                                                text-white
-                                                flex
-                                                items-center
-                                                justify-center
-                                                text-lg
-                                                font-bold
-                                            "
-                                        >
-
-                                            {voter.first_name?.[0]}
-
-                                        </div>
-
-                                    )}
-
-                                    <div>
-
-                                        <h4 className="font-semibold">
-
-                                            {voter.first_name}{" "}
-                                            {voter.last_name}
-
-                                        </h4>
-
-                                        <p className="text-xs text-gray-500">
-
-                                            Member
-
-                                        </p>
-
-                                    </div>
-
-                                </div>
-
-                                                                <span
-                                    className="
-                                        px-3
-                                        py-1
-                                        rounded-full
-                                        bg-green-100
-                                        text-green-700
-                                        text-xs
-                                        font-semibold
-                                    "
-                                >
-                                    ✓ Voted
-                                </span>
-
-                            </div>
-
-                        ))
-
-                    )}
+                    <div
+                        className="
+                            h-3
+                            w-20
+                            bg-gray-200
+                            rounded
+                        "
+                    />
 
                 </div>
 
+            </div>
+
+        ))
+
+    ) : voters.length === 0 ? (
+
+        <div className="p-8 text-center text-gray-500">
+
+            Nobody has voted yet.
+
+        </div>
+
+    ) : (
+
+        voters.map(voter => (
+
+            <div
+                key={voter.id}
+                className="
+                    flex
+                    items-center
+                    justify-between
+                    px-5
+                    py-3
+                    border-b
+                    hover:bg-gray-50
+                "
+            >
+
+                <div className="flex items-center gap-3">
+
+                    {voter.image ? (
+
+                        <img
+                            src={voter.image}
+                            alt=""
+                            className="
+                                w-12
+                                h-12
+                                rounded-full
+                                object-cover
+                            "
+                        />
+
+                    ) : (
+
+                        <div
+                            className="
+                                w-12
+                                h-12
+                                rounded-full
+                                bg-blue-600
+                                text-white
+                                flex
+                                items-center
+                                justify-center
+                                text-lg
+                                font-bold
+                            "
+                        >
+
+                            {voter.first_name?.charAt(0)}
+
+                        </div>
+
+                    )}
+
+                    <div>
+
+                        <h4 className="font-semibold">
+
+                            {voter.first_name} {voter.last_name}
+
+                        </h4>
+
+                        <p className="text-xs text-gray-500">
+
+                            Member
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span
+                    className="
+                        px-3
+                        py-1
+                        rounded-full
+                        bg-green-100
+                        text-green-700
+                        text-xs
+                        font-semibold
+                    "
+                >
+                    ✓ Voted
+                </span>
+
+            </div>
+
+        ))
+
+    )}
+
+</div>
                 {/* Footer */}
 
                 <div
@@ -223,31 +314,18 @@ export default function OptionVotersModal({
                     "
                 >
 
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-black">
 
-                        <span className="font-semibold">
-                            {voters.length}
-                        </span>{" "}
+                       
                         {voters.length === 1
                             ? "Person voted"
                             : "People voted"}
 
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        className="
-                            px-5
-                            py-2
-                            rounded-lg
-                            bg-blue-600
-                            hover:bg-blue-700
-                            text-white
-                            font-medium
-                        "
-                    >
-                        Close
-                    </button>
+                     <span className="font-semibold">
+                        {voters.length}
+                    </span>
 
                 </div>
 

@@ -13,7 +13,8 @@ export default function CommunityMessages({
   authUser,
   loadingMessages, messagesCacheRef, messagesCommunityEndRef, firstUnreadMessageId, authUserId,
   chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageCommunityRefs, 
-  setLastReadMessageId, setCommunities, onOpenSettings, uiMode, communityContainerRef
+  setLastReadMessageId, setCommunities, onOpenSettings, uiMode, communityContainerRef,
+  communityMessagesCache
 
 }) {
 
@@ -220,32 +221,56 @@ const communityMessageAction = async ({
 };
 
 
-    const updateStatus = (id, status) => {
-    setCommunityMessages(prev =>
-      prev.map(m =>
-        m.id === id
-          ? { ...m, status }
-          : m
-      )
+   const updateCommunityMessages = (callback) => {
+
+    setCommunityMessages(prev => {
+
+        const updated =
+            typeof callback === "function"
+                ? callback(prev)
+                : callback;
+
+        // ✅ Update the cache
+        communityMessagesCache.current[activeCommunity.id] =
+            updated;
+
+        return updated;
+
+    });
+
+};
+
+const updateStatus = (id, status) => {
+
+    updateCommunityMessages(prev =>
+        prev.map(m =>
+            m.id === id
+                ? {
+                      ...m,
+                      status,
+                  }
+                : m
+        )
     );
-  };
 
-  //No
+};
 
-  const replaceMessage = (id, newMsg) => {
+const replaceMessage = (id, newMsg) => {
 
-    setCommunityMessages(prev =>
-      prev.map(m =>
-        m.id === id
-          ? {
-              ...m,
-              ...newMsg,
-              status: "sent",
-            }
-          : m
-      )
+    updateCommunityMessages(prev =>
+        prev.map(m =>
+            m.id === id
+                ? {
+                      ...m,
+                      ...newMsg,
+                      status: "sent",
+                  }
+                : m
+        )
     );
-  };
+
+};
+
 
     const resendCommunityText = async (
   msg
@@ -597,7 +622,7 @@ const resendCommunityFile =
 
   return (
 
-    <div className={`flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative
+    <div className={`flex flex-col h-full bg-[var(--bg-color)] text-[var(--text-color)] relative
       ${uiMode !== 'full' ? 'border lg:rounded-xl' : ''}`}>
 
       {/* HEADER */}
@@ -845,10 +870,12 @@ const resendCommunityFile =
 
 
         <InputComponent
+          communityMessagesCache={communityMessagesCache}
           activeCommunity={
             activeCommunity
           }
           setMessages={setCommunityMessages}
+          loadingMessages={loadingMessages}
           authUser={authUser}
           setReplyingToCommunity={setReplyingToCommunity}
           replyingToCommunity={replyingToCommunity}

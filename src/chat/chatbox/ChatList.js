@@ -19,7 +19,8 @@ export default function ChatList({
   communities, setCommunities, activeCommunity, setActiveCommunity, loadingMessagesCommunity,
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageCommunityRefs, messagesCommunityEndRef, exploreCommunities,
   openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId, setExploreCommunities,
-  mobileViewCommunity, setMobileViewCommunity, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll, loadingExploring
+  mobileViewCommunity, setMobileViewCommunity, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll, loadingExploring,
+  communityMessagesCache, hasUnreadCommunity
 }) {
   const { user: authUser } = useAuth();
 
@@ -107,7 +108,8 @@ export default function ChatList({
   }, [chatFilter, chats]);
 
 
-  
+   
+
   
 
   return (
@@ -353,6 +355,10 @@ export default function ChatList({
         chatListRef={chatListRef}
         onOpenChannel={() => setShowChannel(true)}
         setShowCommunityModal={setShowCommunityModal}
+        messagesCommunityEndRef={messagesCommunityEndRef}
+        communityMessages={communityMessages} 
+        setLastReadMessageId={setLastReadMessageId} setCommunities={setCommunities} 
+        activeCommunity={activeCommunity} hasUnreadCommunity={hasUnreadCommunity}
       />
       
         </div>
@@ -362,7 +368,7 @@ export default function ChatList({
         <CommunityPage
           setExploreCommunities={setExploreCommunities} exploreCommunities={exploreCommunities}
           loadingExploring={loadingExploring} communityContainerRef={communityContainerRef}
-          chatCommunitys={chatCommunitys}
+          chatCommunitys={chatCommunitys} communityMessagesCache={communityMessagesCache}
           activeChat={activeChat}
           onClose={() => setShowChannel(false)}
           onCloseChannel={() => setShowChannel(false)}

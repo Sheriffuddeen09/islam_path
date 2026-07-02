@@ -16,6 +16,7 @@ import MyPostsIdStudent from "../studentdashboard/mediaProfileId/PostProfileId";
 import MyVideosIdStudent from "../studentdashboard/mediaProfileId/VideoProfileId";
 import MyImagesIdStudent from "../studentdashboard/mediaProfileId/ImageProfileId";
 import BioDataProfile from "./BiodataProfile";
+import SidebarLeft from "../pages/friend/SidebarLeft";
 
 
 
@@ -333,7 +334,11 @@ const content = (
 
    
   return(
-    <div>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
+            
+      <SidebarLeft />
+     
+      <div className="lg:ml-64 mt-2">
         
         {content}
          {
@@ -353,34 +358,30 @@ const content = (
         {profile_content}
 
     </div>
+    </div>
   )
 }
 
-function ProfileCard({ icon, label, value, editable, onToggle, isVisible }) {
-  return (
-    <div className="bg-white rounded-xl shadow p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-full bg-blue-100 text-blue-600">{icon}</div>
-        <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="font-semibold text-gray-800">{value}</p>
-        </div>
-      </div>
-      {editable && (
-        <button onClick={onToggle}>
-          {isVisible ? <Eye className="text-green-500" /> : <EyeOff className="text-red-500" />}
-        </button>
-      )}
-    </div>
-  );
 
-}
 
 
 function Loader() {
   return (
-    <div className="min-h-screen sm:p-12 px-4 py-10 animate-pulse bg-gray-700 rounded-2xl">
+    <div className="flex flex-col pt-8 px-2 lg:flex-row min-h-screen bg-[var(--bg-color)]">
+        {/* Sidebar Skeleton */}
+        <aside className="hidden lg:block mt-10 lg:w-80 p-4">
+          <div className="animate-pulse space-y-4">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={i}
+                className="h-12 bg-gray-200 rounded-lg"
+              />
+            ))}
+          </div>
+        </aside>
 
+
+    <div className=" animate-pulse bg-gray-700 rounded-2xl w-full sm:px-4 px-2"> 
       <div className=" mx-auto mt-12 sm:mt-12 space-y-3">
 
         {/* HEADER */}
@@ -471,6 +472,8 @@ function Loader() {
             ))}
           </div>
         </div>
+
+      </div>
 
 
       </div>

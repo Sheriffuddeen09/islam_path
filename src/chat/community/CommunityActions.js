@@ -21,7 +21,7 @@ export default function CommunityActions({
   setCommunityMessages,
   isAdmin,
   authUser,
-  setMessages, onBack
+  setMessages, onBack, communityMessagesCache
 }) {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
@@ -389,6 +389,9 @@ const members = activeCommunity?.members || [];
           setMessages={setMessages}
           onClose={()=> setShowPollVotingModal(false)}
           onBack={onBack}
+          communityMessagesCache={communityMessagesCache}
+          activeCommunity={activeCommunity}
+          setCommunityMessages={setCommunityMessages}
           />
 
       }

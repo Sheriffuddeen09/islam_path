@@ -5,8 +5,8 @@ import api from "../../Api/axios";
 export default function InputComponent({activeCommunity,
   setMessages, textCommunity, setTextCommunity,
   authUser, replyingToCommunity, setReplyingToCommunity, communityMessageAction, bottomRef,
- unreadCount, showScrollButton, setShowScrollButton, communityMessages,
- setLastReadMessageId, myId, setCommunities, latestMessage, messagesCommunityEndRef,}){
+ unreadCount, showScrollButton, setShowScrollButton, communityMessages, loadingMessages,
+ setLastReadMessageId, myId, setCommunities, latestMessage, messagesCommunityEndRef, communityMessagesCache}){
 
     
   const [files, setFiles={setFiles}] = useState([]);
@@ -151,10 +151,20 @@ const stopRecordingCommunity = async () => {
       created_at:
         new Date().toISOString(),
     };
-    setMessages((prev) => [
-      ...prev,
-      tempMessage,
-    ]);
+    setMessages((prev) => {
+
+    const updated = [
+        ...prev,
+        tempMessage,
+    ];
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
 
     requestAnimationFrame(() => {
 
@@ -212,58 +222,52 @@ const stopRecordingCommunity = async () => {
             },
           }
         );
-      setMessages((prev) =>
+     setMessages((prev) => {
 
-        prev.map((m) =>
-
-          m.id === tempId
-
+    const updated = prev.map((m) =>
+        m.id === tempId
             ? {
-
                 ...res.data.message,
-
                 replied_to: reply
-                  ? {
-                      ...reply,
-                      sender:
-                        reply.sender ||
-                        reply.sender_data,
+                    ? {
+                        ...reply,
+                        sender:
+                            reply.sender ||
+                            reply.sender_data,
                     }
-                  : res.data.message
-                      .replied_to || null,
+                    : res.data.message.replied_to || null,
 
                 files:
-                  res.data.message
-                    .files || [
-                    {
-                      file_url:
-                        res.data
-                          .message
-                          .file_url ||
-
-                        `http://127.0.0.1:8000/storage/${res.data.message.file}`,
-
-                      type:
-                        res.data
-                          .message
-                          .type,
-                    },
-                  ],
+                    res.data.message.files || [
+                        {
+                            file_url:
+                                res.data.message.file_url ||
+                                `http://127.0.0.1:8000/storage/${res.data.message.file}`,
+                            type:
+                                res.data.message.type,
+                        },
+                    ],
 
                 local: null,
 
                 sender:
-                  res.data.message
-                    .sender ||
-                  authUser,
+                    res.data.message.sender ||
+                    authUser,
 
                 status: "sent",
-              }
-
+            }
             : m
-        )
-      );
-      requestAnimationFrame(() => {
+    );
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
+
+  requestAnimationFrame(() => {
 
         bottomRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -281,18 +285,24 @@ const stopRecordingCommunity = async () => {
         err?.response?.data
       );
 
-      setMessages((prev) =>
+      setMessages((prev) => {
 
-        prev.map((m) =>
-
-          m.id === tempId
+    const updated = prev.map((m) =>
+        m.id === tempId
             ? {
                 ...m,
                 status: "failed",
-              }
+            }
             : m
-        )
-      );
+    );
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
     }
   };
 
@@ -329,10 +339,20 @@ const sendTextCommunity = async ({
     response_mode,
   };
 
-  setMessages((prev) => [
-    ...prev,
-    tempMessage,
-  ]);
+  setMessages((prev) => {
+
+    const updated = [
+        ...prev,
+        tempMessage,
+    ];
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
 
   const originalText = textCommunity;
 
@@ -379,37 +399,52 @@ const sendTextCommunity = async ({
     // ✅ FIX
     const realMessage = data.message;
 
-    setMessages((prev) =>
-      prev.map((m) =>
+    setMessages((prev) => {
+
+    const updated = prev.map((m) =>
         m.id === tempId
-          ? {
-              ...realMessage,
-
-              status: "sent",
-
-              replied_to:
-                realMessage?.replied_message ||
-                reply ||
-                null,
-            }
-          : m
-      )
+            ? {
+                  ...realMessage,
+                  status: "sent",
+                  replied_to:
+                      realMessage?.replied_message ||
+                      reply ||
+                      null,
+              }
+            : m
     );
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
 
   } catch (err) {
 
     console.log(err);
 
-    setMessages((prev) =>
-      prev.map((m) =>
+    setMessages((prev) => {
+
+    const updated = prev.map((m) =>
         m.id === tempId
-          ? {
-              ...m,
-              status: "failed",
-            }
-          : m
-      )
+            ? {
+                  ...m,
+                  status: "failed",
+              }
+            : m
     );
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
+
   }
 };
 
@@ -483,6 +518,21 @@ const sendFileCommunity = async (
     ],
   };
 
+  setMessages(prev => {
+
+    const updated = [
+        ...prev,
+        tempMessage,
+    ];
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
+
   requestAnimationFrame(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "auto",
@@ -523,13 +573,24 @@ const sendFileCommunity = async (
           ]
         : [],
     };
-    setMessages(prev =>
-      prev.map(m =>
+   
+    setMessages(prev => {
+
+    const updated = prev.map(m =>
         m.id === tempId
-          ? normalized
-          : m
-      )
+            ? normalized
+            : m
     );
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
+
+
     requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -537,16 +598,24 @@ const sendFileCommunity = async (
       });
     });
   } catch (err) {
-    setMessages(prev =>
-      prev.map(m =>
+    setMessages(prev => {
+
+    const updated = prev.map(m =>
         m.id === tempId
-          ? {
-              ...m,
-              status: "failed",
-            }
-          : m
-      )
+            ? {
+                  ...m,
+                  status: "failed",
+              }
+            : m
     );
+
+    communityMessagesCache.current[
+        activeCommunity.id
+    ] = updated;
+
+    return updated;
+
+});
     toast.error(
       err?.response?.data
         ?.message ||
@@ -585,7 +654,7 @@ const sendFileCommunity = async (
 return (
     <div>
         <CommunityInput
-        activeCommunity={activeCommunity}
+        activeCommunity={activeCommunity} loadingMessages={loadingMessages}
         setMessages={setMessages}
         authUser={authUser}
         sendFileCommunity={sendFileCommunity}

@@ -12,7 +12,7 @@ export default function SidebarLeft() {
   return (
     
     <aside className="fixed hidden lg:block top-[80px] left-
-      h-full w-72 bg-[var(--bg-color)] shadow-md p-4 z-40 rounded-lg flex-1
+      h-full w-[265px] border  bg-[var(--bg-color)] shadow-md p-4 z-40 rounded-lg flex-1
       overflow-y-auto overflow-x-hidden text-[var(--text-color)]
       scrollbar-thin scrollbar-thumb-gray-400">
         <p className="text-2xl text-center font-bold border-b-2 pb-2 mb-2">Knowledge Practice</p>

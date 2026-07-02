@@ -103,7 +103,7 @@ if (loading) {
         {/* Sidebar Skeleton */}
         <aside className="hidden lg:block mt-20 lg:w-72 p-4">
           <div className="animate-pulse space-y-4">
-            {[...Array(14)].map((_, i) => (
+            {[...Array(9)].map((_, i) => (
               <div
                 key={i}
                 className="h-12 bg-gray-200 rounded-lg"
@@ -115,12 +115,12 @@ if (loading) {
         {/* Main Content Skeleton */}
         <div className="flex-1 p-4 mt-20">
           <div className="animate-pulse space-y-4">
-            {[...Array(5)].map((_, index) => (
+            {[...Array(4)].map((_, index) => (
               <div
                 key={index}
                 className="bg-white p-4 rounded-lg shadow"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between">
                   <div className="flex items-center gap-4">
                     {/* Avatar */}
                     <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200" />
@@ -133,10 +133,10 @@ if (loading) {
                   </div>
 
                   {/* Buttons */}
-                  <div className="flex gap-2">
-                    <div className="h-10 w-24 bg-gray-200 rounded" />
-                    <div className="h-10 w-24 bg-gray-200 rounded" />
-                    <div className="h-10 w-28 bg-gray-200 rounded" />
+                 <div className="flex gap-2 mt-3 sm:mt-0">
+                    <div className="h-10 sm:w-24 w-20 bg-gray-200 rounded" />
+                    <div className="h-10 sm:w-24 w-20 bg-gray-200 rounded" />
+                    <div className="h-10 sm:w-28 w-20 bg-gray-200 rounded" />
                   </div>
                 </div>
               </div>

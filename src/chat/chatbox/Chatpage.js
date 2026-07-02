@@ -89,6 +89,9 @@ export default function ChatPage({
   
       const openedCommunitiesRef = useRef({});
 
+      const hasUnreadCommunity = communities.some(
+        community => community.unread_count > 0
+      );
 
     useEffect(() => {
 
@@ -921,7 +924,8 @@ useEffect(() => {
       openCommunity={openCommunity} communityContainerRef={communityContainerRef}
       incomingCall={incomingCall} setIncomingCall={setIncomingCall}
       meetingData={meetingData} setMeetingData={setMeetingData}
-      callMode={callMode} setCallMode={setCallMode}
+      callMode={callMode} setCallMode={setCallMode} communityMessagesCache={communityMessagesCache}
+      hasUnreadCommunity={hasUnreadCommunity}
     />
   );
 }

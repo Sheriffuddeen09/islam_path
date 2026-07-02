@@ -14,8 +14,10 @@ import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText, ClipboardList, CheckCircle,
-  BarChart3, ShoppingCart, Bookmark } from "lucide-react";
+  BarChart3, ShoppingCart, Bookmark, 
+  Workflow} from "lucide-react";
 import ChatPage from "../chat/chatbox/Chatpage";
+import CreateProposal from "../pages/mentor/CreateProposal";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -68,38 +70,43 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         const menu = [
             {
               id: 5,
+              label: "Create Proposal",
+              icon: Workflow,
+            },
+            {
+              id: 6,
               label: "Teacher Request",
               icon: Users,
               showBadge: true,
             },
             {
-              id: 6,
+              id: 7,
               label: "View Continue Assignment",
               icon: ClipboardList,
             },
             {
-              id: 7,
+              id: 8,
               label: "View Continue Examination",
               icon: FileText,
             },
             {
-              id: 8,
+              id: 9,
               label: "View Assignment Result",
               icon: CheckCircle,
             },
             {
-              id: 9,
+              id: 10,
               label: "View Examination Result",
               icon: BarChart3,
             },
             {
-              id: 10,
+              id: 11,
               label: "Product Order",
               icon: ShoppingCart,
               ordershow: true,
             },
             {
-              id: 11,
+              id: 12,
               label: "Saved Order",
               icon: Bookmark,
               showcount: true,
@@ -441,25 +448,29 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                          <Setting />
                          </div>
                          <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
+                          <CreateProposal togglePopup={togglePopup} setActiveChat={setActiveChat}
+                         chats={chats} setMessages={setMessages} />
+                         </div>
+                          <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
                          <StudentRequest togglePopup={togglePopup} setActiveChat={setActiveChat}
                          chats={chats} setMessages={setMessages} />
                          </div>
-                         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
                          <AssignmentLibrary  />
                          </div> 
-                          <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+                          <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
                          <ExamLibrary  />
                          </div> 
-                         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
                          <AssignmentResults  />
                          </div> 
-                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
                          <ExamResults  />
                          </div> 
-                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
                          <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
                          </div> 
-                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
                          <SaveOrder  />
                          </div> 
                        </section>

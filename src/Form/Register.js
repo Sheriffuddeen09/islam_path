@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import api from "../Api/axios";
 import { Home, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,9 +8,12 @@ import dua from "./image/dua.png";
 import knowledge from "./image/dua_beneficial.png";
 import ImageSlider from "./ImageSlider";
 import TextSlider from "./TextSlider";
-import Notification from "../notification/Notification";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import toast from "react-hot-toast";
 
 
 
@@ -50,6 +53,7 @@ export default function RegisterPage() {
   const [countryCode, setCountryCode] = useState('');
   const [phonenumber, setPhonenumber] = useState('');
   const [location, setLocation] = useState('');
+  const [address, setAddress] = useState('');
   const [privacy, setPrivacy] = useState('');
 
   // OTP
@@ -65,34 +69,13 @@ export default function RegisterPage() {
   // Step 4
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [phoneCountry, setPhoneCountry] = useState("");
+
+
+  const options = useMemo(() => countryList().getData(), []);
 
   const navigate = useNavigate()
 
-  const [notify, setNotify] = useState({ message: "", type: "" });
-
-const showNotification = (message, type = "success") => {
-    setNotify({ message, type });
-
-    // Clear after 5 seconds
-    setTimeout(() => {
-      setNotify({ message: "", type: "" });
-    }, 5000);
-  };
-
-useEffect(() => {
-  const msg = sessionStorage.getItem("notify_message");
-
-  if (msg) {
-    setNotify({ message: msg, type: "error" });
-
-    // Clear after 5 seconds
-    setTimeout(() => {
-      setNotify({ message: "", type: "" });
-    }, 5000);
-
-    sessionStorage.removeItem("notify_message");
-  }
-}, []);
 
   const validateError = () => {
     const newErrors = {};
@@ -210,19 +193,28 @@ const autoSentOtp = async () =>{
   setSteps(6);
 };
 
-console.log("Sending phone:", `+${phonenumber}`);
 
 const handleContactNext = async () => {
   const newErrors = {};
   setLoading(true);
-
-  if (!email) newErrors.email = "Email is required";
-  if (!location) newErrors.location = "Location is required";
-
-  if (!phonenumber || phonenumber.length < 11) {
-      newErrors.phonenumber = "Enter valid phone number";
+    if (!email) {
+      newErrors.email = "Email is required";
     }
 
+    if (!location) {
+      newErrors.location = "Please select your country";
+    }
+
+    if (location && phoneCountry && location !== phoneCountry) {
+      newErrors.location =
+        "Phone number does not match the selected country.";
+    }
+
+    const phoneNumber = parsePhoneNumberFromString(`+${phonenumber}`);
+
+    if (!phoneNumber || !phoneNumber.isValid()) {
+      newErrors.phonenumber = "Please enter a valid phone number.";
+    }
   if (Object.keys(newErrors).length > 0) {
     setLoading(false);
     return setErrors(newErrors);
@@ -296,13 +288,11 @@ const handleContactNext = async () => {
   }
 
 
-// Function to handle sending OTP and starting cooldown
 const resendOtp = async () => {
   try {
     const response = await api.post("/api/send-otp", { email });
     setOtpSent(true);
 
-    // Start cooldown (e.g., 30 seconds)
     setResendTimer(30);
     const interval = setInterval(() => {
       setResendTimer(prev => {
@@ -388,6 +378,7 @@ const handleRegister = async () => {
     phone: phoneWithoutCode,
     phone_country_code: `+${countryCode}`,
     location,
+    address,
     email,
     password,
     password_confirmation: passwordConfirm,
@@ -399,18 +390,16 @@ const handleRegister = async () => {
 
     await api.post("/api/register", payload);
 
-    // CLEAR OLD USER SESSION
     localStorage.clear();
 
     sessionStorage.clear();
 
     delete api.defaults.headers.common["Authorization"];
 
-    showNotification(
+    toast.success(
       "Registration successful. Please login."
     );
 
-    // REDIRECT TO LOGIN
     navigate("/login");
 
   } catch (err) {
@@ -423,19 +412,19 @@ const handleRegister = async () => {
       const firstError =
         Object.values(validationErrors)[0][0];
 
-      showNotification(firstError);
+      toast.error(firstError);
     }
 
     else if (err.response?.data?.message) {
 
-      showNotification(
+      toast.error(
         err.response.data.message
       );
     }
 
     else {
 
-      showNotification(
+      toast.error(
         "Something went wrong. Try again.",
         "error"
       );
@@ -819,36 +808,74 @@ const handleRegister = async () => {
               {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
             </div>
 
-
-         {/* Location */}
+            {/* Address */}
             <div className="relative mt-7 sm:px-4 py-3">
-              <label className="absolute -top-0 left-6 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">Address</label>
+              <label className="absolute -top-0 left-6 bg-[var(--bg-color)]
+               text-[var(--text-color)] px-1 text-sm  font-bold">Address</label>
               <div className="flex gap-2">
                 <input
-                  value={location}
-                  onChange={(e)=>{setLocation(e.target.value); clearError('location')}}
+                  value={address}
+                  onChange={(e)=>{setAddress(e.target.value)}}
                   className="flex-1 border rounded px-4 py-3 w-full text-black"
                   placeholder="City / State / Location"
                 />
               </div>
-              {errors.location && <p className="text-red-600 text-xs mt-1">{errors.location}</p>}
             </div>
+
+
+         {/* Location */}
+            <div className="relative mt-8 sm:px-4">
+              <label className="absolute -top-2 left-8 bg-[var(--bg-color)] px-1 text-sm font-bold z-10">
+                  Location
+              </label>
+
+              <Select
+                    options={options}
+                    value={options.find(option => option.value === location)}
+                    onChange={(selected) => {
+                      setLocation(selected.value);
+                      clearError("location");
+                    }}
+                    placeholder="Select Location"
+                    isSearchable
+                    menuPortalTarget={document.body}
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        paddingTop: "0.25rem",     // py-1
+                        paddingBottom: "0.25rem",  // py-1
+                        minHeight: "48px",
+                      }),
+                      menuPortal: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
+                    }}
+                  />
+
+              {errors.location && (
+                  <p className="text-red-600 text-xs mt-2">
+                      {errors.location}
+                  </p>
+              )}
+            </div>
+
             
-            {/* Phone */}
            <div className="relative mt-7 sm:px-4 py-3">
             <label className="absolute z-50 top-1 left-6 bg-[var(--bg-color)] text-[var(--text-color)] px-1 text-sm  font-bold">
               Phone Number
             </label>
 
             <PhoneInput
-              country={"ng"}
-              value={phonenumber}
-              className='mt-1 bg-white text-black'
-              onChange={(value, country) => {
-                setPhonenumber(value); // store full number
-                setCountryCode(country.dialCode); // optional
-                clearError("phonenumber");
-              }}
+            country={"ng"}
+            value={phonenumber}
+            onChange={(value, country) => {
+              setPhonenumber(value);
+              setCountryCode(country.dialCode);
+              setPhoneCountry(country.countryCode.toUpperCase()); // NG, US, GB...
+              clearError("phonenumber");
+              clearError("location");
+            }}
               inputProps={{
                 required: true,
               }}

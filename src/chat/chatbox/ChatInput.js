@@ -12,7 +12,7 @@ export default function ChatInput({ authUser,  activeChat, replyingTo, setReplyi
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, blockAllInput, status, onlyAdminSend, isAdmin, setChats, messages, unreadCount,
-  setUnreadCount, showScrollButton, isMinimized, setLastReadMessageId, bottomRef }) {
+  setUnreadCount, showScrollButton, isMinimized, setLastReadMessageId, bottomRef, loadingMessages }) {
 
   const [showEmoji, setShowEmoji] = useState(false);
   const holdTimeout = useRef(null);
@@ -208,7 +208,7 @@ const getPreviewText = (msg) => {
     
     
     
-{showScrollButton && !isMinimized && (
+{showScrollButton && !isMinimized && !loadingMessages && (
   <div
     onClick={async () => {
       bottomRef.current?.scrollIntoView({
@@ -310,7 +310,7 @@ const getPreviewText = (msg) => {
     </div>
   )}
 
-  {!blockAllInput && (
+  {!blockAllInput && !loadingMessages && (
     <>
 
    {replyingTo && (
