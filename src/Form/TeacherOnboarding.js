@@ -275,7 +275,7 @@ const handleSubmit = async (e) => {
         </select>
 
         <input
-          type="number"
+          type="text"
           value={payment}
           onChange={(e) => setPayment(e.target.value)}
           placeholder="Enter price"

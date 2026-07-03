@@ -53,7 +53,6 @@ export default function RegisterPage() {
   const [countryCode, setCountryCode] = useState('');
   const [phonenumber, setPhonenumber] = useState('');
   const [location, setLocation] = useState('');
-  const [address, setAddress] = useState('');
   const [privacy, setPrivacy] = useState('');
 
   // OTP
@@ -378,7 +377,6 @@ const handleRegister = async () => {
     phone: phoneWithoutCode,
     phone_country_code: `+${countryCode}`,
     location,
-    address,
     email,
     password,
     password_confirmation: passwordConfirm,
@@ -808,21 +806,6 @@ const handleRegister = async () => {
               {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
             </div>
 
-            {/* Address */}
-            <div className="relative mt-7 sm:px-4 py-3">
-              <label className="absolute -top-0 left-6 bg-[var(--bg-color)]
-               text-[var(--text-color)] px-1 text-sm  font-bold">Address</label>
-              <div className="flex gap-2">
-                <input
-                  value={address}
-                  onChange={(e)=>{setAddress(e.target.value)}}
-                  className="flex-1 border rounded px-4 py-3 w-full text-black"
-                  placeholder="City / State / Location"
-                />
-              </div>
-            </div>
-
-
          {/* Location */}
             <div className="relative mt-8 sm:px-4">
               <label className="absolute -top-2 left-8 bg-[var(--bg-color)] px-1 text-sm font-bold z-10">
@@ -831,9 +814,9 @@ const handleRegister = async () => {
 
               <Select
                     options={options}
-                    value={options.find(option => option.value === location)}
+                    value={options.find(option => option.label === location)}
                     onChange={(selected) => {
-                      setLocation(selected.value);
+                      setLocation(selected.label); // Store "Nigeria"
                       clearError("location");
                     }}
                     placeholder="Select Location"

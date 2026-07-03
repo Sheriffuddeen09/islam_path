@@ -3,6 +3,8 @@ import Select from "react-select";
 import countryList from "react-select-country-list";
 import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
+import api from "../../Api/axios";
 
 export default function CreateProposal() {
   const countries = useMemo(() => countryList().getData(), []);
@@ -10,7 +12,6 @@ export default function CreateProposal() {
   const currencyOptions = [
     "NGN",
     "USD",
-    "GBP",
     "EUR",
   ];
 
@@ -51,14 +52,13 @@ export default function CreateProposal() {
   const validateForm = () => {
     const newErrors = {};
 
-    const errors = {};
 
     if (!fromTime) {
-        errors.fromTime = "Select a starting time.";
+        newErrors.fromTime = "Select a starting time.";
     }
 
     if (!toTime) {
-        errors.toTime = "Select an ending time.";
+        newErrors.toTime = "Select an ending time.";
     }
 
     if (
@@ -66,7 +66,7 @@ export default function CreateProposal() {
         toTime &&
         fromTime >= toTime
     ) {
-        errors.toTime =
+        newErrors.toTime =
             "Ending time must be later than starting time.";
     }
     if (!title.trim())
@@ -98,7 +98,7 @@ export default function CreateProposal() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -106,32 +106,63 @@ export default function CreateProposal() {
     setLoading(true);
 
     const payload = {
-      title,
-      subject,
-      price,
-      currency,
-      teacher_type: teacherType,
-      teaching_mode: teachingMode,
-      preferred_location: location,
-      qualification,
-      teaching_hours: hours,
-      from_time: fromTime,
-      to_time: toTime,
-      description,
+        title,
+        subject,
+        price,
+        currency,
+        teacher_type: teacherType,
+        teaching_mode: teachingMode,
+        preferred_location: location,
+        qualification,
+        teaching_hours: parseInt(hours, 10),
+        from_time: fromTime,
+        to_time: toTime,
+        description,
     };
 
-    console.log(payload);
+    console.log("Payload:", payload);
 
-    // Part 2
-    // await api.post("/api/proposals", payload);
+    try {
+        const response = await api.post(
+            "/api/proposals",
+            payload
+        );
 
-    setLoading(false);
-  };
+        toast.success(
+            response.data.message || "Proposal submitted successfully!"
+        );
+
+        console.log(response.data);
+
+        setTitle("");
+        setSubject("");
+        setPrice("");
+        setCurrency("")
+        setTeacherType("")
+        setTeachingMode("")
+        setLocation("")
+        setQualification("")
+        setHours("")
+        setFromTime("")
+        setToTime("")
+        setDescription("")
+    } catch (error) {
+        console.error(error.response?.data || error);
+
+        toast.error(
+            error.response?.data?.message ||
+            "Failed to submit proposal. Please try again."
+        );
+    } finally {
+        setLoading(false);
+    }
+};
+
 
   return (
-    <div className="max-w-4xl lg:ml-64 mx-auto bg-white rounded-xl shadow-lg p-6 mt-10">
+    <div className="max-w-4xl lg:ml-64 mx-auto bg-white rounded-xl shadow-lg p-6 text-black">
       <h2 className="text-2xl font-bold mb-6">
-        Create Learning Proposal
+        Create Teacher Proposal
       </h2>
 
       <form
@@ -153,7 +184,7 @@ export default function CreateProposal() {
               clearError("title");
             }}
             className="border rounded-lg w-full p-3 mt-2"
-            placeholder="Need an experienced Mathematics Tutor"
+            placeholder="Need an experienced Tutor"
           />
 
           {errors.title && (
@@ -176,7 +207,7 @@ export default function CreateProposal() {
             setSubject(e.target.value);
             clearError("subject");
           }}
-          placeholder="Enter subject (e.g. Mathematics, Physics, English)"
+          placeholder="Enter optional subject "
           className="border rounded-lg w-full p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
@@ -247,8 +278,11 @@ export default function CreateProposal() {
               clearError("teacherType");
             }}
             placeholder="Select Teacher Type"
+            className="mt-2"
+            classNames={{
+              control: () => "py-1",
+            }}
           />
-
           {errors.teacherType && (
             <p className="text-red-500 text-sm mt-1">
               {errors.teacherType}
@@ -276,6 +310,10 @@ export default function CreateProposal() {
               }
             }}
             placeholder="Select Teaching Mode"
+            className="mt-2"
+            classNames={{
+              control: () => "py-1",
+            }}
           />
 
           {errors.teachingMode && (
@@ -285,9 +323,33 @@ export default function CreateProposal() {
           )}
         </div>
 
+          <div>
+          <label className="font-semibold">
+            Teaching minutes/Hours
+          </label>
+
+          <input
+            type="text"
+            min="1"
+            value={hours}
+            onChange={(e) => {
+              setHours(e.target.value);
+              clearError("hours");
+            }}
+            className="border rounded-lg w-full p-3 mt-2"
+            placeholder="30, 60, 90, and 120"
+          />
+
+          {errors.hours && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.hours}
+            </p>
+          )}
+        </div>
+
         {/* Preferred Location */}
         {teachingMode === "physical" && (
-          <div className="md:col-span-2">
+          <div>
             <label className="font-semibold">
               Preferred Location
             </label>
@@ -302,6 +364,10 @@ export default function CreateProposal() {
                 setLocation(selected.value);
                 clearError("location");
               }}
+              classNames={{
+              control: () => "py-1",
+            }}
+            className="mt-2"
               placeholder="Select Country"
               isSearchable
             />
@@ -314,7 +380,8 @@ export default function CreateProposal() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+
           <div>
 
               <label className="block font-semibold mb-2">
@@ -327,7 +394,7 @@ export default function CreateProposal() {
                   onChange={(e) =>
                       setFromTime(e.target.value)
                   }
-                  className="w-full border rounded-lg px-4 py-3"
+                  className="w-full border rounded-lg px-4 py-3 cursor-pointer"
               />
 
           </div>
@@ -344,12 +411,11 @@ export default function CreateProposal() {
                   onChange={(e) =>
                       setToTime(e.target.value)
                   }
-                  className="w-full border rounded-lg px-4 py-3"
+                  className="w-full border rounded-lg px-4 py-3 cursor-pointer"
               />
 
           </div>
 
-      </div>
 
         {/* Qualification */}
         <div className="md:col-span-2">
@@ -368,31 +434,6 @@ export default function CreateProposal() {
           />
         </div>
 
-        {/* Hours */}
-        <div>
-          <label className="font-semibold">
-            Teaching Hours
-          </label>
-
-          <input
-            type="number"
-            min="1"
-            value={hours}
-            onChange={(e) => {
-              setHours(e.target.value);
-              clearError("hours");
-            }}
-            className="border rounded-lg w-full p-3 mt-2"
-            placeholder="2"
-          />
-
-          {errors.hours && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.hours}
-            </p>
-          )}
-        </div>
-
         {/* Description */}
         <div className="md:col-span-2">
           <label className="font-semibold">
@@ -406,7 +447,8 @@ export default function CreateProposal() {
               setDescription(e.target.value);
               clearError("description");
             }}
-            className="border rounded-lg w-full p-3 mt-2 resize-none"
+            className="border rounded-lg w-full p-3 mt-2 resize-none
+            scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin"
             placeholder="Describe what you need from the teacher..."
           />
 
@@ -422,7 +464,7 @@ export default function CreateProposal() {
           <button
             type="submit"
             disabled={loading}
-            className={`px-8 py-3 rounded-lg font-semibold text-white transition ${
+            className={`px-4 py-3 rounded-lg text-sm font-semibold text-white transition ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"

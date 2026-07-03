@@ -113,12 +113,12 @@ const handleWatchAd = async () => {
 
   {/* GRID */}
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 relative ">
+    <div className=" relative ">
    
          
         <div
     key={t.id}
-    className={`bg-white rounded-lg w-60 h-64 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform hover:scale-105 transition duration-300 
+    className={`bg-white rounded-lg w-64 md:w-60 h-64 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform hover:scale-105 transition duration-300 
     flex flex-col mx-auto justify-center relative 
     ${requestStatus[t.id] === "pending" || requestStatus[t.id] === "accepted" ? "hidden" : "block"}`}
       >

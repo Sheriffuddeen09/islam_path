@@ -1,9 +1,11 @@
 export default function ProposalCard({
-
     proposal,
     onView,
-
+    getInitial,
+    getColor
 }) {
+
+
 
     return (
 
@@ -13,14 +15,13 @@ export default function ProposalCard({
 
                 <div className="flex items-center gap-3">
 
-                    <img
-                        src={
-                            proposal.student.image ||
-                            "/avatar.png"
-                        }
-                        className="w-14 h-14 rounded-full object-cover"
-                        alt=""
-                    />
+                    <div
+                        className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-2xl flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
+                        proposal?.student?.first_name
+                        )}`}
+                    >
+                        {getInitial(proposal?.student?.first_name)}
+                    </div>
 
                     <div>
 

@@ -2,19 +2,18 @@ import { useState } from "react";
 import api from "../Api/axios";
 import QuestionBuilder from "./ExamQuestionBuilder";
 import CopyLinkModal from "./CopyLinkExamModal";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
+
 
 export default function CreateExam() {
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [questions, setQuestions] = useState([]);
   const [duration, setDuration] = useState(30);
-
   const [loading, setLoading] = useState(false);
-
-  const [showQuestions, setShowQuestions] = useState(true);
-  const [showCopyModal, setShowCopyModal] = useState(false);
-  const [assignmentLink, setAssignmentLink] = useState("");
+  const [showExamQuestions, setShowExamQuestions] = useState(true);
+  const [showExamCopyModal, setShowExamCopyModal] = useState(false);
+  const [examLink, setExamLink] = useState("");
   const [errors, setErrors] = useState({
   title: "",
   dueAt: "",
@@ -34,7 +33,7 @@ export default function CreateExam() {
     ]);
 
     
-    setShowQuestions(true); // ensure questions section is open
+    setShowExamQuestions(true); // ensure questions section is open warn
   };
 
   // Submit exam
@@ -87,49 +86,56 @@ export default function CreateExam() {
     .replace("T", " ");
 
   try {
-    const res = await api.post("/api/exams", {
-      title,
-      due_at: formattedDueAt,
-      duration_minutes: Number(duration),
-      questions,
-    });
+  const res = await api.post("/api/exams", {
+    title,
+    due_at: formattedDueAt,
+    duration_minutes: Number(duration),
+    questions,
+  });
 
-    const link = `${window.location.origin}/student/exams/${res.data.access_token}`;
+  const link = `${window.location.origin}/student/exams/${res.data.access_token}`;
+
+  try {
     await navigator.clipboard.writeText(link);
-
-    // RESET
-    setTitle("");
-    setDueAt("");
-    setDuration(30);
-    setQuestions([]);
-    setErrors({ title: "", dueAt: "", questions: "" });
-    setShowQuestions(false);
-
-    setAssignmentLink(link);
-    setShowCopyModal(true);
-
-    toast.success("Exam created & link copied 🎉");
-  } catch (err) {
-    toast.error("Failed to create exam");
-  } finally {
-    setLoading(false);
+    toast.success("Exam created & Copy link 🎉");
+  } catch (clipboardError) {
+    console.error("Clipboard error:", clipboardError);
   }
+
+  // Always reset
+  setTitle("");
+  setDueAt("");
+  setDuration(30);
+  setQuestions([]);
+  setErrors({
+    title: "",
+    dueAt: "",
+    questions: "",
+  });
+  setShowExamQuestions(false);
+
+  setExamLink(link);
+  setShowExamCopyModal(true);
+
+} catch (err) {
+  console.error(err);
+  toast.error(err.response?.data?.message || err.message);
+  toast.error(
+    err.response?.data?.message || "Failed to create exam"
+  );
+} finally {
+  setLoading(false);
+}
 };
 
   return (
     <div className="max-w-6xl lg:ml-64 mx-auto sm:px-4 px-2 py-6 bg-blue-900 rounded-lg relative">
-      {/* Toast */}
-      <Toaster position="top-right" reverseOrder={false} />
-
-      {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white">Create New Exam</h2>
         <p className="text-sm text-white">
           Set Exam questions, due date, and share securely with students
         </p>
       </div>
-
-      {/* Exam Info */}
       <div className="bg-white rounded-xl shadow-sm border p-4 mb-2 space-y-4">
         <div>
           <label className="text-sm font-medium text-gray-600">Exam Title</label>
@@ -139,15 +145,12 @@ export default function CreateExam() {
             value={title}
             onChange={e => {
             setTitle(e.target.value);
-
             if (errors.title) {
               setErrors(prev => ({ ...prev, title: "" }));
             }
           }}
-
           />
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600">Due Date (Expired)</label>
           <input
@@ -155,16 +158,16 @@ export default function CreateExam() {
             value={dueAt}
             onChange={e => {
             setDueAt(e.target.value);
-
             if (errors.dueAt) {
               setErrors(prev => ({ ...prev, dueAt: "" }));
             }
           }}
-
             className="w-full mt-1 px-4 py-2 border rounded-lg"
           />
+          <p className="text-xs text-red-800 mt-1 font-semibold">
+            Note: the expire date must not be the same day.
+          </p>
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600">Duration (minutes)</label>
           <input
@@ -176,10 +179,8 @@ export default function CreateExam() {
           />
         </div>
       </div>
-
-      {/* Questions Section */}
         <div className="bg-blue-800 rounded-xl shadow-sm border sm:p-4 p-2 mb-4">
-      {showQuestions && (
+      {showExamQuestions && (
         <>
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-semibold text-white text-lg">Questions</h3>
@@ -187,7 +188,6 @@ export default function CreateExam() {
               {questions.length} / 50
             </span>
           </div>
-
           <div className="space-y-4 rounded-lg">
             {questions.map((q, i) => (
               <QuestionBuilder
@@ -198,22 +198,18 @@ export default function CreateExam() {
                 setErrors={setErrors}
               />
             ))}
-
              {errors.questions && (
             <p className="text-red-600 font-bold text-sm mb-2">{errors.questions}</p>
             )}
           {errors.title && (
             <p className="text-red-600 font-bold text-sm mb-2">{errors.title}</p>
           )}
-
           {errors.dueAt && (
             <p className="text-red-600 font-bold text-sm mb-2">{errors.dueAt}</p>
           )}
           </div>
           </>
       )}
-        
-
           <button
             onClick={addQuestion}
             className="mt-4 inline-flex items-center gap-1 px-4 py-2 rounded-lg border  text-sm font-medium text-white hover:bg-gray-800 "
@@ -221,8 +217,6 @@ export default function CreateExam() {
             ➕ Add Question
           </button>
         </div>
-
-      {/* Action Bar */}
       <div className="sticky bottom-0 border-t mt-2 py-4 flex justify-end">
         <button
           onClick={submit}
@@ -246,10 +240,8 @@ export default function CreateExam() {
           )}
         </button>
       </div>
-
-      {/* Copy Link Modal */}
-      {showCopyModal && (
-        <CopyLinkModal link={assignmentLink} onClose={() => setShowCopyModal(false)} />
+      {showExamCopyModal && (
+        <CopyLinkModal link={examLink} onClose={() => setShowExamCopyModal(false)} />
       )}
     </div>
   );

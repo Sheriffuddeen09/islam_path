@@ -33,6 +33,24 @@ export default function ProposalList() {
 
     };
 
+    const colors = [
+    "bg-orange-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    ];
+
+    const getColor = (name = "") => {
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+    };
+
+    const getInitial = (name) => {
+    if (!name) return "?";
+    return name.charAt(0).toUpperCase();
+    };
+
     if (loading) {
 
         return (
@@ -66,6 +84,8 @@ export default function ProposalList() {
                         onView={() =>
                             setSelectedProposal(proposal)
                         }
+                        getColor={getColor}
+                        getInitial={getInitial}
                     />
 
                 ))}
@@ -79,6 +99,8 @@ export default function ProposalList() {
                     onClose={() =>
                         setSelectedProposal(null)
                     }
+                    getColor={getColor}
+                    getInitial={getInitial}
                 />
 
             )}

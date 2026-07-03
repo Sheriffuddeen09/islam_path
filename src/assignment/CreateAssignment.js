@@ -2,7 +2,8 @@ import { useState } from "react";
 import api from "../Api/axios";
 import QuestionBuilder from "./QuestionBuilder";
 import CopyLinkModal from "./CopyLinkModal";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
+
 
 export default function CreateAssignment() {
   const [title, setTitle] = useState("");
@@ -20,9 +21,6 @@ export default function CreateAssignment() {
   dueAt: "",
   questions: "",
 });
-
-  
-
 
   const addQuestion = () => {
       if (questions.length >= 20) {
@@ -86,49 +84,59 @@ const submit = async () => {
     .replace("T", " ");
 
   try {
-    const res = await api.post("/api/assignments", {
-      title,
-      due_at: formattedDueAt,
-      duration_minutes: Number(duration),
-      questions,
-    });
+  const res = await api.post("/api/assignments", {
+    title,
+    due_at: formattedDueAt,
+    duration_minutes: Number(duration),
+    questions,
+  });
 
-    const link = `${window.location.origin}/student/assignment/${res.data.access_token}`;
+  const link = `${window.location.origin}/student/assignment/${res.data.access_token}`;
+
+  try {
     await navigator.clipboard.writeText(link);
-
-    // RESET
-    setTitle("");
-    setDueAt("");
-    setDuration(30);
-    setQuestions([]);
-    setErrors({ title: "", dueAt: "", questions: "" });
-    setShowQuestions(false);
-
-    setAssignmentLink(link);
-    setShowCopyModal(true);
-
-    toast.success("Assignment created & link copied 🎉");
-  } catch (err) {
-    toast.error("Failed to create assignment");
-  } finally {
-    setLoading(false);
+    toast.success("Assignment created & Copy Link 🎉");
+  } catch (clipboardError) {
+    console.error("Clipboard error:", clipboardError);
   }
+
+  // Always reset
+  setTitle("");
+  setDueAt("");
+  setDuration(30);
+  setQuestions([]);
+  setErrors({
+    title: "",
+    dueAt: "",
+    questions: "",
+  });
+  setShowQuestions(false);
+
+  setAssignmentLink(link);
+  setShowCopyModal(true);
+
+} catch (err) {
+  console.error(err);
+  toast.error(
+    err.response?.data?.message || "Failed to create Assignment"
+  );
+} finally {
+  setLoading(false);
+}
 };
 
   return (
     <div className="max-w-6xl lg:ml-64 mx-auto sm:px-4 px-2 py-6 bg-gray-900 rounded-lg relative">
-      {/* Toast */}
-      <Toaster position="top-right" reverseOrder={false} />
-
-      {/* Header */}
+      {/* 
+      
+      
+      */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-white">Create New Assignment</h2>
         <p className="text-sm text-white">
           Set questions, due date, and share securely with students
         </p>
       </div>
-
-      {/* Assignment Info */}
       <div className="bg-white rounded-xl shadow-sm border p-4 mb-2 space-y-4">
         <div>
           <label className="text-sm font-medium text-gray-600">Assignment Title</label>
@@ -143,10 +151,8 @@ const submit = async () => {
                 setErrors(prev => ({ ...prev, title: "" }));
               }
             }}
-
           />
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600">Due Date (Expired)</label>
           <input
@@ -154,16 +160,16 @@ const submit = async () => {
             value={dueAt}
             onChange={e => {
             setDueAt(e.target.value);
-
             if (errors.dueAt) {
               setErrors(prev => ({ ...prev, dueAt: "" }));
             }
           }}
-
             className="w-full mt-1 px-4 py-2 border rounded-lg"
           />
+          <p className="text-xs text-red-800 mt-1 font-semibold">
+            Note: the expire date must not be the same day.
+          </p>
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600">Duration (minutes)</label>
           <input
@@ -175,8 +181,6 @@ const submit = async () => {
           />
         </div>
       </div>
-
-      {/* Questions Section */}
         <div className="bg-gray-800 rounded-xl shadow-sm border sm:p-4 p-2 mb-4">
       {showQuestions && (
         <>
@@ -219,8 +223,6 @@ const submit = async () => {
             ➕ Add Question
           </button>
         </div>
-
-      {/* Action Bar */}
       <div className="sticky bottom-0 border-t mt-2 py-4 flex justify-end bg-gray-900">
         <button
           onClick={submit}
@@ -244,8 +246,6 @@ const submit = async () => {
           )}
         </button>
       </div>
-
-      {/* Copy Link Modal */}
       {showCopyModal && (
         <CopyLinkModal link={assignmentLink} onClose={() => setShowCopyModal(false)} />
       )}

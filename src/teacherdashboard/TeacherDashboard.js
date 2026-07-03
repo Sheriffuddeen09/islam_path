@@ -3,7 +3,8 @@ import api from "../Api/axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, ClipboardList, Eye,
-  FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings } from "lucide-react";
+  FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
+  Workflow} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -21,6 +22,7 @@ import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import ChatPage from "../chat/chatbox/Chatpage";
+import ProposalCard from "../pages/mentor/ProposalCard";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -139,15 +141,16 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 
   // Menu items for Comment 1  
   const teacherMenu = [
-  { id: 5, label: "Student Request", icon: Users, showBadge: true },
-  { id: 6, label: "Create Student Assignment", icon: FilePlus },
-  { id: 7, label: "Create Student Examination", icon: ClipboardList },
-  { id: 8, label: "View Assignment", icon: Eye },
-  { id: 9, label: "View Examination", icon: FileText },
-  { id: 10, label: "View Assignment Result", icon: CheckCircle },
-  { id: 11, label: "View Examination Result", icon: BarChart3 },
-  { id: 12, label: "Product Order", icon: ShoppingCart },
-  { id: 13, label: "Saved Order", icon: Bookmark, showcount: true },
+  { id: 5, label: "Student Proposal", icon: Workflow, showBadge: true },
+  { id: 6, label: "Student Request", icon: Users, showBadge: true },
+  { id: 7, label: "Create Student Assignment", icon: FilePlus },
+  { id: 8, label: "Create Student Examination", icon: ClipboardList },
+  { id: 9, label: "View Assignment", icon: Eye },
+  { id: 10, label: "View Examination", icon: FileText },
+  { id: 11, label: "View Assignment Result", icon: CheckCircle },
+  { id: 12, label: "View Examination Result", icon: BarChart3 },
+  { id: 13, label: "Product Order", icon: ShoppingCart },
+  { id: 14, label: "Saved Order", icon: Bookmark, showcount: true },
 ];
 
   // Menu items for Comment 2
@@ -577,36 +580,39 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         </div>
 
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
+        <ProposalCard  />
+        </div>
+        <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
         <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount} 
         setChats={setChats} 
         togglePopup={togglePopup}
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
-        <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
         <CreateAssignment  />
         </div>
-        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
         <CreateExam  />
         </div>
-        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
         <TeacherAssignmentPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
         <TeacherExamPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
         <AssignmentResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
         <Order
         setChats={setChats} 
         togglePopup={togglePopup}
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div> 
-        <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div> 
 

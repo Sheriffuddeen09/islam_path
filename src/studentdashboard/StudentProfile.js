@@ -35,7 +35,7 @@ export default function StudentProfilePage({togglePopup,  image, setImage, postC
 
 
 useEffect(() => {
-  api.get("/api/student/badges")
+  api.get("/api/user/badges")
     .then(res => {
       setBadges(res.data);
     })

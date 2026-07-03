@@ -64,8 +64,6 @@ const progressPercent =
 const [submitting, setSubmitting] = useState(false);
 
 const submit = async (source = "manual") => {
-  // ✅ Remove this — it blocks submission
-  // if (!started) return;
 
   console.log('submit click')
   if (submittingRef.current) return;
@@ -82,7 +80,6 @@ const submit = async (source = "manual") => {
     toast.success("Assignment submitted");
     navigate(`/student/assignment/result/${res.data.result_id}`);
   } catch (err) {
-    // toast.error(err.response?.data?.message || "Submission failed");
     submittingRef.current = false; // allow retry
   } finally {
     setSubmitting(false);
@@ -203,7 +200,7 @@ const submit = async (source = "manual") => {
 }, [timeLeft, started]);
 
 
-  /* ------------------ AUTO SAVE check ------------------ */
+  /* ------------------ AUTO SAVE check ------------------ Please */
  const [saving, setSaving] = useState(false);
  const [navLoading, setNavLoading] = useState(null);
 
@@ -290,7 +287,7 @@ const Spinner = () => (
 
 
 
-  /* ------------------ START ------------------ */
+  /* ------------------ START Resume ------------------ */
   const [starting, setStarting] = useState(false);
 
   const startAssignment = async () => {
@@ -418,7 +415,7 @@ const handleStart = async () => {
 
   if (loading)
     return (
-      <div className="text-black flex items-center justify-center h-">
+      <div className="text-black flex items-center justify-center h-screen bg-[var(--bg-color)]">
         <div className="text-black animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
@@ -437,13 +434,13 @@ const handleStart = async () => {
 
   
  return (
-  <div className="min-h-screen bg-gray-100">
+  <div className="min-h-screen bg-[var(--bg-color)]">
     <Toaster position="top-right" />
 
     {/* ================= TOP NAV ================= */}
-    <div className="sticky top-0 z-40 bg-white shadow-sm">
+    <div className="sticky top-0 z-40 bg-[var(--bg-color)] text-[var(--text-color)] shadow-sm">
       <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
-        <h1 className="sm:text-lg font-semibold text-sm font-semibold text-gray-800">
+        <h1 className="sm:text-lg font-semibold text-sm font-semibold">
           ISLAM PATH OF KNOWLEDGE
         </h1>
 
@@ -460,7 +457,7 @@ const handleStart = async () => {
     {status === "in_progress" && (
       <div className="fixed top-16 mt-2 right-4 z-50 flex flex-row flex-wrap items-center gap-4">
       {status === "in_progress" && Number.isFinite(timeLeft) && (
-      <div className="bg-black text-white px-4 py-2 rounded-full text-sm shadow-lg">
+      <div className="bg-black text-white border px-4 py-2 rounded-full text-sm shadow-lg">
         ⏱ {Math.floor(timeLeft / 60)}:
         {(timeLeft % 60).toString().padStart(2, "0")}
       </div>
@@ -477,7 +474,14 @@ const handleStart = async () => {
       {assignment.extended && (
         <p className="text-sm text-orange-600 mt-2">
           Deadline rescheduled {" "}
-          {new Date(assignment.due_at).toLocaleDateString()}
+          {new Date(assignment.due_at).toLocaleString("en-GB", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
         </p>
       )}
 
@@ -493,7 +497,14 @@ const handleStart = async () => {
         {/* ================= STARTED AT ================= */}
         {startedAt && status === "in_progress" && (
             <p className="text-sm text-gray-500 mb-2">
-              Started at: {new Date(startedAt).toLocaleString()}
+              Started at: {new Date(startedAt).toLocaleString("en-GB", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
             </p>
           )}
 
@@ -513,7 +524,14 @@ const handleStart = async () => {
           </h1>
             <p className="text-gray-800">
               <strong>Deadline:</strong>{" "}
-              {new Date(assignment.due_at).toLocaleString()}
+              {new Date(assignment.due_at).toLocaleString("en-GB", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
             </p>
 
             <button
@@ -591,10 +609,10 @@ const handleStart = async () => {
           </div>
         )}
 
-        {/* ================= QUESTIONS ================= */}
+        {/* ================= QUESTIONS Cannot submit empty exam ================= */}
         {showResume && (
       <div className="text-black fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="text-black bg-white p-6 rounded-lg w-full text-black">
+        <div className="text-black w-72 sm:w-96 bg-white p-6 rounded-lg w-full text-black">
           <h2 className="text-black text-center font-semibold text-lg">
             Resume Assignment?
           </h2>

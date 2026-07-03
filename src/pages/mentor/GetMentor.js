@@ -244,10 +244,11 @@ if (loading) {
             <>
               {/* Video List */}
               <ul className="grid 
-  grid-cols-1 
-  md:grid-cols-3  space-x-3 space-y-0
-  justify-items-center items-center
-  w-full">
+              grid-cols-1 
+              md:grid-cols-3 lg:grid-cols-4  
+              space-x-3 space-y-0
+              justify-items-center items-center
+              w-full">
                 {filteredCourse.map((t) => (
             
                   <li key={t.id}>

@@ -2,7 +2,8 @@ export default function ProposalModal({
 
     proposal,
     onClose,
-
+    getInitial,
+    getColor
 }) {
 
     return (
@@ -35,15 +36,13 @@ export default function ProposalModal({
 
                 <div className="flex items-center gap-4 mt-6">
 
-                    <img
-                        src={
-                            proposal.student.image ||
-                            "/avatar.png"
-                        }
-                        className="w-20 h-20 rounded-full"
-                        alt=""
-                    />
-
+                     <div
+                            className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-2xl flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
+                            proposal.student.first_name
+                            )}`}
+                        >
+                            {getInitial(proposal.student.first_name)}
+                        </div>
                     <div>
 
                         <h3 className="font-bold">

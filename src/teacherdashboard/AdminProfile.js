@@ -16,14 +16,13 @@ import Notification from "../notification/Notification";
 export default function ProfilePage({teachers, chats, setTeachers, handleEdit, togglePopup, 
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, onProfileCompleted,
-        setMessages, setActiveChat
+        setMessages, setActiveChat, user, setUser
 }) {
   const [profile, setProfile] = useState(null);
   const [editVisibility, setEditVisibility] = useState(false);
   const [visibility, setVisibility] = useState({});
   const [isloading, setIsLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
@@ -33,6 +32,23 @@ export default function ProfilePage({teachers, chats, setTeachers, handleEdit, t
   const [editContent, setEditContent] = useState("");
   const [teacherFillForm, setTeacherFillForm] = useState(false)
   const [notification, setNotification] = useState({ message: "", type: "" });
+
+  const [badges, setBadges] = useState({
+    total: 0,
+    assignment: 0,
+    exam: 0,
+  });
+  
+  
+  useEffect(() => {
+    api.get("/api/user/badges")
+      .then(res => {
+        setBadges(res.data);
+      })
+      .catch(() => {
+        setBadges({ total: 0, assignment: 0, exam: 0 });
+      });
+  }, []);
  
    useEffect(() => {
   const loadData = async () => {
@@ -121,7 +137,17 @@ const [visibleProfile, setVisibleProfile] = useState(1)
     }
 
   
+const badge = (
+          <div>
+          <div className=" mt-0 gap-4">
+        <div className=" py-4 rounded">
+          <p className="text-lg text-white font-bold">🏅 <span className=" font-bold">{badges.total}</span> Badges </p>
+          
+        </div>
+      </div>
 
+    </div>
+  )
 
   if (profileLoading) return <Loader  />
 
@@ -364,6 +390,13 @@ const content = (
 
             </div>
           </div>
+
+          {badge && (
+            <div className="md:pb-3 flex justify-center md:justify-end">
+              {badge}
+            </div>
+          )}
+
 
         </div>
       </div>

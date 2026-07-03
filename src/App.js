@@ -501,6 +501,16 @@ function App() {
       } />
 
 
+      
+      <Route path="/admin/choose-choice" element={
+          <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
+          currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
+      } />
+    </Route>
+    <Route element={<LayoutWithOutHeader />}>
+      
+
+      
       {/* Student Assignment */}
 
       <Route
@@ -508,10 +518,7 @@ function App() {
           element={<StudentAssignment />}
         />
 
-        <Route
-          path="/student/exams/:token"
-          element={<StudentExam />}
-        />
+        
 
         <Route
           path="/expire"
@@ -527,15 +534,12 @@ function App() {
           path="/block"
           element={<ExamBlock />}
         />
-      
-      <Route path="/admin/choose-choice" element={
-          <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
-          currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
-      } />
-    </Route>
-    <Route element={<LayoutWithOutHeader />}>
-      
 
+        
+      <Route
+          path="/student/exams/:token"
+          element={<StudentExam />}
+        />
       
       <Route path="/post/image//" element={<PostImagePageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
