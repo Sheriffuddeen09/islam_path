@@ -45,6 +45,7 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
 };
 
 
+
   const handleResend = async (requestId, teacherId) => {
     setActionLoading(prev => ({ ...prev, [requestId]: true }));
     try {
@@ -58,6 +59,11 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
       setActionLoading(prev => ({ ...prev, [requestId]: false }));
     }
   };
+
+
+  const showRemoveColumn = requests.some(req =>
+  ["accepted", "declined"].includes(req.status)
+);
 
   if (loading)
     return (
@@ -84,7 +90,11 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
                 <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase whitespace-nowrap tracking-wider">Date Sent</th>
                 <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Action</th>
-                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Remove</th>
+                {showRemoveColumn && (
+                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase">
+                  Remove
+                </th>
+              )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">

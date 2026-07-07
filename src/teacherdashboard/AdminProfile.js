@@ -16,7 +16,7 @@ import Notification from "../notification/Notification";
 export default function ProfilePage({teachers, chats, setTeachers, handleEdit, togglePopup, 
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, onProfileCompleted,
-        setMessages, setActiveChat, user, setUser
+        setMessages, setActiveChat, user, setUser, badges, setBadges
 }) {
   const [profile, setProfile] = useState(null);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -33,12 +33,6 @@ export default function ProfilePage({teachers, chats, setTeachers, handleEdit, t
   const [teacherFillForm, setTeacherFillForm] = useState(false)
   const [notification, setNotification] = useState({ message: "", type: "" });
 
-  const [badges, setBadges] = useState({
-    total: 0,
-    assignment: 0,
-    exam: 0,
-  });
-  
   
   useEffect(() => {
     api.get("/api/user/badges")

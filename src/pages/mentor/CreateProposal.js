@@ -41,6 +41,7 @@ export default function CreateProposal() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [expiresIn, setExpiresIn] = useState("");
 
   const clearError = (field) => {
     setErrors((prev) => ({
@@ -51,7 +52,6 @@ export default function CreateProposal() {
 
   const validateForm = () => {
     const newErrors = {};
-
 
     if (!fromTime) {
         newErrors.fromTime = "Select a starting time.";
@@ -69,29 +69,42 @@ export default function CreateProposal() {
         newErrors.toTime =
             "Ending time must be later than starting time.";
     }
-    if (!title.trim())
-      newErrors.title = "Subject title is required.";
 
-    if (!price || Number(price) <= 0)
-      newErrors.price = "Enter a valid price.";
+    if (!title.trim()) {
+        newErrors.title = "Subject title is required.";
+    }
 
-    if (!currency)
-      newErrors.currency = "Select currency.";
+    if (!price || Number(price) <= 0) {
+        newErrors.price = "Enter a valid price.";
+    }
 
-    if (!teacherType)
-      newErrors.teacherType = "Select preferred teacher.";
+    if (!currency) {
+        newErrors.currency = "Select currency.";
+    }
 
-    if (!teachingMode)
-      newErrors.teachingMode = "Select teaching mode.";
+    if (!teacherType) {
+        newErrors.teacherType = "Select preferred teacher.";
+    }
 
-    if (teachingMode === "physical" && !location)
-      newErrors.location = "Select preferred location.";
+    if (!teachingMode) {
+        newErrors.teachingMode = "Select teaching mode.";
+    }
 
-    if (!hours || Number(hours) < 1)
-      newErrors.hours = "Enter teaching hours.";
+    if (teachingMode === "physical" && !location) {
+        newErrors.location = "Select preferred location.";
+    }
 
-    if (!description.trim())
-      newErrors.description = "Description is required.";
+    if (!hours || Number(hours) < 1) {
+        newErrors.hours = "Enter teaching hours.";
+    }
+
+    if (!expiresIn) {
+        newErrors.expiresIn = "Select when this proposal should expire.";
+    }
+
+    if (!description.trim()) {
+        newErrors.description = "Description is required.";
+    }
 
     setErrors(newErrors);
 
@@ -118,6 +131,7 @@ export default function CreateProposal() {
         from_time: fromTime,
         to_time: toTime,
         description,
+        expires_in: expiresIn,
     };
 
     console.log("Payload:", payload);
@@ -278,7 +292,7 @@ export default function CreateProposal() {
               clearError("teacherType");
             }}
             placeholder="Select Teacher Type"
-            className="mt-2"
+            className="mt-2 cursor-pointer"
             classNames={{
               control: () => "py-1",
             }}
@@ -356,22 +370,55 @@ export default function CreateProposal() {
 
             <Select
               options={countries}
-              value={countries.find(
-                (country) =>
-                  country.value === location
-              )}
+              value={countries.find(option => option.label === location)}
               onChange={(selected) => {
-                setLocation(selected.value);
+                setLocation(selected.label);
                 clearError("location");
               }}
-              classNames={{
-              control: () => "py-1",
-            }}
-            className="mt-2"
-              placeholder="Select Country"
+              placeholder="Select Location"
               isSearchable
-            />
+              menuPortalTarget={document.body}
+              className="mt-2"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  minHeight: 48,
+                  paddingTop: "0.25rem",
+                  paddingBottom: "0.25rem",
+                  borderRadius: "0.5rem",
+                }),
 
+                singleValue: (base) => ({
+                  ...base,
+                  color: "#000", // Selected value
+                }),
+
+                input: (base) => ({
+                  ...base,
+                  color: "#000", // Search text while typing
+                }),
+
+                placeholder: (base) => ({
+                  ...base,
+                  color: "#6b7280", // Gray placeholder
+                }),
+
+                option: (base, state) => ({
+                  ...base,
+                  color: "#000",
+                  backgroundColor: state.isFocused
+                    ? "#f3f4f6"
+                    : state.isSelected
+                    ? "#e5e7eb"
+                    : "#fff",
+                }),
+
+                menuPortal: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                }),
+              }}
+            />
             {errors.location && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.location}
@@ -415,7 +462,42 @@ export default function CreateProposal() {
               />
 
           </div>
+          <div className="">
+          <label className="font-semibold mb-2">
+              Proposal Expiration
+          </label>
 
+          <select
+            value={expiresIn}
+            onChange={(e) => {
+                setExpiresIn(e.target.value);
+
+                if (errors.expiresIn) {
+                    setErrors(prev => ({
+                        ...prev,
+                        expiresIn: "",
+                    }));
+                }
+            }}
+            className="border rounded-lg w-full p-3 mt-2"
+        >
+            <option value="">Select expiration</option>
+            <option value="20_minutes">20 Minutes</option>
+            <option value="7_days">7 Days</option>
+            <option value="14_days">14 Days</option>
+            <option value="30_days">30 Days</option>
+        </select>
+
+        {errors.expiresIn && (
+            <p className="text-red-500 text-sm mt-1">
+                {errors.expiresIn}
+            </p>
+        )}
+
+          <p className="text-xs text-gray-500 mt-2">
+              After this time, your proposal and all related requests will be deleted automatically.
+          </p>
+      </div>
 
         {/* Qualification */}
         <div className="md:col-span-2">

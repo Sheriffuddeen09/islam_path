@@ -17,8 +17,32 @@ export default function MentorCard({filteredCourse, loadingId, requestStatus, se
 });
 
 
+
+    const getColor = (name = "") => {
+
+        const colors = [
+            "bg-red-500",
+            "bg-blue-500",
+            "bg-green-500",
+            "bg-purple-500",
+            "bg-pink-500",
+            "bg-orange-500",
+            "bg-cyan-500",
+        ];
+
+        return colors[name.length % colors.length];
+
+    };
+
+    const getInitial = (name = "") => {
+
+        return name.charAt(0).toUpperCase();
+
+    };
+
+
 useEffect(() => {
-  api.get("/api/student/badges")
+  api.get("/api/user/badges")
     .then(res => {
       setBadges(res.data);
     })
@@ -122,11 +146,51 @@ const handleWatchAd = async () => {
     flex flex-col mx-auto justify-center relative 
     ${requestStatus[t.id] === "pending" || requestStatus[t.id] === "accepted" ? "hidden" : "block"}`}
       >
-          <img
-            src={t.logo}
-            alt="Logo Image"
-            className="w-24 h-24 object-cover rounded-full mb-3 mx-auto"
-          />
+
+         {t.logo ? (
+
+                                <img
+                                    src={t.logo}
+                                    alt="Teacher Logo"
+                                    className="
+                                        w-24
+                                        h-24
+                                        md:w-28
+                                        md:h-28
+                                        rounded-full
+                                        border-4
+                                        border-black
+                                        object-cover
+                                        shadow-lg
+                                    "
+                                />
+
+                            ) : (
+
+                                <div
+                                    className={`
+                                        w-24
+                                        h-24
+                                        md:w-28
+                                        md:h-28
+                                        rounded-full
+                                        border-4
+                                        border-black
+                                        flex
+                                        items-center
+                                        justify-center
+                                        text-4xl
+                                        text-white
+                                        font-bold
+                                        ${getColor(t.first_name)}
+                                    `}
+                                >
+
+                                    {getInitial(t.first_name)}
+
+                                </div>
+
+                            )}
 
         {(t.first_name || t.last_name) && (
           <h3 className="font-semibold sm:text-lg text-sm mb-1 text-black text-center">
@@ -223,8 +287,53 @@ const handleWatchAd = async () => {
             <h1 className="text-2xl text-center py-3 font-bold mb-3 text-black">
               Teacher Details
             </h1>
-            <div className="flex justify-between flex-wrap items-center my-5">
-            <p className="text-gray-900 text-xl font-bold mb-2">
+             {selectedTeacher.logo ? (
+
+                                <img
+                                    src={selectedTeacher.logo}
+                                    alt="Teacher Logo"
+                                    className="
+                                        w-24
+                                        h-24
+                                        md:w-28
+                                        md:h-28
+                                        rounded-full
+                                        border-4
+                                        border-black
+                                        object-cover
+                                        shadow-lg
+                                    "
+                                />
+
+                            ) : (
+
+                                <div
+                                    className={`
+                                        w-24
+                                        h-24
+                                        md:w-28
+                                        md:h-28
+                                        rounded-full
+                                        border-4
+                                        border-black
+                                        flex
+                                        items-center
+                                        justify-center
+                                        text-4xl
+                                        text-white
+                                        font-bold
+                                        ${getColor(selectedTeacher.first_name)}
+                                    `}
+                                >
+
+                                    {getInitial(selectedTeacher.first_name)}
+
+                                </div>
+
+                            )}
+
+            <div className="flex justify-between flex-wrap items-center mt-5">
+            <p className="text-gray-900 text-xl sm:text-4xl font-bold mb-2">
               {selectedTeacher.first_name || "N/A"} {selectedTeacher.last_name || "N/A"}
             </p>
             
@@ -260,11 +369,23 @@ const handleWatchAd = async () => {
         </div>
 
 
+            <p className="text-gray-900 text-[16px] font-semibold mb-2">
+             Subject <span>•</span>  {selectedTeacher.coursetitle_name}  {selectedTeacher.specialization} <span>•</span> {selectedTeacher.experience}
+            </p>
+
             <p className="text-gray-900 text-[16px] font-semibold mb-4">
-              <span>•</span> {selectedTeacher.coursetitle_name} ( {selectedTeacher.specialization} ) <span>•</span> {selectedTeacher.experience} <span>•</span> {selectedTeacher.currency} {selectedTeacher.course_payment}
+              Payment Required <span>•</span>  {selectedTeacher.currency} {selectedTeacher.course_payment}
+            </p>
+
+            <p className="text-gray-900 text-[16px] font-semibold mb-4">
+              Location <span>•</span> {selectedTeacher.location}
+            </p>
+
+            <p className="text-gray-900 text-[16px] font-semibold mb-4">
+              Gender <span>•</span> {selectedTeacher.gender}
             </p>
             
-            <p className="text-lg mb-2 border-b-2 pb-2 border-blue-600">
+            <p className="text-lg mb-2 text-black border-b pb-2 border-blue-600">
               <strong>Qualification: </strong>
             </p>
              <p className="text-gray-900 mb-4 text-[16px] font-semibold mt-2">              
@@ -272,7 +393,7 @@ const handleWatchAd = async () => {
             </p>
 
 
-            <p className="text-lg mb-2 border-b-2 pb-2 border-blue-600">
+            <p className="text-lg mb-2 border-b text-black pb-2 border-blue-600">
               <strong>Compliment:</strong> 
             </p>
             <p className="text-gray-900 mb-4 text-[16px] font-semibold mt-2">              
@@ -286,7 +407,7 @@ const handleWatchAd = async () => {
       
 {showUnlockModal && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-5 w-80 text-center relative">
+    <div className="bg-white rounded-lg p-5 w-80 text-center relative text-black">
       <div className="inline-flex items-end gap-2">
       <Lock />
       <h2 className="font-bold text-lg   ">Unlock Teacher</h2>

@@ -1,77 +1,173 @@
 export default function ProposalCard({
     proposal,
     onView,
-    getInitial,
-    getColor
 }) {
 
 
+    const currencySymbol = (currency) => {
+
+    switch(currency){
+
+        case "NGN":
+            return "₦";
+
+        case "USD":
+            return "$";
+
+        case "EUR":
+            return "€";
+
+        default:
+            return currency;
+    }
+
+    }
+
+
+    const colors = [
+        "bg-orange-500",
+        "bg-blue-500",
+        "bg-green-500",
+        "bg-purple-500",
+        "bg-pink-500",
+        ];
+    
+        const getColor = (name = "") => {
+        const index = name.charCodeAt(0) % colors.length;
+        return colors[index];
+        };
+    
+        const getInitial = (name) => {
+        if (!name) return "?";
+        return name.charAt(0).toUpperCase();
+        };
 
     return (
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border">
+        <div
+    onClick={onView}
+    className="
+        
+        bg-white
+        rounded-2xl
+        border
+        shadow-sm
+        hover:shadow-xl
+        hover:-translate-y-1
+        hover:scale-[1.01]
+        transition-all
+        duration-300
+        cursor-pointer
+        overflow-hidden
+        px-2
+        mt-3
+    "
+>
+    <div className="p-5">
 
-            <div className="p-5">
+        <div className="
+            flex
+            flex-col
+            md:flex-row
+            gap-5
+        ">
 
-                <div className="flex items-center gap-3">
+            {/* Avatar */}
 
-                    <div
-                        className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-2xl flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
-                        proposal?.student?.first_name
-                        )}`}
-                    >
-                        {getInitial(proposal?.student?.first_name)}
-                    </div>
+            <div className="flex justify-start md:block">
 
-                    <div>
-
-                        <h3 className="font-bold">
-
-                            {proposal.student.first_name}
-                            {" "}
-                            {proposal.student.last_name}
-
-                        </h3>
-
-                        <p className="text-sm text-gray-500">
-
-                            {proposal.subject}
-
-                        </p>
-
-                    </div>
-
+                <div
+                    className={`w-24 h-24 md:w-28 md:h-28 rounded-full
+                    flex items-center justify-center
+                    text-4xl
+                    font-bold
+                    text-white
+                    border-4 border-black
+                    shadow-lg
+                    ${getColor(proposal.student.first_name)}`}
+                >
+                    {getInitial(proposal.student.first_name)}
                 </div>
 
-                <h2 className="font-bold text-xl mt-4">
+            </div>
+
+            {/* Content */}
+
+            <div className="flex-1">
+
+                {/* Title & Subject */}
+
+                <h2 className="font-bold text-xl text-gray-800">
 
                     {proposal.title}
 
+                    <span className="mx-2 text-black">•</span>
+
+                    <span className="text-blue-600">
+
+                        {proposal.subject}
+
+                    </span>
+
                 </h2>
 
-                <div className="flex justify-between mt-4 text-sm">
+                {/* Type & Location */}
 
-                    <span>
+                <div className="
+                    flex
+                    flex-wrap
+                    gap-3
+                    mt-2
+                    text-sm
+                    text-black
+                    capitalize
+                    font-semibold
+                ">
 
-                        💰 {proposal.currency}
-                        {" "}
-                        {proposal.price}
+                    
+                     <span>
+                            
+                        📍 {proposal.student.location}
 
                     </span>
 
                     <span>
 
-                        🧑 {proposal.teacher_type}
+                        👨‍🏫 {proposal.teacher_type}
 
                     </span>
+
+                    {proposal.teaching_mode !== "online" && (
+                    <div>
+                        <span>Prefer: </span>
+                        <span>
+
+                            📍 {proposal.preferred_location}
+
+                        </span>
+                    </div>
+                    )}
 
                 </div>
 
-                <div className="flex justify-between mt-2 text-sm">
+                {/* Price */}
+
+                <div
+                    className="
+                        flex
+                        flex-wrap
+                        gap-5
+                        mt-3
+                        text-sm
+                        font-medium
+                    "
+                >
 
                     <span>
 
-                        📍 {proposal.preferred_location}
+                    💰 {currencySymbol(proposal.currency)}
+
+                        {proposal.price}
 
                     </span>
 
@@ -81,46 +177,34 @@ export default function ProposalCard({
 
                     </span>
 
-                    <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <span>
 
-                        <span>🕒</span>
+                        🕒 {proposal.from_time}
 
-                        <span>
+                        {" - "}
 
-                            {proposal.from_time} - {proposal.to_time}
+                        {proposal.to_time}
 
-                        </span>
-
-                    </div>
+                    </span>
 
                 </div>
 
-                <p className="mt-4 text-gray-600 line-clamp-3">
+                {/* Description */}
 
-                    {proposal.description}
+                <p className="mt-4 text-black text-sm font-semibold">
+
+                    {proposal.description.length > 200
+                        ? proposal.description.slice(0, 200) + "..."
+                        : proposal.description}
 
                 </p>
 
             </div>
 
-            <div className="border-t p-4">
-
-                <button
-
-                    onClick={onView}
-
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
-
-                >
-
-                    View Proposal
-
-                </button>
-
-            </div>
-
         </div>
 
+    </div>
+</div>
     );
 
 }

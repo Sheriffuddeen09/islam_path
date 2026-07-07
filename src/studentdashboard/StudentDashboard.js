@@ -15,9 +15,13 @@ import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText, ClipboardList, CheckCircle,
   BarChart3, ShoppingCart, Bookmark, 
-  Workflow} from "lucide-react";
+  Workflow,
+  History,
+  Proportions} from "lucide-react";
 import ChatPage from "../chat/chatbox/Chatpage";
 import CreateProposal from "../pages/mentor/CreateProposal";
+import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
+import StudentProposalHistory from "../pages/mentor/StudentProposalHistory";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -32,6 +36,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         
    const [pendingRequests, setPendingRequests] = useState(0);
 
+   
 
    const { user } = useAuth();
   
@@ -75,38 +80,49 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
             },
             {
               id: 6,
+              label: "Proposal History",
+              icon: History,
+            },
+            {
+              id: 7,
+              label: "Teacher Proposal Request",
+              icon: Proportions,
+              // showBadge: true,
+            },
+            {
+              id: 8,
               label: "Teacher Request",
               icon: Users,
               showBadge: true,
             },
             {
-              id: 7,
+              id: 9,
               label: "View Continue Assignment",
               icon: ClipboardList,
             },
             {
-              id: 8,
+              id: 10,
               label: "View Continue Examination",
               icon: FileText,
             },
             {
-              id: 9,
+              id: 11,
               label: "View Assignment Result",
               icon: CheckCircle,
             },
             {
-              id: 10,
+              id: 12,
               label: "View Examination Result",
               icon: BarChart3,
             },
             {
-              id: 11,
+              id: 13,
               label: "Product Order",
               icon: ShoppingCart,
               ordershow: true,
             },
             {
-              id: 12,
+              id: 14,
               label: "Saved Order",
               icon: Bookmark,
               showcount: true,
@@ -451,26 +467,37 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                           <CreateProposal togglePopup={togglePopup} setActiveChat={setActiveChat}
                          chats={chats} setMessages={setMessages} />
                          </div>
-                          <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
+
+                         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
+                          <StudentProposalHistory />
+                         </div>
+
+                         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+                          <ProposalTeacherRequests 
+                          setChats={setChats} 
+                          togglePopup={togglePopup}
+                          chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+                         </div>
+                          <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
                          <StudentRequest togglePopup={togglePopup} setActiveChat={setActiveChat}
                          chats={chats} setMessages={setMessages} />
                          </div>
-                         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
                          <AssignmentLibrary  />
                          </div> 
-                          <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+                          <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
                          <ExamLibrary  />
                          </div> 
-                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
                          <AssignmentResults  />
                          </div> 
-                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
                          <ExamResults  />
                          </div> 
-                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
                          <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
                          </div> 
-                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
                          <SaveOrder  />
                          </div> 
                        </section>

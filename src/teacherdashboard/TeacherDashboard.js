@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, ClipboardList, Eye,
   FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
-  Workflow} from "lucide-react";
+  Workflow,
+  History} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -23,6 +24,8 @@ import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import ChatPage from "../chat/chatbox/Chatpage";
 import ProposalCard from "../pages/mentor/ProposalCard";
+import ProposalList from "../pages/mentor/ProposalList";
+import TeacherProposalHistory from "../pages/mentor/TeacherProposalHistory";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -35,10 +38,18 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
   const [savedChoice, setSavedChoice] = useState(null);
+  const [choiceLoading, setChoiceLoading] = useState(true);
 
   const [pendingCount, setPendingCount] = useState(0);
 
    const [editingTeacher, setEditingTeacher] = useState(null);
+   
+     const [badges, setBadges] = useState({
+       total: 0,
+       assignment: 0,
+       exam: 0,
+     });
+     
 
    
       const { currentUser } = useAuth();
@@ -100,10 +111,22 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 
 
   useEffect(() => {
-    api.get("/api/user-status").then(res => {
-      setSavedChoice(res.data.admin_choice);  // comes from database
-    });
-  }, []);
+    const fetchChoice = async () => {
+        setChoiceLoading(true);
+
+        try {
+            const res = await api.get("/api/user-status");
+
+            setSavedChoice(res.data.admin_choice);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setChoiceLoading(false);
+        }
+    };
+
+    fetchChoice();
+}, []);
 
 
   useEffect(() => {
@@ -133,7 +156,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
     }
 
     
-    const isLocked = !savedChoice;
+    const isLocked = !choiceLoading && !savedChoice;
 
   // Teacher savedChoice = Comment 1
  const isTeacher = savedChoice === "arabic_teacher";
@@ -142,15 +165,16 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   // Menu items for Comment 1  
   const teacherMenu = [
   { id: 5, label: "Student Proposal", icon: Workflow, showBadge: true },
-  { id: 6, label: "Student Request", icon: Users, showBadge: true },
-  { id: 7, label: "Create Student Assignment", icon: FilePlus },
-  { id: 8, label: "Create Student Examination", icon: ClipboardList },
-  { id: 9, label: "View Assignment", icon: Eye },
-  { id: 10, label: "View Examination", icon: FileText },
-  { id: 11, label: "View Assignment Result", icon: CheckCircle },
-  { id: 12, label: "View Examination Result", icon: BarChart3 },
-  { id: 13, label: "Product Order", icon: ShoppingCart },
-  { id: 14, label: "Saved Order", icon: Bookmark, showcount: true },
+  { id: 6, label: "History Proposal", icon: History },
+  { id: 7, label: "Student Request", icon: Users, showBadge: true },
+  { id: 8, label: "Create Student Assignment", icon: FilePlus },
+  { id: 9, label: "Create Student Examination", icon: ClipboardList },
+  { id: 10, label: "View Assignment", icon: Eye },
+  { id: 11, label: "View Examination", icon: FileText },
+  { id: 12, label: "View Assignment Result", icon: CheckCircle },
+  { id: 13, label: "View Examination Result", icon: BarChart3 },
+  { id: 14, label: "Product Order", icon: ShoppingCart },
+  { id: 15, label: "Saved Order", icon: Bookmark, showcount: true },
 ];
 
   // Menu items for Comment 2
@@ -308,69 +332,97 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
           </ul>
         <div className="relative">
 
-      {/* 🔐 LOCKED OVERLAY */}
-      {isLocked && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
-          <div className="flex flex-col items-center gap-2 text-gray-700">
-            <Lock className="w-6 h-6" />
-            <span className="font-semibold text-sm">Choose Your Option First</span>
+        {/* Skeleton while loading */}
+        {choiceLoading ? (
+
+          <div className="animate-pulse mt-6">
+            <div className="h-3 w-24 bg-gray-300 rounded mb-5"></div>
+
+            <div className="space-y-3">
+              {[...Array(8)].map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-2"
+                >
+                  <div className="w-5 h-5 rounded bg-gray-300"></div>
+
+                  <div className="h-4 flex-1 rounded bg-gray-300"></div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Actual Menu */}
-      <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
-        <h3 className="text-xs text-purple-400 font-bold mt-6 mb-2">SET SECTION</h3>
+        ) : (
 
-        <ul className="space-y-2 mb-10">
-          {menu.map(item => (
-            <li
-              key={item.id}
-              onClick={() => {
-                setVisible(item.id);
-                handleOpenModel();
-                handleMenuClick(item);
-                handleClearOrderCount(item);
-              }}
-              className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer 
-                hover:bg-gray-500 hover:text-gray-100 
-                ${visible === item.id
-                  ? "bg-gray-500 text-white"
-                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}
-              `}
-            >
-              {/* ICON */}
-              {item.icon && (
-                <item.icon className="w-4 h-4 shrink-0" />
-              )}
+          <>
+            {/* Lock Overlay */}
+            {isLocked && (
+              <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
+                <div className="flex flex-col items-center gap-2 text-gray-700">
+                  <Lock className="w-6 h-6" />
+                  <span className="font-semibold text-sm">
+                    Choose Your Option First
+                  </span>
+                </div>
+              </div>
+            )}
 
-              {/* LABEL */}
-              <span>{item.label}</span>
+            {/* Actual Menu */}
+            <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
+              <h3 className="text-xs text-purple-400 font-bold mt-6 mb-2">
+                SET SECTION
+              </h3>
 
-              {/* BADGES */}
-              {item.showBadge && pendingCount > 0 && (
-                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {pendingCount}
-                </span>
-              )}
+              <ul className="space-y-2 mb-10">
+                {menu.map((item) => (
+                  <li
+                    key={item.id}
+                    onClick={() => {
+                      setVisible(item.id);
+                      handleOpenModel();
+                      handleMenuClick(item);
+                      handleClearOrderCount(item);
+                    }}
+                    className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
+                      hover:bg-gray-500 hover:text-white
+                      ${
+                        visible === item.id
+                          ? "bg-gray-500 text-white"
+                          : ""
+                      }`}
+                  >
+                    {item.icon && (
+                      <item.icon className="w-4 h-4 shrink-0" />
+                    )}
 
-              {item.showcount && savedCount > 0 && (
-                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {savedCount}
-                </span>
-              )}
+                    <span>{item.label}</span>
 
-              {item.ordershow && orderCount > 0 && (
-                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {orderCount}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+                    {item.showBadge && pendingCount > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {pendingCount}
+                      </span>
+                    )}
+
+                    {item.showcount && savedCount > 0 && (
+                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {savedCount}
+                      </span>
+                    )}
+
+                    {item.ordershow && orderCount > 0 && (
+                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                        {orderCount}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+
+        )}
+
       </div>
-
-    </div>
       </aside>
 
       {/* ---------------- MOBILE MENU BUTTON ---------------- */}
@@ -486,69 +538,97 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
           </ul>
         <div className="relative">
 
-      {/* 🔐 LOCKED OVERLAY */}
-      {isLocked && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
-          <div className="flex flex-col items-center gap-2 text-gray-700">
-            <Lock className="w-6 h-6" />
-            <span className="font-semibold text-sm">Choose Your Option First</span>
+        {/* Skeleton while loading */}
+        {choiceLoading ? (
+
+          <div className="animate-pulse mt-6">
+            <div className="h-3 w-24 bg-gray-300 rounded mb-5"></div>
+
+            <div className="space-y-3">
+              {[...Array(8)].map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-2"
+                >
+                  <div className="w-5 h-5 rounded bg-gray-300"></div>
+
+                  <div className="h-4 flex-1 rounded bg-gray-300"></div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Actual Menu */}
-      <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
-        <h3 className="text-xs text-purple-400 font-bold mt-6 mb-2">SET SECTION</h3>
+        ) : (
 
-        <ul className="space-y-2 mb-10">
-          {menu.map(item => (
-            <li
-              key={item.id}
-              onClick={() => {
-                setVisible(item.id);
-                handleOpenModel();
-                handleMenuClick(item);
-                handleClearOrderCount(item);
-              }}
-              className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer 
-                hover:bg-gray-500 hover:text-gray-100 
-                ${visible === item.id
-                  ? "bg-gray-500 text-white"
-                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"}
-              `}
-            >
-              {/* ICON */}
-              {item.icon && (
-                <item.icon className="w-4 h-4 shrink-0" />
-              )}
+          <>
+            {/* Lock Overlay */}
+            {isLocked && (
+              <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
+                <div className="flex flex-col items-center gap-2 text-gray-700">
+                  <Lock className="w-6 h-6" />
+                  <span className="font-semibold text-sm">
+                    Choose Your Option First
+                  </span>
+                </div>
+              </div>
+            )}
 
-              {/* LABEL */}
-              <span>{item.label}</span>
+            {/* Actual Menu */}
+            <div className={isLocked ? "opacity-40 pointer-events-none" : ""}>
+              <h3 className="text-xs text-purple-400 font-bold mt-6 mb-2">
+                SET SECTION
+              </h3>
 
-              {/* BADGES */}
-              {item.showBadge && pendingCount > 0 && (
-                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {pendingCount}
-                </span>
-              )}
+              <ul className="space-y-2 mb-10">
+                {menu.map((item) => (
+                  <li
+                    key={item.id}
+                    onClick={() => {
+                      setVisible(item.id);
+                      handleOpenModel();
+                      handleMenuClick(item);
+                      handleClearOrderCount(item);
+                    }}
+                    className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
+                      hover:bg-gray-500 hover:text-white
+                      ${
+                        visible === item.id
+                          ? "bg-gray-500 text-white"
+                          : ""
+                      }`}
+                  >
+                    {item.icon && (
+                      <item.icon className="w-4 h-4 shrink-0" />
+                    )}
 
-              {item.showcount && savedCount > 0 && (
-                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {savedCount}
-                </span>
-              )}
+                    <span>{item.label}</span>
 
-              {item.ordershow && orderCount > 0 && (
-                <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                  {orderCount}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+                    {item.showBadge && pendingCount > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {pendingCount}
+                      </span>
+                    )}
+
+                    {item.showcount && savedCount > 0 && (
+                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {savedCount}
+                      </span>
+                    )}
+
+                    {item.ordershow && orderCount > 0 && (
+                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                        {orderCount}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+
+        )}
+
       </div>
-
-    </div>
       </aside>
 
       {/* ---------------------- MAIN CONTENT ---------------------- */}
@@ -562,7 +642,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList} setMessages={setMessages} setActiveChat={setActiveChat}
-        
+        badges={badges} setBadges={setBadges} 
          />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
@@ -580,39 +660,44 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         </div>
 
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-        <ProposalCard  />
+        <ProposalList badges={badges} setBadges={setBadges}  />
         </div>
         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
+        <TeacherProposalHistory setChats={setChats} 
+        togglePopup={togglePopup}
+        chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+        </div>
+        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
         <TeacherLiveRequests pendingCount={pendingCount} setPendingCount={setPendingCount} 
         setChats={setChats} 
         togglePopup={togglePopup}
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
-        <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
         <CreateAssignment  />
         </div>
-        <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
         <CreateExam  />
         </div>
-        <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
         <TeacherAssignmentPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
         <TeacherExamPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
         <AssignmentResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
         <Order
         setChats={setChats} 
         togglePopup={togglePopup}
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div> 
-        <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div> 
 

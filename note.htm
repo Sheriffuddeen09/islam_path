@@ -16,90 +16,142 @@
       all the userid order of the same seller
     * the price total in product should add up in their due currency
     
-how can i solve after the the teacher see student proposal i want send should be able to send send request 
-and the request will involve the teacher profile which student can accepted switch to message but declined it 
-can cancel the request 
-this is the structure of the teacher info 
-  public function up(): void
-{
-    Schema::create('teacher_forms', function ($table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-        $table->string('coursetitles');
-        $table->decimal('course_payment', 10, 2);
-        $table->string('currency');
-        $table->string('compliment')->nullable();
-        $table->string('logo')->nullable();
-        $table->string('cv')->nullable();
-        $table->string('qualification');
-        $table->string('experience')->nullable();
-        $table->string('specialization')->nullable();
-        $table->timestamps();
-    });
-}
- 
-<?php
 
-namespace App\Http\Controllers;
-use App\Models\Proposal;    
-use Illuminate\Http\Request;
+    Cannot submit empty assignment
 
-class ProposalController extends Controller
-{
-    public function store(Request $request)
-{
-    $user = auth()->user();
+create chat or open if exist, which message two api in one button 
 
-    if ($user->role !== 'student') {
+
+public function message($id)
+{
+    $student = auth()->user();
+
+    $request = TeacherRequest::with(
+        'teacher'
+    )
+    ->findOrFail($id);
+
+    if($request->status!="accepted"){
+
         return response()->json([
-            'message' => 'Only students can create proposals.'
-        ], 403);
+
+            'message'=>'Teacher has not been accepted.'
+
+        ],422);
+
     }
 
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'subject' => 'nullable|string|max:255',
-        'price' => 'required|numeric|min:0',
-        'currency' => 'required|string|max:10',
-        'teacher_type' => 'required|in:male,female,any',
-        'teaching_mode' => 'required|in:online,physical',
-        'preferred_location' => 'nullable|string|max:255',
-        'qualification' => 'nullable|string|max:255',
-        'teaching_hours' => 'required|integer|min:1',
-        'from_time' => 'required|date_format:H:i',
-        'to_time' => 'required|date_format:H:i|after:from_time',
-        'description' => 'required|string',
+    $chat = Chat::firstOrCreate([
+
+        'student_id'=>$student->id,
+
+        'teacher_id'=>$request->teacher_id
+
     ]);
 
-    $validated['student_id'] = $user->id;
-
-    $proposal = Proposal::create($validated);
-
     return response()->json([
-    'message' => 'Proposal created successfully.',
-    'proposal' => $proposal,
-], 201);
+
+        'chat'=>$chat
+
+    ]);
+
 }
 
+this is for exist user in chat list { 
+onClick={async () => {
+            try {
+              setLoadingMessages(true)
+              const { data } = await api.get(
+                  `/api/chat/user/${admin.id}`
+                );
 
-    public function index()
-    {
-        $user = auth()->user();
+                setActiveChat(data.chat);
+                setMessages(data.messages);
 
-        if ($user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Only teachers can view proposals.'
-            ], 403);
+                togglePopup();
+
+            } catch (err) {
+              toast.error("Failed to open chat");
+              console.error(err);
+            }
+            finally{
+              setLoadingMessages(false)
+            }}
+    while this is create user chat {       
+ const openChat = async (chat) => {
+      if (!chat?.id) return;
+
+      console.log("OPEN CHAT RECEIVED", chat);
+
+      setActiveChat(chat); // now has `other`
+
+      const res = await api.get(
+        `/api/chats/${chat.id}/messages`
+      );
+
+      setMessages(res.data.messages || []);
+    };
+
+    const handleMessageUser = async (
+  request
+) => {
+ 
+
+  try {
+    setChatLoading(request.id);
+
+          const res = await api.post(
+        "/api/chat/create",
+        {
+          user_id: otherUserId,
+          request_id: request.id,
         }
+      );
 
-        $proposals = Proposal::with([
-            'student:id,first_name,last_name,role,gender,address,location'
-        ])
-        ->latest()
-        ->get();
+      const rawChat = res.data.chat;
 
-        return response()->json($proposals);
-    }
-}
+      // build "other" manually
+      const other = {
+        id: otherUserId,
+        first_name: request.first_name ?? "User",
+        last_name: request.last_name ?? "Name",
+      };
 
+      // FINAL chat object (IMPORTANT)
+      const chat = {
+        ...rawChat,
+        other,
+      };
+    setChats((prev) => {
+      const exists = prev.some(
+        (c) => c.id === chat.id
+      );
 
+      if (exists) return prev;
+
+      return [chat, ...prev];
+    });
+
+    togglePopup();
+
+    await openChat(chat);
+
+  } catch (err) {
+    console.error(
+      "Chat failed",
+      err
+    );
+  } finally {
+    setChatLoading(null);
+  }
+};
+
+$userOne = min($buyerId, $sellerId);
+            $userTwo = max($buyerId, $sellerId);
+
+            $chat = Chat::firstOrCreate([
+                'user_one_id' => $userOne,
+                'user_two_id' => $userTwo,
+
+                 'type' => 'private',
+            ]);
