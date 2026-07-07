@@ -27,27 +27,26 @@ export default function StudentProposalHistory() {
     
     const [deleteModal, setDeleteModal] = useState(null);
     const [editLoading, setEditLoading] = useState(null);
+    const [editProposal, setEditProposal] = useState(null);
 
     useEffect(() => {
 
-    if (!selectedProposal) return;
+    if (!editProposal) return;
 
-    console.log(selectedProposal);
+    setTitle(editProposal.title ?? "");
+    setSubject(editProposal.subject ?? "");
+    setPrice(editProposal.price ?? "");
+    setCurrency(editProposal.currency ?? "");
+    setTeacherType(editProposal.teacher_type ?? "");
+    setTeachingMode(editProposal.teaching_mode ?? "");
+    setLocation(editProposal.preferred_location ?? "");
+    setQualification(editProposal.qualification ?? "");
+    setHours(editProposal.teaching_hours ?? "");
+    setFromTime(editProposal.from_time ?? "");
+    setToTime(editProposal.to_time ?? "");
+    setDescription(editProposal.description ?? "");
 
-    setTitle(selectedProposal.title ?? "");
-    setSubject(selectedProposal.subject ?? "");
-    setPrice(selectedProposal.price ?? "");
-    setCurrency(selectedProposal.currency ?? "");
-    setTeacherType(selectedProposal.teacher_type ?? "");
-    setTeachingMode(selectedProposal.teaching_mode ?? "");
-    setLocation(selectedProposal.preferred_location ?? "");
-    setQualification(selectedProposal.qualification ?? "");
-    setHours(selectedProposal.teaching_hours ?? "");
-    setFromTime(selectedProposal.from_time ?? "");
-    setToTime(selectedProposal.to_time ?? "");
-    setDescription(selectedProposal.description ?? "");
-
-}, [selectedProposal]);
+}, [editProposal]);
 
 
 
@@ -135,29 +134,20 @@ const currencySymbol = (currency) => {
     }
 
     const handleEdit = async (id) => {
-
     if (editLoading !== null) return;
 
     setEditLoading(id);
 
     try {
+        const res = await api.get(`/api/student/proposals/${id}`);
 
-        const res = await api.get(
-            `/api/student/proposals/${id}`
-        );
-
-        setSelectedProposal(res.data);
-
+        setEditProposal(res.data); 
         setShowEdit(true);
 
     } catch (err) {
-
         toast.error("Unable to fetch proposal.");
-
     } finally {
-
         setEditLoading(null);
-
     }
 };
 
@@ -167,7 +157,7 @@ const currencySymbol = (currency) => {
     try{
         setSaving(true);
         const res = await api.put(
-            `/api/student/proposals/${selectedProposal.id}`,
+            `/api/student/proposals/${editProposal.id}`,
             {
                 title,
                 subject,
@@ -191,7 +181,7 @@ const currencySymbol = (currency) => {
 
             prev.map(item=>
 
-                item.id===selectedProposal.id
+                item.id===editProposal.id
 
                 ? res.data.proposal
 
@@ -562,7 +552,7 @@ const currencySymbol = (currency) => {
     </div>
 )}
 
-            {showEdit && (
+            {showEdit && editProposal && (
 
 <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
 
@@ -647,7 +637,7 @@ Price
 
 <input
 
-type="number"
+type="text"
 
 value={price}
 
@@ -682,8 +672,6 @@ className="w-full border rounded-xl p-3 mt-2"
 <option value="₦">₦</option>
 
 <option value="£">£</option>
-
-<option value="€">€</option>
 
 </select>
 
@@ -801,7 +789,7 @@ Teaching Hours
 
 <input
 
-type="number"
+type="text"
 
 value={hours}
 
@@ -895,7 +883,7 @@ className="w-full border rounded-xl p-3 mt-2"
 
 </select>
 
-<p className="text-sm text-gray-500 mt-2">
+<p className="text-xs text-red-500 mt-2">
 Changing this will reset the proposal expiry from the current time.
 </p>
 
@@ -970,31 +958,20 @@ Updating</p> : "Update Proposal"}
 
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
 
-            <div className="bg-white w-full max-w-3xl rounded-xl p-6 max-h-[90vh] 
+            <div className="bg-white text-black w-full max-w-3xl rounded-xl p-6 max-h-[90vh] 
             overflow-y-auto scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin">
 
                 <div className="flex items-center gap-4 mt-6">
 
                      <div
                             className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-sm flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
-                            selectedProposal?.student?.first_name
+                            selectedProposal?.title
                             )}`}
                         >
-                            {getInitial(selectedProposal?.student?.first_name)}
+                            {getInitial(selectedProposal?.title)}
                         </div>
                     <div>
 
-                        <h3 className="font-bold text-2xl">
-
-                            {selectedProposal?.student?.first_name}
-                            {" "}
-                            {selectedProposal?.student?.last_name}
-
-                        </h3>
-                        <h3 className="font-bold text-sm mt-2">
-
-                            {selectedProposal?.student?.location}
-                        </h3>
                         <div className="inline-flex items-center mt-2 font-bold text-xl">
 
                         <h2 className="">{selectedProposal.title} </h2> {" • "} <p className=""> {selectedProposal.subject} </p>

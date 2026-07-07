@@ -22,6 +22,7 @@ export default function ProposalList({badges, setBadges}) {
             const res = await api.get("/api/proposals-get");
 
             setProposals(res.data);
+            console.log(res.data);
 
         } catch (err) {
 
@@ -92,6 +93,7 @@ export default function ProposalList({badges, setBadges}) {
 
 }
 
+
     return (
 
         <>
@@ -100,30 +102,18 @@ export default function ProposalList({badges, setBadges}) {
 
             <div className="lg:ml-64">     
             <h1 className="w-full text-[var(--text-color)] border-b-2 border-blue-500 mb-6 pb-2 text-2xl font-bold ">Student Proposal</h1>
-             {proposals.length===0 &&(
-
-                <div className="col-span-full">
-
-                    <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow p-10 text-center">
-
-                        <h2 className="text-xl font-bold">
-
-                            No Proposal
-
-                        </h2>
-
-                        <p className="mt-2">
-
-                            Student haven't sent any proposal request yet.
-
-                        </p>
-
-                    </div>
-
+            {!loading && proposals.length === 0 && (
+            <div className="col-span-full">
+                <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow p-10 text-center">
+                    <h2 className="text-xl font-bold">
+                        No Proposal
+                    </h2>
+                    <p className="mt-2">
+                        Students haven't sent any proposal request yet.
+                    </p>
                 </div>
-
+            </div>
             )}
-
                 {proposals.map((proposal) => (
 
                     <ProposalCard

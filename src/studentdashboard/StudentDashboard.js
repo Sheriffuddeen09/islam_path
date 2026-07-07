@@ -35,8 +35,57 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
    const [visible, setVisible] = useState(1)
         
    const [pendingRequests, setPendingRequests] = useState(0);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+// Fetch notification count
+useEffect(() => {
+  fetchNotifications();
+}, []);
+
+const fetchNotifications = async () => {
+  try {
+    const res = await api.get("/api/notifications/requests");
+    setPendingRequests(res.data.pending_requests);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// Clear notification count immediately when menu opens
+useEffect(() => {
+  if (isMenuOpen) {
+    setPendingRequests(0);
+  }
+}, [isMenuOpen]);
 
    
+const handleToggleMenu = () => {
+  setIsMenuOpen(prev => !prev);
+};
+
+const [proposalCounts, setProposalCounts] = useState(0)
+
+  useEffect(() => {
+    fetchNotification();
+}, []);
+
+const fetchNotification = async () => {
+    const res = await api.get("/api/notifications/proposals");
+
+    setProposalCounts(res.data.pending_requests);
+};
+
+const handleToggleProposal = async () => {
+
+    // Clear badge immediately
+    setProposalCounts(0);
+
+    try {
+        await api.post("/api/student/requests/read");
+    } catch (err) {
+        console.log(err);
+    }
+};
 
    const { user } = useAuth();
   
@@ -87,7 +136,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
               id: 7,
               label: "Teacher Proposal Request",
               icon: Proportions,
-              // showBadge: true,
+              proposalBadge: true,
             },
             {
               id: 8,
@@ -258,6 +307,12 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                     onClick={() => {
                       setVisible(item.id);
                       handleMenuClick(item);
+                      if (item.id === 8) {
+                          handleToggleMenu();
+                        }         
+                       if (item.id === 7) {
+                          handleToggleProposal();
+                        }
                     }}
                     className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                       ${
@@ -279,6 +334,14 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                         {pendingRequests}
                       </span>
                     )}
+
+
+                    {item.proposalBadge && proposalCounts > 0 && (
+                        <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                          {proposalCounts}
+                        </span>
+                      )}
+
 
                     {item.showcount && savedCount > 0 && (
                       <span
@@ -402,7 +465,13 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                             onClick={() => {
                               setVisible(item.id);
                               handleMenuClick(item);
-                              handleOpenModel()
+                              handleOpenModel();
+                              if (item.id === 8) {
+                          handleToggleMenu();
+                        }
+                               if (item.id === 7) {
+                                  handleToggleProposal();
+                                }
                             }}
                             className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
                               ${
@@ -422,6 +491,12 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                             {item.showBadge && pendingRequests > 0 && (
                               <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                                 {pendingRequests}
+                              </span>
+                            )}
+
+                            {item.proposalBadge && proposalCounts > 0 && (
+                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                {proposalCounts}
                               </span>
                             )}
 
@@ -475,7 +550,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
                          <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
                           <ProposalTeacherRequests 
                           setChats={setChats} 
-                          togglePopup={togglePopup}
+                          togglePopup={togglePopup} proposalCounts={proposalCounts}
                           chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
                          </div>
                           <div className={`${visible === 8 ? 'block' : 'hidden'}`}>

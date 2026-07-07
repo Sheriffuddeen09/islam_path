@@ -60,12 +60,9 @@ function App() {
     const [students, setStudents] = useState([]);
     const [admins, setAdmins] = useState([])
     const [incomingRequests, setIncomingRequests] = useState([]);
-
     const [user, setUser] = useState(null);
-
     const [videos, setVideos] = useState([]);
     const [posts, setPosts] = useState([]);
-
     const [requestStatus, setRequestStatus] = useState({});
 
     // Chat
@@ -79,6 +76,9 @@ function App() {
     const [incomingCall, setIncomingCall] = useState(null);
     const [callMode, setCallMode] = useState(null); 
     const [meetingData, setMeetingData] = useState(null);
+
+    const [pendingCount, setPendingCount] = useState(0);
+    
 
    const togglePopup = () => {
       setUiMode(prev => (prev === "popup" ? "closed" : "popup"));
@@ -243,6 +243,8 @@ function App() {
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentDashboard onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
               chats={chats} togglePopup={togglePopup} 
+              pendingCount={pendingCount}
+              setPendingCount={setPendingCount}
               image={image} setImage={setImage}
               postComments={postComments} setPostComments={setPostComments} loading={loading} 
               setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -272,7 +274,9 @@ function App() {
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <TeacherDashboardLayout 
-          togglePopup={togglePopup}
+          togglePopup={togglePopup} 
+          pendingCount={pendingCount}
+          setPendingCount={setPendingCount}
           onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
           teachers={teachers} setTeachers={setTeachers} chats={chats} 
           image={image} setImage={setImage}

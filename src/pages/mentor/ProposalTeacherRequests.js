@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import ProposalTeacherProfileModal from "./ProposalTeacherProfileModal";
 
-export default function ProposalTeacherRequests({setActiveChat, setMessages, togglePopup, setChats}) {
+export default function ProposalTeacherRequests({setActiveChat, setMessages, togglePopup, setChats, proposalCounts}) {
 
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -139,7 +139,7 @@ export default function ProposalTeacherRequests({setActiveChat, setMessages, tog
 
         <div className="lg:ml-64">
             <h1 className="w-full text-[var(--text-color)] 
-            border-b-2 border-blue-500 mb-6 pb-2 text-2xl font-bold ">Student Proposal</h1>
+            border-b-2 border-blue-500 mb-6 pb-2 text-2xl font-bold ">Teacher Proposal ({proposalCounts}) Pending </h1>
             {requests.length===0 &&(
 
                 <div className="col-span-full">

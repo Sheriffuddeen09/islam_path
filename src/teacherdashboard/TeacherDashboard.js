@@ -54,6 +54,28 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
    
       const { currentUser } = useAuth();
        const authUserId = currentUser?.id;
+
+    const [proposalPending, setProposalPending] = useState(0)
+
+       useEffect(() => {
+        fetchProposalNotification();
+    }, []);
+
+    const fetchProposalNotification = async () => {
+        const res = await api.get("/api/proposals/notifications");
+
+        setProposalPending(res.data.pending_proposals);
+    };
+
+    const handleCreateProposal = async () => {
+    setProposalPending(0);
+
+        try {
+            await api.post("/api/proposals/read");
+        } catch (err) {
+            console.error(err);
+        }
+    };
    
       const fetchOrderCount = async () => {
      try {
@@ -164,7 +186,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 
   // Menu items for Comment 1  
   const teacherMenu = [
-  { id: 5, label: "Student Proposal", icon: Workflow, showBadge: true },
+  { id: 5, label: "Student Proposal", icon: Workflow, proposalCount: true },
   { id: 6, label: "History Proposal", icon: History },
   { id: 7, label: "Student Request", icon: Users, showBadge: true },
   { id: 8, label: "Create Student Assignment", icon: FilePlus },
@@ -382,6 +404,9 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                       handleOpenModel();
                       handleMenuClick(item);
                       handleClearOrderCount(item);
+                      if (item.label === 5) {
+                          handleCreateProposal();
+                      }
                     }}
                     className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
                       hover:bg-gray-500 hover:text-white
@@ -400,6 +425,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     {item.showBadge && pendingCount > 0 && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {pendingCount}
+                      </span>
+                    )}
+
+                    {item.proposalCount && proposalPending > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {proposalPending}
                       </span>
                     )}
 
@@ -588,6 +619,9 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                       handleOpenModel();
                       handleMenuClick(item);
                       handleClearOrderCount(item);
+                      if (item.label === 5) {
+                          handleCreateProposal();
+                      }
                     }}
                     className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
                       hover:bg-gray-500 hover:text-white
@@ -606,6 +640,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     {item.showBadge && pendingCount > 0 && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {pendingCount}
+                      </span>
+                    )}
+
+                     {item.proposalCount && proposalPending > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {proposalPending}
                       </span>
                     )}
 
