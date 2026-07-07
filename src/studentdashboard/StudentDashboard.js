@@ -64,6 +64,8 @@ const handleToggleMenu = () => {
 };
 
 const [proposalCounts, setProposalCounts] = useState(0)
+    const [isProposal, setIsProposal] = useState(false);
+
 
   useEffect(() => {
     fetchNotification();
@@ -75,18 +77,17 @@ const fetchNotification = async () => {
     setProposalCounts(res.data.pending_requests);
 };
 
-const handleToggleProposal = async () => {
-
-    // Clear badge immediately
-    setProposalCounts(0);
-
-    try {
-        await api.post("/api/student/requests/read");
-    } catch (err) {
-        console.log(err);
+  useEffect(() => {
+    if (isProposal) {
+      setProposalCounts(0);
     }
-};
+  }, [isProposal]);
 
+
+
+  const handleToggleProposal = () => {
+    setIsProposal(prev => !prev);
+  };
    const { user } = useAuth();
   
     

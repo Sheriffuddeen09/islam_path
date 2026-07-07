@@ -144,7 +144,7 @@ export default function ProposalTeacherRequests({setActiveChat, setMessages, tog
 
                 <div className="col-span-full">
 
-                    <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-2xl shadow p-10 text-center">
+                    <div className="bg-[var(--bg-color)] text-[var(--text-color)] border-2 border rounded-2xl shadow p-10 text-center">
 
                         <h2 className="text-2xl font-bold">
 

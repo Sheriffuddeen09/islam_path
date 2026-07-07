@@ -61,6 +61,7 @@ export default function ProposalCard({
         overflow-hidden
         px-2
         mt-3
+        text-black
     "
 >
     <div className="p-5">

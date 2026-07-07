@@ -56,6 +56,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
        const authUserId = currentUser?.id;
 
     const [proposalPending, setProposalPending] = useState(0)
+    const [isProposal, setIsProposal] = useState(false);
 
        useEffect(() => {
         fetchProposalNotification();
@@ -67,14 +68,19 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         setProposalPending(res.data.pending_proposals);
     };
 
-    const handleCreateProposal = async () => {
-    setProposalPending(0);
 
-        try {
-            await api.post("/api/proposals/read");
-        } catch (err) {
-            console.error(err);
+    useEffect(() => {
+        if (isProposal) {
+          setProposalPending(0);
         }
+      }, [isProposal]);
+    
+    
+    
+
+    const handleCreateProposal = async () => {
+        setIsProposal(prev => !prev);
+   
     };
    
       const fetchOrderCount = async () => {

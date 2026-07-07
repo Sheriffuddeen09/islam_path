@@ -133,9 +133,9 @@ export default function ProposalModal({
         
     return (
 
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
 
-            <div className="bg-white w-full max-w-3xl rounded-xl p-6 max-h-[90vh] 
+            <div className="bg-white w-full text-black max-w-3xl rounded-xl p-6 max-h-[90vh] 
             overflow-y-auto scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin">
 
                 <div className="flex items-center gap-4 mt-6">
@@ -162,7 +162,7 @@ export default function ProposalModal({
                         </h3>
                         <div className="inline-flex items-center mt-2 font-bold text-xl">
 
-                        <h2 className="">{proposal.title} </h2> {" • "} <p className=""> {proposal.subject} </p>
+                        <h2 className="">{proposal.title} </h2> <span className="mx-2"> • </span> <p className=""> {proposal.subject} </p>
 
                         </div>
                         
@@ -321,7 +321,7 @@ export default function ProposalModal({
 
             {showUnlockModal && (
               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-5 w-80 text-center relative">
+                <div className="bg-white text-black rounded-lg p-5 w-80 text-center relative">
                   <div className="inline-flex items-end gap-2">
                   <Lock />
                   <h2 className="font-bold text-sm ">Unlock Student Proposal</h2>

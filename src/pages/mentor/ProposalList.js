@@ -104,7 +104,7 @@ export default function ProposalList({badges, setBadges}) {
             <h1 className="w-full text-[var(--text-color)] border-b-2 border-blue-500 mb-6 pb-2 text-2xl font-bold ">Student Proposal</h1>
             {!loading && proposals.length === 0 && (
             <div className="col-span-full">
-                <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow p-10 text-center">
+                <div className="bg-[var(--bg-color)] text-[var(--text-color)] border-2 border rounded-xl shadow p-10 text-center">
                     <h2 className="text-xl font-bold">
                         No Proposal
                     </h2>

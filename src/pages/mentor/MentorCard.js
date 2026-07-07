@@ -162,6 +162,7 @@ const handleWatchAd = async () => {
                                         border-black
                                         object-cover
                                         shadow-lg
+                                        mx-auto
                                     "
                                 />
 
@@ -181,6 +182,7 @@ const handleWatchAd = async () => {
                                         justify-center
                                         text-4xl
                                         text-white
+                                        mx-auto
                                         font-bold
                                         ${getColor(t.first_name)}
                                     `}

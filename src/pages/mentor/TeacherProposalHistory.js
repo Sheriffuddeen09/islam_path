@@ -261,12 +261,12 @@ const currencySymbol = (currency) => {
     return(
 
         <div className="lg:ml-64">
-            <h1 className="w-full text-[var(--text-color)] border-b-2 border-blue-500 mb-6 pb-2 text-2xl font-bold ">History Proposal</h1>
+            <h1 className=" w-full text-[var(--text-color)] border-b-2 border-blue-500 mb-6 pb-2 text-2xl font-bold ">History Proposal</h1>
             {history.length===0 &&(
 
-                <div className="col-span-full">
+                <div className="col-span-full ">
 
-                    <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow p-10 text-center">
+                    <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl border-2 border shadow p-10 text-center">
 
                         <h2 className="text-xl font-bold">
 

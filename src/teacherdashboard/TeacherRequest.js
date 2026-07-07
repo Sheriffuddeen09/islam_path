@@ -71,9 +71,9 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
   }, []);
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow lg:ml-60">
+    <div className="bg-white p-6 text-black rounded-xl shadow lg:ml-60">
       <Toaster position="top-right" />
-      <h2 className="font-bold text-lg mb-4">
+      <h2 className="font-bold text-lg mb-10 border-b-2 border-blue-800 pb-2">
         Student Requests ({pendingCount} pending)
       </h2>
 
@@ -88,13 +88,13 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
         return (
         <div
           key={req.id}
-          className="border p-4 rounded-lg mb-3 flex flex-wrap justify-between items-center"
+          className="border p-4 rounded-lg mb-3 text-black flex flex-wrap justify-between items-center gap-3 sm:gap-0"
         >
           <div>
-            <p className="font-semibold">
+            <p className="font-semibold text-lg">
               {req.student.first_name} {req.student.last_name}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-black text-sm font-semibold mt-1 sm:mt-0">
               Requested {new Date(req.created_at).toLocaleString("en-GB", {
                 year: "numeric",
                 month: "2-digit",
@@ -109,49 +109,51 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
           <div className="flex  gap-2">
             
 
-            {req.status === "pending" && (
-  <>
-    <button
-      onClick={() => handleResponse(req.id, "accepted")}
-      disabled={
-        loadingAction?.id === req.id &&
-        loadingAction?.action === "accepted"
-      }
-      className="px-3 py-1 bg-green-600 text-white rounded flex items-center gap-2 disabled:opacity-60"
-    >
-      {loadingAction?.id === req.id &&
-      loadingAction?.action === "accepted" ? (
-        <>
-          <span className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
-        </>
-      ) : (
-        "Accept"
-      )}
-    </button>
-
-    <button
-      onClick={() => handleResponse(req.id, "declined")}
-      disabled={
-        loadingAction?.id === req.id &&
-        loadingAction?.action === "declined"
-      }
-      className="px-3 py-1 bg-red-600 text-white rounded flex items-center gap-2 disabled:opacity-60"
-    >
-      {loadingAction?.id === req.id &&
-      loadingAction?.action === "declined" ? (
-        <>
-          <span className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
-        </>
-      ) : (
-        "Decline"
-      )}
-    </button>
-
-    
-  </>
-)}
+          
 
           </div>
+
+            {req.status === "pending" && (
+                <div className="inline-flex gap-2 items-center">
+                  <button
+                    onClick={() => handleResponse(req.id, "accepted")}
+                    disabled={
+                      loadingAction?.id === req.id &&
+                      loadingAction?.action === "accepted"
+                    }
+                    className="px-3 py-2 text-sm bg-green-600 text-white rounded flex items-center gap-2 disabled:opacity-60"
+                  >
+                    {loadingAction?.id === req.id &&
+                    loadingAction?.action === "accepted" ? (
+                      <>
+                        <span className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                      </>
+                    ) : (
+                      "Accept"
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => handleResponse(req.id, "declined")}
+                    disabled={
+                      loadingAction?.id === req.id &&
+                      loadingAction?.action === "declined"
+                    }
+                    className="px-3 py-2 text-sm bg-red-600 text-white rounded flex items-center gap-2 disabled:opacity-60"
+                  >
+                    {loadingAction?.id === req.id &&
+                    loadingAction?.action === "declined" ? (
+                      <>
+                        <span className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                      </>
+                    ) : (
+                      "Decline"
+                    )}
+                  </button>
+
+                  
+                </div>
+              )}
           <div className="flex items-center gap-2">
             {req.status === "accepted" && (
               <button
@@ -195,7 +197,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
           {req.status !== "pending" && (
           <button
             onClick={() => clearByTeacher(req.id)}
-             className="px-3 py-1 text-white rounded bg-red-800 hover:bg-red-700 flex items-center gap-2"
+             className="px-3 py-1 text-black rounded flex items-center gap-2"
               >{
             deleteLoading ? 
             (
