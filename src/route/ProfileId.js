@@ -43,6 +43,7 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
   try {
     const res = await api.get(`/api/profile/${profileId}`);
     setProfile(res.data);
+    console.log(res.data);
     setVisibility(res.data.visibility || {
       dob: false,
       location: false,
@@ -61,6 +62,7 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
     fetchProfile();
 
 }, [profileId]);
+
 
 
 
@@ -95,7 +97,7 @@ const showAdminFriend = () => {
   );
 };
 
-
+console.log("Teacher Profile", profile)
 
   if (loadingProfile) return <Loader  />
 
@@ -105,7 +107,7 @@ const showAdminFriend = () => {
 
  
   const profile_content = (
-    <div className="max-w-5xl px-2 mx-auto">
+    <div className="max-w-5xl px-2 mx-auto lg:ml-4">
       {
             profile.role === "admin" && (
               <>
@@ -121,12 +123,19 @@ const showAdminFriend = () => {
                     <button onClick={() => {handleVisibleProfile(3);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
                        === 3 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
                     }`}>Photo</button>
-                    {
-                      authUser?.admin_choice === "arabic_teacher" &&
-                    <button onClick={() => {handleVisibleProfile(4);}} className={`py-2 px-6 rounded-lg  text-sm font-semibold whitespace-nowrap cursor-pointer ${visibleProfile
-                       === 4 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
-                    }`}>Teacher Profile</button>
-                  }
+                   {profile?.role === "admin" &&
+                      profile?.admin_choice === "arabic_teacher" && (
+                        <button
+                          onClick={() => handleVisibleProfile(4)}
+                          className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${
+                            visibleProfile === 4
+                              ? "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-gray-800 text-white hover:bg-gray-700"
+                          }`}
+                        >
+                          Teacher Profile
+                        </button>
+                      )}
                   </div>
                   
                   <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
@@ -334,7 +343,7 @@ const content = (
 
    
   return(
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div className="flex flex-col min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
             
       <SidebarLeft />
      
@@ -361,8 +370,6 @@ const content = (
     </div>
   )
 }
-
-
 
 
 function Loader() {

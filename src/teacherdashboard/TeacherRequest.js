@@ -106,13 +106,8 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
             </p>
           </div>
 
-          <div className="flex  gap-2">
             
-
-          
-
-          </div>
-
+          <div className="flex items-center gap-2">
             {req.status === "pending" && (
                 <div className="inline-flex gap-2 items-center">
                   <button
@@ -126,7 +121,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
                     {loadingAction?.id === req.id &&
                     loadingAction?.action === "accepted" ? (
                       <>
-                        <span className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
                       </>
                     ) : (
                       "Accept"
@@ -144,7 +139,7 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
                     {loadingAction?.id === req.id &&
                     loadingAction?.action === "declined" ? (
                       <>
-                        <span className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
                       </>
                     ) : (
                       "Decline"
@@ -154,7 +149,6 @@ export default function TeacherLiveRequests({ pendingCount, setPendingCount, set
                   
                 </div>
               )}
-          <div className="flex items-center gap-2">
             {req.status === "accepted" && (
               <button
                                 onClick={async () => {

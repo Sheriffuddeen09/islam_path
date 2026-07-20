@@ -22,6 +22,8 @@ import ChatPage from "../chat/chatbox/Chatpage";
 import CreateProposal from "../pages/mentor/CreateProposal";
 import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
 import StudentProposalHistory from "../pages/mentor/StudentProposalHistory";
+import TeacherReviews from "../pages/mentor/TeacherReviews";
+import AcceptedTeacher from "../pages/mentor/AcceptedTeacher";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -147,32 +149,37 @@ const fetchNotification = async () => {
             },
             {
               id: 9,
+              label: "Review Teacher",
+              icon: Users,
+            },
+            {
+              id: 10,
               label: "View Continue Assignment",
               icon: ClipboardList,
             },
             {
-              id: 10,
+              id: 11,
               label: "View Continue Examination",
               icon: FileText,
             },
             {
-              id: 11,
+              id: 12,
               label: "View Assignment Result",
               icon: CheckCircle,
             },
             {
-              id: 12,
+              id: 13,
               label: "View Examination Result",
               icon: BarChart3,
             },
             {
-              id: 13,
+              id: 14,
               label: "Product Order",
               icon: ShoppingCart,
               ordershow: true,
             },
             {
-              id: 14,
+              id: 15,
               label: "Saved Order",
               icon: Bookmark,
               showcount: true,
@@ -559,21 +566,24 @@ const fetchNotification = async () => {
                          chats={chats} setMessages={setMessages} />
                          </div>
                          <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+                         <AcceptedTeacher  />
+                         </div> 
+                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
                          <AssignmentLibrary  />
                          </div> 
-                          <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+                          <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
                          <ExamLibrary  />
                          </div> 
-                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
                          <AssignmentResults  />
                          </div> 
-                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
                          <ExamResults  />
                          </div> 
-                         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
                          <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
                          </div> 
-                         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
                          <SaveOrder  />
                          </div> 
                        </section>

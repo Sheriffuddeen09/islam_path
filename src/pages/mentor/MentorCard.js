@@ -4,7 +4,8 @@ import { Lock } from "lucide-react";
 
 
 export default function MentorCard({filteredCourse, loadingId, requestStatus, sendLiveRequest, setLoadingId, setNotification
-  , selectedTeacher, setSelectedTeacher, t, notification, setRequestStatus, user, authReady }) {
+  , selectedTeacher, setSelectedTeacher, t, notification, setRequestStatus, user, authReady,
+  averageRating, reviewCount, reviewLoading, teacherReviews }) {
  
 
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -338,6 +339,30 @@ const handleWatchAd = async () => {
             <p className="text-gray-900 text-xl sm:text-4xl font-bold mb-2">
               {selectedTeacher.first_name || "N/A"} {selectedTeacher.last_name || "N/A"}
             </p>
+            <div className="flex items-center gap-2 mb-5">
+
+            <div className="text-yellow-500 text-xl">
+
+                {"★".repeat(Math.round(averageRating))}
+                <span className="text-gray-300">
+                    {"★".repeat(5 - Math.round(averageRating))}
+                </span>
+
+            </div>
+
+            <span className="font-semibold">
+
+                {averageRating}
+
+            </span>
+
+            <span className="text-gray-500">
+
+                ({reviewCount} Reviews)
+
+            </span>
+
+        </div>
             
             <div className="flex items-center gap-3">
               <div>
@@ -401,6 +426,109 @@ const handleWatchAd = async () => {
             <p className="text-gray-900 mb-4 text-[16px] font-semibold mt-2">              
                {selectedTeacher.compliment || "N/A"}
             </p>
+
+            <div className="mt-10">
+
+    <h2 className="text-2xl font-bold border-b pb-3">
+
+        Student Reviews
+
+    </h2>
+
+    {reviewLoading ? (
+
+        <div className="py-10 text-center">
+
+            Loading reviews...
+
+        </div>
+
+    ) : teacherReviews.length === 0 ? (
+
+        <div className="text-center py-10">
+
+            <div className="text-6xl">
+
+                ⭐
+
+            </div>
+
+            <p className="font-bold mt-4">
+
+                No reviews yet
+
+            </p>
+
+        </div>
+
+    ) : (
+
+        <div className="space-y-5 mt-6">
+
+            {teacherReviews.map((review) => (
+
+                <div
+                    key={review.id}
+                    className="border rounded-xl p-5 shadow-sm"
+                >
+
+                    <div className="flex items-center gap-3">
+
+                        <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+
+                            {review.avatar}
+
+                        </div>
+
+                        <div>
+
+                            <p className="font-bold">
+
+                                {review.first_name} {review.last_name}
+
+                            </p>
+
+                            <div className="text-yellow-500">
+
+                                {"★".repeat(review.rating)}
+
+                                <span className="text-gray-300">
+
+                                    {"★".repeat(5 - review.rating)}
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <span className="ml-auto text-sm text-gray-500">
+
+                            {review.created_at}
+
+                        </span>
+
+                    </div>
+
+                    {review.review && (
+
+                        <p className="mt-4 text-black text-sm">
+
+                            {review.review}
+
+                        </p>
+
+                    )}
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
+
+</div>
           </div>
         </div>
       )}

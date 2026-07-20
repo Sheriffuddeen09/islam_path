@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, ClipboardList, Eye,
   FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
   Workflow,
-  History} from "lucide-react";
+  History,
+  Star} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -26,6 +27,7 @@ import ChatPage from "../chat/chatbox/Chatpage";
 import ProposalCard from "../pages/mentor/ProposalCard";
 import ProposalList from "../pages/mentor/ProposalList";
 import TeacherProposalHistory from "../pages/mentor/TeacherProposalHistory";
+import TeacherReviews from "../pages/mentor/TeacherReviews";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -55,34 +57,64 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
       const { currentUser } = useAuth();
        const authUserId = currentUser?.id;
 
-    const [proposalPending, setProposalPending] = useState(0)
-    const [isProposal, setIsProposal] = useState(false);
+      const [proposalPending, setProposalPending] = useState(0)
+      const [isProposal, setIsProposal] = useState(false);
 
-       useEffect(() => {
-        fetchProposalNotification();
-    }, []);
+        useEffect(() => {
+          fetchProposalNotification();
+      }, []);
 
-    const fetchProposalNotification = async () => {
-        const res = await api.get("/api/proposals/notifications");
+      const fetchProposalNotification = async () => {
+          const res = await api.get("/api/proposals/notifications");
 
-        setProposalPending(res.data.pending_proposals);
-    };
+          setProposalPending(res.data.pending_proposals);
+      };
 
 
-    useEffect(() => {
-        if (isProposal) {
-          setProposalPending(0);
-        }
-      }, [isProposal]);
+      useEffect(() => {
+          if (isProposal) {
+            setProposalPending(0);
+          }
+        }, [isProposal]);
+      
+      
+      
+
+      const handleCreateProposal = async () => {
+          setIsProposal(prev => !prev);
     
-    
+      };
     
 
-    const handleCreateProposal = async () => {
-        setIsProposal(prev => !prev);
-   
-    };
-   
+      const [reviewPending, setReviewPending] = useState(0);
+      const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+
+      useEffect(() => {
+      fetchReviewNotification();
+      }, []);
+
+      const fetchReviewNotification = async () => {
+          try {
+              const res = await api.get("/api/teacher/reviews/notifications");
+
+              setReviewPending(res.data.pending_reviews);
+          } catch (err) {
+              console.log(err);
+          }
+      };
+
+
+      useEffect(() => {
+          if (isReviewOpen) {
+              setReviewPending(0);
+          }
+      }, [isReviewOpen]);
+
+      const handleTeacherReviews = () => {
+          setIsReviewOpen(true);
+      };
+
       const fetchOrderCount = async () => {
      try {
        const res = await api.get("/api/orders/count", {
@@ -195,14 +227,15 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   { id: 5, label: "Student Proposal", icon: Workflow, proposalCount: true },
   { id: 6, label: "History Proposal", icon: History },
   { id: 7, label: "Student Request", icon: Users, showBadge: true },
-  { id: 8, label: "Create Student Assignment", icon: FilePlus },
-  { id: 9, label: "Create Student Examination", icon: ClipboardList },
-  { id: 10, label: "View Assignment", icon: Eye },
-  { id: 11, label: "View Examination", icon: FileText },
-  { id: 12, label: "View Assignment Result", icon: CheckCircle },
-  { id: 13, label: "View Examination Result", icon: BarChart3 },
-  { id: 14, label: "Product Order", icon: ShoppingCart },
-  { id: 15, label: "Saved Order", icon: Bookmark, showcount: true },
+  { id: 8, label: "Student Reviews", icon: Star, showReviews: true },
+  { id: 9, label: "Create Student Assignment", icon: FilePlus },
+  { id: 10, label: "Create Student Examination", icon: ClipboardList },
+  { id: 11, label: "View Assignment", icon: Eye },
+  { id: 12, label: "View Examination", icon: FileText },
+  { id: 13, label: "View Assignment Result", icon: CheckCircle },
+  { id: 14, label: "View Examination Result", icon: BarChart3 },
+  { id: 15, label: "Product Order", icon: ShoppingCart },
+  { id: 16, label: "Saved Order", icon: Bookmark, showcount: true },
 ];
 
   // Menu items for Comment 2
@@ -410,8 +443,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                       handleOpenModel();
                       handleMenuClick(item);
                       handleClearOrderCount(item);
-                      if (item.label === 5) {
+                      if (item.id === 5) {
                           handleCreateProposal();
+                      }
+
+                      if(item.id === 8) {
+                        handleTeacherReviews()
                       }
                     }}
                     className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
@@ -431,6 +468,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     {item.showBadge && pendingCount > 0 && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {pendingCount}
+                      </span>
+                    )}
+
+                     {item.showReviews && reviewPending > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {reviewPending}
                       </span>
                     )}
 
@@ -625,8 +668,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                       handleOpenModel();
                       handleMenuClick(item);
                       handleClearOrderCount(item);
-                      if (item.label === 5) {
+                      if (item.id === 5) {
                           handleCreateProposal();
+                      }
+
+                      if(item.id === 8) {
+                        handleTeacherReviews()
                       }
                     }}
                     className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
@@ -646,6 +693,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     {item.showBadge && pendingCount > 0 && (
                       <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {pendingCount}
+                      </span>
+                    )}
+
+                    {item.showReviews && reviewPending > 0 && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {reviewPending}
                       </span>
                     )}
 
@@ -720,30 +773,34 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-        <CreateAssignment  />
+        <TeacherReviews 
+        teacherId={authUserId} reviewPending={reviewPending} />
         </div>
         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
-        <CreateExam  />
+        <CreateAssignment  />
         </div>
         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
-        <TeacherAssignmentPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        <CreateExam  />
         </div>
         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
-        <TeacherExamPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        <TeacherAssignmentPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
-        <AssignmentResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        <TeacherExamPreview pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
-        <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        <AssignmentResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
+        <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
+        </div>
+        <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
         <Order
         setChats={setChats} 
         togglePopup={togglePopup}
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div> 
-        <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div> 
 

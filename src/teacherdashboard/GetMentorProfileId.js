@@ -18,14 +18,14 @@ export default function GetMentorProfileId() {
   const [adsWatched, setAdsWatched] = useState(0);
   const [loadingUnlock, setLoadingUnlock] = useState(false);
 
-  
+  const [teacherReviews, setTeacherReviews] = useState([]);
  const [badges, setBadges] = useState({
   total: 0,
 });
 
 
 useEffect(() => {
-  api.get("/api/student/badges")
+  api.get("/api/user/badges")
     .then(res => {
       setBadges(res.data);
     })
@@ -37,7 +37,7 @@ useEffect(() => {
 
 const [error, setError] = useState("");
 
-  const {id} = useParams()
+const {id} = useParams()
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -48,6 +48,7 @@ const [error, setError] = useState("");
           setError(res.data.message);
         } else {
           setTeacher(res.data.teacher);
+          setTeacherReviews(res.data.reviews || []);
         }
       } catch (err) {
         if (err.response?.status === 403) {
@@ -64,6 +65,39 @@ const [error, setError] = useState("");
   }, []);
 
  
+    const [averageRating, setAverageRating] = useState(0);
+    const [reviewCount, setReviewCount] = useState(0);
+    const [reviewLoading, setReviewLoading] = useState(false);
+  
+  useEffect(() => {
+  
+    const fetchReviews = async () => {
+      try {
+        setReviewLoading(true);
+  
+        const res = await api.get("/api/teacher/reviews", {
+          params: {
+            teacher_id: id,
+          },
+        });
+  
+        setTeacherReviews(res.data.reviews || []);
+        setAverageRating(res.data.average_rating || 0);
+        setReviewCount(res.data.review_count || 0);
+      } catch (err) {
+        console.log(err);
+  
+        setTeacherReviews([]);
+        setAverageRating(0);
+        setReviewCount(0);
+      } finally {
+        setReviewLoading(false);
+      }
+    };
+  
+    fetchReviews();
+  }, [id]);
+  
  
 
 
@@ -175,13 +209,83 @@ const getButtonText = () => {
 };
 
 
+const TeacherCardSkeleton = () => {
+  return (
+    <div className="bg-gray-900 lg:ml-64 -mt-6 rounded-2xl shadow-lg border overflow-hidden animate-pulse">
+
+      {/* Top Section */}
+      <div className="flex justify-between items-start sm:gap-10 gap-4 p-4">
+
+        <div className="flex flex-wrap items-center sm:gap-10 gap-4">
+
+          {/* Avatar */}
+          <div className="w-28 h-28 rounded-full bg-gray-700"></div>
+
+          <div>
+
+            {/* Payment */}
+            <div className="h-4 w-32 bg-gray-700 rounded mb-2"></div>
+            <div className="h-7 w-24 bg-gray-600 rounded"></div>
+
+            {/* Rating */}
+            <div className="flex items-center gap-3 mt-6">
+              <div className="h-5 w-32 bg-gray-700 rounded"></div>
+              <div className="h-5 w-10 bg-gray-700 rounded"></div>
+              <div className="h-5 w-24 bg-gray-700 rounded"></div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-4 mt-5">
+              <div className="h-11 w-28 bg-gray-700 rounded-xl"></div>
+              <div className="h-11 w-32 bg-gray-700 rounded-xl"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Content */}
+      <div className="px-6 pb-6">
+
+        {/* Course + Experience */}
+        <div className="flex flex-wrap gap-6 mt-3">
+          <div className="h-5 w-40 bg-gray-700 rounded"></div>
+          <div className="h-5 w-36 bg-gray-700 rounded"></div>
+        </div>
+
+        {/* Location + Gender */}
+        <div className="flex flex-wrap gap-6 mt-6">
+          <div className="h-5 w-36 bg-gray-700 rounded"></div>
+          <div className="h-5 w-24 bg-gray-700 rounded"></div>
+        </div>
+
+        {/* Qualification */}
+        <div className="mt-8">
+          <div className="h-5 w-32 bg-gray-700 rounded mb-4"></div>
+          <div className="h-4 w-full bg-gray-700 rounded mb-2"></div>
+          <div className="h-4 w-3/4 bg-gray-700 rounded"></div>
+        </div>
+
+        {/* Compliment */}
+        <div className="mt-8">
+          <div className="h-5 w-32 bg-gray-700 rounded mb-4"></div>
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-gray-700 rounded"></div>
+            <div className="h-4 w-full bg-gray-700 rounded"></div>
+            <div className="h-4 w-2/3 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+};
 
   if (loading)
-    return (
-      <div className="flex items-center mt-5 justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
-      </div>
-    );
+    return <TeacherCardSkeleton />
 
      if (error) return <p className="text-red-600">{error}</p>;
 
@@ -194,11 +298,11 @@ const getButtonText = () => {
           No teacher available
         </p>
       ) } 
-        <div className="lg:-translate-x-7">
+        <div className="">
           
             <div
               key={teacher.id}
-              className=" bg-gray-900 -mt-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 group overflow-hidden border"
+              className=" bg-gray-900 -mt-12 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 group overflow-hidden border"
             >
               {/* Avatar */}
               <div className="flex justify-between items-start sm:gap-10 gap-4 p-4">
@@ -222,6 +326,35 @@ const getButtonText = () => {
                   </p>
                 )}
                 <div>
+
+                  <div className="flex items-center gap-3 mt-4">
+
+                    <div className="flex text-yellow-400 text-xl">
+
+                        {"★".repeat(Math.round(teacher.average_rating || 0))}
+
+                        <span className="text-gray-500">
+
+                            {"★".repeat(5 - Math.round(teacher.average_rating || 0))}
+
+                        </span>
+
+                    </div>
+
+                        <span className="text-white font-semibold">
+
+                            {teacher.average_rating || 0}
+
+                        </span>
+
+                        <span className="text-gray-300">
+
+                            ({teacher.review_count} Reviews)
+
+                        </span>
+
+                    </div>
+
                 <div className="flex gap-4 mt-3">
                   {/* CV */}
                   {teacher.cv ? (
@@ -330,6 +463,109 @@ const getButtonText = () => {
                     </span>
                   </p>
                 )}
+
+               <div className="mt-10">
+
+    <h2 className="text-2xl font-bold text-white border-b pb-3">
+
+        Student Reviews
+
+    </h2>
+
+    {reviewLoading ? (
+
+        <div className="py-10 text-center text-white">
+
+            Loading reviews
+
+        </div>
+
+    ) : teacherReviews.length === 0 ? (
+
+        <div className="text-center py-10">
+
+            <div className="text-6xl">
+
+                ⭐
+
+            </div>
+
+            <p className="font-bold mt-4">
+
+                No reviews yet
+
+            </p>
+
+        </div>
+
+    ) : (
+
+        <div className="space-y-5 mt-6">
+
+            {teacherReviews.map((review) => (
+
+                <div
+                    key={review.id}
+                    className="border rounded-xl p-5 shadow-sm"
+                >
+
+                    <div className="flex items-center gap-3">
+
+                        <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+
+                            {review.avatar}
+
+                        </div>
+
+                        <div>
+
+                            <p className="font-bold text-white">
+
+                                {review.first_name} {review.last_name}
+
+                            </p>
+
+                            <div className="text-yellow-500">
+
+                                {"★".repeat(review.rating)}
+
+                                <span className="text-gray-600">
+
+                                    {"★".repeat(5 - review.rating)}
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <span className="ml-auto text-sm text-white">
+
+                            {review.created_at}
+
+                        </span>
+
+                    </div>
+
+                    {review.review && (
+
+                        <p className="mt-4 text-white text-sm">
+
+                            {review.review}
+
+                        </p>
+
+                    )}
+
+                </div>
+
+            ))}
+
+        </div>
+
+    )}
+
+</div>
               </div>
 
               {/* Hover Actions */}

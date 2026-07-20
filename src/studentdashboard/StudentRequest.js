@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import { Link } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import SubmitTeacherReview from "../pages/mentor/SubmitTeacherReview";
 
 
 export default function StudentRequest({setMessages, setActiveChat, togglePopup}) {
@@ -10,6 +11,9 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
   const [actionLoading, setActionLoading] = useState({});
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [loadingMessageId, setLoadingMessageId] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   const fetchRequests = async () => {
     try {
@@ -65,12 +69,55 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
   ["accepted", "declined"].includes(req.status)
 );
 
-  if (loading)
+ if (loading) {
+
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
-      </div>
+
+        <div
+            className="
+            lg:ml-64
+            grid
+            grid-cols-1
+            gap-2
+            p-6"
+        >
+
+            {[...Array(4)].map((_,i)=>(
+
+                <div
+                    key={i}
+                    className="
+                    bg-white
+                    rounded-2xl
+                    border
+                    p-5
+                    animate-pulse"
+                >
+
+                    <div className="flex flex-col flex-1 gap-1">
+
+                            <div className="h-6 w-full rounded bg-gray-300"/>
+
+                            <div className="h-4 w-1/2 rounded bg-gray-200"/>
+
+                            <div className="h-4 w-2/3 rounded bg-gray-200"/>
+
+                            <div className="h-4 w-full mt-1 rounded bg-gray-200"/>
+
+                            <div className="h-4 w-4/5 mt-1 rounded bg-gray-200"/>
+
+                  </div>
+
+                </div>
+
+            ))}
+
+        </div>
+
     );
+
+}
+
 
   return (
     <div className="p- lg:p-6 lg:ml-60 max-w-7xl mx-auto overflow-hidden">
@@ -86,22 +133,20 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
       )}
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Teacher</th>
-                <th className="px-4 py-3 text-left text-gray-600 font-medium whitespace-nowrap uppercase tracking-wider">Gender</th>
-                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase whitespace-nowrap tracking-wider">Date Sent</th>
-                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase tracking-wider">Action</th>
-                {showRemoveColumn && (
-                <th className="px-4 py-3 text-left text-gray-600 font-medium uppercase">
+                <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase tracking-wider">Teacher</th>
+                <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium whitespace-nowrap uppercase tracking-wider">Gender</th>
+                <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase whitespace-nowrap tracking-wider">Date Sent</th>
+                <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase tracking-wider">Action</th>
+                <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase">
                   Remove
                 </th>
-              )}
-              </tr>
+                </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {requests.map(req => (
                 <tr key={req.id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{req.teacher.first_name} {req.teacher.last_name}</td>
+                  <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{req.teacher.first_name} {req.teacher.last_name} {req?.teacher_id} </td>
                   <td className="px-4 py-3 text-gray-600 font-medium capitalize whitespace-nowrap">{JSON.parse(req.teacher.teacher_info).coursetitle} &bull; {JSON.parse(req.teacher.teacher_info).experience}</td>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(req.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -168,7 +213,9 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
                     )}
                   </td>
                   <td>
-                  {["accepted", "declined"].includes(req.status) && (
+                  {( req.status === "declined" ||
+                  (req.status === "accepted" && req.has_review)
+                    ) && (
                   <button
                     onClick={() => clearStudentRequest(req.id)}
                     className="text-xs text-gray-900 hover:text-red-600 translate-x-5"
@@ -205,6 +252,8 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
                 )}
 
                   </td>
+
+                 
                 </tr>
               ))}
             </tbody>

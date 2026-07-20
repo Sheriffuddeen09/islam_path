@@ -62,7 +62,7 @@ export default function BioDataProfile({ userId, visibility, handleToggleVisibil
   return (
   <div className="pt-4">
 
-    <div className="max-w-5xl mx-auto space-y-6 border rounded-lg border-green-400 shadow-sm">
+    <div className="max-w-5xl mx-auto space-y-6 border rounded-3xl border-green-400 shadow-sm">
 
       {/* ================= PROFILE SECTION (ALWAYS SHOW) ================= */}
       <Section title="Personal Information" icon={<Calendar />}>

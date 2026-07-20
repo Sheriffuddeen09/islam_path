@@ -53,22 +53,18 @@ export default function AdminProfileFriend({setMessages, setActiveChat, togglePo
 
   if (loading) return <Loader />
 
-
-
-  const showMore = () =>
-    setVisibleCount(prev => Math.min(prev + 4, acceptedAdmins.length));
   const showLess = () => setVisibleCount(4);
 
   return (
     <div className="max-w-5xl mx-auto">
-      <Toaster position="top-right" />
-
       {/* HEADER */}
+     {acceptedAdmins.length === 1 & (
       <div className="flex justify-between items-center mb-2  py-2 px-4">
         <h3 className="text-lg text-[var(--text-color)] font-semibold border-b-2 border-blue-400 w-full pb-2">
           Friend's ({acceptedAdmins.length})
         </h3>
       </div>
+    )}
 
       {/* GRID */}
       <div className="grid  rounded-lg  grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
@@ -314,9 +310,9 @@ function Loader() {
 
       <div className="w-full px-4 flex flex-row justify-center mx-auto gap-2">
         
-        <div className="bg-gray-500 border border-white/10 rounded-3xl p-5">
+        <div className=" w-full bg-gray-500 border border-white/10 rounded-3xl p-5">
 
-          <div className="flex items-center gap-3 mb-6">
+          <div className=" w-full flex items-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/10" />
             <div className="h-5 w-40 rounded bg-white/10" />
           </div>

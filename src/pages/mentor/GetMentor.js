@@ -14,7 +14,40 @@ export default function GetMentor({teachers, setTeachers, requestStatus, setRequ
   const [loadingId, setLoadingId] = useState(null);
   const [coursetitles, setCoursetitles] = useState([]);
   const [selectedCoursetitles, setSelectedCoursetitles] = useState("");
+  const [teacherReviews, setTeacherReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [reviewLoading, setReviewLoading] = useState(false);
 
+useEffect(() => {
+  if (!selectedTeacher) return;
+
+  const fetchReviews = async () => {
+    try {
+      setReviewLoading(true);
+
+      const res = await api.get("/api/teacher/reviews", {
+        params: {
+          teacher_id: selectedTeacher.id,
+        },
+      });
+
+      setTeacherReviews(res.data.reviews || []);
+      setAverageRating(res.data.average_rating || 0);
+      setReviewCount(res.data.review_count || 0);
+    } catch (err) {
+      console.log(err);
+
+      setTeacherReviews([]);
+      setAverageRating(0);
+      setReviewCount(0);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  fetchReviews();
+}, [selectedTeacher]);
 
 
   useEffect(() => {
@@ -262,7 +295,9 @@ if (loading) {
                  setRequestStatus={setRequestStatus} requestStatus={requestStatus} 
                  setSelectedTeacher={setSelectedTeacher} setLoadingId={setLoadingId} 
                  setNotification={setNotification} sendLiveRequest={sendLiveRequest}
-                user={user} authReady={authReady}
+                  user={user} authReady={authReady} teacherReviews={teacherReviews}
+                  reviewCount={reviewCount} reviewLoading={reviewLoading}
+                  averageRating={averageRating}
                  />
                 </div>
               </li>
@@ -273,7 +308,7 @@ if (loading) {
       
             </>
           ) : (
-            <p className="text-sm text-gray-500 mt-6">No Teacher Course available</p>
+            <p className="text-sm text-[var(--text-color)] mt-6">No Teacher Course available</p>
           )}
         </div>
   </div>
