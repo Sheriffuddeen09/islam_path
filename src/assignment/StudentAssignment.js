@@ -87,7 +87,7 @@ const submit = async (source = "manual") => {
 };
 
 
-  /* ------------------ TIMER status !== "in_progress" ------------------ */
+  /* ------------------ TIMER onExpire ------------------ */
  const { timeLeft, setTimeLeft } = useAssignmentTimer(
   started ? assignment.duration_minutes * 60 : null
 );

@@ -1,20 +1,29 @@
 import { useState } from "react";
 import { linkList } from "./LinkData";
+import api from "../../Api/axios";
+import toast from "react-hot-toast";
+import JobProfileModal from "../../job/JobProfileModal";
 
 export default function SidebarLeft() {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
+  const [show, setShow] = useState(false)
 
   const links = linkList.filter(item => item.link === "link");
 
   const visibleMales = showMoreMale ? links : links.slice(0, 10);
 
+  
   return (
+    <>
     <aside className="fixed hidden sm:block top-[75px] left-2 
       h-[85vh] w-80 bg-white shadow-md p-4 z-40
       overflow-y-auto overflow-x-hidden
       scrollbar-thin scrollbar-thumb-gray-400">
         <p className="text-2xl text-center font-bold border-b-2 pb-2 text mb-2">Knowledge Practice</p>
+        <button className="text-sm text-gray-700" onClick={() => setShow(true)}>
+          Post / Find Halal Job
+        </button>
       <div className="mb-6">
         <ul className="space-y-">
           {visibleMales.map(item => (
@@ -48,5 +57,13 @@ export default function SidebarLeft() {
         )}
       </div>
     </aside>
+      
+      
+      <JobProfileModal
+      onClose={() => setShow(false)}
+      show={show}
+      />
+
+    </>
   );
 }

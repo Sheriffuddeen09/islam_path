@@ -4,10 +4,9 @@ export default function useExamTimer(durationSeconds, onExpire) {
   const [timeLeft, setTimeLeft] = useState(durationSeconds);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onExpire();
+    if (timeLeft <= 0) 
       return;
-    }
+    
 
     const interval = setInterval(() => {
       setTimeLeft(prev => prev - 1);

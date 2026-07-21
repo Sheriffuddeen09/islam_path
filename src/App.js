@@ -475,20 +475,6 @@ function App() {
       />}
        />
 
-
-        <Route path="/student/assignment/result/:resultId" element={<StudentAssignmentResult />} />
-        <Route path="/student/exams/result/:resultId" element={<StudentExamResult />} />
-
-      
-{/* /student/assignment/result/ */}
-
-
-      {/* register */}
-     
-
-      {/* login */}
-      
-
       <Route
         path="/verify-two-step"
         element={<VerifyTwoStep />}
@@ -522,6 +508,9 @@ function App() {
           element={<StudentAssignment />}
         />
 
+
+      <Route path="/student/exams/result/:resultId" element={<StudentExamResult />} />
+      <Route path="/student/assignment/result/:resultId" element={<StudentAssignmentResult />} />
         
 
         <Route

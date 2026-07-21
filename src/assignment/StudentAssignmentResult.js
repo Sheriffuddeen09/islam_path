@@ -51,7 +51,7 @@ export default function StudentAssignmentResult() {
       {/* HEADER */}
       <div className="text-center mt-4 mb-6">
         <div className="flex justify-around items-center flex-row ">
-          <h1 className={`text-4xl font-bold ${gradeColor}`}>
+          <h1 className={`sm:text-4xl text-xl font-bold ${gradeColor}`}>
             {grade} Result 🎉
           </h1>
           {user?.role === "student" && (
@@ -83,7 +83,7 @@ export default function StudentAssignmentResult() {
       </div>
 
       {/* BADGE ANIMATION */}
-      <div className="flex justify-center gap-3 mb-8">
+      <div className="flex justify-center gap-3 mb-8 flex-wrap">
         {Array.from({ length: badgeCount }).map((_, i) => (
           <motion.div
             key={i}

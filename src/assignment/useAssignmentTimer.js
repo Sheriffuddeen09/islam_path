@@ -1,20 +1,18 @@
 import { useEffect, useState } from "react";
 
-export default function useAssignmentTimer(durationSeconds, onExpire) {
+export default function useAssignmentTimer(durationSeconds) {
   const [timeLeft, setTimeLeft] = useState(durationSeconds);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onExpire();
-      return;
-    }
+    // Stop when timer reaches zero
+    if (timeLeft <= 0) return;
 
     const interval = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      setTimeLeft((prev) => Math.max(prev - 1, 0));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  return {timeLeft, setTimeLeft};
+  return { timeLeft, setTimeLeft };
 }

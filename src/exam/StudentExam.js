@@ -164,7 +164,7 @@ const submit = async (source = "manual") => {
       setCurrentIndex(resumeData.current_index || 0);
       setTimeLeft(resumeData.remaining_seconds);
 
-      // 🔒 Disable restart after resume
+      // 🔒 Disable restart after resume onExpire 
       setRestartLocked(true);
     }
 
@@ -426,14 +426,6 @@ const handleStart = async () => {
     {/* ================= TIMER ================= */}
     {status === "in_progress" && (
       <div className="fixed top-16 mt-2 right-4 z-50 flex flex-row flex-wrap items-center gap-4">
-      {status === "in_progress" && Number.isFinite(timeLeft) && (
-      <div className="bg-black text-white px-4 py-2 rounded-full text-sm shadow-lg">
-        ⏱ {Math.floor(timeLeft / 60)}:
-        {(timeLeft % 60).toString().padStart(2, "0")}
-      </div>
-    )}
-
-
         <button
       onClick={enterFullscreen}
       className="btn-primary text-sm rounded-lg px-4 py-2"

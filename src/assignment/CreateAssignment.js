@@ -166,9 +166,7 @@ const submit = async () => {
           }}
             className="w-full mt-1 px-4 py-2 border rounded-lg"
           />
-          <p className="text-xs text-red-800 mt-1 font-semibold">
-            Note: the expire date must not be the same day.
-          </p>
+          
         </div>
         <div>
           <label className="text-sm font-medium text-gray-600">Duration (minutes)</label>
