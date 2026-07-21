@@ -57,35 +57,44 @@ export default function AdminProfileFriend({setMessages, setActiveChat, togglePo
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* HEADER */}
-     {acceptedAdmins.length === 1 & (
-      <div className="flex justify-between items-center mb-2  py-2 px-4">
-        <h3 className="text-lg text-[var(--text-color)] font-semibold border-b-2 border-blue-400 w-full pb-2">
-          Friend's ({acceptedAdmins.length})
-        </h3>
-      </div>
-    )}
+    
+{acceptedAdmins.length >= 1 && (
+  <div className="flex justify-between items-center mb-2 py-2 px-4">
+    <h3 className="text-lg text-[var(--text-color)] font-semibold border-b-2 border-blue-400 w-full pb-2">
+      Friend's ({acceptedAdmins.length})
+    </h3>
+  </div>
+)}
 
-      {/* GRID */}
-      <div className="grid  rounded-lg  grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
-        {acceptedAdmins.slice(0, 2).map(admin => {
-          const status = admin.status ?? 'none'; // ✅ use the status from backend
-          const isOwnerUser = user?.id === admin.id;
+{/* NO FRIENDS */}
+{acceptedAdmins.length === 0 ? (
+  <div className="bg-white mx-4 -mb-4 rounded-lg shadow p-6 text-center">
+    <p className="text-gray-500 text-lg font-medium">
+      No friend added yet.
+    </p>
+  </div>
+) : (
+  <div className="grid rounded-lg grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
+    {acceptedAdmins.slice(0, 2).map((admin) => {
+      const status = admin.status ?? "none";
+      const isOwnerUser = user?.id === admin.id;
 
-          return (
-            <div
-              key={admin.id}
-              className="bg-white rounded-xl border-2  border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
-            >
-              {/* Avatar */}
-               <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[55px] font-bold">
-                {admin.first_name?.[0]}
-              </div>
+      return (
+        <div
+          key={admin.id}
+          className="bg-white rounded-xl border-2 border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
+        >
+          {/* Avatar */}
+          <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[55px] font-bold">
+            {admin.first_name?.[0]}
+          </div>
 
-              {/* Name */}
-             <p className="mt-2 font-semibold text-gray-800">
-                {isOwnerUser ? "You" : `${admin.first_name} ${admin.last_name?.[0]}`}
-              </p>
+          {/* Name */}
+          <p className="mt-2 font-semibold text-gray-800">
+            {isOwnerUser
+              ? "You"
+              : `${admin.first_name} ${admin.last_name?.[0]}`}
+          </p>
                   {/* BUTTON */}
                   {isOwnerUser ? (
                     <button
@@ -156,8 +165,9 @@ export default function AdminProfileFriend({setMessages, setActiveChat, togglePo
                   )}
             </div>
           );
-        })}
-      </div>
+    })}
+  </div>
+)}
 
       {/* SEE MORE / LESS */}
       <div className="flex justify-center mt-6">

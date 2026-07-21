@@ -87,10 +87,9 @@ const submit = async (source = "manual") => {
 };
 
 
-  /* ------------------ TIMER ------------------ */
-  const { timeLeft, setTimeLeft } = useAssignmentTimer(
-  started ? assignment.duration_minutes * 60 : null,
-  submit
+  /* ------------------ TIMER status !== "in_progress" ------------------ */
+ const { timeLeft, setTimeLeft } = useAssignmentTimer(
+  started ? assignment.duration_minutes * 60 : null
 );
 
   useEffect(() => {
@@ -175,32 +174,6 @@ const submit = async (source = "manual") => {
     timeInitialized.current = true;
   }, [assignment, status, resumeData, setTimeLeft]);
 
-  useEffect(() => {
-  if (status !== "in_progress") return;
-
-  const interval = setInterval(() => {
-    setTimeLeft(prev => {
-      if (prev <= 1) {
-        clearInterval(interval);
-        submit(); // auto submit
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
-
-  return () => clearInterval(interval);
-}, [status]);
-
-
-  /* ------------------ AUTO SUBMIT ------------------ */
-  useEffect(() => {
-  if (!started) return;
-  if (timeLeft <= 0) submit("timer");
-}, [timeLeft, started]);
-
-
-  /* ------------------ AUTO SAVE check ------------------ Please */
  const [saving, setSaving] = useState(false);
  const [navLoading, setNavLoading] = useState(null);
 
@@ -456,13 +429,6 @@ const handleStart = async () => {
     {/* ================= TIMER ================= */}
     {status === "in_progress" && (
       <div className="fixed top-16 mt-2 right-4 z-50 flex flex-row flex-wrap items-center gap-4">
-      {status === "in_progress" && Number.isFinite(timeLeft) && (
-      <div className="bg-black text-white border px-4 py-2 rounded-full text-sm shadow-lg">
-        ⏱ {Math.floor(timeLeft / 60)}:
-        {(timeLeft % 60).toString().padStart(2, "0")}
-      </div>
-    )}
-
 
         <button
       onClick={enterFullscreen}

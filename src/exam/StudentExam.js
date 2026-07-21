@@ -86,11 +86,9 @@ const submit = async (source = "manual") => {
 };
 
 
-  /* ------------------ TIMER ------------------ */
+  /* ------------------ TIMER status !== "in_progress" ------------------ */
   const { timeLeft, setTimeLeft } = useExamTimer(
-  started ? exam.duration_minutes * 60 : null,
-  submit
-);
+  started ? exam.duration_minutes * 60 : null);
 
   useEffect(() => {
   if (!exam || initialTime.current !== null) return;
@@ -173,32 +171,6 @@ const submit = async (source = "manual") => {
     timeInitialized.current = true;
   }, [exam, status, resumeData, setTimeLeft]);
 
-  useEffect(() => {
-  if (status !== "in_progress") return;
-
-  const interval = setInterval(() => {
-    setTimeLeft(prev => {
-      if (prev <= 1) {
-        clearInterval(interval);
-        submit(); // auto submit
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
-
-  return () => clearInterval(interval);
-}, [status]);
-
-
-  /* ------------------ AUTO SUBMIT ------------------ */
-  useEffect(() => {
-    if (!started) return;
-    if (timeLeft <= 0) submit("timer");
-  }, [timeLeft, started]);
-
-
-  /* ------------------ AUTO SAVE check ------------------ */
  const [saving, setSaving] = useState(false);
  const [navLoading, setNavLoading] = useState(null);
 

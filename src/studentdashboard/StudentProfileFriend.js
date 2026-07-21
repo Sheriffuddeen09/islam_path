@@ -64,112 +64,117 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
 
   return (
     <div className="max-w-5xl mx-auto">
-      <Toaster position="top-right" />
-
-      {/* HEADER */}
-      {acceptedStudents.length === 1 & (
-      <div className="flex justify-between items-center mb-2  py-2 px-4">
+        
+    {acceptedStudents.length >= 1 && (
+      <div className="flex justify-between items-center mb-2 py-2 px-4">
         <h3 className="text-lg text-[var(--text-color)] font-semibold border-b-2 border-blue-400 w-full pb-2">
           Friend's ({acceptedStudents.length})
         </h3>
       </div>
     )}
-
-      {/* GRID */}
-      <div className="grid  rounded-lg  grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
-        {acceptedStudents.slice(0, 2).map(student => {
-          const status = student.status ?? 'none'; 
-          const isOwnerUser = user?.id === student.id;
-
-
+    
+    {/* NO FRIENDS */}
+    {acceptedStudents.length === 0 ? (
+      <div className="bg-white rounded-lg mx-4 -mb-4 shadow p-6 text-center">
+        <p className="text-gray-500 text-lg font-medium">
+          No friend added yet.
+        </p>
+      </div>
+    ) : (
+      <div className="grid rounded-lg grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
+        {acceptedStudents.slice(0, 2).map((admin) => {
+          const status = admin.status ?? "none";
+          const isOwnerUser = user?.id === admin.id;
+    
           return (
             <div
-              key={student.id}
-              className="bg-white rounded-xl border-2  border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
+              key={admin.id}
+              className="bg-white rounded-xl border-2 border-blue-500 sm:w-60 w-40 h-40 sm:h-full mx-auto px-3 shadow py-3 sm:py-6 flex flex-col items-center text-center hover:shadow-lg transition"
             >
               {/* Avatar */}
               <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-purple-600 text-white flex items-center justify-center text-[55px] font-bold">
-                {student.first_name?.[0]}
+                {admin.first_name?.[0]}
               </div>
-
+    
               {/* Name */}
-             <p className="mt-1 font-semibold text-gray-800">
-                {isOwnerUser ? "You" : `${student.first_name} ${student.last_name?.[0]}`}
+              <p className="mt-2 font-semibold text-gray-800">
+                {isOwnerUser
+                  ? "You"
+                  : `${admin.first_name} ${admin.last_name?.[0]}`}
               </p>
-
-                    {isOwnerUser ? (
-                      <button
-                        disabled
-                        className="mt-1 px-4 py-3 text-sm rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                      >
-                        None
-                      </button>
-                    ) : status === "accepted" ? (
-                      <button
-                        onClick={async () => {
-                          try {
-                            setLoadingMessageId(student.id);
-  
-                            const { data } = await api.get(
-                              `/api/chat/user/${student.id}`
-                            );
-  
-                            setActiveChat(data.chat);
-                            setMessages(data.messages);
-  
-                            togglePopup();
-                          } catch (err) {
-                            toast.error("Failed to open chat");
-                            console.error(err);
-                          } finally {
-                            setLoadingMessageId(null);
-                          }
-                        }}
-                        disabled={loadingMessageId === student.id}
-                        className="mt-1 px-4 py-3 text-sm rounded-lg bg-blue-800 hover:bg-blue-700 text-white"
-                      >
-                        {loadingMessageId === student.id ? (
-                          <span
-                            className="
-                              animate-spin
-                              h-4
-                              w-4
-                              border-2
-                              border-white
-                              border-t-transparent
-                              rounded-full
-                              inline-flex
-                            "
-                          />
-                        ) : (
-                          "💬 Message"
-                        )}
-                      </button>
-                    ) : status === "pending" ? (
-                      <button
-                        disabled
-                        className="mt-3 w-full bg-gray-400 text-white text-sm py-2 rounded-lg cursor-not-allowed"
-                      >
-                        Pending
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => sendFriendRequest(student.id)}
-                        className="text-white whitespace-nowrap bg-blue-800 mt-2 px-5 py-2 rounded"
-                      >
-                        {btnLoading ? (
-                          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block" />
-                        ) : (
-                          "➕ Add Friend"
-                        )}
-                      </button>
-                    )}
-  
-            </div>
-          );
+                      {/* BUTTON */}
+                      {isOwnerUser ? (
+                        <button
+                          disabled
+                          className="mt-1 px-4 py-3 text-sm rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                        >
+                          None
+                        </button>
+                      ) : status === "accepted" ? (
+                        <button
+                          onClick={async () => {
+                            try {
+                              setLoadingMessageId(admin.id);
+    
+                              const { data } = await api.get(
+                                `/api/chat/user/${admin.id}`
+                              );
+    
+                              setActiveChat(data.chat);
+                              setMessages(data.messages);
+    
+                              togglePopup();
+                            } catch (err) {
+                              toast.error("Failed to open chat");
+                              console.error(err);
+                            } finally {
+                              setLoadingMessageId(null);
+                            }
+                          }}
+                          disabled={loadingMessageId === admin.id}
+                          className="mt-1 px-4 py-3 text-sm rounded-lg bg-blue-800 hover:bg-blue-700 text-white"
+                        >
+                          {loadingMessageId === admin.id ? (
+                            <span
+                              className="
+                                animate-spin
+                                h-4
+                                w-4
+                                border-2
+                                border-white
+                                border-t-transparent
+                                rounded-full
+                                inline-flex
+                              "
+                            />
+                          ) : (
+                            "💬 Message"
+                          )}
+                        </button>
+                      ) : status === "pending" ? (
+                        <button
+                          disabled
+                          className="mt-3 w-full bg-gray-400 text-white text-sm py-2 rounded-lg cursor-not-allowed"
+                        >
+                          Pending
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => sendFriendRequest(admin.id)}
+                          className="text-white whitespace-nowrap bg-blue-800 mt-2 px-5 py-2 rounded"
+                        >
+                          {btnLoading ? (
+                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block" />
+                          ) : (
+                            "➕ Add Friend"
+                          )}
+                        </button>
+                      )}
+                </div>
+              );
         })}
       </div>
-
+    )}
       {/* SEE MORE / LESS */}
       <div className="flex justify-center mt-6">
         {visibleCount < acceptedStudents.length ? (
