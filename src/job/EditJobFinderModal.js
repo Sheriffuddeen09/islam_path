@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import api from "../../api/axios";
+import api from "../Api/axios";
 import JobFinderForm from "./JobFinderForm";
 export default function EditJobFinderModal({
  show,

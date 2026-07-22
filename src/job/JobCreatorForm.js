@@ -1,14 +1,19 @@
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import {
  Upload,
  Building2,
  MapPin,
- Users
+ Users,
+ CompassIcon,
+ Loader2
 } from "lucide-react";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+
 export default function JobCreatorForm({
- onBack,
  onSubmit,
+ loading
 }) {
  const fileInput = useRef(null);
  const [logo, setLogo] = useState(null);
@@ -17,6 +22,10 @@ export default function JobCreatorForm({
  const [companyType, setCompanyType] = useState("");
  const [organisationSize, setOrganisationSize] = useState("");
  const [location, setLocation] = useState("");
+ const [address, setAddress] = useState("");
+
+const countries = useMemo(() => countryList().getData(), []);
+ 
  const handleLogo = (e) => {
  const file = e.target.files[0];
  if (!file) return;
@@ -30,6 +39,7 @@ export default function JobCreatorForm({
  formData.append("company_type", companyType);
  formData.append("organisation_size", organisationSize);
  formData.append("company_location", location);
+ formData.append("company_address", address);
  if (logo) {
  formData.append("company_logo", logo);
  }
@@ -38,10 +48,7 @@ export default function JobCreatorForm({
  return (
  <div className="space-y-7">
  <div>
- <h2 className="text-2xl font-bold">
- Company Information
- </h2>
- <p className="text-gray-500">
+ <p className="text-gray-900 text-center text-sm">
  Tell applicants about your company.
  </p>
  </div>
@@ -154,7 +161,7 @@ export default function JobCreatorForm({
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <select
- className="border rounded-xl pl-12 py-3 w-full"
+ className="border rounded-xl pl-12 py-3 w-full cursor-pointer"
  value={organisationSize}
  onChange={(e) =>
  setOrganisationSize(e.target.value)
@@ -192,33 +199,93 @@ export default function JobCreatorForm({
  </label>
  <div className="relative mt-2">
  <MapPin
+ className="absolute left-4 top-3.5 text-gray-400 z-50"
+ />
+ <Select
+               options={countries}
+               value={countries.find(option => option.label === location)}
+               onChange={(selected) => {
+                 setLocation(selected.label);
+               }}
+               placeholder="Select Location"
+               isSearchable
+               menuPortalTarget={document.body}
+               className="mt-2"
+               styles={{
+                 control: (base) => ({
+                   ...base,
+                   minHeight: 48,
+                   paddingTop: "0.25rem",
+                   paddingBottom: "0.25rem",
+                   paddingLeft: "2.2rem",
+                   borderRadius: "0.5rem",
+                 }),
+ 
+                 singleValue: (base) => ({
+                   ...base,
+                   color: "#000", // Selected value
+                 }),
+ 
+                 input: (base) => ({
+                   ...base,
+                   color: "#000", // Search text while typing
+                 }),
+ 
+                 placeholder: (base) => ({
+                   ...base,
+                   color: "#6b7280", // Gray placeholder
+                 }),
+ 
+                 option: (base, state) => ({
+                   ...base,
+                   color: "#000",
+                   backgroundColor: state.isFocused
+                     ? "#f3f4f6"
+                     : state.isSelected
+                     ? "#e5e7eb"
+                     : "#fff",
+                 }),
+ 
+                 menuPortal: (base) => ({
+                   ...base,
+                   zIndex: 9999,
+                 }),
+               }}
+             />
+ 
+ </div>
+ </div>
+
+ <div>
+ <label className="font-semibold">
+ Company Address
+ </label>
+ <div className="relative mt-2">
+ <CompassIcon
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <input
  className="border rounded-xl pl-12 pr-4 py-3 w-full"
  placeholder="Lagos, Nigeria"
- value={location}
+ value={address}
  onChange={(e) =>
- setLocation(e.target.value)
+ setAddress(e.target.value)
  }
  />
  </div>
  </div>
  {/* Footer */}
- <div className="flex justify-between pt-4">
- <button
- type="button"
- onClick={onBack}
- className="px-6 py-3 rounded-xl border"
- >
- Back
- </button>
+ <div className="flex justify-end pt-4">
  <button
  type="button"
  onClick={submit}
  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl"
  >
- Save & Continue
+ {loading
+  ? <p className='inline-flex gap-1 items-center'> 
+  <Loader2 className="animate-spin text-white" /> 
+  Submitting</p>
+  : "Submit Profile"}
  </button>
  </div>
  </div>

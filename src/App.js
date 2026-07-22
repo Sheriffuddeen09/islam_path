@@ -48,6 +48,9 @@ import JoinCommunity from "./chat/community/JoinCommunity";
 import CommunityReportId from "./report/CommunityReportId";
 import CommunityReport from "./report/CommunityReport";
 import MeetingRoom from "./chat/chatbox/MeetingRoom";
+import JobProfileApproval from "./job/JobProfileApproval";
+import JobCreatorProfile from "./job/JobCreatorProfile";
+import JobFinderProfile from "./job/JobFinderProfile";
 
    
 function App() {
@@ -392,6 +395,19 @@ function App() {
           <GetMentor teachers={teachers} setTeachers={setTeachers} setRequestStatus={setRequestStatus}
           requestStatus={requestStatus} />
       } />
+
+
+      <Route path="/admin/job-accepted"
+        element={<JobProfileApproval />}
+        />
+
+        <Route path="/applicate/job-create"
+        element={<JobCreatorProfile />}
+        />
+
+        <Route path="/applicate/job-finder"
+        element={<JobFinderProfile />}
+        />
 
       <Route path="/quran" element={
           <QuranGrid />

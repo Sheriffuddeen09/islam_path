@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { linkList } from "./LinkData";
-import api from "../../Api/axios";
-import toast from "react-hot-toast";
 import JobProfileModal from "../../job/JobProfileModal";
+import api from "../../Api/axios";
 
 export default function SidebarLeft() {
 
@@ -13,6 +12,20 @@ export default function SidebarLeft() {
 
   const visibleMales = showMoreMale ? links : links.slice(0, 10);
 
+  const [jobProfile, setJobProfile] = useState(null);
+
+useEffect(() => {
+    fetchJobProfile();
+}, []);
+
+  const fetchJobProfile = async () => {
+      try {
+          const res = await api.get("/api/job-profile");
+          setJobProfile(res.data);
+      } catch (error) {
+          setJobProfile(null);
+      }
+  };
   
   return (
     <>
@@ -21,9 +34,21 @@ export default function SidebarLeft() {
       overflow-y-auto overflow-x-hidden
       scrollbar-thin scrollbar-thumb-gray-400">
         <p className="text-2xl text-center font-bold border-b-2 pb-2 text mb-2">Knowledge Practice</p>
-        <button className="text-sm text-gray-700" onClick={() => setShow(true)}>
-          Post / Find Halal Job
-        </button>
+        <button
+    onClick={() => {
+        if (!jobProfile) {
+            setShow(true);
+        } else if (jobProfile.type === "creator") {
+        } else {
+        }
+    }}
+>
+    {!jobProfile
+        ? "Post / Find Halal Job"
+        : jobProfile.type === "creator"
+        ? "Post Job"
+        : "Find Job"}
+</button>
       <div className="mb-6">
         <ul className="space-y-">
           {visibleMales.map(item => (
@@ -62,6 +87,7 @@ export default function SidebarLeft() {
       <JobProfileModal
       onClose={() => setShow(false)}
       show={show}
+      fetchJobProfile={fetchJobProfile}
       />
 
     </>

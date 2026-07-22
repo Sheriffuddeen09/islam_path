@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { X, Briefcase, User, ChevronRight } from "lucide-react";
+import { X, Briefcase, User, ChevronRight, ChevronLeft } from "lucide-react";
 import api from "../Api/axios";
 import toast from "react-hot-toast";
+import JobFinderForm from "./JobFinderForm";
+import JobCreatorForm from "./JobCreatorForm";
 export default function JobProfileModal({
  show,
- onClose,
+ onClose, fetchJobProfile
 }) {
 
 
@@ -20,7 +22,7 @@ export default function JobProfileModal({
    try {
    setLoading(true);
    setErrors({});
-   const response = await api.post(
+   await api.post(
    "/api/job-profile",
    formData,
    {
@@ -30,6 +32,8 @@ export default function JobProfileModal({
    }
    );
    toast.success("Profile created successfully.");
+    await fetchJobProfile();
+    
    onClose();
   
    } catch (error) {
@@ -47,11 +51,40 @@ export default function JobProfileModal({
 
  if (!show) return null;
  return (
- <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p4">
- <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden">
+ <div
+    className="
+    fixed inset-0
+    bg-black/60
+    backdrop-blur-sm
+    z-50
+    flex
+    justify-center
+    items-center
+    p-4
+    "
+>
+ <div
+    className="
+    bg-white
+    rounded-3xl
+    shadow-2xl
+    w-full
+    max-w-4xl
+    max-h-[90vh]
+    overflow-y-auto
+    scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+    relative
+    "
+>
+    <button
+ onClick={onClose}
+ className="rounded-full p-2 hover:bg-gray-100 transition absolute right-4 top-2"
+ >
+ <X size={24} />
+ </button>
  {/* Header */}
  <div className="flex justify-between items-center px-8 py-5 border-b">
- <div>
+ <div className="text-center">
  <h2 className="text-2xl font-bold text-gray-800">
  Create Job Profile
  </h2>
@@ -59,12 +92,7 @@ export default function JobProfileModal({
  Choose how you want to use the Jobs platform.
  </p>
  </div>
- <button
- onClick={onClose}
- className="rounded-full p-2 hover:bg-gray-100 transition"
- >
- <X size={24} />
- </button>
+ 
  </div>
  {/* Progress */}
  <div className="px-8 pt-6">
@@ -104,7 +132,7 @@ export default function JobProfileModal({
  <p className="text-center text-gray-500 mt-2">
  You can create either a company profile or a personal job seeker profile.
  </p>
- <div className="grid md:grid-cols-2 gap-8 mt-10">
+ <div className="grid md:grid-cols-2 gap-8 mt-4">
  {/* Job Creator */}
  <div
  onClick={() => setProfileType("creator")}
@@ -115,10 +143,10 @@ ${
  : "border-gray-200"
  }`}
  >
- <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justifycenter">
+ <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justifycenter mx-auto">
  <Briefcase
  size={30}
- className="text-blue-600"
+ className="text-blue-600 mx-auto"
  />
  </div>
  <h4 className="text-xl font-bold mt-6">
@@ -148,7 +176,7 @@ ${
  <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justifycenter">
  <User
  size={30}
- className="text-green-600"
+ className="text-green-600 mx-auto"
  />
  </div>
  <h4 className="text-xl font-bold mt-6">
@@ -184,39 +212,60 @@ transition ${
  </>
  )}
  {step === 2 && (
- <div>
- {profileType === "creator" && (
- <div className="text-center py-20">
- <Briefcase
- size={60}
- className="mx-auto text-blue-600"
- />
- <h2 className="text-2xl font-bold mt-6">
- Job Creator Form
- </h2>
- <p className="text-gray-500 mt-2">
- This is where the company form will go
- in Part 2.
- </p>
+
+<div>
+
+    <div className="flex justify-start mb-5">
+ <button
+ onClick={() => setStep(1)}
+ className={`flex items-center gap-2 px-7 py-3 rounded-xl text-black font-semibold
+transition border hover:bg-gray-100`}
+ >
+ <ChevronLeft size={20} />
+ Back
+ </button>
  </div>
- )}
- {profileType === "finder" && (
- <div className="text-center py-20">
- <User
- size={60}
- className="mx-auto text-green-600"
- />
- <h2 className="text-2xl font-bold mt-6">
- Job Finder Form
- </h2>
- <p className="text-gray-500 mt-2">
- This is where the job seeker form will
- go in Part 3.
- </p>
- </div>
- )}
- </div>
- )}
+
+    {profileType === "creator" && (
+
+        <>
+
+            <h2 className="sm:text-3xl text-xl font-bold text-center mb-2">
+
+                Create Job Creator Profile
+
+            </h2>
+            <JobCreatorForm
+                onSubmit={onSubmit}
+                loading={loading}
+            />
+
+        </>
+
+    )}
+
+    {profileType === "finder" && (
+
+        <>
+
+            <h2 className="sm:text-3xl mb-2 text-xl font-bold text-center">
+
+                Create Job Finder Profile
+
+            </h2>
+
+            <JobFinderForm
+                onSubmit={onSubmit}
+                loading={loading}
+            />
+
+        </>
+
+    )}
+
+</div>
+
+)}
  </div>
  </div>
  </div>

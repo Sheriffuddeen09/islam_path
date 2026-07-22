@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
  User,
  Upload,
@@ -7,11 +7,15 @@ import {
  Briefcase,
  Award,
  Plus,
- X
+ X,
+ CompassIcon,
+ MapPin,
+ Loader2
 } from "lucide-react";
+import Select from "react-select";
+import countryList from "react-select-country-list";
 export default function JobFinderForm({
- onBack,
- onSubmit,
+ onSubmit, loading
 }) {
  const cvRef = useRef();
  const [fullName, setFullName] = useState("");
@@ -21,6 +25,11 @@ export default function JobFinderForm({
  const [cv, setCv] = useState(null);
  const [skill, setSkill] = useState("");
  const [skills, setSkills] = useState([]);
+ const [location, setLocation] = useState("");
+ const [address, setAddress] = useState("");
+
+const countries = useMemo(() => countryList().getData(), []);
+
  const addSkill = () => {
  if (
  skill.trim() &&
@@ -43,10 +52,14 @@ export default function JobFinderForm({
  if (!file) return;
  setCv(file);
  };
+
+ 
  const submit = () => {
  const form = new FormData();
  form.append("type", "finder");
  form.append("full_name", fullName);
+ form.append("location", location);
+ form.append("address", address);
  form.append(
  "qualifications",
  qualification
@@ -71,10 +84,7 @@ export default function JobFinderForm({
  return (
  <div className="space-y-7">
  <div>
- <h2 className="text-2xl font-bold">
- Job Finder Profile
- </h2>
- <p className="text-gray-500">
+ <p className="text-gray-900 text-center">
  Build your professional profile.
  </p>
  </div>
@@ -153,6 +163,94 @@ export default function JobFinderForm({
  />
  </div>
  </div>
+
+ {/* Location */}
+
+ 
+ 
+ <div>
+  <label className="font-semibold">
+  Company Location
+  </label>
+  <div className="relative mt-2">
+  <MapPin
+  className="absolute left-4 top-3.5 text-gray-400 z-50"
+  />
+  <Select
+                options={countries}
+                value={countries.find(option => option.label === location)}
+                onChange={(selected) => {
+                  setLocation(selected.label);
+                }}
+                placeholder="Select Location"
+                isSearchable
+                menuPortalTarget={document.body}
+                className="mt-2"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: 48,
+                    paddingTop: "0.25rem",
+                    paddingBottom: "0.25rem",
+                    paddingLeft: "2.2rem",
+                    borderRadius: "0.5rem",
+                  }),
+  
+                  singleValue: (base) => ({
+                    ...base,
+                    color: "#000", // Selected value
+                  }),
+  
+                  input: (base) => ({
+                    ...base,
+                    color: "#000", // Search text while typing
+                  }),
+  
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "#6b7280", // Gray placeholder
+                  }),
+  
+                  option: (base, state) => ({
+                    ...base,
+                    color: "#000",
+                    backgroundColor: state.isFocused
+                      ? "#f3f4f6"
+                      : state.isSelected
+                      ? "#e5e7eb"
+                      : "#fff",
+                  }),
+  
+                  menuPortal: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />
+  
+  </div>
+  </div>
+ 
+  <div>
+  <label className="font-semibold">
+  Company Address
+  </label>
+  <div className="relative mt-2">
+  <CompassIcon
+  className="absolute left-4 top-3.5 text-gray-400"
+  />
+  <input
+  className="border rounded-xl pl-12 pr-4 py-3 w-full"
+  placeholder="Lagos, Nigeria"
+  value={address}
+  onChange={(e) =>
+  setAddress(e.target.value)
+  }
+  />
+  </div>
+  </div> 
+
+
  {/* Portfolio */}
  <div>
  <label className="font-semibold">
@@ -246,18 +344,17 @@ export default function JobFinderForm({
  </div>
  </div>
  {/* Buttons */}
- <div className="flex justify-between">
- <button
- onClick={onBack}
- className="border px-6 py-3 rounded-xl"
- >
- Back
- </button>
+ <div className="flex justify-end">
+
  <button
  onClick={submit}
  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl"
  >
- Save Profile
+ {loading
+  ? <p className='inline-flex gap-1 items-center'> 
+  <Loader2 className="animate-spin text-white" /> 
+  Submitting</p>
+  : "Submit Profile"}
  </button>
  </div>
  </div>

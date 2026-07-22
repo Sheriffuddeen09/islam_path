@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import api from "../../api/axios";
 import JobCreatorForm from "./JobCreatorForm";
+import api from "../Api/axios";
 export default function EditJobCreatorModal({
  show,
  onClose,

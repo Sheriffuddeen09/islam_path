@@ -7,18 +7,23 @@ import {
  Briefcase,
  Pencil
 } from "lucide-react";
-import api from "../../api/axios";
-import EditJobFinderModal from "../../components/jobs/EditJobFinderModal";
+import EditJobFinderModal from "./EditJobFinderModal";
+import api from "../Api/axios";
+
+
 export default function JobFinderProfile() {
  const [profile, setProfile] = useState(null);
  const [showEdit, setShowEdit] = useState(false);
+
  useEffect(() => {
  fetchProfile();
  }, []);
+
  const fetchProfile = async () => {
  const res = await api.get("/api/job-profile");
  setProfile(res.data);
  };
+
  if (!profile)
  return <div>Loading...</div>;
  return (

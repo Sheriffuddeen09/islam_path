@@ -2,22 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { Building2, MapPin, Users, Pencil } from "lucide-react";
-import api from "../../api/axios";
-import EditJobCreatorModal from "../../components/jobs/EditJobCreatorModal";
+import EditJobCreatorModal from "./EditJobCreatorModal";
+import api from "../Api/axios";
 export default function JobCreatorProfile() {
  const [profile, setProfile] = useState(null);
  const [loading, setLoading] = useState(true);
  const [showEdit, setShowEdit] = useState(false);
+
  useEffect(() => {
  fetchProfile();
  }, []);
+
  const fetchProfile = async () => {
  const res = await api.get("/api/job-profile");
  setProfile(res.data);
  setLoading(false);
  };
+
  if (loading)
  return <div className="p-10">Loading...</div>;
+
  return (
  <div className="max-w-5xl mx-auto p-6">
  <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
