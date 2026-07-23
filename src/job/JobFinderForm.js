@@ -170,7 +170,7 @@ const countries = useMemo(() => countryList().getData(), []);
  
  <div>
   <label className="font-semibold">
-  Company Location
+  Location
   </label>
   <div className="relative mt-2">
   <MapPin
@@ -233,7 +233,7 @@ const countries = useMemo(() => countryList().getData(), []);
  
   <div>
   <label className="font-semibold">
-  Company Address
+  Address
   </label>
   <div className="relative mt-2">
   <CompassIcon

@@ -6,7 +6,7 @@ import SidebarLeft from "../homepageComponent/SideBarLeft";
 
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
-  loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
+  loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
  useEffect(() => {
@@ -54,7 +54,13 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         {/* Mobile Menu Button */}
 
         {/* SidebarRight */}
-        <SidebarLeft />
+        <SidebarLeft 
+        jobProfile={jobProfile}
+        setJobProfile={setJobProfile}
+        fetchJobProfile={fetchJobProfile}
+        show={show}
+        setShow={setShow}
+        />
     
     
       {

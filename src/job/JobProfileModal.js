@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Briefcase, User, ChevronRight, ChevronLeft } from "lucide-react";
+import { X, Briefcase, User, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 import api from "../Api/axios";
 import toast from "react-hot-toast";
 import JobFinderForm from "./JobFinderForm";
@@ -16,6 +16,8 @@ export default function JobProfileModal({
  
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
   const onSubmit = async (formData) => {
@@ -35,6 +37,8 @@ export default function JobProfileModal({
     await fetchJobProfile();
     
    onClose();
+
+   setShowSuccessModal(true);
   
    } catch (error) {
    if (error.response?.status === 422) {
@@ -268,6 +272,119 @@ transition border hover:bg-gray-100`}
 )}
  </div>
  </div>
+
+ {showSuccessModal && (
+    <div
+        className="
+        fixed inset-0 z-50
+        flex items-center justify-center
+        bg-black/50
+        p-4
+        "
+    >
+        <div
+            className="
+            bg-white
+            rounded-3xl
+            shadow-2xl
+            max-w-lg
+            w-full
+            p-8
+            text-center
+            "
+        >
+            <div
+                className="
+                w-20 h-20
+                rounded-full
+                bg-green-100
+                mx-auto
+                flex items-center
+                justify-center
+                mb-5
+                "
+            >
+                <CheckCircle2
+                    size={50}
+                    className="text-green-600"
+                />
+            </div>
+
+            <h2
+                className="
+                text-2xl
+                font-bold
+                mb-3
+                "
+            >
+                Thank You!
+            </h2>
+
+            <p
+                className="
+                text-gray-600
+                leading-7
+                "
+            >
+                Your Job Profile has been
+                submitted successfully.
+            </p>
+
+            <p
+                className="
+                text-gray-600
+                leading-7
+                mt-3
+                "
+            >
+                Please wait for platform
+                approval before you can
+                continue to post jobs or
+                search for jobs on our
+                platform.
+            </p>
+
+            <div
+                className="
+                mt-6
+                rounded-2xl
+                bg-blue-50
+                border
+                border-blue-200
+                p-4
+                text-sm
+                text-gray-700
+                "
+            >
+                Your profile is currently
+                under review. You will gain
+                access to job-related
+                features once it has been
+                approved.
+            </div>
+
+            <button
+                onClick={() =>
+                    setShowSuccessModal(
+                        false
+                    )
+                }
+                className="
+                mt-8
+                bg-blue-600
+                text-white
+                px-8
+                py-3
+                rounded-xl
+                hover:bg-blue-700
+                transition-all
+                "
+            >
+                Continue
+            </button>
+        </div>
+    </div>
+)}
  </div>
  );
 }

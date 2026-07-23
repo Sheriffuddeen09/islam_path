@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { linkList } from "../homepageComponent/LinkData";
+import JobProfileModal from "../../job/JobProfileModal";
+import { Briefcase, PlusCircle, Search } from "lucide-react";
 
-export default function SidebarLeft() {
+export default function SidebarLeft({jobProfile, fetchJobProfile, show, setShow }) {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
 
@@ -9,36 +11,174 @@ export default function SidebarLeft() {
 
   const visibleMales = showMoreMale ? links : links.slice(0, 10);
 
+  const isPendingProfile =
+    !jobProfile ||
+    jobProfile?.status === "pending" ||
+    jobProfile?.status === "declined";
+
+const isApprovedProfile =
+    jobProfile?.status === "approved";
+
   return (
-    
+    <>
     <aside className="fixed hidden lg:block top-[80px] left-
       h-full w-[265px] border  bg-[var(--bg-color)] shadow-md p-4 z-40 rounded-lg flex-1
       overflow-y-auto overflow-x-hidden text-[var(--text-color)]
       scrollbar-thin scrollbar-thumb-gray-400">
-        <p className="text-2xl text-center font-bold border-b-2 pb-2 mb-2">Knowledge Practice</p>
       <div className="mb-6">
-        <ul className="space-y-">
-          {visibleMales.map(item => (
-            <li key={item.id}
-                className="flex items-center gap-3 p-2 lg 
-                hover:bg-gray-100 transition cursor-pointer">
+        <ul>
+          {visibleMales.map((item) => (
 
-              <div className={`w-8 h-8 flex items-center justify-center
-                  rounded-full ${item.background} text-white text-lg font-semibold`}>
-                    
-                {item.image}
-              </div>
-            <div className="flex flex-col ">
-                <span className="text-sm">
-                {item.name}
-                </span>
-               <span className="text-xs">
-                {item.gender}
-              </span>
-            </div>
-            </li>
+              item.id === 3
+
+              ?
+
+                       <li
+                             key={item.id}
+                             onClick={() => {
+             
+                                 // Null, Pending or Declined
+                                 if (isPendingProfile) {
+             
+                                     setShow(true);
+             
+                                 }
+             
+                                 // Approved Job Creator
+                                 else if (
+                                     isApprovedProfile &&
+                                     jobProfile?.type === "creator"
+                                 ) {
+             
+                                 }
+             
+                                 // Approved Job Finder
+                                 else if (
+                                     isApprovedProfile &&
+                                     jobProfile?.type === "finder"
+                                 ) {
+             
+                                 }
+             
+                             }}
+                             className="
+                             flex items-center
+                             gap-3
+                             p-2
+                             hover:bg-gray-100
+                             transition
+                             cursor-pointer
+                             "
+                         >
+             
+                             <div
+                                 className="
+                                 w-8 h-8
+                                 flex
+                                 items-center
+                                 justify-center
+                                 rounded-full
+                                 text-[var(--text-color)]
+                                 text-lg
+                                 font-semibold
+                                 "
+                             >
+             
+                                 {isPendingProfile ? (
+             
+                                     <Briefcase size={22} />
+             
+                                 ) : jobProfile?.type === "creator" ? (
+             
+                                     <PlusCircle size={22} />
+             
+                                 ) : (
+             
+                                     <Search size={22} />
+             
+                                 )}
+             
+                             </div>
+             
+             
+                             <div className="flex flex-col">
+             
+                                 <span
+                                     className="
+                                     text-sm
+                                     text-gray-700
+                                     "
+                                 >
+             
+                                     {isPendingProfile
+                                         ? "Post / Find Halal Job"
+                                         : jobProfile?.type === "creator"
+                                         ? "Post Job"
+                                         : "Find Job"}
+             
+                                 </span>
+             
+                             </div>
+             
+                         </li>
+              :
+
+              <li
+                  key={item.id}
+                  className="
+                  flex
+                  items-center
+                  gap-3
+                  p-2
+                  hover:bg-gray-100
+                  transition
+                  cursor-pointer
+                  "
+              >
+
+                  <div
+                      className={`
+                      w-8 h-8
+                      flex
+                      items-center
+                      justify-center
+                      rounded-full
+                      ${item.background}
+                      text-white
+                      text-lg
+                      font-semibold
+                      `}
+                  >
+                      {item.icon}
+                  </div>
+
+
+                  <div className="flex flex-col">
+
+                      <span
+                          className="
+                          text-sm
+                          text-gray-700
+                          "
+                      >
+                          {item.name}
+                      </span>
+
+                      <span
+                          className="
+                          text-xs
+                          text-gray-700
+                          "
+                      >
+                          {item.gender}
+                      </span>
+
+                  </div>
+
+              </li>
+
           ))}
-        </ul>
+      </ul>
         {links.length > 10 && (
           <button
             onClick={() => setShowMoreMale(!showMoreMale)}
@@ -49,5 +189,11 @@ export default function SidebarLeft() {
         )}
       </div>
     </aside>
+     <JobProfileModal
+          onClose={() => setShow(false)}
+          show={show}
+          fetchJobProfile={fetchJobProfile}
+          />
+          </>
   );
 }

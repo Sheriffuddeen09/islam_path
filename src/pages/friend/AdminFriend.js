@@ -5,8 +5,10 @@ import toast, { Toaster } from "react-hot-toast";
 import AdminFriendCard from "./AdminFriendCard";
 import { useNavigate } from "react-router-dom";
 
-export default function AdminFriend({admins, setAdmins, incomingRequests, setIncomingRequests}) {
- 
+export default function AdminFriend({admins, setAdmins, incomingRequests, setIncomingRequests,
+                                    jobProfile, setJobProfile, show, setShow, fetchJobProfile                                  
+                                  }) {
+                                  
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -390,7 +392,12 @@ const requestList = (
    <Toaster position="top-right" />
       <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
         {/* Sidebar */}
-        <SidebarLeft />
+        <SidebarLeft 
+        jobProfile={jobProfile}
+        setJobProfile={setJobProfile}
+        fetchJobProfile={fetchJobProfile}
+        show={show}
+        setShow={setShow}/>
 
         {/* Main Content */}
         <div className="flex-1 transition-all p-4 mt-20 lg:ml-72">

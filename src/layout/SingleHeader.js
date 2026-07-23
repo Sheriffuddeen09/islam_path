@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logos from './image/favicon.png'
-import {Bell, BookOpen, BookTemplateIcon, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2 } from "lucide-react";
+import {Bell, BookOpen, BookTemplateIcon, Briefcase,
+    Search,
+    PlusCircle,
+    ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow } from "lucide-react";
 import { useAuth } from './AuthProvider';
 import LogoutButton from '../Form/LogOut';
 import { linkList } from '../pages/homepageComponent/LinkDataHeader';
@@ -13,7 +16,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
   handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
   showSettings, setShowSettings, setMessages, incomingCall, setIncomingCall, callMode, setCallMode,
-  meetingData, setMeetingData}) {
+  meetingData, setMeetingData, setShow, jobProfile}) {
 
       const [menu, setMenu] = useState(false)
       const [dashboardToggle, setDashboardToggle] = useState(false)
@@ -21,7 +24,19 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       
       const { isLoggedin, user } = useAuth()
       const {currentUser} = useAuth()
+      const navigate = useNavigate()
 
+
+      const isPendingProfile =
+          !jobProfile ||
+          jobProfile?.status === "pending" ||
+          jobProfile?.status === "declined";
+
+      const isApprovedProfile =
+          jobProfile?.status === "approved";
+      
+
+     
       
       
 
@@ -283,6 +298,34 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                   <BookTemplateIcon />
                   Online Book
                 </Link>
+
+                {jobProfile?.type &&
+    jobProfile?.status === "approved" && (
+        <Link
+            to={
+                jobProfile?.type === "creator"
+                    ? "/applicate/job-create"
+                    : "/applicate/job-finder"
+            }
+            className={`${
+                homepage ===
+                    (jobProfile?.type === "creator"
+                        ? "/applicate/job-create"
+                        : "/applicate/job-finder") &&
+                !messageOpen
+                    ? "text-blue-600 hover:text-blue-500"
+                    : "text-gray-600 hover:text-gray-800"
+            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
+        >
+            {jobProfile?.type === "creator" ? (
+                <ClipboardList size={22} />
+            ) : (
+                <Workflow size={22} />
+            )}
+
+            Application
+        </Link>
+        )}
             </div>
           </div>
             
@@ -315,20 +358,198 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
               
               {checkMobile}
 
-                <div className='grid grid-cols-2 p-3 mt-5 overflow-y-auto h-[400px]  gap-2 '>
-                  {
-                   linkList.map(list =>(
-                    <Link to={`${list.link}`}>
-                    <div className='shadow-md p-3 whitespace-nowrap rounded-lg border font-bold text-sm'>
-                      <button className={`w-10 h-10 text-2xl rounded-full text-white ${list.background}`}>
-                        {list.image}
-                      </button>
-                      <p className='text-sm mt-1'>{list.name}</p>
-                    </div>
-                    </Link>
-                   )) 
-                  }
-                </div>
+                <div
+                  className="
+                  grid
+                  grid-cols-2
+                  p-3
+                  mt-5
+                  overflow-y-auto
+                  h-[400px]
+                  gap-2
+                  "
+              >
+
+                          {
+                              linkList.map((list) => (
+                                  list.id === 2 ? (
+                                      <div key={list.id}>
+
+                                          {/* Post / Find Job */}
+                                          <div
+                                  onClick={() => {
+
+                                      // Null, Pending or Declined
+                                      if (
+                                          !jobProfile ||
+                                          jobProfile?.status === "pending" ||
+                                          jobProfile?.status === "declined"
+                                      ) {
+
+                                          setShow(true);
+
+                                      }
+
+                                      // Approved Job Creator
+                                      else if (
+                                          jobProfile?.status === "approved" &&
+                                          jobProfile?.type === "creator"
+                                      ) {
+
+                                          navigate("/job-create");
+
+                                      }
+
+                                      // Approved Job Finder
+                                      else if (
+                                          jobProfile?.status === "approved" &&
+                                          jobProfile?.type === "finder"
+                                      ) {
+
+                                          navigate("/job-finder");
+
+                                      }
+
+                                  }}
+                                  className="
+                                  shadow-md
+                                  p-3
+                                  whitespace-nowrap
+                                  rounded-lg
+                                  border
+                                  font-bold
+                                  text-sm
+                                  cursor-pointer
+                                  hover:shadow-lg
+                                  transition-all
+                                  "
+                              >
+                                  <button
+                                      className="
+                                      w-10
+                                      h-10
+                                      text-2xl
+                                      rounded-full
+                                      text-[var(--text-color)]
+                                      flex
+                                      items-center
+                                      justify-center
+                                      "
+                                  >
+                                      {!jobProfile ||
+                                      jobProfile?.status === "pending" ||
+                                      jobProfile?.status === "declined" ? (
+                                          <Briefcase size={22} />
+                                      ) : jobProfile?.type === "creator" ? (
+                                          <PlusCircle size={22} />
+                                      ) : (
+                                          <Search size={22} />
+                                      )}
+                                  </button>
+
+                                  <p className="text-sm mt-1">
+                                      {!jobProfile ||
+                                      jobProfile?.status === "pending" ||
+                                      jobProfile?.status === "declined"
+                                          ? "Post / Find Halal Job"
+                                          : jobProfile?.type === "creator"
+                                          ? "Post Job"
+                                          : "Find Job"}
+                                  </p>
+                              </div>
+                                          {/* Application Job */}
+                            {jobProfile?.status === "approved" && (
+                              <Link
+                                  to={
+                                      jobProfile?.type === "creator"
+                                          ? "/applicate/job-create"
+                                          : "/applicate/job-finder"
+                                  }
+                                  className="
+                                  shadow-md
+                                  p-3
+                                  whitespace-nowrap
+                                  rounded-lg
+                                  border
+                                  font-bold
+                                  text-sm
+                                  cursor-pointer
+                                  hover:shadow-lg
+                                  transition-all
+                                  "
+                              >
+                                  <button
+                                      className="
+                                      w-10
+                                      h-10
+                                      text-2xl
+                                      rounded-full
+                                      text-[var(--text-color)]
+                                      flex
+                                      items-center
+                                      justify-center
+                                      "
+                                  >
+                                      {jobProfile?.type === "creator" ? (
+                                          <ClipboardList size={22} />
+                                      ) : (
+                                          <Workflow size={22} />
+                                      )}
+                                  </button>
+
+                                  <p className="text-sm mt-1">
+                                      Application Job
+                                  </p>
+                              </Link>
+                          )}
+                            </div>
+                      ) : (
+
+                          <Link
+                              key={list.id}
+                              to={list.link}
+                          >
+
+                              <div
+                                  className="
+                                  shadow-md
+                                  p-3
+                                  whitespace-nowrap
+                                  rounded-lg
+                                  border
+                                  font-bold
+                                  text-sm
+                                  hover:shadow-lg
+                                  transition-all
+                                  "
+                              >
+
+                                  <button
+                                      className={`
+                                      w-10
+                                      h-10
+                                      text-2xl
+                                      rounded-full
+                                      text-white
+                                      ${list.background}
+                                      `}
+                                  >
+                                      {list.image}
+                                  </button>
+
+                                  <p className="text-sm mt-1">
+                                      {list.name}
+                                  </p>
+
+                              </div>
+
+                          </Link>
+
+                      )
+
+                  ))}
+
+              </div>
 
         </section>
         </div>

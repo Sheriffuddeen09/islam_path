@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
 import api from "../Api/axios";
 import toast from "react-hot-toast";
-import { Eye, Check, X } from "lucide-react";
+import {
+    Eye,
+    Check,
+    X,
+    Loader2,
+} from "lucide-react";
 import JobProfileDetailsModal from "./JobProfileDetailsModal";
 
 export default function JobProfileApproval() {
     const [profiles, setProfiles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedProfile, setSelectedProfile] = useState(null);
+    const [approveLoading, setApproveLoading] =
+    useState(null);
+
+    const [declineLoading, setDeclineLoading] =
+        useState(null);
 
     const fetchProfiles = async () => {
         try {
-            const res = await api.get("/api/admin/job-profiles");
+            const res = await api.get("/api/admin/job-pending");
 
             setProfiles(res.data);
         } catch (error) {
@@ -25,64 +35,125 @@ export default function JobProfileApproval() {
         fetchProfiles();
     }, []);
 
+
+    const removeProfile = (id) => {
+    setProfiles((prev) =>
+        prev.filter(
+            (profile) =>
+                Number(profile.id) !== Number(id)
+        )
+    );
+};
+
     const approveProfile = async (id) => {
-        try {
-            await api.post(`/api/admin/job-profiles/${id}/approve`);
+    setApproveLoading(id);
 
-            toast.success("Profile approved.");
+    try {
+        await api.post(
+            `/api/admin/job-profiles/${id}/approve`
+        );
 
-            fetchProfiles();
+        removeProfile(id);
 
-        } catch (error) {
-            toast.error("Unable to approve profile.");
-        }
-    };
+        toast.success("Profile approved.");
+    } catch (error) {
+        toast.error(
+            "Unable to approve profile."
+        );
+    } finally {
+        setApproveLoading(null);
+    }
+};
 
-    const declineProfile = async (id) => {
-        const reason = prompt("Enter decline reason");
+  const declineProfile = async (id) => {
+    setDeclineLoading(id);
 
-        if (!reason) return;
+    try {
+        await api.post(
+            `/api/admin/job-profiles/${id}/decline`
+        );
 
-        try {
-            await api.post(
-                `/api/admin/job-profiles/${id}/decline`,
-                {
-                    reason,
-                }
-            );
+        removeProfile(id);
 
-            toast.success("Profile declined.");
+        toast.success("Profile declined.");
+    } catch (error) {
+        toast.error(
+            "Unable to decline profile."
+        );
+    } finally {
+        setDeclineLoading(null);
+    }
+};
 
-            fetchProfiles();
-
-        } catch (error) {
-            toast.error("Unable to decline profile.");
-        }
-    };
 
     const badgeColor = (status) => {
         switch (status) {
             case "approved":
-                return "bg-green-100 text-green-700";
+                return "text-green-700";
 
             case "declined":
-                return "bg-red-100 text-red-700";
+                return "text-red-700";
 
             default:
-                return "bg-yellow-100 text-yellow-700";
+                return "text-yellow-700";
         }
     };
 
-    return (
-        <div className="p-6">
 
-            <h1 className="text-3xl font-bold mb-8">
+
+    return (
+        <div className="sm:p-6 p-3">
+
+            <h1 className="text-xl font-bold mb-2 mt-16">
                 Job Profile Approval
             </h1>
 
-            {loading && (
-                <p>Loading profiles...</p>
+            {!loading && profiles.length === 0 && (
+                <div className="bg-white rounded-2xl shadow-md p-10 text-center">
+                    <h2 className="sm:text-2xl text-xl font-bold text-gray-700">
+                        No Pending Profiles
+                    </h2>
+
+                    <p className="text-gray-500 mt-2 text-sm">
+                        There are currently no job profiles
+                        awaiting approval.
+                    </p>
+                </div>
             )}
+
+            {loading ? (
+                <div className="grid lg:grid-cols-2 gap-6">
+            {[...Array(6)].map((_, index) => (
+                <div
+                    key={index}
+                    className="bg-white rounded-2xl shadow-md p-6 border animate-pulse"
+                >
+                    {/* Header */}
+                    <div className="flex justify-between">
+                        <div className="space-y-2">
+                            <div className="h-6 w-48 bg-gray-200 rounded"></div>
+                            <div className="h-4 w-56 bg-gray-200 rounded"></div>
+                        </div>
+
+                        <div className="h-8 w-24 bg-gray-200 rounded-full"></div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="mt-4 space-y-3">
+                        <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                        <div className="h-4 w-48 bg-gray-200 rounded"></div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-3 mt-6">
+                        <div className="h-10 w-24 bg-gray-200 rounded-lg"></div>
+                        <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
+                        <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    ) : (
 
             <div className="grid lg:grid-cols-2 gap-6">
 
@@ -92,7 +163,7 @@ export default function JobProfileApproval() {
                         key={profile.id}
                         className="bg-white rounded-2xl shadow-md p-6 border"
                     >
-                        <div className="flex justify-between">
+                        <div className="flex justify-between flex-wrap">
 
                             <div>
 
@@ -113,7 +184,7 @@ export default function JobProfileApproval() {
                             </div>
 
                             <span
-                                className={`px-4 py-1 rounded-full text-sm font-semibold ${badgeColor(
+                                className={`px-2 pt-2 rounded-xl text-sm font-semibold ${badgeColor(
                                     profile.status
                                 )}`}
                             >
@@ -142,13 +213,13 @@ export default function JobProfileApproval() {
 
                         </div>
 
-                        <div className="flex gap-3 mt-6">
+                        <div className="flex gap-2 mt-6">
 
                             <button
                                 onClick={() =>
                                     setSelectedProfile(profile)
                                 }
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white"
+                                className="flex items-center text-sm gap-2 px-2 py-2 rounded-lg bg-blue-600 text-white"
                             >
                                 <Eye size={18} />
                                 View
@@ -156,26 +227,58 @@ export default function JobProfileApproval() {
 
                             {profile.status !== "approved" && (
                                 <button
-                                    onClick={() =>
-                                        approveProfile(profile.id)
-                                    }
-                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white"
-                                >
-                                    <Check size={18} />
-                                    Approve
-                                </button>
+                                disabled={
+                                    approveLoading === profile.id ||
+                                    declineLoading === profile.id
+                                }
+                                onClick={() =>
+                                    approveProfile(profile.id)
+                                }
+                                className="flex items-center text-sm gap-2 px-2 py-2 rounded-lg bg-green-600 text-white disabled:opacity-50"
+                            >
+                                {approveLoading === profile.id ? (
+                                    <>
+                                        <Loader2
+                                            size={18}
+                                            className="animate-spin"
+                                        />
+                                        Approving
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={18} />
+                                        Approve
+                                    </>
+                                )}
+                            </button>
                             )}
 
                             {profile.status !== "declined" && (
                                 <button
-                                    onClick={() =>
-                                        declineProfile(profile.id)
-                                    }
-                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white"
-                                >
-                                    <X size={18} />
-                                    Decline
-                                </button>
+                                disabled={
+                                    declineLoading === profile.id ||
+                                    approveLoading === profile.id
+                                }
+                                onClick={() =>
+                                    declineProfile(profile.id)
+                                }
+                                className="flex items-center gap-2 px-2 text-sm py-2 rounded-lg bg-red-600 text-white disabled:opacity-50"
+                            >
+                                {declineLoading === profile.id ? (
+                                    <>
+                                        <Loader2
+                                            size={18}
+                                            className="animate-spin"
+                                        />
+                                        Declining
+                                    </>
+                                ) : (
+                                    <>
+                                        <X size={18} />
+                                        Decline
+                                    </>
+                                )}
+                            </button>
                             )}
 
                         </div>
@@ -185,6 +288,8 @@ export default function JobProfileApproval() {
                 ))}
 
             </div>
+    )}
+            
 
             {selectedProfile && (
 

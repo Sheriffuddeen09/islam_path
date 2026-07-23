@@ -5,8 +5,10 @@ import toast, { Toaster } from "react-hot-toast";
 import SidebarLeft from "./SidebarLeft";
 import { useNavigate } from "react-router-dom";
 
-export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests}) {
- 
+export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests,
+                                        jobProfile, setJobProfile, show, setShow, fetchJobProfile
+                                    }) {
+                                    
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -381,7 +383,12 @@ const requestList = (
    <Toaster position="top-right" />
           <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
 
-           <SidebarLeft />
+           <SidebarLeft 
+           jobProfile={jobProfile}
+            setJobProfile={setJobProfile}
+            fetchJobProfile={fetchJobProfile}
+            show={show}
+            setShow={setShow}/>
 
         {/* Main Content */}
         <div className="flex-1 transition-all p-4 mt-20 lg:ml-72">

@@ -51,6 +51,7 @@ import MeetingRoom from "./chat/chatbox/MeetingRoom";
 import JobProfileApproval from "./job/JobProfileApproval";
 import JobCreatorProfile from "./job/JobCreatorProfile";
 import JobFinderProfile from "./job/JobFinderProfile";
+import ContactSupport from "./pages/contact/ContactSupport";
 
    
 function App() {
@@ -81,6 +82,23 @@ function App() {
     const [meetingData, setMeetingData] = useState(null);
 
     const [pendingCount, setPendingCount] = useState(0);
+  
+    const [show, setShow] = useState(false)
+    const [jobProfile, setJobProfile] = useState(null);
+      
+      useEffect(() => {
+          fetchJobProfile();
+      }, []);
+      
+        const fetchJobProfile = async () => {
+            try {
+                const res = await api.get("/api/job-profile");
+                setJobProfile(res.data);
+            } catch (error) {
+                setJobProfile(null);
+            }
+        };
+
     
 
    const togglePopup = () => {
@@ -355,11 +373,17 @@ function App() {
           incomingCall={incomingCall}
           setMeetingData={setMeetingData}
           meetingData={meetingData}
+          jobProfile={jobProfile}
+          setJobProfile={setJobProfile}
+          fetchJobProfile={fetchJobProfile}
+          show={show}
+          setShow={setShow}
           />}>
 
         
 
       <Route path="/about" element={<About />} />
+      <Route path="/contact-us" element={<ContactSupport />} />
 
       <Route path="/post" element={<PostId 
         image={image} setImage={setImage}
@@ -461,6 +485,11 @@ function App() {
       <Route path="/friend" element={
           <Friend students={students} setStudents={setStudents} admins={admins} setAdmins={setAdmins}
           incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
+          jobProfile={jobProfile}
+          setJobProfile={setJobProfile}
+          fetchJobProfile={fetchJobProfile}
+          show={show}
+          setShow={setShow}
            />
       } />
 
@@ -629,6 +658,11 @@ function App() {
         incomingCall={incomingCall}
         setMeetingData={setMeetingData}
         meetingData={meetingData}
+        jobProfile={jobProfile}
+        setJobProfile={setJobProfile}
+        fetchJobProfile={fetchJobProfile}
+        show={show}
+        setShow={setShow}
          />   
       } />
 
@@ -693,7 +727,8 @@ function LayoutWithHeader({
   meetingData, setMeetingData, 
   callMode, setCallMode, 
   incomingCall, setIncomingCall,
-  setMessages
+  setMessages, jobProfile, setJobProfile,
+  fetchJobProfile, setShow, show
 }) {
   return (
     <div>
@@ -732,6 +767,11 @@ function LayoutWithHeader({
         incomingCall={incomingCall}
         setMeetingData={setMeetingData}
         meetingData={meetingData}
+        jobProfile={jobProfile}
+        setJobProfile={setJobProfile}
+        fetchJobProfile={fetchJobProfile}
+        show={show}
+        setShow={setShow}
       />
 
       <Outlet />
