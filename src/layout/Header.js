@@ -252,7 +252,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
 
                 {/* Book */}
                 {jobProfile?.type &&
-    jobProfile?.status === "approved" && (
+    jobProfile && (
         <Link
             to={
                 jobProfile?.type === "creator"
@@ -339,9 +339,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
 
                                       // Null, Pending or Declined
                                       if (
-                                          !jobProfile ||
-                                          jobProfile?.status === "pending" ||
-                                          jobProfile?.status === "declined"
+                                          !jobProfile 
                                       ) {
 
                                           setShow(true);
@@ -350,7 +348,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
 
                                       // Approved Job Creator
                                       else if (
-                                          jobProfile?.status === "approved" &&
+                                          jobProfile &&
                                           jobProfile?.type === "creator"
                                       ) {
 
@@ -360,7 +358,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
 
                                       // Approved Job Finder
                                       else if (
-                                          jobProfile?.status === "approved" &&
+                                          jobProfile &&
                                           jobProfile?.type === "finder"
                                       ) {
 
@@ -394,9 +392,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
                                       justify-center
                                       "
                                   >
-                                      {!jobProfile ||
-                                      jobProfile?.status === "pending" ||
-                                      jobProfile?.status === "declined" ? (
+                                      {!jobProfile ? (
                                           <Briefcase size={22} />
                                       ) : jobProfile?.type === "creator" ? (
                                           <PlusCircle size={22} />
@@ -406,9 +402,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
                                   </button>
 
                                   <p className="text-sm mt-1">
-                                      {!jobProfile ||
-                                      jobProfile?.status === "pending" ||
-                                      jobProfile?.status === "declined"
+                                      {!jobProfile 
                                           ? "Post / Find Halal Job"
                                           : jobProfile?.type === "creator"
                                           ? "Post Job"
@@ -416,7 +410,7 @@ function Navbar({messageOpen,  activeChat, setActiveChat,
                                   </p>
                               </div>
                                           {/* Application Job */}
-                                    {jobProfile?.status === "approved" && (
+                                    {jobProfile && (
                                             <Link
                                                 to={
                                                     jobProfile?.type === "creator"

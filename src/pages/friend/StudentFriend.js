@@ -6,7 +6,8 @@ import SidebarLeft from "./SidebarLeft";
 import { useNavigate } from "react-router-dom";
 
 export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests,
-                                        jobProfile, setJobProfile, show, setShow, fetchJobProfile
+                                        jobProfile, setJobProfile, show, setShow, fetchJobProfile,
+                                        showSuccessModal, setShowSuccessModal
                                     }) {
                                     
   const [requestStatus, setRequestStatus] = useState({});
@@ -388,7 +389,10 @@ const requestList = (
             setJobProfile={setJobProfile}
             fetchJobProfile={fetchJobProfile}
             show={show}
-            setShow={setShow}/>
+            setShow={setShow}
+            showSuccessModal={showSuccessModal} 
+            setShowSuccessModal={setShowSuccessModal}
+          />
 
         {/* Main Content */}
         <div className="flex-1 transition-all p-4 mt-20 lg:ml-72">

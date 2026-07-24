@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { linkList } from "./LinkData";
 import JobProfileModal from "../../job/JobProfileModal";
-import api from "../../Api/axios";
-import { Briefcase, PlusCircle, Search } from "lucide-react";
+import { Briefcase, PlusCircle, Search, CheckCircle2 } from "lucide-react";
 
-export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile}) {
+export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile, showSuccessModal, setShowSuccessModal}) {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
 
@@ -14,18 +13,15 @@ export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile}
 
  
   const isPendingProfile =
-    !jobProfile ||
-    jobProfile?.status === "pending" ||
-    jobProfile?.status === "declined";
-
+    !jobProfile 
 const isApprovedProfile =
-    jobProfile?.status === "approved";
+    jobProfile
   
   return (
     <>
     <aside className="fixed hidden sm:block top-[75px] left-2 
       h-[90vh] w-72 bg-white shadow-md p-4 z-40
-      overflow-y-auto overflow-x-hidden
+      overflow-y-auto overflow-x-hidden  bg-[var(--bg-color)] text-[var(--text-color)]
       scrollbar-thin scrollbar-thumb-gray-400">
         
       <div className="mb-6">
@@ -197,7 +193,123 @@ const isApprovedProfile =
       onClose={() => setShow(false)}
       show={show}
       fetchJobProfile={fetchJobProfile}
+       showSuccessModal={showSuccessModal} 
+        setShowSuccessModal={setShowSuccessModal}
       />
+
+           
+       {showSuccessModal && (
+          <div
+              className="
+              fixed inset-0 z-50
+              flex items-center justify-center
+              bg-black/50
+              p-4
+              "
+          >
+              <div
+                  className="
+                  bg-white
+                  rounded-3xl
+                  shadow-2xl
+                  max-w-lg
+                  w-full
+                  p-8
+                  text-center
+                  "
+              >
+                  <div
+                      className="
+                      w-20 h-20
+                      rounded-full
+                      bg-green-100
+                      mx-auto
+                      flex items-center
+                      justify-center
+                      mb-5
+                      "
+                  >
+                      <CheckCircle2
+                          size={50}
+                          className="text-green-600"
+                      />
+                  </div>
+      
+                  <h2
+                      className="
+                      text-2xl
+                      font-bold
+                      mb-3
+                      "
+                  >
+                      Thank You!
+                  </h2>
+      
+                  <p
+                      className="
+                      text-gray-600
+                      leading-7
+                      "
+                  >
+                      Your Job Profile has been
+                      submitted successfully.
+                  </p>
+      
+                  <p
+                      className="
+                      text-gray-600
+                      leading-7
+                      mt-3
+                      "
+                  >
+                      Please wait for platform
+                      approval before you can
+                      continue to post jobs or
+                      search for jobs on our
+                      platform.
+                  </p>
+      
+                  <div
+                      className="
+                      mt-6
+                      rounded-2xl
+                      bg-blue-50
+                      border
+                      border-blue-200
+                      p-4
+                      text-sm
+                      text-gray-700
+                      "
+                  >
+                      Your profile is currently
+                      under review. You will gain
+                      access to job-related
+                      features once it has been
+                      approved.
+                  </div>
+      
+                  <button
+                      onClick={() =>
+                          setShowSuccessModal(
+                              false
+                          )
+                      }
+                      className="
+                      mt-8
+                      bg-blue-600
+                      text-white
+                      px-8
+                      py-3
+                      rounded-xl
+                      hover:bg-blue-700
+                      transition-all
+                      "
+                  >
+                      Continue
+                  </button>
+              </div>
+          </div>
+      )}
 
     </>
   );

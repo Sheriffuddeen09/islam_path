@@ -6,7 +6,7 @@ import JobFinderForm from "./JobFinderForm";
 import JobCreatorForm from "./JobCreatorForm";
 export default function JobProfileModal({
  show,
- onClose, fetchJobProfile
+ onClose, fetchJobProfile, setShowSuccessModal
 }) {
 
 
@@ -17,7 +17,6 @@ export default function JobProfileModal({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
   const onSubmit = async (formData) => {
@@ -69,7 +68,7 @@ export default function JobProfileModal({
 >
  <div
     className="
-    bg-white
+    bg-[var(--bg-color)] text-[var(--text-color)]
     rounded-3xl
     shadow-2xl
     w-full
@@ -89,10 +88,10 @@ export default function JobProfileModal({
  {/* Header */}
  <div className="flex justify-between items-center px-8 py-5 border-b">
  <div className="text-center">
- <h2 className="text-2xl font-bold text-gray-800">
+ <h2 className="text-2xl font-bold ">
  Create Job Profile
  </h2>
- <p className="text-gray-500 text-sm mt-1">
+ <p className=" text-sm mt-1">
  Choose how you want to use the Jobs platform.
  </p>
  </div>
@@ -120,7 +119,7 @@ export default function JobProfileModal({
  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold ${
  step >= 2
  ? "bg-blue-600 text-white"
- : "bg-gray-200"
+ : "bg-green-600"
  }`}>
  2
  </div>
@@ -133,7 +132,7 @@ export default function JobProfileModal({
  <h3 className="text-xl font-semibold text-center">
  Select Your Profile
  </h3>
- <p className="text-center text-gray-500 mt-2">
+ <p className="text-center mt-2">
  You can create either a company profile or a personal job seeker profile.
  </p>
  <div className="grid md:grid-cols-2 gap-8 mt-4">
@@ -143,7 +142,7 @@ export default function JobProfileModal({
  className={`cursor-pointer rounded-2xl border-2 p-8 transition-all hover:shadow-xl
 ${
  profileType === "creator"
- ? "border-blue-600 bg-blue-50"
+ ? "border-blue-600 bg-[var(--bg-color)] text-[var(--text-color)]"
  : "border-gray-200"
  }`}
  >
@@ -156,7 +155,7 @@ ${
  <h4 className="text-xl font-bold mt-6">
  Job Creator
  </h4>
- <p className="text-gray-500 mt-3">
+ <p className="mt-3">
  Create a company profile and post jobs to
  hire talented candidates.
  </p>
@@ -173,7 +172,7 @@ ${
  className={`cursor-pointer rounded-2xl border-2 p-8 transition-all hover:shadow-xl
 ${
  profileType === "finder"
- ? "border-green-600 bg-green-50"
+ ? "border-green-600 "
  : "border-gray-200"
  }`}
  >
@@ -186,7 +185,7 @@ ${
  <h4 className="text-xl font-bold mt-6">
  Job Finder
  </h4>
- <p className="text-gray-500 mt-3">
+ <p className="mt-3">
  Build your professional profile and
  apply for jobs.
  </p>
@@ -222,8 +221,8 @@ transition ${
     <div className="flex justify-start mb-5">
  <button
  onClick={() => setStep(1)}
- className={`flex items-center gap-2 px-7 py-3 rounded-xl text-black font-semibold
-transition border hover:bg-gray-100`}
+ className={`flex items-center gap-2 px-7 py-3 rounded-xl font-semibold
+transition border hover:bg-gray-700`}
  >
  <ChevronLeft size={20} />
  Back
@@ -273,118 +272,6 @@ transition border hover:bg-gray-100`}
  </div>
  </div>
 
- {showSuccessModal && (
-    <div
-        className="
-        fixed inset-0 z-50
-        flex items-center justify-center
-        bg-black/50
-        p-4
-        "
-    >
-        <div
-            className="
-            bg-white
-            rounded-3xl
-            shadow-2xl
-            max-w-lg
-            w-full
-            p-8
-            text-center
-            "
-        >
-            <div
-                className="
-                w-20 h-20
-                rounded-full
-                bg-green-100
-                mx-auto
-                flex items-center
-                justify-center
-                mb-5
-                "
-            >
-                <CheckCircle2
-                    size={50}
-                    className="text-green-600"
-                />
-            </div>
-
-            <h2
-                className="
-                text-2xl
-                font-bold
-                mb-3
-                "
-            >
-                Thank You!
-            </h2>
-
-            <p
-                className="
-                text-gray-600
-                leading-7
-                "
-            >
-                Your Job Profile has been
-                submitted successfully.
-            </p>
-
-            <p
-                className="
-                text-gray-600
-                leading-7
-                mt-3
-                "
-            >
-                Please wait for platform
-                approval before you can
-                continue to post jobs or
-                search for jobs on our
-                platform.
-            </p>
-
-            <div
-                className="
-                mt-6
-                rounded-2xl
-                bg-blue-50
-                border
-                border-blue-200
-                p-4
-                text-sm
-                text-gray-700
-                "
-            >
-                Your profile is currently
-                under review. You will gain
-                access to job-related
-                features once it has been
-                approved.
-            </div>
-
-            <button
-                onClick={() =>
-                    setShowSuccessModal(
-                        false
-                    )
-                }
-                className="
-                mt-8
-                bg-blue-600
-                text-white
-                px-8
-                py-3
-                rounded-xl
-                hover:bg-blue-700
-                transition-all
-                "
-            >
-                Continue
-            </button>
-        </div>
-    </div>
-)}
  </div>
  );
 }

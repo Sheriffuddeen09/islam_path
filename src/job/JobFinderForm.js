@@ -98,7 +98,7 @@ const countries = useMemo(() => countryList().getData(), []);
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <input
- className="border rounded-xl w-full pl-12 py-3"
+ className="border text-black rounded-xl w-full pl-12 py-3"
  placeholder="John Doe"
  value={fullName}
  onChange={(e)=>
@@ -152,7 +152,7 @@ const countries = useMemo(() => countryList().getData(), []);
  />
  <textarea
  rows={3}
- className="border rounded-xl w-full pl-12 py-3"
+ className="border text-black rounded-xl w-full pl-12 py-3"
  placeholder="B.Sc Computer Science..."
  value={qualification}
  onChange={(e)=>
@@ -240,7 +240,7 @@ const countries = useMemo(() => countryList().getData(), []);
   className="absolute left-4 top-3.5 text-gray-400"
   />
   <input
-  className="border rounded-xl pl-12 pr-4 py-3 w-full"
+  className="border text-black rounded-xl pl-12 pr-4 py-3 w-full"
   placeholder="Lagos, Nigeria"
   value={address}
   onChange={(e) =>
@@ -261,7 +261,7 @@ const countries = useMemo(() => countryList().getData(), []);
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <input
- className="border rounded-xl w-full pl-12 py-3"
+ className="border text-black rounded-xl w-full pl-12 py-3"
  placeholder="https://portfolio.com"
  value={portfolio}
  onChange={(e)=>
@@ -279,7 +279,7 @@ const countries = useMemo(() => countryList().getData(), []);
  </label>
  <div className="flex gap-2 mt-2">
  <input
- className="border rounded-xl flex-1 px-4 py-3"
+ className="border text-black rounded-xl flex-1 px-4 py-3"
  placeholder="React"
  value={skill}
  onChange={(e)=>
@@ -332,7 +332,7 @@ const countries = useMemo(() => countryList().getData(), []);
  />
  <textarea
  rows={3}
- className="border rounded-xl w-full pl-12 py-3"
+ className="border text-black rounded-xl w-full pl-12 py-3"
  placeholder="AWS, Cisco..."
  value={certification}
  onChange={(e)=>

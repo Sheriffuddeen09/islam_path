@@ -46,9 +46,9 @@ const countries = useMemo(() => countryList().getData(), []);
  onSubmit(formData);
  };
  return (
- <div className="space-y-7">
+ <div className="space-y-7 bg-[var(--bg-color)] text-[var(--text-color)]">
  <div>
- <p className="text-gray-900 text-center text-sm">
+ <p className=" text-center text-sm">
  Tell applicants about your company.
  </p>
  </div>
@@ -74,7 +74,7 @@ const countries = useMemo(() => countryList().getData(), []);
  className="text-blue-600"
  size={45}
  />
- <p className="mt-4 text-gray-500">
+ <p className="mt-4">
  Click to upload logo
  </p>
  </>
@@ -98,7 +98,7 @@ const countries = useMemo(() => countryList().getData(), []);
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <input
- className="border rounded-xl pl-12 pr-4 py-3 w-full focus:ring-2 focus:ring-blue-500"
+ className="border text-black rounded-xl pl-12 pr-4 py-3 w-full focus:ring-2 focus:ring-blue-500"
  placeholder="OpenAI"
  value={companyName}
  onChange={(e) =>
@@ -119,14 +119,14 @@ const countries = useMemo(() => countryList().getData(), []);
  setCompanyType("individual")
  }
  className={`border rounded-xl p-5 transition ${companyType === "individual"
- ? "border-blue-600 bg-blue-50"
+ ? "border-blue-600 border"
  : ""
  }`}
  >
  <h4 className="font-bold">
  Individual
  </h4>
- <p className="text-sm text-gray-500 mt-2">
+ <p className="text-sm mt-2">
  Freelancers and private employers.
  </p>
  </button>
@@ -136,14 +136,14 @@ const countries = useMemo(() => countryList().getData(), []);
  setCompanyType("organisation")
  }
  className={`border rounded-xl p-5 transition ${companyType === "organisation"
- ? "border-blue-600 bg-blue-50"
+ ? "border-blue-600 border"
  : ""
  }`}
  >
  <h4 className="font-bold">
  Organisation
  </h4>
- <p className="text-sm text-gray-500 mt-2">
+ <p className="text-sm mt-2">
  Registered businesses and companies.
  </p>
  </button>
@@ -161,7 +161,7 @@ const countries = useMemo(() => countryList().getData(), []);
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <select
- className="border rounded-xl pl-12 py-3 w-full cursor-pointer"
+ className="border text-black rounded-xl pl-12 py-3 w-full cursor-pointer"
  value={organisationSize}
  onChange={(e) =>
  setOrganisationSize(e.target.value)
@@ -210,7 +210,7 @@ const countries = useMemo(() => countryList().getData(), []);
                placeholder="Select Location"
                isSearchable
                menuPortalTarget={document.body}
-               className="mt-2"
+               className="mt-2 cursor-pointer"
                styles={{
                  control: (base) => ({
                    ...base,
@@ -265,7 +265,7 @@ const countries = useMemo(() => countryList().getData(), []);
  className="absolute left-4 top-3.5 text-gray-400"
  />
  <input
- className="border rounded-xl pl-12 pr-4 py-3 w-full"
+ className="border text-black rounded-xl pl-12 pr-4 py-3 w-full"
  placeholder="Lagos, Nigeria"
  value={address}
  onChange={(e) =>

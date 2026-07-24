@@ -52,6 +52,8 @@ import JobProfileApproval from "./job/JobProfileApproval";
 import JobCreatorProfile from "./job/JobCreatorProfile";
 import JobFinderProfile from "./job/JobFinderProfile";
 import ContactSupport from "./pages/contact/ContactSupport";
+import { CheckCircle2 } from "lucide-react";
+import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 
    
 function App() {
@@ -85,6 +87,8 @@ function App() {
   
     const [show, setShow] = useState(false)
     const [jobProfile, setJobProfile] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
       
       useEffect(() => {
           fetchJobProfile();
@@ -255,6 +259,7 @@ function App() {
   
   return (
     <div className="">
+ 
    <ThemeLoader />
       <Routes>
 
@@ -383,6 +388,7 @@ function App() {
         
 
       <Route path="/about" element={<About />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/contact-us" element={<ContactSupport />} />
 
       <Route path="/post" element={<PostId 
@@ -490,6 +496,8 @@ function App() {
           fetchJobProfile={fetchJobProfile}
           show={show}
           setShow={setShow}
+          showSuccessModal={showSuccessModal} 
+          setShowSuccessModal={setShowSuccessModal}
            />
       } />
 
@@ -663,6 +671,8 @@ function App() {
         fetchJobProfile={fetchJobProfile}
         show={show}
         setShow={setShow}
+        showSuccessModal={showSuccessModal} 
+        setShowSuccessModal={setShowSuccessModal}
          />   
       } />
 
