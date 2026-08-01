@@ -154,7 +154,7 @@ text-lg font-semibold
             <div className="ml-10 space-y-2">
                 {(seeMoreApps
                     ? islamicApps
-                    : islamicApps.slice(0, 7)
+                    : islamicApps.slice(0, 5)
                 ).map((app) => (
                     <button
                         key={app.id}

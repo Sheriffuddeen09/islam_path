@@ -36,7 +36,7 @@ const isApprovedProfile =
   return (
 <>
 <aside
-className=" fixed hidden sm:block top-[75px] left-2
+className=" fixed hidden lg:block top-[75px] left-2
 h-[90vh] w-72 bg-[var(--bg-color)] shadow-md p-4 z-40
 overflow-y-auto overflow-x-hidden
 bg-[var(--bg-color)] text-[var(--text-color)] scrollbar
@@ -154,7 +154,7 @@ text-lg font-semibold
             <div className="ml-10 space-y-2">
                 {(seeMoreApps
                     ? islamicApps
-                    : islamicApps.slice(0, 7)
+                    : islamicApps.slice(0, 5)
                 ).map((app) => (
                     <button
                         key={app.id}

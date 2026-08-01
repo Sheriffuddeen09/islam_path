@@ -1,151 +1,1258 @@
-
-
-
-return (
-<>
-<aside
-className=" fixed hidden sm:block top-[75px] left-2
-h-[90vh] w-72 bg-white shadow-md p-4 z-40
-overflow-y-auto overflow-x-hidden
-bg-[var(--bg-color)] text-[var(--text-color)]
-scrollbar-thin scrollbar-thumb-gray-400
-">
-<div className="mb-6">
-<ul>
-{visibleMales.map((item) => (
-item.id === 1 ? (
-<li
-key={item.id}
-onClick={() => {
-if (isPendingProfile) {
-setShow(true);
-}
-else if (
-isApprovedProfile &&
-jobProfile?.type === "creator" ) {
-}
-else if (
-isApprovedProfile &&
-jobProfile?.type === "finder" ) {
-}
-}}
-className=" flex items-center gap-3 p-2
-hover:bg-gray-100 transition cursor-pointer
-">
-<div
-className=" w-8 h-8 flex items-center justify-center
-rounded-full text-[var(--text-color)]
-text-lg font-semibold
-">
-{isPendingProfile ? (
-<Briefcase size={22} />
-) : jobProfile?.type === "creator" ? (
-<PlusCircle size={22} />
-) : (
-<Search size={22} />
-)}
-</div>
-<div className="flex flex-col">
-<span className="text-sm text-gray-700">
-{isPendingProfile
-? "Post / Find Halal Job"
-: jobProfile?.type === "creator" ? "Post Job"
-: "Find Job"}
-</span>
-</div>
-</li>
-) : (
-<li
-key={item.id}
-className=" flex items-center gap-3 p-2
-hover:bg-gray-100 transition cursor-pointer
-">
-<div
-className=" w-8 h-8 flex items-center justify-center
-rounded-full text-[var(--text-color)]
-text-lg font-semibold
-">
-{item.icon}
-</div>
-<div className="flex flex-col">
-<span className="text-sm text-gray-700">
-{item.name}
-</span>
-<span className="text-xs text-gray-700">
-{item.gender}
-</span>
-</div>
-</li>
-)
-))}
-{filteredLinks.map((list) =>
-<li
-onClick={() => {
-if (list.toggle) {
-setShowChannelView(true);
-return;
-}
-if (list.appDownload) {
-setShowAppDownload(!showAppDownload);
-return;
-}
-navigate(list.link);
-}}
-className=" flex items-center gap-3 p-2
-hover:bg-gray-100 transition
-cursor-pointer
-">
-<div
-className=" w-8 h-8 flex items-center
-justify-center rounded-full
-text-[var(--text-color)]
-text-lg font-semibold
-">
-{list.icon}
-</div>
-<div className="flex flex-col flex-1">
-<span className="text-sm text-gray-700">
-{list.name}
-</span>
-</div>
-</li>
-{/* APP DOWNLOAD LIST */}
-{list.appDownload && showAppDownload && (
-<div className="ml-10 space-y-2">
-{(seeMoreApps
-? islamicApps
-: islamicApps.slice(0, 3)
-).map((app) => (
-<button
-key={app.id}
-className=" w-full text-left
-flex items-center gap-2
-text-sm p-2 rounded-lg
-hover:bg-gray-100
-">
-{app.icon}
-<span>
-{app.name}
-</span>
-</button>
-))}
-<button
-onClick={() =>
-setSeeMoreApps(!seeMoreApps)
-}
-className=" text-sm font-semibold
-text-blue-600 pb-2
-">
+php artisan make:model Advertisement -m
+php artisan make:mail AdvertisementPendingMail
+php artisan make:mail AdvertisementApprovedMail
+php artisan make:mail AdvertisementDeclinedMail
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration
 {
-seeMoreApps
-? "See Less"
-: "See More" }
+public function up(): void
+{
+Schema::create('advertisements', function (Blueprint $table) {
+$table->id();
+$table->foreignId("user_id")
+->constrained()
+->cascadeOnDelete();
+//Advertisement or Sponsorship
+$table->enum("type", [ "advertisement", "sponsorship"
+]);
+//title
+$table->string("title");
+//description
+$table->longText("description");
+//website or redirect link
+$table->string("link")
+->nullable();
+//image or video
+$table->string("media")
+->nullable();
+//image or video
+$table->enum("media_type", [ "image", "video"
+])->nullable();
+//25%,50%,75%,100%
+$table->enum("audience", [ "25", "50", "75", "100"
+])->nullable("25");
+//badges needed
+$table->unsignedInteger("required_badges")
+->default(0);
+//approval status
+$table->enum("status", [ "pending", "approved", "declined"
+])->default("pending");
+$table->boolean("visibility_unlocked")
+->default(false);
+//when approved
+$table->timestamp("approved_at")
+->nullable();
+$table->timestamps();
+});
+}
+public function down(): void
+{
+Schema::dropIfExists('advertisements');
+}
+};
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+class Advertisement extends Model
+{
+use HasFactory;
+protected $fillable = [ "user_id", "type", "title", "description", "link", "media", "media_type", "audience", "required_badges", "status", "visibility_unlock", "approved_at"
+];
+protected $casts = [
+"approved_at"=>"datetime"
+];
+public function user()
+{
+return $this->belongsTo(User::class);
+}
+}
+User
+public function advertisements()
+{
+return $this->hasMany(Advertisement::class);
+}
+php artisan make:controller AdvertisementController
+<?php
+namespace App\Http\Controllers;
+use App\Mail\AdvertisementApprovedMail;
+use App\Mail\AdvertisementDeclinedMail;
+use App\Mail\AdvertisementPendingMail;
+use App\Models\Advertisement;
+use App\Models\User;
+use App\Models\UserBadge;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+class AdvertisementController extends Controller
+{
+private function totalBadges()
+{
+return UserBadge::where(
+"user_id", auth()->id()
+)->sum("badges");
+}
+private function badgeRequired($audience)
+{
+return match($audience){
+"25"=>50, "50"=>100, "75"=>200, "100"=>300, default=>50
+};
+}
+public function store(Request $request)
+{
+$request->validate([ "title"=>"required|string|max:255", "description"=>"required|string", "link"=>"nullable|url", "type"=>"required|in:advertisement,sponsorship", "media"=>"required|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:51200"
+]);
+$media = null;
+$mediaType = null;
+if($request->hasFile("media"))
+{
+$media = $request
+->file("media")
+->store(
+"advertisements", "public" );
+$extension = strtolower(
+$request->file("media")
+->getClientOriginalExtension()
+);
+if(
+in_array(
+$extension,
+["jpg","jpeg","png"]
+)
+)
+{
+$mediaType="image";
+}
+else{
+$mediaType="video";
+}
+}
+$advertisement=Advertisement::create([ "user_id"=>auth()->id(), "title"=>$request->title, "description"=>$request->description, "link"=>$request->link, "media"=>$media, "media_type"=>$mediaType,
+"type"=>$request->type, "status"=>"pending"
+]);
+Mail::to(
+"odukoyasheriff@gmail.com" )->send(
+new AdvertisementPendingMail(
+$advertisement
+)
+);
+return response()->json([ "message"=>"Advertisement successfully submitted.", "advertisement"=>$advertisement
+],200);
+}
+public function approve($id)
+{
+$advertisement= Advertisement::findOrFail($id);
+$advertisement->update([ "status"=>"approved", "approved_at"=>now()
+]);
+Mail::to(
+$advertisement->user->email
+)->send(
+new AdvertisementApprovedMail(
+$advertisement
+)
+);
+return response()->json([ "message"=>"Advertisement approved successfully."
+]);
+}
+public function decline(Request $request,$id)
+{
+$advertisement= Advertisement::findOrFail($id);
+$advertisement->update([ "status"=>"declined", "decline_reason"=>$request->decline_reason
+]);
+Mail::to(
+$advertisement->user->email
+)->send(
+new AdvertisementDeclinedMail(
+$advertisement
+)
+);
+return response()->json([ "message"=>"Advertisement declined."
+]);
+}
+public function unlockVisibility(Request $request,$id)
+{
+$request->validate([ "audience"=>"required|in:25,50,75,100"
+]);
+$advertisement= Advertisement::findOrFail($id);
+if(
+$advertisement->status != "approved" )
+{
+return response()->json([ "message"=>"Advertisement has not been approved."
+],403);
+}
+$requiredBadges= $this->badgeRequired(
+$request->audience
+);
+$totalBadges=
+$this->totalBadges();
+if(
+$totalBadges < $requiredBadges
+)
+{
+return response()->json([ "message"=>"You do not have enough badges."
+],403);
+}
+UserBadge::create([ "user_id"=>auth()->id(), "badges"=>-$requiredBadges,
+"source"=>"registration"
+]);
+$advertisement->update([ "audience"=>$request->audience, "required_badges"=>$requiredBadges, "visibility_unlocked"=>true
+]);
+return response()->json([ "message"=>"Visibility unlocked successfully.", "advertisement"=>$advertisement
+],200);
+}
+public function myAdvertisement()
+{
+$advertisements= Advertisement::where(
+"user_id", auth()->id()
+)->latest()->get();
+return response()->json([ "advertisements"=>$advertisements
+]);
+}
+}
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdvertisementController;
+Route::middleware("auth:sanctum")->group(function () {
+Route::post(
+"/advertisement/create",
+[AdvertisementController::class, "store"]
+);
+Route::get(
+"/advertisement/my-advertisements",
+[AdvertisementController::class, "myAdvertisement"]
+);
+Route::post(
+"/advertisement/approve/{id}",
+[AdvertisementController::class, "approve"]
+);
+Route::post(
+"/advertisement/decline/{id}",
+[AdvertisementController::class, "decline"]
+);
+Route::post(
+"/advertisement/unlock-visibility/{id}",
+[AdvertisementController::class, "unlockVisibility"]
+);
+});
+php artisan make:mail AdvertisementApprovedMail
+<?php
+namespace App\Mail;
+use App\Models\Advertisement;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+class AdvertisementApprovedMail extends Mailable
+{
+use Queueable, SerializesModels;
+public $advertisement;
+public function __construct(Advertisement $advertisement)
+{
+$this->advertisement = $advertisement;
+}
+public function build()
+{
+return $this->subject(
+"Advertisement Approved Successfully" )
+->view(
+"emails.advertisement.approved" );
+}
+}
+<!DOCTYPE html>
+<html>
+<body>
+<h1>
+Congratulations. </h1>
+<p>
+Your advertisement has been approved successfully.
+</p>
+<p>
+You may now select how many users will be able
+to view your advertisement. </p>
+<ul>
+<li>50 badges = 1/4 Users</li>
+<li>100 badges = 1/2 Users</li>
+<li>200 badges = 3/4 Users</li>
+<li>300 badges = All Users</li>
+</ul>
+<a href="{{env('FRONTEND_URL')}}/advertisement/{{$advertisement->id}}">
+Select Advertisement Visibility
+</a>
+<br>
+<br>
+Thank you. </body>
+</html>
+php artisan make:mail AdvertisementDeclinedMail
+<?php
+namespace App\Mail;
+use App\Models\Advertisement;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+class AdvertisementDeclinedMail extends Mailable
+{
+use Queueable, SerializesModels;
+public $advertisement;
+public function __construct(
+Advertisement $advertisement
+)
+{
+$this->advertisement=$advertisement;
+}
+public function build()
+{
+return $this->subject(
+"Advertisement Declined" )->view(
+"emails.advertisement.declined" );
+}
+}
+<!DOCTYPE html>
+<html>
+<body>
+<h1>
+Advertisement Declined
+</h1>
+<p>
+Unfortunately, your advertisement has not been
+approved at this time. </p>
+<p>
+Reason:
+</p>
+<p>
+{{$advertisement->decline_reason}}
+</p>
+<p>
+You may edit and resubmit your advertisement. </p>
+<a href="{{env('FRONTEND_URL')}}/advertisement/edit/{{$advertisement->id}}">
+Edit Advertisement
+</a>
+<br>
+<br>
+Thank you. </body>
+</html>
+php artisan make:mail AdvertisementPendingMail
+<?php
+namespace App\Mail;
+use App\Models\Advertisement;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Bus\Queueable;
+class AdvertisementPendingMail extends Mailable
+{
+use Queueable,SerializesModels;
+public $advertisement;
+public function __construct(
+Advertisement $advertisement
+)
+{
+$this->advertisement=$advertisement;
+}
+public function build()
+{
+return $this->subject(
+"New Advertisement Request" )->view(
+"emails.advertisement.pending" );
+}
+}
+<!DOCTYPE html>
+<html>
+<body>
+<h1>
+New Advertisement Request
+</h1>
+<p>
+A new advertisement has been submitted. </p>
+<p>
+Title:
+{{$advertisement->title}}
+</p>
+<p>
+Type:
+{{$advertisement->type}}
+</p>
+<p>
+Description:
+{{$advertisement->description}}
+</p>
+@if($advertisement->link)
+<p>
+Link:
+{{$advertisement->link}}
+</p>
+@endif
+<a href="{{env('FRONTEND_URL')}}/admin/advertisement">
+Review Advertisement
+</a>
+<br>
+<br>
+Thank you. </body>
+</html>
+import React, { useState } from "react";
+import {
+X, Image, LoaderCircle, Megaphone, Handshake, Link as LinkIcon, FileVideo, Info, } from "lucide-react";
+import toast from "react-hot-toast";
+import api from "../Api/axios";
+export default function CreateAdvertisementModal({
+isOpen, onClose, }) {
+const [loading, setLoading] = useState(false);
+const [preview, setPreview] = useState("");
+const [isVideo, setIsVideo] = useState(false);
+const [formData, setFormData] = useState({
+title: "", description: "", link: "", type: "advertisement", media: null, });
+if (!isOpen) return null;
+const handleChange = (e) => {
+setFormData((prev) => ({
+...prev, [e.target.name]: e.target.value, }));
+};
+const handleFile = (e) => {
+const file = e.target.files[0];
+if (!file) return;
+const extension = file.name
+.split(".")
+.pop()
+.toLowerCase();
+setIsVideo(
+["mp4", "mov", "avi", "webm"].includes(extension)
+);
+setPreview(URL.createObjectURL(file));
+setFormData((prev) => ({
+...prev, media: file, }));
+};
+const resetForm = () => {
+setFormData({
+title: "", description: "", link: "", type: "advertisement",
+media: null, });
+setPreview("");
+setIsVideo(false);
+};
+const handleSubmit = async () => {
+if (!formData.media) {
+return toast.error(
+"Please upload an image or video." );
+}
+try {
+setLoading(true);
+const data = new FormData();
+data.append("title", formData.title);
+data.append(
+"description", formData.description
+);
+data.append("link", formData.link);
+data.append("type", formData.type);
+data.append("media", formData.media);
+const response = await api.post(
+"/advertisement/create", data, {
+headers: {
+"Content-Type": "multipart/form-data", }, }
+);
+toast.success(response.data.message);
+resetForm();
+if (onClose) {
+onClose();
+}
+} catch (error) {
+toast.error(
+error?.response?.data?.message || "Something went wrong." );
+} finally {
+setLoading(false);
+}
+};
+return (
+<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"><div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hiddenmax-h-[95vh] overflow-y-auto">
+{/* Header */}
+<div className="p-5 border-b flex items-center justify-between">
+<div>
+<h1 className="font-bold text-2xl">
+Advertisement /
+Sponsorship
+</h1>
+<p className="text-sm text-gray-500">
+Submit your
+advertisement for
+approval. </p>
+</div>
+<button
+onClick={onClose}
+className="hover:bg-gray-100 p-2 rounded-full" >
+<X size={24} />
 </button>
 </div>
+<div className="p-6 space-y-6">
+{/* Upload */}
+<label className="block cursor-pointer">
+<div className="border-2 border-dashed rounded-2xl p-8 text-center hover:border
+-blue-500 transition">
+<div className="flex items-center justify-center gap-3 mb-3">
+<Image size={28} />
+<FileVideo size={28} />
+</div>
+<h2 className="font-bold text-lg">
+Upload Image or
+Video
+</h2>
+<p className="text-gray-500 text-sm mt-2">
+JPG, PNG, MP4, MOV and AVI are
+supported. </p>
+<input
+type="file" hidden
+accept="image/*,video/*" onChange={
+handleFile
+}
+/>
+</div>
+</label>
+{/* Preview */}
+{preview && (
+<div>
+<h3 className="font-semibold mb-2">
+Preview
+</h3>
+{isVideo ? (
+<video
+controls
+className="w-full rounded-2xl" >
+<source
+src={
+preview
+}
+/>
+</video>
+) : (
+<img
+src={preview}
+alt="preview" className="w-full rounded-2xl"
+/>
 )}
-))}
+</div>
+)}
+{/* Title */}
+<div>
+<label className="font-semibold">
+Title
+</label>
+<input
+type="text" name="title" value={
+formData.title
+}
+onChange={
+handleChange
+}
+placeholder="Advertisement Title" className="w-full border rounded-xl p-4 mt-2 outline-none focus:ring-2focus:ring-blue-500" />
+</div>
+{/* Description */}
+<div>
+<label className="font-semibold">
+Description
+</label>
+<textarea
+rows={5}
+name="description" value={
+formData.description
+}
+onChange={
+handleChange
+}
+placeholder="Write your advertisement description." className="w-full border rounded-xl p-4 mt-2 outline-none focus:ring-2focus:ring-blue-500" />
+</div>
+{/* Link */}
+<div>
+<label className="font-semibold flex items-center gap-2">
+<LinkIcon
+size={18}
+/>
+Website Link
+(Optional)
+</label>
+<input
+type="url" name="link" value={
+formData.link
+}
+onChange={
+handleChange
+}
+placeholder="https://example.com" className="w-full border rounded-xl p-4 mt-2 outline-none focus:ring-2focus:ring-blue-500" />
+</div>
+{/* Type */}
+<div>
+<h3 className="font-bold text-lg mb-4">
+Select Type
+</h3>
+<div className="grid grid-cols-2 gap-4">
+<button
+type="button" onClick={() =>
+setFormData(
+(
+prev
+) => ({
+...prev, type: "advertisement", })
+)
+}
+className={`p-5 rounded-2xl border duration-300 ${
+formData.type ===
+"advertisement" ? "bg-blue-600 text-white"
+: "bg-white" }`}
+>
+<Megaphone className="mx-auto mb-2" />
+<h3 className="font-bold">
+Advertisement
+</h3>
+</button>
+<button
+type="button" onClick={() =>
+setFormData(
+(
+prev
+) => ({
+...prev, type: "sponsorship", })
+)
+}
+className={`p-5 rounded-2xl border duration-300 ${
+formData.type ===
+"sponsorship" ? "bg-green-600 text-white"
+: "bg-white" }`}
+>
+<Handshake className="mx-auto mb-2" />
+<h3 className="font-bold">
+Sponsorship
+</h3>
+</button>
+</div>
+</div>
+{/* Information */}
+<div className="bg-gray-50 rounded-2xl p-5 border">
+<div className="flex gap-3">
+<Info
+size={22}
+className="mt-1" />
+<div>
+<h3 className="font-bold mb-3">
+Important
+Information
+</h3>
+<ul className="space-y-2 text-sm text-gray-600">
+<li>
+• Creating an
+advertisement
+is FREE. </li>
+<li>
+• Admin must
+approve your
+advertisement. </li>
+<li>
+• You will
+receive an
+email after
+approval or
+decline. </li>
+<li>
+• Visibility
+can be
+unlocked
+after
+approval. </li>
+<li>
+• 50 badges = 1/4 users. </li>
+<li>
+• 100 badges = 1/2 users. </li>
+<li>
+• 200 badges = 3/4 users. </li>
+<li>
+• 300 badges = All users. </li>
 </ul>
 </div>
-</aside>
+</div>
+</div>
+{/* Buttons */}
+<div className="flex gap-3">
+<button
+type="button" onClick={onClose}
+className="w-full p-4 rounded-xl border font-bold" >
+Cancel
+</button>
+<button
+type="button" disabled={loading}
+onClick={
+handleSubmit
+}
+className="w-full p-4 rounded-xl font-bold bg-blue-600 text-white
+disabled:opacity-60" >
+{loading ? (
+<div className="flex items-center justify-center gap-2">
+<LoaderCircle className="animate-spin" />
+Submitting... </div>
+) : (
+"Submit Advertisement" )}
+</button>
+</div>
+</div>
+</div>
+</div>
+);
+}
+import React, { useEffect, useState } from "react";
+import api from "../Api/axios";
+import toast from "react-hot-toast";
+import {
+CheckCircle, XCircle, LoaderCircle, ExternalLink, } from "lucide-react";
+export default function AdminAdvertisementApproval() {
+const [loading, setLoading] = useState(true);
+const [advertisements, setAdvertisements] = useState([]);
+const [approveLoading, setApproveLoading] = useState(null);
+const [declineLoading, setDeclineLoading] = useState(null);
+const [declineReason, setDeclineReason] = useState({});
+useEffect(() => {
+fetchAdvertisements();
+}, []);
+const fetchAdvertisements = async () => {
+try {
+setLoading(true);
+const response = await api.get(
+"/admin/advertisement/pending" );
+setAdvertisements(
+response.data.advertisements
+);
+} catch (error) {
+toast.error("Unable to fetch advertisements.");
+} finally {
+setLoading(false);
+}
+};
+const handleApprove = async (id) => {
+try {
+setApproveLoading(id);
+const response = await api.post(
+`/advertisement/approve/${id}` );
+toast.success(response.data.message);
+fetchAdvertisements();
+} catch (error) {
+toast.error(
+error?.response?.data?.message || "Unable to approve advertisement." );
+} finally {
+setApproveLoading(null);
+}
+};
+const handleDecline = async (id) => {
+try {
+setDeclineLoading(id);
+const response = await api.post(
+`/advertisement/decline/${id}`, {
+decline_reason:
+declineReason[id] || "Advertisement was declined.", }
+);
+toast.success(response.data.message);
+fetchAdvertisements();
+} catch (error) {
+toast.error(
+error?.response?.data?.message || "Unable to decline advertisement." );
+} finally {
+setDeclineLoading(null);
+}
+};
+const Skeleton = () => {
+return (
+<div className="bg-white rounded-2xl shadow-md p-5 animate-pulse">
+<div className="h-56 bg-gray-200 rounded-xl"></div>
+<div className="h-6 mt-4 rounded bg-gray-200"></div>
+<div className="h-20 mt-4 rounded bg-gray-200"></div>
+<div className="h-12 mt-4 rounded bg-gray-200"></div>
+<div className="grid grid-cols-2 gap-3 mt-5">
+<div className="h-12 rounded bg-gray-200"></div>
+<div className="h-12 rounded bg-gray-200"></div>
+</div>
+</div>
+);
+};
+if (loading) {
+return (
+<div className="grid lg:grid-cols-2 gap-5 p-5">
+{[1, 2, 3, 4].map((item) => (
+<Skeleton key={item} />
+))}
+</div>
+);
+}
+return (
+<div className="p-5">
+<h1 className="text-3xl font-bold mb-6">
+Pending Advertisements
+</h1>
+{advertisements.length === 0 ? (
+<div className="bg-white rounded-2xl p-10 text-center shadow-md">
+No Pending Advertisements. </div>
+) : (
+<div className="grid lg:grid-cols-2 gap-5">
+{advertisements.map((advertisement) => (
+<div
+key={advertisement.id}
+className="bg-white rounded-3xl shadow-md overflow-hidden" >
+{/* IMAGE */}
+{advertisement.media_type ===
+"image" && (
+<img
+src={`${import.meta.env.VITE_API_URL}/storage/${advertisement.media}`}
+alt="" className="w-full h-72 object-cover" />
+)}
+{/* VIDEO */}
+{advertisement.media_type ===
+"video" && (
+<video
+controls
+className="w-full h-72 object-cover" >
+<source
+src={`${import.meta.env.VITE_API_URL}/storage/${advertisement.media}`}
+/>
+</video>
+)}
+<div className="p-5 space-y-4">
+<h1 className="font-bold text-2xl">
+{
+advertisement.title
+}
+</h1>
+<div className="flex gap-2">
+<span className="bg-blue-100 px-3 py-1 rounded-full text-sm">
+{
+advertisement.type
+}
+</span>
+<span className="bg-yellow-100 px-3 py-1 rounded-full text-sm">
+{
+advertisement.status
+}
+</span>
+</div>
+<p className="text-gray-600">
+{
+advertisement.description
+}
+</p>
+{/* LINK */}
+{advertisement.link && (
+<a
+href={
+advertisement.link
+}
+target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-600" >
+<ExternalLink
+size={
+18
+}
+/>
+Visit
+Link
+</a>
+)}
+{/* USER */}
+<div className="bg-gray-50 rounded-xl p-4">
+<p>
+<b>User:</b>{" "}
+{
+advertisement
+.user
+?.name
+}
+</p>
+<p>
+<b>Email:</b>{" "}
+{
+advertisement
+.user
+?.email
+}
+</p>
+</div>
+{/* DECLINE REASON */}
+<textarea
+rows={4}
+placeholder="Reason for declining (Optional)" className="w-full rounded-xl border p-4 outline-none" value={
+declineReason[
+advertisement
+.id
+] || "" }
+onChange={(
+e
+) =>
+setDeclineReason(
+(
+prev
+) => ({
+...prev, [
+advertisement
+.id
+]:
+e
+.target
+.value, })
+)
+}
+/>
+{/* BUTTONS */}
+<div className="grid grid-cols-2 gap-3">
+{/* APPROVE */}
+<button
+onClick={() =>
+handleApprove(
+advertisement.id
+)
+}
+disabled={
+approveLoading ===
+advertisement.id ||
+declineLoading ===
+advertisement.id
+}
+className="bg-green-600 text-white rounded-xl p-4 font-bold" >
+{approveLoading ===
+advertisement.id ? (
+<div className="flex items-center justify-center gap-2">
+<LoaderCircle className="animate-spin" />
+Approving... </div>
+) : (
+<div className="flex items-center justify-center gap-2">
+<CheckCircle />
+Approve
+</div>
+)}
+</button>
+{/* DECLINE */}
+<button
+onClick={() =>
+handleDecline(
+advertisement.id
+)
+}
+disabled={
+approveLoading ===
+advertisement.id ||
+declineLoading ===
+advertisement.id
+}
+className="bg-red-600 text-white rounded-xl p-4 font-bold" >
+{declineLoading ===
+advertisement.id ? (
+<div className="flex items-center justify-center gap-2">
+<LoaderCircle className="animate-spin" />
+Declining... </div>
+) : (
+<div className="flex items-center justify-center gap-2">
+<XCircle />
+Decline
+</div>
+)}
+</button>
+</div>
+</div>
+</div>
+))}
+</div>
+)}
+</div>
+);
+}
+// SelectAdvertisementVisibility.jsx
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import {
+LoaderCircle, Badge, CheckCircle, Megaphone, Handshake, X, } from "lucide-react";
+import toast from "react-hot-toast";
+import api from "../Api/axios";
+export default function SelectAdvertisementVisibility() {
+const { id } = useParams();
+const [loading, setLoading] = useState(true);
+const [unlockLoading, setUnlockLoading] = useState(false);
+const [openModal, setOpenModal] =
+useState(false);
+const [advertisement, setAdvertisement] = useState({});
+const [selectedAudience, setSelectedAudience] = useState("");
+const [requiredBadges, setRequiredBadges] = useState(0);
+useEffect(() => {
+fetchAdvertisement();
+}, []);
+const fetchAdvertisement = async () => {
+try {
+setLoading(true);
+const response = await api.get(
+`/advertisement/${id}` );
+setAdvertisement(
+response.data.advertisement
+);
+} catch (error) {
+toast.error(
+"Unable to fetch advertisement."
+);
+} finally {
+setLoading(false);
+}
+};
+const handleSelection = (
+audience, badges
+) => {
+setSelectedAudience(audience);
+setRequiredBadges(badges);
+setOpenModal(true);
+};
+const unlockVisibility = async () => {
+try {
+setUnlockLoading(true);
+const response = await api.post(
+`/advertisement/unlock-visibility/${id}`, {
+audience:
+selectedAudience, }
+);
+toast.success(
+response.data.message
+);
+setOpenModal(false);
+fetchAdvertisement();
+} catch (error) {
+toast.error(
+error?.response?.data
+?.message || "Unable to unlock." );
+} finally {
+setUnlockLoading(false);
+}
+};
+const Skeleton = () => {
+return (
+<div className="animate-pulse space-y-5">
+<div className="h-80 rounded-xl bg-gray-200"></div>
+<div className="h-8 rounded bg-gray-200"></div>
+<div className="h-32 rounded bg-gray-200"></div>
+</div>
+);
+};
+if (loading) {
+return (
+<div className="max-w-5xl mx-auto p-5">
+<Skeleton />
+</div>
+);
+}
+return (
+<>
+<div className="max-w-5xl mx-auto p-5">
+<div className="bg-white shadow-xl rounded-3xl overflow-hidden">
+{/* IMAGE */}
+{advertisement.media_type ===
+"image" && (
+<img
+src={`${import.meta.env.VITE_API_URL}/storage/${advertisement.media}`}
+alt="" className="w-full h-96 object-cover" />
+)}
+{/* VIDEO */}
+{advertisement.media_type ===
+"video" && (
+<video
+controls
+className="w-full h-96 object-cover" >
+<source
+src={`${import.meta.env.VITE_API_URL}/storage/${advertisement.media}`}
+/>
+</video>
+)}
+<div className="p-6 space-y-5">
+<h1 className="text-4xl font-bold">
+{
+advertisement.title
+}
+</h1>
+<div className="flex gap-3">
+<span className="px-4 py-2 rounded-full bg-blue-100">
+{
+advertisement.type
+}
+</span>
+<span className="px-4 py-2 rounded-full bg-green-100">
+{
+advertisement.status
+}
+</span>
+</div>
+<p className="text-gray-600 leading-8">
+{
+advertisement.description
+}
+</p>
+{/* VISIBILITY */}
+{!advertisement.visibility_unlocked && (
+<>
+<div className="bg-gray-50 rounded-3xl p-6">
+<h2 className="font-bold text-2xl mb-5">
+Select Visibility
+</h2>
+<div className="grid lg:grid-cols-2 gap-4">
+<button
+onClick={() =>
+handleSelection(
+"25",
+50
+)
+}
+className="rounded-2xl border p-6 hover:bg-blue-50" >
+<h2 className="font-bold">
+1/4
+Users
+</h2>
+<p>
+50
+Badges
+</p>
+<p> visibility to users for 1 month</p>
+</button>
+<button
+onClick={() =>
+handleSelection(
+"50", 100
+)
+}
+className="rounded-2xl border p-6 hover:bg-blue-50" >
+<h2 className="font-bold">
+1/2
+Users
+</h2>
+<p>
+100
+Badges
+</p>
+<p> visibility to users for 2 month</p>
+</button>
+<button
+onClick={() =>
+handleSelection(
+"75", 200
+)
+}
+className="rounded-2xl border p-6 hover:bg-blue-50" >
+<h2 className="font-bold">
+3/4
+Users
+</h2>
+<p>
+200
+Badges
+</p>
+<p> visibility to users for 3 month</p>
+</button>
+<button
+onClick={() =>
+handleSelection(
+"100", 300
+)
+}
+className="rounded-2xl border p-6 hover:bg-blue-50" >
+<h2 className="font-bold">
+All
+Users
+</h2>
+<p>
+300
+Badges
+</p>
+<p> visibility to users for 4 month</p>
+</button>
+</div>
+</div>
+</>
+)}
+{/* ALREADY UNLOCKED */}
+{advertisement.visibility_unlocked && (
+<div className="bg-green-50 rounded-3xl p-6">
+<div className="flex items-center gap-3">
+<CheckCircle
+size={35}
+/>
+<div>
+<h2 className="font-bold text-2xl">
+Visibility
+Unlocked
+</h2>
+<p>
+Your
+advertisement
+is now
+visible
+to users. </p>
+</div>
+</div>
+</div>
+)}
+</div>
+</div>
+</div>
+{/* MODAL */}
+{openModal && (
+<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-5"><div className="bg-white rounded-3xl max-w-lg w-full p-6">
+<div className="flex items-center justify-between">
+<h1 className="font-bold text-2xl">
+Unlock Visibility
+</h1>
+<button
+onClick={() =>
+setOpenModal(
+false
+)
+}
+>
+<X />
+</button>
+</div>
+<div className="mt-6 space-y-4">
+<div className="flex items-center gap-3">
+<Badge />
+<h2 className="font-bold text-xl">
+{
+requiredBadges
+}{" "}
+Badges
+</h2>
+</div>
+<p>
+You are about to
+spend{" "}
+<b>
+{
+requiredBadges
+}
+</b>{" "}
+badges to unlock
+advertisement
+visibility. </p>
+<p>
+This action cannot
+be undone. </p>
+<div className="flex gap-3 pt-4">
+<button
+onClick={() =>
+setOpenModal(
+false
+)
+}
+className="w-full border rounded-xl p-4 font-bold" >
+Cancel
+</button>
+<button
+disabled={
+unlockLoading
+}
+onClick={
+unlockVisibility
+}
+className="w-full rounded-xl bg-blue-600 text-white p-4 font-bold" >
+{unlockLoading ? (
+<div className="flex items-center justify-center gap-2">
+<LoaderCircle className="animate-spin" />
+Unlocking
+</div>
+) : (
+"Unlock with Badges" )}
+</button>
+</div>
+</div>
+</div>
+</div>
+)}
 </>
 );
+}

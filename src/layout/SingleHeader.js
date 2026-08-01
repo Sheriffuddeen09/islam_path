@@ -6,7 +6,8 @@ import {Bell, BookOpen, BookTemplateIcon, Briefcase,
     PlusCircle,
     ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow, 
     ChevronDown,
-    X} from "lucide-react";
+    X,
+    AlertCircle} from "lucide-react";
 import { useAuth } from './AuthProvider';
 import LogoutButton from '../Form/LogOut';
 import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader';
@@ -25,6 +26,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       const homepage = useLocation().pathname
       
       const { isLoggedin, user } = useAuth()
+      const [showProfileRequiredModal, setShowProfileRequiredModal] = useState(false);
       const navigate = useNavigate()
 
 
@@ -64,12 +66,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
           {user.first_name[0]}{user.last_name[0]}
           
         </Link>
-        <button onClick={() => setDashboardToggle(!dashboardToggle)} className='bg-black flex mx-auto hover:bg-gray-900 text-center rounded-full absolute top-6 right-0'>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class='size-4 p-0.5'>
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-
-          </button>
+       
         </div>
       ) : (
         <Link
@@ -132,7 +129,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
           {/* Menu Top */}
           <div className='sm:hidden block'>
             
-            <nav className='flex flex-row py-1 px-3 justify-between items-center lg:mx-7'>
+            <nav className='flex flex-row py-1 px-3 justify-between items-center md:mx-3 lg:mx-7'>
                   <Link className='text whitespace-nowrap font-bold text-2xl serif' to={'/'}>
                     Islamic-K
                   </Link>
@@ -165,10 +162,14 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
         </div>
 
           <nav className='flex flex-row justify-between items-center lg:mx-7'>
-              <div className='inline-flex items-center gap-2'>
+              <div className='inline-flex items-center gap-6'>
                 <Link to={'/'}>
                 <img className='hidden sm:block' src={logos} alt='logo' width={45} height={45}/>
                 </Link>
+
+                <div className="lg:block hidden">
+                <SearchUser  />
+              </div>
               </div>
             <div className=''> 
               <div className='sm:gap-6 gap-4 font-bold inline-flex '> 
@@ -221,29 +222,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                 Friend
               </Link>
                 {/* Message */}
-                <button
-                  onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
-                  className={`${
-                    messageOpen
-                      ? "text-blue-600"
-                      : "text-gray-600 hover:text-gray-800"
-                  } sm:text-[13px] text-[8px]
-                  rounded lg:p-2 px-1 py-2
-                  flex flex-col items-center gap-1 relative`}
-                >
-                  <MessageCircleIcon />
-
-                  {/* ✅ Notification badge */}
-                  {unreadCount > 0 && (
-                    <span className="absolute top-5 right-1 bg-red-500 text-white 
-                    text-[10px] px-1.5 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-
-                  Message
-                </button>
-
+               
 
                 {/* Video */}
                <Link
@@ -267,7 +246,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                   </span>
                 )}
 
-                Video
+                Reel Video
               </Link>
 
                 {/* Notification */}
@@ -293,14 +272,45 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                 </Link>
 
                 {/* Book */}
-                <Link to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
+                 <Link to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
                   transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                   
                   <BookTemplateIcon />
-                  Online Market 
+                   Market 
                 </Link>
 
-                {jobProfile?.type &&
+               
+            </div>
+          </div>
+            
+
+          <div className='flex gap-3 flex-row items-center font-bold'>
+               <button
+                  onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
+                  className={`${
+                    messageOpen
+                      ? "text-blue-600"
+                      : "text-gray-600 hover:text-gray-800"
+                  } sm:text-[13px] text-[8px]
+                  rounded lg:p-2 px-1 py-2
+                  flex flex-col items-center gap-1 relative`}
+                >
+                  <MessageCircleIcon />
+
+                  {/* ✅ Notification badge */}
+                  {unreadCount > 0 && (
+                    <span className="absolute top-5 right-1 bg-red-500 text-white 
+                    text-[10px] px-1.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+
+                  Message
+                </button>
+
+                  
+                  <div className='hidden sm:block'>
+                   {jobProfile?.type &&
     jobProfile && (
         <Link
             to={
@@ -316,7 +326,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                 !messageOpen
                     ? "text-blue-600 hover:text-blue-500"
                     : "text-gray-600 hover:text-gray-800"
-            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 sm:block hidden transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
+            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
+            transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
         >
             {jobProfile?.type === "creator" ? (
                 <ClipboardList size={22} />
@@ -327,14 +338,32 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
             Application
         </Link>
         )}
-            </div>
-          </div>
-            
 
-          <div className='flex gap-3 flex-row items-center'>
-              <div className="md:block hidden">
-                <SearchUser  />
-              </div>
+        {!jobProfile?.type &&
+     (
+        <button
+            onClick={() => setShowProfileRequiredModal(true)}
+            className={`${
+                homepage === showProfileRequiredModal &&
+                !messageOpen
+                    ? "text-blue-600 hover:text-blue-500"
+                    : "text-gray-600 hover:text-gray-800"
+            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
+            transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
+        >
+            {jobProfile?.type === "creator" ? (
+                <ClipboardList size={22} />
+            ) : (
+                <Workflow size={22} />
+            )}
+
+            Application
+        </button>
+        )}
+
+        </div>
+
+        
               <div className="md:block hidden">
                   {check}
               </div>
@@ -721,7 +750,52 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                       
                       />
 
-        
+        {showProfileRequiredModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6">
+
+            <div className="flex justify-center">
+                <AlertCircle
+                    size={55}
+                    className="text-red-500"
+                />
+            </div>
+
+            <h2 className="text-xl font-bold text-center mt-4">
+                Profile Required
+            </h2>
+
+            <p className="text-gray-600 text-center mt-3">
+                You have not created a Job Profile yet.
+                Please create your profile before accessing job applications.
+            </p>
+
+            <div className="flex justify-center gap-3 mt-6">
+
+                <button
+                    onClick={() =>
+                        setShowProfileRequiredModal(false)
+                    }
+                    className="px-5 py-2 rounded-lg border"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    onClick={() => {
+                        setShowProfileRequiredModal(false);
+                        setShow(true); // Opens your Create Job Profile modal
+                    }}
+                    className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                >
+                    Create Profile
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+)}
         </>
     )
 

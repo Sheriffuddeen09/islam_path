@@ -70,7 +70,7 @@ export default function StudentFriendCard({loadingId, requestStatus, setLoadingI
     <div className="relative inline-flex flex-wrap">
         <div
     key={student.id}
-    className="bg-white rounded-lg w-64 lg:w-56 md:w-60 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform transition duration-300 flex flex-col mx-auto justify-center relative"
+    className="bg-white rounded-lg w-72 lg:w-56 md:w-60 h-72 overflow-hidden shadow-xl border border-gray-300 group px-4 py-2 transform transition duration-300 flex flex-col mx-auto justify-center relative"
   > 
       <Link to={`/profile/${student.id}`}>
         <div className={`sm:w-32 sm:h-32 w-24 h-24 rounded-full flex items-center 

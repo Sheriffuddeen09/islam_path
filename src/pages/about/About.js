@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Sparkle, ShieldCheck, Sparkles, LockKeyhole,
   ChevronUp,
-  ChevronDown
+  ChevronDown, Briefcase
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FeatureSlider from "./FeatureSlider";
@@ -63,7 +63,7 @@ const sections = [
     link: "/islam-path",
   },
   {
-    title: "Online Shop",
+    title: "Online Market",
     desc: "Buy carefully selected Islamic books, digital courses, educational materials, and learning resources to strengthen your understanding of Islam.",
     icon: ShoppingBag,
     color: "bg-blue-500",
@@ -83,6 +83,7 @@ const sections = [
     color: "bg-red-500",
     link: "/teaching",
   },
+  
   {
     title: "Exams & Assignments",
     desc: "Test your understanding through quizzes, assignments, and structured assessments designed to improve your Islamic knowledge and retention.",
@@ -97,13 +98,7 @@ const sections = [
     color: "bg-indigo-500",
     link: "/groups",
   },
-  {
-    title: "Messages",
-    desc: "Private messaging system for direct communication between students, teachers, and community members securely.",
-    icon: MessageCircle,
-    color: "bg-pink-500",
-    link: "/messages",
-  },
+  
   {
     title: "Add Friends",
     desc: "Connect with fellow students, scholars, and learners to build meaningful educational and spiritual connections.",
@@ -126,6 +121,30 @@ const extraFeatures = [
     desc: "Receive beneficial daily reminders, Quran verses, Hadith, and motivational Islamic content that helps strengthen your Imaan and keep you connected to remembrance of Allah every single day.",
     icon: Bell,
     color: "bg-emerald-500/10 text-emerald-400",
+  },
+  {
+    title: "Messages",
+    desc: "Private messaging system for direct communication between students, teachers, and community members securely.",
+    icon: MessageCircle,
+    color: "bg-pink-500",
+  },
+  {
+  title: "Job Post & Finder",
+  desc: "Create halal job listings as an employer or explore available jobs as a job seeker. Connect with trusted opportunities in the community.",
+  icon: Briefcase,
+  color: "bg-red-500",
+  },
+  {
+    title: "Halal Jobs",
+    desc: "Post halal job opportunities or discover trusted jobs that match your skills and qualifications in a secure Islamic community.",
+    icon: Briefcase,
+    color: "bg-red-500",
+  },
+    {
+    title: "Job Post & Finder",
+    desc: "Post jobs or find halal career opportunities based on your approved job profile.",
+    icon: Briefcase,
+    color: "bg-red-500",
   },
   {
     title: "Passkeys & Secure Protection",
