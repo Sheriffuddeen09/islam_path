@@ -1,0 +1,151 @@
+
+
+
+return (
+<>
+<aside
+className=" fixed hidden sm:block top-[75px] left-2
+h-[90vh] w-72 bg-white shadow-md p-4 z-40
+overflow-y-auto overflow-x-hidden
+bg-[var(--bg-color)] text-[var(--text-color)]
+scrollbar-thin scrollbar-thumb-gray-400
+">
+<div className="mb-6">
+<ul>
+{visibleMales.map((item) => (
+item.id === 1 ? (
+<li
+key={item.id}
+onClick={() => {
+if (isPendingProfile) {
+setShow(true);
+}
+else if (
+isApprovedProfile &&
+jobProfile?.type === "creator" ) {
+}
+else if (
+isApprovedProfile &&
+jobProfile?.type === "finder" ) {
+}
+}}
+className=" flex items-center gap-3 p-2
+hover:bg-gray-100 transition cursor-pointer
+">
+<div
+className=" w-8 h-8 flex items-center justify-center
+rounded-full text-[var(--text-color)]
+text-lg font-semibold
+">
+{isPendingProfile ? (
+<Briefcase size={22} />
+) : jobProfile?.type === "creator" ? (
+<PlusCircle size={22} />
+) : (
+<Search size={22} />
+)}
+</div>
+<div className="flex flex-col">
+<span className="text-sm text-gray-700">
+{isPendingProfile
+? "Post / Find Halal Job"
+: jobProfile?.type === "creator" ? "Post Job"
+: "Find Job"}
+</span>
+</div>
+</li>
+) : (
+<li
+key={item.id}
+className=" flex items-center gap-3 p-2
+hover:bg-gray-100 transition cursor-pointer
+">
+<div
+className=" w-8 h-8 flex items-center justify-center
+rounded-full text-[var(--text-color)]
+text-lg font-semibold
+">
+{item.icon}
+</div>
+<div className="flex flex-col">
+<span className="text-sm text-gray-700">
+{item.name}
+</span>
+<span className="text-xs text-gray-700">
+{item.gender}
+</span>
+</div>
+</li>
+)
+))}
+{filteredLinks.map((list) =>
+<li
+onClick={() => {
+if (list.toggle) {
+setShowChannelView(true);
+return;
+}
+if (list.appDownload) {
+setShowAppDownload(!showAppDownload);
+return;
+}
+navigate(list.link);
+}}
+className=" flex items-center gap-3 p-2
+hover:bg-gray-100 transition
+cursor-pointer
+">
+<div
+className=" w-8 h-8 flex items-center
+justify-center rounded-full
+text-[var(--text-color)]
+text-lg font-semibold
+">
+{list.icon}
+</div>
+<div className="flex flex-col flex-1">
+<span className="text-sm text-gray-700">
+{list.name}
+</span>
+</div>
+</li>
+{/* APP DOWNLOAD LIST */}
+{list.appDownload && showAppDownload && (
+<div className="ml-10 space-y-2">
+{(seeMoreApps
+? islamicApps
+: islamicApps.slice(0, 3)
+).map((app) => (
+<button
+key={app.id}
+className=" w-full text-left
+flex items-center gap-2
+text-sm p-2 rounded-lg
+hover:bg-gray-100
+">
+{app.icon}
+<span>
+{app.name}
+</span>
+</button>
+))}
+<button
+onClick={() =>
+setSeeMoreApps(!seeMoreApps)
+}
+className=" text-sm font-semibold
+text-blue-600 pb-2
+">
+{
+seeMoreApps
+? "See Less"
+: "See More" }
+</button>
+</div>
+)}
+))}
+</ul>
+</div>
+</aside>
+</>
+);

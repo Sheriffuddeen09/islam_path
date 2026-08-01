@@ -15,31 +15,29 @@ export default function SidebarRight() {
 
   return (
     <aside className="fixed hidden sm:block top-[75px] right-2 
-        h-[90vh] w-80 bg-white shadow-md p-4 z-40
+        h-[90vh] w-80 bg-[var(--bg-color)] shadow-md p-4 z-40
       overflow-y-auto overflow-x-hidden
       scrollbar-thin scrollbar-thumb-gray-400 no-scrollbar">
         {/* <p className="text-2xl text-center font-bold border-b-2 pb-2 text mb-2">Quran Recitation</p> */}
         
       <div className="mb-6">
         <div className="flex items-center justify-between gap-3 p-2">
-        <Link className="text-blue-700 text-sm" to={'https://qurancentral.com/audio/search'}>
-        Search More Quran Recitation</Link>
-        <h4 className="text-xs font-bold text-black uppercase">
-          Male 
-        </h4>
+        <Link className="text-[var(--text-color)] text-sm" to={'https://qurancentral.com/audio/search'}>
+        Search More Male Quran Recitation</Link>
+        
         </div>
         <ul className="space-y">
           {visibleMales.map(item => (
             <li key={item.id}
                 className="flex items-center gap-3 p-2 rounded-lg 
-                hover:bg-gray-100 transition cursor-pointer">
+                hover:bg-gray-700 transition cursor-pointer">
               <Link className="flex items-center gap-3 " to={item.link}>
               <div className={`w-8 h-8 flex items-center justify-center
                   rounded-full ${item.background} text-white text-lg font-semibold`}>
                 {item.image}
               </div>
             <div className="flex flex-col ">
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-[var(--text-color)]">
                 {item.name}
                 </span>
               {item.link && (
@@ -69,7 +67,7 @@ export default function SidebarRight() {
 
       {/* FEMALE SECTION uppercase */}
       <div>
-        <h4 className="text-xs font-bold text-black mb-1 uppercase">
+        <h4 className="text-xs font-bold text-[var(--text-color)] mb-1 uppercase">
           Female Quran Recitation
         </h4>
 
@@ -77,7 +75,7 @@ export default function SidebarRight() {
           {visibleFemales.map(item => (
             <li key={item.id}
                 className="flex items-center gap-3 p-2 rounded-lg 
-                hover:bg-gray-100 transition cursor-pointer">
+                hover:bg-gray-700 transition cursor-pointer">
 
              <Link className="flex items-center gap-3 " to={item.link}>
               <div  className={`w-8 h-8 flex items-center justify-center
@@ -85,7 +83,7 @@ export default function SidebarRight() {
                 {item.image}
               </div>
             <div className="flex flex-col ">
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-[var(--text-color)]">
                 {item.name}
                 </span>
               {item.link && (

@@ -50,7 +50,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
 
   const largeScreen = (
     <div className="block md:hidden lg:block">
-        <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-white text-gray-800">
+        <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
         {/* Mobile Menu Button */}
 
         {/* SidebarRight */}
@@ -65,7 +65,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
     
       {
         posts.length === 0 && (
-          <p className="text-black lg:ml-96 translate-y-40 sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
+          <p className="lg:ml-96 translate-y-40 sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
             No Feed Post Available
           </p>
          )

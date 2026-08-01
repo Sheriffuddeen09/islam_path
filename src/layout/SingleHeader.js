@@ -4,10 +4,12 @@ import logos from './image/favicon.png'
 import {Bell, BookOpen, BookTemplateIcon, Briefcase,
     Search,
     PlusCircle,
-    ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow } from "lucide-react";
+    ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow, 
+    ChevronDown,
+    X} from "lucide-react";
 import { useAuth } from './AuthProvider';
 import LogoutButton from '../Form/LogOut';
-import { linkList } from '../pages/homepageComponent/LinkDataHeader';
+import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
 import ChatPage from '../chat/chatbox/Chatpage';
 
@@ -23,18 +25,22 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       const homepage = useLocation().pathname
       
       const { isLoggedin, user } = useAuth()
-      const {currentUser} = useAuth()
       const navigate = useNavigate()
 
 
-      const isPendingProfile =
-          !jobProfile ||
-          jobProfile?.status === "pending" ||
-          jobProfile?.status === "declined";
+  const [showChannelView, setShowChannelView] = useState(false);
+  const [showAppDownload, setShowAppDownload] = useState(false);
+  const [seeMoreApps, setSeeMoreApps] = useState(false);
+  const authUser = useAuth()
+    
+    
+    const filteredLinks = linkList.filter((item) => {
+    if (item.role && item.role !== authUser?.role) {
+        return false;
+    }
 
-      const isApprovedProfile =
-          jobProfile?.status === "approved";
-      
+    return true;
+});
 
      
       
@@ -81,8 +87,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       <div>
          {/* • */}
       {isLoggedin && user ? (
-        <div className='flex flex-row bg-gray-900 h-32 justify-between items-center p-3 rounded-lg'>
-          <div className='inline-flex gap-2 items-center'>
+        <div className='flex flex-row bg-gray-900 h-24 justify-between items-center p-3 rounded-lg'>
+          <div className='inline-flex gap-2 items-start'>
           <Link
             to={dashboardLink}
             className="bg-gray-800 text-4xl uppercase font-bold text-white px-2 w-16 h-16 py-2 rounded-full  hover:bg-gray-900"
@@ -90,14 +96,14 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
             {user.first_name[0]}{user.last_name[0]}
             
           </Link>
-          <p className='text-white text-xl font-bold uppercase whitespace-wrap'>{user.first_name} • {user.last_name}</p>
-          </div>
-          <button onClick={() => setDashboardToggle(!dashboardToggle)} className='bg-black z-10 hover:bg-gray-900 text-center rounded-full'>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class='size-6 text-white p-0.5'>
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
+          <div>
 
-          </button>
+          <p className='text-white text-xl font-bold uppercase whitespace-wrap'>{user.first_name} • {user.last_name}</p>
+         <Link to={dashboardLink} className='inline-flex items-center hover:bg-gray-200 mt-2 rounded gap-1 font-bold text-sm'>
+              <LayoutDashboard width={18}/>  Dashboard
+          </Link>
+          </div>
+          </div>
         </div>
       ) : (
         <Link
@@ -128,29 +134,31 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
             
             <nav className='flex flex-row py-1 px-3 justify-between items-center lg:mx-7'>
                   <Link className='text whitespace-nowrap font-bold text-2xl serif' to={'/'}>
-                    Islam Path Knowledge   
+                    Islamic-K
                   </Link>
               <div className='inline-flex gap-2 items-center'>
                   <SearchUser />
                   
                   <button
                       onClick={handlemenu}
-                      className="sm:hidden flex text-black p-0.5 rounded-full"
+                      className="sm:hidden flex items-center justify-center text-black p-0.5 rounded-full"
                     >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="w-8 h-8 text-black"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                    />
-                  </svg>
+                  <div
+                  className="
+                    bg-gray-800
+                    w-8 h-8
+                    rounded-full
+                    flex items-center justify-center
+                    text-white
+                    text-sm
+                    font-bold
+                    uppercase
+                    hover:bg-gray-900
+                  "
+                >
+                  {user.first_name?.[0]}
+                  {user.last_name?.[0]}
+                </div>
                 </button>
               </div>
             </nav>
@@ -236,13 +244,6 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                   Message
                 </button>
 
-                {/* Get Mentor */}
-                <Link to={'/get-mentor'} className={`${homepage === '/get-mentor' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
-                  transition-all duration-500 ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
-                  
-                  <BookOpen />
-                  Mentor
-                </Link>
 
                 {/* Video */}
                <Link
@@ -296,7 +297,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                   transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                   
                   <BookTemplateIcon />
-                  Online Book
+                  Online Market 
                 </Link>
 
                 {jobProfile?.type &&
@@ -315,7 +316,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                 !messageOpen
                     ? "text-blue-600 hover:text-blue-500"
                     : "text-gray-600 hover:text-gray-800"
-            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
+            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 sm:block hidden transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
         >
             {jobProfile?.type === "creator" ? (
                 <ClipboardList size={22} />
@@ -341,11 +342,13 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
           </nav>
 
             {/* Mobile Menu */}
-            <div  className={`z-50 transition-all duration-3000 ease-in-out fixed top-0 left-0 w-full h-full bg-menu ${menu ? "blocked" :"hide"}`}> 
+            <div  className={`z-40 transition-all duration-3000 ease-in-out fixed top-0 left-0 w-full h-full bg-[var(--bg-color)] ${menu ? "blocked" :"hide"}`}> 
 
-            <section className='z-50 text-black gap-2 flex-col transition-all duration-2000 scrollb scroll-p-0 scroll-smooth scrollbar scrollbar-thumb-blue-300  scrollbar-thin scrollbar-track-white ease-in-out flex bg-white w-full h-full md:w-11/12 fixed left-0 p-4 text-black h-full text-start '>
-              <div className='flex px-2 flex-row py-3 justify-between items-center mb-4'>
-                  <button className='text-black text-2xl inline-flex items-center gap-2 font-bold' onClick={handlemenu}>
+            <section className='z-50 text-[var(--text-color)] gap-2 flex-col transition-all duration-2000 scrollb scroll-p-0 scroll-smooth scrollbar scrollbar-thumb-blue-300 
+             scrollbar-thin scrollbar-track-white ease-in-out flex bg-[var(--bg-color)] w-full h-full md:w-11/12 fixed left-0 p-4 h-full text-start '>
+             
+              <div className='flex px-2 flex-row py-3 justify-between items-center mb-2'>
+                  <button className='text-[var(--text-color)] text-2xl inline-flex items-center gap-2 font-bold' onClick={handlemenu}>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                     </svg>
@@ -359,191 +362,337 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
               {checkMobile}
 
                 <div
-                  className="
-                  grid
-                  grid-cols-2
-                  p-3
-                  mt-5
-                  overflow-y-auto
-                  h-[400px]
-                  gap-2
-                  "
-              >
+    className="
+        grid
+        grid-cols-2
+        gap-3
+        p-3
+        mt-2
+        h-[400px]
+        overflow-y-auto
+    "
+>
 
-                          {
-                              linkList.map((list) => (
-                                  list.id === 2 ? (
-                                      <div key={list.id}>
+    {/* ================= Job Card ================= */}
 
-                                          {/* Post / Find Job */}
-                                          <div
-                                  onClick={() => {
+    <div
+        onClick={() => {
 
-                                      // Null, Pending or Declined
-                                      if (
-                                          !jobProfile  
-                                      ) {
+            if (!jobProfile) {
+                setShow(true);
+            } else if (jobProfile.type === "creator") {
+                navigate("/job-create");
+            } else {
+                navigate("/job-finder");
+            }
 
-                                          setShow(true);
+        }}
+        className="
+            shadow-md
+            border
+            rounded-lg
+            p-3
+            cursor-pointer
+            hover:shadow-lg
+            transition-all
+            flex
+            flex-col
+            items-center
+            text-center
+        "
+    >
 
-                                      }
+        <div
+            className="
+                w-10
+                h-10
+                rounded-full
+                flex
+                items-center
+                justify-center
+            "
+        >
+            {!jobProfile ? (
+                <Briefcase size={22} />
+            ) : jobProfile.type === "creator" ? (
+                <PlusCircle size={22} />
+            ) : (
+                <Search size={22} />
+            )}
+        </div>
 
-                                      // Approved Job Creator
-                                      else if (
-                                          jobProfile &&
-                                          jobProfile?.type === "creator"
-                                      ) {
+        <p className="mt-2 text-sm font-semibold">
+            {!jobProfile
+                ? "Post / Find Halal Job"
+                : jobProfile.type === "creator"
+                ? "Post Job"
+                : "Find Job"}
+        </p>
 
-                                          navigate("/job-create");
+    </div>
 
-                                      }
+    {/* ================= Application Card ================= */}
 
-                                      // Approved Job Finder
-                                      else if (
-                                          jobProfile  &&
-                                          jobProfile?.type === "finder"
-                                      ) {
+    {jobProfile && (
 
-                                          navigate("/job-finder");
+        <Link
+            to={
+                jobProfile.type === "creator"
+                    ? "/applicate/job-create"
+                    : "/applicate/job-finder"
+            }
+            className="
+                shadow-md
+                border
+                rounded-lg
+                p-3
+                hover:shadow-lg
+                transition-all
+                flex
+                flex-col
+                items-center
+                text-center
+            "
+        >
 
-                                      }
+            <div
+                className="
+                    w-10
+                    h-10
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                "
+            >
+                {jobProfile.type === "creator"
+                    ? <ClipboardList size={22} />
+                    : <Workflow size={22} />}
+            </div>
 
-                                  }}
-                                  className="
-                                  shadow-md
-                                  p-3
-                                  whitespace-nowrap
-                                  rounded-lg
-                                  border
-                                  font-bold
-                                  text-sm
-                                  cursor-pointer
-                                  hover:shadow-lg
-                                  transition-all
-                                  "
-                              >
-                                  <button
-                                      className="
-                                      w-10
-                                      h-10
-                                      text-2xl
-                                      rounded-full
-                                      text-[var(--text-color)]
-                                      flex
-                                      items-center
-                                      justify-center
-                                      "
-                                  >
-                                      {!jobProfile   ? (
-                                          <Briefcase size={22} />
-                                      ) : jobProfile?.type === "creator" ? (
-                                          <PlusCircle size={22} />
-                                      ) : (
-                                          <Search size={22} />
-                                      )}
-                                  </button>
+            <p className="mt-2 text-sm font-semibold">
+                Application Job
+            </p>
 
-                                  <p className="text-sm mt-1">
-                                      {!jobProfile  
-                                          ? "Post / Find Halal Job"
-                                          : jobProfile?.type === "creator"
-                                          ? "Post Job"
-                                          : "Find Job"}
-                                  </p>
-                              </div>
-                                          {/* Application Job */}
-                            {jobProfile  && (
-                              <Link
-                                  to={
-                                      jobProfile?.type === "creator"
-                                          ? "/applicate/job-create"
-                                          : "/applicate/job-finder"
-                                  }
-                                  className="
-                                  shadow-md
-                                  p-3
-                                  whitespace-nowrap
-                                  rounded-lg
-                                  border
-                                  font-bold
-                                  text-sm
-                                  cursor-pointer
-                                  hover:shadow-lg
-                                  transition-all
-                                  "
-                              >
-                                  <button
-                                      className="
-                                      w-10
-                                      h-10
-                                      text-2xl
-                                      rounded-full
-                                      text-[var(--text-color)]
-                                      flex
-                                      items-center
-                                      justify-center
-                                      "
-                                  >
-                                      {jobProfile?.type === "creator" ? (
-                                          <ClipboardList size={22} />
-                                      ) : (
-                                          <Workflow size={22} />
-                                      )}
-                                  </button>
+        </Link>
 
-                                  <p className="text-sm mt-1">
-                                      Application Job
-                                  </p>
-                              </Link>
-                          )}
-                            </div>
-                      ) : (
+    )}
 
-                          <Link
-                              key={list.id}
-                              to={list.link}
-                          >
+    {/* ================= Other Cards ================= */}
 
-                              <div
-                                  className="
-                                  shadow-md
-                                  p-3
-                                  whitespace-nowrap
-                                  rounded-lg
-                                  border
-                                  font-bold
-                                  text-sm
-                                  hover:shadow-lg
-                                  transition-all
-                                  "
-                              >
+    {filteredLinks.map((list) => {
 
-                                  <button
-                                      className={`
-                                      w-10
-                                      h-10
-                                      text-2xl
-                                      rounded-full
-                                      text-white
-                                      ${list.background}
-                                      `}
-                                  >
-                                      {list.image}
-                                  </button>
+    if (list.id === 6) {
 
-                                  <p className="text-sm mt-1">
-                                      {list.name}
-                                  </p>
+        return (
 
-                              </div>
+            <div
+                key={list.id}
+                onClick={() =>
+                    setShowAppDownload(!showAppDownload)
+                }
+                className="
+                    shadow-md
+                    border
+                    rounded-lg
+                    p-3
+                    hover:shadow-lg
+                    transition-all
+                    cursor-pointer
+                    flex
+                    flex-col
+                    items-center
+                    text-center
+                "
+            >
 
-                          </Link>
+                <div
+                    className="
+                        w-10
+                        h-10
+                        rounded-full
+                        flex
+                        items-center
+                        justify-center
+                    "
+                >
+                    {list.icon}
+                </div>
 
-                      )
+                <p className="mt-2 text-sm font-semibold">
+                    {list.name}
+                </p>
 
-                  ))}
+                <ChevronDown
+                    size={18}
+                    className={`mt-2 transition-transform ${
+                        showAppDownload ? "rotate-180" : ""
+                    }`}
+                />
 
-              </div>
+            </div>
+
+        );
+
+    }
+
+    return (
+
+        <div
+            key={list.id}
+            className="
+                shadow-md
+                border
+                rounded-lg
+                p-3
+                hover:shadow-lg
+                transition-all
+            "
+        >
+
+            <button
+                onClick={() => {
+
+                    if (list.toggle) {
+                        setShowChannelView(true);
+                        return;
+                    }
+
+                    navigate(list.link);
+
+                }}
+                className="
+                    w-full
+                    flex
+                    flex-col
+                    items-center
+                    text-center
+                "
+            >
+
+                <div
+                    className="
+                        w-10
+                        h-10
+                        rounded-full
+                        flex
+                        items-center
+                        justify-center
+                    "
+                >
+                    {list.icon}
+                </div>
+
+                <p className="mt-2 text-sm font-semibold">
+                    {list.name}
+                </p>
+
+            </button>
+
+        </div>
+
+    );
+
+})}
+</div>
+
+            {showAppDownload && (
+
+<div
+    className="
+        mt-5
+        border
+        rounded-xl
+        shadow-lg
+        p-4
+        bg-[var(--bg-color)]
+        scrollb scroll-p-0 scroll-smooth scrollbar scrollbar-thumb-blue-300 
+             scrollbar-thin scrollbar-track-white ease-in-out overflow-y-auto
+    "
+>
+
+    <div className="flex items-center justify-between mb-4">
+
+        <h2 className="font-bold text-lg">
+             Applications
+        </h2>
+
+        <button
+            onClick={() =>
+                setShowAppDownload(false)
+            }
+        >
+            <X size={18} />
+        </button>
+
+    </div>
+
+    <div
+        className="
+            grid
+            grid-cols-2
+            md:grid-cols-3
+            gap-3
+        "
+    >
+
+        {(seeMoreApps
+            ? islamicApps
+            : islamicApps.slice(0, 6)
+        ).map((app) => (
+
+            <button
+                key={app.id}
+                className="
+                    border
+                    rounded-lg
+                    p-4
+                    hover:bg-gray-700
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                "
+            >
+
+                <div className="text-3xl">
+                    {app.icon}
+                </div>
+
+                <span className="mt-2 text-sm font-semibold">
+                    {app.name}
+                </span>
+
+            </button>
+
+        ))}
+
+    </div>
+
+    <div className="flex justify-center mt-5">
+
+        <button
+            onClick={() =>
+                setSeeMoreApps(!seeMoreApps)
+            }
+            className="
+                px-5
+                py-2
+                rounded-full
+                bg-blue-600
+                text-white
+            "
+        >
+            {seeMoreApps
+                ? "See Less"
+                : "See More"}
+        </button>
+
+    </div>
+
+</div>
+
+)}          
 
         </section>
         </div>
@@ -572,18 +721,6 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                       
                       />
 
-          {
-            dashboardToggle && (
-            <div className="fixed sm:top-16 top-36 right-10 mt-2 w-40  bg-white border rounded shadow-lg z-50">
-             <ul className="flex flex-col text-black items-center whitespace-nowrap  py-3">
-              <Link to={dashboardLink} className='inline-flex items-center hover:bg-gray-200 p-2 rounded gap-1 font-bold text-sm'>
-              <LayoutDashboard width={18}/>  Dashboard
-              </Link>
-              <LogoutButton />
-             </ul> 
-             </div>
-            )
-          }
         
         </>
     )
