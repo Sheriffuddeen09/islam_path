@@ -4,6 +4,7 @@ import {
     Users,
     X,
     MapPinned,
+    Pencil,
 } from "lucide-react";
 
 
@@ -12,6 +13,7 @@ export default function JobCreatorProfileModal({
     show,
     profile,
     onClose,
+    setShowEdit
 
 }) {
 
@@ -164,13 +166,38 @@ export default function JobCreatorProfileModal({
                                 className="
                                 text-sm
                                 capitalize
+                                mb-4
                                 "
                             >
 
                                 {profile?.company_type}
 
                             </p>
-
+                            
+                            <button
+                                onClick={() =>{
+                                    onClose();
+                                    setShowEdit(
+                                        true
+                                    );}
+                                }
+                                className="
+                                bg-blue-600
+                                text-white
+                                px-5
+                                py-3
+                                rounded-xl
+                                flex
+                                items-center
+                                gap-2
+                                "
+                            >
+    
+                                <Pencil size={18} />
+    
+                                Edit Profile
+    
+                            </button>
                         </div>
                     </div>
                     </div>
@@ -214,6 +241,8 @@ export default function JobCreatorProfileModal({
                                 {profile?.company_type || "N/A"}
 
                             </p>
+
+                                               
 
                         </div>
 

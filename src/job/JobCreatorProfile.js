@@ -293,6 +293,7 @@ export default function JobCreatorProfile() {
                 onClose={() =>
                     setShowProfile(false)
                 }
+                setShowEdit={setShowEdit}
 
             />
 

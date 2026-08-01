@@ -228,29 +228,6 @@ export default function JobFinderProfile() {
                         </button>
 
 
-                        <button
-                            onClick={() =>
-                                setShowEdit(
-                                    true
-                                )
-                            }
-                            className="
-                            bg-blue-600
-                            text-white
-                            px-5
-                            py-3
-                            rounded-xl
-                            flex
-                            items-center
-                            gap-2
-                            "
-                        >
-
-                            <Pencil size={18} />
-
-                            Edit Profile
-
-                        </button>
 
                     </div>
 
@@ -266,6 +243,7 @@ export default function JobFinderProfile() {
                 onClose={() =>
                     setShowProfile(false)
                 }
+                setShowEdit={setShowEdit}
 
             />
 

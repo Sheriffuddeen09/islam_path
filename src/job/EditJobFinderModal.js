@@ -1,109 +1,260 @@
-
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../Api/axios";
-import JobFinderForm from "./JobFinderForm";
+import EditJobFinderForm from "./EditJobFinderForm";
+
 export default function EditJobFinderModal({
- show,
- onClose,
- profile,
- refresh,
+
+    show,
+    onClose,
+    refresh,
+
 }) {
- const [loading, setLoading] = useState(false);
- const [fullName, setFullName] = useState("");
- const [qualification, setQualification] = useState("");
- const [portfolio, setPortfolio] = useState("");
- const [certification, setCertification] = useState("");
- const [skills, setSkills] = useState([]);
- const [cv, setCv] = useState(null);
- useEffect(() => {
- if (!profile) return;
- setFullName(profile.full_name || "");
- setQualification(profile.qualifications || "");
- setPortfolio(profile.portfolio || "");
- setCertification(profile.certification || "");
- if (profile.skills) {
- if (Array.isArray(profile.skills)) {
- setSkills(profile.skills);
- } else {
- try {
- setSkills(JSON.parse(profile.skills));
- } catch {
- setSkills([]);
- }
- }
- }
- }, [profile]);
- if (!show) return null;
- const handleUpdate = async (formData) => {
- try {
- setLoading(true);
- await api.post(
- `/api/job-profile/${profile.id}`,
- formData,
- {
- headers: {
- "Content-Type": "multipart/form-data",
- }
- }
- );
- toast.success("Profile updated successfully.");
- refresh();
- onClose();
- } catch (err) {
- if (err.response?.status === 422) {
- toast.error("Please check your inputs.");
- } else {
- toast.error("Unable to update profile.");
- }
- } finally {
- setLoading(false);
- }
- };
- return (
- <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p4">
- <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-yauto">
- {/* Header */}
- <div className="flex justify-between items-center border-b px-6 py-5">
- <div>
- <h2 className="text-2xl font-bold">
- Edit Job Finder Profile
- </h2>
- <p className="text-gray-500">
- Update your professional profile.
- </p>
- </div>
- <button
- onClick={onClose}
- className="p-2 rounded-full hover:bg-gray-100"
- >
- <X size={22} />
- </button>
- </div>
- {/* Body */}
- <div className="p-6">
- <JobFinderForm
- editMode={true}
- loading={loading}
- profile={profile}
- fullName={fullName}
- setFullName={setFullName}
- qualification={qualification}
- setQualification={setQualification}
- portfolio={portfolio}
- setPortfolio={setPortfolio}
- certification={certification}
- setCertification={setCertification}
- skills={skills}
- setSkills={setSkills}
- cv={cv}
- setCv={setCv}
- onBack={onClose}
- onSubmit={handleUpdate}
- />
- </div>
- </div>
- </div>
- );
+
+    const [loading, setLoading] =
+        useState(false);
+
+    const [fetching, setFetching] =
+        useState(false);
+
+    const [editProfile, setEditProfile] =
+        useState(null);
+
+
+    useEffect(() => {
+
+        if (show) {
+
+            fetchProfile();
+
+        }
+
+    }, [show]);
+
+
+    const fetchProfile = async () => {
+
+        try {
+
+            setFetching(true);
+
+            const res = await api.get(
+                "/api/job-profile"
+            );
+
+            setEditProfile(
+                res.data
+            );
+
+        } catch (error) {
+
+            toast.error(
+                "Unable to fetch profile."
+            );
+
+        } finally {
+
+            setFetching(false);
+
+        }
+
+    };
+
+    
+
+    const handleUpdate = async(formData) => {
+            try {
+            setLoading(true);
+
+            await api.put(
+            `/api/job-profile/${editProfile.id}`,
+            formData,
+            {
+            headers: {
+            "Content-Type": "multipart/form-data",
+            },
+            }
+            );            
+            
+            toast.success(
+                "Profile updated successfully."
+            );
+
+
+            refresh();
+
+            onClose();
+
+
+        } catch (error) {
+
+            if (
+                error.response?.status ===
+                422
+            ) {
+
+                toast.error(
+                    "Please check your inputs."
+                );
+
+            } else {
+
+                toast.error(
+                    "Unable to update profile."
+                );
+
+            }
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+
+    if (!show) return null;
+
+
+    return (
+
+        <div
+            className="
+            fixed
+            inset-0
+            bg-black/60
+            backdrop-blur-sm
+            z-50
+            flex
+            items-center
+            justify-center
+            p-4
+            "
+        >
+
+            <div
+                className="
+                bg-[var(--bg-color)] text-[var(--text-color)]
+                rounded-3xl
+                shadow-2xl
+                w-full
+                max-w-5xl
+                max-h-[95vh]
+                overflow-y-auto
+                scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin scrollbar
+                "
+            >
+
+                {/* Header */}
+
+                <div
+                    className="
+                    flex
+                    justify-between
+                    items-center
+                    border-b
+                    px-6
+                    py-5
+                    "
+                >
+
+                    <div>
+
+                        <h2
+                            className="
+                            sm:text-2xl text-xl
+                            font-bold
+                            "
+                        >
+                            Edit Job Finder
+                            Profile
+                        </h2>
+
+
+                        <p
+                            className="
+                            "
+                        >
+                            Update your
+                            professional
+                            profile.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        onClick={onClose}
+                        className="
+                        p-2
+                        rounded-full
+                        hover:bg-gray-700
+                        "
+                    >
+
+                        <X size={22} />
+
+                    </button>
+
+                </div>
+
+
+
+                {/* Body */}
+
+                <div className="p-6">
+
+                    {fetching ? (
+
+                        <div
+                            className="
+                            flex
+                            justify-center
+                            py-16
+                            "
+                        >
+
+                            Loading
+                            profile
+
+                        </div>
+
+                    ) : (
+
+                        <EditJobFinderForm
+
+                            profile={
+                                editProfile
+                            }
+
+                            loading={
+                                loading
+                            }
+
+                            onSubmit={
+                                handleUpdate
+                            }
+
+                            buttonText={
+                                loading
+                                ? <p className='inline-flex gap-1 items-center'> 
+                                    <Loader2 className="animate-spin text-white" /> 
+                                    Updating</p>
+                                : "Update Profile"
+                            }
+
+                        />
+
+                    )}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    );
+
 }

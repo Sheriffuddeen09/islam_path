@@ -32,19 +32,23 @@ const countries = useMemo(() => countryList().getData(), []);
  setLogo(file);
  setPreview(URL.createObjectURL(file));
  };
- const submit = () => {
- const formData = new FormData();
- formData.append("type", "creator");
- formData.append("company_name", companyName);
- formData.append("company_type", companyType);
- formData.append("organisation_size", organisationSize);
- formData.append("company_location", location);
- formData.append("company_address", address);
- if (logo) {
- formData.append("company_logo", logo);
- }
- onSubmit(formData);
- };
+
+  
+  const submit = () => {
+    const formData = new FormData();
+    formData.append("type", "creator");
+    formData.append("company_name", companyName);
+    formData.append("company_type", companyType);
+    formData.append("organisation_size", organisationSize);
+    formData.append("company_location", location);
+    formData.append("company_address", address);
+    if (logo) {
+    formData.append("company_logo", logo);
+    }
+    onSubmit(formData);
+  };
+
+
  return (
  <div className="space-y-7 bg-[var(--bg-color)] text-[var(--text-color)]">
  <div>

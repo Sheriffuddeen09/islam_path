@@ -4,6 +4,8 @@ import {
     GraduationCap,
     Briefcase,
     X,
+    Pencil,
+    Book,
 } from "lucide-react";
 
 
@@ -13,10 +15,14 @@ JobFinderProfileModal({
     show,
     profile,
     onClose,
+    setShowEdit
 
 }) {
 
-    
+    const cv = profile?.cv
+    ? `http://localhost:8000/storage/${profile.cv}`
+    : null;
+
     if (!show) return null;
 
 
@@ -58,7 +64,8 @@ JobFinderProfileModal({
                     relative
                     "
                 >
-
+                    
+                                            
                     <button
                         onClick={onClose}
                         className="
@@ -69,7 +76,7 @@ JobFinderProfileModal({
                         p-2
                         "
                     >
-
+                       
                         <X size={22} />
 
                     </button>
@@ -121,24 +128,41 @@ JobFinderProfileModal({
                         </h1>
 
 
-                        <p className="text-sm mb-8">
+                        <p className="text-sm mb-5">
 
                             Job Finder Profile
 
                         </p>
-
-                        <a
-                  href={profile?.cv}
-                  target="_blank"
-                  className="bg-blue-600 mt-8 cursor-pointer text-white w-24 font-bold text-sm px-2 py-3 rounded-lg hover:bg-blue-700"
-                >
-                  View CV
-                </a>
+                    <button
+                                                onClick={() =>{
+                                                    onClose();
+                                                    setShowEdit(
+                                                        true
+                                                    );}
+                                                }
+                                                className="
+                                                bg-blue-600
+                                                text-white
+                                                px-5
+                                                py-3
+                                                rounded-xl
+                                                flex
+                                                items-center
+                                                gap-2
+                                                "
+                                            >
+                    
+                                                <Pencil size={18} />
+                    
+                                                Edit Profile
+                    
+                                            </button>
+                       
 
                     </div>
                     </div>
 
-
+{/* */}
 
                     <div
                         className="
@@ -149,6 +173,56 @@ JobFinderProfileModal({
                         "
                     >
 
+                        {/* Qualification */}
+
+                        <div
+                            className="
+                            border
+                            rounded-xl
+                            p-5
+                            "
+                        >
+
+                            <Book />
+
+                            <h3
+                                className="
+                                font-semibold
+                                mt-3 text-sm mb-6
+                                "
+                            >
+                                CV Preview
+                            </h3>
+
+                            {
+                            cv && (
+
+                                <a
+                                    href={cv}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="
+                                    bg-blue-600
+                                    mt-8
+                                    cursor-pointer
+                                    text-white
+                                    font-bold
+                                    text-sm
+                                    px-3
+                                    py-3
+                                    rounded-lg
+                                    hover:bg-blue-700 
+                                    "
+                                >
+                                    View CV
+                                </a>
+
+                            )
+                        }
+
+                        </div>
+
+                    
                         {/* Qualification */}
 
                         <div
