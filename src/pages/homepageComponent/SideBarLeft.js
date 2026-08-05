@@ -4,13 +4,15 @@ import JobProfileModal from "../../job/JobProfileModal";
 import { Briefcase, PlusCircle, Search, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
+import CreateAdvertisementModal from "../../advertisement/CreateAdvertisementModal";
 
-export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile, showSuccessModal, setShowSuccessModal}) {
+export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile, showSuccessModal, setShowSuccessModal,
+    setShowAdvertisement, showAdvertisement
+}) {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
 
   const links = linkList.filter(item => item.link === "link");
-  const [showChannelView, setShowChannelView] = useState(false);
     const [showAppDownload, setShowAppDownload] = useState(true);
     const [seeMoreApps, setSeeMoreApps] = useState(false);
     const navigate = useNavigate()
@@ -115,7 +117,7 @@ text-lg font-semibold
         <li
             onClick={() => {
                 if (list.toggle) {
-                    setShowChannelView(true);
+                    setShowAdvertisement(!showAdvertisement);
                     return;
                 }
 
@@ -315,6 +317,16 @@ text-lg font-semibold
           </div>
       )}
 
+      {
+        showAdvertisement && (
+            <div>
+            <CreateAdvertisementModal
+            onClose={() => setShowAdvertisement(false)}
+            isOpen={showAdvertisement}
+            />      
+            </div>
+        )
+      }
     </>
   );
 }

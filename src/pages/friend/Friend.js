@@ -3,7 +3,9 @@ import AdminFriend from "./AdminFriend";
 import StudentFriend from "./StudentFriend";
 
 export default function Friend ({students, setStudents, setIncomingRequests, incomingRequests, admins, setAdmins,
-                                jobProfile, setJobProfile, show, setShow, fetchJobProfile, showSuccessModal, setShowSuccessModal
+                                jobProfile, setJobProfile, show, setShow, fetchJobProfile, showSuccessModal, setShowSuccessModal,
+                                showAdvertisement, setShowAdvertisement
+
 }) {
 
     const auth = useAuth();
@@ -21,6 +23,7 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
         setShow={setShow}
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
+        showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         />
         )}
         {auth.user?.role === "admin" && (
@@ -33,6 +36,7 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
         setShow={setShow}
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
+        showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         />
         )}
         </div>

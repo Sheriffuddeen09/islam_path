@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminFriend({admins, setAdmins, incomingRequests, setIncomingRequests,
                                     jobProfile, setJobProfile, show, setShow, fetchJobProfile ,
-                                    showSuccessModal, setShowSuccessModal                                 
+                                    showSuccessModal, setShowSuccessModal, showAdvertisement, setShowAdvertisement                                 
                                   }) {
                                   
   const [requestStatus, setRequestStatus] = useState({});
@@ -401,6 +401,7 @@ const requestList = (
         setShow={setShow}
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
+        showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
           />
 
         {/* Main Content */}

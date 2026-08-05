@@ -10,7 +10,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     handleFriendClick, handleVideoClick, handleHomeClick, handleMessageClick, handleNotification, unreadNotification,
     setUnreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup, showSettings,
     setShowSettings, setMessages, callMode, setCallMode, incomingCall, setIncomingCall, meetingData, setMeetingData,
-    fetchJobProfile, show, setShow, jobProfile, setJobProfile, showSuccessModal, setShowSuccessModal
+    fetchJobProfile, show, setShow, jobProfile, setJobProfile, showSuccessModal, setShowSuccessModal,
+    setShowAdvertisement, showAdvertisement
   }) {
 
 
@@ -48,6 +49,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       setShow={setShow}
       showSuccessModal={showSuccessModal} 
       setShowSuccessModal={setShowSuccessModal}
+      showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+
       />
 
 
@@ -67,6 +70,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       fetchJobProfile={fetchJobProfile}
       show={show}
       setShow={setShow}
+      showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       
        />
     </div>

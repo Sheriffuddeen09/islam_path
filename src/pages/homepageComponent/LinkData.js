@@ -18,13 +18,14 @@ role: "student", // Only students can see this
 background: "bg-black", },
 {
 id: 3, 
-icon: <Tv />, name: "Channel View", toggle: true, // Opens popup/modal
+icon: <Tv />, name: "Video",
+link: "/video", 
 background: "bg-gray-900", },
 {
 id: 4, 
 icon: <Megaphone />, 
 name: "Advertisement / Sponsorship", 
-link: "/advertisement", 
+toggle: true, 
 background: "bg-pink-900", }, 
 { 
 id: 6, 

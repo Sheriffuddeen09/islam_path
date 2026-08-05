@@ -24,7 +24,7 @@ import SidebarLeft from "../pages/friend/SidebarLeft";
 export default function ProfileId({handleMessageOpen, profileId, chats,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, togglePopup, setActiveChat,
-        setMessages
+        setMessages, jobProfile, setJobProfile, showAdvertisement, setShowAdvertisement, fetchJobProfile, show, setShow
 }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -345,7 +345,15 @@ const content = (
   return(
     <div className="flex flex-col min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
             
-      <SidebarLeft />
+     <SidebarLeft 
+             jobProfile={jobProfile}
+             setJobProfile={setJobProfile}
+             fetchJobProfile={fetchJobProfile}
+             show={show}
+             setShow={setShow}
+             showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+     
+             />
      
       <div className="lg:ml-64 mt-2">
         

@@ -52,7 +52,6 @@ import JobProfileApproval from "./job/JobProfileApproval";
 import JobCreatorProfile from "./job/JobCreatorProfile";
 import JobFinderProfile from "./job/JobFinderProfile";
 import ContactSupport from "./pages/contact/ContactSupport";
-import { CheckCircle2 } from "lucide-react";
 import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 
    
@@ -88,6 +87,7 @@ function App() {
     const [show, setShow] = useState(false)
     const [jobProfile, setJobProfile] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showAdvertisement, setShowAdvertisement] = useState(false);
 
       
       useEffect(() => {
@@ -383,6 +383,7 @@ function App() {
           fetchJobProfile={fetchJobProfile}
           show={show}
           setShow={setShow}
+          showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
           />}>
 
         
@@ -498,6 +499,8 @@ function App() {
           setShow={setShow}
           showSuccessModal={showSuccessModal} 
           setShowSuccessModal={setShowSuccessModal}
+          showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+
            />
       } />
 
@@ -525,6 +528,12 @@ function App() {
       newComment={newComment} setNewComment={setNewComment}
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
+      jobProfile={jobProfile}
+      setJobProfile={setJobProfile}
+      fetchJobProfile={fetchJobProfile}
+      show={show}
+      setShow={setShow}
+      showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       />}
        />
 
@@ -673,6 +682,8 @@ function App() {
         setShow={setShow}
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
+        showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+
          />   
       } />
 
@@ -738,7 +749,9 @@ function LayoutWithHeader({
   callMode, setCallMode, 
   incomingCall, setIncomingCall,
   setMessages, jobProfile, setJobProfile,
-  fetchJobProfile, setShow, show
+  fetchJobProfile, setShow, show,
+  showAdvertisement, setShowAdvertisement
+
 }) {
   return (
     <div>
@@ -782,6 +795,8 @@ function LayoutWithHeader({
         fetchJobProfile={fetchJobProfile}
         show={show}
         setShow={setShow}
+        showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+
       />
 
       <Outlet />

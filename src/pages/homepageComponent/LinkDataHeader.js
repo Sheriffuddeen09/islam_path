@@ -2,7 +2,8 @@ import {
 Store, Tv, Megaphone, Download, HeartHandshake, ShieldCheck,
 Phone, BookOpen, ScrollText, MoonStar, Scale, Languages, Library, 
 Compass, Clock3, GraduationCap, Bookmark, NotebookPen, BookMarked, 
-Gem, } from "lucide-react";
+Gem,
+ArrowDownLeftSquareIcon, } from "lucide-react";
 export const linkList = [
 {
 id: 1, icon: <Store />,
@@ -18,27 +19,40 @@ role: "student", // Only students can see this
 background: "bg-black", },
 {
 id: 3, 
-icon: <Tv />, name: "Channel View", toggle: true, // Opens popup/modal
-background: "bg-gray-900", },
+icon: <BookOpen />, 
+name: "Quran Download", 
+link: "/quran", 
+background: "bg-black", },
 {
 id: 4, 
+icon: <Tv />, name: "Video", // Opens popup/modal
+link: "/video", 
+background: "bg-gray-900", },
+{
+id: 5, 
 icon: <Megaphone />, 
 name: "Advertisement / Sponsorship", 
-link: "/advertisement", 
+toggle: true,  
+background: "bg-pink-900", }, 
+{
+id: 6, 
+icon: <ArrowDownLeftSquareIcon />, 
+name: "Donation", 
+link: "/donation", 
 background: "bg-pink-900", }, 
 { 
-id: 6, 
+id: 7, 
 icon: <Download />, 
 name: "App Download", 
 appDownload: true,
 background: "bg-green-900", },
 {
-id: 7, 
+id: 8, 
 icon: <HeartHandshake />, 
 name: "About", 
 link: "/about", background: "bg-yellow-900", },{
-id: 8, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
-id: 9, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
+id: 9, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
+id: 10, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
 ]
 
 export const islamicApps = [

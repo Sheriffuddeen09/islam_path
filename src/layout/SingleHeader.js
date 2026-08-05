@@ -19,7 +19,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
   handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
   showSettings, setShowSettings, setMessages, incomingCall, setIncomingCall, callMode, setCallMode,
-  meetingData, setMeetingData, setShow, jobProfile}) {
+  showAdvertisement, setShowAdvertisement,
+  meetingData, setMeetingData, setShow, jobProfile, }) {
 
       const [menu, setMenu] = useState(false)
       const [dashboardToggle, setDashboardToggle] = useState(false)
@@ -84,19 +85,20 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       <div>
          {/* • */}
       {isLoggedin && user ? (
-        <div className='flex flex-row bg-gray-900 h-24 justify-between items-center p-3 rounded-lg'>
-          <div className='inline-flex gap-2 items-start'>
+        <div className='flex flex-row bg-gray-900 h-24 md:h-32 justify-between items-center p-3 rounded-lg'>
+          <div className='inline-flex gap-2 md:gap-4 items-start'>
           <Link
             to={dashboardLink}
             className="bg-gray-800 text-4xl uppercase font-bold text-white px-2 w-16 h-16 py-2 rounded-full  hover:bg-gray-900"
           >
-            {user.first_name[0]}{user.last_name[0]}
+            {user?.first_name[0]}{user?.last_name[0]}
             
           </Link>
           <div>
 
           <p className='text-white text-xl font-bold uppercase whitespace-wrap'>{user.first_name} • {user.last_name}</p>
-         <Link to={dashboardLink} className='inline-flex items-center hover:bg-gray-200 mt-2 rounded gap-1 font-bold text-sm'>
+         <Link to={dashboardLink} className='inline-flex items-center md:mt-1 hover:bg-gray-200 mt-2 rounded gap-1
+          font-bold text-sm md:text-xl'>
               <LayoutDashboard width={18}/>  Dashboard
           </Link>
           </div>
@@ -136,41 +138,22 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
               <div className='inline-flex gap-2 items-center'>
                   <SearchUser />
                   
-                  <button
-                      onClick={handlemenu}
-                      className="sm:hidden flex items-center justify-center text-black p-0.5 rounded-full"
-                    >
-                  <div
-                  className="
-                    bg-gray-800
-                    w-8 h-8
-                    rounded-full
-                    flex items-center justify-center
-                    text-white
-                    text-sm
-                    font-bold
-                    uppercase
-                    hover:bg-gray-900
-                  "
-                >
-                  {user.first_name?.[0]}
-                  {user.last_name?.[0]}
-                </div>
-                </button>
               </div>
             </nav>
         </div>
 
           <nav className='flex flex-row justify-between items-center lg:mx-7'>
-              <div className='inline-flex items-center gap-6'>
+              <div className='hidden sm:block'>
+                <div className='inline-flex items-center gap-6'>
                 <Link to={'/'}>
-                <img className='hidden sm:block' src={logos} alt='logo' width={45} height={45}/>
+                <img className='' src={logos} alt='logo' width={45} height={45}/>
                 </Link>
 
                 <div className="lg:block hidden">
                 <SearchUser  />
-              </div>
-              </div>
+                </div>
+                </div>
+                </div>
             <div className=''> 
               <div className='sm:gap-6 gap-4 font-bold inline-flex '> 
               
@@ -222,6 +205,29 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                 Friend
               </Link>
                 {/* Message */}
+               
+                 <button
+                                           onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
+                                           className={`${
+                                             messageOpen
+                                               ? "text-blue-600"
+                                               : "text-gray-600 hover:text-gray-800"
+                                           } sm:text-[13px] text-[8px]
+                                           rounded lg:p-2 px-1 py-2
+                                           flex flex-col items-center gap-1 relative block sm:hidden`}
+                                         >
+                                           <MessageCircleIcon />
+                         
+                                           {/* ✅ Notification badge */}
+                                           {unreadCount > 0 && (
+                                             <span className="absolute top-5 right-1 bg-red-500 text-white 
+                                             text-[10px] px-1.5 rounded-full">
+                                               {unreadCount}
+                                             </span>
+                                           )}
+                         
+                                           Message
+                                         </button>
                
 
                 {/* Video */}
@@ -284,97 +290,125 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
           </div>
             
 
-          <div className='flex gap-3 flex-row items-center font-bold'>
-               <button
-                  onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
-                  className={`${
-                    messageOpen
-                      ? "text-blue-600"
-                      : "text-gray-600 hover:text-gray-800"
-                  } sm:text-[13px] text-[8px]
-                  rounded lg:p-2 px-1 py-2
-                  flex flex-col items-center gap-1 relative`}
-                >
-                  <MessageCircleIcon />
-
-                  {/* ✅ Notification badge */}
-                  {unreadCount > 0 && (
-                    <span className="absolute top-5 right-1 bg-red-500 text-white 
-                    text-[10px] px-1.5 rounded-full">
-                      {unreadCount}
-                    </span>
+          <div className=''>
+                    <div className='flex gap-3 flex-row items-center font-bold'>
+                          <div className=' sm:block hidden'>
+                            <button
+                                onClick={() => {handleMessageOpenHeader(); handleMessageClick(); togglePopup()}}
+                                className={`${
+                                messageOpen
+                                    ? "text-blue-600"
+                                    : "text-gray-600 hover:text-gray-800"
+                                } sm:text-[13px] text-[8px]
+                                rounded lg:p-2 px-1 py-2
+                                flex flex-col items-center gap-1 relative`}
+                            >
+                                <MessageCircleIcon />
+            
+                                {/* ✅ Notification badge */}
+                                {unreadCount > 0 && (
+                                <span className="absolute top-5 right-1 bg-red-500 text-white 
+                                text-[10px] px-1.5 rounded-full">
+                                    {unreadCount}
+                                </span>
+                                )}
+            
+                                Message
+                            </button>
+                        </div>
+          
+                            
+                            <div className='hidden lg:block'>
+                             {jobProfile?.type &&
+              jobProfile && (
+                  <Link
+                      to={
+                          jobProfile?.type === "creator"
+                              ? "/applicate/job-create"
+                              : "/applicate/job-finder"
+                      }
+                      className={`${
+                          homepage ===
+                              (jobProfile?.type === "creator"
+                                  ? "/applicate/job-create"
+                                  : "/applicate/job-finder") &&
+                          !messageOpen
+                              ? "text-blue-600 hover:text-blue-500"
+                              : "text-gray-600 hover:text-gray-800"
+                      } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
+                      transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
+                  >
+                      {jobProfile?.type === "creator" ? (
+                          <ClipboardList size={22} />
+                      ) : (
+                          <Workflow size={22} />
+                      )}
+          
+                      Application
+                  </Link>
                   )}
-
-                  Message
-                </button>
-
+          
+                  {!jobProfile?.type &&
+               (
+                  <button
+                      onClick={() => setShowProfileRequiredModal(true)}
+                      className={`${
+                          homepage === showProfileRequiredModal &&
+                          !messageOpen
+                              ? "text-blue-600 hover:text-blue-500"
+                              : "text-gray-600 hover:text-gray-800"
+                      } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
+                      transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
+                  >
+                      {jobProfile?.type === "creator" ? (
+                          <ClipboardList size={22} />
+                      ) : (
+                          <Workflow size={22} />
+                      )}
+          
+                      Application
+                  </button>
+                  )}
+          
+                  </div>
+          
                   
-                  <div className='hidden sm:block'>
-                   {jobProfile?.type &&
-    jobProfile && (
-        <Link
-            to={
-                jobProfile?.type === "creator"
-                    ? "/applicate/job-create"
-                    : "/applicate/job-finder"
-            }
-            className={`${
-                homepage ===
-                    (jobProfile?.type === "creator"
-                        ? "/applicate/job-create"
-                        : "/applicate/job-finder") &&
-                !messageOpen
-                    ? "text-blue-600 hover:text-blue-500"
-                    : "text-gray-600 hover:text-gray-800"
-            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
-            transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
-        >
-            {jobProfile?.type === "creator" ? (
-                <ClipboardList size={22} />
-            ) : (
-                <Workflow size={22} />
-            )}
-
-            Application
-        </Link>
-        )}
-
-        {!jobProfile?.type &&
-     (
-        <button
-            onClick={() => setShowProfileRequiredModal(true)}
-            className={`${
-                homepage === showProfileRequiredModal &&
-                !messageOpen
-                    ? "text-blue-600 hover:text-blue-500"
-                    : "text-gray-600 hover:text-gray-800"
-            } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
-            transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
-        >
-            {jobProfile?.type === "creator" ? (
-                <ClipboardList size={22} />
-            ) : (
-                <Workflow size={22} />
-            )}
-
-            Application
-        </button>
-        )}
-
-        </div>
-
-        
-              <div className="md:block hidden">
-                  {check}
-              </div>
-          </div>                
+                        <div className="lg:block hidden">
+                            {check}
+                        </div>
+          
+                          
+                            <button
+                                onClick={handlemenu}
+                                className="lg:hidden flex items-center justify-center text-black 
+                                p-0.5 rounded-full"
+                              >
+                            <div
+                            className="
+                              bg-gray-800
+                              md:w-12 md:h-12 w-9 h-9
+                              rounded-full
+                              flex items-center justify-center
+                              text-white
+                              md:text-2xl text-xl
+                              font-bold
+                              uppercase
+                              hover:bg-gray-900
+                            "
+                          >
+                            {user.first_name?.[0]}
+                            {user.last_name?.[0]}
+                          </div>
+                          </button>
+                    </div>                
+                    </div>                 
           </nav>
 
             {/* Mobile Menu */}
             <div  className={`z-40 transition-all duration-3000 ease-in-out fixed top-0 left-0 w-full h-full bg-[var(--bg-color)] ${menu ? "blocked" :"hide"}`}> 
 
             <section className='z-50 text-[var(--text-color)] gap-2 flex-col transition-all duration-2000 scrollb scroll-p-0 scroll-smooth scrollbar scrollbar-thumb-blue-300 
-             scrollbar-thin scrollbar-track-white ease-in-out flex bg-[var(--bg-color)] w-full h-full md:w-11/12 fixed left-0 p-4 h-full text-start '>
+             scrollbar-thin scrollbar-track-white ease-in-out flex bg-[var(--bg-color)] w-full h-full fixed left-0 p-4 h-full text-start '>
              
               <div className='flex px-2 flex-row py-3 justify-between items-center mb-2'>
                   <button className='text-[var(--text-color)] text-2xl inline-flex items-center gap-2 font-bold' onClick={handlemenu}>
@@ -398,6 +432,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
         p-3
         mt-2
         h-[400px]
+        md:h-full
+        md:text-xl text-sm 
         overflow-y-auto
     "
 >
@@ -511,7 +547,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 
     {filteredLinks.map((list) => {
 
-    if (list.id === 6) {
+    if (list.id === 7) {
 
         return (
 
