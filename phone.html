@@ -1,3 +1,90 @@
+app
+├── Models
+│   ├── JobPost.php
+│   ├── JobApplication.php
+│   ├── JobCategory.php
+│   ├── JobSkill.php
+│   ├── JobFinderProfile.php
+│   └── JobPostView.php
+│
+├── Http
+│   ├── Controllers
+│   │   ├── JobPostController.php
+│   │   ├── JobApplicationController.php
+│   │   ├── JobCategoryController.php
+│   │   ├── JobDashboardController.php
+│   │   └── AdminJobController.php
+│   │
+│   ├── Requests
+│   │   ├── StoreJobPostRequest.php
+│   │   ├── UpdateJobPostRequest.php
+│   │   └── ApplyJobRequest.php
+│
+├── Mail
+│   ├── JobApprovedMail.php
+│   ├── JobDeclinedMail.php
+│   ├── JobApplicationMail.php
+│   └── ApplicantAcceptedMail.php
+│
+├── Notifications
+│   ├── JobApprovedNotification.php
+│   ├── JobDeclinedNotification.php
+│   ├── JobApplicationNotification.php
+│   └── ApplicantAcceptedNotification.php
+│
+├── Events
+│   ├── JobCreated.php
+│   ├── JobApproved.php
+│   └── JobApplied.php
+│
+└── Policies
+    └── JobPostPolicy.php
 
 
-// SelectAdvertisementVisibility.jsx
+    database
+├── migrations
+│
+├── create_job_categories_table.php
+├── create_job_posts_table.php
+├── create_job_applications_table.php
+├── create_job_skills_table.php
+├── create_job_post_views_table.php
+
+
+src
+│
+├── pages
+│
+│   ├── Jobs
+│   │
+│   ├── CreateJob.jsx
+│   ├── EditJob.jsx
+│   ├── JobDetails.jsx
+│   ├── BrowseJobs.jsx
+│   ├── MyPostedJobs.jsx
+│   ├── MyApplications.jsx
+│   ├── JobApplicants.jsx
+│   ├── ApplicantProfile.jsx
+│   ├── AdminPendingJobs.jsx
+│   ├── AdminApprovedJobs.jsx
+│   ├── AdminDeclinedJobs.jsx
+│   └── JobDashboard.jsx
+│
+├── components
+│
+│   ├── JobCard.jsx
+│   ├── ApplicantCard.jsx
+│   ├── JobFilter.jsx
+│   ├── JobStatusBadge.jsx
+│   ├── JobSalary.jsx
+│   ├── JobSkeleton.jsx
+│   ├── ApplyJobModal.jsx
+│   ├── ApplicantModal.jsx
+│   ├── DeleteJobModal.jsx
+│   ├── ApproveJobModal.jsx
+│   └── DeclineJobModal.jsx
+│
+├── Api
+│
+│   ├── jobApi.js
+│   └── applicationApi.js

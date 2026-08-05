@@ -159,7 +159,7 @@ const handleHide = async (
       : "flex-1 lg:h-screen w-full"
     }
 
-    flex flex-col overflow-hidden shadow-md border 
+    flex flex-col overflow-hidden shadow-md
   `}>
   {uiMode !== "full" &&
       <div
