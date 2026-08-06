@@ -1,212 +1,72 @@
-import {useEffect,useState} from "react";
-import api from "../../Api/axios";
-import {toast} from "react-toastify";
-import JobApplicationModal from "./JobApplicationModal";
+import React, {
+    useEffect,
+    useState
+} from "react";
+
+import JobCard from "./JobCard";
+import api from "../Api/axios";
 
 
 export default function Jobs(){
 
-const [jobs,setJobs]=useState([]);
-const [loading,setLoading]=useState(true);
-const [selectedJob,setSelectedJob]=useState(null);
-const [showModal,setShowModal]=useState(false);
 
+const [jobs,setJobs] = useState([]);
 
-const fetchJobs=async()=>{
-
-    try{
-
-        const res=await api.get(
-            "/api/jobs"
-        );
-
-        setJobs(res.data);
-
-    }
-    catch(error){
-
-        toast.error(
-            "Unable to fetch jobs."
-        );
-
-    }
-    finally{
-
-        setLoading(false);
-
-    }
-
-};
+const [loading,setLoading] = useState(true);
 
 
 
 useEffect(()=>{
 
-    fetchJobs();
+
+api.get("/api/jobs")
+.then(res=>{
+
+setJobs(res.data.jobs.data);
+
+})
+.finally(()=>{
+
+setLoading(false);
+
+});
+
 
 },[]);
 
 
 
-const handleApply=(job)=>{
-
-    setSelectedJob(job);
-
-    setShowModal(true);
-
-};
 
 
-
-if(loading){
-
-    return(
-
-        <div className="p-10">
-
-            Loading.....
-
-        </div>
-
-    );
-
-}
-
-
-return(
-
-<div className="p-5">
-
-<h2
-className="font-bold
-text-2xl
-mb-5"
->
-
-Available Jobs
-
-</h2>
-
-
-
-<div
-className="grid
-lg:grid-cols-3
-md:grid-cols-2
-grid-cols-1
-gap-5"
->
-
-
+if(loading)
 {
 
-jobs.map((job)=>(
+return (
+
+<div className="
+grid
+md:grid-cols-3
+gap-6
+p-6
+">
+
+{
+[1,2,3].map(i=>(
 
 <div
-key={job.id}
-className="shadow-lg
-border
-rounded-xl
-p-5"
->
-
-
-<h2
-className="font-bold
-text-xl"
->
-
-{job.title}
-
-</h2>
-
-
-<p>
-
-{job.category.name}
-
-</p>
-
-
-
-<p>
-
-{job.job_type}
-
-</p>
-
-
-
-<p>
-
-₦{job.payment}
-
-</p>
-
-
-<p>
-
-Expires:
-
-{" "}
-
-{new Date(
-job.expire_date
-).toLocaleDateString()}
-
-</p>
-
-
-
-<p
-className="mt-3"
->
-
-{job.objective}
-
-</p>
-
-
-
-<button
-
-onClick={()=>handleApply(job)}
-
-className="mt-5
-bg-blue-600
-text-white
-px-4
-py-2
-rounded-lg"
-
->
-
-Apply
-
-</button>
-
-
-</div>
+key={i}
+className="
+h-80
+bg-gray-100
+animate-pulse
+rounded-3xl
+"
+/>
 
 ))
-
 }
 
-
 </div>
-
-
-
-{
-
-showModal && (
-
-<JobApplicationModal
-
-job={selectedJob}
-setShowModal={setShowModal}
-
-/>
 
 )
 
@@ -214,9 +74,65 @@ setShowModal={setShowModal}
 
 
 
+
+
+return (
+
+<div
+className="
+max-w-7xl
+mx-auto
+p-6
+"
+>
+
+
+<h1
+className="
+text-3xl
+font-bold
+mb-8
+"
+>
+
+Available Jobs
+
+</h1>
+
+
+
+<div
+className="
+grid
+md:grid-cols-2
+lg:grid-cols-3
+gap-6
+"
+>
+
+
+{
+jobs.map(job=>(
+
+<JobCard
+
+key={job.id}
+
+job={job}
+
+/>
+
+))
+}
+
+
 </div>
 
-);
+
+</div>
+
+
+)
 
 
 }

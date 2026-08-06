@@ -64,7 +64,7 @@ function Navbar({messageOpen, activeChat, setActiveChat,
           to={dashboardLink}
           className="bg-gray-800 text-2xl font-bold text-white px-2 w-10 h-10 py-2 rounded-full  hover:bg-gray-900"
         >
-          {user.first_name[0]}{user.last_name[0]}
+          {user?.first_name[0]}{user?.last_name[0]}
           
         </Link>
        
@@ -96,7 +96,7 @@ function Navbar({messageOpen, activeChat, setActiveChat,
           </Link>
           <div>
 
-          <p className='text-white text-xl font-bold uppercase whitespace-wrap'>{user.first_name} • {user.last_name}</p>
+          <p className='text-white text-xl font-bold uppercase whitespace-wrap'>{user?.first_name} • {user?.last_name}</p>
          <Link to={dashboardLink} className='inline-flex items-center md:mt-1 hover:bg-gray-200 mt-2 rounded gap-1
           font-bold text-sm md:text-xl'>
               <LayoutDashboard width={18}/>  Dashboard
@@ -383,8 +383,8 @@ function Navbar({messageOpen, activeChat, setActiveChat,
                               hover:bg-gray-900
                             "
                           >
-                            {user.first_name?.[0]}
-                            {user.last_name?.[0]}
+                            {user?.first_name?.[0]}
+                            {user?.last_name?.[0]}
                           </div>
                           </button>
                     </div>                

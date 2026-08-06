@@ -350,11 +350,14 @@ const handleSubmit = async (e) => {
             data
         );
 
-        setSuccess(res.data.message);
-
-        // if (onCreated) {
-        //     onCreated(res.data.job);
-        // }
+         if (res.status === 201) {
+                setSuccess(
+                    "Your job post has been created successfully. It is now waiting for admin approval. You will receive an email notification within a week after approval."
+                );
+                setTimeout(() => {
+                    setSuccess("");
+                }, 8000);
+            }
 
         resetForm();
 
