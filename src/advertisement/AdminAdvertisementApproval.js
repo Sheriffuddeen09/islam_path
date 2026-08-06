@@ -16,7 +16,7 @@ const fetchAdvertisements = async () => {
 try {
 setLoading(true);
 const response = await api.get(
-"/admin/advertisement/pending" );
+"/api/admin/advertisement/pending" );
 setAdvertisements(
 response.data.advertisements
 );
@@ -30,7 +30,7 @@ const handleApprove = async (id) => {
 try {
 setApproveLoading(id);
 const response = await api.post(
-`/advertisement/approve/${id}` );
+`/api/advertisement/approve/${id}` );
 toast.success(response.data.message);
 fetchAdvertisements();
 } catch (error) {
@@ -44,7 +44,7 @@ const handleDecline = async (id) => {
 try {
 setDeclineLoading(id);
 const response = await api.post(
-`/advertisement/decline/${id}`, {
+`/api/advertisement/decline/${id}`, {
 decline_reason:
 declineReason[id] || "Advertisement was declined.", }
 );

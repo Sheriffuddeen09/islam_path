@@ -20,7 +20,7 @@ const fetchAdvertisement = async () => {
 try {
 setLoading(true);
 const response = await api.get(
-`/advertisement/${id}` );
+`/api/advertisement/${id}` );
 setAdvertisement(
 response.data.advertisement
 );
@@ -43,7 +43,7 @@ const unlockVisibility = async () => {
 try {
 setUnlockLoading(true);
 const response = await api.post(
-`/advertisement/unlock-visibility/${id}`, {
+`/api/advertisement/unlock-visibility/${id}`, {
 audience:
 selectedAudience, }
 );

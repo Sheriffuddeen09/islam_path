@@ -4,7 +4,7 @@ import StudentFriend from "./StudentFriend";
 
 export default function Friend ({students, setStudents, setIncomingRequests, incomingRequests, admins, setAdmins,
                                 jobProfile, setJobProfile, show, setShow, fetchJobProfile, showSuccessModal, setShowSuccessModal,
-                                showAdvertisement, setShowAdvertisement
+                                showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate
 
 }) {
 
@@ -24,6 +24,7 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+        showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
         />
         )}
         {auth.user?.role === "admin" && (
@@ -37,6 +38,7 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+        showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
         />
         )}
         </div>

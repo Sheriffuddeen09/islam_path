@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests,
                                         jobProfile, setJobProfile, show, setShow, fetchJobProfile,
-                                        showSuccessModal, setShowSuccessModal, showAdvertisement, setShowAdvertisement
+                                        showSuccessModal, setShowSuccessModal, showAdvertisement, setShowAdvertisement,
+                                        showJobCreate, setShowJobCreate
                                     }) {
                                     
   const [requestStatus, setRequestStatus] = useState({});
@@ -393,6 +394,7 @@ const requestList = (
             showSuccessModal={showSuccessModal} 
             setShowSuccessModal={setShowSuccessModal}
            showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+           showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
 
           />
 

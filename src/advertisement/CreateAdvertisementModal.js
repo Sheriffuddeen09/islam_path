@@ -55,7 +55,7 @@ data.append("link", formData.link);
 data.append("type", formData.type);
 data.append("media", formData.media);
 const response = await api.post(
-"/advertisement/create", data, {
+"/api/advertisement/create", data, {
 headers: {
 "Content-Type": "multipart/form-data", }, }
 );
@@ -299,7 +299,7 @@ disabled:opacity-60" >
 <LoaderCircle className="animate-spin" />
 Submitting</div>
 ) : (
-"Submit Advertisement" )}
+"Submit" )}
 </button>
 </div>
 </div>

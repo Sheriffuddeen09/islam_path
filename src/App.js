@@ -88,6 +88,7 @@ function App() {
     const [jobProfile, setJobProfile] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showAdvertisement, setShowAdvertisement] = useState(false);
+    const [showJobCreate, setShowJobCreate] = useState(false);
 
       
       useEffect(() => {
@@ -384,6 +385,7 @@ function App() {
           show={show}
           setShow={setShow}
           showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+          showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
           />}>
 
         
@@ -500,6 +502,7 @@ function App() {
           showSuccessModal={showSuccessModal} 
           setShowSuccessModal={setShowSuccessModal}
           showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+          showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
 
            />
       } />
@@ -534,6 +537,7 @@ function App() {
       show={show}
       setShow={setShow}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+      showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
       />}
        />
 
@@ -683,6 +687,7 @@ function App() {
         showSuccessModal={showSuccessModal} 
         setShowSuccessModal={setShowSuccessModal}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+        showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
 
          />   
       } />
@@ -750,7 +755,8 @@ function LayoutWithHeader({
   incomingCall, setIncomingCall,
   setMessages, jobProfile, setJobProfile,
   fetchJobProfile, setShow, show,
-  showAdvertisement, setShowAdvertisement
+  showAdvertisement, setShowAdvertisement,
+  showJobCreate, setShowJobCreate
 
 }) {
   return (
@@ -796,6 +802,7 @@ function LayoutWithHeader({
         show={show}
         setShow={setShow}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+        showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
 
       />
 

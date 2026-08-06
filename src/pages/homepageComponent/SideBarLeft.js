@@ -5,9 +5,10 @@ import { Briefcase, PlusCircle, Search, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../layout/AuthProvider";
 import CreateAdvertisementModal from "../../advertisement/CreateAdvertisementModal";
+import CreateJobModal from "../../job/CreateJobModal";
 
 export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile, showSuccessModal, setShowSuccessModal,
-    setShowAdvertisement, showAdvertisement
+    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate
 }) {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
@@ -18,6 +19,27 @@ export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile,
     const navigate = useNavigate()
     const authUser = useAuth()
     
+    const [jobs, setJobs] = useState([]);
+    const [jobCount, setJobCount] = useState(0);
+    const [successMessage, setSuccessMessage] = useState("");
+
+
+    const handleJobCreated = (job) => {
+
+    setShowJobCreate(false);
+
+
+    setSuccessMessage(
+        "🎉 Job created successfully. It is now waiting for admin approval."
+    );
+
+    setTimeout(() => {
+
+        setSuccessMessage("");
+
+    }, 5000);
+
+    };
     
     const filteredLinks = linkList.filter((item) => {
     if (item.role && item.role !== authUser?.role) {
@@ -47,48 +69,7 @@ scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
 <div className="mb-6">
 <ul>
 {visibleMales.map((item) => (
-item.id === 5 ? (
-<li
-key={item.id}
-onClick={() => {
-if (isPendingProfile) {
-setShow(true);
-}
-else if (
-isApprovedProfile &&
-jobProfile?.type === "creator" ) {
-}
-else if (
-isApprovedProfile &&
-jobProfile?.type === "finder" ) {
-}
-}}
-className=" flex items-center gap-3 p-2
-hover:bg-gray-700 transition cursor-pointer
-">
-<div
-className=" w-8 h-8 flex items-center justify-center
-rounded-full text-[var(--text-color)]
-text-lg font-semibold
-">
-{isPendingProfile ? (
-<Briefcase size={22} />
-) : jobProfile?.type === "creator" ? (
-<PlusCircle size={22} />
-) : (
-<Search size={22} />
-)}
-</div>
-<div className="flex flex-col">
-<span className="text-sm text-gray-700">
-{isPendingProfile
-? "Post / Find Halal Job"
-: jobProfile?.type === "creator" ? "Post Job"
-: "Find Job"}
-</span>
-</div>
-</li>
-) : (
+
 <li
 key={item.id}
 className=" flex items-center gap-3 p-2
@@ -110,9 +91,75 @@ text-lg font-semibold
 </span>
 </div>
 </li>
-)
+
 ))}
 {filteredLinks.map((list) => (
+
+    
+     list.id === 1 ? (
+    <li
+        key={list.id}
+        onClick={() => {
+    
+            // User has no approved/pending profile yet
+            if (isPendingProfile) {
+                setShow(true);
+                return;
+            }
+    
+            // Job Creator
+            if (
+                isApprovedProfile &&
+                jobProfile?.type === "creator"
+            ) {
+                setShowJobCreate(true);
+                return;
+            }
+    
+            // Job Finder
+            if (
+                isApprovedProfile &&
+                jobProfile?.type === "finder"
+            ) {
+                navigate("/job-finder");
+                return;
+            }
+    
+        }}
+        className="flex items-center gap-3 p-2 hover:bg-gray-700 transition cursor-pointer"
+    >
+    
+        <div
+            className="w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-color)] text-lg font-semibold"
+        >
+    
+            {isPendingProfile ? (
+                <Briefcase size={22} />
+            ) : jobProfile?.type === "creator" ? (
+                <PlusCircle size={22} />
+            ) : (
+                <Search size={22} />
+            )}
+    
+        </div>
+    
+        <div className="flex flex-col">
+    
+            <span className="text-[var(--text-color)] text-sm
+                    ">
+    
+                {isPendingProfile
+                    ? "Post / Find Halal Job"
+                    : jobProfile?.type === "creator"
+                        ? "Post Job"
+                        : "Find Job"}
+    
+            </span>
+    
+        </div>
+    
+    </li>
+    ) : (
     <ul key={list.id}>
         <li
             onClick={() => {
@@ -189,6 +236,7 @@ text-lg font-semibold
             </div>
         )}
     </ul>
+    )
 ))}
 </ul>
 </div>
@@ -327,6 +375,12 @@ text-lg font-semibold
             </div>
         )
       }
+
+      <CreateJobModal
+            open={showJobCreate}
+            onClose={() => setShowJobCreate(false)}
+            onCreated={handleJobCreated}
+        />
     </>
   );
 }

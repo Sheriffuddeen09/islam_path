@@ -24,7 +24,8 @@ import SidebarLeft from "../pages/friend/SidebarLeft";
 export default function ProfileId({handleMessageOpen, profileId, chats,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, togglePopup, setActiveChat,
-        setMessages, jobProfile, setJobProfile, showAdvertisement, setShowAdvertisement, fetchJobProfile, show, setShow
+        setMessages, jobProfile, setJobProfile, showAdvertisement, setShowAdvertisement,
+        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow,
 }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -352,6 +353,7 @@ const content = (
              show={show}
              setShow={setShow}
              showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+             showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
      
              />
      

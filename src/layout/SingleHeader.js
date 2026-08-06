@@ -13,13 +13,14 @@ import LogoutButton from '../Form/LogOut';
 import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
 import ChatPage from '../chat/chatbox/Chatpage';
+import CreateAdvertisementModal from '../advertisement/CreateAdvertisementModal';
 
 function SingleHeader({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
   handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
   showSettings, setShowSettings, setMessages, incomingCall, setIncomingCall, callMode, setCallMode,
-  showAdvertisement, setShowAdvertisement,
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate,
   meetingData, setMeetingData, setShow, jobProfile, }) {
 
       const [menu, setMenu] = useState(false)
@@ -446,7 +447,9 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
             if (!jobProfile) {
                 setShow(true);
             } else if (jobProfile.type === "creator") {
-                navigate("/job-create");
+                setShowJobCreate(true);
+                setMenu(false)
+                return
             } else {
                 navigate("/job-finder");
             }
@@ -619,7 +622,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                 onClick={() => {
 
                     if (list.toggle) {
-                        setShowChannelView(true);
+                        setShowAdvertisement(true);
+                        setMenu(false)
                         return;
                     }
 
@@ -785,6 +789,18 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                         
                       
                       />
+
+
+          {
+                      showAdvertisement && (
+                          <div>
+                          <CreateAdvertisementModal
+                          onClose={() => setShowAdvertisement(false)}
+                          isOpen={showAdvertisement}
+                          />      
+                          </div>
+                      )
+                    }
 
         {showProfileRequiredModal && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

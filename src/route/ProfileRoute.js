@@ -6,7 +6,7 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, openChat, togglePopup,
         setActiveChat, setMessages, jobProfile, setJobProfile, fetchJobProfile, show, setShow, showAdvertisement,
-        setShowAdvertisement
+        setShowAdvertisement, showJobCreate, setShowJobCreate
 }) {
   const { id } = useParams();
 
@@ -27,6 +27,7 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
       show={show}
       setShow={setShow}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+      showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
       />
     </div>
   )

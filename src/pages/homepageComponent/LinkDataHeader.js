@@ -6,36 +6,36 @@ Gem,
 ArrowDownLeftSquareIcon, } from "lucide-react";
 export const linkList = [
 {
-id: 1, icon: <Store />,
+id: 2, icon: <Store />,
 name: "Market Page", 
 link: "/online-sale", 
 },
 {
-id: 2, 
+id: 3, 
 icon: <GraduationCap />, 
 name: "Get Mentor", 
 link: "/get-mentor", 
 role: "student", // Only students can see this
 background: "bg-black", },
 {
-id: 3, 
+id: 4, 
 icon: <BookOpen />, 
 name: "Quran Download", 
 link: "/quran", 
 background: "bg-black", },
 {
-id: 4, 
+id: 5, 
 icon: <Tv />, name: "Video", // Opens popup/modal
 link: "/video", 
 background: "bg-gray-900", },
 {
-id: 5, 
+id: 6, 
 icon: <Megaphone />, 
 name: "Advertisement / Sponsorship", 
 toggle: true,  
 background: "bg-pink-900", }, 
 {
-id: 6, 
+id: 8, 
 icon: <ArrowDownLeftSquareIcon />, 
 name: "Donation", 
 link: "/donation", 
@@ -47,12 +47,12 @@ name: "App Download",
 appDownload: true,
 background: "bg-green-900", },
 {
-id: 8, 
+id: 9, 
 icon: <HeartHandshake />, 
 name: "About", 
 link: "/about", background: "bg-yellow-900", },{
-id: 9, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
-id: 10, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
+id: 10, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
+id: 11, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
 ]
 
 export const islamicApps = [

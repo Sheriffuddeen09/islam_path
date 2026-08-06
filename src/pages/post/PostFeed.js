@@ -7,7 +7,7 @@ import SidebarLeft from "../homepageComponent/SideBarLeft";
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
-  showAdvertisement, setShowAdvertisement}) {
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
  useEffect(() => {
@@ -62,6 +62,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         show={show}
         setShow={setShow}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+        showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
 
         />
     
