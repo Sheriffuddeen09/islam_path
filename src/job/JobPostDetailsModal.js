@@ -78,7 +78,7 @@ export default function JobPostDetailsModal({
                         <InfoCard
                             icon={<User size={20} />}
                             label="Posted By"
-                            value={(job.user?.first_name) (job.user?.last_name)}
+                            value={`${job.user?.first_name } ${job.user?.last_name}`}
                         />
 
                         <InfoCard

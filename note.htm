@@ -16,5 +16,351 @@
       all the userid order of the same seller
     * the price total in product should add up in their due currency
 
+    1. the user job profile is not showing
+    2. the location and type should be in flex row 
+    3. the payment green background and posted date(should show the time not date ) should be in flex row 
+    4. the body should have the id link 
 
-    
+     "jobs": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 2,
+                "user_id": 2,
+                "job_category_id": 86,
+                "title": "Website",
+                "description": "Dynamic and detail-oriented Developer with experience in designing and building\nresponsive, user-friendly websites and web applications. Proficient in modern web\ntechnologies, frameworks, and tools, with a strong focus on delivering visually appealing\nand optimized solutions. Adapt at collaborating with cross-functional teams to create\nseamless user experiences.",
+                "about_us": "I am highly motivated and hard-working individual pursuing a professional career in the\nTech industry. I can set and achieve short and long-term goals I am seeking a long-term\nposition with an organization that promotes personal development and opportunities\nfor professional growth.",
+                "what_you_do": "Theme customization, plugin integration, and site optimization.\n\uf0b7 On-page SEO, keyword optimization, metadata, and site speed improvement.\n\uf0b7 Ensuring websites are mobile-friendly and cross-browser compatible.\n\uf0b7 Advanced proficiency in Elementor for building custom layouts.\n\uf0b7 Designing user-focused layouts with attention to accessibility and usability.\n\uf0b7 Proficient in JavaScript, html, css, and tailwind css for creating responsive and modern UI\ncomponents.\n\uf0b7 Integrated contact form 7 with custom validation and email notifications.\n\uf0b7 Troubleshot wp mail smtp issues and successfully integrated google console api credentials for\nsecure email delivery.\n\uf0b7 Collaborated with clients to gather requirements and deliver tailored web solutions.\n\uf0b7 Customized WordPress themes and created reusable elementor templates.\n\uf0b7 Ensured all websites were fully responsive and user-friendly.",
+                "location": "Nigeria Lagos State",
+                "job_type": "on-site",
+                "currency": "NGN",
+                "payment": 200000,
+                "payment_required": false,
+                "employee_needed": 1,
+                "additional_compensation": "House Allow",
+                "enable_qualification": false,
+                "qualification": null,
+                "enable_experience": false,
+                "experience": null,
+                "enable_year_experience": false,
+                "year_experience": null,
+                "status": "accepted",
+                "approved_by": 2,
+                "approved_at": "2026-08-06T16:45:24.000000Z",
+                "expire_date": "2026-08-20T00:00:00.000000Z",
+                "is_expired": false,
+                "views": 0,
+                "application_count": 0,
+                "created_at": "2026-08-06T13:14:30.000000Z",
+                "updated_at": "2026-08-06T16:45:24.000000Z",
+                "category": {
+                    "id": 86,
+                    "name": "Estate Management",
+                    "slug": "estate-management",
+                    "icon": null,
+                    "description": null,
+                    "is_active": 1,
+                    "sort_order": 999,
+                    "created_at": "2026-08-06T13:03:36.000000Z",
+                    "updated_at": "2026-08-06T13:03:36.000000Z"
+                },
+                "user": {
+                    "id": 2,
+                    "first_name": "Odukoya",
+                    "last_name": "Sheriff",
+                    "email": "olawale4154@gmail.com",
+                    job.user?.job_profile?.company_name
+                    "job_profile": {
+                        "id": 8,
+                        "user_id": 2,
+                        "type": "creator",
+                        "company_name": "SheriffCoder",
+                        "company_logo": "company_logo\/acqblQVsblJE0SEGuGGJhagPsHN0rsLR9p5mBckH.gif",
+                        "company_address": "Nigeria Lagos",
+                        "company_type": "organisation",
+                        "organisation_size": "6 - 20",
+                        "company_location": "Nigeria",
+                    }
+                }
+            }
+   
+            
+
+return (
+
+<div
+className="
+bg-white
+rounded-3xl
+border
+shadow-sm
+hover:shadow-xl
+transition
+duration-300
+overflow-hidden
+"
+>
+
+
+<div
+className="
+p-6
+"
+>
+
+
+
+{/* COMPANY HEADER */}
+
+<div
+className="
+flex
+items-center
+gap-4
+"
+>
+
+
+
+{
+profile?.job_profile?.user?.company_logo ?
+
+
+<img
+
+src={profile?.job_profile?.user?.company_logo}
+
+alt="logo"
+
+className="
+w-16
+h-16
+rounded-2xl
+object-cover
+border
+"
+
+/>
+
+
+:
+
+
+<div
+className="
+w-16
+h-16
+rounded-2xl
+bg-blue-100
+flex
+items-center
+justify-center
+text-blue-600
+font-bold
+"
+>
+
+{
+profile?.user?.job_profile?.company_name
+?.charAt(0)
+||
+"C"
+}
+
+</div>
+
+}
+
+
+
+<div>
+
+
+<h3
+className="
+font-bold
+text-lg
+text-gray-800
+"
+>
+
+{
+profile?.user?.job_profile?.company_name
+}
+
+</h3>
+
+
+<p
+className="
+text-sm
+text-gray-500
+"
+>
+
+{
+profile?.user?.job_profile?.company_type
+}
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+{/* JOB TITLE */}
+
+<div
+className="
+mt-6
+"
+>
+
+
+<h2
+className="
+text-xl
+font-bold
+text-gray-900
+"
+>
+
+{job.title}
+
+</h2>
+
+
+<p
+className="
+text-gray-500
+mt-2
+line-clamp-2
+"
+>
+
+{job.description}
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+{/* DETAILS */}
+
+<div
+className="
+mt-6
+space-y-3
+text-gray-600
+"
+>
+
+
+<div
+className="
+flex
+items-center
+gap-2
+"
+>
+
+<MapPin size={18}/>
+
+<span>
+
+{job.location || "Remote"}
+
+</span>
+
+</div>
+
+
+
+
+<div
+className="
+flex
+items-center
+gap-2
+"
+>
+
+<Briefcase size={18}/>
+
+<span>
+
+{job.job_type}
+
+</span>
+
+</div>
+
+
+
+
+
+<div
+className="
+flex
+items-center
+gap-2
+"
+>
+<span>
+
+{job.currency} {Number(job.payment)
+.toLocaleString()}
+
+</span>
+
+
+</div>
+
+
+
+<div
+className="
+flex
+items-center
+gap-2
+"
+>
+
+<CalendarDays size={18}/>
+
+<span>
+
+Posted {formatDate(job.approved_at)}
+
+</span>
+
+</div>
+
+
+</div>
+
+
+
+
+</div>
+
+
+</div>
+
+)
+

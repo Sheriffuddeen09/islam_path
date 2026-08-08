@@ -688,7 +688,8 @@ export default function PendingJobs() {
                                 <span>{job.category?.name}</span>
 
                             </div>
-
+                            
+                            {job.location && 
                             <div className="flex items-center gap-3">
 
                                 <MapPin
@@ -698,7 +699,10 @@ export default function PendingJobs() {
 
                                 <span>{job.location}</span>
 
-                            </div>
+                            </div> 
+                            
+                            }
+                           
 
                             <div className="flex items-center gap-3">
 

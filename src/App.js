@@ -54,8 +54,8 @@ import JobFinderProfile from "./job/JobFinderProfile";
 import ContactSupport from "./pages/contact/ContactSupport";
 import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 import PendingJobs from "./job/PendingJob";
-import JobDetail from "./job/JobDetails";
 import Jobs from "./job/Jobs";
+import JobDetails from "./job/JobDetails";
 
    
 function App() {
@@ -400,15 +400,15 @@ function App() {
       <Route path="/admin/jobs" element={<PendingJobs />} />
 
       <Route
-        path="/jobs"
+        path="/job-finder"
         element={<Jobs/>}
         />
 
 
-        {/* <Route
-        path="/jobs/:id"
-        element={<JobDetail/>}
-        /> */}
+        <Route
+        path="/job-finder/:id"
+        element={<JobDetails/>}
+        />
 
 
       {/*  */}

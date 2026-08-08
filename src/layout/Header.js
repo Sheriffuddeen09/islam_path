@@ -13,6 +13,7 @@ import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader
 import SearchUser from './SearchUser';
 import ChatPage from '../chat/chatbox/Chatpage';
 import CreateAdvertisementModal from '../advertisement/CreateAdvertisementModal';
+import CreateJobModal from '../job/CreateJobModal';
 
 function Navbar({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
@@ -654,12 +655,12 @@ function Navbar({messageOpen, activeChat, setActiveChat,
           
           <div
               className="
-                  mt-5
                   border
                   rounded-xl
                   shadow-lg
                   p-4
                   bg-[var(--bg-color)]
+                  border-green-400
                   scrollb scroll-p-0 scroll-smooth scrollbar scrollbar-thumb-blue-300 
                        scrollbar-thin scrollbar-track-white ease-in-out overflow-y-auto
               "
@@ -685,7 +686,7 @@ function Navbar({messageOpen, activeChat, setActiveChat,
                   className="
                       grid
                       grid-cols-2
-                      md:grid-cols-3
+                      md:grid-cols-2
                       gap-3
                   "
               >
@@ -785,6 +786,11 @@ function Navbar({messageOpen, activeChat, setActiveChat,
                                                   </div>
                                               )
                                             }
+                    
+                 <CreateJobModal
+                            open={showJobCreate}
+                            onClose={() => setShowJobCreate(false)}
+                        />
           
                   {showProfileRequiredModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
