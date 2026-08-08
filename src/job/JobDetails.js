@@ -18,6 +18,7 @@ import {
     X
 } from "lucide-react";
 import toast from "react-hot-toast";
+import ApplyJobModal from "./ApplyJobModal";
 
 export default function JobDetails() {
 
@@ -28,6 +29,8 @@ export default function JobDetails() {
     const [loading, setLoading] = useState(true);
 
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showApplyModal, setShowApplyModal] =
+    useState(false);
 
     const [copied, setCopied] = useState(false);
     const jobLink = `${window.location.origin}/job-finder/${id}`;
@@ -390,12 +393,20 @@ const currencySymbol = (currency) => {
                         <div className="flex flex-col gap-3 lg:w-56">
 
                             <button
-                                className="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold"
-                            >
-
-                                Apply Now
-
-                            </button>
+                            onClick={() => setShowApplyModal(true)}
+                            className="
+                                w-full
+                                bg-blue-600
+                                hover:bg-blue-700
+                                text-white
+                                py-3
+                                rounded-xl
+                                font-semibold
+                                transition
+                            "
+                        >
+                            Apply Now
+                        </button>
 
                             <button
                                 onClick={() => setShowShareModal(true)}
@@ -892,21 +903,19 @@ const currencySymbol = (currency) => {
     </div>
 
     <button
-        className="
-            w-full
-            mt-8
-            bg-blue-600
-            hover:bg-blue-700
-            text-white
-            rounded-xl
-            py-3
-            font-semibold
-            transition
-        "
+    onClick={() => setShowApplyModal(true)}
+    className="
+        w-full
+        bg-blue-600
+        hover:bg-blue-700
+        text-white
+        py-3
+        rounded-xl
+        font-semibold
+        transition
+    "
     >
-
         Apply Now
-
     </button>
 
 </div>
@@ -1155,6 +1164,29 @@ text-sm
 
 )
 }
+
+<ApplyJobModal
+
+    job={job}
+
+    isOpen={showApplyModal}
+
+    onClose={() => setShowApplyModal(false)}
+
+    onSuccess={(data) => {
+
+        setJob((previous) => ({
+
+            ...previous,
+
+            application_count:
+                data.application_count
+
+        }));
+
+    }}
+
+/>
         </div>
 
     );
