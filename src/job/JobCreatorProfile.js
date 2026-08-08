@@ -244,6 +244,8 @@ export default function JobCreatorProfile() {
                             flex
                             items-center
                             gap-2
+                            whitespace-nowrap
+                            text-sm
                             "
                         >
 
@@ -269,6 +271,8 @@ export default function JobCreatorProfile() {
                             flex
                             items-center
                             gap-2
+                            text-sm
+                            whitespace-nowrap
                             "
                         >
 

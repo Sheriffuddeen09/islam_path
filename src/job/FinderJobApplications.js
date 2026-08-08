@@ -14,11 +14,14 @@ import {
     RefreshCw,
     Search,
     AlertCircle,
+    Loader2,
+    Trash2,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
 
 import api from "../Api/axios";
+import toast from "react-hot-toast";
 
 
 export default function FinderJobApplications() {
@@ -167,6 +170,50 @@ const currencySymbol = (currency) => {
 
         }
 
+    };
+
+    
+        const [removingId, setRemovingId] = useState(null);
+    
+    const removeApplication = async (applicationId) => {
+    
+        try {
+    
+            setRemovingId(applicationId);
+    
+            await api.delete(
+                `/api/job-applications/${applicationId}/remove`
+            );
+    
+    
+            setApplications((prev) =>
+                prev.filter(
+                    (application) =>
+                        application.id !== applicationId
+                )
+            );
+    
+            toast.success(
+                "Application removed successfully."
+            );
+    
+        } catch (error) {
+    
+            console.error(
+                "Remove application error:",
+                error
+            );
+    
+            toast.error(
+                error.response?.data?.message ||
+                "Unable to remove application."
+            );
+    
+        } finally {
+    
+            setRemovingId(null);
+    
+        }
     };
 
 
@@ -923,12 +970,62 @@ const currencySymbol = (currency) => {
 
                                                 {application.status_label}
 
-                                            </div>
+                                                    
+                                    </div>
 
+                                            {[
+                                                "accepted",
+                                                "rejected",
+                                                "reviewed",
+                                            ].includes(application.status) && (
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        removeApplication(application.id)
+                                                    }
+                                                    disabled={removingId === application.id}
+                                                    className="
+                                                        inline-flex
+                                                        items-center
+                                                        gap-1.5
+                                                        rounded-full
+                                                        bg-red-100
+                                                        text-red-700
+                                                        px-3
+                                                        py-2
+                                                        text-xs
+                                                        font-semibold
+                                                    "
+                                                >
+
+                                                    {removingId === application.id ? (
+
+                                                        <>
+                                                            <Loader2
+                                                                size={17}
+                                                                className="animate-spin"
+                                                            />
+                                                            Removing
+                                                        </>
+
+                                                    ) : (
+
+                                                        <>
+                                                            <Trash2 size={17} />
+                                                            Remove
+                                                        </>
+
+                                                    )}
+
+                                                </button>
+
+                                            )}
+                                            
                                         </div>
 
 
-                                        {/* DETAILS */}
+                                        {/* DETAILS  */}
 
                                         {job && (
 

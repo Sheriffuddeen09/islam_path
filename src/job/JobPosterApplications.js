@@ -10,17 +10,13 @@ import {
     Clock,
     Download,
     Eye,
-    FileText,
     MapPin,
-    User,
     X,
     XCircle,
-    GraduationCap,
-    Banknote,
-    Building2,
     Loader2,
     Mail,
-    ExternalLink
+    ExternalLink,
+    Trash2,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -152,6 +148,73 @@ export default function JobPosterApplications() {
 
     };
 
+    const currencySymbol = (currency) => {
+
+    switch(currency){
+
+        case "NGN":
+            return "₦";
+
+        case "USD":
+            return "$";
+
+        case "EUR":
+            return "€";
+
+        default:
+            return currency;
+    }
+
+    }
+
+
+    const [removingId, setRemovingId] = useState(null);
+
+const removeApplication = async (applicationId) => {
+
+    try {
+
+        setRemovingId(applicationId);
+
+        await api.delete(
+            `/api/job-applications/${applicationId}/remove`
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remove from current React list
+        |--------------------------------------------------------------------------
+        */
+
+        setApplications((prev) =>
+            prev.filter(
+                (application) =>
+                    application.id !== applicationId
+            )
+        );
+
+        toast.success(
+            "Application removed successfully."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Remove application error:",
+            error
+        );
+
+        toast.error(
+            error.response?.data?.message ||
+            "Unable to remove application."
+        );
+
+    } finally {
+
+        setRemovingId(null);
+
+    }
+};
 
     const acceptApplication = async (e) => {
 
@@ -440,6 +503,20 @@ export default function JobPosterApplications() {
 
 
 
+    const jobProfile = selectedApplication?.user?.job_profile;
+
+    const cvUrl = jobProfile?.cv
+        ? `http://localhost:8000/storage/${jobProfile.cv}`
+        : null;
+
+    const skills = Array.isArray(jobProfile?.skills)
+        ? jobProfile.skills
+        : [];
+
+
+        
+
+
     if (loading) {
 
         return (
@@ -447,11 +524,9 @@ export default function JobPosterApplications() {
             <div
                 className="
                     min-h-screen
-                    px-3
-                    sm:px-6
-                    lg:px-10
-                    py-20
-                    bg-gray-50
+                    py-8
+                    bg-[var(--bg-color)]
+                    text-[var(--text-color)]
                 "
             >
 
@@ -476,7 +551,7 @@ export default function JobPosterApplications() {
                     <div
                         className="
                             grid
-                            gap-5
+                            gap-2
                         "
                     >
 
@@ -568,11 +643,9 @@ export default function JobPosterApplications() {
         <div
             className="
                 min-h-screen
-                bg-gray-50
-                px-3
-                sm:px-6
-                lg:px-10
-                py-20
+                bg-[var(--bg-color)]
+                text-[var(--text-color)]
+                py-8
             "
         >
 
@@ -601,10 +674,9 @@ export default function JobPosterApplications() {
 
                         <h1
                             className="
-                                text-2xl
-                                sm:text-3xl
+                                text-xl
+                                sm:text-2xl
                                 font-bold
-                                text-gray-900
                             "
                         >
 
@@ -614,7 +686,6 @@ export default function JobPosterApplications() {
 
                         <p
                             className="
-                                text-gray-500
                                 mt-1
                             "
                         >
@@ -662,10 +733,9 @@ export default function JobPosterApplications() {
 
                     <div
                         className="
-                            bg-white
                             border
                             rounded-3xl
-                            p-12
+                            sm:p-12 p-6
                             text-center
                         "
                     >
@@ -674,7 +744,6 @@ export default function JobPosterApplications() {
                             size={45}
                             className="
                                 mx-auto
-                                text-gray-300
                             "
                         />
 
@@ -692,7 +761,6 @@ export default function JobPosterApplications() {
 
                         <p
                             className="
-                                text-gray-500
                                 mt-2
                             "
                         >
@@ -721,8 +789,8 @@ export default function JobPosterApplications() {
                                 const job =
                                     application.job;
 
-                                const profile =
-                                    applicant?.job_profile;
+                                const post =
+                                    application.job_post;
 
 
                                 return (
@@ -732,19 +800,17 @@ export default function JobPosterApplications() {
                                             application.id
                                         }
                                         className="
-                                            bg-white
                                             border
                                             rounded-3xl
                                             shadow-sm
                                             hover:shadow-md
-                                            transition
                                             overflow-hidden
                                         "
                                     >
 
                                         <div
                                             className="
-                                                p-5
+                                                p-3
                                                 sm:p-6
                                             "
                                         >
@@ -809,7 +875,6 @@ export default function JobPosterApplications() {
                                                                 className="
                                                                     text-lg
                                                                     font-bold
-                                                                    text-gray-900
                                                                 "
                                                             >
 
@@ -831,12 +896,60 @@ export default function JobPosterApplications() {
                                                                 )
                                                             }
 
+                                                            {[
+                                                        "accepted",
+                                                        "rejected",
+                                                        "reviewed",
+                                                    ].includes(application.status) && (
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                removeApplication(application.id)
+                                                            }
+                                                            disabled={removingId === application.id}
+                                                            className="
+                                                                inline-flex
+                                                                items-center
+                                                                gap-1.5
+                                                                rounded-full
+                                                                bg-red-100
+                                                                text-red-700
+                                                                px-3
+                                                                py-1.5
+                                                                text-xs
+                                                                font-semibold
+                                                            "
+                                                        >
+
+                                                            {removingId === application.id ? (
+
+                                                                <>
+                                                                    <Loader2
+                                                                        size={17}
+                                                                        className="animate-spin"
+                                                                    />
+                                                                    Removing
+                                                                </>
+
+                                                            ) : (
+
+                                                                <>
+                                                                    <Trash2 size={17} />
+                                                                    Remove
+                                                                </>
+
+                                                            )}
+
+                                                        </button>
+
+                                                    )}
+
                                                         </div>
 
 
                                                         <p
                                                             className="
-                                                                text-gray-500
                                                                 text-sm
                                                                 mt-1
                                                             "
@@ -863,13 +976,14 @@ export default function JobPosterApplications() {
                                                             {" "}
 
                                                             {
-                                                                job?.title
+                                                                post?.title
                                                             }
 
                                                         </p>
 
                                                     </div>
 
+                                                    
                                                 </div>
 
 
@@ -877,7 +991,7 @@ export default function JobPosterApplications() {
 
                                                 <div
                                                     className="
-                                                        bg-gray-50
+                                                        sm:border border-blue-600
                                                         rounded-2xl
                                                         p-4
                                                         min-w-0
@@ -890,7 +1004,6 @@ export default function JobPosterApplications() {
                                                             flex
                                                             items-center
                                                             gap-2
-                                                            text-gray-700
                                                         "
                                                     >
 
@@ -905,7 +1018,7 @@ export default function JobPosterApplications() {
                                                         >
 
                                                             {
-                                                                job?.title
+                                                                post?.title
                                                             }
 
                                                         </span>
@@ -919,7 +1032,6 @@ export default function JobPosterApplications() {
                                                             flex-wrap
                                                             gap-4
                                                             text-sm
-                                                            text-gray-500
                                                             mt-3
                                                         "
                                                     >
@@ -937,8 +1049,8 @@ export default function JobPosterApplications() {
                                                             />
 
                                                             {
-                                                                job?.location
-                                                                || "Remote"
+                                                                post?.location
+                                                                
                                                             }
 
                                                         </span>
@@ -947,14 +1059,14 @@ export default function JobPosterApplications() {
                                                         <span>
 
                                                             {
-                                                                job?.currency
+                                                               currencySymbol( post?.currency)
                                                             }
 
                                                             {" "}
 
                                                             {
                                                                 Number(
-                                                                    job?.payment || 0
+                                                                    post?.payment || 0
                                                                 ).toLocaleString()
                                                             }
 
@@ -969,163 +1081,7 @@ export default function JobPosterApplications() {
 
                                             {/* INFORMATION */}
 
-                                            <div
-                                                className="
-                                                    grid
-                                                    grid-cols-1
-                                                    sm:grid-cols-2
-                                                    lg:grid-cols-4
-                                                    gap-3
-                                                    mt-6
-                                                "
-                                            >
-
-                                                <div
-                                                    className="
-                                                        rounded-2xl
-                                                        bg-gray-50
-                                                        p-4
-                                                    "
-                                                >
-
-                                                    <p
-                                                        className="
-                                                            text-xs
-                                                            text-gray-400
-                                                        "
-                                                    >
-
-                                                        Qualification
-
-                                                    </p>
-
-                                                    <p
-                                                        className="
-                                                            font-semibold
-                                                            mt-1
-                                                        "
-                                                    >
-
-                                                        {
-                                                            application.qualification
-                                                            || "Not provided"
-                                                        }
-
-                                                    </p>
-
-                                                </div>
-
-
-                                                <div
-                                                    className="
-                                                        rounded-2xl
-                                                        bg-gray-50
-                                                        p-4
-                                                    "
-                                                >
-
-                                                    <p
-                                                        className="
-                                                            text-xs
-                                                            text-gray-400
-                                                        "
-                                                    >
-
-                                                        Experience
-
-                                                    </p>
-
-                                                    <p
-                                                        className="
-                                                            font-semibold
-                                                            mt-1
-                                                        "
-                                                    >
-
-                                                        {
-                                                            application.experience
-                                                            || "Not provided"
-                                                        }
-
-                                                    </p>
-
-                                                </div>
-
-
-                                                <div
-                                                    className="
-                                                        rounded-2xl
-                                                        bg-gray-50
-                                                        p-4
-                                                    "
-                                                >
-
-                                                    <p
-                                                        className="
-                                                            text-xs
-                                                            text-gray-400
-                                                        "
-                                                    >
-
-                                                        Years Experience
-
-                                                    </p>
-
-                                                    <p
-                                                        className="
-                                                            font-semibold
-                                                            mt-1
-                                                        "
-                                                    >
-
-                                                        {
-                                                            application.year_experience
-                                                            ?? "Not provided"
-                                                        }
-
-                                                    </p>
-
-                                                </div>
-
-
-                                                <div
-                                                    className="
-                                                        rounded-2xl
-                                                        bg-gray-50
-                                                        p-4
-                                                    "
-                                                >
-
-                                                    <p
-                                                        className="
-                                                            text-xs
-                                                            text-gray-400
-                                                        "
-                                                    >
-
-                                                        Applied
-
-                                                    </p>
-
-                                                    <p
-                                                        className="
-                                                            font-semibold
-                                                            mt-1
-                                                        "
-                                                    >
-
-                                                        {
-                                                            new Date(
-                                                                application.created_at
-                                                            ).toLocaleDateString()
-                                                        }
-
-                                                    </p>
-
-                                                </div>
-
-                                            </div>
-
+                                            
 
                                             {/* ACTIONS */}
 
@@ -1135,9 +1091,8 @@ export default function JobPosterApplications() {
                                                     flex-col
                                                     sm:flex-row
                                                     gap-3
-                                                    mt-6
-                                                    pt-5
-                                                    border-t
+                                                    mt-3
+                                                    pt-2
                                                 "
                                             >
 
@@ -1157,7 +1112,7 @@ export default function JobPosterApplications() {
                                                         justify-center
                                                         gap-2
                                                         font-semibold
-                                                        hover:bg-gray-50
+                                                        hover:bg-gray-900
                                                         transition
                                                     "
                                                 >
@@ -1513,13 +1468,15 @@ export default function JobPosterApplications() {
 
                     <div
                         className="
-                            bg-white
+                            bg-[var(--bg-color)]
+                            text-[var(--text-color)]
                             rounded-3xl
                             w-full
                             max-w-3xl
                             max-h-[90vh]
                             overflow-y-auto
                             shadow-2xl
+                            scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                         "
                         onClick={e =>
                             e.stopPropagation()
@@ -1531,13 +1488,14 @@ export default function JobPosterApplications() {
                                 sticky
                                 top-0
                                 z-10
-                                bg-white
                                 border-b
                                 px-5
                                 sm:px-7
                                 py-5
                                 flex
                                 items-center
+                                bg-gray-700
+                                text-white
                                 justify-between
                             "
                         >
@@ -1558,7 +1516,6 @@ export default function JobPosterApplications() {
                                 <p
                                     className="
                                         text-sm
-                                        text-gray-500
                                     "
                                 >
 
@@ -1579,6 +1536,7 @@ export default function JobPosterApplications() {
                                     rounded-xl
                                     bg-gray-100
                                     hover:bg-gray-200
+                                    text-black
                                     flex
                                     items-center
                                     justify-center
@@ -1606,8 +1564,8 @@ export default function JobPosterApplications() {
                                 className="
                                     flex
                                     items-center
-                                    gap-4
-                                    bg-blue-50
+                                    gap-4 border
+                                    border-blue-600
                                     rounded-2xl
                                     p-5
                                 "
@@ -1660,10 +1618,7 @@ export default function JobPosterApplications() {
 
 
                                     <p
-                                        className="
-                                            text-sm
-                                            text-gray-500
-                                        "
+                                        className="text-sm"
                                     >
 
                                         {
@@ -1694,43 +1649,234 @@ export default function JobPosterApplications() {
                                 </h3>
 
 
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                                      {cvUrl ? (
+
+                                    <a
+                                        href={cvUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="
+                                            w-full
+                                            bg-gray-900
+                                            hover:bg-gray-800
+                                            text-white
+                                            rounded-xl
+                                            py-3
+                                            flex
+                                            items-center
+                                            justify-center
+                                            gap-2
+                                            font-semibold
+                                        "
+                                    >
+
+                                        <Download
+                                            size={18}
+                                        />
+
+                                        View / Download CV
+
+                                    </a>
+
+                            ) : (
+
+                                <span className="">
+                                    Not provided
+                                </span>
+
+                            )}
+
+                                <Detail
+                                    label="Profile Type"
+                                    value={jobProfile?.type || "Not provided"}
+                                />
+
+                                <Detail
+                                    label="Location"
+                                    value={jobProfile?.location || "Not provided"}
+                                />
+
+                                <Detail
+                                    label="Address"
+                                    value={jobProfile?.address || "Not provided"}
+                                />
+
+                                
+                                {/* Skills */}
+
                                 <div
                                     className="
-                                        grid
-                                        sm:grid-cols-2
-                                        gap-4
+                                        rounded-xl
+                                        border border-blue-600
+                                        bg-[var(--bg-color)] text-[var(--text-color)]
+                                        p-4
+                                        min-w-0
                                     "
                                 >
 
-                                    <Detail
-                                        label="Profile Type"
-                                        value={
-                                            selectedApplication.user?.job_profile?.type
-                                        }
-                                    />
+                                    <p className="text-xs font-semibold uppercase mb-2">
+                                        Skills
+                                    </p>
 
-                                    <Detail
-                                        label="Company"
-                                        value={
-                                            selectedApplication.user?.job_profile?.company_name
-                                        }
-                                    />
+                                    {skills.length > 0 ? (
 
-                                    <Detail
-                                        label="Company Type"
-                                        value={
-                                            selectedApplication.user?.job_profile?.company_type
-                                        }
-                                    />
+                                        <div className="flex flex-wrap gap-2">
 
-                                    <Detail
-                                        label="Location"
-                                        value={
-                                            selectedApplication.user?.job_profile?.company_location
-                                        }
-                                    />
+                                            {skills.map((skill, index) => (
+
+                                                <span
+                                                    key={`${skill}-${index}`}
+                                                    className="
+                                                        px-3
+                                                        py-1.5
+                                                        rounded-lg
+                                                        bg-blue-50
+                                                        text-blue-700
+                                                        text-sm
+                                                        font-medium
+                                                        break-words
+                                                        max-w-full
+                                                    "
+                                                >
+                                                    {skill}
+                                                </span>
+
+                                            ))}
+
+                                        </div>
+
+                                    ) : (
+
+                                        <span className="">
+                                            Not provided
+                                        </span>
+
+                                    )}
 
                                 </div>
+
+
+                                {/* Portfolio */}
+
+                                <div
+                                    className="
+                                        rounded-xl
+                                        border border-blue-600
+                                        bg-[var(--bg-color)]
+                                        p-4
+                                        min-w-0 text-[var(--text-color)]
+                                    "
+                                >
+
+                                    <p className="text-xs font-semibold uppercase mb-2">
+                                        Portfolio
+                                    </p>
+
+                                    {jobProfile?.portfolio ? (
+
+                                        <a
+                                            href={jobProfile.portfolio}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="
+                                                text-blue-600
+                                                hover:text-blue-700
+                                                font-medium
+                                                break-all
+                                                block
+                                            "
+                                        >
+                                            View Portfolio
+                                        </a>
+
+                                    ) : (
+
+                                        <span className="">
+                                            Not provided
+                                        </span>
+
+                                    )}
+
+                                </div>
+
+
+                                {/* Certification */}
+
+                                <div
+                                    className="
+                                        rounded-xl
+                                        border border-blue-600
+                                        bg-[var(--bg-color)] text-[var(--text-color)]
+                                        p-4
+                                        min-w-0
+                                    "
+                                >
+
+                                    <p className="text-xs font-semibold text-[var(--text-color)] uppercase mb-2">
+                                        Certification
+                                    </p>
+
+                                    {jobProfile?.certification ? (
+
+                                        <a
+                                            href={jobProfile.certification}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="
+                                                text-blue-600
+                                                hover:text-blue-700
+                                                font-medium
+                                                break-all
+                                                block
+                                            "
+                                        >
+                                            View Certification
+                                        </a>
+
+                                    ) : (
+
+                                        <span className="text-[var(--text-color)]">
+                                            Not provided
+                                        </span>
+
+                                    )}
+
+                                </div>
+
+
+                                {/* Qualification */}
+
+                                <div
+                                    className="
+                                        rounded-xl
+                                        border border-blue-600
+                                        bg-[var(--bg-color)] text-[var(--text-color)]
+                                        p-4
+                                        min-w-0
+                                        sm:col-span-2
+                                    "
+                                >
+
+                                    <p className="text-xs font-semibold uppercase mb-2">
+                                        Qualification
+                                    </p>
+
+                                    <p
+                                        className="
+                                            whitespace-pre-wrap
+                                            break-words
+                                            overflow-wrap-anywhere
+                                            leading-relaxed
+                                        "
+                                    >
+                                        {jobProfile?.qualifications || "Not provided"}
+                                    </p>
+
+                                </div>
+
+                            </div>
 
                             </section>
 
@@ -1793,8 +1939,7 @@ export default function JobPosterApplications() {
                                         <p
                                             className="
                                                 text-xs
-                                                text-gray-400
-                                                mb-1
+                                                mb-1 text-[var(--text-color)]
                                             "
                                         >
 
@@ -1804,10 +1949,10 @@ export default function JobPosterApplications() {
 
                                         <div
                                             className="
-                                                bg-gray-50
                                                 rounded-2xl
                                                 p-4
-                                                text-gray-700
+                                                border border-blue-600
+                                                bg-[var(--bg-color)] text-[var(--text-color)]
                                                 whitespace-pre-line
                                             "
                                         >
@@ -1829,38 +1974,7 @@ export default function JobPosterApplications() {
 
                             {/* CV */}
 
-                            {selectedApplication.cv && (
-
-                                <a
-                                    href={
-                                        selectedApplication.cv
-                                    }
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="
-                                        w-full
-                                        bg-gray-900
-                                        hover:bg-black
-                                        text-white
-                                        rounded-xl
-                                        py-3
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                        font-semibold
-                                    "
-                                >
-
-                                    <Download
-                                        size={18}
-                                    />
-
-                                    View / Download CV
-
-                                </a>
-
-                            )}
+                          
 
                         </div>
 
@@ -2250,7 +2364,7 @@ export default function JobPosterApplications() {
                                             "
                                         />
 
-                                        Accepting...
+                                        Accepting
 
                                     </>
 
@@ -2282,52 +2396,47 @@ export default function JobPosterApplications() {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| Detail component
-|--------------------------------------------------------------------------
-*/
 
-function Detail({
-    label,
-    value
-}) {
+const Detail = ({ label, value }) => {
 
     return (
 
         <div
             className="
-                rounded-2xl
-                bg-gray-50
+                rounded-xl
+                border border-blue-600
+                bg-[var(--bg-color)]
                 p-4
+                min-w-0
+                overflow-hidden
+                scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
             "
         >
 
-            <p
-                className="
-                    text-xs
-                    text-gray-400
-                    mb-1
-                "
-            >
-
+            <p className="
+                text-xs
+                font-semibold
+                text-[var(--text-color)]
+                uppercase
+                mb-2
+            ">
                 {label}
-
             </p>
 
             <p
                 className="
-                    font-semibold
-                    text-gray-800
+                    text-[var(--text-color)]
+                    font-medium
                     break-words
+                    overflow-wrap-anywhere
+                    whitespace-pre-wrap
                 "
             >
-
                 {value || "Not provided"}
-
             </p>
 
         </div>
 
     );
-}
+
+};
