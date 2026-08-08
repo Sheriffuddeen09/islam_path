@@ -1985,10 +1985,6 @@ const removeApplication = async (applicationId) => {
             )}
 
 
-            {/* =====================================================
-                INTERVIEW MODAL
-            ====================================================== */}
-
             {showInterviewModal &&
                 selectedApplication && (
 
@@ -2016,11 +2012,13 @@ const removeApplication = async (applicationId) => {
                             e.stopPropagation()
                         }
                         className="
-                            bg-white
+                            bg-[var(bg-color)]
+                            text-[var(text-color)]
                             rounded-3xl
                             w-full
                             max-w-lg
                             shadow-2xl
+                            max-h-[90vh]
                             overflow-hidden
                         "
                     >
@@ -2108,7 +2106,7 @@ const removeApplication = async (applicationId) => {
                             <div
                                 className="
                                     rounded-2xl
-                                    bg-gray-50
+                                    border border-blue-600
                                     p-4
                                 "
                             >
@@ -2116,7 +2114,6 @@ const removeApplication = async (applicationId) => {
                                 <p
                                     className="
                                         text-xs
-                                        text-gray-400
                                     "
                                 >
 
@@ -2193,7 +2190,7 @@ const removeApplication = async (applicationId) => {
                                         py-3
                                         outline-none
                                         focus:ring-2
-                                        focus:ring-green-500
+                                        focus:ring-green-500 text-black
                                     "
                                 />
 
@@ -2241,7 +2238,7 @@ const removeApplication = async (applicationId) => {
                                         px-4
                                         py-3
                                         outline-none
-                                        focus:ring-2
+                                        focus:ring-2 text-black
                                         focus:ring-green-500
                                     "
                                 />
@@ -2264,7 +2261,6 @@ const removeApplication = async (applicationId) => {
 
                                     <span
                                         className="
-                                            text-gray-400
                                             font-normal
                                             ml-1
                                         "
@@ -2288,7 +2284,7 @@ const removeApplication = async (applicationId) => {
                                     rows={4}
                                     placeholder="
                                         Add interview instructions,
-                                        meeting information or notes...
+                                        meeting information or notes
                                     "
                                     className="
                                         w-full
@@ -2299,7 +2295,7 @@ const removeApplication = async (applicationId) => {
                                         outline-none
                                         resize-none
                                         focus:ring-2
-                                        focus:ring-green-500
+                                        focus:ring-green-500 text-black
                                     "
                                 />
 
@@ -2308,13 +2304,12 @@ const removeApplication = async (applicationId) => {
 
                             <div
                                 className="
-                                    bg-blue-50
+                                    border border-blue-500
                                     border
                                     border-blue-100
                                     rounded-2xl
                                     p-4
                                     text-sm
-                                    text-blue-700
                                 "
                             >
 
