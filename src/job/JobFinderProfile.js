@@ -9,6 +9,7 @@ import api from "../Api/axios";
 
 import EditJobFinderModal from "./EditJobFinderModal";
 import JobFinderProfileModal from "./JobFinderProfileModal";
+import FinderJobApplications from "./FinderJobApplications";
 
 
 export default function JobFinderProfile() {
@@ -96,11 +97,11 @@ export default function JobFinderProfile() {
 
     return (
 
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto sm:p-6 p-3">
 
             <div
                 className="
-                bg-white text-black
+                bg-[var(--bg-color)] text-[var(--text-color)]
                 rounded-3xl
                 shadow-xl
                 border
@@ -233,9 +234,12 @@ export default function JobFinderProfile() {
 
                 </div>
 
+                
+
             </div>
 
-
+              <FinderJobApplications />
+              
             <JobFinderProfileModal
 
                 show={showProfile}

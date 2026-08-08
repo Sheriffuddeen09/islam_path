@@ -10,6 +10,7 @@ import {
 import api from "../Api/axios";
 import EditJobCreatorModal from "./EditJobCreatorModal";
 import JobCreatorProfileModal from "./JobCreatorProfileModal";
+import JobPosterApplications from "./JobPosterApplications";
 
 export default function JobCreatorProfile() {
 
@@ -92,14 +93,14 @@ export default function JobCreatorProfile() {
 
         <div className="max-w-7xl mx-auto p-6">
 
-            <div
+             <div
                 className="
-                bg-white text-black
+                bg-[var(--bg-color)] text-[var(--text-color)]
                 rounded-3xl
                 shadow-xl
-                p-6
                 border
                 mt-16
+                p-6
                 "
             >
 
@@ -191,7 +192,7 @@ export default function JobCreatorProfile() {
 
                             <p
                                 className="
-                                text-gray-500 text-sm
+                                text-sm
                                 "
                             >
                                 {
@@ -275,7 +276,7 @@ export default function JobCreatorProfile() {
                                 size={18}
                             />
 
-                            Edit Profile
+                            Posted Job
 
                         </button>
 
@@ -285,7 +286,8 @@ export default function JobCreatorProfile() {
 
             </div>
 
-
+            <JobPosterApplications />
+                           
             <JobCreatorProfileModal
 
                 show={showProfile}

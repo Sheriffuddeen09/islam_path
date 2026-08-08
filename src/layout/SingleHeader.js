@@ -66,7 +66,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
           to={dashboardLink}
           className="bg-gray-800 text-2xl font-bold text-white px-2 w-10 h-10 py-2 rounded-full  hover:bg-gray-900"
         >
-          {user.first_name[0]}{user.last_name[0]}
+          {user?.first_name[0]}{user?.last_name[0]}
           
         </Link>
        
