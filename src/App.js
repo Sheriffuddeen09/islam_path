@@ -51,6 +51,7 @@ import MeetingRoom from "./chat/chatbox/MeetingRoom";
 import JobProfileApproval from "./job/JobProfileApproval";
 import JobCreatorProfile from "./job/JobCreatorProfile";
 import JobFinderProfile from "./job/JobFinderProfile";
+import JobInterview from "./job/JobInterview";
 import ContactSupport from "./pages/contact/ContactSupport";
 import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 import PendingJobs from "./job/PendingJob";
@@ -462,6 +463,11 @@ function App() {
         element={<JobFinderProfile />}
         />
 
+      <Route
+          path="/job-interview/:token"
+          element={<JobInterview />}
+      />
+      
       <Route path="/quran" element={
           <QuranGrid />
       } />

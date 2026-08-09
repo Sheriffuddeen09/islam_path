@@ -484,7 +484,6 @@ export default function ApplyJobModal({
                 inset-0
                 z-[100]
                 bg-black/60
-                backdrop-blur-sm
                 flex
                 items-center
                 justify-center
@@ -730,7 +729,7 @@ export default function ApplyJobModal({
                                         </p>
 
                                     </div>
-
+                                   
                                 </div>
 
                             </div>
@@ -794,15 +793,31 @@ export default function ApplyJobModal({
 
                                         </p>
 
+
+
+                                        <p
+                                        className="
+                                            text-sm
+                                            text-green-700 font-bold
+                                            mt-4
+                                        "
+                                    >
+
+                                        You will receive email notification, if 
+                                        you are selected for applied job.
+
+                                    </p>
+                            
+
                                     </div>
 
                                 </div>
-
+                            
+                            
                             </div>
 
                         )
                     }
-
 
                     {/* ERROR */}
 
@@ -1044,6 +1059,7 @@ export default function ApplyJobModal({
                                                         absolute
                                                         left-4
                                                         top-4
+                                                        text-black
                                                     "
                                                 />
 
@@ -1144,7 +1160,7 @@ export default function ApplyJobModal({
                                                 className={`
                                                     w-full
                                                     border
-                                                    rounded-xl
+                                                    rounded-xl text-black
                                                     px-4
                                                     py-3
                                                     outline-none
@@ -1222,6 +1238,7 @@ export default function ApplyJobModal({
                                                         absolute
                                                         left-4
                                                         top-4
+                                                        text-black
                                                     "
                                                 />
 

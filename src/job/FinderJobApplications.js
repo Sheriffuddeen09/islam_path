@@ -174,48 +174,44 @@ const currencySymbol = (currency) => {
 
     
         const [removingId, setRemovingId] = useState(null);
-    
-    const removeApplication = async (applicationId) => {
-    
-        try {
-    
-            setRemovingId(applicationId);
-    
-            await api.delete(
-                `/api/job-applications/${applicationId}/remove`
-            );
-    
-    
-            setApplications((prev) =>
-                prev.filter(
-                    (application) =>
-                        application.id !== applicationId
-                )
-            );
-    
-            toast.success(
-                "Application removed successfully."
-            );
-    
-        } catch (error) {
-    
-            console.error(
-                "Remove application error:",
-                error
-            );
-    
-            toast.error(
-                error.response?.data?.message ||
-                "Unable to remove application."
-            );
-    
-        } finally {
-    
-            setRemovingId(null);
-    
-        }
-    };
 
+        const removeMyApplication = async (applicationId) => {
+
+    
+    try {
+
+        setRemovingId(applicationId);
+
+        await api.delete(
+            `/api/my-applications/${applicationId}/remove`
+        );
+
+        setApplications(prev =>
+            prev.filter(
+                application =>
+                    application.id !== applicationId
+            )
+        );
+
+        toast.success(
+            "Application removed successfully."
+        );
+
+    } catch (error) {
+
+        toast.error(
+            error.response?.data?.message ||
+            "Unable to remove application."
+        );
+
+    }
+    finally{
+        setRemovingId(null)
+    }
+
+};
+    
+    
 
     const getStatusIcon = (status) => {
 
@@ -243,7 +239,7 @@ const currencySymbol = (currency) => {
 
         }
 
-        if (status === "deleted") {
+        if (status === "shortlisted") {
 
             return "⚠";
 
@@ -945,7 +941,10 @@ const currencySymbol = (currency) => {
 
 
                                             {/* STATUS */}
-
+                                        <div className="
+                                                        inline-flex
+                                                        items-center
+                                                        gap-3">
                                             <div className={`
                                                 inline-flex
                                                 items-center
@@ -954,9 +953,9 @@ const currencySymbol = (currency) => {
                                                 py-2
                                                 rounded-full
                                                 border
-                                                text-sm
+                                                text-xs
                                                 font-semibold
-                                                w-44
+                                                sm:w-48 w-40 whitespace-nowrap
                                                 ${getStatusClasses(
                                                     application.status
                                                 )}
@@ -977,12 +976,13 @@ const currencySymbol = (currency) => {
                                                 "accepted",
                                                 "rejected",
                                                 "reviewed",
+                                                "shortlisted"
                                             ].includes(application.status) && (
 
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        removeApplication(application.id)
+                                                        removeMyApplication(application.id)
                                                     }
                                                     disabled={removingId === application.id}
                                                     className="
@@ -995,7 +995,7 @@ const currencySymbol = (currency) => {
                                                         px-3
                                                         py-2
                                                         text-xs
-                                                        font-semibold
+                                                        font-semibold w-20
                                                     "
                                                 >
 
@@ -1022,6 +1022,7 @@ const currencySymbol = (currency) => {
 
                                             )}
                                             
+                                        </div>
                                         </div>
 
 

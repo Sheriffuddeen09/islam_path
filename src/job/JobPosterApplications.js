@@ -53,6 +53,9 @@ export default function JobPosterApplications() {
     const [interviewDate, setInterviewDate] =
         useState("");
 
+    const [meetingLink, setMeetingLink] =
+        useState("");
+
     const [interviewTime, setInterviewTime] =
         useState("");
 
@@ -174,48 +177,35 @@ const removeApplication = async (applicationId) => {
 
     try {
 
-        setRemovingId(applicationId);
-
+         setRemovingId(applicationId);
         await api.delete(
             `/api/job-applications/${applicationId}/remove`
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Remove from current React list
-        |--------------------------------------------------------------------------
-        */
-
-        setApplications((prev) =>
+        setApplications(prev =>
             prev.filter(
-                (application) =>
+                application =>
                     application.id !== applicationId
             )
         );
 
         toast.success(
-            "Application removed successfully."
+            "Applicant removed successfully."
         );
 
     } catch (error) {
 
-        console.error(
-            "Remove application error:",
-            error
-        );
-
         toast.error(
             error.response?.data?.message ||
-            "Unable to remove application."
+            "Unable to remove applicant."
         );
 
-    } finally {
-
-        setRemovingId(null);
-
     }
-};
+    finally{
+        setRemovingId(null)
+    }
 
+};
     const acceptApplication = async (e) => {
 
         e.preventDefault();
@@ -241,7 +231,10 @@ const removeApplication = async (applicationId) => {
                             interviewTime,
 
                         notes:
-                            interviewNotes
+                            interviewNotes,
+
+                         call_link: 
+                            meetingLink,
                     }
                 );
 
@@ -454,7 +447,7 @@ const removeApplication = async (applicationId) => {
                 );
 
 
-            case "withdrawn":
+            case "reviewed":
 
                 return (
                     <span
@@ -1273,7 +1266,8 @@ const removeApplication = async (applicationId) => {
 
                                             {/* INTERVIEW */}
 
-                                            {application.interview && (
+                                            {application.interview && application.status ===
+                                                    "accepted" && (
 
                                                 <div
                                                     className="
@@ -1335,36 +1329,70 @@ const removeApplication = async (applicationId) => {
                                                         </div>
 
 
-                                                        <a
-                                                            href={
-                                                                application.interview.meeting_link
-                                                            }
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="
-                                                                bg-green-600
-                                                                hover:bg-green-700
-                                                                text-white
-                                                                px-4
-                                                                py-2.5
-                                                                rounded-xl
-                                                                font-semibold
-                                                                text-sm
-                                                                inline-flex
-                                                                items-center
-                                                                justify-center
-                                                                gap-2
-                                                            "
-                                                        >
+                                            {application?.interview && (
+                                            application.interview.is_expired ? (
 
-                                                            Join Interview
+                                                <button
+                                                    type="button"
+                                                    disabled
+                                                    className="
+                                                        bg-gray-400
+                                                        text-white
+                                                        px-4
+                                                        py-2.5
+                                                        rounded-xl
+                                                        font-semibold
+                                                        text-sm
+                                                        inline-flex
+                                                        items-center
+                                                        justify-center
+                                                        gap-2
+                                                        cursor-not-allowed
+                                                    "
+                                                >
 
-                                                            <ExternalLink
-                                                                size={15}
-                                                            />
+                                                    Interview Expired
 
-                                                        </a>
+                                                    <Clock
+                                                        size={15}
+                                                    />
 
+                                                </button>
+
+                                            ) : (
+
+                                                <a
+                                                    href={
+                                                        application.interview.call_link?.startsWith("http")
+                                                            ? application.interview.call_link
+                                                            : `https://${application.interview.call_link}`
+                                                    }
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="
+                                                        bg-green-600
+                                                        hover:bg-green-700
+                                                        text-white
+                                                        px-4
+                                                        py-2.5
+                                                        rounded-xl
+                                                        font-semibold
+                                                        text-sm
+                                                        inline-flex
+                                                        items-center
+                                                        justify-center
+                                                        gap-2
+                                                    "
+                                                >
+
+                                                    Join Interview
+
+                                                    <ExternalLink size={15} />
+
+                                                </a>
+
+                                            )
+                                        )}
                                                     </div>
 
                                                 </div>
@@ -1441,9 +1469,6 @@ const removeApplication = async (applicationId) => {
             </div>
 
 
-            {/* =====================================================
-                PROFILE MODAL
-            ====================================================== */}
 
             {showProfileModal &&
                 selectedApplication && (
@@ -1994,7 +2019,6 @@ const removeApplication = async (applicationId) => {
                         inset-0
                         z-[110]
                         bg-black/50
-                        backdrop-blur-sm
                         flex
                         items-center
                         justify-center
@@ -2012,14 +2036,16 @@ const removeApplication = async (applicationId) => {
                             e.stopPropagation()
                         }
                         className="
-                            bg-[var(bg-color)]
-                            text-[var(text-color)]
+                            bg-green-200
+                            text-black
                             rounded-3xl
                             w-full
                             max-w-lg
                             shadow-2xl
                             max-h-[90vh]
-                            overflow-hidden
+                            overflow-y-auto
+                            scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+
                         "
                     >
 
@@ -2245,6 +2271,34 @@ const removeApplication = async (applicationId) => {
 
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-semibold mb-2">
+                                    Google Meet Link
+                                </label>
+
+                                <input
+                                    type="url"
+                                    value={meetingLink}
+                                    onChange={(e) => setMeetingLink(e.target.value)}
+                                    placeholder="https://meet.google.com/abc-defg-hij"
+                                    required
+                                    className="
+                                        w-full
+                                        border
+                                        rounded-xl
+                                        px-4
+                                        py-3
+                                        outline-none
+                                        focus:ring-2
+                                        focus:ring-green-500
+                                        text-black
+                                    "
+                                />
+
+                                <p className="text-xs opacity-60 mt-2">
+                                    Create a Google Meet meeting and paste the link here.
+                                </p>
+                            </div>
 
                             <div>
 

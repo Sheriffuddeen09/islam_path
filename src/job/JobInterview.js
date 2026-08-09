@@ -165,9 +165,10 @@ export default function JobInterview() {
         <div
             className="
                 min-h-screen
-                bg-gray-50
+                bg-[var(--bg-color)]
+                text-[var(--text-color)]
                 px-4
-                py-16
+                py-16 sm:py-24
             "
         >
 
@@ -180,7 +181,6 @@ export default function JobInterview() {
 
                 <div
                     className="
-                        bg-white
                         rounded-3xl
                         border
                         shadow-sm
@@ -244,7 +244,6 @@ export default function JobInterview() {
                             <p
                                 className="
                                     text-sm
-                                    text-gray-400
                                 "
                             >
 
@@ -277,7 +276,7 @@ export default function JobInterview() {
                         <div
                             className="
                                 rounded-2xl
-                                bg-gray-50
+                                border-blue-500 border
                                 p-5
                             "
                         >
@@ -302,7 +301,6 @@ export default function JobInterview() {
                                     <p
                                         className="
                                             text-xs
-                                            text-gray-400
                                         "
                                     >
 
@@ -348,7 +346,6 @@ export default function JobInterview() {
                                     <p
                                         className="
                                             text-xs
-                                            text-gray-400
                                         "
                                     >
 
@@ -386,7 +383,7 @@ export default function JobInterview() {
 
                             <div
                                 className="
-                                    bg-blue-50
+                                    bordr border-blue-500
                                     rounded-2xl
                                     p-5
                                 "
@@ -401,7 +398,6 @@ export default function JobInterview() {
                                 <p
                                     className="
                                         text-xs
-                                        text-gray-500
                                         mt-3
                                     "
                                 >
@@ -445,7 +441,7 @@ export default function JobInterview() {
 
                             <div
                                 className="
-                                    bg-purple-50
+                                    border border-blue-500
                                     rounded-2xl
                                     p-5
                                 "
@@ -460,7 +456,6 @@ export default function JobInterview() {
                                 <p
                                     className="
                                         text-xs
-                                        text-gray-500
                                         mt-3
                                     "
                                 >
@@ -491,7 +486,7 @@ export default function JobInterview() {
 
                             <div
                                 className="
-                                    bg-gray-50
+                                    border border-blue-500
                                     rounded-2xl
                                     p-5
                                 "
@@ -510,7 +505,6 @@ export default function JobInterview() {
 
                                 <p
                                     className="
-                                        text-gray-600
                                         whitespace-pre-line
                                         mt-2
                                     "
@@ -527,28 +521,54 @@ export default function JobInterview() {
                         )}
 
 
-                        <a
-                            href={
-                                interview.meeting_link
-                            }
-                            className="
-                                block
-                                w-full
-                                text-center
-                                bg-blue-600
-                                hover:bg-blue-700
-                                text-white
-                                rounded-xl
-                                py-4
-                                font-bold
-                                transition
-                            "
-                        >
+                      {interview.is_expired ? (
 
-                            Join Interview
+                    <div
+                        className="
+                            w-full
+                            bg-gray-400
+                            text-white
+                            rounded-xl
+                            py-4
+                            font-bold
+                            text-center
+                            cursor-not-allowed
+                        "
+                    >
 
-                        </a>
+                        Interview Link Expired
 
+                    </div>
+
+                ) : (
+
+                    <a
+                        href={
+                            interview.call_link?.startsWith("http")
+                                ? interview.call_link
+                                : `https://${interview.call_link}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                            block
+                            w-full
+                            text-center
+                            bg-green-600
+                            hover:bg-green-700
+                            text-white
+                            rounded-xl
+                            py-4
+                            font-bold
+                            transition
+                        "
+                    >
+
+                        Join Google Meet
+
+                    </a>
+
+                )}
                     </div>
 
                 </div>

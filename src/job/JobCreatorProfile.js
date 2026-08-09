@@ -11,14 +11,16 @@ import api from "../Api/axios";
 import EditJobCreatorModal from "./EditJobCreatorModal";
 import JobCreatorProfileModal from "./JobCreatorProfileModal";
 import JobPosterApplications from "./JobPosterApplications";
+import MyPostedJobs from "./MyPostedJobs";
 
 export default function JobCreatorProfile() {
 
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showEdit, setShowEdit] = useState(false);
-    const [showProfile, setShowProfile] =
-        useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+    const [ showPostedJobs, setShowPostedJobs ] = useState(false);
+
 
     useEffect(() => {
         fetchProfile();
@@ -258,9 +260,7 @@ export default function JobCreatorProfile() {
 
                         <button
                             onClick={() =>
-                                setShowEdit(
-                                    true
-                                )
+                                setShowPostedJobs(true)
                             }
                             className="
                             bg-blue-600
@@ -291,6 +291,13 @@ export default function JobCreatorProfile() {
             </div>
 
             <JobPosterApplications />
+
+             <MyPostedJobs
+                isOpen={showPostedJobs}
+                onClose={() =>
+                    setShowPostedJobs(false)
+                }
+            />
                            
             <JobCreatorProfileModal
 

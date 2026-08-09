@@ -99,26 +99,19 @@ export default function SearchUser() {
   return (
     <>
       <div>
-  <div className="relative lg:block hidden">
+  <div className="relative block">
     <input
       onClick={openSearchModal}
       placeholder="Search"
       readOnly
-      className="border text-sm bg-gray-100 px-7 cursor-pointer focus:border-gray-100 outline-none text-black border-gray-100 h-10 w-64 rounded-full"
+      className="border text-sm bg-gray-100 px-8 cursor-pointer focus:border-gray-100 
+      outline-none text-black border-gray-100 sm:h-10 h-8 sm:w-64 w-44 rounded-full"
     />
     <Search
       onClick={openSearchModal}
-      className="cursor-pointer absolute left-2 top-3 w-5 h-4 text-gray-400"
+      className="cursor-pointer absolute left-2 sm:top-3 top-2 w-5 h-4 text-gray-400"
     />
   </div>
-  <Search
-    onClick={openSearchModal}
-    className="cursor-pointer w-6 h-6 text-gray-400 block sm:hidden"
-  />
-  <Search
-    onClick={openSearchModal}
-    className="cursor-pointer w-8 h-8 text-gray-400 md:block hidden lg:hidden"
-  />
 </div>
 
       {searchOpen && (
@@ -132,7 +125,7 @@ export default function SearchUser() {
           >
             <div className="p-4 border-b relative shadow-sm">
               <input
-                placeholder="Search users..."
+                placeholder="Search users"
                 type="text"
                 autoFocus
                 value={query}

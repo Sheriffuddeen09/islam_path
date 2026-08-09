@@ -205,7 +205,7 @@ const currencySymbol = (currency) => {
 
             <Link
                 to="/jobs"
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-6"
+                className="inline-flex items-center mt-5 gap-2 text-blue-600 hover:text-blue-700 font-medium mb-6"
             >
 
                 <ArrowLeft size={18} />
