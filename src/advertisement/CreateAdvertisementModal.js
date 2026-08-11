@@ -110,6 +110,8 @@ Video
 <p className="text-sm mt-2">
 JPG, PNG, MP4, MOV and AVI are
 supported. </p>
+<p className="text-sm mt-2">
+the video upload must not be more than 50mb. </p>
 <input
 type="file" hidden
 accept="image/*,video/*" onChange={
@@ -237,7 +239,7 @@ Sponsorship
 </div>
 </div>
 {/* Information */}
-<div className="rounded-2xl p-5 border">
+<div className="rounded-2xl sm:p-5 p-2 border">
 <div className="flex gap-3">
 <Info
 size={22}

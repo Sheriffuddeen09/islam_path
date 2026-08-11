@@ -417,7 +417,7 @@ const currencySymbol = (currency) => {
                                         items-center
                                         justify-center
                                         gap-2
-                                        transition
+                                        transition cursor-pointer
                                     "
                                 >
 
@@ -426,13 +426,6 @@ const currencySymbol = (currency) => {
                                     <ExternalLink size={18} />
 
                                 </a>
-
-                                <p className="text-xs text-center text-gray-500">
-
-                                    Applications for this job are handled
-                                    on the employer's website.
-
-                                </p>
 
                             </div>
 
@@ -974,7 +967,7 @@ const currencySymbol = (currency) => {
                         items-center
                         justify-center
                         gap-2
-                        transition
+                        transition cursor-pointer
                     "
                 >
 
@@ -983,13 +976,6 @@ const currencySymbol = (currency) => {
                     <ExternalLink size={18} />
 
                 </a>
-
-                <p className="text-xs text-center text-gray-500">
-
-                    Applications for this job are handled
-                    on the employer's website.
-
-                </p>
 
             </div>
 
