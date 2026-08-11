@@ -1,71 +1,263 @@
-
-│
-├── Http
-│   ├── Controllers
-│   │   ├── JobCategoryController.php
-│   │   ├── JobDashboardController.php
-│   │   └── AdminJobController.php
-│   │
-│   ├── Requests
-│   │   ├── StoreJobPostRequest.php
-│   │   ├── UpdateJobPostRequest.php
-│   │   └── ApplyJobRequest.php
-│
-├── Mail
-│   ├── JobApprovedMail.php
-│   ├── JobDeclinedMail.php
-│   ├── JobApplicationMail.php
-│   └── ApplicantAcceptedMail.php
-│
-├── Notifications
-│   ├── JobApprovedNotification.php
-│   ├── JobDeclinedNotification.php
-│   ├── JobApplicationNotification.php
-│   └── ApplicantAcceptedNotification.php
-│
-├── Events
-│   ├── JobCreated.php
-│   ├── JobApproved.php
-│   └── JobApplied.php
-│
-└── Policies
-    └── JobPostPolicy.php
-
-
-src
-│
-├── pages
-│
-│   ├── Jobs
-│   │
-│   ├── CreateJob.jsx
-│   ├── EditJob.jsx
-│   ├── JobDetails.jsx
-│   ├── BrowseJobs.jsx
-│   ├── MyPostedJobs.jsx
-│   ├── MyApplications.jsx
-│   ├── JobApplicants.jsx
-│   ├── ApplicantProfile.jsx
-│   ├── AdminPendingJobs.jsx
-│   ├── AdminApprovedJobs.jsx
-│   ├── AdminDeclinedJobs.jsx
-│   └── JobDashboard.jsx
-│
-├── components
-│
-│   ├── JobCard.jsx
-│   ├── ApplicantCard.jsx
-│   ├── JobFilter.jsx
-│   ├── JobStatusBadge.jsx
-│   ├── JobSalary.jsx
-│   ├── JobSkeleton.jsx
-│   ├── ApplyJobModal.jsx
-│   ├── ApplicantModal.jsx
-│   ├── DeleteJobModal.jsx
-│   ├── ApproveJobModal.jsx
-│   └── DeclineJobModal.jsx
-│
-├── Api
-│
-│   ├── jobApi.js
-│   └── applicationApi.js
+php artisan make:mail PostCommentNotification
+php artisan make:mail PostReplyNotification
+php artisan make:mail PostMentionNotification
+<?php
+namespace App\Mail;
+use App\Models\Post;
+use App\Models\PostComment;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+class PostCommentNotification extends Mailable implements ShouldQueue
+{
+use Queueable,SerializesModels;
+public $comment;
+public $post;
+public function __construct(
+PostComment $comment, Post $post
+){
+$this->comment = $comment;
+$this->post = $post;
+}
+public function build()
+{
+return $this->subject(
+"New Comment On Your Post" )->view(
+"emails.post-comment" );
+}
+}
+<?php
+namespace App\Mail;
+class PostReplyNotification
+extends Mailable
+implements ShouldQueue
+{
+use Queueable,SerializesModels;
+public $comment;
+public $post;
+public function __construct(
+PostComment $comment, Post $post
+){
+$this->comment = $comment;
+$this->post = $post;
+}
+public function build()
+{
+return $this->subject(
+"Someone Replied To Your Comment" )->view(
+"emails.post-reply" );
+}
+}
+<?php
+namespace App\Mail;
+class PostMentionNotification
+extends Mailable
+implements ShouldQueue
+{
+use Queueable,SerializesModels;
+public $comment;
+public $post;
+public function __construct(
+PostComment $comment, Post $post
+){
+$this->comment = $comment;
+$this->post = $post;
+}
+public function build()
+{
+return $this->subject(
+"You Were Mentioned In A Comment" )->view(
+"emails.post-mention" );
+}
+}
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PostCommentNotification;
+use App\Mail\PostReplyNotification;
+use App\Mail\PostMentionNotification;
+if($mentionedUser->email){
+Mail::to(
+$mentionedUser->email
+)->queue(
+new PostMentionNotification(
+$comment, $post
+)
+);
+}
+$receiver = User::find(
+$parentComment->user_id
+);
+if(
+$receiver &&
+$receiver->email
+){
+Mail::to(
+$receiver->email
+)->queue(
+new PostReplyNotification(
+$comment, $post
+)
+);
+}
+$receiver = User::find(
+$recipientId
+);
+if(
+$receiver &&
+$receiver->email
+){
+Mail::to(
+$receiver->email
+)->queue(
+new PostCommentNotification(
+$comment, $post
+)
+);
+}
+php artisan make:migration add_last_email_notification_at_to_users_table
+$table->timestamp(
+'last_email_notification_at' )->nullable();
+use App\Models\User;
+private function canSendEmail(User $user)
+{
+if(!$user->email){
+return false;
+}
+if(!$user->last_seen_at){
+return true;
+}
+$offlineMinutes = now()
+->diffInMinutes(
+$user->last_seen_at
+);
+if($offlineMinutes < 5){
+return false;
+}
+if(
+$user->last_email_notification_at
+){
+$emailMinutes = now()
+->diffInMinutes(
+$user->last_email_notification_at
+);
+if($emailMinutes < 5){
+return false;
+}
+}
+return true;
+}
+if($this->canSendEmail($receiver)){
+Mail::to(
+$receiver->email
+)->queue(
+new PostCommentNotification(
+$comment, $post
+)
+);
+$receiver->update([
+'last_email_notification_at' => now()
+]);
+}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>
+New Comment
+</title>
+</head>
+<body
+style=" font-family:sans-serif;
+background:#f5f5f5;
+padding:30px; ">
+<div
+style=" max-width:650px;
+margin:auto;
+background:white;
+padding:30px;
+border-radius:10px;
+">
+<h2>
+Someone Commented On Your Post
+</h2>
+<p>
+<strong>
+{{ $comment->user->first_name }}
+{{ $comment->user->last_name }}
+</strong>
+commented on your post. </p>
+@if($comment->body)
+<p>
+{{ \Illuminate\Support\Str::limit(
+$comment->body, 100
+) }}
+</p>
+@endif
+<p>
+Please login to continue the discussion. </p>
+<a href="https://your-domain.com/post/{{ $post->id }}">
+View Post
+</a>
+</div>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+New Reply
+</title>
+</head>
+<body>
+<h2>
+Someone Replied To Your Comment
+</h2>
+<p>
+<strong>
+{{ $comment->user->first_name }}
+{{ $comment->user->last_name }}
+</strong>
+replied to your comment. </p>
+@if($comment->body)
+<p>
+{{ \Illuminate\Support\Str::limit(
+$comment->body, 100
+) }}
+</p>
+@endif
+<br>
+<a href="https://your-domain.com/post/{{ $post->id }}">
+View Reply
+</a>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+You Were Mentioned
+</title>
+</head>
+<body>
+<h2>
+You Were Mentioned In A Comment
+</h2>
+<p>
+<strong>
+{{ $comment->user->first_name }}
+{{ $comment->user->last_name }}
+</strong>
+mentioned you in a comment.
+</p>
+@if($comment->body)
+<p>
+{{ \Illuminate\Support\Str::limit(
+$comment->body, 100
+) }}
+</p>
+@endif
+<a href="https://your-domain.com/post/{{ $post->id }}">
+View Comment
+</a>
+</body>
+</html>

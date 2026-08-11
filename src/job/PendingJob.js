@@ -58,6 +58,8 @@ export default function PendingJobs() {
 
     const [declineLoading, setDeclineLoading] = useState({});
 
+    
+
     const totalLoaded = jobs.length;
 
     const totalPending = total;

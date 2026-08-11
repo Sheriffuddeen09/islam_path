@@ -56,12 +56,6 @@ export default function ApplyJobModal({
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check Application Status
-    |--------------------------------------------------------------------------
-    */
-
     useEffect(() => {
 
         if (!isOpen || !job?.id) {
@@ -102,12 +96,6 @@ export default function ApplyJobModal({
     }, [isOpen, job?.id]);
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Reset
-    |--------------------------------------------------------------------------
-    */
-
     const resetForm = () => {
 
         setForm({
@@ -135,11 +123,6 @@ export default function ApplyJobModal({
     };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Close
-    |--------------------------------------------------------------------------
-    */
 
     const handleClose = () => {
 
@@ -154,11 +137,6 @@ export default function ApplyJobModal({
     };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Input
-    |--------------------------------------------------------------------------
-    */
 
     const handleChange = (e) => {
 
@@ -185,12 +163,6 @@ export default function ApplyJobModal({
 
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CV
-    |--------------------------------------------------------------------------
-    */
 
     const handleCvChange = (e) => {
 
@@ -247,80 +219,6 @@ export default function ApplyJobModal({
     };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Client Validation
-    |--------------------------------------------------------------------------
-    */
-
-    const validate = () => {
-
-        const newErrors = {};
-
-
-        if (
-            job?.enable_qualification &&
-            !form.qualification.trim()
-        ) {
-
-            newErrors.qualification =
-                "Qualification is required.";
-
-        }
-
-
-        if (
-            job?.enable_experience &&
-            !form.experience.trim()
-        ) {
-
-            newErrors.experience =
-                "Experience is required.";
-
-        }
-
-
-        if (
-            job?.enable_year_experience &&
-            (
-                form.year_experience === "" ||
-                form.year_experience === null
-            )
-        ) {
-
-            newErrors.year_experience =
-                "Years of experience is required.";
-
-        }
-
-
-        if (
-            job?.payment_required &&
-            (
-                form.payment === "" ||
-                form.payment === null
-            )
-        ) {
-
-            newErrors.payment =
-                "Payment is required.";
-
-        }
-
-
-        setErrors(newErrors);
-
-        return Object.keys(newErrors).length === 0;
-
-    };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Submit
-    |--------------------------------------------------------------------------
-    */
-
     const handleSubmit = async (e) => {
 
         e.preventDefault();
@@ -329,9 +227,6 @@ export default function ApplyJobModal({
 
         setApplicationSuccess("");
 
-        // if (!validate()) {
-        //     return;
-        // }
 
         try {
 

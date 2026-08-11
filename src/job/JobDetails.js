@@ -15,7 +15,8 @@ import {
     Share2,
     Bookmark,
     CheckCircle2,
-    X
+    X,
+    ExternalLink
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ApplyJobModal from "./ApplyJobModal";
@@ -392,6 +393,51 @@ const currencySymbol = (currency) => {
                             
                         <div className="flex flex-col gap-3 lg:w-56">
 
+                                            
+                        {job?.apply_on_website ? (
+
+                            <div className="space-y-3">
+
+                                <a
+                                    href={
+                                        job.application_website?.startsWith("http")
+                                            ? job.application_website
+                                            : `https://${job.application_website}`
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="
+                                        bg-blue-600
+                                        hover:bg-blue-700
+                                        text-white
+                                        py-3
+                                        rounded-xl
+                                        font-semibold
+                                        flex
+                                        items-center
+                                        justify-center
+                                        gap-2
+                                        transition
+                                    "
+                                >
+
+                                    Apply on Website
+
+                                    <ExternalLink size={18} />
+
+                                </a>
+
+                                <p className="text-xs text-center text-gray-500">
+
+                                    Applications for this job are handled
+                                    on the employer's website.
+
+                                </p>
+
+                            </div>
+
+                        ) : (
+
                             <button
                             onClick={() => setShowApplyModal(true)}
                             className="
@@ -404,11 +450,14 @@ const currencySymbol = (currency) => {
                                 font-semibold
                                 transition
                             "
-                        >
-                            Apply Now
-                        </button>
+                            >
+                                Apply Now
+                            </button>
 
-                            <button
+                        )}
+                        
+
+                      <button
                                 onClick={() => setShowShareModal(true)}
                                 className="
                                     border
@@ -902,23 +951,70 @@ const currencySymbol = (currency) => {
 
     </div>
 
-    <button
-    onClick={() => setShowApplyModal(true)}
-    className="
-        w-full
-        bg-blue-600
-        hover:bg-blue-700
-        text-white
-        py-3
-        rounded-xl
-        font-semibold
-        transition
-    "
-    >
-        Apply Now
-    </button>
+        {job?.apply_on_website ? (
 
-</div>
+            <div className="space-y-3">
+
+                <a
+                    href={
+                        job.application_website?.startsWith("http")
+                            ? job.application_website
+                            : `https://${job.application_website}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                        bg-blue-600
+                        hover:bg-blue-700
+                        text-white
+                        py-3
+                        rounded-xl
+                        font-semibold
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                        transition
+                    "
+                >
+
+                    Apply on Website
+
+                    <ExternalLink size={18} />
+
+                </a>
+
+                <p className="text-xs text-center text-gray-500">
+
+                    Applications for this job are handled
+                    on the employer's website.
+
+                </p>
+
+            </div>
+
+        ) : (
+
+            <button
+            onClick={() => setShowApplyModal(true)}
+            className="
+                w-full
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+                py-3
+                rounded-xl
+                font-semibold
+                transition
+            "
+            >
+                Apply Now
+            </button>
+
+        )}
+        
+
+        </div>
 
 
 {/* ================= RELATED JOBS ================= */}

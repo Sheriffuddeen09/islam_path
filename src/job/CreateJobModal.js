@@ -29,7 +29,6 @@ export default function CreateJobModal({
 
     open,
     onClose,
-    onCreated
 
 }) {
 
@@ -39,17 +38,9 @@ export default function CreateJobModal({
 
     const [errors, setErrors] = useState({});
 
-    const [skills,setSkills]=useState([]);
-
-    const [loadingSkills,setLoadingSkills]=useState(false);
-
-    const [skillSearch,setSkillSearch]=useState("");
-
-    const [showSkillDropdown,setShowSkillDropdown]=useState(false);
     const [saving, setSaving] = useState(false);
 
-    const [success, setSuccess] = useState("");
-
+   
 
             const jobTypes = [
             {
@@ -113,13 +104,14 @@ export default function CreateJobModal({
 
         payment_required: false,
 
-        expire_date: ""
+        expire_date: "",
+
+        application_website: "",
+
+        apply_on_website: false
 
     });
 
-
-
-// validate
 
     useEffect(()=>{
 
@@ -127,90 +119,15 @@ export default function CreateJobModal({
 
         fetchCategories();
 
-        fetchSkills();
-
     },[open]);
 
 
 
-const fetchSkills = async()=>{
 
-    try{
-
-        setLoadingSkills(true);
-
-        const res = await api.get("/api/job-skills");
-
-        setSkills(res.data.skills);
-
-    }
-
-    catch(error){
-
-        console.log(error);
-
-    }
-
-    finally{
-
-        setLoadingSkills(false);
-
-    }
-
-};
-
-const filteredSkills = (skills || []).filter(skill => {
-
-    const selected = (form.skills || []).includes(skill.id);
-
-    const match = skill.name
-        .toLowerCase()
-        .includes(skillSearch.toLowerCase());
-
-    return !selected && match;
-
-});
-
-const addSkill = (skill) => {
-
-    setForm(prev => ({
-
-        ...prev,
-
-        skills: [
-            ...(prev.skills || []),
-            skill.id
-        ]
-
-    }));
-
-    setSkillSearch("");
-
-};
-
-const removeSkill = (id) => {
-
-    setForm(prev => ({
-
-        ...prev,
-
-        skills: (prev.skills || []).filter(
-            skill => skill !== id
-        )
-
-    }));
-
-};
 
 const resetForm = () => {
 
     setErrors({});
-
-    setSuccess("");
-
-    setSkillSearch("");
-
-    setShowSkillDropdown(false);
 
     setForm({
 
@@ -249,8 +166,12 @@ const resetForm = () => {
         enable_year_experience: false,
 
         year_experience: "",
+        
+        application_website: "",
 
         payment_required: false,
+
+        apply_on_website: false,
 
         expire_date: "",
 
@@ -259,74 +180,9 @@ const resetForm = () => {
 
 };
 
-
-const validate = () => {
-
-    const validationErrors = {};
-
-    if (!form.job_category_id) {
-        validationErrors.job_category_id = "Select a category.";
-    }
-
-    if (
-        form.job_category_id === "other" &&
-        !(form.new_category || "").trim()
-    ) {
-        validationErrors.new_category = "Enter a new category.";
-    }
-
-    if (!(form.title || "").trim()) {
-        validationErrors.title = "Job title is required.";
-    }
-
-    if (!(form.description || "").trim()) {
-        validationErrors.description = "Description is required.";
-    }
-
-    if (!(form.about_us || "").trim()) {
-        validationErrors.about_us = "About us is required.";
-    }
-
-    if (!(form.what_you_do || "").trim()) {
-        validationErrors.what_you_do = "Responsibilities are required.";
-    }
-
-    if (
-        form.job_type !== "remote" &&
-        !(form.location || "").trim()
-    ) {
-        validationErrors.location = "Location is required.";
-    }
-
-    if (!form.expire_date) {
-        validationErrors.expire_date = "Expire date is required.";
-    }
-
-    setErrors(validationErrors);
-
-    const isValid = Object.keys(validationErrors).length === 0;
-
-    console.log("Validation Errors:", validationErrors);
-    console.log("Validation Result:", isValid);
-
-    return isValid;
-};
-
-
 const handleSubmit = async (e) => {
 
     e.preventDefault();
-
-    //  console.log("Step 1");
-    // console.log("Current Form:", form);
-
-
-    // if (!validate()) {
-    //     console.log("Validation failed");
-    //     return;
-    // }
-
-    // console.log("Step 2");
 
     
 
@@ -336,7 +192,6 @@ const handleSubmit = async (e) => {
 
         setErrors({});
 
-        console.log("FORM STATE", form);
 
         const data = new FormData();
 
@@ -350,21 +205,10 @@ const handleSubmit = async (e) => {
             data
         );
 
-         if (res.status === 201) {
-                setSuccess(
-                    "Your job post has been created successfully. It is now waiting for admin approval. You will receive an email notification within a week after approval."
-                );
-                setTimeout(() => {
-                    setSuccess("");
-                }, 8000);
-            }
-
         resetForm();
-
-        setTimeout(() => {
-            onClose();
-        }, 1500);
-
+            
+        onClose();
+        
     } catch (error) {
 
         if (error.response?.status === 422) {
@@ -537,20 +381,7 @@ const characterCount = (value = "", max = 5000) => {
 
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center sm:p-4 p-2">
 
-            {
-                success &&
-
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-
-                    <p className="text-green-700">
-
-                        {success}
-
-                    </p>
-
-                </div>
-            }
-
+            
             <form
 
             onSubmit={handleSubmit}
@@ -817,7 +648,7 @@ const characterCount = (value = "", max = 5000) => {
                 </div>
 
 
-
+                
                 <div>
 
                     <label className="font-semibold mb-2 block">
@@ -850,6 +681,7 @@ const characterCount = (value = "", max = 5000) => {
 
                             className={`
 
+                                scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                                 w-full
 
                                 pl-11
@@ -1313,8 +1145,7 @@ const characterCount = (value = "", max = 5000) => {
 
                             </div>
 
-
-
+                        
                         <div>
 
                             <label className="font-semibold mb-2 block">
@@ -1559,6 +1390,149 @@ const characterCount = (value = "", max = 5000) => {
 
                                         }
 
+                                        <div className="rounded-2xl border border-gray-200 p-5">
+
+                            <div className="flex items-center justify-between gap-4">
+
+                                <div>
+
+                                    <h3 className="font-semibold text-[var(--text-color)]">
+                                        External Application
+                                    </h3>
+
+                                    <p className="text-sm mt-1">
+                                        Allow applicants to apply through another website.
+                                    </p>
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+
+                                        setForm(prev => ({
+
+                                            ...prev,
+
+                                            apply_on_website:
+                                                !prev.apply_on_website,
+
+                                            // Clear website when disabled
+                                            application_website:
+                                                !prev.apply_on_website
+                                                    ? prev.application_website
+                                                    : ""
+
+                                        }));
+
+                                    }}
+                                    className={`
+                                        relative
+                                        w-14
+                                        h-7
+                                        rounded-full
+                                        transition
+                                        duration-300
+                                        ${
+                                            form.apply_on_website
+                                                ? "bg-blue-600"
+                                                : "bg-gray-300"
+                                        }
+                                    `}
+                                >
+
+                                    <span
+                                        className={`
+                                            absolute
+                                            top-1
+                                            w-5
+                                            h-5
+                                            bg-white
+                                            rounded-full
+                                            shadow
+                                            transition
+                                            duration-300
+                                            ${
+                                                form.apply_on_website
+                                                    ? "left-8"
+                                                    : "left-1"
+                                            }
+                                        `}
+                                    />
+
+                                </button>
+
+                            </div>
+
+
+                            {form.apply_on_website && (
+
+                                <div className="mt-5">
+
+                                    <label
+                                        className="
+                                            block
+                                            text-sm
+                                            font-semibold
+                                            mb-2
+                                            text-[var(--text-color)]
+                                        "
+                                    >
+
+                                        Application Website
+
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
+
+                                    </label>
+
+
+                                    <input
+                                        type="url"
+                                        value={
+                                            form.application_website
+                                        }
+                                        onChange={(e) =>
+                                            setForm(prev => ({
+
+                                                ...prev,
+
+                                                application_website:
+                                                    e.target.value
+
+                                            }))
+                                        }
+                                        placeholder="https://example.com/apply"
+                                        required
+                                        className="
+                                            w-full
+                                            border
+                                            rounded-xl
+                                            px-4
+                                            py-3
+                                            text-black
+                                            outline-none
+                                            focus:ring-2
+                                            focus:ring-blue-500
+                                        "
+                                    />
+
+
+                                    <p className="text-xs mt-2">
+
+                                        Applicants will be redirected to this website
+                                        instead of applying directly on this platform.
+
+                                    </p>
+
+                                </div>
+
+                            )}
+
+                        </div>
+
                                     </div>
 
                             </div>
@@ -1566,7 +1540,15 @@ const characterCount = (value = "", max = 5000) => {
 
 
 
+                            <div className=" p-3 sm:p-6">
+                                <p className="border rounded-xl border-blue-500 text-xs text-green-500 p-3">
+                                <strong>Note: </strong>
+                                After your job post has been created successfully, it will be reviewed and approved by 
+                                the platform to ensure that it meets our standards for secure and Halal job postings. 
+                                You will receive an email notification once your job post has been reviewed and approved.
+                                </p>
 
+                            </div>
                 {/* FOOTER */}
 
                 <div className="border-t px-6 py-4 flex justify-end gap-3">
