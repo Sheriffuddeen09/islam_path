@@ -71,14 +71,14 @@ return (
 };
 if (loading) {
 return (
-<div className="max-w-5xl mx-auto p-5">
+<div className="max-w-5xl mx-auto px-5 sm:pt-24 pt-16 ">
 <Skeleton />
 </div>
 );
 }
 return (
 <>
-<div className="max-w-5xl mx-auto p-5">
+<div className="max-w-5xl mx-auto sm:px-5 sm:pb-10 px   -2 pb-8 pt-24">
 <div className="bg-white shadow-xl rounded-3xl overflow-hidden">
 {/* IMAGE */}
 {advertisement.media_type ===

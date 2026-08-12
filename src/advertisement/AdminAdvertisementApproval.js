@@ -8,7 +8,6 @@ const [loading, setLoading] = useState(true);
 const [advertisements, setAdvertisements] = useState([]);
 const [approveLoading, setApproveLoading] = useState(null);
 const [declineLoading, setDeclineLoading] = useState(null);
-const [declineReason, setDeclineReason] = useState({});
 useEffect(() => {
 fetchAdvertisements();
 }, []);
@@ -26,6 +25,8 @@ toast.error("Unable to fetch advertisements.");
 setLoading(false);
 }
 };
+
+
 const handleApprove = async (id) => {
 try {
 setApproveLoading(id);
@@ -40,13 +41,13 @@ error?.response?.data?.message || "Unable to approve advertisement." );
 setApproveLoading(null);
 }
 };
+
+
 const handleDecline = async (id) => {
 try {
 setDeclineLoading(id);
 const response = await api.post(
-`/api/advertisement/decline/${id}`, {
-decline_reason:
-declineReason[id] || "Advertisement was declined.", }
+`/api/advertisement/decline/${id}`
 );
 toast.success(response.data.message);
 fetchAdvertisements();
@@ -59,7 +60,7 @@ setDeclineLoading(null);
 };
 const Skeleton = () => {
 return (
-<div className="bg-white rounded-2xl shadow-md p-5 animate-pulse">
+<div className="rounded-2xl shadow-md px-5 sm:pt-20 pt-14 animate-pulse">
 <div className="h-56 bg-gray-200 rounded-xl"></div>
 <div className="h-6 mt-4 rounded bg-gray-200"></div>
 <div className="h-20 mt-4 rounded bg-gray-200"></div>
@@ -81,24 +82,24 @@ return (
 );
 }
 return (
-<div className="p-5">
-<h1 className="text-3xl font-bold mb-6">
+<div className="sm:px-5 sm:pb-10 px-2 pb-8 pt-20">
+<h1 className="sm:text-3xl text-xl font-bold mb-6">
 Pending Advertisements
 </h1>
 {advertisements.length === 0 ? (
-<div className="bg-white rounded-2xl p-10 text-center shadow-md">
+<div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-2xl p-10 text-center shadow-md">
 No Pending Advertisements. </div>
 ) : (
 <div className="grid lg:grid-cols-2 gap-5">
 {advertisements.map((advertisement) => (
 <div
 key={advertisement.id}
-className="bg-white rounded-3xl shadow-md overflow-hidden" >
+className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-3xl shadow-md overflow-hidden" >
 {/* IMAGE */}
 {advertisement.media_type ===
 "image" && (
 <img
-src={`${import.meta.env.VITE_API_URL}/storage/${advertisement.media}`}
+src={`http://localhost:3000/${advertisement.media}`}
 alt="" className="w-full h-72 object-cover" />
 )}
 {/* VIDEO */}
@@ -108,7 +109,7 @@ alt="" className="w-full h-72 object-cover" />
 controls
 className="w-full h-72 object-cover" >
 <source
-src={`${import.meta.env.VITE_API_URL}/storage/${advertisement.media}`}
+src={`http://localhost:3000/${advertisement.media}`}
 />
 </video>
 )}
@@ -130,7 +131,7 @@ advertisement.status
 }
 </span>
 </div>
-<p className="text-gray-600">
+<p className="">
 {
 advertisement.description
 }
@@ -152,13 +153,17 @@ Link
 </a>
 )}
 {/* USER */}
-<div className="bg-gray-50 rounded-xl p-4">
+<div className="border-blue-500 border rounded-xl p-4">
 <p>
 <b>User:</b>{" "}
 {
 advertisement
 .user
-?.name
+?.first_name
+} {
+advertisement
+.user
+?.last_name
 }
 </p>
 <p>
@@ -170,31 +175,7 @@ advertisement
 }
 </p>
 </div>
-{/* DECLINE REASON */}
-<textarea
-rows={4}
-placeholder="Reason for declining (Optional)" className="w-full rounded-xl border p-4 outline-none" value={
-declineReason[
-advertisement
-.id
-] || "" }
-onChange={(
-e
-) =>
-setDeclineReason(
-(
-prev
-) => ({
-...prev, [
-advertisement
-.id
-]:
-e
-.target
-.value, })
-)
-}
-/>
+
 {/* BUTTONS */}
 <div className="grid grid-cols-2 gap-3">
 {/* APPROVE */}
@@ -215,7 +196,7 @@ className="bg-green-600 text-white rounded-xl p-4 font-bold" >
 advertisement.id ? (
 <div className="flex items-center justify-center gap-2">
 <LoaderCircle className="animate-spin" />
-Approving... </div>
+Approving</div>
 ) : (
 <div className="flex items-center justify-center gap-2">
 <CheckCircle />
@@ -241,7 +222,7 @@ className="bg-red-600 text-white rounded-xl p-4 font-bold" >
 advertisement.id ? (
 <div className="flex items-center justify-center gap-2">
 <LoaderCircle className="animate-spin" />
-Declining... </div>
+Declining</div>
 ) : (
 <div className="flex items-center justify-center gap-2">
 <XCircle />

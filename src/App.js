@@ -57,7 +57,8 @@ import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 import PendingJobs from "./job/PendingJob";
 import Jobs from "./job/Jobs";
 import JobDetails from "./job/JobDetails";
-
+import AdminAdvertisementApproval from "./advertisement/AdminAdvertisementApproval";
+import SelectAdvertisementVisibility from "./advertisement/SelectAdvertisementVisibility"
    
 function App() {
 
@@ -410,6 +411,18 @@ function App() {
         <Route
         path="/job-finder/:id"
         element={<JobDetails/>}
+        />
+
+        <Route
+        path="/admin/advertisement"
+        element={<AdminAdvertisementApproval/>}
+        />
+
+        <Route
+            path="/advertisement/:id"
+            element={
+                <SelectAdvertisementVisibility />
+            }
         />
 
 
