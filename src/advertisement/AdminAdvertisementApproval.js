@@ -99,7 +99,7 @@ className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-3xl shadow-md o
 {advertisement.media_type ===
 "image" && (
 <img
-src={`http://localhost:3000/${advertisement.media}`}
+src={`http://localhost:8000/storage/${advertisement.media}`}
 alt="" className="w-full h-72 object-cover" />
 )}
 {/* VIDEO */}
@@ -109,7 +109,7 @@ alt="" className="w-full h-72 object-cover" />
 controls
 className="w-full h-72 object-cover" >
 <source
-src={`http://localhost:3000/${advertisement.media}`}
+src={`http://localhost:8000/storage/${advertisement.media}`}
 />
 </video>
 )}

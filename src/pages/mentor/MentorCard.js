@@ -52,8 +52,7 @@ useEffect(() => {
     });
 }, []);
 
- const src = `${`http://localhost:8000`}/storage/${t.logo}`;
-
+ 
     const isOther = t.coursetitle_name?.toLowerCase() === "other";
     const displayTitle = isOther ? "Other" : t.coursetitle_name;
     const complimentText = Array.isArray(t.compliment)

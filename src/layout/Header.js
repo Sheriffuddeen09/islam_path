@@ -52,7 +52,7 @@ function Navbar({messageOpen, activeChat, setActiveChat,
 
    
     const dashboardLink =
-  user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
+    user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
 
 
 

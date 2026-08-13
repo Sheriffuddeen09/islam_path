@@ -253,7 +253,6 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                     {videoCount > 15 ? "15+" : videoCount}
                   </span>
                 )}
-
                 Reel Video
               </Link>
 
@@ -398,8 +397,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                               hover:bg-gray-900
                             "
                           >
-                            {user.first_name?.[0]}
-                            {user.last_name?.[0]}
+                            {user?.first_name?.[0]}
+                            {user?.last_name?.[0]}
                           </div>
                           </button>
                     </div>                
