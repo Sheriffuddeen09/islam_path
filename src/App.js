@@ -37,6 +37,7 @@ import ChatReportId from "./report/ChatReportId";
 import PostReportUser from "./report/PostReportUser";
 import CommentReportUser from "./report/CommentReportUser";
 import ProductPage from "./pages/sales/Product";
+import ProductVisibility from "./pages/sales/ProductVisibility";
 import SingleProduct from "./pages/sales/SingleProduct";
 import CartPage from "./pages/sales/cart/CartPage";
 import WishlistPage from "./pages/sales/cart/WishlishPage";
@@ -423,6 +424,11 @@ function App() {
             element={
                 <SelectAdvertisementVisibility />
             }
+        />
+
+        <Route
+            path="/dashboard/product-visibility"
+            element={<ProductVisibility />}
         />
 
 

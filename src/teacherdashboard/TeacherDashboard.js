@@ -6,7 +6,7 @@ import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, Clip
   FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
   Workflow,
   History,
-  Star} from "lucide-react";
+  Star, Globe2, MessageSquare} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -24,7 +24,6 @@ import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import ChatPage from "../chat/chatbox/Chatpage";
-import ProposalCard from "../pages/mentor/ProposalCard";
 import ProposalList from "../pages/mentor/ProposalList";
 import TeacherProposalHistory from "../pages/mentor/TeacherProposalHistory";
 import TeacherReviews from "../pages/mentor/TeacherReviews";
@@ -245,6 +244,17 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   { id: 23, label: "Promote Product", icon: BarChart3 },
   { id: 24, label: "Product Order", icon: ShoppingCart, ordershow: true },
   { id: 25, label: "Saved Order", icon: Bookmark, showcount: true },
+  {
+      id: 26,
+      label: "Product Visibility",
+      icon: Globe2,
+      path: "/dashboard/product-visibility",
+  },
+  {
+    id: 27,
+    label: "My Product Reviews",
+    icon: MessageSquare,
+}
 ];
 
   // Choose which menu

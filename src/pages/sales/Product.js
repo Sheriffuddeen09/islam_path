@@ -16,6 +16,13 @@ export default function ProductPage({products, setProducts}) {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [productLocations, setProductLocations] = useState([]);
+  const [userLocation, setUserLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [locationHasProducts, setLocationHasProducts] = useState(true);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [showLocations, setShowLocations] = useState(false);
+
   const { addToCart, loadingId: cartLoadingId } = useCart();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showFilter, setShowFilter] = useState(false);
@@ -38,21 +45,120 @@ export default function ProductPage({products, setProducts}) {
 }, []);
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [p, c] = await Promise.all([api.get("/api/products"), api.get("/api/categories")]);
-        setProducts(p.data.data || []);
-        setCategories(c.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+ useEffect(() => {
 
+  fetchInitialData();
+
+}, []);
+
+const fetchInitialData = async () => {
+
+  try {
+
+    setLoading(true);
+
+    const [
+      productsResponse,
+      categoriesResponse
+    ] = await Promise.all([
+
+      api.get("/api/products"),
+
+      api.get("/api/categories")
+
+    ]);
+
+    setProducts(
+      productsResponse.data.data || []
+    );
+
+    setUserLocation(
+      productsResponse.data.user_location || ""
+    );
+
+    setSelectedLocation(
+      productsResponse.data.selected_location || ""
+    );
+
+    setLocationHasProducts(
+      productsResponse.data.location_has_products
+    );
+
+    setProductLocations(
+      productsResponse.data.locations || []
+    );
+
+    setCategories(
+      categoriesResponse.data || []
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "PRODUCT FETCH ERROR:",
+      error
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
+};
+
+const fetchProductsByLocation = async (
+  location
+) => {
+
+  try {
+
+    setLocationLoading(true);
+
+
+    const response = await api.get(
+      "/api/products",
+      {
+        params: {
+          location: location
+        }
+      }
+    );
+
+
+    setProducts(
+      response.data.data || []
+    );
+
+
+    setSelectedLocation(
+      response.data.selected_location
+    );
+
+
+    setLocationHasProducts(
+      response.data.location_has_products
+    );
+
+
+    setShowLocations(false);
+
+
+  } catch (error) {
+
+    console.error(
+      "LOCATION PRODUCT ERROR:",
+      error
+    );
+
+  } finally {
+
+    setLocationLoading(false);
+
+  }
+
+};
   const getSeed = () => {
   const now = new Date();
   const days = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
@@ -228,6 +334,7 @@ const openSearchModal = () => {
 </svg>
 
 </div>
+
 
 {showFilter && (
   <div className="fixed inset-0 z-50 flex">
@@ -471,31 +578,254 @@ const openSearchModal = () => {
     </div>
   )} 
 
-          {flashSales.length > 0 && (
-            <Section title="🔥 Flash Sales" products={flashSales} {...{ symbols, addToCart, cartLoadingId, addToWishlist, wishlistLoadingId }} />
-          )}
+<div className="my-8">
 
-          {topSelling.length > 0 && (
-            <Section title="⭐ Top Selling" products={topSelling} {...{ symbols, addToCart, cartLoadingId, addToWishlist, wishlistLoadingId }} />
-          )}
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-          {categories.map((cat) => {
-            const catProducts = getCategoryProducts(cat);
-            if (!catProducts.length) return null;
+    <div>
 
-            return (
-              <Section
-                key={cat.id}
-                title={cat.name}
-                products={catProducts}
-                symbols={symbols}
-                addToCart={addToCart}
-                cartLoadingId={cartLoadingId}
-                addToWishlist={addToWishlist} 
-                wishlistLoadingId={wishlistLoadingId}
-              />
-            );
-          })}
+        <p className="text-sm">
+            Showing products from
+        </p>
+
+        <h2 className="text-xl font-bold">
+            {selectedLocation || "All Locations"}
+        </h2>
+
+    </div>
+
+
+    <div className="flex flex-wrap gap-3">
+
+        {/* VIEW ANOTHER LOCATION */}
+
+        <button
+            type="button"
+            onClick={() =>
+                setShowLocations(!showLocations)
+            }
+            className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+        >
+            View Another Location
+        </button>
+
+
+        {/* BACK TO USER LOCATION */}
+
+        {selectedLocation &&
+            selectedLocation !== userLocation && (
+
+            <button
+                type="button"
+                onClick={() => {
+
+                    setSelectedLocation(
+                        userLocation
+                    );
+
+                    setShowLocations(false);
+
+                    fetchInitialData(
+                        userLocation
+                    );
+
+                }}
+                className="px-5 py-3 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
+            >
+                Back to My Location
+            </button>
+
+        )}
+
+    </div>
+
+  </div>
+
+
+  {showLocations && (
+
+    <div className="mt-5 bg-[var(--bg-color)] border border-blue-500 rounded-2xl p-5">
+
+      <h3 className="font-bold text-lg mb-4">
+        Select Location
+      </h3>
+
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+        {productLocations.map(
+          (location) => (
+
+            <button
+              key={location}
+              type="button"
+              disabled={
+                locationLoading
+              }
+              onClick={() =>
+                fetchProductsByLocation(
+                  location
+                )
+              }
+              className={`
+                text-left
+                px-4
+                py-3
+                rounded-xl
+                border
+                transition
+                ${
+                  selectedLocation ===
+                  location
+                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                    : "border-gray-300 hover:border-blue-500"
+                }
+              `}
+            >
+
+              {location}
+
+            </button>
+
+          )
+        )}
+
+      </div>
+
+    </div>
+
+  )}
+
+</div>
+
+ {!locationHasProducts && (
+
+  <div className="mb-8 rounded-2xl border mx-auto border-orange-300 bg-[var(--bg-color)] text-[var(--text-color)] p-6">
+
+    <h2 className="text-xl font-bold">
+      No products available in your location
+    </h2>
+
+    <p className="mt-2">
+      We couldn't find products available in{" "}
+      <strong>
+        {userLocation}
+      </strong>.
+    </p>
+
+    <p className="mt-2 text-sm">
+      You can view products from another location.
+    </p>
+
+
+    <button
+      type="button"
+      onClick={() =>
+        setShowLocations(true)
+      }
+      className="mt-4 px-5 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700"
+    >
+      Click View Another Location
+    </button>
+
+  </div>
+
+)}
+
+{locationLoading && (
+
+  <div className="flex items-center justify-center py-10">
+
+    <div className="animate-spin h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent" />
+
+    <span className="ml-3 font-semibold">
+      Loading products...
+    </span>
+
+  </div>
+
+)}
+
+          {!locationLoading && (
+
+  <>
+    
+    {/* FLASH SALES */}
+
+    {flashSales.length > 0 && (
+
+      <Section
+        title="🔥 Flash Sales"
+        products={flashSales}
+        {...{
+          symbols,
+          addToCart,
+          cartLoadingId,
+          addToWishlist,
+          wishlistLoadingId
+        }}
+      />
+
+    )}
+
+
+    {/* TOP SELLING */}
+
+    {topSelling.length > 0 && (
+
+      <Section
+        title="⭐ Top Selling"
+        products={topSelling}
+        {...{
+          symbols,
+          addToCart,
+          cartLoadingId,
+          addToWishlist,
+          wishlistLoadingId
+        }}
+      />
+
+    )}
+
+
+    {/* CATEGORIES */}
+
+    {categories.map((cat) => {
+
+      const catProducts =
+        getCategoryProducts(cat);
+
+
+      if (!catProducts.length)
+        return null;
+
+
+      return (
+
+        <Section
+          key={cat.id}
+          title={cat.name}
+          products={catProducts}
+          symbols={symbols}
+          addToCart={addToCart}
+          cartLoadingId={
+            cartLoadingId
+          }
+          addToWishlist={
+            addToWishlist
+          }
+          wishlistLoadingId={
+            wishlistLoadingId
+          }
+        />
+
+      );
+
+    })}
+
+  </>
+
+)}
         </>
       )}
     </> 

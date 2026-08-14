@@ -289,26 +289,15 @@ const toSlug = (text) =>
     .trim()
     .replace(/\s+/g, "-");
 
-const slug =
-  selectedChild?.slug ||
-  selectedParent?.slug ||
-  toSlug(newSubcategory) ||
-  toSlug(newParent);
-
-
 
   const parentSlug =
   selectedParent?.slug || toSlug(newParent);
-
-const isGeneral =
-  ["clothes", "accessory", "house-accessory", "others"].includes(parentSlug)
-  || newParent; // 👈 ANY new category auto included
 
 
 
   return (
     <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] shadow-md  rounded-xl sm:p-8 lg:ml-64">
-      <div className="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl sm:p-8 p-3">
+      <div className="max-w-6xl mx-auto bg-[var(--bg-color)] text-[var(--text-color)]  shadow-2xl rounded-xl sm:p-8 p-3">
         <h2 className="text-3xl font-bold mb-8 border-b-2 pb-3 border-black">
           Create New Product
         </h2>
@@ -454,10 +443,9 @@ const isGeneral =
           className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-black"
         >
           <option value="">Currency</option>
-          <option value="USD">$</option>
-          <option value="EUR">€</option>
-          <option value="GBP">£</option>
-          <option value="NGN">₦</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+          <option value="NGN">NGN</option>
         </select>
       </div>
 
