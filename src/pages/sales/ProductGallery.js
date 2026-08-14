@@ -26,7 +26,7 @@ export default function ProductGallery({ images, isOwner, product }) {
 
   return (
 
-    <div className="w-full overflow-hidden">
+    <div className="w-full text-[var(--text-color)] overflow-hidden">
 
       {/* MAIN IMAGE */}
 
@@ -42,7 +42,7 @@ export default function ProductGallery({ images, isOwner, product }) {
   <div className="hidden sm:flex mt-6 flex-col gap-3">
 
     {/* TITLE */}
-    <h1 className="text-2xl font-semibold text-gray-900 leading-tight">
+    <h1 className="text-2xl font-semibold text-black-[var(--text-black-color)] leading-tight">
       {product.title}
     </h1>
 
@@ -57,7 +57,7 @@ export default function ProductGallery({ images, isOwner, product }) {
       </div>
 
       {/* REVIEW COUNT */}
-      <span className="text-gray-600 whitespace-nowrap text-sm">
+      <span className=" whitespace-nowrap text-sm">
         ({product.reviews_count} reviews)
       </span>
 
@@ -65,13 +65,13 @@ export default function ProductGallery({ images, isOwner, product }) {
 
     {/* PRICE */}
     <div className="flex items-center gap-2">
-      <span className="text-2xl font-bold text-black">
+      <span className="text-2xl font-bold ">
         {symbol} {product.price}
       </span>
     </div>
 
     {/* EXTRA UI (optional but looks better) */}
-    <div className="border-t-2 py-3 whitespace-nowrap px-2 text-sm text-gray-600">
+    <div className="border-t-2 py-3 whitespace-nowrap px-2 text-sm">
       <p>✔ Track Product</p>
       <p>✔ Secure checkout</p>
       <p>✔ 30-day return policy</p>

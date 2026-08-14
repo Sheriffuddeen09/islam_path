@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { toast } from "react-toastify";
-import api from "../Api/axios";
-import JobCreatorForm from "./JobCreatorForm";
+import api from "../Api/imageAxios";
 import EditJobCreatorForm from "./EditJobCreatorForm";
 
 export default function EditJobCreatorModal({
@@ -63,40 +62,86 @@ export default function EditJobCreatorModal({
     };
 
 
-    const handleUpdate = async (
-        formData
-    ) => {
+  const handleUpdate = async (formData) => {
 
-        try {
+    try {
 
-            setLoading(true);
+        setLoading(true);
 
-           await api.put(
+        formData.append(
+            "_method",
+            "PUT"
+        );
 
-                `/api/job-profile/${editProfile.id}`,
+        console.log(
+            "FORM DATA:",
+            formData instanceof FormData
+        );
 
-                formData
+        for (
+            const [key, value]
+            of formData.entries()
+        ) {
 
+            console.log(
+                key,
+                value instanceof File
+                    ? {
+                        name: value.name,
+                        type: value.type,
+                        size: value.size
+                    }
+                    : value
             );
-            refresh();
-
-            onClose();
-
-
-        } catch (error) {
-
-            toast.error(
-                "Unable to update profile."
-            );
-
-        } finally {
-
-            setLoading(false);
 
         }
 
-    };
+        const response = await api.post(
+            `/api/job-profile/${editProfile.id}`,
+            formData,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${localStorage.getItem(
+                            "access_token"
+                        )}`,
 
+                    Accept:
+                        "application/json"
+                }
+            }
+        );
+
+        console.log(
+            response.data
+        );
+
+        toast.success(
+            "Profile updated successfully."
+        );
+
+        refresh();
+
+        onClose();
+
+    } catch (error) {
+
+        console.log(
+            "UPDATE ERROR:",
+            error.response?.data
+        );
+
+        toast.error(
+            error.response?.data?.message ||
+            "Unable to update profile."
+        );
+
+    } finally {
+
+        setLoading(false);
+
+    }
+};
 
     if (!show) return null;
 

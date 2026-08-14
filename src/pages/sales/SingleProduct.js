@@ -172,7 +172,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
   const symbol = symbols[product.currency] || product.currency;
 
   return (
-    <div className="max-w-7xl mx-auto sm:p-6 p-2">
+    <div className="max-w-7xl mx-auto sm:p-6 p-2 bg-{var(--bg-color)] text-{var(--text-color)] ">
 
       {/* TOP SECTION */}
       <div className="grid mt-16 py-2 md:grid-cols-3 gap-8 lg:gap-28">
@@ -187,7 +187,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
           <div className="sm:hidden flex mt-6 px-2 flex-col gap-3">
 
               {/* TITLE */}
-              <h1 className="text-2xl font-semibold text-gray-900 leading-tight">
+              <h1 className="text-2xl font-semibold leading-tight">
                 {product.title}
               </h1>
 
@@ -202,7 +202,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
                 </div>
 
                 {/* REVIEW COUNT */}
-                <span className="text-gray-600 whitespace-nowrap text-sm">
+                <span className="whitespace-nowrap text-sm">
                   ({product.reviews_count} reviews)
                 </span>
 
@@ -210,20 +210,21 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
               {/* PRICE */}
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-black">
+                <span className="text-2xl font-bold">
                   {symbol} {product.price}
                 </span>
               </div>
 
               {/* EXTRA UI (optional but looks better) */}
-              <div className="border-t-2 py-3 whitespace-nowrap px-2 text-sm text-gray-600">
+              <div className="border-t-2 py-3 whitespace-nowrap px-2 text-sm">
                 <p>✔ Track Product</p>
                 <p>✔ Secure checkout</p>
                 <p>✔ 30-day return policy</p>
               </div>
 
                <button
-          className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold transition flex items-center justify-center
+          className={`mt-2 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold 
+            transition flex items-center justify-center
             ${
               product.stock <= 0 || loading || isOwner
                 ? "opacity-50 cursor-not-allowed"
@@ -265,11 +266,12 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
           {/* PRODUCT DESCRIPTION */}
 <div className="mt-6 px-3">
-  <h2 className="text-2xl font-bold mb-3 text-gray-800">Product Description</h2>
-  <p className="text-gray-700 leading-relaxed text-base">{product.description || "No description available."}</p>
+  <h2 className="text-2xl font-bold mb-3">Product Description</h2>
+  <p className="leading-relaxed text-base">{product.description || "No description available."}</p>
 </div>
 
-<div className="border p-6 sm:hidden block mt-4 rounded-lg bg-white text-gray-900 sm:w-80 w-full flex flex-col justify-between shadow-2xl">
+<div className="border p-6 sm:hidden block bg-{var(--bg-color)] text-{var(--text-color)] mt-4 rounded-lg border-blue-500 sm:w-80 w-full flex 
+flex-col justify-between shadow-2xl">
       
       {/* PRODUCT DETAILS MOBILE VIEW */}
       <div>
@@ -332,7 +334,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
       {product.specifications?.length > 0 && (
         <button
           onClick={() => specificationsRef.current.scrollIntoView({ behavior: "smooth" })}
-          className=" px-6 text-left px-3 py-2 border-2 round rounded-md text-gray-800 font-medium transition"
+          className=" px-6 text-left px-3 py-2 border-2 round rounded-md font-medium transition"
         >
           Specifications Details
         </button>
@@ -340,7 +342,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
       {product.key_features?.length > 0 && (
         <button
           onClick={() => keyFeaturesRef.current.scrollIntoView({ behavior: "smooth" })}
-          className=" px-6 text-left px-3 py-2 border-2 round rounded-md text-gray-800 font-medium transition"
+          className=" px-6 text-left px-3 py-2 border-2 round rounded-md font-medium transition"
         >
           Key Features Details
         </button>
@@ -394,14 +396,14 @@ const isOwner = product?.user_id === authUser?.user?.id;
 {/* SPECIFICATIONS */}
 {product.specifications && product.specifications.length > 0 && (
   <div ref={specificationsRef} className="mt-8 px-3">
-    <h2 className="text-2xl font-bold mb-4 text-gray-800">Specifications</h2>
+    <h2 className="text-2xl font-bold mb-4">Specifications</h2>
     <div className="overflow-x-auto border rounded-lg shadow-sm">
       <table className="w-full text-left divide-y divide-gray-200">
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-{var(--bg-color)] text-{var(--text-color)] divide-y divide-gray-200">
           {product.specifications.map((spec, idx) => (
             <tr key={idx} className="border-t">
-              <td className="px-4 py-2 font-medium text-gray-700">{spec.key}</td>
-              <td className="px-4 py-2 text-gray-600">{spec.value}</td>
+              <td className="px-4 py-2 font-medium">{spec.key}</td>
+              <td className="px-4 py-2">{spec.value}</td>
             </tr>
           ))}
         </tbody>
@@ -414,14 +416,14 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
 {product.key_features && product.key_features.length > 0 && (
   <div ref={keyFeaturesRef} className="mt-8 px-3">
-    <h2 className="text-2xl font-bold mb-4 text-gray-800">Key Features</h2>
+    <h2 className="text-2xl font-bold mb-4">Key Features</h2>
     <div className="overflow-x-auto border rounded-lg shadow-sm">
       <table className="w-full text-left divide-y divide-gray-200">
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-{var(--bg-color)] text-{var(--text-color)] divide-y divide-gray-200">
           {product.key_features.map((spec, idx) => (
             <tr key={idx} className="border-t">
-              <td className="px-4 py-2 font-medium text-gray-700">{spec.key}</td>
-              <td className="px-4 py-2 text-gray-600">{spec.value}</td>
+              <td className="px-4 py-2 font-medium">{spec.key}</td>
+              <td className="px-4 py-2">{spec.value}</td>
             </tr>
           ))}
         </tbody>
@@ -432,25 +434,25 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
 
 {/* REVIEWS */}
-<div className="mt-10 px-3">
-  <h2 className="text-2xl font-bold mb-5 text-gray-800">Customer Reviews</h2>
+<div className="mt-10 px-3 bg-{var(--bg-color)] text-{var(--text-color)]">
+  <h2 className="text-2xl font-bold mb-5">Customer Reviews</h2>
 
   {/* Review Input */}
-  <div className="border rounded-lg p-5 shadow-sm mb-8 bg-white">
+  <div className="border rounded-lg p-5 shadow-sm mb-8 bg-{var(--bg-color)] text-{var(--text-color)]">
     <div className="flex items-center gap-2 mb-4">
       {[1, 2, 3, 4, 5].map((star) => (
         <FaStar
           key={star}
           onClick={() => setRating(star)}
           className={`cursor-pointer text-2xl ${
-            rating >= star ? "text-yellow-400" : "text-gray-300"
+            rating >= star ? "text-yellow-400" : ""
           }`}
         />
       ))}
     </div>
     <textarea
       className="w-full border rounded-md p-3 mb-4 text-gray-700 focus:ring-2 focus:ring-orange-400 focus:outline-none"
-      placeholder="Write your review..."
+      placeholder="Write your review"
       value={comment}
       onChange={(e) => setComment(e.target.value)}
     />
@@ -506,7 +508,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
   ) : reviews.length > 0 ? (
     <>
       {reviews.slice(0, visibleCount).map((rev) => (
-        <div key={rev.id} className="border rounded-lg p-4 bg-white shadow-sm flex gap-4">
+        <div key={rev.id} className="border rounded-lg p-4 bg-{var(--bg-color)] text-{var(--text-color)] shadow-sm flex gap-4">
           {/* Avatar */}
           <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-lg">
             {rev.user.first_name[0]}
@@ -514,7 +516,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
           {/* Review Content */}
           <div className="flex-1">
-            <p className="font-medium text-gray-800">
+            <p className="font-medium">
               {rev.user.first_name} {rev.user.last_name?.[0]}.
             </p>
 
@@ -524,7 +526,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
               ))}
             </div>
 
-            <p className="text-gray-700 mt-2">{rev.comment}</p>
+            <p className="mt-2">{rev.comment}</p>
           </div>
         </div>
       ))}
@@ -534,11 +536,11 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
       {/* Message when all reviews are loaded */}
       {visibleCount >= reviews.length && (
-        <p className="text-center text-gray-500 mt-4 text-xs">All reviews loaded.</p>
+        <p className="text-center mt-4 text-xs">All reviews loaded.</p>
       )}
     </>
   ) : (
-    <p className="text-gray-500 italic">
+    <p className="italic">
       No reviews yet. Be the first to review this product!
     </p>
   )}
@@ -553,7 +555,8 @@ const isOwner = product?.user_id === authUser?.user?.id;
 
 
         {/* RIGHT SIDEBAR */}
-      <div className="border p-6 sm:block hidden rounded-lg h-full sm:h-[530px] bg-white text-gray-900 sm:w-80 w-full flex flex-col justify-between shadow-lg">
+      <div className="border p-6 sm:block hidden rounded-lg h-full sm:h-[530px] bg-{var(--bg-color)] text-{var(--text-color)] 
+      sm:w-80 w-full flex flex-col justify-between shadow-lg">
       
       {/* PRODUCT DETAILS */}
       <div>
@@ -615,7 +618,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
       {product.specifications?.length > 0 && (
         <button
           onClick={() => specificationsRef.current.scrollIntoView({ behavior: "smooth" })}
-          className=" px-6 text-left px-3 py-2 border-2 round rounded-md text-gray-800 font-medium transition"
+          className=" px-6 text-left px-3 py-2 border-2 round rounded-md font-medium transition"
         >
           Specifications Details
         </button>
@@ -623,7 +626,7 @@ const isOwner = product?.user_id === authUser?.user?.id;
       {product.key_features?.length > 0 && (
         <button
           onClick={() => keyFeaturesRef.current.scrollIntoView({ behavior: "smooth" })}
-          className=" px-6 text-left px-3 py-2 border-2 round rounded-md text-gray-800 font-medium transition"
+          className=" px-6 text-left px-3 py-2 border-2 round rounded-md font-medium transition"
         >
           Key Features Details
         </button>

@@ -246,9 +246,6 @@ export default function JobCreatorProfileModal({
 
                         </div>
 
-
-                        {/* Workers */}
-
                         <div
                             className="
                             border

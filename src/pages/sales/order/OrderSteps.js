@@ -192,7 +192,7 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
       )}
 
       {/* MAIN UI */}
-      <div className="max-w-5xl mx-auto text-black bg-white p-8 z-50 rounded-3xl shadow-xl">
+      <div className="max-w-5xl mx-auto text-[var(--text-color)]  bg-[var(--bg-color)]  bg-white p-8 z-50 rounded-3xl shadow-xl">
         <h2 className="text-3xl font-bold text-center mb-6">
           Choose Action
         </h2>
@@ -216,7 +216,7 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
               </div>
 
               <h3 className="mt-4 text-lg font-semibold">{opt.title}</h3>
-              <p className="text-sm text-gray-500">{opt.desc}</p>
+              <p className="text-sm ">{opt.desc}</p>
             </div>
           ))}
         </div>
@@ -263,7 +263,7 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
       {showAd && (
         <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50">
 
-          <div className="bg-white w-[420px] rounded-xl overflow-hidden">
+          <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-[420px] rounded-xl overflow-hidden">
 
             {/* 🔥 FAKE AD */}
             {!USE_REAL_ADS && (

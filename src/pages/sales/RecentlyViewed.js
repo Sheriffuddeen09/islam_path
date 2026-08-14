@@ -30,9 +30,9 @@ export default function RecentlyViewed({products, setProducts}){
 
   return(
 
-    <div className="mt-8">
+    <div className="mt-8 text-[var(--text-color)]">
 
-      <h2 className="text-2xl font-bold mb-4 px-2 text-black">
+      <h2 className="text-2xl font-bold mb-4 px-2">
         Recently Viewed
       </h2>
 
@@ -61,11 +61,11 @@ export default function RecentlyViewed({products, setProducts}){
                 className="h-40 w-full object-cover"
               />
 
-              <h3 className="mt-2 font-medium text-black">
+              <h3 className="mt-2 font-medium">
                 {p.title}
               </h3>
 
-              <h3 className="mt-2 font-medium text-black">
+              <h3 className="mt-2 font-medium">
                 {symbol} {p.price}
               </h3>
 

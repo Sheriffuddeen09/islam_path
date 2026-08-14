@@ -32,7 +32,7 @@ export const WishlistProvider = ({ children }) => {
       if (product.stock <= 0) return; 
   
       try {
-        setLoadingId(product.id); // start loading
+        setLoadingId(product.id); 
         const res = await api.post("/api/wishlist", {
           product_id: product.id,
           quantity: 1,

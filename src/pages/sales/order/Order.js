@@ -193,7 +193,7 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
 
   return (
-  <div className="relative lg:ml-64 px-4 text-[var(--text-color)]">
+  <div className="relative lg:ml-64 px-4 text-[var(--text-color)]  bg-[var(--bg-color)] ">
 
     {/* 🔔 TOAST */}
     {toast && (
@@ -241,10 +241,10 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
 
           return (
-            <div key={order.id} className="bg-white p-5 rounded-2xl shadow-md ">
+            <div key={order.id} className="text-[var(--text-color)]  bg-[var(--bg-color)]  p-5 rounded-2xl shadow-md ">
 
               {/* HEADER */}
-              <div className="flex justify-between items-center mb-2 text-black">
+              <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold">Order #{order.id}</h3>
 
                 <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
                       cancelingId === order.id ||
                       order.status !== "pending"
                     }
-                    className={`px-3 py-2 text-sm rounded font-bold text-white whitespace-nowrap
+                    className={`px-3 py-2 text-sm rounded font-bold  whitespace-nowrap
                       ${
                         order.status === "cancelled"
                           ? "bg-red-700 hidden cursor-not-allowed"
@@ -321,11 +321,11 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
                         
 
               {/* USER */}
-              <p className="text-sm text-gray-800">
+              <p className="text-sm ">
                 • {order.first_name} {order.last_name}
               </p>
 
-              <p className="text-sm text-gray-800 mb-3">
+              <p className="text-sm  mb-3">
                 • {order.address}
               </p>
 
@@ -381,7 +381,7 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
               <div className="flex justify-between mt-3 font-semibold border-t pt-2">
                 <div>
                 <span>Total:</span>
-                <span className="text-green-800 font-bold"> {symbol}{order.total_price}</span>
+                <span className="font-bold"> {symbol}{order.total_price}</span>
                 </div>
 
                 <div className="inline-flex items-center gap-1">
@@ -437,8 +437,8 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
     {showDeleteModal && (
   <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
-    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[var(--bg-color)] w-full max-w-md overflow-y-auto scrollbar-thin rounded-xl shadow-lg space-y-4">
+    text-[var(--text-color)] flex items-center justify-center p-4">
+      <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-full max-w-md overflow-y-auto scrollbar-thin rounded-xl shadow-lg space-y-4">
 
       {/* HEADER */}
       <h2 className="text-lg font-bold mb-3 text-center border-b border-[var(--text-color)] py-3">
@@ -486,13 +486,13 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
     {showCancelModal && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-    <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] max-w-md">
+    <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  p-6 rounded-xl shadow-lg w-[90%] max-w-md">
 
       <h2 className="text-lg font-bold mb-3">
         Cancel Order
       </h2>
 
-      <p className="text-sm text-gray-600 mb-5">
+      <p className="text-sm mb-5">
         Are you sure you want to cancel this order?
       </p>
 
@@ -535,7 +535,7 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
     {showModal && selectedOrder && (
       <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
     text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
-        <div className="bg-[var(--bg-color)]  w-full max-w-2xl scrollbar-thin  rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
+        <div className="text-[var(--text-color)]  bg-[var(--bg-color)]   w-full max-w-2xl scrollbar-thin  rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
 
           {/* HEADER */}
           <div className="flex justify-between items-center border-b pb-3 mb-4">

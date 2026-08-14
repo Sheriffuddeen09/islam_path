@@ -122,23 +122,24 @@ const openSearchModal = () => {
   };
 
   return (
-    <div className="pt-20 bg-gray-100 min-h-screen">
+    <div className="pt-20 bg-[var(--bg-color)] text-[var(--text-color)] min-h-screen">
       <div className="flex px-2 md:px-2">
         {/* ===== Sidebar z- ===== */}
-        <aside className="w-64 bg-white shadow p-4 hidden md:block sticky scrollbar-thin top-20 h-[calc(100vh-80px)] overflow-y-auto no-scrollbar">
-          <h2 className="text-xl font-bold text-black mb-4 text-center">Search & Filters</h2>
+        <aside className="w-60 bg-[var(--bg-color)] shadow-md p-4 hidden md:block sticky 
+        scrollbar-thin top-20 h-[calc(100vh-80px)] overflow-y-auto no-scrollbar">
+          <h2 className="text-xl font-bold  mb-4 text-center">Search & Filters</h2>
           
           <div className="relative w-full mb-4">
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search products"
           readOnly
           onClick={openSearchModal}
-          className="border p-2 rounded-lg w-full cursor-pointer bg-gray-100 text-black"
+          className="border p-2 rounded-lg w-full text-black cursor-pointer bg-gray-100 "
         />
         <Search
           onClick={openSearchModal}
-          className="absolute right-2 top-2 w-5 h-5 text-gray-400 cursor-pointer"
+          className="absolute right-2 top-2 w-5 h-5 text-gray-900 cursor-pointer"
         />
       </div>
          
@@ -154,7 +155,7 @@ const openSearchModal = () => {
               <li
                 onClick={() => setSelectedCategory(null)}
                 className={`p-2 cursor-pointer rounded text-sm ${
-                  !selectedCategory ? "bg-gray-900 text-white" : "hover:bg-gray-200 text-black font-semibold"
+                  !selectedCategory ? "bg-gray-900 text-white" : "hover:bg-gray-200  font-semibold"
                 }`}
               >
                 All Categories
@@ -166,7 +167,7 @@ const openSearchModal = () => {
                     className={`font-bold cursor-pointer p-2 text-[17px] mt-2 rounded ${
                       selectedCategory?.name === cat.name
                         ? "bg-gray-900 text-white font-bold"
-                        : "hover:bg-gray-200 text-gray-800 font-bold"
+                        : "hover:bg-gray-200  font-bold"
                     }`}
                   >
                     {cat.name}
@@ -178,7 +179,7 @@ const openSearchModal = () => {
                       className={`cursor-pointer p-1 rounded pl-6 my-1 ${
                       selectedCategory?.id === child.id
                         ? "bg-gray-900 text-white font-bold text-sm p-1 "
-                        : "hover:bg-gray-100 text-blue-800 font-semibold text-sm p-1"
+                        : "hover:bg-gray-700  font-semibold text-sm p-1"
                         }`}
                     >
                       {child.name}
@@ -205,7 +206,7 @@ const openSearchModal = () => {
               ))}
             </div>
           ) : sourceProducts.length === 0 && selectedCategory ? (
-            <div className="p-4 bg-white rounded shadow text-center text-gray-600 mt-4">
+            <div className="p-4 rounded shadow-md text-center text-[var(--text-color)] mt-4">
               No products found for "{selectedCategory.name}"
             </div>
           ) : (
@@ -214,7 +215,7 @@ const openSearchModal = () => {
               <>
 <div className="mt-0 border-gray-500 border-b-2 pb-2 mb-2 w-full flex justify-between items-center md:hidden">
   <button
-    onClick={() => setShowFilter(true)} className="text-black font-bold text-sm inline-flex gap-2">
+    onClick={() => setShowFilter(true)} className=" font-bold text-sm inline-flex gap-2">
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
   <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
 </svg>
@@ -222,7 +223,7 @@ const openSearchModal = () => {
   Search / Filter Products
 </button>
 
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-black">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 ">
   <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
 </svg>
 
@@ -238,14 +239,14 @@ const openSearchModal = () => {
     ></div>
 
     {/* Modal Panel */}
-    <div className="relative w-3/4 max-w-sm bg-white h-full shadow-lg p-4 overflow-y-auto animate-slideIn">
+    <div className="relative w-3/4 max-w-sm bg-[var(--bg-color)] text-[var(--text-color)] h-full shadow-lg p-4 overflow-y-auto animate-slideIn">
       
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold text-black">Search & Filters</h2>
+        <h2 className="text-lg font-bold ">Search & Filters</h2>
         <button
           onClick={() => setShowFilter(false)}
-          className="text-black text-xl"
+          className=" text-xl"
         >
           ✕
         </button>
@@ -255,14 +256,14 @@ const openSearchModal = () => {
       <div className="relative w-full mb-4">
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search products"
           readOnly
           onClick={openSearchModal}
-          className="border p-2 rounded-lg w-full cursor-pointer bg-gray-100 text-black"
+          className="border p-2 rounded-lg w-full cursor-pointer text-black "
         />
         <Search
           onClick={openSearchModal}
-          className="absolute right-2 top-2 w-5 h-5 text-gray-400 cursor-pointer"
+          className="absolute right-2 top-2 w-5 h-5 text-gray-900 cursor-pointer"
         />
       </div>
 
@@ -283,7 +284,7 @@ const openSearchModal = () => {
             className={`p-2 cursor-pointer rounded text-sm ${
               !selectedCategory
                 ? "bg-gray-900 text-white"
-                : "hover:bg-gray-200 text-black font-semibold"
+                : "hover:bg-gray-200  font-semibold"
             }`}
           >
             All Categories
@@ -299,7 +300,7 @@ const openSearchModal = () => {
                 className={`font-bold text-[17px] cursor-pointer p-2 mt-2 rounded ${
                   selectedCategory?.name === cat.name
                     ? "bg-gray-900 text-white"
-                    : "hover:bg-gray-200 text-gray-800"
+                    : "hover:bg-gray-200 "
                 }`}
               >
                 {cat.name}
@@ -315,7 +316,7 @@ const openSearchModal = () => {
                   className={`cursor-pointer font-semibold p-1 rounded pl-6 my-1 ${
                     selectedCategory?.id === child.id
                       ? "bg-gray-900 text-white text-sm"
-                      : "hover:bg-gray-100 text-blue-800 text-sm"
+                      : "hover:bg-gray-700  text-sm"
                   }`}
                 >
                   {child.name}
@@ -430,7 +431,7 @@ const openSearchModal = () => {
                
                 <button
                   onClick={() => addToCart(p)}
-                  className={`mt-2 bg-white px-3 text-black py-2 rounded-lg font-semibold transition inline-flex items-center gap-2
+                  className={`mt-2 bg-white px-3  py-2 rounded-lg font-semibold transition inline-flex items-center gap-2
                     ${
                       p.stock <= 0 || isLoading || isOwner
                         ? "opacity-50 cursor-not-allowed"
@@ -449,11 +450,11 @@ const openSearchModal = () => {
                 border-white
                 border-t-transparent
                 rounded-full inline-flex items-center gap-2
-            " /> Ordering...</span>
+            " /> Ordering</span>
                     : "Order Now"}
                 </button>
                 <Link to={`/product/${p.id}`}> 
-                <button className="border border-white px-5 py-2 translate-x-3 rounded-lg hover:bg-white hover:text-black transition">
+                <button className="border border-white px-5 py-2 translate-x-3 rounded-lg hover:bg-white hover: transition">
                   View Details
                 </button>
                </Link> 
@@ -569,7 +570,7 @@ const Section = ({
           {isScrollable && page > 0 && (
             <button
               onClick={() => setPage((prev) => prev - 1)}
-              className="bg-white text-black px-2 py-1 rounded hover:bg-gray-200"
+              className="bg-white  px-2 py-1 rounded hover:bg-gray-200"
             >
               ◀
             </button>
@@ -578,7 +579,7 @@ const Section = ({
           {isScrollable && page < totalPages - 1 && (
             <button
               onClick={() => setPage((prev) => prev + 1)}
-              className="bg-white text-black px-2 py-1 rounded hover:bg-gray-200"
+              className="bg-white  px-2 py-1 rounded hover:bg-gray-200"
             >
               ▶
             </button>
@@ -672,7 +673,7 @@ const ProductCard = ({ product, symbols, addToCart, cartLoadingId, addToWishlist
   return (
     <div
       ref={cardRef}
-      className="bg-white rounded shadow-sm hover:shadow-md mx-auto sm:w-60 w-full transition px-4 py-3 group relative"
+      className="bg-[var(--bg-color)] text-[var(--text-color)] border-blue-500 border hover:border-blue-700 rounded shadow-sm hover:shadow-md mx-auto sm:w-60 w-full transition px-4 py-3 group relative"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -684,11 +685,11 @@ const ProductCard = ({ product, symbols, addToCart, cartLoadingId, addToWishlist
 
       <Link to={`/product/${product.id}`}>
         <img src={img} loading="lazy" className="h-64 sm:h-52 w-full sm:object-cover rounded" />
-        <h3 className="text-sm mt-2 text-gray-800 line-clamp-2">{product.title}</h3>
-        <div className="mt-1 text-gray-800">
+        <h3 className="text-sm mt-2  line-clamp-2">{product.title}</h3>
+        <div className="mt-1 ">
           {product.discount > 0 ? (
             <div className="inline-flex items-center gap-3">
-              <span className="line-through text-gray-400 text-sm">{symbol}{product.price}</span>
+              <span className="line-through text-sm">{symbol}{product.price}</span>
               <div className="font-bold">{symbol}{(product.price - (product.price * product.discount) / 100).toFixed(2)}</div>
             </div>
           ) : (

@@ -63,7 +63,7 @@ export default function MyProducts() {
 };
 
   return (
-    <div className="px-6 lg:ml-64">
+    <div className="px-6 lg:ml-64 bg-[var(--bg-color)] text-[var(--text-color)]">
       <h2 className="text-2xl font-bold mb-6 border-b-2 pb-3 border-blue-700">
         Product Lists
       </h2>
@@ -90,7 +90,8 @@ export default function MyProducts() {
      const symbol = symbols[p.currency] || p.currency;
 
   return (
-    <div key={p.id} className="bg-white border-blue-900 border shadow-md rounded-xl p-4 hover:shadow-lg transition relative">
+    <div key={p.id} className="bg-[var(--bg-color)]  text-[var(--text-color)] border-blue-900 border
+     shadow-md rounded-xl p-4 hover:shadow-lg transition relative">
       <img
         src={firstImage}
         alt={p.title}
@@ -100,15 +101,15 @@ export default function MyProducts() {
       <div className="flex justify-start items-start gap-2">
         {p.discount > 0 ? (
           <>
-            <span className="text-gray-400 line-through text-sm">
+            <span className=" line-through text-sm">
               {symbol}{p.price}
             </span>
-            <span className="text-gray-800 font-semibold text-sm">
+            <span className="font-semibold text-sm">
               {symbol}{(p.price - (p.price * p.discount) / 100).toFixed(2)}
             </span>
           </>
         ) : (
-          <span className="text-gray-800 font-semibold text-sm">
+          <span className="font-semibold text-sm">
             {symbol}{p.price}
           </span>
         )}
@@ -146,7 +147,7 @@ export default function MyProducts() {
       )}
 
       {products.length === 0 && (
-          <p className="text-center text-gray-500 mt-10">
+          <p className="text-center text-[var(--text-color)] mt-10">
             No products found
           </p>
         )}

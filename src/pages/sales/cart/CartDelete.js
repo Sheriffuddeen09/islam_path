@@ -33,27 +33,27 @@ const CartDelete = ({ cartId, handleRemoveItem }) => {
       {/* Delete Button */}
       <button
         onClick={() => setShowModal(true)}
-        className="p-1 hover:bg-gray-100 rounded"
+        className="p-1 hover:bg-gray-700 rounded"
       >
-        <Trash2 className="w-5 h-5 text-black" />
+        <Trash2 className="w-5 h-5 text-[var(--text-color)] " />
       </button>
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-          <div className="bg-white w-[90%] max-w-sm rounded-xl p-6 shadow-lg relative">
+          <div className="bg-[var(--bg-color)] text-[var(--text-color)]   w-[90%] max-w-sm rounded-xl p-6 shadow-lg relative">
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-3 right-3"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-[var(--text-color)] " />
             </button>
 
             <h3 className="text-lg font-bold text-center mb-4">
               Delete Cart Item
             </h3>
 
-            <p className="text-gray-600 text-center mb-6">
+            <p className=" text-center mb-6">
               Are you sure you want to delete this item?
             </p>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { toast } from "react-toastify";
-import api from "../Api/axios";
+import api from "../Api/imageAxios";
 import EditJobFinderForm from "./EditJobFinderForm";
 
 export default function EditJobFinderModal({
@@ -63,57 +63,155 @@ export default function EditJobFinderModal({
 
     
 
-    const handleUpdate = async(formData) => {
-            try {
-            setLoading(true);
+    const handleUpdate = async (formData) => {
 
-            await api.put(
-            `/api/job-profile/${editProfile.id}`,
-            formData,
-            {
-            headers: {
-            "Content-Type": "multipart/form-data",
-            },
-            }
-            );            
-            
-            toast.success(
-                "Profile updated successfully."
+    try {
+
+        setLoading(true);
+
+
+        if (!formData.has("_method")) {
+
+            formData.append(
+                "_method",
+                "PUT"
             );
 
+        }
 
-            refresh();
+        console.log(
+            "IS FORMDATA:",
+            formData instanceof FormData
+        );
 
-            onClose();
+
+        for (
+            const [key, value]
+            of formData.entries()
+        ) {
+
+            if (value instanceof File) {
+
+                console.log(
+                    key,
+                    "FILE:",
+                    value.name,
+                    value.type,
+                    value.size
+                );
+
+            } else {
+
+                console.log(
+                    key,
+                    value
+                );
+
+            }
+
+        }
 
 
-        } catch (error) {
+        const response = await api.post(
 
-            if (
-                error.response?.status ===
-                422
-            ) {
+            `/api/job-profile/${editProfile.id}`,
+
+            formData,
+
+            {
+                headers: {
+
+                    Authorization:
+                        `Bearer ${localStorage.getItem(
+                            "access_token"
+                        )}`,
+
+                    Accept:
+                        "application/json"
+
+                }
+
+            }
+
+        );
+
+
+        console.log(
+            "UPDATE RESPONSE:",
+            response.data
+        );
+
+
+        toast.success(
+            response.data?.message ||
+            "Profile updated successfully."
+        );
+
+
+        refresh();
+
+        onClose();
+
+
+    } catch (error) {
+
+
+
+        console.log(
+            "UPDATE ERROR:",
+            error
+        );
+
+
+        console.log(
+            "SERVER RESPONSE:",
+            error.response?.data
+        );
+
+
+        if (
+            error.response?.status === 422
+        ) {
+
+            const errors =
+                error.response.data.errors;
+
+
+            if (errors) {
+
+                Object.values(errors)
+                    .flat()
+                    .forEach(
+                        (message) => {
+                            toast.error(message);
+                        }
+                    );
+
+            } else {
 
                 toast.error(
                     "Please check your inputs."
                 );
 
-            } else {
-
-                toast.error(
-                    "Unable to update profile."
-                );
-
             }
 
-        } finally {
+        } else {
 
-            setLoading(false);
+            toast.error(
+                error.response?.data?.message ||
+                "Unable to update profile."
+            );
 
         }
 
-    };
 
+    } finally {
+
+        setLoading(false);
+
+    }
+
+};
 
     if (!show) return null;
 

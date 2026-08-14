@@ -25,18 +25,19 @@ const WishlistDelete = ({ wishlistId, handleRemoveItem }) => {
 
   return (
     <>
-      <button onClick={() => setShowModal(true)} className="p-1 hover:bg-gray-100 rounded">
-        <Trash2 className="w-5 h-5 text-black" />
+      <button onClick={() => setShowModal(true)} className="p-1 hover:bg-gray-700 rounded">
+        <Trash2 className="w-5 h-5 text-[var(--text-color)]" />
       </button>
 
       {showModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-          <div className="bg-white w-[90%] max-w-sm rounded-xl p-6 shadow-lg relative">
+          <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-[90%] max-w-sm rounded-xl p-6 
+          shadow-lg relative">
             <button onClick={() => setShowModal(false)} className="absolute top-3 right-3">
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5" />
             </button>
             <h3 className="text-lg font-bold text-center mb-4">Remove Wishlist Item</h3>
-            <p className="text-gray-600 text-center mb-6">Are you sure?</p>
+            <p className="text-center mb-6">Are you sure?</p>
             <div className="flex gap-3">
               <button onClick={() => setShowModal(false)} className="w-full py-2 bg-gray-200 rounded-lg">
                 Cancel

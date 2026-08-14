@@ -62,7 +62,7 @@ export default function SaveOrder() {
   };
 
   return (
-  <div className="px-3 sm:px-4 md:px-6 lg:ml-64">
+  <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  px-3 sm:px-4 md:px-6 lg:ml-64">
 
     {/* ================= TOAST ================= */}
     {toast && (
@@ -112,7 +112,7 @@ export default function SaveOrder() {
           return (
             <div
               key={draft.id}
-              className="bg-white  p-3 sm:p-4 rounded-xl shadow-md hover:shadow-lg transition"
+              className="text-[var(--text-color)]  bg-[var(--bg-color)]   p-3 sm:p-4 rounded-xl shadow-md hover:shadow-lg transition"
             >
 
               {/* ===== PRODUCTS ROW ===== */}
@@ -121,7 +121,7 @@ export default function SaveOrder() {
                 {data?.items?.map((item, index) => (
                   <div
                     key={index}
-                    className="min-w-[140px] sm:min-w-[180px] bg-gray-50 rounded-lg p-2 shadow-sm"
+                    className="min-w-[140px] sm:min-w-[180px] border-blue-500 rounded-lg p-2 shadow-sm"
                   >
                     <img
                       src={item.image || "/placeholder.png"}
@@ -132,7 +132,7 @@ export default function SaveOrder() {
                       {item.name}
                     </h3>
 
-                    <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-2">
+                    <p className="text-[10px] sm:text-xs line-clamp-2">
                       {item.description}
                     </p>
 
@@ -145,9 +145,9 @@ export default function SaveOrder() {
               </div>
 
               {/* ===== SUMMARY ===== */}
-              <div className="flex justify-between items-center mt-3 text-xs sm:text-sm text-gray-600">
+              <div className="flex justify-between items-center mt-3 text-xs sm:text-sm">
                 <span>{totalItems} item(s)</span>
-                <span className="font-bold text-black">
+                <span className="font-bold">
                   ₦{totalPrice}
                 </span>
               </div>
@@ -199,7 +199,7 @@ export default function SaveOrder() {
                   }
                 }}
                 disabled={orderingId === draft.id}
-                className={`w-full sm:flex-1 py-2 rounded text-xs sm:text-sm text-white transition flex items-center justify-center
+                className={`w-full sm:flex-1 py-2 rounded text-xs sm:text-sm transition flex items-center justify-center
                   ${
                     orderingId === draft.id
                       ? "bg-gray-400 cursor-not-allowed"
@@ -226,7 +226,7 @@ export default function SaveOrder() {
                         d="M4 12a8 8 0 018-8v8H4z"
                       />
                     </svg>
-                    Ordering...
+                    Ordering
                   </span>
                 ) : (
                   "Order"
@@ -257,15 +257,15 @@ export default function SaveOrder() {
     {/* ================= DELETE MODAL ================= */}
     {deleteId && (
       <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
-    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
+    text-[var(--text-color)] flex items-center justify-center p-4">
 
-        <div className="bg-[var(--bg-color)] p-4 sm:p-6 rounded-xl w-full max-w-sm text-center shadow-lg">
+        <div className="text-[var(--text-color)]  bg-[var(--bg-color)] p-4 sm:p-6 rounded-xl w-full max-w-sm text-center shadow-lg">
 
           <h3 className="font-bold text-base sm:text-lg mb-3">
             Delete Draft?
           </h3>
 
-          <p className="text-xs sm:text-sm text-gray-500 mb-4">
+          <p className="text-xs sm:text-sm mb-4">
             This action cannot be undone.
           </p>
 

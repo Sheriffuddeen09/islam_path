@@ -122,15 +122,15 @@ const orderData = {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center">
-      <div className="overflow-y-auto h-[560px] sm:h-[600px] no-scrollbar w-[95%] max-w-3xl rounded-xl shadow-lg sm:p-6 relative">
+      <div className="overflow-y-auto h-[560px] text-[var(--text-color)]  bg-[var(--bg-color)]  sm:h-[600px] no-scrollbar w-[95%] max-w-3xl rounded-xl shadow-lg sm:p-6 relative">
 
         {/* CLOSE */}
         
 
         {step === 1 && (
-        <div className="bg-white w-full max-w-xl mx-auto rounded-2xl shadow-xl p-6">
+        <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-full max-w-xl mx-auto rounded-2xl shadow-xl p-6">
 
-            <h2 className="text-xl font-bold mb-6 text-gray-800">
+            <h2 className="text-xl font-bold mb-6">
             User Information
             </h2>
 
@@ -139,7 +139,7 @@ const orderData = {
             {/* FULL NAME */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                 First Name
                 </label>
                 <input
@@ -158,7 +158,7 @@ const orderData = {
             </div>
 
             <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                 Last Name
                 </label>
                 <input
@@ -179,7 +179,7 @@ const orderData = {
 
             {/* PHONE */}
             <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                 Phone Number
                 </label>
                 <input
@@ -195,7 +195,7 @@ const orderData = {
 
             {/* GOOGLE ADDRESS PICKER */}
             <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                 Address Line 1
                 </label>
                     <input
@@ -212,7 +212,7 @@ const orderData = {
 
             {/* ADDRESS LINE 2 */}
             <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                 Street Address Line 2 (Optional)
                 </label>
                 <input
@@ -228,7 +228,7 @@ const orderData = {
             {/* CITY + STATE */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                     Country
                 </label>
                 <input
@@ -242,7 +242,7 @@ const orderData = {
                 </div>
 
                 <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                     State / City
                 </label>
                 <input
@@ -259,7 +259,7 @@ const orderData = {
             {/* COUNTRY + ZIP */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                <label className="block text-sm text-black font-semibold mb-1">
+                <label className="block text-sm font-semibold mb-1">
                     ZIP Code
                 </label>
                 <input
@@ -297,7 +297,7 @@ const orderData = {
         {/* ================= STEP 2 ================= */}
         {step === 2 && (
           <>
-          <div className="bg-white text-black w-full max-w-xl mx-auto rounded-2xl shadow-xl p-6">
+          <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-full max-w-xl mx-auto rounded-2xl shadow-xl p-6">
             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
             <div className="max-h-[300px] overflow-y-auto no-scrollbar">
@@ -320,12 +320,12 @@ const orderData = {
               )})}
             </div>
 
-           <div className="space-y-2 text-sm text-gray-600">
+           <div className="space-y-2 text-sm">
 
               {/* SUBTOTAL */}
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-medium text-gray-800">
+                <span className="font-medium">
                   {symbol}{subtotal.toFixed(2)}
                 </span>
               </div>
@@ -339,7 +339,7 @@ const orderData = {
               </div>
 
               {/* TOTAL */}
-              <div className="border-t pt-3 flex justify-between font-semibold text-gray-900 text-base">
+              <div className="border-t pt-3 flex justify-between font-semibold text-base">
                 <span>Total</span>
                 <span className="text-green-700">
                   {symbol}{total.toFixed(2)}
@@ -349,16 +349,16 @@ const orderData = {
             </div>
 
   {/* 🚚 DELIVERY INFO */}
-  <div className="mt-6 bg-gray-50 rounded-lg p-4 border">
-    <h4 className="text-sm font-semibold text-gray-800 mb-2">
+  <div className="mt-6 border-blue-500 rounded-lg p-4 border">
+    <h4 className="text-sm font-semibold mb-2">
       Deliver To
     </h4>
 
-    <div className="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition">
+    <div className="text-[var(--text-color)]  bg-[var(--bg-color)] border border-bue-500 rounded-xl p-4 shadow-sm hover:shadow-md transition">
 
   {/* HEADER */}
   <div className="flex items-center justify-between mb-3">
-    <h4 className="text-sm font-semibold text-gray-800">
+    <h4 className="text-sm font-semibold">
       Delivery Address
     </h4>
 
@@ -368,18 +368,18 @@ const orderData = {
   </div>
 
   {/* USER NAME */}
-  <p className="font-semibold text-gray-900 mb-2 text-sm">
+  <p className="font-semibold mb-2 text-sm">
     {form.first_name} {form.last_name}
   </p>
 
   {/* PHONE */}
-  <div className="flex items-center my-2 gap-2 text-gray-600 text-sm mt-1">
+  <div className="flex items-center my-2 gap-2 text-sm mt-1">
     <span>📞</span>
     <span>{form.phone}</span>
   </div>
 
   {/* ADDRESS */}
-  <div className="flex items-start gap-2 text-gray-600 text-sm mt-2">
+  <div className="flex items-start gap-2 text-sm mt-2">
     {(form.address) && (
     <span>📍</span>
      )}
@@ -388,13 +388,13 @@ const orderData = {
       <p>{form.addressSecond}</p>
 
       {(form.city || form.state) && (
-        <p className="text-gray-500 my-1">
+        <p className=" my-1">
           {form.city}, {form.state}
         </p>
       )}
 
       {form.zip && (
-        <p className="text-gray-400 text-sm">
+        <p className="text-sm">
           ZIP: {form.zip}
         </p>
       )}

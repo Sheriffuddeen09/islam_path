@@ -150,80 +150,126 @@ export default function EditJobFinderForm({
 
     };
 
+const handleCV = (e) => {
 
-    const handleCV = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
+
     if (!file) return;
+
+    console.log("CV selected:", file);
+    console.log("Is File:", file instanceof File);
+    console.log("Name:", file.name);
+    console.log("Type:", file.type);
+    console.log("Size:", file.size);
+
     setCv(file);
-    };
-   
+};
 
 
     const handleSubmit = (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        const formData = new FormData();
+    const formData = new FormData();
+
+    formData.append(
+        "type",
+        "finder"
+    );
+
+    formData.append(
+        "full_name",
+        fullName || ""
+    );
+
+    formData.append(
+        "qualifications",
+        qualifications || ""
+    );
+
+    formData.append(
+        "portfolio",
+        portfolio || ""
+    );
+
+    formData.append(
+        "certification",
+        certification || ""
+    );
+
+    formData.append(
+        "location",
+        location || ""
+    );
+
+    formData.append(
+        "address",
+        address || ""
+    );
+
+
+    skills.forEach((skill) => {
 
         formData.append(
-            "type",
-            "finder"
+            "skills[]",
+            skill
         );
+
+    });
+
+
+    if (cv instanceof File) {
 
         formData.append(
-            "full_name",
-            fullName
+            "cv",
+            cv,
+            cv.name
         );
 
-
-        formData.append(
-            "qualifications",
-            qualifications
-        );
+    }
 
 
-        formData.append(
-            "portfolio",
-            portfolio
-        );
+    // DEBUG
+    console.log(
+        "CV STATE:",
+        cv
+    );
+
+    console.log(
+        "CV IS FILE:",
+        cv instanceof File
+    );
 
 
-        formData.append(
-            "certification",
-            certification
-        );
+    for (
+        const [key, value]
+        of formData.entries()
+    ) {
 
+        if (value instanceof File) {
 
-        formData.append(
-            "location",
-            location
-        );
-
-
-        formData.append(
-            "address",
-            address
-        );
-
-
-        skills.forEach((skill) => {
-
-            formData.append(
-                "skills[]",
-                skill
+            console.log(
+                key,
+                "FILE:",
+                value.name,
+                value.type,
+                value.size
             );
 
-        });
+        } else {
+
+            console.log(
+                key,
+                value
+            );
+
+        }
+
+    }
 
 
-       if (cv) {
-            formData.append("cv", cv);
-            }
-
-       
-        onSubmit(formData);
-
-    };
+    onSubmit(formData);
+};
 
 
     return (

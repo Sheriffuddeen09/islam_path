@@ -28,7 +28,7 @@ export const CartProvider = ({ children }) => {
     showNotification("You cannot buy your own product", "error");
     return;
   }
-    if (product.stock <= 0) return; // prevent adding out-of-stock items
+    if (product.stock <= 0) return; 
 
     try {
       setLoadingId(product.id); // start loading

@@ -123,14 +123,14 @@ const moveToCart = async (item) => {
         <div className="flex flex-col mt-14 lg:flex-row gap-6">
           {/* LEFT TABLE / CARDS */}
           <div className="flex-1">
-            <div className="bg-white shadow-md rounded-lg py-3 md:p-6 border-green-800 rounded border-t-2 sm:border-b-2 ">
-              <h1 className="text-xl font-semibold mb-4 text-black text-center font-bold">🛒 Wishlist Products</h1>
+            <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  shadow-md rounded-lg py-3 md:p-6 border-green-800 rounded border-t-2 sm:border-b-2 ">
+              <h1 className="text-xl font-semibold mb-4 text-center font-bold">🛒 Wishlist Products</h1>
             
 
               {/* TABLE FOR LARGE SCREENS */}
-               <div className="overflow-x-auto sm:w-full w-80 no-scrollbar mx-auto border-orange-800 rounded border-b-2 sm:border-0 shadow-md">
+               <div className="overflow-x-auto text-[var(--text-color)]  bg-[var(--bg-color)] nge-800 rounded border-b-2 sm:border-0 shadow-md">
                 <table className="min-w-full text-left">
-                  <thead className="bg-white text-black border-b-2 border-orange-800 rounded my-2 py-3">
+                  <thead className="text-[var(--text-color)]  bg-[var(--bg-color)]  border-b-2 border-orange-800 rounded my-2 py-3">
                     <tr>
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Delete</th>
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Product Image</th>
@@ -180,7 +180,7 @@ const moveToCart = async (item) => {
                           <div className="flex items-center gap-2">
                             <button
                                 onClick={() => updateQuantity(item, item.quantity - 1)}
-                                className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                                className="px-2 py-1 bg-gray-600 rounded hover:bg-gray-700"
                                 disabled={loadingItems[item.id] === "quantity"}
                                 >
                                 -
@@ -188,7 +188,7 @@ const moveToCart = async (item) => {
                            
                             <button
                             onClick={() => updateQuantity(item, item.quantity + 1)}
-                            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                            className="px-2 py-1 bg-gray-600 rounded hover:bg-gray-700"
                             disabled={loadingItems[item.id] === "quantity"}
                             >
                             +
@@ -229,7 +229,7 @@ const moveToCart = async (item) => {
           </div>
         </div>
       ) : (
-        <p className="text-center text-black flex justify-center items-center flex-col text-xl font-bold mt-40">
+        <p className="text-center flex justify-center items-center flex-col text-xl font-bold mt-40">
           🛒 Your wishlist is empty
           <Link to="/shop" className="text-blue-600 hover:underline mt-4">
             Go to Shop

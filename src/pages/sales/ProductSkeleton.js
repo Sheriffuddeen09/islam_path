@@ -1,4 +1,5 @@
 export default function ProductSkeleton() {
+  
   return (
     <div className="animate-pulse grid pt-28 pb-6 md:grid-cols-3 px-2 gap-8">
 

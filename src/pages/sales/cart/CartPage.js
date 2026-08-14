@@ -131,13 +131,13 @@ const total = subtotal + delivery - discount;
         <div className="flex flex-col mt-14 lg:flex-row gap-8">
           {/* LEFT TABLE / CARDS */}
           <div className="flex-1">
-            <div className="bg-white shadow-md rounded-lg py-3 md:p-6 border-blue-800 rounded border-t-2 sm:border-b-2 ">
-              <h1 className="text-xl font-semibold mb-4 text-black text-center font-bold">🛒 Cart Products</h1>
+            <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  shadow-md rounded-lg py-3 md:p-6 border-blue-800 rounded border-t-2 sm:border-b-2 ">
+              <h1 className="text-xl font-semibold mb-4 text-center font-bold">🛒 Cart Products</h1>
               
               {/* TABLE FOR LARGE SCREENS */}
               <div className="overflow-x-auto sm:w-full w-80 no-scrollbar mx-auto border-gray-800 rounded border-b-2 sm:border-0 shadow-md">
                 <table className="min-w-full text-left">
-                  <thead className="bg-white text-black border-b-2 border-gray-800 rounded my-2 py-3">
+                  <thead className="text-[var(--text-color)]  bg-[var(--bg-color)] border-b-2 border-gray-800 rounded my-2 py-3">
                     <tr>
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Delete</th>
                       <th className="px-4 py-4 whitespace-nowrap text-sm">Product Image</th>
@@ -154,7 +154,7 @@ const total = subtotal + delivery - discount;
                       const symbol = symbols[item.product.currency] || item.product.currency;
                     return (
                       
-                      <tr key={item.id} className="border-b py-2 my-3 text-black">
+                      <tr key={item.id} className="border-b py-2 my-3 text-[var(--text-color)]  bg-[var(--bg-color)] ">
                         <td className="px-4 py-2">
                           <CartDelete
                             cartId={item.id}
@@ -191,7 +191,7 @@ const total = subtotal + delivery - discount;
                               onClick={() =>
                                 updateQuantity(item, item.quantity - 1)
                               }
-                              className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
                             >
                               -
                             </button>
@@ -208,7 +208,7 @@ const total = subtotal + delivery - discount;
                               onClick={() =>
                                 updateQuantity(item, item.quantity + 1)
                               }
-                              className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                              className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
                             >
                               +
                             </button>
@@ -233,10 +233,10 @@ const total = subtotal + delivery - discount;
 
           {/* RIGHT SIDEBAR */}
           <div className="w-full lg:w-1/3">
-          <div className="bg-white shadow border-blue-800 rounded sm:border-t-2 border-b-2 text-black p-6 md:p-8">
+          <div className="text-[var(--text-color)]  bg-[var(--bg-color)] shadow border-blue-800 rounded sm:border-t-2 border-b-2 p-6 md:p-8">
           <h2 className="text-xl font-semibold mb-4">Cart Totals</h2>
 
-          <div className="bg-gray-50 rounded p-4 mb-4">
+          <div className="border border-blue-500 rounded p-4 mb-4">
 
             {/* SUBTOTAL */}
             <div className="flex justify-between mb-2">
@@ -269,7 +269,7 @@ const total = subtotal + delivery - discount;
           </div>
 
           {/* TOTAL */}
-          <div className="bg-gray-50 rounded p-4 mb-4 font-bold flex justify-between">
+          <div className="border-blue-600 rounded p-4 mb-4 font-bold flex justify-between">
             <span>Total</span>
             <span className="text-green-700">
               {symbol}{total.toFixed(2)}
@@ -286,7 +286,7 @@ const total = subtotal + delivery - discount;
         </div>
       ) : (
 
-    <p className="text-center text-black flex justify-center items-center flex-col text-xl font-bold mt-40 gap-4">
+    <p className="text-center flex justify-center items-center flex-col text-xl font-bold mt-40 gap-4">
       🛒 Your cart is empty
       <Link
         to="/online-sale"

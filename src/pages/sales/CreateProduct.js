@@ -307,9 +307,9 @@ const isGeneral =
 
 
   return (
-    <div className="min-h-screen bg-[var(--bg-color)] shadow-md  rounded-xl sm:p-8 lg:ml-64">
+    <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] shadow-md  rounded-xl sm:p-8 lg:ml-64">
       <div className="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl sm:p-8 p-3">
-        <h2 className="text-3xl font-bold mb-8 text-gray-800 border-b-2 pb-3 border-black">
+        <h2 className="text-3xl font-bold mb-8 border-b-2 pb-3 border-black">
           Create New Product
         </h2>
      {step === 1 && (
@@ -317,7 +317,7 @@ const isGeneral =
 
     {/* Product Type */}
      <div>
-  <label className="block text-sm font-semibold text-gray-700 mb-1">
+  <label className="block text-sm font-semibold mb-1">
     Product Category
   </label>
 
@@ -325,7 +325,7 @@ const isGeneral =
     {/* ---------------- Parent Category ---------------- */}
     <div className="flex flex-col">
       <select
-        className="border p-3 rounded-lg w-full text-base" // match input height
+        className="border p-3 rounded-lg w-full text-base text-black" // match input height
         value={selectedParent?.id || (newParent ? "new" : "")}
         onChange={(e) => {
           if (e.target.value === "new") {
@@ -356,7 +356,7 @@ const isGeneral =
         <input
           type="text"
           placeholder="Add new parent category (e.g Electronics)"
-          className="border p-3 rounded-lg w-full mt-2 text-base"
+          className="border p-3 rounded-lg w-full mt-2 text-base text-black"
           value={newParent}
           onChange={(e) => setNewParent(e.target.value)}
         />
@@ -368,7 +368,7 @@ const isGeneral =
       {(selectedParent || newParent) && (
         <>
           <select
-            className="border p-3 rounded-lg w-full text-base"
+            className="border p-3 rounded-lg w-full text-base text-black"
             value={selectedChild?.id || (newSubcategory ? "new" : "")}
             onChange={(e) => {
               if (e.target.value === "new") {
@@ -403,7 +403,7 @@ const isGeneral =
             <input
               type="text"
               placeholder="Add new subcategory (e.g Smart TV)"
-              className="border p-3 rounded-lg w-full mt-2 text-base"
+              className="border p-3 rounded-lg w-full mt-2 text-base text-black"
               value={newSubcategory}
               onChange={(e) => setNewSubcategory(e.target.value)}
             />
@@ -416,24 +416,24 @@ const isGeneral =
   {/* ---------------- Product Title & Stock  ---------------- */}
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1">
+      <label className="block text-sm font-semibold mb-1">
         Product Title
       </label>
       <input
         placeholder="Enter product title"
-        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base"
+        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base text-black"
         value={form.title}
         onChange={(e) => setForm({ ...form, title: e.target.value })}
       />
     </div>
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1">
+      <label className="block text-sm font-semibold mb-1">
         Stock
       </label>
       <input
         placeholder="Stock"
         type="text"
-        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base"
+        className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-base text-black"
         value={form.stock}
         onChange={(e) => setForm({ ...form, stock: e.target.value })}
       />
@@ -445,13 +445,13 @@ const isGeneral =
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold mb-1">
           Currency
         </label>
         <select
           value={form.currency}
           onChange={(e) => setForm({ ...form, currency: e.target.value })}
-          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
+          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-black"
         >
           <option value="">Currency</option>
           <option value="USD">$</option>
@@ -462,7 +462,7 @@ const isGeneral =
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold mb-1">
           Price
         </label>
         <input
@@ -470,7 +470,7 @@ const isGeneral =
           placeholder="Product price"
           value={form.price}
           onChange={e => setForm({ ...form, price: e.target.value })}
-          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
+          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-black"
         />
       </div>
 
@@ -480,25 +480,25 @@ const isGeneral =
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold mb-1">
           Discount (%)
         </label>
         <input
           type="text"
           placeholder="Discount percentage"
-          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
+          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-black"
           value={form.discount}
           onChange={e => setForm({ ...form, discount: e.target.value })}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
+        <label className="block text-sm font-semibold mb-1">
           Platform Charge (5%)
         </label>
         <input
           type="text"
-          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full bg-gray-100"
+          className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-black"
           value={form.charges}
           disabled
         />
@@ -508,12 +508,12 @@ const isGeneral =
 
     {/* Description */}
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1">
+      <label className="block text-sm font-semibold mb-1">
         Product Description
       </label>
       <textarea
-        placeholder="Write product description..."
-        className="border w-full p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400"
+        placeholder="Write product description"
+        className="border w-full p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 text-black"
         rows="4"
         value={form.description}
         onChange={e => setForm({ ...form, description: e.target.value })}
@@ -525,18 +525,18 @@ const isGeneral =
             <>
               <input
                 placeholder="Author"
-                className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full"
+                className="border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 w-full text-black"
                 value={form.author}
                 onChange={e => setForm({ ...form, author: e.target.value })}
               />
 
               {/* PDF Drag & Drop */}
               {/* <div className="mt-4">
-                <label className="block mb-2 font-medium text-gray-700">Upload PDF</label>
+                <label className="block mb-2 font-medium">Upload PDF</label>
                 <div
                   {...getPdfRootProps()}
                   className={`border-2 border-dashed p-6 rounded-lg text-center cursor-pointer transition
-                    ${isPdfDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50"}`}
+                    ${isPdfDragActive ? "border-blue-500 " : "border-gray-300 bg-gray-50"}`}
                 >
                   <input {...getPdfInputProps()} />
                   {pdf ? (
@@ -552,7 +552,7 @@ const isGeneral =
                           <path d="M10 12h4v2h-4z" />
                         </svg>
                         <div className="flex flex-col">
-                          <span className="text-gray-700 font-medium truncate">{pdf.name}</span>
+                          <span className= font-medium truncate">{pdf.name}</span>
                           <span className="text-gray-500 text-sm">{(pdf.size / 1024).toFixed(2)} KB</span>
                         </div>
                       </div>
@@ -576,11 +576,11 @@ const isGeneral =
               { label: "Side Image", setter: setSide, file: side }].map((item, idx) => (
               <div key={idx} className="flex flex-col items-center">
                 <p className="font-medium mb-2">{item.label}</p>
-                <label className="w-full p-4 border-2 border-blue-600 border-dashed rounded-lg text-center cursor-pointer hover:bg-blue-50 transition">
+                <label className="w-full p-4 border-2 border-blue-600 border-dashed rounded-lg text-center cursor-pointer hover:border-blue-500 transition">
                   {item.file ? (
                     <img src={URL.createObjectURL(item.file)} className="h-32 mx-auto object-cover rounded" />
                   ) : (
-                    <span className="text-gray-800 text-sm font-semibold">Upload {item.label}</span>
+                    <span className="text-sm font-semibold">Upload {item.label}</span>
                   )}
                   <input type="file" className="hidden" onChange={e => item.setter(e.target.files[0])} />
                 </label>
@@ -594,7 +594,7 @@ const isGeneral =
             <div
               {...getRootProps()}
               className={`border-2 border-dashed p-8 rounded-lg text-center cursor-pointer transition
-                ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50"}`}
+                ${isDragActive ? "border-blue-500 " : "border-gray-300"}`}
             >
               <input {...getInputProps()} />
               <p className="text-gray-500 font-medium">
@@ -645,7 +645,7 @@ const isGeneral =
 
           <input
           placeholder="Brand Name"
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.brand_name}
           onChange={e=>setForm({...form,brand_name:e.target.value})}
           />
@@ -653,14 +653,14 @@ const isGeneral =
 
           <input
           placeholder="Company Location"
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.location}
           onChange={e=>setForm({...form,location:e.target.value})}
           />
 
           
           <select
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.company_available}
           onChange={e=>setForm({...form,company_available:e.target.value})}
           >
@@ -675,7 +675,7 @@ const isGeneral =
        <>
 
           <select
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.company_type}
           onChange={e=>setForm({...form, company_type:e.target.value})}
           >
@@ -687,21 +687,21 @@ const isGeneral =
 
           <input
           placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.delivery_method}
           onChange={e=>setForm({...form, delivery_time:e.target.value})}
           />
 
 
     {/* KEY FEATURES */}
-    <div className="bg-white p-4 rounded-xl shadow space-y-3">
+    <div className="p-4 rounded-xl shadow space-y-3">
       <h2 className="font-bold text-lg">Key Features</h2>
 
       {keyFeatures.map((item, index) => (
         <div key={index} className="flex gap-2">
           <input
             placeholder="Key (e.g Model)"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.key}
             onChange={(e) =>
               updateField(index, "key", e.target.value, "features")
@@ -710,7 +710,7 @@ const isGeneral =
 
           <input
             placeholder="Value (e.g LP Smart TV)"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.value}
             onChange={(e) =>
               updateField(index, "value", e.target.value, "features")
@@ -737,14 +737,14 @@ const isGeneral =
     </div>
 
     {/* SPECIFICATIONS */}
-    <div className="bg-white p-4 rounded-xl shadow space-y-3 mt-5">
+    <div className="p-4 rounded-xl shadow space-y-3 mt-5">
       <h2 className="font-bold text-lg">Specifications</h2>
 
       {specifications.map((item, index) => (
         <div key={index} className="flex gap-2">
           <input
             placeholder="Key (e.g SKU)"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.key}
             onChange={(e) =>
               updateField(index, "key", e.target.value, "specs")
@@ -753,7 +753,7 @@ const isGeneral =
 
           <input
             placeholder="Value"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.value}
             onChange={(e) =>
               updateField(index, "value", e.target.value, "specs")
@@ -788,7 +788,7 @@ const isGeneral =
           <>
 
           <select
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.company_type}
           onChange={e=>setForm({...form,company_type:e.target.value})}
           >
@@ -800,20 +800,20 @@ const isGeneral =
 
           <input
           placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.delivery_method}
           onChange={e=>setForm({...form, delivery_time:e.target.value})}
           />
           
     {/* SPECIFICATIONS */}
-    <div className="bg-white p-4 rounded-xl shadow space-y-3 mt-5">
+    <div className="p-4 rounded-xl shadow space-y-3 mt-5">
       <h2 className="font-bold text-lg">Specifications</h2>
 
       {specifications.map((item, index) => (
         <div key={index} className="flex gap-2">
           <input
             placeholder="Key (e.g SKU)"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.key}
             onChange={(e) =>
               updateField(index, "key", e.target.value, "specs")
@@ -822,7 +822,7 @@ const isGeneral =
 
           <input
             placeholder="Value"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.value}
             onChange={(e) =>
               updateField(index, "value", e.target.value, "specs")
@@ -861,7 +861,7 @@ const isGeneral =
 
           <select
             value={form.sale_type}
-            className="border p-3 rounded-lg w-full"
+            className="border p-3 rounded-lg w-full text-black"
             onChange={(e) => {
               const value = e.target.value;
 
@@ -882,7 +882,7 @@ const isGeneral =
 
 
           <select
-          className="border p-3 rounded-lg w-full"
+          className="border p-3 rounded-lg w-full text-black"
           value={form.downloadable}
           onChange={(e) => {
             const value = e.target.value;
@@ -907,7 +907,7 @@ const isGeneral =
           {form.downloadable !== "yes" && (
           <input
             placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
-            className="border p-3 rounded-lg w-full"
+            className="border p-3 rounded-lg w-full text-black"
             value={form.delivery_method}
             onChange={(e) =>
               setForm({ ...form, delivery_method: e.target.value })
@@ -924,7 +924,7 @@ const isGeneral =
         <div key={index} className="flex gap-2">
           <input
             placeholder="Key (e.g SKU)"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.key}
             onChange={(e) =>
               updateField(index, "key", e.target.value, "specs")
@@ -933,7 +933,7 @@ const isGeneral =
 
           <input
             placeholder="Value"
-            className="border p-2 w-1/2 rounded"
+            className="border p-2 w-1/2 rounded text-black"
             value={item.value}
             onChange={(e) =>
               updateField(index, "value", e.target.value, "specs")

@@ -88,11 +88,11 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
 
       {/* Modal */}
         <div
-        className="relative mb-4 w-full h-full overflow mx-auto"
+        className="relative bg-[var(--bg-color)] text-[var(--text-color)] mb-4 w-full h-full overflow mx-auto"
           onClick={() => setSearchOpen(false)}
         >
           <div
-            className="relative bg-white w-full flex-1 h-full shadow-lg rounded-lg p-4 animate-slideIn  flex flex-col"
+            className="relative bg-[var(--bg-color)] w-full flex-1 h-full shadow-lg rounded-lg p-4 animate-slideIn  flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search Input */}
@@ -100,7 +100,7 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
             <input
                 type="text"
                 autoFocus
-                placeholder="Search products or categories..."
+                placeholder="Search products or categories"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full border px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-black"
@@ -132,7 +132,7 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
             {!query && recentSearches.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <p className="font-semibold text-black">Recent Searches</p>
+                  <p className="font-semibold">Recent Searches</p>
                   <button
                     onClick={clearAllRecent}
                     className="text-sm text-blue-600 hover:underline"
@@ -143,7 +143,7 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
                 {recentSearches.map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition"
+                    className="flex items-center justify-between p-2 hover:border-blue-500 rounded-lg transition"
                   >
                     <Link
                       to={`/product/${r.id}`}
@@ -159,11 +159,11 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
                           </div>
                         )}
                       </div>
-                      <p className="text-black font-medium">{r.title}</p>
+                      <p className=" font-medium">{r.title}</p>
                     </Link>
                     <button
                       onClick={() => removeRecent(r.id)}
-                      className="text-gray-400 hover:text-red-500"
+                      className=" hover:text-red-500"
                     >
                       ✕
                     </button>
@@ -175,23 +175,23 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
             {/* Search Results */}
             {query && (
               <div>
-                {loading && <p className="text-center text-gray-500 mt-4">Searching...</p>}
+                {loading && <p className="text-center mt-4">Searching...</p>}
 
                 {!loading &&
                   results.products.length === 0 &&
                   results.categories.length === 0 && (
-                    <p className="text-center text-gray-500 mt-4">No results found</p>
+                    <p className="text-center mt-4">No results found</p>
                   )}
 
                 {/* Categories */}
                 {results.categories.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs text-gray-400 mb-2">Categories</p>
+                    <p className="text-xs mb-2">Categories</p>
                     {results.categories.map((cat) => (
                       <div
                         key={cat.id}
                         onClick={() => handleCategoryClick(cat)}
-                        className="p-3 hover:bg-gray-100 cursor-pointer rounded-lg"
+                        className="p-3 hover:bg-gray-700 cursor-pointer rounded-lg"
                       >
                         <p className="font-semibold text-black">{cat.name}</p>
                         <p className="text-xs text-gray-500">
@@ -205,7 +205,7 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
                 {/* Products */}
                 {results.products.length > 0 && (
                   <div>
-                    <p className="text-xs text-gray-400 mb-2">Products</p>
+                    <p className="text-xs mb-2">Products</p>
                     {results.products.map((p) => (
                       <Link
                         to={`/product/${p.id}`}
@@ -217,7 +217,7 @@ export default function SearchProduct({ onCategorySelect = () => {}, searchOpen,
                           src={p.image}
                           className="w-12 h-12 object-cover rounded"
                         />
-                        <p className="font-medium text-black">{p.title}</p>
+                        <p className="font-medium">{p.title}</p>
                       </Link>
                     ))}
                   </div>

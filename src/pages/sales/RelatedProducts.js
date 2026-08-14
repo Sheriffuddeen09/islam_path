@@ -8,8 +8,8 @@ export default function RelatedProducts({ products }) {
 
 
   return (
-    <div className="mt-10">
-      <h2 className="text-2xl px-2 font-bold mb-4 text-black">
+    <div className="mt-10 text-[var(--text-color)]">
+      <h2 className="text-2xl px-2 font-bold mb-4">
         Related Products
       </h2>
 
@@ -34,8 +34,8 @@ export default function RelatedProducts({ products }) {
                 className="h-40 w-full object-cover mb-2"
               />
 
-              <h3 className="font-medium text-gray-800">{p.title}</h3>
-              <p className="text-gray-500">{symbol} {p.price}</p>
+              <h3 className="font-medium">{p.title}</h3>
+              <p className="">{symbol} {p.price}</p>
             </Link>
           );
         })}

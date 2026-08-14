@@ -186,9 +186,9 @@ useEffect(() => {
   const removeSpec = (i) => setSpecifications(specifications.filter((_, idx) => idx !== i));
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
-    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[var(--bg-color)] w-[650px] max-h-[90vh] overflow-y-auto scrollbar-thin p-6 rounded-xl shadow-lg space-y-4">
+    <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-[var(--bg-color)] text-[var(--text-color)] w-[650px] max-h-[90vh] 
+      overflow-y-auto scrollbar-thin p-6 rounded-xl shadow-lg space-y-4">
 
         <h2 className="text-xl font-bold">Edit Product</h2>
 
@@ -356,7 +356,9 @@ useEffect(() => {
 
             <label
               htmlFor={inputId}
-              className="inline-block text-[var(--text-color)] w-40 text-center whitespace-nowrap font-semibold capitalize border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50 transition"
+              className="inline-block text-[var(--text-color)] w-40 text-center whitespace-nowrap 
+              font-semibold capitalize border-2 border-blue-600 border-dashed rounded-lg px-4 py-2
+              cursor-pointer hover:bg-gray-50 transition"
             >
               Edit {key.replace("_", " ")}
             </label>
@@ -389,7 +391,8 @@ useEffect(() => {
 
           <label
             htmlFor="pdf-input"
-            className="inline-block text-[var(--text-color)] w-40 text-center font-bold border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer"
+            className="inline-block text-[var(--text-color)] w-40 text-center font-bold border-2 
+            border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer"
           >
             Edit PDF
           </label>
@@ -432,7 +435,8 @@ useEffect(() => {
 
         <label
           htmlFor="gallery-input"
-          className="inline-block text-[va] w-48 text-center font-bold border-2 border-blue-600 border-dashed rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-50"
+          className="inline-block text-[va] w-48 text-center font-bold border-2 border-blue-600 
+          border-dashed rounded-lg px-4 py-2 cursor-pointer hover:border-blue-500"
         >
           Edit Product Images
         </label>

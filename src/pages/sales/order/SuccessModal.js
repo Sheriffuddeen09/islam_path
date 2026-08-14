@@ -40,7 +40,8 @@ export default function SuccessModal({
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fadeIn">
 
-      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center relative">
+      <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  rounded-3xl shadow-2xl 
+      max-w-md w-full p-8 text-center relative">
 
         {/* ICON */}
         <div className="flex justify-center mb-4">
@@ -50,12 +51,12 @@ export default function SuccessModal({
         </div>
 
         {/* TITLE */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold mb-2">
           {current.title}
         </h2>
 
         {/* MESSAGE */}
-        <p className="text-gray-500 mb-6">
+        <p className="mb-6">
           {message}
         </p>
 

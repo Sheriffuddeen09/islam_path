@@ -6,11 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import countryList from "react-select-country-list";
 import {
-    MapPin,
     Upload,
-    FileText,
-    Building2,
-    Users,
 } from "lucide-react";
 
 export default function EditJobCreatorForm({
@@ -80,55 +76,105 @@ export default function EditJobCreatorForm({
 
     const handleSubmit = (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        const formData =
-            new FormData();
+    const formData = new FormData();
 
+    formData.append(
+        "type",
+        "creator"
+    );
+
+    formData.append(
+        "company_name",
+        companyName || ""
+    );
+
+    formData.append(
+        "company_type",
+        companyType || ""
+    );
+
+    formData.append(
+        "organisation_size",
+        organisationSize || ""
+    );
+
+    formData.append(
+        "company_location",
+        companyLocation || ""
+    );
+
+    formData.append(
+        "company_address",
+        companyAddress || ""
+    );
+
+
+    if (companyLogo instanceof File) {
 
         formData.append(
-            "type",
-            "creator"
+            "company_logo",
+            companyLogo,
+            companyLogo.name
         );
 
-        formData.append(
-            "company_name",
-            companyName
-        );
-
-        formData.append(
-            "company_type",
-            companyType
-        );
-
-        formData.append(
-            "organisation_size",
-            organisationSize
-        );
-
-        formData.append(
-            "company_location",
-            companyLocation
-        );
-
-        formData.append(
-            "company_address",
-            companyAddress
-        );
+    }
 
 
-        if (companyLogo) {
+    console.log(
+        "Company Logo:",
+        companyLogo
+    );
 
-            formData.append(
-                "company_logo",
-                companyLogo
+    console.log(
+        "Is File:",
+        companyLogo instanceof File
+    );
+
+    console.log(
+        "Type:",
+        companyLogo?.type
+    );
+
+
+    // VERY IMPORTANT
+    console.log(
+        "Is FormData:",
+        formData instanceof FormData
+    );
+
+
+    // See exactly what is inside FormData
+    for (
+        const [key, value]
+        of formData.entries()
+    ) {
+
+        if (value instanceof File) {
+
+            console.log(
+                key,
+                "FILE:",
+                value.name,
+                value.type,
+                value.size
+            );
+
+        } else {
+
+            console.log(
+                key,
+                value
             );
 
         }
 
-        onSubmit(formData);
+    }
 
-    };
+
+    onSubmit(formData);
+};
 
 return (
 
