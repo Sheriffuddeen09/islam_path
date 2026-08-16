@@ -1,81 +1,96 @@
-import React, { useEffect, useState } from "react";
+import React, {
+    useEffect,
+    useState
+} from "react";
+
 import {
     Badge,
+    CalendarDays,
     CheckCircle,
-    LoaderCircle,
-    Eye,
-    MapPin,
-    X,
+    Clock,
     Globe2,
-    ShieldCheck,
+    LoaderCircle,
+    MapPin,
+    RefreshCcw,
+    Trash2,
+    X
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
 import toast from "react-hot-toast";
+
+import { useNavigate } from "react-router-dom";
+
 import api from "../../Api/axios";
+
 
 export default function ProductVisibility() {
 
     const navigate = useNavigate();
 
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] =
+        useState([]);
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] =
+        useState(true);
 
     const [upgradingId, setUpgradingId] =
+        useState(null);
+
+    const [deletingId, setDeletingId] =
         useState(null);
 
     const [selectedProduct, setSelectedProduct] =
         useState(null);
 
-    const [selectedVisibility, setSelectedVisibility] =
+    const [selectedPlan, setSelectedPlan] =
         useState(null);
 
-    const [openModal, setOpenModal] =
-        useState(false);
-
-    const [successModal, setSuccessModal] =
+    const [showModal, setShowModal] =
         useState(false);
 
     const visibilityOptions = [
 
         {
             value: "25",
-            title: "1/4 of Locations",
-            description:
-                "Your product will be visible beyond your location to approximately one quarter of locations.",
+            title: "1/4 Locations",
             badges: 80,
-            icon: MapPin,
+            months: 1,
+            description:
+                "Visible to approximately one quarter of available locations.",
+            icon: MapPin
         },
 
         {
             value: "50",
-            title: "1/2 of Locations",
-            description:
-                "Your product will be visible beyond your location to approximately half of locations.",
+            title: "1/2 Locations",
             badges: 180,
-            icon: MapPin,
+            months: 2,
+            description:
+                "Visible to approximately half of available locations.",
+            icon: MapPin
         },
 
         {
             value: "75",
-            title: "3/4 of Locations",
-            description:
-                "Your product will be visible beyond your location to approximately three quarters of locations.",
+            title: "3/4 Locations",
             badges: 270,
-            icon: Globe2,
+            months: 3,
+            description:
+                "Visible to approximately three quarters of available locations.",
+            icon: Globe2
         },
 
         {
             value: "100",
             title: "All Locations",
-            description:
-                "Your product will be visible to users across all available locations.",
             badges: 300,
-            icon: Globe2,
-        },
+            months: 4,
+            description:
+                "Visible across all available locations.",
+            icon: Globe2
+        }
 
     ];
-
 
     useEffect(() => {
 
@@ -90,26 +105,22 @@ export default function ProductVisibility() {
 
             setLoading(true);
 
-            const response = await api.get(
-                "/api/my-products"
-            );
+            const response =
+                await api.get(
+                    "/api/my-products/visibility"
+                );
 
             setProducts(
-                response.data.products ||
-                response.data.data ||
-                []
+                response.data.products || []
             );
 
         } catch (error) {
 
-            console.error(
-                "PRODUCT VISIBILITY ERROR:",
-                error
-            );
+            console.error(error);
 
             toast.error(
                 error.response?.data?.message ||
-                "Unable to load your products."
+                "Unable to load products."
             );
 
         } finally {
@@ -120,216 +131,216 @@ export default function ProductVisibility() {
 
     };
 
-    const selectVisibility = (
-        product,
-        visibility
-    ) => {
 
-        setSelectedProduct(product);
+    const getProductImage =
+        (product) => {
 
-        setSelectedVisibility(visibility);
+            if (
+                product.images &&
+                product.images.length
+            ) {
 
-        setOpenModal(true);
+                return `http://localhost:8000/storage/${product.images[0].image_path}`;
 
-    };
+            }
+
+            return "/placeholder.png";
+        };
+
+    const formatDate =
+        (date) => {
+
+            if (!date) {
+                return "Not available";
+            }
+
+            return new Date(date)
+                .toLocaleDateString(
+                    undefined,
+                    {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                    }
+                );
+        };
 
 
-    const closeModal = () => {
+    const openRenewModal =
+        (product) => {
 
-        if (upgradingId) {
-            return;
-        }
-
-        setOpenModal(false);
-
-        setSelectedProduct(null);
-
-        setSelectedVisibility(null);
-
-    };
-
-
-    const upgradeVisibility = async () => {
-
-        if (
-            !selectedProduct ||
-            !selectedVisibility
-        ) {
-            return;
-        }
-
-        try {
-
-            setUpgradingId(
-                selectedProduct.id
+            setSelectedProduct(
+                product
             );
 
+            setSelectedPlan(null);
 
-            const response = await api.post(
+            setShowModal(true);
 
-                `/api/product/${selectedProduct.id}/visibility`,
-
-                {
-                    visibility:
-                        selectedVisibility.value
-                }
-
-            );
-
-            const updatedProduct =
-                response.data.product;
+        };
 
 
-            setProducts((previousProducts) =>
 
-                previousProducts.map(
-                    (product) =>
+    const renewVisibility =
+        async () => {
 
-                        product.id ===
-                        selectedProduct.id
+            if (
+                !selectedProduct ||
+                !selectedPlan
+            ) {
 
-                            ? updatedProduct
+                toast.error(
+                    "Select a visibility plan."
+                );
 
-                            : product
-                )
+                return;
 
-            );
-
-            setOpenModal(false);
-
-            setSuccessModal(true);
+            }
 
 
-        } catch (error) {
+            try {
 
-            console.error(
-                "VISIBILITY UPDATE ERROR:",
-                error
-            );
-
-            toast.error(
-
-                error.response?.data?.message ||
-
-                "Unable to upgrade product visibility."
-
-            );
-
-        } finally {
-
-            setUpgradingId(null);
-
-        }
-
-    };
+                setUpgradingId(
+                    selectedProduct.id
+                );
 
 
-    const getProductImage = (
-        product
-    ) => {
+                const response =
+                    await api.post(
 
-        if (
-            product.images &&
-            product.images.length > 0
-        ) {
+                        `/api/product/${selectedProduct.id}/visibility`,
 
-            return `http://localhost:8000/storage/${product.images[0].image_path}`;
+                        {
+                            visibility:
+                                selectedPlan.value
+                        }
 
-        }
+                    );
 
-        return "/placeholder.png";
 
-    };
+                toast.success(
+                    response.data.message
+                );
 
-    const getVisibilityLabel = (
-        visibility
-    ) => {
 
-        switch (
-            String(visibility)
-        ) {
+                setShowModal(false);
 
-            case "25":
-                return "1/4 of locations";
+                setSelectedProduct(null);
 
-            case "50":
-                return "1/2 of locations";
+                setSelectedPlan(null);
 
-            case "75":
-                return "3/4 of locations";
+                await fetchProducts();
 
-            case "100":
-                return "All locations";
 
-            default:
-                return "Only your location";
+            } catch (error) {
 
-        }
+                toast.error(
 
-    };
+                    error.response?.data?.message ||
+
+                    "Unable to renew visibility."
+
+                );
+
+            } finally {
+
+                setUpgradingId(null);
+
+            }
+
+        };
+
+
+    const deleteVisibility =
+        async (product) => {
+
+            const confirmed =
+                window.confirm(
+                    "Are you sure you want to remove the expired visibility?"
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+                setDeletingId(
+                    product.id
+                );
+
+
+                const response =
+                    await api.delete(
+
+                        `/api/product/${product.id}/visibility`
+
+                    );
+
+
+                toast.success(
+                    response.data.message
+                );
+
+
+                await fetchProducts();
+
+
+            } catch (error) {
+
+                toast.error(
+
+                    error.response?.data?.message ||
+
+                    "Unable to delete visibility."
+
+                );
+
+            } finally {
+
+                setDeletingId(null);
+
+            }
+
+        };
+
 
     if (loading) {
 
         return (
 
-            <div className="
-                min-h-screen
-                pt-24
-                px-4
-                pb-10
-                bg-[var(--bg-color)]
-                text-[var(--text-color)]
-            ">
-
-                <div className="
-                    max-w-7xl
+            <div
+                className="
+                    max-w-6xl
                     mx-auto
-                ">
+                    px-4
+                    pt-24
+                    pb-10
+                "
+            >
 
-                    <div className="
+                <div
+                    className="
                         animate-pulse
-                        space-y-6
-                    ">
+                        space-y-4
+                    "
+                >
 
-                        <div className="
-                            h-10
-                            bg-gray-200
-                            rounded-xl
-                            w-72
-                        " />
+                    {[1, 2, 3].map(
+                        (item) => (
 
-                        <div className="
-                            h-5
-                            bg-gray-200
-                            rounded
-                            w-full
-                            max-w-xl
-                        " />
+                            <div
+                                key={item}
+                                className="
+                                    h-48
+                                    rounded-3xl
+                                    bg-gray-200
+                                "
+                            />
 
-                        <div className="
-                            grid
-                            sm:grid-cols-2
-                            lg:grid-cols-3
-                            gap-6
-                        ">
-
-                            {[1, 2, 3, 4, 5, 6]
-                                .map((item) => (
-
-                                    <div
-                                        key={item}
-                                        className="
-                                            bg-gray-200
-                                            rounded-3xl
-                                            h-96
-                                        "
-                                    />
-
-                                ))}
-
-                        </div>
-
-                    </div>
+                        )
+                    )}
 
                 </div>
 
@@ -342,168 +353,146 @@ export default function ProductVisibility() {
 
     return (
 
-        <div className="
-            min-h-screen
-            pt-24
-            px-3
-            sm:px-5
-            pb-10
-            bg-[var(--bg-color)]
-            text-[var(--text-color)]
-        ">
-
-            <div className="
-                max-w-7xl
+        <div
+            className="
+                max-w-6xl
                 mx-auto
-            ">
+                px-4
+                pt-24
+                pb-12
+            "
+        >
 
-                {/* HEADER */}
+            {/* HEADER */}
 
-                <div className="
+            <div
+                className="
+                    flex
+                    flex-col
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                    gap-4
                     mb-8
-                ">
+                "
+            >
 
-                    <div className="
-                        flex
-                        items-center
-                        gap-3
-                        mb-3
-                    ">
+                <div>
 
-                        <div className="
-                            p-3
-                            rounded-2xl
-                            bg-blue-100
-                            text-blue-600
-                        ">
+                    <h1
+                        className="
+                            text-3xl
+                            font-bold
+                        "
+                    >
+                        Product Visibility
+                    </h1>
 
-                            <Eye
-                                size={28}
-                            />
-
-                        </div>
-
-                        <div>
-
-                            <h1 className="
-                                text-2xl
-                                sm:text-3xl
-                                font-bold
-                            ">
-
-                                Product Visibility
-
-                            </h1>
-
-                            <p className="
-                                text-sm
-                                opacity-70
-                            ">
-
-                                Upgrade your products to
-                                reach users outside your
-                                location.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div className="
-                        border
-                        border-blue-200
-                        bg-blue-50
-                        rounded-2xl
-                        p-4
-                        mt-5
-                        flex
-                        gap-3
-                    ">
-
-                        <ShieldCheck
-                            className="
-                                text-blue-600
-                                flex-shrink-0
-                            "
-                        />
-
-                        <p className="
-                            text-sm
-                            text-blue-800
-                        ">
-
-                            Product visibility is controlled
-                            by your selected location and the
-                            visibility level you unlock with
-                            badges.
-
-                        </p>
-
-                    </div>
+                    <p
+                        className="
+                            mt-2
+                           
+                        "
+                    >
+                        Manage how far your products
+                        can reach beyond your location.
+                    </p>
 
                 </div>
 
 
-                {/* NO PRODUCTS */}
+                <button
+                    onClick={() =>
+                        navigate(
+                            "/dashboard"
+                        )
+                    }
+                    className="
+                        px-5
+                        py-3
+                        rounded-xl
+                        border
+                        font-semibold
+                    "
+                >
+                    Back to Dashboard
+                </button>
 
-                {products.length === 0 && (
+            </div>
 
-                    <div className="
+
+            {/* NO PRODUCTS */}
+
+            {products.length === 0 ? (
+
+                <div
+                    className="
                         text-center
                         py-20
-                        border
                         rounded-3xl
-                    ">
+                        border
+                    "
+                >
 
-                        <Eye
-                            size={50}
-                            className="
-                                mx-auto
-                                mb-4
-                                opacity-50
-                            "
-                        />
+                    <Globe2
+                        size={50}
+                        className="
+                            mx-auto
+                           
+                        "
+                    />
 
-                        <h2 className="
-                            text-xl
+                    <h2
+                        className="
+                            text-2xl
                             font-bold
-                        ">
+                            mt-4
+                        "
+                    >
+                        No Products
+                    </h2>
 
-                            No Products Found
-
-                        </h2>
-
-                        <p className="
-                            opacity-70
+                    <p
+                        className="
                             mt-2
-                        ">
+                           
+                        "
+                    >
+                        You don't have any products
+                        to manage.
+                    </p>
 
-                            You don't currently have
-                            any products to upgrade.
+                </div>
 
-                        </p>
+            ) : (
 
-                    </div>
-
-                )}
-
-
-                {/* PRODUCTS */}
-
-                <div className="
-                    grid
-                    sm:grid-cols-2
-                    lg:grid-cols-3
-                    gap-6
-                ">
+                <div
+                    className="
+                        flex
+                        flex-col
+                        gap-5
+                    "
+                >
 
                     {products.map(
                         (product) => {
 
+                           const isVisibilitySelected =
+                                product.visibility_unlocked &&
+                                product.visibility_expires_at;
+
+                            const isExpired =
+                                isVisibilitySelected &&
+                                new Date(product.visibility_expires_at) < new Date();
+                            const isActive =
+                                product.visibility_active;
+
                             const isUpgrading =
                                 upgradingId ===
+                                product.id;
+
+                            const isDeleting =
+                                deletingId ===
                                 product.id;
 
 
@@ -514,271 +503,364 @@ export default function ProductVisibility() {
                                         product.id
                                     }
                                     className="
+                                        flex
+                                        flex-col
+                                        sm:flex-row
                                         bg-[var(--bg-color)]
                                         border
                                         border-gray-200
                                         rounded-3xl
                                         overflow-hidden
                                         shadow-sm
-                                        hover:shadow-lg
-                                        transition
                                     "
                                 >
 
                                     {/* IMAGE */}
 
-                                    <img
-                                        src={getProductImage(
-                                            product
-                                        )}
-                                        alt={
-                                            product.title
-                                        }
+                                    <div
                                         className="
+                                            sm:w-52
                                             w-full
-                                            h-56
-                                            object-cover
+                                            flex-shrink-0
                                         "
-                                    />
+                                    >
 
-
-                                    <div className="
-                                        p-5
-                                    ">
-
-                                        {/* TITLE */}
-
-                                        <h2 className="
-                                            font-bold
-                                            text-lg
-                                            line-clamp-2
-                                        ">
-
-                                            {
+                                        <img
+                                            src={
+                                                getProductImage(
+                                                    product
+                                                )
+                                            }
+                                            alt={
                                                 product.title
                                             }
+                                            className="
+                                                w-full
+                                                h-56
+                                                sm:h-full
+                                                min-h-[220px]
+                                                object-cover
+                                            "
+                                        />
 
-                                        </h2>
+                                    </div>
 
 
-                                        {/* LOCATION */}
+                                    {/* BODY */}
 
-                                        <div className="
+                                    <div
+                                        className="
+                                            flex-1
+                                            p-5
                                             flex
-                                            items-center
-                                            gap-2
-                                            mt-3
-                                            text-sm
-                                            opacity-70
-                                        ">
+                                            flex-col
+                                            lg:flex-row
+                                            lg:items-center
+                                            gap-5
+                                        "
+                                    >
 
-                                            <MapPin
-                                                size={16}
-                                            />
+                                        {/* PRODUCT */}
 
-                                            <span>
+                                        <div
+                                            className="
+                                                flex-1
+                                            "
+                                        >
+
+                                            <h2
+                                                className="
+                                                    text-xl
+                                                    font-bold
+                                                "
+                                            >
+                                                {
+                                                    product.title
+                                                }
+                                            </h2>
+
+
+                                            <div
+                                                className="
+                                                    flex
+                                                    items-center
+                                                    gap-2
+                                                    mt-3
+                                                    text-sm
+                                                   
+                                                "
+                                            >
+
+                                                <MapPin
+                                                    size={16}
+                                                />
 
                                                 {
                                                     product.location ||
                                                     "Location not set"
                                                 }
 
-                                            </span>
-
-                                        </div>
+                                            </div>
 
 
-                                        {/* CURRENT VISIBILITY */}
+                                            {/* VISIBILITY */}
 
-                                        <div className="
-                                            mt-4
-                                            rounded-2xl
-                                            bg-gray-50
-                                            p-4
-                                        ">
+                                            <div
+                                                className="
+                                                    mt-4 p-2 w-44 text=center border border-blue-600 rounded-lg
+                                                "
+                                            >
 
-                                            <p className="
-                                                text-xs
-                                                opacity-60
-                                            ">
-
-                                                Current visibility
-
-                                            </p>
-
-                                            <p className="
-                                                font-semibold
-                                                mt-1
-                                            ">
-
-                                                {product.visibility_unlocked
-                                                    ? getVisibilityLabel(
-                                                        product.visibility
-                                                    )
-                                                    : "Only your location"}
-
-                                            </p>
-
-                                        </div>
+                                                <p
+                                                    className="
+                                                        text-xs
+                                                       
+                                                    "
+                                                >
+                                                    Current Visibility
+                                                </p>
 
 
-                                        {/* UPGRADE BUTTON */}
+                                                <p
+                                                    className="
+                                                        font-semibold
+                                                        mt-1
+                                                    "
+                                                >
 
-                                        <button
-                                            type="button"
-                                            disabled={
-                                                isUpgrading
-                                            }
-                                            onClick={() =>
-                                                setSelectedProduct(
-                                                    product
-                                                )
-                                            }
-                                            className="
-                                                mt-4
-                                                w-full
-                                                bg-blue-600
-                                                hover:bg-blue-700
-                                                disabled:opacity-50
-                                                text-white
-                                                rounded-xl
-                                                py-3
-                                                font-semibold
-                                                transition
-                                            "
-                                        >
-
-                                            {isUpgrading ? (
-
-                                                <span className="
-                                                    flex
-                                                    justify-center
-                                                    items-center
-                                                    gap-2
-                                                ">
-
-                                                    <LoaderCircle
-                                                        size={20}
-                                                        className="
-                                                            animate-spin
-                                                        "
-                                                    />
-
-                                                    Updating...
-
-                                                </span>
-
-                                            ) : (
-
-                                                "Upgrade Visibility"
-
-                                            )}
-
-                                        </button>
-
-
-                                        {/* VISIBILITY OPTIONS */}
-
-                                        {selectedProduct?.id ===
-                                            product.id && (
-
-                                            <div className="
-                                                mt-4
-                                                space-y-2
-                                            ">
-
-                                                {visibilityOptions.map(
-                                                    (option) => {
-
-                                                        const Icon =
-                                                            option.icon;
-
-                                                        return (
-
-                                                            <button
-                                                                key={
-                                                                    option.value
-                                                                }
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    selectVisibility(
-                                                                        product,
-                                                                        option
-                                                                    )
-                                                                }
-                                                                className="
-                                                                    w-full
-                                                                    border
-                                                                    border-blue-200
-                                                                    hover:border-blue-600
-                                                                    hover:bg-blue-50
-                                                                    rounded-xl
-                                                                    p-3
-                                                                    text-left
-                                                                    transition
-                                                                "
-                                                            >
-
-                                                                <div className="
-                                                                    flex
-                                                                    items-center
-                                                                    justify-between
-                                                                ">
-
-                                                                    <div className="
-                                                                        flex
-                                                                        items-center
-                                                                        gap-3
-                                                                    ">
-
-                                                                        <Icon
-                                                                            size={19}
-                                                                            className="
-                                                                                text-blue-600
-                                                                            "
-                                                                        />
-
-                                                                        <span className="
-                                                                            font-semibold
-                                                                            text-sm
-                                                                        ">
-
-                                                                            {
-                                                                                option.title
-                                                                            }
-
-                                                                        </span>
-
-                                                                    </div>
-
-                                                                    <span className="
-                                                                        text-xs
-                                                                        font-bold
-                                                                        text-blue-600
-                                                                    ">
-
-                                                                        {
-                                                                            option.badges
-                                                                        }
-
-                                                                        {" "}
-
-                                                                        badges
-
-                                                                    </span>
-
-                                                                </div>
-
-                                                            </button>
-
-                                                        );
-
+                                                    {
+                                                        product.visibility_label ||
+                                                        "Only your location"
                                                     }
-                                                )}
+
+                                                </p>
 
                                             </div>
 
-                                        )}
+                                        </div>
+
+
+                                        {/* EXPIRY */}
+
+                                        <div
+                                            className={`
+                                                rounded-2xl
+                                                px-4 py-3
+                                                ${
+                                                    isExpired
+                                                        ? "bg-red-50 text-red-700"
+                                                        : "bg-green-50 text-green-700"
+                                                }
+                                            `}
+                                        >
+
+                                            <div className="">
+
+                                            <div className="flex items-center gap-2">
+
+                                                {isExpired ? (
+                                                    <Clock
+                                                        size={18}
+                                                        className="text-red-500"
+                                                    />
+                                                ) : isVisibilitySelected ? (
+                                                    <CheckCircle
+                                                        size={18}
+                                                        className="text-green-500"
+                                                    />
+                                                ) : (
+                                                    <Clock
+                                                        size={18}
+                                                        className="text-gray-400"
+                                                    />
+                                                )}
+
+                                                <span className="font-bold">
+
+                                                    {isExpired
+                                                        ? "Visibility Expired"
+                                                        : isVisibilitySelected
+                                                            ? "Visibility Active"
+                                                            : "Visibility Not Selected"
+                                                    }
+
+                                                </span>
+
+                                            </div>
+
+                                            {isVisibilitySelected && (
+                                                <p className="text-sm mt-1 ml-6">
+
+                                                    {isExpired
+                                                        ? `Expired on ${new Date(
+                                                            product.visibility_expires_at
+                                                        ).toLocaleDateString()}`
+                                                        : `Expires on ${new Date(
+                                                            product.visibility_expires_at
+                                                        ).toLocaleDateString()}`
+                                                    }
+
+                                                </p>
+                                            )}
+
+                                        </div>
+                                        </div>
+
+
+                                        {/* ACTIONS */}
+
+                                        <div
+                                            className="
+                                                lg:w-52
+                                                flex
+                                                flex-col
+                                                gap-3
+                                            "
+                                        >
+
+                                            {/* EXPIRED */}
+
+                                            {isExpired ? (
+
+                                                <>
+
+                                                    <button
+                                                        type="button"
+                                                        disabled={
+                                                            isUpgrading
+                                                        }
+                                                        onClick={() =>
+                                                            openRenewModal(
+                                                                product
+                                                            )
+                                                        }
+                                                        className="
+                                                            w-full
+                                                            flex
+                                                            items-center
+                                                            justify-center
+                                                            gap-2
+                                                            bg-blue-600
+                                                            hover:bg-blue-700
+                                                            disabled:opacity-50
+                                                            text-white
+                                                            rounded-xl
+                                                            py-3
+                                                            font-semibold
+                                                        "
+                                                    >
+
+                                                        {isUpgrading ? (
+
+                                                            <LoaderCircle
+                                                                size={19}
+                                                                className="
+                                                                    animate-spin
+                                                                "
+                                                            />
+
+                                                        ) : (
+
+                                                            <RefreshCcw
+                                                                size={19}
+                                                            />
+
+                                                        )}
+
+                                                        Renew
+
+                                                    </button>
+
+
+                                                    <button
+                                                        type="button"
+                                                        disabled={
+                                                            isDeleting
+                                                        }
+                                                        onClick={() =>
+                                                            deleteVisibility(
+                                                                product
+                                                            )
+                                                        }
+                                                        className="
+                                                            w-full
+                                                            flex
+                                                            items-center
+                                                            justify-center
+                                                            gap-2
+                                                            border
+                                                            border-red-500
+                                                            text-red-600
+                                                            hover:bg-red-50
+                                                            disabled:opacity-50
+                                                            rounded-xl
+                                                            py-3
+                                                            font-semibold
+                                                        "
+                                                    >
+
+                                                        {isDeleting ? (
+
+                                                            <LoaderCircle
+                                                                size={19}
+                                                                className="
+                                                                    animate-spin
+                                                                "
+                                                            />
+
+                                                        ) : (
+
+                                                            <Trash2
+                                                                size={19}
+                                                            />
+
+                                                        )}
+
+                                                        Delete
+
+                                                    </button>
+
+                                                </>
+
+                                            ) : isActive ? (
+
+                                                <div
+                                                    className="
+                                                        text-center
+                                                        text-sm
+                                                       
+                                                        p-3
+                                                    "
+                                                >
+                                                    Visibility is
+                                                    currently active.
+                                                </div>
+
+                                            ) : (
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        openRenewModal(
+                                                            product
+                                                        )
+                                                    }
+                                                    className="
+                                                        w-full
+                                                        bg-blue-600
+                                                        hover:bg-blue-700
+                                                        text-white
+                                                        rounded-xl
+                                                        py-3
+                                                        font-semibold
+                                                    "
+                                                >
+                                                    Upgrade Visibility
+                                                </button>
+
+                                            )}
+
+                                        </div>
 
                                     </div>
 
@@ -791,14 +873,15 @@ export default function ProductVisibility() {
 
                 </div>
 
-            </div>
+            )}
 
 
-            {openModal &&
-                selectedProduct &&
-                selectedVisibility && (
+            {/* RENEW MODAL */}
 
-                    <div className="
+            {showModal && (
+
+                <div
+                    className="
                         fixed
                         inset-0
                         z-50
@@ -807,437 +890,270 @@ export default function ProductVisibility() {
                         items-center
                         justify-center
                         p-4
-                    ">
+                    "
+                >
 
-                        <div className="
+                    <div
+                        className="
                             bg-[var(--bg-color)]
                             text-[var(--text-color)]
                             rounded-3xl
-                            max-w-lg
+                            max-w-2xl
                             w-full
+                            max-h-[90vh]
+                            overflow-y-auto
+                            scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                             p-6
-                            shadow-2xl
-                        ">
+                        "
+                    >
 
-                            {/* HEADER */}
+                        {/* HEADER */}
 
-                            <div className="
+                        <div
+                            className="
                                 flex
                                 items-center
                                 justify-between
-                            ">
+                            "
+                        >
 
-                                <h2 className="
-                                    text-xl
-                                    sm:text-2xl
-                                    font-bold
-                                ">
+                            <div>
 
-                                    Upgrade Visibility
-
+                                <h2
+                                    className="
+                                        text-2xl
+                                        font-bold
+                                    "
+                                >
+                                    Update Visibility
                                 </h2>
 
-                                <button
-                                    type="button"
-                                    onClick={
-                                        closeModal
-                                    }
+                                <p
                                     className="
-                                        p-2
-                                        rounded-full
-                                        hover:bg-gray-100
+                                        text-sm
+                                       
+                                        mt-1
                                     "
                                 >
-
-                                    <X />
-
-                                </button>
+                                    {
+                                        selectedProduct?.title
+                                    }
+                                </p>
 
                             </div>
 
 
-                            {/* PRODUCT */}
+                            <button
+                                onClick={() => {
 
-                            <div className="
-                                mt-6
-                                flex
+                                    setShowModal(
+                                        false
+                                    );
+
+                                    setSelectedProduct(
+                                        null
+                                    );
+
+                                    setSelectedPlan(
+                                        null
+                                    );
+
+                                }}
+                            >
+
+                                <X />
+
+                            </button>
+
+                        </div>
+
+
+                        {/* OPTIONS */}
+
+                        <div
+                            className="
+                                grid
+                                sm:grid-cols-2
                                 gap-4
-                                items-center
-                            ">
-
-                                <img
-                                    src={getProductImage(
-                                        selectedProduct
-                                    )}
-                                    alt=""
-                                    className="
-                                        w-20
-                                        h-20
-                                        rounded-xl
-                                        object-cover
-                                    "
-                                />
-
-                                <div>
-
-                                    <h3 className="
-                                        font-bold
-                                    ">
-
-                                        {
-                                            selectedProduct.title
-                                        }
-
-                                    </h3>
-
-                                    <p className="
-                                        text-sm
-                                        opacity-60
-                                    ">
-
-                                        {
-                                            selectedProduct.location
-                                        }
-
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* SELECTION */}
-
-                            <div className="
                                 mt-6
-                                rounded-2xl
-                                bg-blue-50
-                                p-5
-                            ">
+                            "
+                        >
 
-                                <div className="
-                                    flex
-                                    items-center
-                                    gap-3
-                                ">
+                            {visibilityOptions.map(
+                                (option) => {
 
-                                    <Globe2
-                                        className="
-                                            text-blue-600
-                                        "
-                                    />
+                                    const Icon =
+                                        option.icon;
 
-                                    <div>
+                                    const selected =
+                                        selectedPlan?.value ===
+                                        option.value;
 
-                                        <p className="
-                                            text-sm
-                                            text-blue-700
-                                        ">
 
-                                            Selected visibility
+                                    return (
 
-                                        </p>
-
-                                        <h3 className="
-                                            font-bold
-                                            text-lg
-                                            text-blue-900
-                                        ">
-
-                                            {
-                                                selectedVisibility.title
+                                        <button
+                                            key={
+                                                option.value
                                             }
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedPlan(
+                                                    option
+                                                )
+                                            }
+                                            className={`
+                                                text-left
+                                                p-5
+                                                rounded-2xl
+                                                border-2
+                                                transition
+                                                ${
+                                                    selected
+                                                        ? "border-blue-600 "
+                                                        : "border-gray-200 hover:border-blue-400"
+                                                }
+                                            `}
+                                        >
 
-                                        </h3>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* BADGES */}
-
-                            <div className="
-                                mt-5
-                                flex
-                                items-center
-                                gap-3
-                            ">
-
-                                <div className="
-                                    p-3
-                                    rounded-xl
-                                    bg-yellow-100
-                                    text-yellow-700
-                                ">
-
-                                    <Badge />
-
-                                </div>
-
-                                <div>
-
-                                    <p className="
-                                        text-sm
-                                        opacity-60
-                                    ">
-
-                                        Badges required
-
-                                    </p>
-
-                                    <p className="
-                                        text-xl
-                                        font-bold
-                                    ">
-
-                                        {
-                                            selectedVisibility.badges
-                                        }
-
-                                        {" "}
-
-                                        Badges
-
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            {/* DESCRIPTION */}
-
-                            <p className="
-                                mt-5
-                                text-sm
-                                leading-6
-                                opacity-70
-                            ">
-
-                                {
-                                    selectedVisibility.description
-                                }
-
-                            </p>
-
-
-                            <p className="
-                                mt-3
-                                text-sm
-                                font-semibold
-                            ">
-
-                                This action will deduct{" "}
-
-                                {
-                                    selectedVisibility.badges
-                                }
-
-                                {" "}badges from your account.
-
-                            </p>
-
-
-                            {/* BUTTONS */}
-
-                            <div className="
-                                mt-7
-                                flex
-                                gap-3
-                            ">
-
-                                <button
-                                    type="button"
-                                    disabled={
-                                        upgradingId !== null
-                                    }
-                                    onClick={
-                                        closeModal
-                                    }
-                                    className="
-                                        flex-1
-                                        border
-                                        rounded-xl
-                                        py-3
-                                        font-semibold
-                                    "
-                                >
-
-                                    Cancel
-
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    disabled={
-                                        upgradingId !== null
-                                    }
-                                    onClick={
-                                        upgradeVisibility
-                                    }
-                                    className="
-                                        flex-1
-                                        bg-blue-600
-                                        hover:bg-blue-700
-                                        disabled:opacity-50
-                                        text-white
-                                        rounded-xl
-                                        py-3
-                                        font-semibold
-                                    "
-                                >
-
-                                    {upgradingId ? (
-
-                                        <span className="
-                                            flex
-                                            items-center
-                                            justify-center
-                                            gap-2
-                                        ">
-
-                                            <LoaderCircle
-                                                size={19}
+                                            <div
                                                 className="
-                                                    animate-spin
+                                                    flex
+                                                    items-center
+                                                    justify-between
                                                 "
-                                            />
+                                            >
 
-                                            Upgrading...
+                                                <Icon
+                                                    size={25}
+                                                />
 
-                                        </span>
+                                                <span
+                                                    className="
+                                                        flex
+                                                        items-center
+                                                        gap-1
+                                                        font-bold
+                                                    "
+                                                >
 
-                                    ) : (
+                                                    <Badge
+                                                        size={16}
+                                                    />
 
-                                        "Confirm Upgrade"
+                                                    {
+                                                        option.badges
+                                                    }
 
-                                    )}
+                                                </span>
 
-                                </button>
+                                            </div>
 
-                            </div>
+
+                                            <h3
+                                                className="
+                                                    font-bold
+                                                    mt-4
+                                                "
+                                            >
+                                                {
+                                                    option.title
+                                                }
+                                            </h3>
+
+
+                                            <p
+                                                className="
+                                                    text-sm
+                                                   
+                                                    mt-2
+                                                "
+                                            >
+                                                {
+                                                    option.description
+                                                }
+                                            </p>
+
+
+                                            <p
+                                                className="
+                                                    text-sm
+                                                    font-semibold
+                                                    mt-3
+                                                "
+                                            >
+                                                {
+                                                    option.months
+                                                }{" "}
+                                                {
+                                                    option.months === 1
+                                                        ? "month"
+                                                        : "months"
+                                                }
+                                            </p>
+
+                                        </button>
+
+                                    );
+
+                                }
+                            )}
 
                         </div>
 
-                    </div>
 
-                )}
-
-            {successModal && (
-
-                <div className="
-                    fixed
-                    inset-0
-                    z-[60]
-                    bg-black/60
-                    flex
-                    items-center
-                    justify-center
-                    p-4
-                ">
-
-                    <div className="
-                        bg-[var(--bg-color)]
-                        text-[var(--text-color)]
-                        rounded-3xl
-                        max-w-md
-                        w-full
-                        p-7
-                        text-center
-                        shadow-2xl
-                    ">
-
-                        <div className="
-                            mx-auto
-                            w-20
-                            h-20
-                            rounded-full
-                            bg-green-100
-                            text-green-600
-                            flex
-                            items-center
-                            justify-center
-                        ">
-
-                            <CheckCircle
-                                size={45}
-                            />
-
-                        </div>
-
-
-                        <h2 className="
-                            mt-5
-                            text-2xl
-                            font-bold
-                        ">
-
-                            Visibility Updated
-
-                        </h2>
-
-
-                        <p className="
-                            mt-3
-                            leading-7
-                            opacity-70
-                        ">
-
-                            Your product visibility has
-                            been successfully upgraded.
-                            Your product can now reach users
-                            within the selected visibility
-                            range.
-
-                        </p>
-
+                        {/* CONFIRM */}
 
                         <button
                             type="button"
-                            onClick={() =>
-                                navigate(
-                                    "/dashboard"
-                                )
+                            disabled={
+                                !selectedPlan ||
+                                upgradingId !== null
+                            }
+                            onClick={
+                                renewVisibility
                             }
                             className="
-                                mt-7
+                                mt-6
                                 w-full
                                 bg-blue-600
                                 hover:bg-blue-700
+                                disabled:opacity-50
                                 text-white
                                 rounded-xl
-                                py-3
-                                font-semibold
+                                py-4
+                                font-bold
                             "
                         >
 
-                            Back to Dashboard
+                            {upgradingId ? (
 
-                        </button>
+                                <span
+                                    className="
+                                        flex
+                                        justify-center
+                                        items-center
+                                        gap-2
+                                    "
+                                >
 
+                                    <LoaderCircle
+                                        className="
+                                            animate-spin
+                                        "
+                                    />
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setSuccessModal(
-                                    false
-                                )
-                            }
-                            className="
-                                mt-3
-                                w-full
-                                border
-                                rounded-xl
-                                py-3
-                                font-semibold
-                            "
-                        >
+                                    Updating
 
-                            Stay Here
+                                </span>
+
+                            ) : (
+
+                                selectedPlan
+                                    ? `Update for ${selectedPlan.badges} Badges`
+                                    : "Select a Visibility Plan"
+
+                            )}
 
                         </button>
 

@@ -73,6 +73,22 @@ export default function RegisterPage() {
 
   const options = useMemo(() => countryList().getData(), []);
 
+  const getCountryNameFromCode = (code) => {
+
+    if (!code) {
+        return "";
+    }
+
+    const country = options.find(
+        option =>
+            option.value.toLowerCase() ===
+            code.toLowerCase()
+    );
+
+    return country?.label || "";
+};
+
+
   const navigate = useNavigate()
 
 
@@ -204,10 +220,21 @@ const handleContactNext = async () => {
       newErrors.location = "Please select your country";
     }
 
-    if (location && phoneCountry && location !== phoneCountry) {
-      newErrors.location =
-        "Phone number does not match the selected country.";
+    if (location && phoneCountry) {
+
+    const phoneCountryName =
+        getCountryNameFromCode(phoneCountry);
+
+    if (
+        location.trim().toLowerCase() !==
+        phoneCountryName.trim().toLowerCase()
+    ) {
+
+        newErrors.location =
+            "Phone number does not match the selected country.";
+
     }
+}
 
     const phoneNumber = parsePhoneNumberFromString(`+${phonenumber}`);
 
@@ -822,17 +849,46 @@ const handleRegister = async () => {
                     placeholder="Select Location"
                     isSearchable
                     menuPortalTarget={document.body}
+                    className="cursor-pointer"
                     styles={{
-                      control: (base) => ({
-                        ...base,
-                        paddingTop: "0.25rem",     // py-1
-                        paddingBottom: "0.25rem",  // py-1
-                        minHeight: "48px",
-                      }),
-                      menuPortal: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
+                        control: (base) => ({
+                            ...base,
+                            minHeight: 48,
+                            paddingTop: "0.25rem",
+                            paddingBottom: "0.25rem",
+                            borderRadius: "0.5rem",
+                        }),
+
+                        singleValue: (base) => ({
+                            ...base,
+                            color: "#000",
+                        }),
+
+                        input: (base) => ({
+                            ...base,
+                            color: "#000",
+                        }),
+
+                        placeholder: (base) => ({
+                            ...base,
+                            color: "#6b7280",
+                        }),
+
+                        option: (base, state) => ({
+                            ...base,
+                            color: "#000",
+                            backgroundColor:
+                                state.isSelected
+                                    ? "#e5e7eb"
+                                    : state.isFocused
+                                    ? "#f3f4f6"
+                                    : "#fff",
+                        }),
+
+                        menuPortal: (base) => ({
+                            ...base,
+                            zIndex: 9999,
+                        }),
                     }}
                   />
 

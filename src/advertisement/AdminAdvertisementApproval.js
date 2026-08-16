@@ -120,14 +120,18 @@ advertisement.title
 }
 </h1>
 <div className="flex gap-2">
-<span className="bg-blue-100 px-3 py-1 rounded-full text-sm">
+<span className="bg-blue-500 px-3 py-1 rounded-full text-sm">
 {
 advertisement.type
 }
 </span>
-<span className="bg-yellow-100 px-3 py-1 rounded-full text-sm">
+<span className="bg-yellow-500 px-3 py-1 rounded-full text-sm">
 {
 advertisement.status
+}
+
+{
+advertisement.id
 }
 </span>
 </div>

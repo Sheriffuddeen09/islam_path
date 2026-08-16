@@ -15,6 +15,7 @@ import SearchUser from './SearchUser';
 import ChatPage from '../chat/chatbox/Chatpage';
 import CreateAdvertisementModal from '../advertisement/CreateAdvertisementModal';
 import CreateJobModal from '../job/CreateJobModal';
+import api from '../Api/axios';
 
 function SingleHeader({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
@@ -25,7 +26,6 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
   meetingData, setMeetingData, setShow, jobProfile, }) {
 
       const [menu, setMenu] = useState(false)
-      const [dashboardToggle, setDashboardToggle] = useState(false)
       const homepage = useLocation().pathname
       
       const { isLoggedin, user } = useAuth()
@@ -33,7 +33,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       const navigate = useNavigate()
 
 
-  const [showChannelView, setShowChannelView] = useState(false);
+  const [applicationCount, setApplicationCount] = useState(0);
   const [showAppDownload, setShowAppDownload] = useState(false);
   const [seeMoreApps, setSeeMoreApps] = useState(false);
   const authUser = useAuth()
@@ -48,8 +48,62 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 });
 
      
-      
-      
+      useEffect(()=>{
+
+        const fetchApplicationCount = async () => {
+
+        try {
+
+            const response = await api.get(
+                "/api/job-applications"
+            );
+
+            setApplicationCount(
+                response.data.unread_count || 0
+            );
+
+        } catch (error) {
+
+            console.error(
+                "APPLICATION COUNT ERROR:",
+                error
+            );
+
+        }
+
+    };
+
+    fetchApplicationCount();
+
+}, [jobProfile?.type]);
+
+const markApplicationsAsRead = async () => {
+
+    if (
+        jobProfile?.type !== "creator" ||
+        applicationCount === 0
+    ) {
+        return;
+    }
+
+    try {
+
+        await api.post(
+            "/api/job-applications/mark-read"
+        );
+
+        setApplicationCount(0);
+
+    } catch (error) {
+
+        console.error(
+            "MARK APPLICATIONS READ ERROR:",
+            error
+        );
+
+    }
+
+};
 
    
     const dashboardLink =
@@ -323,30 +377,85 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
                              {jobProfile?.type &&
               jobProfile && (
                   <Link
-                      to={
-                          jobProfile?.type === "creator"
-                              ? "/applicate/job-create"
-                              : "/applicate/job-finder"
-                      }
-                      className={`${
-                          homepage ===
-                              (jobProfile?.type === "creator"
-                                  ? "/applicate/job-create"
-                                  : "/applicate/job-finder") &&
-                          !messageOpen
-                              ? "text-blue-600 hover:text-blue-500"
-                              : "text-gray-600 hover:text-gray-800"
-                      } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2 
-                      transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex flex-col items-center gap-1`}
-                  >
-                      {jobProfile?.type === "creator" ? (
-                          <ClipboardList size={22} />
-                      ) : (
-                          <Workflow size={22} />
-                      )}
-          
-                      Application
-                  </Link>
+    to={
+        jobProfile?.type === "creator"
+            ? "/applicate/job-create"
+            : "/applicate/job-finder"
+    }
+    onClick={markApplicationsAsRead}
+    className={`${
+        homepage ===
+            (jobProfile?.type === "creator"
+                ? "/applicate/job-create"
+                : "/applicate/job-finder") &&
+        !messageOpen
+            ? "text-blue-600 hover:text-blue-500"
+            : "text-gray-600 hover:text-gray-800"
+    }
+    sm:text-[13px]
+    text-[8px]
+    rounded
+    lg:p-2
+    px-1
+    py-2
+    transition-all
+    duration-500
+    whitespace-nowrap
+    ease-in-out
+    cursor-pointer
+    about
+    flex
+    flex-col
+    items-center
+    gap-1
+    relative`}
+>
+    
+    {/* ICON + COUNT */}
+
+    <div className="relative">
+
+        {jobProfile?.type === "creator" ? (
+            <ClipboardList size={22} />
+        ) : (
+            <Workflow size={22} />
+        )}
+
+        {jobProfile?.type === "creator" &&
+            applicationCount > 0 && (
+
+            <span
+                className="
+                    absolute
+                    -top-2
+                    -right-3
+                    min-w-[18px]
+                    h-[18px]
+                    px-1
+                    flex
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-red-500
+                    text-white
+                    text-[10px]
+                    font-bold
+                    border-2
+                    border-white
+                "
+            >
+                {applicationCount > 99
+                    ? "99+"
+                    : applicationCount}
+            </span>
+
+        )}
+
+    </div>
+
+    Application Job
+
+</Link>
                   )}
           
                   {!jobProfile?.type &&
@@ -501,50 +610,87 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 
     {/* ================= Application Card ================= */}
 
-    {jobProfile && (
+        {jobProfile && (
 
-        <Link
-            to={
-                jobProfile.type === "creator"
-                    ? "/applicate/job-create"
-                    : "/applicate/job-finder"
-            }
-            className="
-                shadow-md
-                border
-                rounded-lg
-                p-3
-                hover:shadow-lg
-                transition-all
-                flex
-                flex-col
-                items-center
-                text-center
-            "
-        >
+          <Link
+    to={
+        jobProfile?.type === "creator"
+            ? "/applicate/job-create"
+            : "/applicate/job-finder"
+    }
+    onClick={markApplicationsAsRead}
+    className="
+        shadow-md
+        border
+        rounded-lg
+        p-3
+        hover:shadow-lg
+        transition-all
+        flex
+        flex-col
+        items-center
+        text-center
+        relative
+    "
+>
 
-            <div
+    <div
+        className="
+            w-10
+            h-10
+            rounded-full
+            flex
+            items-center
+            justify-center
+            relative
+        "
+    >
+
+        {jobProfile?.type === "creator"
+            ? <ClipboardList size={22} />
+            : <Workflow size={22} />
+        }
+
+
+        {jobProfile?.type === "creator" &&
+            applicationCount > 0 && (
+
+            <span
                 className="
-                    w-10
-                    h-10
-                    rounded-full
+                    absolute
+                    -top-2
+                    -right-3
+                    min-w-[19px]
+                    h-[19px]
+                    px-1
                     flex
                     items-center
                     justify-center
+                    rounded-full
+                    bg-red-500
+                    text-white
+                    text-[10px]
+                    font-bold
+                    border-2
+                    border-white
                 "
             >
-                {jobProfile.type === "creator"
-                    ? <ClipboardList size={22} />
-                    : <Workflow size={22} />}
-            </div>
+                {applicationCount > 99
+                    ? "99+"
+                    : applicationCount}
+            </span>
 
-            <p className="mt-2 text-sm font-semibold">
-                Application Job
-            </p>
+        )}
 
-        </Link>
+    </div>
 
-    )}
+
+    <p className="mt-2 text-sm font-semibold">
+        Application Job
+    </p>
+
+</Link>
+        )}
 
     {/* ================= Other Cards ================= */}
 

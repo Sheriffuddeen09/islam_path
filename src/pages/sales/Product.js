@@ -22,11 +22,12 @@ export default function ProductPage({products, setProducts}) {
   const [locationHasProducts, setLocationHasProducts] = useState(true);
   const [locationLoading, setLocationLoading] = useState(false);
   const [showLocations, setShowLocations] = useState(false);
+  const [showAllLocations, setShowAllLocations] = useState(false);
 
   const { addToCart, loadingId: cartLoadingId } = useCart();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showFilter, setShowFilter] = useState(false);
-  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+  const symbols = { USD: "$", NGN: "₦", EUR: "€" };
   const { addToWishlist, loadingId: wishlistLoadingId } = useWishlist()
 
     const authUser = useAuth()
@@ -42,6 +43,34 @@ export default function ProductPage({products, setProducts}) {
   return () => {
     window.removeEventListener("selectCategory", handleCategorySelect);
   };
+}, []);
+
+const [isLargeScreen, setIsLargeScreen] = useState(
+    window.innerWidth >= 1024
+);
+
+useEffect(() => {
+
+    const handleResize = () => {
+
+        setIsLargeScreen(
+            window.innerWidth >= 1024
+        );
+
+    };
+
+    window.addEventListener(
+        "resize",
+        handleResize
+    );
+
+    return () => {
+        window.removeEventListener(
+            "resize",
+            handleResize
+        );
+    };
+
 }, []);
 
 
@@ -561,7 +590,7 @@ const openSearchModal = () => {
                     : "Order Now"}
                 </button>
                 <Link to={`/product/${p.id}`}> 
-                <button className="border border-white px-5 py-2 translate-x-3 rounded-lg hover:bg-white hover: transition">
+                <button className="border border-white px-5 py-2 translate-x-3 rounded-lg hover: transition">
                   View Details
                 </button>
                </Link> 
@@ -588,7 +617,7 @@ const openSearchModal = () => {
             Showing products from
         </p>
 
-        <h2 className="text-xl font-bold">
+        <h2 className="sm:text-xl text-sm font-bold">
             {selectedLocation || "All Locations"}
         </h2>
 
@@ -604,7 +633,7 @@ const openSearchModal = () => {
             onClick={() =>
                 setShowLocations(!showLocations)
             }
-            className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+            className="sm:px-5 px-2 py-3 rounded-xl bg-blue-600  text-sm text-white font-semibold hover:bg-blue-700 transition"
         >
             View Another Location
         </button>
@@ -630,7 +659,7 @@ const openSearchModal = () => {
                     );
 
                 }}
-                className="px-5 py-3 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
+                className="sm:px-5 px-2 py-3 text-sm rounded-xl border border-blue-600 text-blue-600 font-semibold transition"
             >
                 Back to My Location
             </button>
@@ -644,69 +673,209 @@ const openSearchModal = () => {
 
   {showLocations && (
 
-    <div className="mt-5 bg-[var(--bg-color)] border border-blue-500 rounded-2xl p-5">
+    <div
+        className="
+            mt-5
+            bg-[var(--bg-color)]
+            border
+            border-blue-500
+            rounded-2xl
+            p-5
+        "
+    >
 
-      <h3 className="font-bold text-lg mb-4">
-        Select Location
-      </h3>
+        {/* HEADER */}
+
+        <div className="
+            flex
+            items-center
+            justify-between
+            gap-3
+            mb-4
+        ">
+
+            <div>
+
+                <h3 className="
+                    font-bold
+                    text-lg
+                ">
+                    Select Location
+                </h3>
+
+                <p className="
+                    text-sm
+                    opacity-70
+                    mt-1
+                ">
+                    Choose another location to view
+                    available products.
+                </p>
+
+            </div>
+
+        </div>
 
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* LOCATIONS */}
 
-        {productLocations.map(
-          (location) => (
+        <div
+            className="
+                grid
+                grid-cols-2
+                lg:grid-cols-4
+                gap-3
+            "
+        >
 
-            <button
-              key={location}
-              type="button"
-              disabled={
-                locationLoading
-              }
-              onClick={() =>
-                fetchProductsByLocation(
-                  location
+            {productLocations
+                .slice(
+                    0,
+                    showAllLocations
+                        ? productLocations.length
+                        : (isLargeScreen ? 4 : 2)
                 )
-              }
-              className={`
-                text-left
-                px-4
-                py-3
-                rounded-xl
-                border
-                transition
-                ${
-                  selectedLocation ===
-                  location
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-gray-300 hover:border-blue-500"
-                }
-              `}
-            >
+                .map((location) => (
 
-              {location}
+                    <button
+                        key={location}
+                        type="button"
+                        disabled={locationLoading}
+                        onClick={() => {
 
-            </button>
+                            fetchProductsByLocation(
+                                location
+                            );
 
-          )
+                            setShowAllLocations(
+                                false
+                            );
+
+                        }}
+                        className={`
+                            text-left
+                            px-4
+                            py-3
+                            rounded-xl
+                            border
+                            transition
+                            truncate
+                            ${
+                                selectedLocation ===
+                                location
+
+                                    ? `
+                                        border-blue-600
+                                        text-blue-700
+                                    `
+
+                                    : `
+                                        border-gray-300
+                                        hover:border-blue-500
+                                    `
+                            }
+
+                            ${
+                                locationLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                            }
+                        `}
+                    >
+
+                        {location}
+
+                    </button>
+
+                ))
+            }
+
+        </div>
+
+
+        {/* SEE MORE / SEE LESS */}
+
+        {productLocations.length >
+            (isLargeScreen ? 4 : 2) && (
+
+            <div className="
+                flex
+                justify-center
+                mt-5
+            ">
+
+                {!showAllLocations ? (
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowAllLocations(
+                                true
+                            )
+                        }
+                        className="
+                            px-5
+                            py-2.5
+                            rounded-xl
+                            border
+                            border-blue-600
+                            text-blue-600
+                            font-semibold
+                            hover:bg-blue-600
+                            hover:text-white
+                            transition
+                        "
+                    >
+
+                        See More
+
+                    </button>
+
+                ) : (
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setShowAllLocations(
+                                false
+                            )
+                        }
+                        className="
+                            px-5
+                            py-2.5
+                            rounded-xl
+                            border
+                            border-gray-400
+                            font-semibold
+                            hover:bg-gray-100
+                            transition
+                        "
+                    >
+
+                        See Less
+
+                    </button>
+
+                )}
+
+            </div>
+
         )}
-
-      </div>
 
     </div>
 
-  )}
-
+)}
 </div>
 
  {!locationHasProducts && (
 
   <div className="mb-8 rounded-2xl border mx-auto border-orange-300 bg-[var(--bg-color)] text-[var(--text-color)] p-6">
 
-    <h2 className="text-xl font-bold">
+    <h2 className="sm:text-xl text-sm font-bold">
       No products available in your location
     </h2>
 
-    <p className="mt-2">
+    <p className="mt-2 text-sm">
       We couldn't find products available in{" "}
       <strong>
         {userLocation}
@@ -723,7 +892,7 @@ const openSearchModal = () => {
       onClick={() =>
         setShowLocations(true)
       }
-      className="mt-4 px-5 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700"
+      className="mt-4 sm:px-5 px-2 text-sm py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700"
     >
       Click View Another Location
     </button>

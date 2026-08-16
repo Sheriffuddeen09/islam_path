@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import Notification from "../../notification/Notification";
 import api from "../../Api/axios";
+import Select from "react-select";
+import countryList from "react-select-country-list";
+
 
 export default function CreateProduct() {
   const [form, setForm] = useState({
@@ -30,9 +33,12 @@ export default function CreateProduct() {
   delivery_price: "",
   category_id: "",
   category_slug: "",
+
+  address: "",
 });
 
-
+const countries = useMemo(() => countryList().getData(), []);
+ 
 
   const [step, setStep] = useState(1);
   const [front, setFront] = useState(null);
@@ -519,16 +525,16 @@ const toSlug = (text) =>
               />
 
               {/* PDF Drag & Drop */}
-              {/* <div className="mt-4">
+              <div className="mt-4">
                 <label className="block mb-2 font-medium">Upload PDF</label>
                 <div
                   {...getPdfRootProps()}
                   className={`border-2 border-dashed p-6 rounded-lg text-center cursor-pointer transition
-                    ${isPdfDragActive ? "border-blue-500 " : "border-gray-300 bg-gray-50"}`}
+                    ${isPdfDragActive ? "border-blue-500 " : "border-gray-300"}`}
                 >
                   <input {...getPdfInputProps()} />
                   {pdf ? (
-                    <div className="flex items-center justify-between mt-2 bg-gray-100 p-3 rounded-lg shadow-sm">
+                    <div className="flex items-center justify-between mt-2 p-3 rounded-lg shadow-sm">
                       <div className="flex items-center gap-3">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -540,17 +546,17 @@ const toSlug = (text) =>
                           <path d="M10 12h4v2h-4z" />
                         </svg>
                         <div className="flex flex-col">
-                          <span className= font-medium truncate">{pdf.name}</span>
-                          <span className="text-gray-500 text-sm">{(pdf.size / 1024).toFixed(2)} KB</span>
+                          <span className= "font-medium truncate">{pdf.name}</span>
+                          <span className="text-sm">{(pdf.size / 1024).toFixed(2)} KB</span>
                         </div>
                       </div>
                       <button type="button" className="text-red-500 font-bold px-2 hover:text-red-700" onClick={() => setPdf(null)}>✕</button>
                     </div>
                   ) : (
-                    <p className="text-gray-500 font-medium">Drag & drop a PDF here, or click to select</p>
+                    <p className="font-medium">Drag & drop a PDF here, or click to select</p>
                   )}
                 </div>
-              </div> */}
+              </div>
             </>
           )}
 
@@ -639,14 +645,89 @@ const toSlug = (text) =>
           />
 
 
-          <input
-          placeholder="Company Location"
-          className="border p-3 rounded-lg w-full text-black"
-          value={form.location}
-          onChange={e=>setForm({...form,location:e.target.value})}
-          />
+         
 
-          
+    <Select
+        options={countries}
+        value={
+            countries.find(
+                option =>
+                    option.label === form.location
+            ) || null
+        }
+        onChange={(selected) => {
+
+            setForm({
+                ...form,
+                location:
+                    selected?.label || ""
+            });
+
+        }}
+        placeholder="Select Location"
+        isSearchable
+        menuPortalTarget={document.body}
+        className="cursor-pointer"
+        styles={{
+            control: (base) => ({
+                ...base,
+                minHeight: 48,
+                paddingTop: "0.25rem",
+                paddingBottom: "0.25rem",
+                borderRadius: "0.5rem",
+            }),
+
+            singleValue: (base) => ({
+                ...base,
+                color: "#000",
+            }),
+
+            input: (base) => ({
+                ...base,
+                color: "#000",
+            }),
+
+            placeholder: (base) => ({
+                ...base,
+                color: "#6b7280",
+            }),
+
+            option: (base, state) => ({
+                ...base,
+                color: "#000",
+                backgroundColor:
+                    state.isSelected
+                        ? "#e5e7eb"
+                        : state.isFocused
+                        ? "#f3f4f6"
+                        : "#fff",
+            }),
+
+            menuPortal: (base) => ({
+                ...base,
+                zIndex: 9999,
+            }),
+        }}
+    />
+
+      <input
+              type="text"
+              placeholder="Enter your full address"
+              className="
+                  border
+                  p-3
+                  rounded-lg
+                  w-full
+                  text-black
+              "
+              value={form.address}
+              onChange={(e) =>
+                  setForm({
+                      ...form,
+                      address: e.target.value
+                  })
+              }
+          />
           <select
           className="border p-3 rounded-lg w-full text-black"
           value={form.company_available}
@@ -677,7 +758,7 @@ const toSlug = (text) =>
           placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
           className="border p-3 rounded-lg w-full text-black"
           value={form.delivery_method}
-          onChange={e=>setForm({...form, delivery_time:e.target.value})}
+          onChange={e=>setForm({...form, delivery_method:e.target.value})}
           />
 
 
@@ -790,7 +871,7 @@ const toSlug = (text) =>
           placeholder="Delivery Method (Shipping, Courier, or Pickup Station)"
           className="border p-3 rounded-lg w-full text-black"
           value={form.delivery_method}
-          onChange={e=>setForm({...form, delivery_time:e.target.value})}
+          onChange={e=>setForm({...form, delivery_method:e.target.value})}
           />
           
     {/* SPECIFICATIONS */}

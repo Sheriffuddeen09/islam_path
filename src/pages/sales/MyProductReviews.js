@@ -7,7 +7,6 @@ import {
     Star,
     MessageSquare,
     Package,
-    LoaderCircle,
     User,
     MapPin,
     ChevronDown,
@@ -44,11 +43,6 @@ export default function MyProductReviews() {
         });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | FETCH REVIEWS
-    |--------------------------------------------------------------------------
-    */
 
     useEffect(() => {
 
@@ -122,12 +116,6 @@ export default function MyProductReviews() {
         };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | STAR DISPLAY
-    |--------------------------------------------------------------------------
-    */
-
     const Stars = ({
         rating
     }) => {
@@ -162,12 +150,6 @@ export default function MyProductReviews() {
     };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | LOADING SKELETON
-    |--------------------------------------------------------------------------
-    */
-
     if (loading) {
 
         return (
@@ -176,7 +158,7 @@ export default function MyProductReviews() {
                 min-h-screen
                 pt-24
                 px-4
-                pb-10
+                pb-10 lg:ml-64
             ">
 
                 <div className="
@@ -255,13 +237,6 @@ export default function MyProductReviews() {
 
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | PAGE
-    |--------------------------------------------------------------------------
-    */
-
     return (
 
         <div className="
@@ -272,6 +247,7 @@ export default function MyProductReviews() {
             pb-10
             bg-[var(--bg-color)]
             text-[var(--text-color)]
+            lg:ml-64
         ">
 
             <div className="
@@ -320,7 +296,6 @@ export default function MyProductReviews() {
 
                             <p className="
                                 text-sm
-                                opacity-70
                                 mt-1
                             ">
 
@@ -380,7 +355,6 @@ export default function MyProductReviews() {
 
                                 <p className="
                                     text-sm
-                                    opacity-60
                                 ">
 
                                     Total Reviews
@@ -440,7 +414,6 @@ export default function MyProductReviews() {
 
                                 <p className="
                                     text-sm
-                                    opacity-60
                                 ">
 
                                     Average Rating
@@ -513,7 +486,6 @@ export default function MyProductReviews() {
 
                                 <p className="
                                     text-sm
-                                    opacity-60
                                 ">
 
                                     Products Reviewed
@@ -639,7 +611,6 @@ export default function MyProductReviews() {
                                             <span className="
                                                 w-8
                                                 text-sm
-                                                opacity-60
                                             ">
 
                                                 {count}
@@ -674,7 +645,6 @@ export default function MyProductReviews() {
                             size={50}
                             className="
                                 mx-auto
-                                opacity-40
                                 mb-4
                             "
                         />
@@ -689,7 +659,6 @@ export default function MyProductReviews() {
                         </h2>
 
                         <p className="
-                            opacity-60
                             mt-2
                         ">
 
@@ -795,7 +764,6 @@ export default function MyProductReviews() {
 
                                                     <p className="
                                                         text-xs
-                                                        opacity-60
                                                     ">
 
                                                         Customer
@@ -821,9 +789,8 @@ export default function MyProductReviews() {
                                         {/* PRODUCT */}
 
                                         <div className="
-                                            mt-5
+                                            mt-1
                                             rounded-2xl
-                                            bg-gray-50
                                             p-4
                                         ">
 
@@ -845,7 +812,6 @@ export default function MyProductReviews() {
 
                                                     <p className="
                                                         text-xs
-                                                        opacity-60
                                                     ">
 
                                                         Product
@@ -875,7 +841,6 @@ export default function MyProductReviews() {
                                                     gap-2
                                                     mt-2
                                                     text-xs
-                                                    opacity-60
                                                 ">
 
                                                     <MapPin
@@ -896,7 +861,7 @@ export default function MyProductReviews() {
                                         {/* COMMENT */}
 
                                         <div className="
-                                            mt-5
+                                            mt-2
                                         ">
 
                                             <p className={`
@@ -970,7 +935,6 @@ export default function MyProductReviews() {
                                             pt-4
                                             border-t
                                             text-xs
-                                            opacity-50
                                         ">
 
                                             {review.created_at &&

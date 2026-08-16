@@ -26,6 +26,7 @@ export default function JobCreatorForm({
 
 const countries = useMemo(() => countryList().getData(), []);
  
+
  const handleLogo = (e) => {
  const file = e.target.files[0];
  if (!file) return;

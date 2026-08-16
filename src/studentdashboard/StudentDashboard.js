@@ -14,7 +14,7 @@ import Order from "../pages/sales/order/Order";
 import SaveOrder from "../pages/sales/order/SaveOrder";
 import { useAuth } from "../layout/AuthProvider";
 import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText, ClipboardList, CheckCircle,
-  BarChart3, ShoppingCart, Bookmark, 
+  BarChart3, ShoppingCart, Bookmark, Projector,
   Workflow,
   History,
   Proportions} from "lucide-react";
@@ -24,6 +24,7 @@ import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
 import StudentProposalHistory from "../pages/mentor/StudentProposalHistory";
 import TeacherReviews from "../pages/mentor/TeacherReviews";
 import AcceptedTeacher from "../pages/mentor/AcceptedTeacher";
+import MyAdvertisements from "../advertisement/MyAdvertisements";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -184,6 +185,9 @@ const fetchNotification = async () => {
               icon: Bookmark,
               showcount: true,
             },
+
+            { id: 16, label: "Advertisement Status", icon: Projector},
+            
           ];
       
       const handleMenuClick = async (item) => {
@@ -586,6 +590,10 @@ const fetchNotification = async () => {
                          <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
                          <SaveOrder  />
                          </div> 
+
+                         <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
+                          <MyAdvertisements  />
+                          </div> 
                        </section>
        
     </div>

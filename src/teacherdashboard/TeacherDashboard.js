@@ -6,7 +6,8 @@ import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, Clip
   FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
   Workflow,
   History,
-  Star, Globe2, MessageSquare} from "lucide-react";
+  Star, Globe2, MessageSquare,
+  Projector} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -27,6 +28,8 @@ import ChatPage from "../chat/chatbox/Chatpage";
 import ProposalList from "../pages/mentor/ProposalList";
 import TeacherProposalHistory from "../pages/mentor/TeacherProposalHistory";
 import TeacherReviews from "../pages/mentor/TeacherReviews";
+import MyProductReviews from "../pages/sales/MyProductReviews";
+import MyAdvertisements from "../advertisement/MyAdvertisements";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -235,26 +238,29 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   { id: 14, label: "View Examination Result", icon: BarChart3 },
   { id: 15, label: "Product Order", icon: ShoppingCart },
   { id: 16, label: "Saved Order", icon: Bookmark, showcount: true },
+  { id: 17, label: "Advertisement Status", icon: Projector},
 ];
 
   // Menu items for Comment 2
   const defaultMenu = [
   { id: 21, label: "Create Product", icon: FilePlus },
   { id: 22, label: "Product List", icon: ClipboardList },
-  { id: 23, label: "Promote Product", icon: BarChart3 },
-  { id: 24, label: "Product Order", icon: ShoppingCart, ordershow: true },
-  { id: 25, label: "Saved Order", icon: Bookmark, showcount: true },
+  { id: 23, label: "Product Order", icon: ShoppingCart, ordershow: true },
+  { id: 24, label: "Saved Order", icon: Bookmark, showcount: true },
   {
-      id: 26,
-      label: "Product Visibility",
-      icon: Globe2,
+      id: 25,
+      label: "",
+      icon: BarChart3,
       path: "/dashboard/product-visibility",
   },
   {
-    id: 27,
+    id: 26,
     label: "My Product Reviews",
     icon: MessageSquare,
-}
+  },
+  { id: 27, label: "Advertisement Status", icon: Projector},
+
+
 ];
 
   // Choose which menu
@@ -504,6 +510,12 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                         {orderCount}
                       </span>
                     )}
+
+                    {item.id === 25 && (
+                      <Link to={'/dashboard/product-visibility'}>
+                        Promote Product Visibility
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -729,6 +741,11 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                         {orderCount}
                       </span>
                     )}
+                    {item.id === 25 && (
+                      <Link to={'/dashboard/product-visibility'}>
+                        Promote Product Visibility
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -812,6 +829,10 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         </div> 
         <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
+        </div>
+
+        <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+        <MyAdvertisements  />
         </div> 
 
         <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
@@ -826,9 +847,17 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         togglePopup={togglePopup}
         setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
-          <div className={`${visible === 25 ? 'block' : 'hidden'}`}>
-          <SaveOrder  />
-          </div> 
+        <div className={`${visible === 25 ? 'block' : 'hidden'}`}>
+        <SaveOrder  />
+        </div> 
+
+        <div className={`${visible === 26 ? 'block' : 'hidden'}`}>
+        <MyProductReviews  />
+        </div> 
+
+        <div className={`${visible === 27 ? 'block' : 'hidden'}`}>
+        <MyAdvertisements  />
+        </div> 
       </section>
     </div>
     </>
