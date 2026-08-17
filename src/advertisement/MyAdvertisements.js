@@ -504,7 +504,7 @@ export default function MyAdvertisements() {
                 <div>
 
                     <h1 className="
-                        text-3xl
+                        sm:text-3xl text-xl
                         font-bold
                     ">
 
@@ -515,7 +515,7 @@ export default function MyAdvertisements() {
 
                     <p className="
                         mt-2
-                    
+                        text-sm
                     ">
 
                         Manage your advertisements,
@@ -533,7 +533,7 @@ export default function MyAdvertisements() {
                         flex
                         items-center
                         justify-center
-                        gap-2
+                        gap-2  text-sm
                         border
                         px-5
                         py-3
@@ -672,19 +672,6 @@ export default function MyAdvertisements() {
                                                     }
 
                                                 </h2>
-
-                                                     <h2 className="
-                                                    text-xl
-                                                    sm:text-2xl
-                                                    font-bold
-                                                ">
-
-                                                    {
-                                                        advertisement.id
-                                                    }
-
-                                                </h2>
-
 
                                                 <div className="
                                                     flex

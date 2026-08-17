@@ -73,7 +73,7 @@ scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
 <li
 key={item.id}
 className=" flex items-center gap-3 p-2
-hover:bg-gray-700 transition cursor-pointer
+hover:bg-gray-700 hover:text-white transition cursor-pointer
 ">
 <div
 className=" w-8 h-8 flex items-center justify-center
@@ -126,7 +126,7 @@ text-lg font-semibold
             }
     
         }}
-        className="flex items-center gap-3 p-2 hover:bg-gray-700 transition cursor-pointer"
+        className="flex items-center gap-3 p-2 hover:bg-gray-700 hover:text-white transition cursor-pointer"
     >
     
         <div
@@ -177,7 +177,7 @@ text-lg font-semibold
             }}
             className="
                 flex items-center gap-3 p-2
-                hover:bg-gray-700 transition
+                hover:bg-gray-700 hover:text-white transition
                 cursor-pointer
             "
         >
@@ -212,7 +212,7 @@ text-lg font-semibold
                             flex items-center gap-2
                             text-sm p-2 rounded-lg
                             text-[var(--text-color)]
-                            hover:bg-gray-700
+                            hover:bg-gray-700 hover:text-white
                         "
                     >
                         {app.icon}

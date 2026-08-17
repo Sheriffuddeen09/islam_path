@@ -27,7 +27,54 @@ const CartPage = ({savedCount, setSavedCount}) => {
   const [loading, setLoading] = useState(true);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+  const symbols = {
+    USD: "$",
+    NGN: "₦",
+    EUR: "€"
+  };
+
+  const exchangeRatesToUSD = {
+    USD: 1,
+    NGN: 0.00065, // example
+    EUR: 1.17,    // example
+    GBP: 1.35,    // example
+  };
+
+  const subTotalUSD = cart.reduce((total, item) => {
+  const currency = item?.product?.currency || "USD";
+
+  const price = Number(
+    item?.price || item?.product?.price || 0
+  );
+
+  const quantity = Number(item?.quantity || 1);
+
+  const rate = exchangeRatesToUSD[currency] || 1;
+
+  return total + (price * quantity * rate);
+}, 0);
+
+
+const discountUSD = cart.reduce((total, item) => {
+
+  const currency =
+    item?.product?.currency || "USD";
+
+  // IMPORTANT:
+  // Discount is inside product
+  const discount =
+    Number(item?.product?.discount || 0);
+
+  const rate =
+    Number(exchangeRatesToUSD[currency]) || 1;
+
+  return total + (discount * rate);
+
+}, 0);
+
+
+const totalInUSD = subTotalUSD - discountUSD;
+
 
   const currency = cart[0]?.product?.currency || "NGN";
   const symbol = symbols[currency] || currency; 
@@ -242,7 +289,7 @@ const total = subtotal + delivery - discount;
             <div className="flex justify-between mb-2">
               <span className="text-sm font-bold">Subtotal</span>
               <span className="text-xs font-semibold">
-                {symbol}{subtotal.toFixed(2)}
+                ${subTotalUSD.toFixed(2)}
               </span>
             </div>
 
@@ -262,7 +309,7 @@ const total = subtotal + delivery - discount;
             <div className="flex justify-between">
               <span className="text-sm font-bold">Estimated Discount</span>
               <span className="text-xs font-semibold text-red-500">
-                -{symbol}{discount.toFixed(2)}
+                -${discountUSD.toFixed(2)}
               </span>
             </div>
 
@@ -272,7 +319,7 @@ const total = subtotal + delivery - discount;
           <div className="border-blue-600 rounded p-4 mb-4 font-bold flex justify-between">
             <span>Total</span>
             <span className="text-green-700">
-              {symbol}{total.toFixed(2)}
+              ${totalInUSD.toFixed(2)}
             </span>
           </div>
     <button

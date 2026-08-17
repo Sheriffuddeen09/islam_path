@@ -47,11 +47,53 @@ const CheckoutModal = ({ open, setOpen, cart, setSavedCount}) => {
   // ✅ TOTALS
  
  const symbols = {
-  NGN: "₦",
-  USD: "$",
-  GBP: "£",
-  EUR: "€",
-};
+    USD: "$",
+    NGN: "₦",
+    EUR: "€"
+  };
+
+  const exchangeRatesToUSD = {
+    USD: 1,
+    NGN: 0.00065, // example
+    EUR: 1.17,    // example
+    GBP: 1.35,    // example
+  };
+
+  const subTotalUSD = cart.reduce((total, item) => {
+  const currency = item?.product?.currency || "USD";
+
+  const price = Number(
+    item?.price || item?.product?.price || 0
+  );
+
+  const quantity = Number(item?.quantity || 1);
+
+  const rate = exchangeRatesToUSD[currency] || 1;
+
+  return total + (price * quantity * rate);
+}, 0);
+
+
+const discountUSD = cart.reduce((total, item) => {
+
+  const currency =
+    item?.product?.currency || "USD";
+
+  // IMPORTANT:
+  // Discount is inside product
+  const discount =
+    Number(item?.product?.discount || 0);
+
+  const rate =
+    Number(exchangeRatesToUSD[currency]) || 1;
+
+  return total + (discount * rate);
+
+}, 0);
+
+
+const totalInUSD = subTotalUSD - discountUSD;
+
 
 const currency = cart[0]?.product?.currency || "";
 const symbol = symbols[currency] || currency;
@@ -279,7 +321,7 @@ const orderData = {
             <div className="flex gap-3 mt-6">
             <button
                 onClick={() => setOpen(false)}
-                className="w-full bg-gray-500 hover:bg-gray-300 py-2 rounded-lg"
+                className="w-full bg-gray-500 text-white hover:bg-gray-300 py-2 rounded-lg"
             >
                 Cancel
             </button>
@@ -326,7 +368,7 @@ const orderData = {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="font-medium">
-                  {symbol}{subtotal.toFixed(2)}
+                  ${subTotalUSD.toFixed(2)}
                 </span>
               </div>
 
@@ -334,7 +376,7 @@ const orderData = {
               <div className="flex justify-between">
                 <span>Discount</span>
                 <span className="text-red-600">
-                  -{symbol}{discount.toFixed(2)}
+                  -${discountUSD.toFixed(2)}
                 </span>
               </div>
 
@@ -342,7 +384,7 @@ const orderData = {
               <div className="border-t pt-3 flex justify-between font-semibold text-base">
                 <span>Total</span>
                 <span className="text-green-700">
-                  {symbol}{total.toFixed(2)}
+                  ${totalInUSD.toFixed(2)}
                 </span>
               </div>
 
@@ -423,7 +465,7 @@ const orderData = {
         {/* ================= STEP 3 ================= */}
         {step === 3 && (
           <>
-            <div className="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-8 mt-6">
+            <div className="">
 
             <OrderSteps form={form} setForm={setForm} orderData={orderData} setStep={setStep}
              setSavedCount={setSavedCount} cart={cart}/>

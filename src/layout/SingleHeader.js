@@ -7,7 +7,8 @@ import {Bell, BookOpen, BookTemplateIcon, Briefcase,
     ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow, 
     ChevronDown,
     X,
-    AlertCircle} from "lucide-react";
+    AlertCircle,
+    CarFront} from "lucide-react";
 import { useAuth } from './AuthProvider';
 import LogoutButton from '../Form/LogOut';
 import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader';
@@ -16,6 +17,7 @@ import ChatPage from '../chat/chatbox/Chatpage';
 import CreateAdvertisementModal from '../advertisement/CreateAdvertisementModal';
 import CreateJobModal from '../job/CreateJobModal';
 import api from '../Api/axios';
+import useApplicationNotification from '../job/useApplicationNotification';
 
 function SingleHeader({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
@@ -32,8 +34,11 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       const [showProfileRequiredModal, setShowProfileRequiredModal] = useState(false);
       const navigate = useNavigate()
 
+      const {
+            applicationCount,
+            markApplicationsAsRead
+        } = useApplicationNotification();
 
-  const [applicationCount, setApplicationCount] = useState(0);
   const [showAppDownload, setShowAppDownload] = useState(false);
   const [seeMoreApps, setSeeMoreApps] = useState(false);
   const authUser = useAuth()
@@ -48,63 +53,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 });
 
      
-      useEffect(()=>{
-
-        const fetchApplicationCount = async () => {
-
-        try {
-
-            const response = await api.get(
-                "/api/job-applications"
-            );
-
-            setApplicationCount(
-                response.data.unread_count || 0
-            );
-
-        } catch (error) {
-
-            console.error(
-                "APPLICATION COUNT ERROR:",
-                error
-            );
-
-        }
-
-    };
-
-    fetchApplicationCount();
-
-}, [jobProfile?.type]);
-
-const markApplicationsAsRead = async () => {
-
-    if (
-        jobProfile?.type !== "creator" ||
-        applicationCount === 0
-    ) {
-        return;
-    }
-
-    try {
-
-        await api.post(
-            "/api/job-applications/mark-read"
-        );
-
-        setApplicationCount(0);
-
-    } catch (error) {
-
-        console.error(
-            "MARK APPLICATIONS READ ERROR:",
-            error
-        );
-
-    }
-
-};
-
+      
    
     const dashboardLink =
   user?.role === "admin" ? "/admin/dashboard" : "/student/dashboard";
@@ -482,7 +431,12 @@ const markApplicationsAsRead = async () => {
           
                   </div>
           
-                  
+                  <Link to={'/cart'} className={`${homepage === '/cart' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
+                 transition-all hidden lg:block duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
+                            
+                <CarFront />
+                    Cart
+                </Link>
                         <div className="lg:block hidden">
                             {check}
                         </div>

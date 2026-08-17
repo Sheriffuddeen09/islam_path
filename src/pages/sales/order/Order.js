@@ -2,7 +2,6 @@ import { Delete, Loader2 } from "lucide-react";
 import api from "../../../Api/axios";
 import { useAuth } from "../../../layout/AuthProvider";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
   const [orders, setOrders] = useState([]);
@@ -18,7 +17,7 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
   const [activeChats, setActiveChats] = useState([]); // store orderIds
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const symbols = { USD: "$", NGN: "₦", EUR: "€", GBP: "£" };
+  const symbols = { USD: "$", NGN: "₦", EUR: "€"};
 
 
 
@@ -192,6 +191,29 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
 
 
+const exchangeRatesToUSD = {
+  USD: 1,
+  NGN: 0.000735527,
+  EUR: 1.09,
+};
+
+const totalInUSD =
+  selectedOrder?.items?.reduce((total, item) => {
+    const currency = item?.product?.currency || "USD";
+
+    const price = Number(item?.price || 0);
+    const quantity = Number(item?.quantity || 1);
+    const discount = Number(item?.discount || 0);
+
+    const subtotal =
+      (price * quantity) - discount;
+
+    const rate =
+      exchangeRatesToUSD[currency] || 1;
+
+    return total + (subtotal * rate);
+  }, 0) || 0;
+
   return (
   <div className="relative lg:ml-64 px-4 text-[var(--text-color)]  bg-[var(--bg-color)] ">
 
@@ -209,7 +231,7 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
     {/* 🔄 LOADING */}
    {loading && ( 
-    <div className="grid md:grid-cols-2 gap-3"> 
+    <div className="flex flex-col gap-3"> 
     {[1, 2, 3, 4, 5, 6, 7, 8 ].map((i) => ( 
           <div key={i} className="bg-white p-5 rounded-xl shadow animate-pulse"> 
           <div className="h-28 bg-gray-200 w-2/3 mb-3 rounded"></div> 
@@ -221,210 +243,604 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
 
     {/* 📦 ORDERS */}
     {!loading && orders.length > 0 && (
-      <div className="grid md:grid-cols-2 gap-6">
+  <div className="flex flex-col gap-2">
 
-        {orders.map((order) => {
-          const isBuyer = order.user_id === authUserId;
-          
-          const buyerId = order.user_id;
+    {orders.map((order) => {
 
-          const firstItem = order.items?.[0];
-          const sellerId = firstItem?.seller_id;
-        
+      // ============================================
+      // BUYER / SELLER
+      // ============================================
 
-          const currency = firstItem?.product?.currency;
-          const symbol = symbols[currency] || currency;
+      const isBuyer =
+        Number(order.user_id) === Number(authUserId);
 
-          const chat = getChatByOrder(order.id);
+      const buyerId = order.user_id;
 
-          console.log("buyer id", buyerId)
+      const items = Array.isArray(order.items)
+        ? order.items
+        : [];
 
+      const firstItem = items[0];
+
+      const sellerId =
+        firstItem?.seller_id || null;
+
+
+      // ============================================
+      // CURRENCY
+      // ============================================
+
+      const symbols = {
+        USD: "$",
+        NGN: "₦",
+        EUR: "€",
+        GBP: "£",
+      };
+
+      const exchangeRatesToUSD = {
+        USD: 1,
+        NGN: 0.000735527,
+        EUR: 1.09,
+        GBP: 1.27,
+      };
+
+
+      // ============================================
+      // TOTAL QUANTITY
+      // ============================================
+
+      const totalQuantity = items.reduce(
+        (total, item) =>
+          total + Number(item?.quantity || 1),
+        0
+      );
+
+
+      // ============================================
+      // TOTAL IN USD
+      // ============================================
+
+      const totalInUSD = items.reduce(
+        (total, item) => {
+
+          const currency =
+            item?.currency || "USD";
+
+          const price =
+            Number(item?.price || 0);
+
+          const quantity =
+            Number(item?.quantity || 1);
+
+          const discount =
+            Number(item?.discount || 0);
+
+          const rate =
+            exchangeRatesToUSD[currency] ?? 1;
+
+          const itemTotal =
+            (price * quantity) - discount;
+
+          return total + (
+            itemTotal * rate
+          );
+
+        },
+        0
+      );
+
+
+      // ============================================
+      // ORIGINAL CURRENCY
+      // ============================================
+
+      const originalCurrency =
+        firstItem?.currency || "USD";
+
+      const originalSymbol =
+        symbols[originalCurrency] ||
+        originalCurrency;
+
+
+      // ============================================
+      // ORIGINAL TOTAL
+      // ============================================
+
+      const originalTotal = items.reduce(
+        (total, item) => {
+
+          const price =
+            Number(item?.price || 0);
+
+          const quantity =
+            Number(item?.quantity || 1);
+
+          const discount =
+            Number(item?.discount || 0);
 
           return (
-            <div key={order.id} className="text-[var(--text-color)]  bg-[var(--bg-color)]  p-5 rounded-2xl shadow-md ">
+            total +
+            (price * quantity) -
+            discount
+          );
 
-              {/* HEADER */}
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold">Order #{order.id}</h3>
-
-                <div className="flex items-center gap-2">
+        },
+        0
+      );
 
 
-            {!isBuyer && sellerId && (
-              order.status === "cancelled" ? (
-                <button className="text-red-700 px-3 py-2 text-sm rounded font-bold cursor-not-allowed">
-                  Order Cancelled
-                </button>
-              ) : chat ? (
-                <button
-                  onClick={() => openChat(chat)}
-                  className="bg-green-600 text-white px-3 py-2 text-sm rounded font-bold"
-                >
-                  Active
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleMessageUser(order)}
-                  className="bg-blue-800 text-white px-3 py-2 text-sm rounded font-bold"
-                >
-                  {chatLoading === order.id ? "Loading" : "Message"}
-                </button>
-              )
-            )}
+      // ============================================
+      // CHAT
+      // ============================================
 
-                  {isBuyer && (
-                  <button
-                    disabled={
-                      cancelingId === order.id ||
-                      order.status !== "pending"
-                    }
-                    className={`px-3 py-2 text-sm rounded font-bold  whitespace-nowrap
-                      ${
-                        order.status === "cancelled"
-                          ? "bg-red-700 hidden cursor-not-allowed"
-                          : order.chat_created
-                          ? "bg-green-700 cursor-not-allowed"
-                          : order.status === "pending"
-                          ? "bg-blue-700 hover:bg-red-600 cursor-not-allowed"
-                          : order.status === "active"
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "hidden"
-                      }
-                    `}
-                  >
-                    {cancelingId === order.id
-                      ? "Canceling..."
-                      : order.status === "cancelled"
-                      ? "Cancelled"
-                      : order.chat_created
-                      ? "Active"
-                      : order.status === "pending"
-                      ? "Pending"
-                      : order.status === "active"
-                      ? "Active"
-                      : ""}
-                  </button>
-                )}
+      const chat =
+        getChatByOrder(order.id);
 
-                   <button
-                      onClick={() => {
-                          setSelectedOrderId(order.id);
-                          setShowDeleteModal(true);
-                        }}
-                      disabled={deletingId === order.id}
-                      className="px-3 py-2 text-sm rounded font-bold bg-red-700 hover:bg-red-800 text-white">
-                    Delete
-                  </button>
 
-                  </div>
-                </div>
-                        
+      return (
+        <div
+          key={order.id}
+          className="text-[var(--text-color)] bg-[var(--bg-color)] p-4 md:p-5
+          border border-blue-500 rounded-2xl shadow-md flex flex-col gap-4"
+        >
 
-              {/* USER */}
-              <p className="text-sm ">
-                • {order.first_name} {order.last_name}
-              </p>
+          {/* ==========================================
+              TOP ROW
+          ========================================== */}
 
-              <p className="text-sm  mb-3">
-                • {order.address}
-              </p>
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
 
-              {/* ITEMS */}
-              <div className="border-t pt-2 space-y-3">
+            {/* ========================================
+                PRODUCT IMAGE
+            ======================================== */}
 
-                {order.items?.map((item, i) => {
+            <div className="shrink-0">
 
-                const symbol = symbols[item?.product?.currency] || item?.product?.currency;
-                  
-                  
-                  return (
-                    <div key={i} className="flex justify-between gap-3 border-b py-3">
+              <img
+                src={
+                  firstItem?.product?.image
+                    ? `http://localhost:8000/storage/${firstItem.product.image}`
+                    : firstItem?.image
+                      ? firstItem.image
+                      : "/placeholder.png"
+                }
+                alt={
+                  firstItem?.title ||
+                  "Product"
+                }
+                className="w-20 h-20 rounded-xl object-cover"
+              />
 
-                      {/* LEFT */}
-                      <div className="flex gap-3 items-center">
+            </div>
 
-                      <img
-                        src={
-                          item.product?.image
-                            ? `http://localhost:8000/storage/${item.product.image}`
-                            : "/placeholder.png"
-                        }
-                        className="w-20 h-20 rounded object-cover"
-                      />
 
-                      <div className="flex-1">
-                        <p className="font-medium">{item.title}</p>
-                        <div className="relative">
-                        <p className="text-sm">
-                         {symbol}{item.price} × {item.quantity}
-                        </p>
+            {/* ========================================
+                ORDER INFORMATION
+            ======================================== */}
 
-                        {item.discount > 0 && (
-                          <p className="text-xs text-red-500 whitespace-nowrap absolute top-0 right-0 translate-x-8 font-bold">
-                           -{symbol}{item.discount}
-                          </p>
-                         )} 
-                        </div>
+            <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
 
-                      </div>
-                        
-                    </div>
-                     <p className="text-sm font-semibold text-green-700 mt-1">
-                        Subtotal: {symbol}{(item.price * item.quantity) - (item.discount || 0)}
-                      </p>
-                    </div>
-                  );
-                })}
+              {/* DATE */}
+
+              <div>
+
+                <p className="text-xs font-medium">
+                  Order Date
+                </p>
+
+                <p className="text-sm font-semibold">
+
+                  {order.created_at
+                    ? new Date(
+                        order.created_at
+                      ).toLocaleDateString()
+                    : "N/A"}
+
+                </p>
+
               </div>
 
-              {/* TOTAL */}
-              <div className="flex justify-between mt-3 font-semibold border-t pt-2">
-                <div>
-                <span>Total:</span>
-                <span className="font-bold"> {symbol}{order.total_price}</span>
-                </div>
 
-                <div className="inline-flex items-center gap-1">
-                {isBuyer && (
-                <>
-                  {/* ✅ PENDING (NO CHAT) */}
-                  {order.status === "pending" && !order.chat_created && (
-                    <button
-                      onClick={() => {
-                        setSelectedOrderId(order.id);
-                        setShowCancelModal(true);
-                      }}
-                      disabled={cancelingId === order.id}
-                      className="px-3 py-2 text-sm rounded font-bold text-white bg-red-500 hover:bg-red-600 whitespace-nowrap"
-                    >
-                      {cancelingId === order.id ? "Canceling..." : "Cancel Order"}
-                    </button>
-                  )}
+              {/* CUSTOMER */}
 
-                  {/* ✅ CANCELLED */}
-                  {order.status === "cancelled" && (
-                    <span className="px-3 py-3 text-sm font-bold text-red-600 whitespace-nowrap">
-                      Order Cancelled
-                    </span>
-                  )}
-                </>
+              <div>
+
+                <p className="text-xs font-medium">
+                  Customer
+                </p>
+
+                <p className="text-sm font-semibold">
+
+                  {order.first_name}{" "}
+                  {order.last_name}
+
+                </p>
+
+              </div>
+
+
+              {/* PRODUCTS */}
+
+              <div>
+
+                <p className="text-xs font-medium">
+                  Products
+                </p>
+
+                <p className="text-sm font-semibold">
+                  {items.length}
+                </p>
+
+              </div>
+
+
+              {/* QUANTITY */}
+
+              <div>
+
+                <p className="text-xs font-medium">
+                  Quantity
+                </p>
+
+                <p className="text-sm font-semibold">
+                  {totalQuantity}
+                </p>
+
+              </div>
+
+
+              {/* ====================================
+                  TOTAL PRICE
+              ==================================== */}
+
+              <div>
+
+                <p className="text-xs font-medium">
+                  Total Price
+                </p>
+
+                <p className="text-sm font-bold text-green-700">
+
+                  {originalSymbol}
+                  {originalTotal.toFixed(2)}
+
+                </p>
+
+                <p className="text-xs text-gray-500">
+
+                  ${totalInUSD.toFixed(2)} USD
+
+                </p>
+
+              </div>
+
+
+              {/* STATUS */}
+
+              <div>
+
+                <p className="text-xs font-medium">
+                  Status
+                </p>
+
+                <span
+                  className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-bold capitalize
+                    ${
+                      order.status === "pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : order.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : order.status === "cancelled"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-gray-100"
+                    }
+                  `}
+                >
+                  {order.status}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            {/* ========================================
+                ACTIONS
+            ======================================== */}
+
+            <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+
+              {/* ======================================
+                  MESSAGE SELLER
+              ====================================== */}
+
+              {!isBuyer && sellerId && (
+
+                order.status === "cancelled" ? (
+
+                  <button
+                    disabled
+                    className="text-red-700 px-3 py-2 text-sm rounded font-bold cursor-not-allowed"
+                  >
+                    Cancelled
+                  </button>
+
+                ) : chat ? (
+
+                  <button
+                    onClick={() => openChat(chat)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm rounded font-bold"
+                  >
+                    Active
+                  </button>
+
+                ) : (
+
+                  <button
+                    onClick={() =>
+                      handleMessageUser(order)
+                    }
+                    className="bg-blue-800 hover:bg-blue-900 text-white px-3 py-2 text-sm rounded font-bold"
+                  >
+
+                    {chatLoading === order.id
+                      ? "Loading"
+                      : "Message"}
+
+                  </button>
+
+                )
+
               )}
-                <button
+
+
+              {/* ======================================
+                  CANCEL ORDER
+              ====================================== */}
+
+              {isBuyer &&
+                order.status === "pending" &&
+                !order.chat_created && (
+
+                  <button
+                    onClick={() => {
+
+                      setSelectedOrderId(
+                        order.id
+                      );
+
+                      setShowCancelModal(
+                        true
+                      );
+
+                    }}
+                    disabled={
+                      cancelingId === order.id
+                    }
+                    className="px-3 py-2 text-sm rounded font-bold text-white bg-red-500 hover:bg-red-600 whitespace-nowrap"
+                  >
+
+                    {cancelingId === order.id
+                      ? "Canceling"
+                      : "Cancel"}
+
+                  </button>
+
+              )}
+
+
+              {/* ======================================
+                  DELETE
+              ====================================== */}
+
+              <button
                 onClick={() => {
-                  setSelectedOrder(order);
-                  setShowModal(true);
+
+                  setSelectedOrderId(
+                    order.id
+                  );
+
+                  setShowDeleteModal(
+                    true
+                  );
+
                 }}
-                className="text-sm bg-gray-900 hover:bg-gray-800 text-white px-2 py-3 rounded whitespace-nowrap"
+                disabled={
+                  deletingId === order.id
+                }
+                className="px-3 py-2 text-sm rounded font-bold bg-red-700 hover:bg-red-800 text-white"
+              >
+
+                {deletingId === order.id
+                  ? "Deleting..."
+                  : "Delete"}
+
+              </button>
+
+
+              {/* ======================================
+                  VIEW DETAILS
+              ====================================== */}
+
+              <button
+                onClick={() => {
+
+                  setSelectedOrder(
+                    order
+                  );
+
+                  setShowModal(true);
+
+                }}
+                className="text-sm bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded whitespace-nowrap"
               >
                 View Details
               </button>
-              </div>
-              </div>
+
             </div>
-          );
-        })}
-      </div>
-    )}
+
+          </div>
+
+
+          {/* ==========================================
+              BOTTOM INFORMATION
+          ========================================== */}
+
+          <div className="border-t pt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+            {/* PRODUCT */}
+
+            <div>
+
+              <p className="text-xs">
+                Product
+              </p>
+
+              <p className="text-sm font-semibold">
+
+                {firstItem?.title ||
+                  firstItem?.product?.name ||
+                  "No product"}
+
+              </p>
+
+              {items.length > 1 && (
+
+                <p className="text-xs mt-1">
+
+                  + {items.length - 1} more product
+                  {items.length - 1 > 1
+                    ? "s"
+                    : ""}
+
+                </p>
+
+              )}
+
+            </div>
+
+
+            {/* MESSAGE */}
+
+            {order.message && (
+
+              <div className="flex-1 sm:text-right">
+
+                <p className="text-xs">
+                  Message
+                </p>
+
+                <p className="text-sm">
+                  {order.message}
+                </p>
+
+              </div>
+
+            )}
+
+          </div>
+
+
+          {/* ==========================================
+              CURRENCY BREAKDOWN
+          ========================================== */}
+
+          <div className="border-t pt-3">
+
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
+
+              <div>
+
+                <span>
+                  Currency:
+                </span>{" "}
+
+                <span className="font-bold">
+                  {originalCurrency}
+                </span>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Subtotal:
+                </span>{" "}
+
+                <span className="font-bold">
+
+                  {originalSymbol}
+                  {Number(
+                    order.subtotal || 0
+                  ).toFixed(2)}
+
+                </span>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Discount:
+                </span>{" "}
+
+                <span className="font-bold text-red-500">
+
+                  -{originalSymbol}
+                  {Number(
+                    order.discount || 0
+                  ).toFixed(2)}
+
+                </span>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Delivery:
+                </span>{" "}
+
+                <span className="font-bold">
+
+                  {originalSymbol}
+                  {Number(
+                    order.delivery_price || 0
+                  ).toFixed(2)}
+
+                </span>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  USD Total:
+                </span>{" "}
+
+                <span className="font-bold text-green-700">
+
+                  ${totalInUSD.toFixed(2)}
+
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      );
+
+    })}
+
+  </div>
+)}
 
     {/* ❌ EMPTY */}
     {!loading && orders.length === 0 && (
@@ -436,9 +852,10 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
     {/* ================= MODAL ================= */}
 
     {showDeleteModal && (
-  <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
+  <div className="fixed inset-0 z-[9999] bg-black/50 
     text-[var(--text-color)] flex items-center justify-center p-4">
-      <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-full max-w-md overflow-y-auto scrollbar-thin rounded-xl shadow-lg space-y-4">
+      <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  w-full max-w-md overflow-y-auto 
+      scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin rounded-xl shadow-lg space-y-4">
 
       {/* HEADER */}
       <h2 className="text-lg font-bold mb-3 text-center border-b border-[var(--text-color)] py-3">
@@ -533,103 +950,608 @@ const Order = ({chats, setActiveChat, setMessages, togglePopup, setChats}) => {
   </div>
 )}
     {showModal && selectedOrder && (
-      <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 
-    text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
-        <div className="text-[var(--text-color)]  bg-[var(--bg-color)]   w-full max-w-2xl scrollbar-thin  rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
+  <div
+    className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50
+    text-[var(--text-color)] backdrop-blur-md
+    flex items-center justify-center p-4"
+  >
 
-          {/* HEADER */}
-          <div className="flex justify-between items-center border-b pb-3 mb-4">
-            <h2 className="font-bold text-lg">
-              Order #{selectedOrder.id}
-            </h2>
+    <div
+      className="text-[var(--text-color)]
+      bg-[var(--bg-color)]
+      w-full max-w-3xl
+      rounded-2xl
+      p-5
+      max-h-[90vh]
+      overflow-y-auto
+      scrollbar-thin"
+    >
 
-            <button onClick={() => setShowModal(false)}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-10 transition 
-            w-8  h-8 cursor-pointer">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-            
-            </button>
+      {/* ================= HEADER ================= */}
+
+      <div className="flex justify-between items-center border-b pb-3 mb-4">
+
+        <div>
+          <h2 className="font-bold text-lg">
+            Order #{selectedOrder.id}
+          </h2>
+
+          <p className="text-xs mt-1">
+            {selectedOrder.status}
+          </p>
+        </div>
+
+        <button
+          onClick={() => {
+            setShowModal(false);
+            setSelectedOrder(null);
+          }}
+          className="w-9 h-9 rounded-full
+          flex items-center justify-center
+          hover:bg-gray-200"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      {/* ================= CUSTOMER ================= */}
+
+      <div className="shadow-md rounded-xl p-4 mb-5">
+
+        <h1 className="text-xl font-bold border-b pb-2 mb-4">
+          {selectedOrder.first_name}'s Info
+        </h1>
+
+        <div className="grid md:grid-cols-2 gap-4">
+
+          {/* CUSTOMER */}
+
+          <div className="shadow rounded-xl p-4">
+
+            <p className="font-semibold mb-2">
+              • {selectedOrder.first_name}{" "}
+              {selectedOrder.last_name}
+            </p>
+
+            <p className="text-sm mb-2">
+              • {selectedOrder.email}
+            </p>
+
+            <p className="text-sm">
+              • {selectedOrder.phone}
+            </p>
+
           </div>
 
-          {/* CUSTOMER + ADDRESS */}
-          <div className=" shadow-md rounded-xl p-2 sm:p-4 ">
-            <h1 className="text-2xl font-bold border-b-2  pb-2 ">{selectedOrder.first_name}'s Info</h1>
-          <div className="grid md:grid-cols-2 gap-4 mb-5">
-            
-            <div className=" shadow my-3 dots p-4 rounded sm:p-4 p-2">
-              <p className="font-semibold mb-2">
-                • {selectedOrder.first_name} {selectedOrder.last_name}
-              </p>
-              <p className="text-sm mb-2">• {selectedOrder.email}</p>
-              <p className="text-sm mb-2">• {selectedOrder.phone}</p>
-            </div>
 
-             <div className=" shadow my-3 dots p-4 rounded sm:p-4 p-2">
-              <p className="font-semibold mb-2">• {selectedOrder.address}</p>
-              <p className="text-sm mb-2">• {selectedOrder.city}, • {selectedOrder.state}</p>
-              <p className="text-sm mb-2">• ZIP: {selectedOrder.zip}</p>
-            </div>
+          {/* ADDRESS */}
 
-            </div>
+          <div className="shadow rounded-xl p-4">
 
+            <p className="font-semibold mb-2">
+              • {selectedOrder.address}
+            </p>
 
-          </div>
+            <p className="text-sm mb-2">
+              • {selectedOrder.city},{" "}
+              {selectedOrder.state}
+            </p>
 
-          {/* ITEMS */}
-          {selectedOrder.items.map((item, i) => {
+            <p className="text-sm">
+              • ZIP: {selectedOrder.zip}
+            </p>
 
-                const symbol = symbols[item?.product?.currency] || item?.product?.currency;
-                  
-                  
-                  return (
-                    <div key={i} className="flex justify-between gap-3 border-b py-3">
-
-                      {/* LEFT */}
-                      <div className="flex gap-3 items-center">
-
-                      <img
-                        src={
-                          item.product?.image
-                            ? `http://localhost:8000/storage/${item.product.image}`
-                            : "/placeholder.png"
-                        }
-                        className="w-20 h-20 rounded object-cover"
-                      />
-
-                      <div className="flex-1">
-                        <p className="font-medium">{item.title}</p>
-                        <div className="relative">
-                        <p className="text-sm">
-                         {symbol}{item.price} × {item.quantity}
-                        </p>
-
-                        {item.discount > 0 && (
-                          <p className="text-xs text-red-500 absolute whitespace-nowrap top-0 left-20 font-bold">
-                           -{symbol}{item.discount}
-                          </p>
-                         )} 
-                        </div>
-
-                      </div>
-                        
-                    </div>
-                     <p className="text-sm font-bold text-green-500  mt-1">
-                        Subtotal: {symbol}{(item.price * item.quantity) - (item.discount || 0)}
-                      </p>
-                    </div>
-                  );
-                })}
-
-          {/* TOTAL */}
-          <div className="mt-4 font-bold border-t py-2 flex justify-between">
-            <span>Total</span>
-            <span>{selectedOrder.total_price}</span>
           </div>
 
         </div>
+
       </div>
-    )}
+
+
+      {/* ================= ITEMS ================= */}
+
+      <div className="space-y-3">
+
+        <h3 className="font-bold text-lg">
+          Order Products
+        </h3>
+
+        {selectedOrder.items?.map((item, i) => {
+
+          const symbols = {
+            USD: "$",
+            NGN: "₦",
+            EUR: "€",
+            GBP: "£",
+          };
+
+          const exchangeRatesToUSD = {
+            USD: 1,
+            NGN: 0.000735527,
+            EUR: 1.09,
+            GBP: 1.27,
+          };
+
+
+          // =========================
+          // CURRENCY
+          // =========================
+
+          const currency =
+            item?.currency ||
+            item?.product?.currency ||
+            "USD";
+
+          const symbol =
+            symbols[currency] || currency;
+
+          const rate =
+            exchangeRatesToUSD[currency] ?? 1;
+
+
+          // =========================
+          // VALUES
+          // =========================
+
+          const price =
+            Number(item?.price || 0);
+
+          const quantity =
+            Number(item?.quantity || 1);
+
+          const discount =
+            Number(item?.discount || 0);
+
+
+          // =========================
+          // ORIGINAL CURRENCY
+          // =========================
+
+          const grossSubtotal =
+            price * quantity;
+
+          const finalSubtotal =
+            grossSubtotal - discount;
+
+
+          // =========================
+          // USD
+          // =========================
+
+          const priceUSD =
+            price * rate;
+
+          const discountUSD =
+            discount * rate;
+
+          const subtotalUSD =
+            finalSubtotal * rate;
+
+
+          return (
+
+            <div
+              key={item.id || i}
+              className="border rounded-xl p-4"
+            >
+
+              <div className="flex flex-col sm:flex-row gap-4">
+
+                {/* IMAGE */}
+
+                <img
+                  src={
+                    item.product?.image
+                      ? `http://localhost:8000/storage/${item.product.image}`
+                      : item.image
+                      ? item.image
+                      : "/placeholder.png"
+                  }
+                  alt={item.title || "Product"}
+                  className="w-full sm:w-24 h-24
+                  rounded-xl object-cover shrink-0"
+                />
+
+
+                {/* INFORMATION */}
+
+                <div className="flex-1">
+
+                  {/* TITLE + PRICE */}
+
+                  <div
+                    className="flex flex-col
+                    sm:flex-row
+                    sm:justify-between
+                    gap-2"
+                  >
+
+                    <div>
+
+                      <h4 className="font-bold">
+                        {item.title ||
+                          item.product?.name ||
+                          "Unnamed Product"}
+                      </h4>
+
+                      {item.description && (
+                        <p className="text-xs mt-1">
+                          {item.description}
+                        </p>
+                      )}
+
+                    </div>
+
+
+                    {/* ORIGINAL PRICE */}
+
+                    <div className="text-left sm:text-right">
+
+                      <p className="font-bold text-green-600">
+                        {symbol}
+                        {price.toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}
+                      </p>
+
+                      <p className="text-xs text-gray-500">
+                        $
+                        {priceUSD.toFixed(2)}
+                        {" "}USD
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+                  {/* DETAILS */}
+
+                  <div
+                    className="flex flex-wrap
+                    gap-x-5 gap-y-2
+                    mt-4 text-xs sm:text-sm"
+                  >
+
+                    {/* QUANTITY */}
+
+                    <div>
+
+                      <span>
+                        Quantity:
+                      </span>{" "}
+
+                      <span className="font-semibold">
+                        {quantity}
+                      </span>
+
+                    </div>
+
+
+                    {/* PRICE */}
+
+                    <div>
+
+                      <span>
+                        Price:
+                      </span>{" "}
+
+                      <span className="font-semibold">
+                        {symbol}
+                        {price.toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}
+                      </span>
+
+                    </div>
+
+
+                    {/* DISCOUNT */}
+
+                    {discount > 0 && (
+
+                      <div>
+
+                        <span>
+                          Discount:
+                        </span>{" "}
+
+                        <span
+                          className="font-semibold
+                          text-red-500"
+                        >
+                          -{symbol}
+                          {discount.toLocaleString(
+                            undefined,
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          )}
+                        </span>
+
+                        <span
+                          className="text-xs
+                          text-gray-500 ml-1"
+                        >
+                          (-$
+                          {discountUSD.toFixed(2)}
+                          USD)
+                        </span>
+
+                      </div>
+
+                    )}
+
+
+                    {/* SUBTOTAL */}
+
+                    <div>
+
+                      <span>
+                        Subtotal:
+                      </span>{" "}
+
+                      <span
+                        className="font-bold
+                        text-green-600"
+                      >
+                        {symbol}
+                        {finalSubtotal.toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}
+                      </span>
+
+                      <span
+                        className="text-xs
+                        text-gray-500 ml-1"
+                      >
+                        ($
+                        {subtotalUSD.toFixed(2)}
+                        USD)
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          );
+
+        })}
+
+      </div>
+
+
+      {/* ================= ORDER TOTAL ================= */}
+
+      {(() => {
+
+        const symbols = {
+          USD: "$",
+          NGN: "₦",
+          EUR: "€",
+          GBP: "£",
+        };
+
+        const exchangeRatesToUSD = {
+          USD: 1,
+          NGN: 0.000735527,
+          EUR: 1.09,
+          GBP: 1.27,
+        };
+
+
+        const subtotalUSD =
+          selectedOrder.items?.reduce(
+            (total, item) => {
+
+              const currency =
+                item?.currency ||
+                item?.product?.currency ||
+                "USD";
+
+              const price =
+                Number(item?.price || 0);
+
+              const quantity =
+                Number(item?.quantity || 1);
+
+              const rate =
+                exchangeRatesToUSD[currency] ?? 1;
+
+              return total +
+                (
+                  price *
+                  quantity *
+                  rate
+                );
+
+            },
+            0
+          ) || 0;
+
+
+        const discountUSD =
+          selectedOrder.items?.reduce(
+            (total, item) => {
+
+              const currency =
+                item?.currency ||
+                item?.product?.currency ||
+                "USD";
+
+              const discount =
+                Number(item?.discount || 0);
+
+              const rate =
+                exchangeRatesToUSD[currency] ?? 1;
+
+              return total +
+                (
+                  discount *
+                  rate
+                );
+
+            },
+            0
+          ) || 0;
+
+
+        const deliveryUSD =
+          Number(
+            selectedOrder.delivery_price || 0
+          );
+
+
+        const totalUSD =
+          subtotalUSD -
+          discountUSD +
+          deliveryUSD;
+
+
+        return (
+
+          <div
+            className="mt-5
+            border-t
+            pt-4
+            space-y-3"
+          >
+
+            {/* SUBTOTAL */}
+
+            <div
+              className="flex
+              justify-between
+              items-center"
+            >
+
+              <span className="font-semibold">
+                Subtotal
+              </span>
+
+              <span className="font-bold">
+                $
+                {subtotalUSD.toFixed(2)}
+                {" "}USD
+              </span>
+
+            </div>
+
+
+            {/* DISCOUNT */}
+
+            {discountUSD > 0 && (
+
+              <div
+                className="flex
+                justify-between
+                items-center"
+              >
+
+                <span className="font-semibold">
+                  Discount
+                </span>
+
+                <span
+                  className="font-bold
+                  text-red-500"
+                >
+                  -$
+                  {discountUSD.toFixed(2)}
+                  {" "}USD
+                </span>
+
+              </div>
+
+            )}
+
+
+            {/* DELIVERY */}
+
+            {deliveryUSD > 0 && (
+
+              <div
+                className="flex
+                justify-between
+                items-center"
+              >
+
+                <span className="font-semibold">
+                  Delivery
+                </span>
+
+                <span className="font-bold">
+                  $
+                  {deliveryUSD.toFixed(2)}
+                  {" "}USD
+                </span>
+
+              </div>
+
+            )}
+
+
+            {/* TOTAL */}
+
+            <div
+              className="flex
+              justify-between
+              items-center
+              border-t
+              pt-3"
+            >
+
+              <span className="text-lg font-bold">
+                Total
+              </span>
+
+              <div className="text-right">
+
+                <p
+                  className="text-xl
+                  font-bold
+                  text-green-600"
+                >
+                  $
+                  {totalUSD.toFixed(2)}
+                  {" "}USD
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        );
+
+      })()}
+
+    </div>
+
+  </div>
+)}
   </div>
 );
 };

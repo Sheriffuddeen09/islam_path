@@ -59,7 +59,6 @@ export default function MyProducts() {
   USD: "$",
   NGN: "₦",
   EUR: "€",
-  GBP: "£",
 };
 
   return (

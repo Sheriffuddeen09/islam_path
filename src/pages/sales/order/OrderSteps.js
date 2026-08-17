@@ -95,79 +95,97 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
 
         const handleAfterAd = async () => {
 
-        if (loading) return;
-        setShowAd(false);
-        setLoading(true);
+  if (loading) return;
 
-        try {
+  setShowAd(false);
+  setLoading(true);
 
-          let res;
+  try {
 
-          if (form.payment_method === "save") {
-            res = await api.post("/api/product/save-draft", {
-              ...orderData,
-              user_id: user?.id,
-              status: "draft",
-            });
+    let res;
 
-            if (res.data.success) {
-              setSavedCount((prev) => prev + 1);
+    // =========================
+    // SAVE DRAFT
+    // =========================
+    if (form.payment_method === "save") {
 
-              setSuccess({
-                show: true,
-                type: "save",
-                message: res.data.message || "Saved successfully",
-              });
-            }
-          }
+      res = await api.post("/api/product/save-draft", {
+        ...orderData,
+        user_id: user?.id,
+        status: "draft",
+      });
 
-          if (form.payment_method === "order") {
-            const order_token = Date.now() + "-" + user?.id;
+      if (res.data.success) {
 
-            res = await api.post("/api/order/create", {
-              ...orderData,
-              order_token,
-              status: "pending",
-            });
+        setSavedCount((prev) => prev + 1);
 
-            if (res.data.success) {
-              setSuccess({
-                show: true,
-                type: "order",
-                message: res.data.message || "Order sent!",
-              });
-            }
-          }
+        setSuccess({
+          show: true,
+          type: "save",
+          message: res.data.message || "Saved successfully",
+        });
+      }
+    }
 
-         
-          if (res?.data?.success) {
-              try {
-                if (Array.isArray(cart)) {
-                  await Promise.all(
-                    cart.map((item) => api.delete(`/api/cart/${item.id}`))
-                  );
-                } else if (cart?.id) {
-                  await api.delete(`/api/cart/${cart.id}`);
-                }
-              } catch (e) {
-                console.log("Cart clear failed", e);
-              }
-            }
+    // =========================
+    // PLACE ORDER
+    // =========================
+    if (form.payment_method === "order") {
 
-        } catch (err) {
-          console.log(err);
+      const order_token =
+        Date.now() + "-" + user?.id;
 
-          if (err.response) {
-            showNotify("error", err.response.data.message || "Something went wrong");
-          } else {
-            showNotify("error", "Network error");
-          }
+      res = await api.post("/api/order/create", {
+        ...orderData,
+        first_name: orderData?.first_name || user?.first_name,
+        last_name: orderData?.last_name || user?.last_name,
+        email: orderData?.email || user?.email,
+        phone: orderData?.phone || user?.phone,
+        user_id: user?.id,
+        order_token,
+        status: "pending",
+      });
 
-        } finally {
-          setLoading(false);
-          setAdFinished(false);
-        }
-      };
+      if (res.data.success) {
+
+        setSuccess({
+          show: true,
+          type: "order",
+          message: res.data.message || "Order sent!",
+        });
+
+        // IMPORTANT:
+        // Laravel has already cleared the cart.
+        // No DELETE /api/cart calls needed here.
+      }
+    }
+
+  } catch (err) {
+
+    console.log(err);
+
+    if (err.response) {
+
+      showNotify(
+        "error",
+        err.response.data.message ||
+        "Something went wrong"
+      );
+
+    } else {
+
+      showNotify(
+        "error",
+        "Network error"
+      );
+    }
+
+  } finally {
+
+    setLoading(false);
+    setAdFinished(false);
+  }
+};
 
   return (
     <>
@@ -192,7 +210,7 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
       )}
 
       {/* MAIN UI */}
-      <div className="max-w-5xl mx-auto text-[var(--text-color)]  bg-[var(--bg-color)]  bg-white p-8 z-50 rounded-3xl shadow-xl">
+      <div className="max-w-5xl mx-auto text-[var(--text-color)]  bg-[var(--bg-color)]  p-8 z-50 rounded-3xl shadow-xl">
         <h2 className="text-3xl font-bold text-center mb-6">
           Choose Action
         </h2>
@@ -224,7 +242,7 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
         <div className="flex justify-between mt-6 gap-3">
           <button
             onClick={() => setStep(2)}
-            className="bg-gray-200 px-4 py-2 rounded"
+            className="bg-gray-200 text-black px-4 py-2 rounded"
           >
             Back
           </button>

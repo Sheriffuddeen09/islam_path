@@ -314,7 +314,7 @@ const openSearchModal = () => {
                       className={`cursor-pointer p-1 rounded pl-6 my-1 ${
                       selectedCategory?.id === child.id
                         ? "bg-gray-900 text-white font-bold text-sm p-1 "
-                        : "hover:bg-gray-700  font-semibold text-sm p-1"
+                        : "hover:bg-gray-700 hover:text-white font-semibold text-sm p-1"
                         }`}
                     >
                       {child.name}
@@ -567,7 +567,7 @@ const openSearchModal = () => {
                
                 <button
                   onClick={() => addToCart(p)}
-                  className={`mt-2 bg-white px-3  py-2 rounded-lg font-semibold transition inline-flex items-center gap-2
+                  className={`mt-2 bg-white px-3 text-black  py-2 rounded-lg font-semibold transition inline-flex items-center gap-2
                     ${
                       p.stock <= 0 || isLoading || isOwner
                         ? "opacity-50 cursor-not-allowed"

@@ -575,7 +575,7 @@ const handleRegister = async () => {
 
 
 
-  <div className=" text lg:hidden block pb-3 -md:mb-60 md:translate-y-28 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
+  <div className=" text-[var(--text-color)] lg:hidden block pb-3 -md:mb-60 md:translate-y-28 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
           <TextSlider texts={texts} />
         </div>
     <div className="flex flex-1 sm:-mt-5 flex-col lg:flex-row mb-10 justify-around items-center sm:p-3 gap-10">

@@ -180,7 +180,7 @@ const moveToCart = async (item) => {
                           <div className="flex items-center gap-2">
                             <button
                                 onClick={() => updateQuantity(item, item.quantity - 1)}
-                                className="px-2 py-1 bg-gray-600 rounded hover:bg-gray-700"
+                                className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
                                 disabled={loadingItems[item.id] === "quantity"}
                                 >
                                 -
@@ -188,7 +188,7 @@ const moveToCart = async (item) => {
                            
                             <button
                             onClick={() => updateQuantity(item, item.quantity + 1)}
-                            className="px-2 py-1 bg-gray-600 rounded hover:bg-gray-700"
+                            className="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
                             disabled={loadingItems[item.id] === "quantity"}
                             >
                             +

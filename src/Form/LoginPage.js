@@ -343,7 +343,7 @@ const handlePasskeyLogin = async () => {
 
       {/* Main Content - Login + Image */}
 
-       <div className=" lg:hidden block pb-3 sm:mt-5 md:translate-y-40 -md:mb-60 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
+       <div className=" text-[var(--text-color)] lg:hidden block pb-3 sm:mt-5 md:translate-y-40 -md:mb-60 mx-auto w-80 md:w-[600px] md:px-8 shadow-2xl rounded-2xl">
                 <TextSlider texts={texts} />
               </div>
 

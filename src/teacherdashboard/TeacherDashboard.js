@@ -841,13 +841,13 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         <div className={`${visible === 22 ? 'block' : 'hidden'}`}>
         <MyProducts   />
         </div>
-        <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 23 ? 'block' : 'hidden'}`}>
         <Order
         setChats={setChats}  
         togglePopup={togglePopup}
         setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
-        <div className={`${visible === 25 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div> 
 

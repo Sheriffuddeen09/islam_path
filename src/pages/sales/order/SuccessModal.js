@@ -38,7 +38,7 @@ export default function SuccessModal({
   const current = config[type] || config.order;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 animate-fadeIn">
 
       <div className="text-[var(--text-color)]  bg-[var(--bg-color)]  rounded-3xl shadow-2xl 
       max-w-md w-full p-8 text-center relative">

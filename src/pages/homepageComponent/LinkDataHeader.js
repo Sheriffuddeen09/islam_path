@@ -34,11 +34,18 @@ icon: <Megaphone />,
 name: "Advertisement / Sponsorship", 
 toggle: true,  
 background: "bg-pink-900", }, 
+, 
 {
 id: 8, 
 icon: <ArrowDownLeftSquareIcon />, 
-name: "Donation", 
-link: "/donation", 
+name: "Cart", 
+link: "/cart", 
+background: "bg-pink-900", },
+{
+id: 9, 
+icon: <ArrowDownLeftSquareIcon />, 
+name: "WishList", 
+link: "/wishlist", 
 background: "bg-pink-900", }, 
 { 
 id: 7, 
@@ -47,12 +54,12 @@ name: "App Download",
 appDownload: true,
 background: "bg-green-900", },
 {
-id: 9, 
+id: 10, 
 icon: <HeartHandshake />, 
 name: "About", 
 link: "/about", background: "bg-yellow-900", },{
-id: 10, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
-id: 11, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
+id: 11, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
+id: 12, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
 ]
 
 export const islamicApps = [
