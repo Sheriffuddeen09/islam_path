@@ -102,6 +102,7 @@ useEffect(() => {
    
       const { currentUser } = useAuth();
        const authUserId = currentUser?.id;
+       const userId = user?.id
 
       const [proposalPending, setProposalPending] = useState(0)
       const [isProposal, setIsProposal] = useState(false);
@@ -163,12 +164,12 @@ useEffect(() => {
 
 
     const fetchOrderCount = async () => {
-        if (!authUserId) return;
+        
 
         try {
             const res = await api.get("/api/orders/count", {
                 params: {
-                    user_id: authUserId
+                    user_id: userId
                 }
             });
 
@@ -181,11 +182,11 @@ useEffect(() => {
     };
 
     const handleClearOrderCount = async () => {
-        if (!authUserId) return;
+        
 
         try {
             await api.post("/api/orders/seen", {
-                user_id: authUserId
+                user_id: userId
             });
 
             setOrderCount(0);
@@ -195,10 +196,9 @@ useEffect(() => {
     };
 
       useEffect(() => {
-          if (!authUserId) return;
 
           fetchOrderCount();
-      }, [authUserId]);
+      }, [userId]);
   
     // 🔹 Open modal
     const handleEdit = (teacher) => setEditingTeacher(teacher);

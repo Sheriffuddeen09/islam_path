@@ -7,6 +7,7 @@ import "rc-slider/assets/index.css";
 import ImageCrop from "./util/ImageCrop";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { useEffect, useRef, useState } from "react";
+import CreatePostModal from "./CreatePostModal";
 
 
 export default function CreatePost({handlePostCreated}) {
@@ -199,41 +200,12 @@ const submitPost = async () => {
 
 
   return (
-    <div className="p-6 bg-white shadow-lg rounded-xl lg:ml-[346px] max-w-3xl mx-auto mt-10">
-      <h2 className="sm:text-3xl text-xl text-center font-bold mb-4 text-gray-800">
-        Create Islamic Content
-      </h2>
+    <div className="sm:px-6 px-2 lg:ml-64 max-w-3xl mx-auto">
 
-      <p className="text-gray-600 leading-relaxed mb-4">
-        Share your knowledge with the world by creating inspiring Islamic Contents.
-        Whether you are creating Hadith explanations, Qur’an tafsir, Islamic
-        reminders, Seerah narrations, or stories of the prophets, our Content
-        creation tool allows you to structure your content beautifully. Click
-        the button below to begin creating your Content.
-      </p>
-
-      {/* New guidance about permissible content */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-4 border">
-        <h3 className="font-semibold text-gray-800 mb-2">Posting Guidelines</h3>
-        <ul className="text-sm text-gray-700 space-y-1 list-inside">
-          <li>• Post content that is authentic, respectful, and rooted in sound sources.</li>
-          <li>• For Hadith and Fiqh, cite reliable references (e.g., Sahih collections, recognized scholars).</li>
-          <li>• Avoid content that promotes extremism, insults, or divides the community.</li>
-          <li>• Do not post private footage, non-consensual recordings, or material that violates privacy.</li>
-          <li>• Refrain from music, inappropriate imagery, or anything that contradicts Islamic decorum on this platform.</li>
-        </ul>
-        <p className="text-xs text-gray-500 mt-2">
-          Content that violates these rules may be removed or flagged for review.
-        </p>
-      </div>
-
-      {/* Create Video Button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-all"
-      >
-        Create Post
-      </button>
+      <CreatePostModal text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
+      setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
+      handleSelectImages={handleSelectImages} imagePost={imagePost} video={video}
+      visibility={visibility} setVisibility={setVisibility} />
 
       {/* POPUP MODAL */}
       {open && (
@@ -408,11 +380,11 @@ const submitPost = async () => {
       {/* IMAGE CROP MODAL */}
       {showCrop && images[currentIndex] && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-white sm:w-[90vw] sm:h-[96vh] flex flex-col justify-center items-center h-full w-full rounded relative p-4">
+    <div className="bg-[var(--bg-color)] text-[var(--text-color)] sm:w-[90vw] sm:h-[96vh] flex flex-col justify-center items-center h-full w-full rounded relative p-4">
 
       <button
         onClick={() => setShowCrop(false)}
-        className="absolute top-3 right-3 bg-gray-200 p-2 rounded-full"
+        className="absolute top-3 right-3 p-2 rounded-full"
       >
         ✕
       </button>
@@ -445,10 +417,9 @@ const submitPost = async () => {
 
 
 {showVisibilityModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
 
-    <div className="bg-white w-96 rounded-xl p-6 shadow-xl">
-
+    <div className="bg-[var(--bg-color)] text-[var(--text-color)] sm:w-96 w-full rounded-xl p-6  shadow-xl">
       <h2 className="text-lg font-semibold mb-4">
         Who can see your post?
       </h2>
@@ -464,7 +435,7 @@ const submitPost = async () => {
           />
           <div>
             <p className="font-medium">Public</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs">
               Everyone can see this post
             </p>
           </div>
@@ -479,7 +450,7 @@ const submitPost = async () => {
           />
           <div>
             <p className="font-medium">Friends</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs">
               Only accepted friends
             </p>
           </div>
@@ -520,7 +491,7 @@ const submitPost = async () => {
 
       <button
         onClick={() => setShowVisibilityModal(false)}
-        className="mt-3 w-full bg-gray-300 py-2 rounded-lg"
+        className="mt-3 w-full bg-gray-600 py-2 rounded-lg"
       >
         Cancel
       </button>

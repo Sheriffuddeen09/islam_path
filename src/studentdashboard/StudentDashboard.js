@@ -99,6 +99,16 @@ const fetchNotifications = async () => {
   }
 };
 
+const clearNotificationCount = async () => {
+    try {
+        await api.post("/api/notifications/requests/seen");
+
+        setPendingRequests(0);
+    } catch (error) {
+        console.error("Failed to clear notification count:", error);
+    }
+};
+
 // Clear notification count immediately when menu opens
 useEffect(() => {
   if (isMenuOpen) {
@@ -379,12 +389,13 @@ const fetchNotification = async () => {
                 {menu.map((item) => (
                   <li
                     key={item.id}
-                    onClick={() => {
+                    onClick={async ()  => {
                       setVisible(item.id);
                       handleMenuClick(item);
                       if (item.id === 8) {
-                          handleToggleMenu();
-                        }         
+                              await clearNotificationCount();
+                              handleToggleMenu();
+                          }      
                        if (item.id === 7) {
                           handleToggleProposal();
                         }
@@ -559,13 +570,14 @@ const fetchNotification = async () => {
                         {menu.map((item) => (
                           <li
                             key={item.id}
-                            onClick={() => {
+                            onClick={ async () => {
                               setVisible(item.id);
                               handleMenuClick(item);
                               handleOpenModel();
                               if (item.id === 8) {
-                          handleToggleMenu();
-                        }
+                                  await clearNotificationCount();
+                                  handleToggleMenu();
+                              }
                                if (item.id === 7) {
                                   handleToggleProposal();
                                 }
