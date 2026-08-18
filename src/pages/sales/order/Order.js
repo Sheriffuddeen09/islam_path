@@ -254,7 +254,6 @@ const totalInUSD =
       const isBuyer =
         Number(order.user_id) === Number(authUserId);
 
-      const buyerId = order.user_id;
 
       const items = Array.isArray(order.items)
         ? order.items
@@ -266,28 +265,20 @@ const totalInUSD =
         firstItem?.seller_id || null;
 
 
-      // ============================================
-      // CURRENCY
-      // ============================================
-
       const symbols = {
         USD: "$",
         NGN: "₦",
         EUR: "€",
-        GBP: "£",
+      
       };
 
       const exchangeRatesToUSD = {
         USD: 1,
         NGN: 0.000735527,
         EUR: 1.09,
-        GBP: 1.27,
+       
       };
 
-
-      // ============================================
-      // TOTAL QUANTITY
-      // ============================================
 
       const totalQuantity = items.reduce(
         (total, item) =>
@@ -295,25 +286,20 @@ const totalInUSD =
         0
       );
 
-
-      // ============================================
-      // TOTAL IN USD
-      // ============================================
-
       const totalInUSD = items.reduce(
         (total, item) => {
 
           const currency =
-            item?.currency || "USD";
+            item?.product?.currency || "USD";
 
           const price =
-            Number(item?.price || 0);
+            Number(item?.product?.price || 0);
 
           const quantity =
             Number(item?.quantity || 1);
 
           const discount =
-            Number(item?.discount || 0);
+            Number(item?.product?.discount || 0);
 
           const rate =
             exchangeRatesToUSD[currency] ?? 1;
@@ -329,10 +315,53 @@ const totalInUSD =
         0
       );
 
+      const subTotalUSD = items.reduce(
+        (total, item) => {
 
-      // ============================================
-      // ORIGINAL CURRENCY
-      // ============================================
+          const currency =
+            item?.product?.currency || "USD";
+
+          const price =
+            Number(item?.product?.price || 0);
+
+          const quantity =
+            Number(item?.quantity || 1);
+
+          const rate =
+            exchangeRatesToUSD[currency] ?? 1;
+
+          const itemTotal =
+            (price * quantity)
+
+          return total + (
+            itemTotal * rate
+          );
+
+        },
+        0
+      );
+
+
+      const disCountUSD = items.reduce(
+        (total, item) => {
+
+          const currency =
+            item?.product?.currency || "USD";
+
+          const discount =
+            Number(item?.product?.discount || 0);
+
+          const rate =
+            exchangeRatesToUSD[currency] ?? 1;
+
+          return total + (
+            discount * rate
+          );
+
+        },
+        0
+      );
+
 
       const originalCurrency =
         firstItem?.currency || "USD";
@@ -342,36 +371,7 @@ const totalInUSD =
         originalCurrency;
 
 
-      // ============================================
-      // ORIGINAL TOTAL
-      // ============================================
-
-      const originalTotal = items.reduce(
-        (total, item) => {
-
-          const price =
-            Number(item?.price || 0);
-
-          const quantity =
-            Number(item?.quantity || 1);
-
-          const discount =
-            Number(item?.discount || 0);
-
-          return (
-            total +
-            (price * quantity) -
-            discount
-          );
-
-        },
-        0
-      );
-
-
-      // ============================================
-      // CHAT
-      // ============================================
+     
 
       const chat =
         getChatByOrder(order.id);
@@ -384,16 +384,9 @@ const totalInUSD =
           border border-blue-500 rounded-2xl shadow-md flex flex-col gap-4"
         >
 
-          {/* ==========================================
-              TOP ROW
-          ========================================== */}
-
           <div className="flex flex-col lg:flex-row lg:items-center gap-4">
 
-            {/* ========================================
-                PRODUCT IMAGE
-            ======================================== */}
-
+          
             <div className="shrink-0">
 
               <img
@@ -412,11 +405,6 @@ const totalInUSD =
               />
 
             </div>
-
-
-            {/* ========================================
-                ORDER INFORMATION
-            ======================================== */}
 
             <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
 
@@ -489,10 +477,6 @@ const totalInUSD =
               </div>
 
 
-              {/* ====================================
-                  TOTAL PRICE
-              ==================================== */}
-
               <div>
 
                 <p className="text-xs font-medium">
@@ -501,17 +485,8 @@ const totalInUSD =
 
                 <p className="text-sm font-bold text-green-700">
 
-                  {originalSymbol}
-                  {originalTotal.toFixed(2)}
-
-                </p>
-
-                <p className="text-xs text-gray-500">
-
                   ${totalInUSD.toFixed(2)} USD
-
                 </p>
-
               </div>
 
 
@@ -544,15 +519,7 @@ const totalInUSD =
             </div>
 
 
-            {/* ========================================
-                ACTIONS
-            ======================================== */}
-
             <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-
-              {/* ======================================
-                  MESSAGE SELLER
-              ====================================== */}
 
               {!isBuyer && sellerId && (
 
@@ -594,10 +561,7 @@ const totalInUSD =
               )}
 
 
-              {/* ======================================
-                  CANCEL ORDER
-              ====================================== */}
-
+             
               {isBuyer &&
                 order.status === "pending" &&
                 !order.chat_created && (
@@ -629,10 +593,6 @@ const totalInUSD =
               )}
 
 
-              {/* ======================================
-                  DELETE
-              ====================================== */}
-
               <button
                 onClick={() => {
 
@@ -652,15 +612,12 @@ const totalInUSD =
               >
 
                 {deletingId === order.id
-                  ? "Deleting..."
+                  ? "Deleting"
                   : "Delete"}
 
               </button>
 
 
-              {/* ======================================
-                  VIEW DETAILS
-              ====================================== */}
 
               <button
                 onClick={() => {
@@ -681,10 +638,6 @@ const totalInUSD =
 
           </div>
 
-
-          {/* ==========================================
-              BOTTOM INFORMATION
-          ========================================== */}
 
           <div className="border-t pt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
@@ -741,10 +694,7 @@ const totalInUSD =
           </div>
 
 
-          {/* ==========================================
-              CURRENCY BREAKDOWN
-          ========================================== */}
-
+        
           <div className="border-t pt-3">
 
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs">
@@ -770,10 +720,8 @@ const totalInUSD =
 
                 <span className="font-bold">
 
-                  {originalSymbol}
-                  {Number(
-                    order.subtotal || 0
-                  ).toFixed(2)}
+                  ${subTotalUSD
+                  .toFixed(2)}
 
                 </span>
 
@@ -788,28 +736,8 @@ const totalInUSD =
 
                 <span className="font-bold text-red-500">
 
-                  -{originalSymbol}
-                  {Number(
-                    order.discount || 0
-                  ).toFixed(2)}
-
-                </span>
-
-              </div>
-
-
-              <div>
-
-                <span>
-                  Delivery:
-                </span>{" "}
-
-                <span className="font-bold">
-
-                  {originalSymbol}
-                  {Number(
-                    order.delivery_price || 0
-                  ).toFixed(2)}
+                  -${disCountUSD
+                  .toFixed(2)}
 
                 </span>
 
@@ -1064,25 +992,16 @@ const totalInUSD =
             USD: "$",
             NGN: "₦",
             EUR: "€",
-            GBP: "£",
           };
 
           const exchangeRatesToUSD = {
             USD: 1,
             NGN: 0.000735527,
             EUR: 1.09,
-            GBP: 1.27,
           };
 
 
-          // =========================
-          // CURRENCY
-          // =========================
-
-          const currency =
-            item?.currency ||
-            item?.product?.currency ||
-            "USD";
+          const currency = item?.product?.currency 
 
           const symbol =
             symbols[currency] || currency;
@@ -1091,10 +1010,6 @@ const totalInUSD =
             exchangeRatesToUSD[currency] ?? 1;
 
 
-          // =========================
-          // VALUES
-          // =========================
-
           const price =
             Number(item?.price || 0);
 
@@ -1102,12 +1017,8 @@ const totalInUSD =
             Number(item?.quantity || 1);
 
           const discount =
-            Number(item?.discount || 0);
+            Number(item?.product?.discount || 0);
 
-
-          // =========================
-          // ORIGINAL CURRENCY
-          // =========================
 
           const grossSubtotal =
             price * quantity;
@@ -1115,10 +1026,6 @@ const totalInUSD =
           const finalSubtotal =
             grossSubtotal - discount;
 
-
-          // =========================
-          // USD
-          // =========================
 
           const priceUSD =
             price * rate;
@@ -1200,7 +1107,7 @@ const totalInUSD =
                         )}
                       </p>
 
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs">
                         $
                         {priceUSD.toFixed(2)}
                         {" "}USD
@@ -1270,7 +1177,7 @@ const totalInUSD =
                           className="font-semibold
                           text-red-500"
                         >
-                          -{symbol}
+                          {symbol}
                           {discount.toLocaleString(
                             undefined,
                             {
@@ -1281,10 +1188,9 @@ const totalInUSD =
                         </span>
 
                         <span
-                          className="text-xs
-                          text-gray-500 ml-1"
+                          className="text-xs ml-1"
                         >
-                          (-$
+                          ($
                           {discountUSD.toFixed(2)}
                           USD)
                         </span>
@@ -1317,8 +1223,7 @@ const totalInUSD =
                       </span>
 
                       <span
-                        className="text-xs
-                        text-gray-500 ml-1"
+                        className="text-xs ml-1"
                       >
                         ($
                         {subtotalUSD.toFixed(2)}
@@ -1365,10 +1270,7 @@ const totalInUSD =
           selectedOrder.items?.reduce(
             (total, item) => {
 
-              const currency =
-                item?.currency ||
-                item?.product?.currency ||
-                "USD";
+              const currency = item?.product?.currency
 
               const price =
                 Number(item?.price || 0);
@@ -1453,7 +1355,7 @@ const totalInUSD =
               <span className="font-bold">
                 $
                 {subtotalUSD.toFixed(2)}
-                {" "}USD
+                {" "}
               </span>
 
             </div>
@@ -1479,7 +1381,7 @@ const totalInUSD =
                 >
                   -$
                   {discountUSD.toFixed(2)}
-                  {" "}USD
+                  {" "}
                 </span>
 
               </div>
@@ -1504,7 +1406,7 @@ const totalInUSD =
                 <span className="font-bold">
                   $
                   {deliveryUSD.toFixed(2)}
-                  {" "}USD
+                  {" "}
                 </span>
 
               </div>
@@ -1535,7 +1437,7 @@ const totalInUSD =
                 >
                   $
                   {totalUSD.toFixed(2)}
-                  {" "}USD
+                  {" "}
                 </p>
 
               </div>

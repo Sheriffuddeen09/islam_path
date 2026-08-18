@@ -1,7 +1,7 @@
 import StudentRequest from "./StudentRequest";
 import { Link } from "react-router-dom";
 import StudentProfilePage from "./StudentProfile";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../Api/axios";
 import AssignmentLibrary from "../assignment/AssignmentLibrary";
 import AssignmentResults from "../assignment/AssignmentResults";
@@ -39,6 +39,51 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         
    const [pendingRequests, setPendingRequests] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+
+    const [showHeader, setShowHeader] = useState(true);
+
+const lastScrollY = useRef(0);
+const scrollTimeout = useRef(null);
+
+useEffect(() => {
+    const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+
+        // Always show header at the top
+        if (currentScrollY <= 10) {
+            setShowHeader(true);
+            lastScrollY.current = currentScrollY;
+            return;
+        }
+
+        // Scrolling down
+        if (currentScrollY > lastScrollY.current) {
+            setShowHeader(false);
+        }
+
+        // Scrolling up
+        if (currentScrollY < lastScrollY.current) {
+            setShowHeader(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+
+        // If user stops scrolling, show header
+        clearTimeout(scrollTimeout.current);
+
+        scrollTimeout.current = setTimeout(() => {
+            setShowHeader(true);
+        }, 500);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+        window.removeEventListener("scroll", handleScroll);
+        clearTimeout(scrollTimeout.current);
+    };
+}, []);
 
 // Fetch notification count
 useEffect(() => {
@@ -111,19 +156,37 @@ const fetchNotification = async () => {
             setSidebarOpen(!sidebarOpen)
             console.log('click button')
           }
+          
       
-        const fetchSavedCount = async () => {
-          try {
-            const res = await api.get(`/api/saved-products/count/${user?.id}`);
-            setSavedCount(res.data.count);
-          } catch (err) {
-            console.log(err);
-          }
-        };
+         const fetchSavedCount = async () => {
+                  try {
+                    const res = await api.get(`/api/saved-products/count/${user?.id}`);
+                    setSavedCount(res.data.count);
+                  } catch (err) {
+                    console.log(err);
+                  }
+                };
+        
+               useEffect(() => {
+              if (!user?.id) return;
+        
+              fetchSavedCount();
+            }, [user?.id]);
 
-        useEffect(() => {
-          if (user?.id) fetchSavedCount();
-        }, [user]);
+            const clearSavedCount = async () => {
+              if (!user?.id) return;
+
+              try {
+                  await api.post(`/api/saved-products/count/${user.id}/clear`);
+
+                  // Immediately remove the badge
+                  setSavedCount(0);
+
+              } catch (err) {
+                  console.log("Error clearing saved count:", err);
+              }
+          };
+        
       
         const menu = [
             {
@@ -193,7 +256,7 @@ const fetchNotification = async () => {
       const handleMenuClick = async (item) => {
         if (item.label === "Saved Order") {
           try {
-            await api.post(`/saved-products/clear/${user.id}`);
+            await api.post(`/api/saved-products/count/${user.id}/clear`);
             setSavedCount(0); // update UI after backend success
           } catch (err) {
             console.error(err);
@@ -356,12 +419,15 @@ const fetchNotification = async () => {
 
 
                     {item.showcount && savedCount > 0 && (
-                      <span
-                        onClick={() => handleMenuClick(item)}
-                        className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full"
-                      >
-                        {savedCount}
-                      </span>
+                        <span
+                            onClick={async () => {
+                                await clearSavedCount();
+                                handleMenuClick(item);
+                            }}
+                            className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                        >
+                            {savedCount}
+                        </span>
                     )}
                   </li>
                 ))}
@@ -374,10 +440,29 @@ const fetchNotification = async () => {
               {/* Mobile View */}
                  
       <button
-        className={`lg:hidden fixed top-10 right-4 z-50 bg-[var(--bg-color)] text-[var(--text-color)] p-2 rounded-lg shadow ${sidebarOpen ? 'hidden' : 'block'}`}
-        onClick={handleOpenModel}
+          className={`
+              lg:hidden
+              fixed
+              top-10
+              right-4
+              z-50
+              bg-[var(--bg-color)]
+              text-[var(--text-color)]
+              p-2
+              rounded-lg
+              shadow
+              transition-all
+              duration-300
+              ease-in-out
+              ${
+                  sidebarOpen || uiMode !== "closed" || !showHeader
+                      ? "hidden"
+                      : "block"
+              }
+          `}
+          onClick={handleOpenModel}
       >
-        ☰
+          ☰
       </button>
 
       {/* ---------------------- SIDEBAR ---------------------- */}
@@ -513,12 +598,15 @@ const fetchNotification = async () => {
                             )}
 
                             {item.showcount && savedCount > 0 && (
-                              <span
-                                onClick={() => handleMenuClick(item)}
-                                className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full"
-                              >
-                                {savedCount}
-                              </span>
+                                <span
+                                    onClick={async () => {
+                                        await clearSavedCount();
+                                        handleMenuClick(item);
+                                    }}
+                                    className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                                >
+                                    {savedCount}
+                                </span>
                             )}
                           </li>
                         ))}

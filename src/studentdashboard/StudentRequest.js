@@ -138,9 +138,11 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
                 <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase whitespace-nowrap tracking-wider">Date Sent</th>
                 <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase tracking-wider">Action</th>
                 <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase tracking-wider">Status</th>
+               
                 <th className="px-4 py-3 text-sm text-left text-gray-600 font-medium uppercase">
                   Remove
                 </th>
+                
                 </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -250,6 +252,10 @@ export default function StudentRequest({setMessages, setActiveChat, togglePopup}
     }
                   </button>
                 )}
+
+                {req.status === "pending" && (
+                      <span className="text-gray-500 italic">None</span>
+                    )}
 
                   </td>
 

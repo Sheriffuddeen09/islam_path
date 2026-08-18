@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logos from './image/favicon.png'
 import {Bell, BookOpen, BookTemplateIcon, Briefcase,
@@ -53,6 +53,49 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 });
 
      
+const [showHeader, setShowHeader] = useState(true);
+
+const lastScrollY = useRef(0);
+const scrollTimeout = useRef(null);
+
+useEffect(() => {
+    const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+
+        // Always show header at the top
+        if (currentScrollY <= 10) {
+            setShowHeader(true);
+            lastScrollY.current = currentScrollY;
+            return;
+        }
+
+        // Scrolling down
+        if (currentScrollY > lastScrollY.current) {
+            setShowHeader(false);
+        }
+
+        // Scrolling up
+        if (currentScrollY < lastScrollY.current) {
+            setShowHeader(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+
+        // If user stops scrolling, show header
+        clearTimeout(scrollTimeout.current);
+
+        scrollTimeout.current = setTimeout(() => {
+            setShowHeader(true);
+        }, 500);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+        window.removeEventListener("scroll", handleScroll);
+        clearTimeout(scrollTimeout.current);
+    };
+}, []);
       
    
     const dashboardLink =
@@ -131,7 +174,22 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 
     return (
       <>
-        <header className="z-50 bg-white  fixed w-full z-10 border-b- shadow px-1 sm:py-2 py-0.5 sm:mb-6 mb- ">
+        <header
+            className={`
+                fixed top-0 left-0 w-full
+                z-50
+                bg-white
+                border-b
+                shadow
+                px-1
+                sm:py-2
+                py-0.5
+                transition-transform
+                duration-300
+                ease-in-out
+                ${showHeader ? "translate-y-0" : "-translate-y-full"}
+            `}
+        >
           
           {/* Menu Top */}
           <div className='sm:hidden block'>

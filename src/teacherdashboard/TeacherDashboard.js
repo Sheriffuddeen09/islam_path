@@ -1,6 +1,6 @@
 
 import api from "../Api/axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, ClipboardList, Eye,
   FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
@@ -55,6 +55,50 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
      });
      
 
+
+     const [showHeader, setShowHeader] = useState(true);
+
+const lastScrollY = useRef(0);
+const scrollTimeout = useRef(null);
+
+useEffect(() => {
+    const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+
+        // Always show header at the top
+        if (currentScrollY <= 10) {
+            setShowHeader(true);
+            lastScrollY.current = currentScrollY;
+            return;
+        }
+
+        // Scrolling down
+        if (currentScrollY > lastScrollY.current) {
+            setShowHeader(false);
+        }
+
+        // Scrolling up
+        if (currentScrollY < lastScrollY.current) {
+            setShowHeader(true);
+        }
+
+        lastScrollY.current = currentScrollY;
+
+        // If user stops scrolling, show header
+        clearTimeout(scrollTimeout.current);
+
+        scrollTimeout.current = setTimeout(() => {
+            setShowHeader(true);
+        }, 500);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+        window.removeEventListener("scroll", handleScroll);
+        clearTimeout(scrollTimeout.current);
+    };
+}, []);
    
       const { currentUser } = useAuth();
        const authUserId = currentUser?.id;
@@ -117,37 +161,44 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
           setIsReviewOpen(true);
       };
 
-      const fetchOrderCount = async () => {
-     try {
-       const res = await api.get("/api/orders/count", {
-         params: { user_id: authUserId }
-       });
-   
-       if (res.data.success) {
-         setOrderCount(res.data.count);
-       }
-     } catch (err) {
-       console.log(err);
-     }
-   };
-   
-   useEffect(() => {
-     fetchOrderCount();
-   }, []);
-   
-   
-   const handleClearOrderCount = async () => {
-     try {
-       await api.post("/api/orders/seen", {
-         user_id: authUserId,
-       });
-   
-       setOrderCount(0); // 🔥 instant UI update
-     } catch (err) {
-       console.log(err);
-     }
-   };
-   
+
+    const fetchOrderCount = async () => {
+        if (!authUserId) return;
+
+        try {
+            const res = await api.get("/api/orders/count", {
+                params: {
+                    user_id: authUserId
+                }
+            });
+
+            if (res.data.success) {
+                setOrderCount(res.data.count);
+            }
+        } catch (err) {
+            console.log("Error fetching order count:", err);
+        }
+    };
+
+    const handleClearOrderCount = async () => {
+        if (!authUserId) return;
+
+        try {
+            await api.post("/api/orders/seen", {
+                user_id: authUserId
+            });
+
+            setOrderCount(0);
+        } catch (err) {
+            console.log("Error clearing order count:", err);
+        }
+    };
+
+      useEffect(() => {
+          if (!authUserId) return;
+
+          fetchOrderCount();
+      }, [authUserId]);
   
     // 🔹 Open modal
     const handleEdit = (teacher) => setEditingTeacher(teacher);
@@ -267,7 +318,6 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   const menu = isTeacher ? teacherMenu : defaultMenu;
 
 
-
   const fetchSavedCount = async () => {
           try {
             const res = await api.get(`/api/saved-products/count/${user?.id}`);
@@ -277,16 +327,32 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
           }
         };
 
-        useEffect(() => {
-          if (user?.id) fetchSavedCount();
-        }, [user]);
 
+         const clearSavedCount = async () => {
+              if (!user?.id) return;
+
+              try {
+                  await api.post(`/api/saved-products/count/${user.id}/clear`);
+
+                  // Immediately remove the badge
+                  setSavedCount(0);
+
+              } catch (err) {
+                  console.log("Error clearing saved count:", err);
+              }
+          };
+
+       useEffect(() => {
+          if (!user?.id) return;
+
+          fetchSavedCount();
+        }, [user?.id]);
 
 
   const handleMenuClick = async (item) => {
     if (item.label === "Saved Order") {
       try {
-        await api.post(`/saved-products/clear/${user.id}`);
+        await api.post(`/api/saved-products/count/${user.id}/clear`);
         setSavedCount(0); // update UI after backend success Teacher
       } catch (err) {
         console.error(err);
@@ -463,9 +529,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                           handleCreateProposal();
                       }
 
-                      if(item.id === 8) {
-                        handleTeacherReviews()
-                      }
+                      handleTeacherReviews(item)
                     }}
                     className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
                       hover:bg-gray-500 hover:text-white
@@ -488,8 +552,13 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     )}
 
                      {item.showReviews && reviewPending > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      <span 
+                      onClick={async () => {
+                              handleTeacherReviews(item)
+                          }}
+                      className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {reviewPending}
+                        {/*  */}
                       </span>
                     )}
 
@@ -500,10 +569,16 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     )}
 
                     {item.showcount && savedCount > 0 && (
-                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {savedCount}
+                      <span
+                          onClick={async () => {
+                              await clearSavedCount();
+                              handleMenuClick(item);
+                          }}
+                          className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                      >
+                          {savedCount}
                       </span>
-                    )}
+                  )}
 
                     {item.ordershow && orderCount > 0 && (
                       <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
@@ -529,14 +604,30 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 
       {/* ---------------- MOBILE MENU BUTTON ---------------- */}
      <button
-      className={`lg:hidden fixed top-10 right-4 z-50 bg-[var(--bg-color)] text-[var(--text-color)] p-2 rounded-lg shadow
-        ${sidebarOpen ? "hidden" : "block"}
-        ${uiMode !== "closed" ? "hidden" : "block"}
-      `}
-      onClick={handleOpenModel}
-    >
-      ☰
-    </button>
+          className={`
+              lg:hidden
+              fixed
+              top-10
+              right-4
+              z-50
+              bg-[var(--bg-color)]
+              text-[var(--text-color)]
+              p-2
+              rounded-lg
+              shadow
+              transition-all
+              duration-300
+              ease-in-out
+              ${
+                  sidebarOpen || uiMode !== "closed" || !showHeader
+                      ? "hidden"
+                      : "block"
+              }
+          `}
+          onClick={handleOpenModel}
+      >
+          ☰
+      </button>
 
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
@@ -694,9 +785,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                           handleCreateProposal();
                       }
 
-                      if(item.id === 8) {
-                        handleTeacherReviews()
-                      }
+                      handleTeacherReviews(item)
                     }}
                     className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
                       hover:bg-gray-500 hover:text-white
@@ -719,7 +808,11 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
                     )}
 
                     {item.showReviews && reviewPending > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      <span 
+                      onClick={async () => {
+                              handleTeacherReviews(item)
+                          }}
+                      className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {reviewPending}
                       </span>
                     )}

@@ -117,8 +117,6 @@ export default function OrderSteps({ form, setForm, orderData, setStep, setSaved
 
       if (res.data.success) {
 
-        setSavedCount((prev) => prev + 1);
-
         setSuccess({
           show: true,
           type: "save",
