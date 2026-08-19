@@ -7,7 +7,7 @@ export default function PostImageVideoDescription({ closeModal, setShowVisibilit
 
 return (
 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3"><div
-className="bg-[var(--bg-color)] text-[var(--text-color)]  sm:p-5 p-2
+className="bg-[var(--bg-color)] border border-green-500 text-[var(--text-color)]  sm:p-5 p-2
 rounded-xl
 w-full
 max-w-2xl
@@ -62,7 +62,8 @@ Upload Image
             htmlFor="imageupload"
              className=""
         >
-            <img src={imagePost} alt="image-image" className="w-40 h-40 cursor-pointer rounded-lg hover:scale-105" />
+            <img src={imagePost} alt="image-image" 
+            className="w-40 h-40 cursor-pointer rounded-lg hover:scale-105" />
         </label>
 </div>
 </div>
@@ -96,14 +97,7 @@ Upload Image
         <img
         src={videoPost}
         alt="Video"
-        className="
-            w-24
-            rounded-full
-            h-20
-            cursor-pointer
-            hover:scale-105
-            transition
-        "
+        className="w-40 h-40 cursor-pointer rounded-lg hover:scale-105"
         />
     </label>
     </div>

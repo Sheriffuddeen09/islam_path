@@ -1,19 +1,19 @@
 import { useState } from "react";
 import {FileText, Film, Images, Clapperboard} from "lucide-react";
-import ReelVideoImageDescription from "./ReelVideoImageDescription";
-import ReelDescriptionOnly from "./ReelDescriptionOnly";
+import ReelVideoImageDescription from "../reel/ReelVideoImageDescription";
+import ReelDescriptionOnly from "../reel/ReelDescriptionOnly";
 import PostDescriptionOnly from "./PostDescriptionOnly";
 import PostImageVideoDescription from "./PostImageVideoDescription";
 export default function CreatePostModal({text, setText, visibility, setVisibility, submitPost, loading, showVisibilityModal,
-    setShowVisibilityModal, handleSelectImages, video, imagePost, handleVideoUpload, images
+    setShowVisibilityModal, handleSelectImages, video, imagePost, handleVideoUpload, images, selected,setSelected
 }) {
-const [selected,setSelected] = useState(null);
 const options = [
+{
+id:"reel-description", title:"Reel Description", description:"Create reel using description only.", icon:<Film size={25}/>
+}, 
 {
 id:"reel-full", title:"Reel",
 description:"Upload video, image and description.", icon:<Clapperboard size={25}/>
-},{
-id:"reel-description", title:"Reel Description", description:"Create reel using description only.", icon:<Film size={25}/>
 },{
 id:"post-description", title:"Post Description", description:"Create a text only post.", icon:<FileText size={25}/>
 }, {

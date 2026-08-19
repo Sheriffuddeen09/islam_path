@@ -587,7 +587,7 @@ useEffect(() => {
                     )}
 
                     {item.id === 25 && (
-                      <Link to={'/dashboard/product-visibility'}>
+                      <Link className="-translate-x-1" to={'/dashboard/product-visibility'}>
                         Promote Product Visibility
                       </Link>
                     )}

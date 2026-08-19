@@ -34,6 +34,8 @@ export default function CreatePost({handlePostCreated}) {
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [visibility, setVisibility] = useState("public");
 
+  const [selected,setSelected] = useState(null); 
+
 
   const applyTrim = () => {
 
@@ -106,6 +108,7 @@ export default function CreatePost({handlePostCreated}) {
   setTrimApplied(false);
 
   setShowTrimModal(true);
+  setSelected(null);
 };
 
 useEffect(() => {
@@ -421,7 +424,9 @@ const handleSelectImages = (files) => {
 
   setSelectedIndex(null);
 
+  setSelected(null);
   setShowCrop(true);
+
 };
 
 const submitPost = async () => {
@@ -602,7 +607,8 @@ const submitPost = async () => {
       <CreatePostModal text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
       setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
       handleSelectImages={handleSelectImages} imagePost={imagePost} video={video} images={images}
-      visibility={visibility} setVisibility={setVisibility} handleVideoUpload={handleVideoUpload} />
+      visibility={visibility} setVisibility={setVisibility} handleVideoUpload={handleVideoUpload}
+      selected={selected} setSelected={setSelected} />
 
 
       {showCrop && images.length > 0 && (
@@ -786,7 +792,7 @@ const submitPost = async () => {
     className="
       fixed
       inset-0
-      z-[999]
+      z-40
       bg-black/70
       flex
       items-center
@@ -847,7 +853,7 @@ const submitPost = async () => {
             : "Trim Video"}
         </h2>
 
-        <p className="text-sm opacity-70 mt-1">
+        <p className="text-sm  mt-1">
           Drag the handles to select
           the part of the video you
           want to upload.
@@ -1093,7 +1099,7 @@ const submitPost = async () => {
             className="
               flex
               items-center
-              justify-between
+              justify-between flex wrap
               gap-3
               mt-5
             "
@@ -1105,8 +1111,8 @@ const submitPost = async () => {
               type="button"
               onClick={removeVideo}
               className="
-                px-4
-                py-2
+                sm:px-4 px-2 text-sm
+                sm:py-2 py-1
                 rounded-lg
                 bg-red-500
                 hover:bg-red-600
@@ -1126,8 +1132,8 @@ const submitPost = async () => {
                 type="button"
                 onClick={applyTrim}
                 className={`
-                  px-5
-                  py-2
+                  sm:px-5 px-2 text-sm
+                  sm:py-2 py-1
                   rounded-lg
                   text-white
                   font-semibold
@@ -1152,15 +1158,15 @@ const submitPost = async () => {
 
                <button
           type="button"
-          onClick={() => {setShowVisibilityModal(true)}}
-          disabled={images.length === 0}
+          onClick={() => {setShowVisibilityModal(true); setShowTrimModal(false);}}
+          disabled={video.length === 0}
           className="
             bg-green-600
             hover:bg-green-700
             disabled:bg-gray-400
             text-white
-            px-8
-            py-3
+            sm:px-8 px-2 text-sm
+            sm:py-3 py-1
             rounded-lg
             font-semibold
           "
@@ -1238,7 +1244,7 @@ const submitPost = async () => {
               viewBox="0 0 24 24"
             >
               <circle
-                className="opacity-25"
+                className=""
                 cx="12"
                 cy="12"
                 r="10"
@@ -1246,7 +1252,7 @@ const submitPost = async () => {
                 strokeWidth="4"
               ></circle>
               <path
-                className="opacity-75"
+                className=""
                 fill="currentColor"
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               ></path>
