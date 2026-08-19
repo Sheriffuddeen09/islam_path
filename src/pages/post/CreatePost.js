@@ -1,13 +1,10 @@
-import Notification from "../../notification/Notification";
 import api from "../../Api/axios";
 import imagePost from './image/image.jpg'
-import videoPost from './image/video.png'
-import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import ImageCrop from "./util/ImageCrop";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { useEffect, useRef, useState } from "react";
 import CreatePostModal from "./CreatePostModal";
+import toast from "react-hot-toast";
 
 
 export default function CreatePost({handlePostCreated}) {
@@ -17,370 +14,615 @@ export default function CreatePost({handlePostCreated}) {
   const [croppedImages, setCroppedImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCrop, setShowCrop] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   
   const [video, setVideo] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
-  const [videoStart, setVideoStart] = useState(0);
-  const [videoDuration, setVideoDuration] = useState(0);
-  const [videoEnd, setVideoEnd] = useState(10);
-
-  const ffmpegRef = useRef(null);
-  const [ffmpegReady, setFfmpegReady] = useState(false);
-
-
-
-  const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
   const [showTrimModal, setShowTrimModal] = useState(false);
-   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoTrim, setVideoTrim] = useState({
+    start: 0,
+    end: 0,
+  });
+  const [trimApplied, setTrimApplied] = useState(false);
+  const [dragType, setDragType] = useState(null);
+  const videoRef = useRef(null);
+  const trackRef = useRef(null);
+
+  const [loading, setLoading] = useState(false);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [visibility, setVisibility] = useState("public");
-  const [notify, setNotify] = useState({ message: "", type: "" });
 
-  const showNotification = (message, type = "success") => {
-    setNotify({ message, type });
 
-    // Clear after 5 seconds
-    setTimeout(() => {
-      setNotify({ message: "", type: "" });
-    }, 5000);
+  const applyTrim = () => {
+
+  if (!video) {
+    toast.error(
+      "Please select a video first."
+    );
+    return;
+  }
+
+  if (!videoDuration) {
+    toast.error(
+      "Video duration is not ready yet."
+    );
+    return;
+  }
+
+  if (
+    videoTrim.start < 0 ||
+    videoTrim.end > videoDuration ||
+    videoTrim.end <= videoTrim.start
+  ) {
+    toast.error(
+      "Please select a valid video range."
+    );
+    return;
+  }
+
+  setTrimApplied(true);
+
+  toast.success(
+    "Video trim applied."
+  );
+};
+
+  const handleVideoUpload = (file) => {
+  if (!file) return;
+
+  if (video) {
+    toast.error(
+      "You can only upload one video per post."
+    );
+    return;
+  }
+
+  const maxSize =
+    50 * 1024 * 1024; // 50MB
+
+  if (file.size > maxSize) {
+    toast.error(
+      "Video must not exceed 50MB."
+    );
+    return;
+  }
+
+  setVideo(file);
+
+  const previewUrl =
+    URL.createObjectURL(file);
+
+  setVideoPreview(previewUrl);
+
+  setVideoDuration(0);
+
+  setVideoTrim({
+    start: 0,
+    end: 0,
+  });
+
+  setTrimApplied(false);
+
+  setShowTrimModal(true);
+};
+
+useEffect(() => {
+  return () => {
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+  };
+}, [videoPreview]);
+
+const handleCropDone = (blob) => {
+  const file = new File(
+    [blob],
+    `image-${selectedIndex}.jpg`,
+    {
+      type: "image/jpeg",
+    }
+  );
+
+  setCroppedImages((prev) => {
+    const updated = [...prev];
+
+    updated[selectedIndex] = file;
+
+    return updated;
+  });
+
+};
+
+
+const handleVideoLoadedMetadata = (e) => {
+  const duration =
+    e.currentTarget.duration;
+
+  if (!duration || !isFinite(duration)) {
+    toast.error(
+      "Unable to read video duration."
+    );
+    return;
+  }
+
+  setVideoDuration(duration);
+
+  setVideoTrim({
+    start: 0,
+    end: duration,
+  });
+
+  setTrimApplied(false);
+};
+
+
+const handleDrag = (clientX, rect) => {
+  if (!dragType || !videoDuration) {
+    return;
+  }
+
+  const percent = Math.min(
+    Math.max(
+      (clientX - rect.left) /
+        rect.width,
+      0
+    ),
+    1
+  );
+
+  const time =
+    percent * videoDuration;
+
+  setVideoTrim((current) => {
+
+    let start = current.start;
+    let end = current.end;
+
+    if (dragType === "left") {
+      start = Math.min(
+        time,
+        end - 0.5
+      );
+    }
+
+    if (dragType === "right") {
+      end = Math.max(
+        time,
+        start + 0.5
+      );
+    }
+
+    if (dragType === "move") {
+
+      const length =
+        end - start;
+
+      start = Math.max(
+        0,
+        time - length / 2
+      );
+
+      end =
+        start + length;
+
+      if (end > videoDuration) {
+
+        end = videoDuration;
+
+        start =
+          videoDuration - length;
+      }
+    }
+
+    if (videoRef.current) {
+      videoRef.current.currentTime =
+        start;
+    }
+
+    return {
+      start,
+      end,
+    };
+  });
+  setTrimApplied(false);
+};
+
+useEffect(() => {
+
+  const handleMouseMove = (e) => {
+
+    if (
+      !dragType ||
+      !trackRef.current
+    ) {
+      return;
+    }
+
+    const rect =
+      trackRef.current.getBoundingClientRect();
+
+    handleDrag(
+      e.clientX,
+      rect
+    );
   };
 
 
-  // VIDEO SELECT
+  const handleTouchMove = (e) => {
+
+    if (
+      !dragType ||
+      !trackRef.current
+    ) {
+      return;
+    }
+
+    const rect =
+      trackRef.current.getBoundingClientRect();
+
+    handleDrag(
+      e.touches[0].clientX,
+      rect
+    );
+  };
 
 
-
-const loadFFmpeg = async () => {
-  if (ffmpegRef.current?.isLoaded()) return;
-
-  ffmpegRef.current = createFFmpeg({
-    log: true,
-    corePath:
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
-  });
-
-  if (!ffmpegRef.current.isLoaded()) {
-    await ffmpegRef.current.load();
-  }
-
-  setFfmpegReady(true);
-};
+  const stopDragging = () => {
+    setDragType(null);
+  };
 
 
-useEffect(() => {
-  if (videoPreview) {
-    loadFFmpeg();
-  }
-}, [videoPreview]);
-
- 
-
-  const applyVideoTrim = async () => {
-  const ffmpeg = ffmpegRef.current;
-
-  ffmpeg.FS("writeFile", "input.mp4", await fetchFile(video));
-
-  await ffmpeg.run(
-    "-ss", `${videoStart}`,
-    "-to", `${videoEnd}`,
-    "-i", "input.mp4",
-    "-c", "copy",
-    "output.mp4"
+  window.addEventListener(
+    "mousemove",
+    handleMouseMove
   );
 
-  const data = ffmpeg.FS("readFile", "output.mp4");
+  window.addEventListener(
+    "mouseup",
+    stopDragging
+  );
 
-  const blob = new Blob([data.buffer], { type: "video/mp4" });
-  const trimmedFile = new File([blob], "trimmed.mp4", { type: "video/mp4" });
+  window.addEventListener(
+    "touchmove",
+    handleTouchMove
+  );
 
-  setVideo(trimmedFile);
-  setVideoPreview(URL.createObjectURL(blob)); 
+  window.addEventListener(
+    "touchend",
+    stopDragging
+  );
+
+
+  return () => {
+
+    window.removeEventListener(
+      "mousemove",
+      handleMouseMove
+    );
+
+    window.removeEventListener(
+      "mouseup",
+      stopDragging
+    );
+
+    window.removeEventListener(
+      "touchmove",
+      handleTouchMove
+    );
+
+    window.removeEventListener(
+      "touchend",
+      stopDragging
+    );
+
+  };
+
+}, [dragType, videoDuration]);
+
+
+const isTrimmed =
+  videoDuration > 0 &&
+  (
+    videoTrim.start > 0 ||
+    videoTrim.end < videoDuration
+  );
+
+
+  const handleTimeUpdate = () => {
+
+  if (!videoRef.current) {
+    return;
+  }
+
+  const video =
+    videoRef.current;
+
+  if (
+    video.currentTime >=
+    videoTrim.end
+  ) {
+    video.currentTime =
+      videoTrim.start;
+  }
+
+  if (
+    video.currentTime <
+    videoTrim.start
+  ) {
+    video.currentTime =
+      videoTrim.start;
+  }
 };
 
 
-  const handleVideo = (file) => {
-  setVideo(file);
-  setVideoPreview(URL.createObjectURL(file));
-  setShowTrimModal(true);
+const handlePlay = () => {
+
+  if (!videoRef.current) {
+    return;
+  }
+
+  const video =
+    videoRef.current;
+
+  if (
+    video.currentTime <
+      videoTrim.start ||
+    video.currentTime >=
+      videoTrim.end
+  ) {
+    video.currentTime =
+      videoTrim.start;
+  }
+
+  video.play();
+};
+
+const removeVideo = () => {
+
+  if (videoPreview) {
+    URL.revokeObjectURL(
+      videoPreview
+    );
+  }
+
+  setVideo(null);
+  setVideoPreview(null);
+
+  setVideoDuration(0);
+
+  setVideoTrim({
+    start: 0,
+    end: 0,
+  });
+
+  setTrimApplied(false);
+
+  setShowTrimModal(false);
+};
+
+  const handleSelectImage = (index) => {
+    setSelectedIndex(index);
+  };
+
+const handleSelectImages = (files) => {
+  const selectedFiles = Array.from(files);
+
+  if (!selectedFiles.length) {
+    toast.error("Please select at least one image.", "error");
+    return;
+  }
+
+  setImages(selectedFiles);
   setCroppedImages([]);
-};
 
-
-const handleTrimAndClose = async () => {
-  await applyVideoTrim();
-  setShowTrimModal(false); // only close modal
-};
-
-
-
-  const handleSelectImages = (files) => {
-  setImages(Array.from(files));
-  setCroppedImages([]);
   setCurrentIndex(0);
+
+  setSelectedIndex(null);
+
   setShowCrop(true);
 };
 
-
-  // SUBMIT POST
-
-  const countWords = (text = "") => {
-  return text
-    .trim()
-    .replace(/([a-z])([A-Z])/g, "$1 $2") // fix mercifulAll → merciful All
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .filter(Boolean).length;
-};
-
-  
-
-  const MAX_WORDS = 50;
-
 const submitPost = async () => {
-  
 
-  const images = croppedImages || [];
+  const finalImages = images.map(
+    (image, index) =>
+      croppedImages[index] || image
+  );
 
-  if (!text && images.length === 0 && !video) return;
 
-  if (images.length > 0 && video) {
-    showNotification("You can upload images OR a video, not both.", "error");
+  if (
+    !text &&
+    finalImages.length === 0 &&
+    !video
+  ) {
+
+    toast.error(
+      "Please add some text, an image, or a video."
+    );
+
     return;
   }
-  
-  const formData = new FormData();
 
-  formData.append("visibility", visibility);
 
-  if (text) formData.append("content", text);
-  
+  if (
+    finalImages.length > 0 &&
+    video
+  ) {
 
-  if (croppedImages?.length) {
-    croppedImages.forEach(file => {
-      formData.append("images[]", file);
-    });
+    toast.error(
+      "You can upload images OR a video, not both."
+    );
+
+    return;
   }
+
+
+  const formData =
+    new FormData();
+
+
+  formData.append(
+    "visibility",
+    visibility
+  );
+
+
+  if (text) {
+
+    formData.append(
+      "content",
+      text
+    );
+
+  }
+
+
+  finalImages.forEach((file) => {
+
+    formData.append(
+      "images[]",
+      file
+    );
+
+  });
+
 
   if (video) {
-    formData.append("video", video);
+
+    formData.append(
+      "video",
+      video
+    );
+
+    if (trimApplied) {
+
+      formData.append(
+        "trim_start",
+        String(videoTrim.start)
+      );
+
+      formData.append(
+        "trim_end",
+        String(videoTrim.end)
+      );
+
+    }
+
   }
+
 
   setLoading(true);
-  setProgress(0);
-
   try {
-    const res = await api.post("/api/posts", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (e) =>
-        setProgress(Math.round((e.loaded * 100) / e.total)),
-    });
 
-    handlePostCreated?.(res.data.post);
-    showNotification("Uploaded successfully!", "success");
+    const res =
+      await api.post(
+        "/api/posts",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+
+        }
+      );
+
+
+    handlePostCreated?.(
+      res.data.post
+    );
+
+
+    toast.success(
+      "Uploaded successfully!"
+    );
+
+
+    // RESET
 
     setText("");
+
+    setImages([]);
+
     setCroppedImages([]);
+
+    setSelectedIndex(null);
+
+
+    if (videoPreview) {
+
+      URL.revokeObjectURL(
+        videoPreview
+      );
+
+    }
+
     setVideo(null);
+
     setVideoPreview(null);
+
+    setVideoDuration(0);
+
+    setVideoTrim({
+      start: 0,
+      end: 0,
+    });
+
+    setTrimApplied(false);
+
+    setShowTrimModal(false);
+
     setShowVisibilityModal(false);
-    setProgress(0);
-    setOpen(null);
+
   } catch (err) {
-    showNotification(
-      err.response?.data?.message || "Upload failed.",
-      "error"
+
+    console.error(err);
+
+    toast.error(
+      err.response?.data?.message ||
+      err.response?.data?.errors?.images?.[0] ||
+      err.response?.data?.errors?.video?.[0] ||
+      "Upload failed."
     );
+
+
   } finally {
+
     setLoading(false);
+
   }
+
 };
-
-
 
   return (
     <div className="sm:px-6 px-2 lg:ml-64 max-w-3xl mx-auto">
 
       <CreatePostModal text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
       setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
-      handleSelectImages={handleSelectImages} imagePost={imagePost} video={video}
-      visibility={visibility} setVisibility={setVisibility} />
-
-      {/* POPUP MODAL */}
-      {open && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-  <div className="bg-white p-6 flex flex-col sm:p-12 rounded-xl w-full max-w-[720px] shadow-xl relative
-                  max-h-[90vh] overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 whitespace-nowrap">
-           
-      {/* TEXT */}
-      <textarea
-        value={text}
-        onChange={e => setText(e.target.value)}
-        placeholder="What's on your mind?"
-        className="w-full h-20 sm:h-32 border-2 p-3 rounded resize-none"
-      />
-
-      {/* MEDIA INPUTS */}
-      <p className="py-2 border-b-2 border-blue-500 font-bold text-sm text-black mt-4">Select Media Upload</p>
-      <div className="inline-flex gap-3 mt-3">
-        <div>
-        <input
-          type="file"
-          id="imageupload" 
-          accept="image/*" 
-          className="hidden"
-          multiple
-          disabled={!!video}
-          onChange={(e) => handleSelectImages(e.target.files)}
-        />
-         <label
-            htmlFor="imageupload"
-             className="flex flex-col items-center gap-1"
-        >
-            <img src={imagePost} alt="image-image" className="w-20 cursor-pointer hover:scale-105" />
-            <label className="text-sm text-black font-bold">Image</label>
-        </label>
-        </div>
-        <div>
-          {/* disabled={croppedImages.length > 0} */}
-        <input type="file" id="videoUpload" accept="video/*" 
-        className="hidden" onChange={e => handleVideo(e.target.files[0])} />
-         <label
-            htmlFor="videoUpload"
-            className="flex flex-col items-center gap-1"
-        >
-        <img src={videoPost} alt="image-image" className="w-24 rounded-full h-20 cursor-pointer hover:scale-105" />
-        <label className="text-sm text-black font-bold">Video</label>
-        </label>
-        </div>
-      </div>
-
-      {/* IMAGE PREVIEW */}
-
-      <div className="grid sm:grid-cols-3 grid-cols-1 bg-transparent gap-2 mt-4">
-        {Array.isArray(croppedImages) &&
-          croppedImages.map((img, i) => (
-            <img
-              key={i}
-              src={URL.createObjectURL(img)}
-              className="rounded-lg"
-            />
-          ))}
-      </div>
+      handleSelectImages={handleSelectImages} imagePost={imagePost} video={video} images={images}
+      visibility={visibility} setVisibility={setVisibility} handleVideoUpload={handleVideoUpload} />
 
 
-      {/* VIDEO PREVIEW + TRIM */}
-     {videoPreview && (
-      <div className="mt-4">
-        <video
-          src={videoPreview}
-          controls
-          className="w-full max-h-40 rounded"
-        />
-      </div>
-    )}
+      {showCrop && images.length > 0 && (
+   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
 
-
-      {/* UPLOAD PROGRESS */}
-      {progress > 0 && (
-        <div className="w-full bg-gray-200 h-2 mt-3 rounded">
-          <div className="bg-blue-600 h-2 rounded" style={{ width: `${progress}%` }} />
-        </div>
-      )}
-
-      {/* POST BUTTON */}
-      <div className="flex flex-row items-center justify-between mt-6">
-   
-        <button
-        onClick={() => setShowVisibilityModal(true)}
-        disabled={loading}
-        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Next
-      </button>
-
-        <button
-       onClick={() => {
-            setOpen(false);
-            setImages(null);
-            setVideo(null);
-            setCroppedImages(null);
-            setVideoPreview(null);
-        }}
-        className="mt-4 bg-gray-400 hover:bg-gray-300 text-white px-4 py-2 rounded"
-      >
-        Cancel
-      </button>
-
-    </div>
-    </div>
-    </div>
-     )}
-
-
-    
-        {showTrimModal && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white p-4 rounded w-[90%] max-w-3xl sm:h-[80%] h-full flex flex-col 
-    justify-center items-center relative">
-
-       <button
-        onClick={() => setShowTrimModal(false)}
-        className="absolute top-3 right-3 bg-gray-200 p-2 rounded-full"
-      >
-        ✕
-      </button>
-
-      <video
-        src={videoPreview}
-        controls
-        className="w-full max-h-80 rounded mt-8"
-        onLoadedMetadata={(e) => {
-          setVideoStart(0);
-          setVideoEnd(e.target.duration);
-          setVideoDuration(e.target.duration);
-        }}
-      />
-
-      <Slider
-        range
-        min={0}
-        max={videoDuration}
-        step={0.1}
-        value={[videoStart, videoEnd]}
-        onChange={([s, e]) => {
-          setVideoStart(s);
-          setVideoEnd(e);
-        }}
-        className="mt-6"
-      />
-
-      <div className="flex justify-between text-sm mt-2">
-        <span>{videoStart.toFixed(1)}s</span>
-        <span>{videoEnd.toFixed(1)}s</span>
-      </div>
-
-      <button
-         disabled={!ffmpegReady}
-        onClick={handleTrimAndClose}
-        className={`mt-4 px-4 py-2 rounded text-white ${
-          ffmpegReady ? "bg-blue-600" : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        {ffmpegReady ? "Apply Trim" : "Loading video engine…"}
-      </button>
-
-
-    </div>
-  </div>
-)}
-    
-  
-      {/* IMAGE CROP MODAL */}
-      {showCrop && images[currentIndex] && (
-  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-[var(--bg-color)] text-[var(--text-color)] sm:w-[90vw] sm:h-[96vh] flex flex-col justify-center items-center h-full w-full rounded relative p-4">
+    <div
+      className="
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        w-full
+        h-full
+        sm:w-[90vw]
+        sm:h-[96vh]
+        sm:max-w-5xl
+        rounded-xl
+        relative
+        p-4
+        flex
+        flex-col flex items-center justify-center
+        overflow-y-auto scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin">
 
       <button
         onClick={() => setShowCrop(false)}
@@ -388,32 +630,556 @@ const submitPost = async () => {
       >
         ✕
       </button>
+      <div className="border border-green-500 sm:h-96 w-80 sm:w-96 w-full flex 
+      items-center justify-center rounded-xl py-2 px-4 mb-6">
 
-      <ImageCrop
-        url={URL.createObjectURL(images[currentIndex])}
-        isLast={currentIndex === images.length - 1}
-        onCropDone={(blob) => {
-          const file = new File(
-            [blob],
-            `image-${currentIndex}.jpg`,
-            { type: "image/jpeg" }
-          );
+  {selectedIndex !== null ? (
+    <ImageCrop
+      url={URL.createObjectURL(
+        croppedImages[selectedIndex] ||
+        images[selectedIndex]
+      )}
+      onCropDone={handleCropDone}
+      selectedIndex={selectedIndex}
+      setCurrentIndex={setCurrentIndex}
+      croppedImages={croppedImages}
+      setSelectedIndex={setSelectedIndex}
+    />
 
-          setCroppedImages((prev) => [...prev, file]);
+  ) : (
 
-          if (currentIndex + 1 < images.length) {
-            setCurrentIndex((i) => i + 1); // 👉 NEXT IMAGE
-          } else {
-            setShowCrop(false); // 👉 EXIT CROPPING
-            setCurrentIndex(0);
-          }
-        }}
+    <div className="flex flex-col items-center justify-center h-full">
+
+      <img
+        src={URL.createObjectURL(
+          croppedImages[currentIndex] ||
+          images[currentIndex]
+        )}
+        alt={`Image ${currentIndex + 1}`}
+        className="
+          max-w-full
+          max-h-[55vh]
+          object-contain
+          rounded-xl
+        "
       />
 
+      {/* CROP IMAGE BUTTON */}
+      <button
+        type="button"
+        onClick={() => {
+          setSelectedIndex(currentIndex);
+        }}
+        className="
+          mt-2
+          bg-green-600
+          hover:bg-green-700
+          text-white
+          px-6
+          py-2 text-sm
+          rounded-lg
+          font-semibold
+          transition
+        "
+      >
+        Crop Image
+      </button>
 
     </div>
+
+  )}
+
+</div>
+
+
+  <div className="flex flex-row border-b pb-2 overflow-y-auto flex items-center justify-center w-[90%] max-w-3xl
+            scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin gap-3 mb-6">
+
+    {images.map((image, index) => {
+      const isSelected = selectedIndex === index;
+      const isCropped = !!croppedImages[index];
+
+      return (
+        <div
+          key={index}
+          onClick={() => handleSelectImage(index)}
+          className={`
+            relative cursor-pointer rounded-xl
+            border-2 transition-all duration-200
+            ${
+              isSelected
+                ? "border-green-500 ring-2 ring-green-200"
+                : "border-gray-200 hover:border-green-400"
+            }
+          `}
+        >
+          <img
+            src={URL.createObjectURL(
+              croppedImages[index] || image
+            )}
+            alt={`Selected ${index + 1}`}
+            className="w-20 h-10 sm:h-16 object-cover"
+          />
+
+          {/* SELECTED INDICATOR */}
+          {isSelected && (
+            <div className="absolute inset-0 bg-green-500/10 flex items-start justify-end p-1">
+              <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                ✓
+              </span>
+            </div>
+          )}
+
+          {/* CROPPED INDICATOR */}
+          {isCropped && !isSelected && (
+            <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+              Cropped
+            </div>
+          )}
+        </div>
+      );
+    })}
+
+  </div>
+
+
+  {/* CROP AREA */}
+  
+
+  {/* SUBMIT */}
+  <div
+        className="
+          shrink-0
+          flex
+          justify-end
+          absolute bottom-3 right-6
+          pt-3
+          
+        "
+      >
+
+        <button
+          type="button"
+          onClick={() => {setShowVisibilityModal(true)}}
+          disabled={images.length === 0}
+          className="
+            bg-green-600
+            hover:bg-green-700
+            disabled:bg-gray-400
+            text-white
+            px-8
+            py-3
+            rounded-lg
+            font-semibold
+          "
+        >
+          Submit
+        </button>
+
+      </div>
+</div>
   </div>
 )} 
+
+{showTrimModal && video && (
+  <div
+    className="
+      fixed
+      inset-0
+      z-[999]
+      bg-black/70
+      flex
+      items-center
+      justify-center
+      p-4
+    "
+  >
+
+    <div
+      className="
+        relative
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        w-full
+        max-w-2xl
+        max-h-[95vh]
+        overflow-y-auto
+        rounded-2xl
+        shadow-2xl
+        p-5
+      "
+    >
+
+      {/* CLOSE */}
+
+      <button
+        type="button"
+        onClick={() => {
+          setShowTrimModal(false);
+        }}
+        className="
+          absolute
+          top-3
+          right-3
+          z-20
+          w-9
+          h-9
+          rounded-full
+          bg-gray-200
+          text-black
+          flex
+          items-center
+          justify-center
+          hover:bg-gray-300
+        "
+      >
+        ✕
+      </button>
+
+
+      {/* TITLE */}
+
+      <div className="mb-4">
+
+        <h2 className="text-xl font-bold">
+          {trimApplied
+            ? "Video Trimmed"
+            : "Trim Video"}
+        </h2>
+
+        <p className="text-sm opacity-70 mt-1">
+          Drag the handles to select
+          the part of the video you
+          want to upload.
+        </p>
+
+      </div>
+
+
+      {/* VIDEO */}
+
+      <div
+        className="
+          w-full
+          flex
+          items-center
+          justify-center
+          bg-black
+          rounded-xl
+          overflow-hidden
+        "
+      >
+
+        <video
+          ref={videoRef}
+          src={videoPreview}
+          controls
+          playsInline
+          className="
+            w-full
+            max-h-[45vh]
+            object-contain
+          "
+          onLoadedMetadata={
+            handleVideoLoadedMetadata
+          }
+          onTimeUpdate={
+            handleTimeUpdate
+          }
+          onPlay={
+            handlePlay
+          }
+        />
+
+      </div>
+
+
+      {/* TRIM SECTION */}
+
+      {videoDuration > 0 && (
+
+        <div className="mt-5">
+
+          {/* TRACK */}
+
+          <div
+            ref={trackRef}
+            className="
+              relative
+              w-full
+              h-10
+              bg-gray-800
+              rounded-xl
+              overflow-hidden
+              touch-none
+              select-none
+            "
+          >
+
+            {/* SELECTED RANGE */}
+
+            <div
+              className="
+                absolute
+                top-0
+                h-full
+                bg-green-500/40
+                border-x-2
+                border-green-500
+              "
+              style={{
+                left:
+                  `${
+                    (
+                      videoTrim.start /
+                      videoDuration
+                    ) * 100
+                  }%`,
+
+                width:
+                  `${
+                    (
+                      (
+                        videoTrim.end -
+                        videoTrim.start
+                      ) /
+                      videoDuration
+                    ) * 100
+                  }%`,
+              }}
+            />
+
+
+            {/* LEFT HANDLE */}
+
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setDragType("left");
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                setDragType("left");
+              }}
+              className="
+                absolute
+                top-0
+                w-4
+                h-full
+                bg-white
+                rounded-md
+                shadow-lg
+                cursor-ew-resize
+                z-30
+              "
+              style={{
+                left:
+                  `${
+                    (
+                      videoTrim.start /
+                      videoDuration
+                    ) * 100
+                  }%`,
+
+                transform:
+                  "translateX(-50%)",
+              }}
+            />
+
+
+            {/* RIGHT HANDLE */}
+
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setDragType("right");
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                setDragType("right");
+              }}
+              className="
+                absolute
+                top-0
+                w-4
+                h-full
+                bg-white
+                rounded-md
+                shadow-lg
+                cursor-ew-resize
+                z-30
+              "
+              style={{
+                left:
+                  `${
+                    (
+                      videoTrim.end /
+                      videoDuration
+                    ) * 100
+                  }%`,
+
+                transform:
+                  "translateX(-50%)",
+              }}
+            />
+
+
+            {/* MOVE SELECTED RANGE */}
+
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setDragType("move");
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                setDragType("move");
+              }}
+              className="
+                absolute
+                top-0
+                h-full
+                cursor-grab
+                active:cursor-grabbing
+                z-20
+                touch-none
+              "
+              style={{
+                left:
+                  `${
+                    (
+                      videoTrim.start /
+                      videoDuration
+                    ) * 100
+                  }%`,
+
+                width:
+                  `${
+                    (
+                      (
+                        videoTrim.end -
+                        videoTrim.start
+                      ) /
+                      videoDuration
+                    ) * 100
+                  }%`,
+              }}
+            />
+
+          </div>
+
+
+          {/* TIME */}
+
+          <div
+            className="
+              text-center
+              text-sm
+              font-semibold
+              mt-3
+            "
+          >
+
+            {isTrimmed
+              ? `${videoTrim.start.toFixed(1)}s — ${videoTrim.end.toFixed(1)}s`
+              : "Full video"}
+
+          </div>
+
+
+          {/* BUTTONS */}
+
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-3
+              mt-5
+            "
+          >
+
+            {/* REMOVE */}
+
+            <button
+              type="button"
+              onClick={removeVideo}
+              className="
+                px-4
+                py-2
+                rounded-lg
+                bg-red-500
+                hover:bg-red-600
+                text-white
+                font-semibold
+              "
+            >
+              Remove
+            </button>
+
+
+            <div className="flex gap-3">
+
+              {/* APPLY */}
+
+              <button
+                type="button"
+                onClick={applyTrim}
+                className={`
+                  px-5
+                  py-2
+                  rounded-lg
+                  text-white
+                  font-semibold
+                  transition
+
+                  ${
+                    trimApplied
+                      ? "bg-green-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  }
+                `}
+              >
+
+                {trimApplied
+                  ? "Trimmed ✓"
+                  : "Apply Trim"}
+
+              </button>
+
+
+              {/* SUBMIT */}
+
+               <button
+          type="button"
+          onClick={() => {setShowVisibilityModal(true)}}
+          disabled={images.length === 0}
+          className="
+            bg-green-600
+            hover:bg-green-700
+            disabled:bg-gray-400
+            text-white
+            px-8
+            py-3
+            rounded-lg
+            font-semibold
+          "
+        >
+          Submit
+        </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+    </div>
+
+  </div>
+)}
 
 
 {showVisibilityModal && (
@@ -500,13 +1266,6 @@ const submitPost = async () => {
   </div>
 )}
 
-          {notify.message && (
-          <Notification
-            message={notify.message}
-            type={notify.type} // "success" = green, "error" = red
-            onClose={() => setNotify({ message: "", type: "" })}
-          />
-        )}
         </div>
   );
 }

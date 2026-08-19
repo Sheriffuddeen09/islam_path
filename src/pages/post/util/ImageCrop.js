@@ -1,106 +1,210 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { canvasPreview } from "./mediaHelper";
 
-export default function ImageCrop({ url, onCropDone, isLast }) {
+export default function ImageCrop({
+  url,
+  onCropDone,
+  selectedIndex, setSelectedIndex, croppedImages, setCurrentIndex
+}) {
   const imgRef = useRef(null);
 
   const [crop, setCrop] = useState(null);
   const [completedCrop, setCompletedCrop] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
 
   const onImageLoad = (e) => {
+    const { naturalWidth, naturalHeight } =
+      e.currentTarget;
+
     setCompletedCrop({
       unit: "px",
       x: 0,
       y: 0,
-      width: e.currentTarget.naturalWidth,
-      height: e.currentTarget.naturalHeight,
+      width: naturalWidth,
+      height: naturalHeight,
     });
   };
 
-  const handleFinishCrop = async () => {
-  if (!imgRef.current) return;
+  const handleDone = async () => {
+    if (!imgRef.current) return;
 
-  let cropToUse = completedCrop;
+    let cropToUse = completedCrop;
 
-  // If user didn't crop, use full image
-  if (!cropToUse || !cropToUse.width || !cropToUse.height) {
-    cropToUse = {
-      unit: "px",
-      x: 0,
-      y: 0,
-      width: imgRef.current.naturalWidth,
-      height: imgRef.current.naturalHeight,
-    };
-  }
+    // No crop selected = use the entire image
+    if (
+      !cropToUse ||
+      !cropToUse.width ||
+      !cropToUse.height
+    ) {
+      cropToUse = {
+        unit: "px",
+        x: 0,
+        y: 0,
+        width: imgRef.current.naturalWidth,
+        height: imgRef.current.naturalHeight,
+      };
+    }
 
-  const blob = await canvasPreview(imgRef.current, cropToUse);
-  if (!blob) return;
+    const blob = await canvasPreview(
+      imgRef.current,
+      cropToUse
+    );
 
-  const preview = URL.createObjectURL(blob);
-  setPreviewUrl(preview);
-  onCropDone(blob);
-};
+    if (!blob) return;
 
+    onCropDone(blob);
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full relative">
-      {/* CROPPER */}
-      <div className="flex items-center justify-center w-full">
+    <div
+      className="
+        flex
+        flex-col
+        items-center
+        justify-center
+        w-full
+        h-full
+        min-h-0
+      "
+    >
+
+      {/* CROP IMAGE */}
+      <div
+        className="
+          flex
+          items-center
+          justify-center
+          w-full
+          flex-1
+          min-h-0
+          overflow-hidden
+        "
+      >
+
         <ReactCrop
           crop={crop}
           onChange={(c) => setCrop(c)}
-          onComplete={(c) => setCompletedCrop(c)}
+          onComplete={(c) =>
+            setCompletedCrop(c)
+          }
           keepSelection
         >
+
           <img
             ref={imgRef}
             src={url}
-            alt="Crop"
+            alt={`Crop Image ${selectedIndex + 1}`}
             onLoad={onImageLoad}
-            className="sm:h-96 h-60 max-w-[80vw] object-cover"
+            className="
+              block
+              max-w-full
+              max-h-[40vh]
+              sm:max-h-[50vh]
+              w-auto
+              h-auto
+              object-contain flex items-center justify-center
+            "
           />
+
         </ReactCrop>
+
       </div>
 
-      {/* note */}
-      <marquee behavior="scroll" direction="left" scrollamount="6" className="text-xs font-bold mt-4">
-      👉 if you click on the Crop & Next without Cropping it will make the image have a black background, 
-        to avoid it click the skip button.
-      </marquee>
-      {/* ACTION BUTTON */}
-      <div className="inline-flex items-center gap-3 justify-center mt-4">
+
+      {/* DONE */}
+      <div
+  className="
+    shrink-0
+    mt-3
+    flex
+    items-center
+    justify-center
+    gap-4
+  "
+>
+  <h3 className="font-semibold text-sm">
+    {croppedImages[selectedIndex]
+      ? `Crop ${selectedIndex + 1} Done`
+      : `Crop Image ${selectedIndex + 1}`}
+  </h3>
+
+  {croppedImages[selectedIndex] ? (
+    <>
+      {/* CROP AGAIN */}
       <button
-        onClick={handleFinishCrop}
-        className="mt-4 bg-blue-600 text-white px-6 py-2 rounded"
-      >
-        {isLast ? "Crop" : "Crop & Next"}
-      </button>
-      
-      <button
+        type="button"
         onClick={() => {
-          // Send original file/blob without canvas
-          fetch(url)
-            .then(res => res.blob())
-            .then(blob => onCropDone(blob));
+          // Keep the same image active for cropping
+          setSelectedIndex(selectedIndex);
         }}
-        className="mt-4 bg-gray-500 text-white px-6 py-2 rounded"
+        className="
+          bg-blue-600
+          hover:bg-blue-700
+          text-white
+          w-9
+          h-9
+          rounded-lg
+          flex
+          items-center
+          justify-center
+          font-semibold
+          transition rotate-90
+        "
+        title="Crop again"
       >
-        Skip
+        ✂
       </button>
-      {/* PREVIEW AFTER CROP absolute top-2 right-2 bg-white p-2 rounded shadow-lg*/}
-      {previewUrl && (
-        <div className="">
-          <img
-            src={previewUrl}
-            alt="Preview"
-            className="max-h-32 rounded shadow"
-          />
-        </div>
-      )}
-      </div>
+
+      {/* DONE */}
+      <button
+        type="button"
+        onClick={() => {
+          setCurrentIndex(selectedIndex);
+          setSelectedIndex(null);
+        }}
+        className="
+          bg-green-600
+          hover:bg-green-700
+          text-white
+          w-9
+          h-9
+          rounded-lg
+          flex
+          items-center
+          justify-center
+          font-semibold
+          transition
+        "
+        title="Done"
+      >
+        ✓
+      </button>
+    </>
+  ) : (
+    /* FIRST CROP */
+    <button
+      type="button"
+      onClick={handleDone}
+      className="
+        bg-green-600
+        hover:bg-green-700
+        text-white
+        w-9
+        h-9
+        rounded-lg
+        flex
+        items-center
+        justify-center
+        font-semibold
+        transition
+      "
+      title="Crop image"
+    >
+      ✂
+    </button>
+  )}
+</div>
     </div>
   );
 }

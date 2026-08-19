@@ -1,15 +1,11 @@
 import { useState } from "react";
-import {
-Image, Video, FileText, Film, Images, Clapperboard, X
-} from "lucide-react";
+import {FileText, Film, Images, Clapperboard} from "lucide-react";
 import ReelVideoImageDescription from "./ReelVideoImageDescription";
 import ReelDescriptionOnly from "./ReelDescriptionOnly";
 import PostDescriptionOnly from "./PostDescriptionOnly";
-import PostVideoOnly from "./PostVideoOnly";
-import PostImageOnly from "./PostImageOnly";
 import PostImageVideoDescription from "./PostImageVideoDescription";
 export default function CreatePostModal({text, setText, visibility, setVisibility, submitPost, loading, showVisibilityModal,
-    setShowVisibilityModal, handleSelectImages, video, imagePost
+    setShowVisibilityModal, handleSelectImages, video, imagePost, handleVideoUpload, images
 }) {
 const [selected,setSelected] = useState(null);
 const options = [
@@ -20,12 +16,7 @@ description:"Upload video, image and description.", icon:<Clapperboard size={25}
 id:"reel-description", title:"Reel Description", description:"Create reel using description only.", icon:<Film size={25}/>
 },{
 id:"post-description", title:"Post Description", description:"Create a text only post.", icon:<FileText size={25}/>
-},{
-id:"post-video", title:"Post Video", description:"Upload a video post only.", icon:<Video size={25}/>
-},{
-id:"post-image", title:"Post Image", description:"Upload an image post only.",
-icon:<Image size={25}/>
-},{
+}, {
 id:"post-all", title:"Post Full", description:"Upload image, video and description.", icon:<Images size={25}/>
 }
 ];
@@ -58,34 +49,15 @@ visibility={visibility} setVisibility={setVisibility}
 />
 )
 }
-if(selected === "post-video"){
-return(
-<PostVideoOnly
-closeModal={() => setSelected(null)}
-text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
-setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
-visibility={visibility} setVisibility={setVisibility}
-/>
-)
-}
-if(selected === "post-image"){
-return(
-<PostImageOnly
-closeModal={() => setSelected(null)}
-handleSelectImages={handleSelectImages} imagePost={imagePost} video={video}
-text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
-setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
-visibility={visibility} setVisibility={setVisibility}
-/>
-)
-}
+
 if(selected === "post-all"){
 return(
 <PostImageVideoDescription
-closeModal={() => setSelected(null)}
+closeModal={() => setSelected(null)} images={images}
 text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
 setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
-visibility={visibility} setVisibility={setVisibility}
+visibility={visibility} setVisibility={setVisibility} handleVideoUpload={handleVideoUpload}
+handleSelectImages={handleSelectImages} imagePost={imagePost} video={video}
 />
 )
 }
@@ -113,7 +85,7 @@ Create Post
 </div>
 <div
 className=" grid
-md:grid-cols-3
+md:grid-cols-2 grid-cols-1
 gap-2 sm:gap-5
 ">
 {options.map((item)=>(

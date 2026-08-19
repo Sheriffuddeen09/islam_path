@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-export default function PostImageVideoDescription({ closeModal, setShowVisibilityModal }) {
-const [image, setImage] = useState(null);
-const [video, setVideo] = useState(null);
-const [description, setDescription] = useState("");
+import videoPost from './image/video.png'
+export default function PostImageVideoDescription({ closeModal, setShowVisibilityModal,  handleSelectImages,
+    text, setText, video, imagePost, handleVideoUpload, images }) {
+
+
 return (
 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3"><div
 className="bg-[var(--bg-color)] text-[var(--text-color)]  sm:p-5 p-2
@@ -22,54 +23,101 @@ Create Post
 </button>
 </div>
 {/* Upload Image */}
-<div className="mb-5">
-<label className="font-semibold block mb-2">
-Upload Image
-</label>
-<input
-type="file" accept="image/*" className="w-full border rounded-lg p-3" onChange={(e) => setImage(e.target.files[0])}
-/>
-{image && (
-<img
-src={URL.createObjectURL(image)}
-alt="" className="rounded-lg w-full mt-3 object-cover max-h-80" />
-)}
-</div>
-{/* Upload Video */}
-<div className="mb-5">
-<label className="font-semibold block mb-2">
-Upload Video
-</label>
-<input
-type="file" accept="video/*" className="w-full border rounded-lg p-3" onChange={(e) => setVideo(e.target.files[0])}
-/>
-{video && (
-<video
-controls
-className="rounded-lg mt-3 w-full" src={URL.createObjectURL(video)}
-/>
-)}
-</div>
+
 {/* Description */}
 <div>
 <label className="font-semibold block mb-2">
 Description
 </label>
 <textarea
-rows={6}
-value={description}
-onChange={(e) => setDescription(e.target.value)}
-placeholder="Write something" className="w-full border rounded-lg p-4 resize-none outline-none" />
+value={text}
+onChange={e => setText(e.target.value)}
+placeholder="Write something" 
+className=" w-full
+h-40 text-black
+border scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+rounded-xl
+p-4
+outline-none
+resize-none
+"/>
+</div>
+
+<div className="flex flex-row flex-wrap mt-3 justify-center gap-3 sm:gap-10  items-center">
+<div className="mb-2">
+<label className="font-semibold block mb-2">
+Upload Image
+</label>
+<div>
+        <input
+          type="file"
+          id="imageupload" 
+          accept="image/*" 
+          className="hidden"
+          multiple
+          disabled={!!video}
+          onChange={(e) => handleSelectImages(e.target.files)}
+        />
+         <label
+            htmlFor="imageupload"
+             className=""
+        >
+            <img src={imagePost} alt="image-image" className="w-40 h-40 cursor-pointer rounded-lg hover:scale-105" />
+        </label>
+</div>
+</div>
+
+{/* Upload Video */}
+<div className="mb-2">
+    <label className="font-semibold block mb-2">
+    Upload Video
+    </label>
+    <div>
+    <input
+            type="file"
+            id="videoUpload"
+            accept="video/*"
+            className="hidden"
+            disabled={images.length > 0 || !!video}
+            onChange={(e) => {
+                const file =
+                e.target.files?.[0];
+
+                handleVideoUpload(file);
+
+                e.target.value = "";
+            }}
+            />
+
+    <label
+        htmlFor="videoUpload"
+        className="flex flex-col items-center gap-1"
+    >
+        <img
+        src={videoPost}
+        alt="Video"
+        className="
+            w-24
+            rounded-full
+            h-20
+            cursor-pointer
+            hover:scale-105
+            transition
+        "
+        />
+    </label>
+    </div>
+</div>
 </div>
 <button
 onClick={() => {setShowVisibilityModal(true); closeModal()}}
 className=" w-full
-mt-6
+mt-5
+p-3
+rounded-xl
 bg-blue-600
 text-white
-rounded-lg
-p-4
-" >
+">
 Create Post
 </button>
 </div>
