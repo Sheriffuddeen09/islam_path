@@ -203,10 +203,10 @@ const handleReport = () =>{
   setOpenReport(!openReport)
 }
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative bg-[var(--bg-color)] text-[var(--text-color)] inline-block text-left">
       <button
         onClick={() => setOpen(!open)}
-        className="px-1 py-1 text-black rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
+        className="px-1 py-1 rounded-full transition"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 rotate-90">
     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -233,7 +233,7 @@ const handleReport = () =>{
                       handleOption();
                       handleDownloadVideo();
                     }}
-                    className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+                    className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
                   >
                     Download Video
                   </button>
@@ -248,7 +248,7 @@ const handleReport = () =>{
                     handleOption();
                     setShowImagePicker(true);
                   }}
-                  className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+                  className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
                 >
                   Download Image
                 </button>
@@ -258,13 +258,13 @@ const handleReport = () =>{
               {/* )} */}
 
             <li>
-              <button onClick={() => {handleOption(); handleSaveToLibrary()}} disabled={loading === "save"} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+              <button onClick={() => {handleOption(); handleSaveToLibrary()}} disabled={loading === "save"} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >
                 {loading === "save" ? "Saving..." : "Save to Library"}
               </button>
             </li>
             <li>
-              <button onClick={() => {handleOption(); handleCopyLink()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+              <button onClick={() => {handleOption(); handleCopyLink()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >
                 {copied? "Copy Image Link" : "Copy Text"}
               </button>
@@ -274,7 +274,7 @@ const handleReport = () =>{
               <li>
                 <button
                   onClick={() => { handleOption(); handleReport(); }}
-                  className="flex items-center font-bold text-gray-800 text-[15px] gap-2 w-full px-2 py-2 hover:text-gray-600 hover:bg-gray-50 rounded"
+                  className="flex items-center font-bold text-[15px] gap-2 w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
                 >
                   Report
                 </button>
@@ -282,11 +282,11 @@ const handleReport = () =>{
             )}
 
             <li>
-              <button onClick={() => {handleOption(); setShares(!shares)}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+              <button onClick={() => {handleOption(); setShares(!shares)}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >Share</button>
             </li>
             <li>
-              <button onClick={() => {handleOption(); handleViewProfile()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+              <button onClick={() => {handleOption(); handleViewProfile()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >View Profile</button>
             </li>
           </ul>
@@ -307,7 +307,7 @@ const handleReport = () =>{
     <div className="bg-white relative rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
       <button
             onClick={() => setShowImagePicker(!showImagePicker)}
-            className="absolute right-3 top-4  text-black rounded-full hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-4  text-black rounded-full hover:text-gray-700 hover:bg-gray-700 bg-gray-100 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
@@ -334,7 +334,7 @@ const handleReport = () =>{
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-700 bg-gray-100 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕

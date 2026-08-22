@@ -10,15 +10,14 @@ export default function ImageCrop({
 }) {
   const imgRef = useRef(null);
 
-    const [crop, setCrop] = useState({
-        unit: "%",
-        x: 10,
-        y: 10,
-        width: 80,
-        height: 80,
-    });
   const [completedCrop, setCompletedCrop] = useState(null);
-
+  const [crop, setCrop] = useState({
+      unit: "%",
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 80,
+  });
   const onImageLoad = (e) => {
     const { naturalWidth, naturalHeight } =
       e.currentTarget;
@@ -76,56 +75,57 @@ export default function ImageCrop({
     >
 
       {/* CROP IMAGE */}
-       <div
-              className="
-                flex
-                items-center
-                justify-center
-                w-full
-                flex-1
-                min-h-0
-                overflow-hidden
-               touch-none
-              select-none mt-10
-          "
-      >
-          <ReactCrop
-              crop={crop}
-              onChange={(c) => setCrop(c)}
-              onComplete={(c) => setCompletedCrop(c)}
-              keepSelection
-              className="
-                  w-full
-                  h-full
-                  touch-none
-                  select-none
-              "
-          >
-              <img
-                  ref={imgRef}
-                  src={url}
-                  alt={`Crop Image ${selectedIndex + 1}`}
-                  onLoad={onImageLoad}
-                  draggable={false}
-                  className="
-                      block
-                      max-w-full
-                      max-h-[65vh]
-                      sm:max-h-[70vh]
-                      w-auto
-                      h-auto
-                      object-contain
-                      touch-none
-                      select-none
-                  "
-                  style={{
-                      WebkitUserSelect: "none",
-                      WebkitTouchCallout: "none",
-                      userSelect: "none",
-                  }}
-              />
-          </ReactCrop>
-      </div>
+      <div
+        className="
+          flex
+          items-center
+          justify-center
+          w-full
+          flex-1
+          min-h-0
+          overflow-hidden
+         touch-none
+        select-none mt-10
+    "
+>
+    <ReactCrop
+        crop={crop}
+        onChange={(c) => setCrop(c)}
+        onComplete={(c) => setCompletedCrop(c)}
+        keepSelection
+        className="
+            w-full
+            h-full
+            touch-none
+            select-none
+        "
+    >
+        <img
+            ref={imgRef}
+            src={url}
+            alt={`Crop Image ${selectedIndex + 1}`}
+            onLoad={onImageLoad}
+            draggable={false}
+            className="
+                block
+                max-w-full
+                max-h-[65vh]
+                sm:max-h-[70vh]
+                w-auto
+                h-auto
+                object-contain
+                touch-none
+                select-none
+            "
+            style={{
+                WebkitUserSelect: "none",
+                WebkitTouchCallout: "none",
+                userSelect: "none",
+            }}
+        />
+    </ReactCrop>
+</div>
+
 
 
       {/* DONE */}
@@ -223,4 +223,4 @@ export default function ImageCrop({
 </div>
     </div>
   );
-}
+} 

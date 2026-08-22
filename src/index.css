@@ -654,3 +654,21 @@ textarea {
     opacity: 1;
   }
 }
+
+.ReactCrop {
+    touch-action: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+.ReactCrop img {
+    touch-action: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+.ReactCrop__crop-selection {
+    touch-action: none !important;
+}

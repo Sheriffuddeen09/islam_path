@@ -3,6 +3,7 @@ import PostCard from "./PostCard";
 import api from "../../Api/axios";
 import SidebarRight from "../homepageComponent/SidebarRight";
 import SidebarLeft from "../homepageComponent/SideBarLeft";
+import Reels from "../reel/Reels";
 
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
@@ -55,7 +56,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         {/* Mobile Menu Button */}
 
         {/* SidebarRight */}
-        <SidebarLeft 
+        {/* <SidebarLeft 
         jobProfile={jobProfile}
         setJobProfile={setJobProfile}
         fetchJobProfile={fetchJobProfile}
@@ -64,7 +65,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
 
-        />
+        /> */}
     
     
       {
@@ -76,6 +77,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
       }
     
     <div className="flex-1 transition-all mx-auto p-4 mt-20 gap-3 flex flex-col items-center">
+      <Reels />
       {posts.map(post => (
         <PostCard key={post.id} post={post} setPosts={setPosts} 
         image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -99,7 +101,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
 
   const ipadScreen = (
           <div className="md:block lg:hidden hidden">
-        <div className="flex flex-col items-start mx-auto min-h-screen bg-white text-gray-800">
+        <div className="flex flex-col items-start mx-auto min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
         {/* Mobile Menu Button */}
 
         {/* SidebarRight */}
@@ -108,7 +110,8 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
     
       {
         posts.length === 0 && (
-          <p className="text-black md:translate-y-60 md:ml-96 lg:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-xl font-bold ">
+          <p className="bg-[var(--bg-color)] text-[var(--text-color)] md:translate-y-60 md:ml-96 
+          lg:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-xl font-bold ">
             No Feed Post Available
           </p>
          )
@@ -116,6 +119,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
      
 
       <div className="flex-1 transition-all p-4 mt-20 gap-4 ml-4 relative">
+      <Reels />
       {posts.map(post => (
         <PostCard key={post.id} post={post} setPosts={setPosts} 
         image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -136,7 +140,8 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
   );
 
   return (
-    <div>
+    <div className="">
+      
       {largeScreen}
       {ipadScreen}  
     </div>

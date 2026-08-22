@@ -29,9 +29,7 @@ export async function canvasPreview(
     }
 
     ctx.imageSmoothingEnabled = true;
-
-    ctx.imageSmoothingQuality =
-        "high";
+    ctx.imageSmoothingQuality = "high";
 
     ctx.drawImage(
         image,

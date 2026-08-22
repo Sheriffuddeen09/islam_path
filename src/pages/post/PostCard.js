@@ -255,7 +255,7 @@ const handleHidePost = async (postId) => {
         <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
           <Link to={`/profile/${post.reposted_by?.id}`}>
-        <p className="font-bold text-white pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
+        <p className="font-bold pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
         flex flex-col items-center justify-center">
           {post.reposted_by?.name[0]}
         </p>
@@ -267,7 +267,7 @@ const handleHidePost = async (postId) => {
           </Link>
           <p className="text-xs opacity-70">{post.created_at}</p>
         </div>
-         {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded text-white py-1 ">
+         {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded py-1 ">
          Reposted
          </p> */}
         </div>
@@ -290,11 +290,11 @@ const handleHidePost = async (postId) => {
                 )} 
   
       {/* USER */}
-      <div className="flex p-4 bg-gray-50 items-start justify-between">
+      <div className="flex p-4 border-b border-blue-500 items-start justify-between">
 
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
-        <p className="font-bold text-white pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
+        <p className="font-bold pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
         flex flex-col items-center justify-center">
           {post.user?.name?.[0]}
         </p>
@@ -326,7 +326,7 @@ const handleHidePost = async (postId) => {
       </div>
       {/* TEXT */}
      <div
-  className="bg-white p-4 text-[var(--text-color)] text-[14px]">
+  className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px]">
   {post.content && (
     <p className="cursor-pointer px-2">
       {showMore
@@ -369,7 +369,7 @@ const handleHidePost = async (postId) => {
       <div className="flex justify-between px-4 mt-4 items-center ">
 
         <div className="flex gap-1 items-center">
-       <div className=" text-xs inline-flex items-center gap-2 text-gray-600">
+       <div className=" text-xs inline-flex items-center gap-2">
         {Object.keys(counts).map((emoji) => (
           <span key={emoji} className="text-xs -mr-2">{emoji}</span>
         ))}
@@ -420,25 +420,25 @@ const handleHidePost = async (postId) => {
       </div>
       <div className="inline-flex items-center gap-3">
 
-        <p className="inline-flex text-gray-800 gap-1 items-center">
+        <p className="inline-flex gap-1 items-center">
       {post.comments_count}
          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
           </svg>
       </p>
-      <p className="inline-flex gap-1 text-gray-800 items-center">
+      <p className="inline-flex gap-1 items-center">
       {post.shares_count}
            <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="w-5 h-5 text-gray-600"
+          className="w-5 h-5 "
         >
           <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
         </svg>
       </p>
 
-      <p className="inline-flex gap-1 text-gray-800 items-center">
+      <p className="inline-flex gap-1 items-center">
       {post.reposts_count}
            <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -446,7 +446,7 @@ const handleHidePost = async (postId) => {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 "
           >
             <path
               strokeLinecap="round"
@@ -461,8 +461,8 @@ const handleHidePost = async (postId) => {
 
       </div>
           
-      <div className="flex items-center justify-around py-3 text-sm text-gray-600">
-                  <div className="flex justify-between text-gray-600 mx-4">
+      <div className="flex items-center justify-around py-3 text-sm ">
+                  <div className="flex justify-between  mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
                   {showReactions && (
@@ -502,7 +502,7 @@ const handleHidePost = async (postId) => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-5 h-5 text-gray-600"
+                    className="w-5 h-5 "
                   >
                     <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
                   </svg>
@@ -535,9 +535,9 @@ const handleHidePost = async (postId) => {
               
       {shares && (
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
+        <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-[var(--text-color)] rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2  text-[var(--text-color)] rounded  bg-gray-100 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
@@ -579,7 +579,7 @@ const handleHidePost = async (postId) => {
 
       {messageOpenShare && (
   <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+    <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
       <h2 className="font-bold mb-3">Share to chat</h2>
 
        {chats.map((chat) => (
@@ -632,14 +632,14 @@ const handleHidePost = async (postId) => {
       setSending(false);
     }
   }}
-  className={`mt-3 w-full rounded py-2 text-white ${
+  className={`mt-3 w-full rounded py-2 ${
     sending || selectedChats.length === 0
       ? "bg-gray-400 cursor-not-allowed"
       : "bg-blue-600 hover:bg-blue-700"
   }`}
 >
   {sending ? <svg
-      className="animate-spin h-5 w-5 text-white mx-auto flex justify-center items-center"
+      className="animate-spin h-5 w-5 mx-auto flex justify-center items-center"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -677,7 +677,9 @@ const handleHidePost = async (postId) => {
     className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
     onClick={() => setShowUsersPopup(false)}
   >
-    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-[var(--text-color)] py-3">User Likes</h1>
+    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-[var(--bg-color)] text-[var(--text-color)] 
+    p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+      <h1 className="text-xl font-bold text-[var(--text-color)] py-3">User Likes</h1>
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
   onClick={() =>setShowUsersPopup(false)}class="size-6 absolute right-4 top-2">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -691,7 +693,7 @@ const handleHidePost = async (postId) => {
       onClick={() => setShowUsersPopup(false)} // close popup on click
     >
       <div
-        className={`w-8 h-8 rounded-full ${getColor(user.id)} flex items-center justify-center text-xl font-semibold text-white`}
+        className={`w-8 h-8 rounded-full ${getColor(user.id)} flex items-center justify-center text-xl font-semibold`}
       >
         {user.id === currentUser?.id
           ? "Y"
