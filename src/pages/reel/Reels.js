@@ -8,49 +8,39 @@ import {
 } from "lucide-react";
 import api from "../../Api/axios";
 import ReelViewerModal from './ReelViewerModal'
+import { useAuth } from '../../layout/AuthProvider';
 export default function Reels({
-    currentUser,
+    
 }) {
+
+    const {user} = useAuth()
+
 
     const [reelUsers, setReelUsers] =
         useState([]);
-
     const [loading, setLoading] =
         useState(true);
-
     const [error, setError] =
         useState("");
-
     const [selectedUserIndex, setSelectedUserIndex] =
         useState(null);
-
     const [selectedReelIndex, setSelectedReelIndex] =
         useState(0);
-
     const [showOptions, setShowOptions] =
         useState(false);
-
     const [message, setMessage] =
         useState("");
-
     const [sending, setSending] =
         useState(false);
-
     const [reaction, setReaction] =
         useState(null);
-
     const [mediaIndex, setMediaIndex] = useState(0);
-
     const [progress, setProgress] =
             useState(0);
-    
 
-    useEffect(() => {
-
+            useEffect(() => {
         fetchReels();
-
     }, []);
-
 
     const markReelViewed = async (reelId) => {
         try {
@@ -59,10 +49,6 @@ export default function Reels({
             console.error("Failed to mark reel as viewed:", error);
         }
     };
-
-
-    
-
 
     const fetchReels = async () => {
 
@@ -98,41 +84,23 @@ export default function Reels({
         }
     };
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CURRENT USER INITIAL
-    |--------------------------------------------------------------------------
-    */
-
+    console.log('user', user)
     const currentInitial =
         (
-            currentUser?.first_name ||
+            user?.first_name ||
             "U"
         )
             .charAt(0)
             .toUpperCase();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | OPEN USER REELS
-    |--------------------------------------------------------------------------
-    */
 
     const openUserReels = (userIndex) => {
 
         setSelectedUserIndex(userIndex);
 
         setSelectedReelIndex(0);
-
-        // VERY IMPORTANT
         setMediaIndex(0);
 
         setProgress(0);
-
-        // setShowReelViewer(true);
-
         setShowOptions(false);
 
         setMessage("");
@@ -142,8 +110,6 @@ export default function Reels({
 
 
     const closeViewer = () => {
-        // setShowReelViewer(false);
-
         setSelectedUserIndex(null);
         setSelectedReelIndex(0);
 
@@ -155,13 +121,6 @@ export default function Reels({
 
         setShowOptions(false);
     };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CURRENT USER REELS
-    |--------------------------------------------------------------------------
-    */
 
     const selectedUser =
         selectedUserIndex !== null
@@ -176,20 +135,12 @@ export default function Reels({
                   selectedReelIndex
               ]
             : null;
-
-
    
     const nextReel = () => {
 
     if (!selectedUser) {
         return;
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | NEXT REEL FOR SAME USER
-    |--------------------------------------------------------------------------
-    */
 
     if (
         selectedReelIndex <
@@ -208,12 +159,6 @@ export default function Reels({
         return;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | NEXT USER
-    |--------------------------------------------------------------------------
-    */
-
     if (
         selectedUserIndex <
         reelUsers.length - 1
@@ -231,13 +176,10 @@ export default function Reels({
 
         return;
     }
-
-
     closeViewer();
 };
 
 const previousReel = () => {
-
 
     if (mediaIndex > 0) {
 
@@ -249,12 +191,6 @@ const previousReel = () => {
 
         return;
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | PREVIOUS REEL
-    |--------------------------------------------------------------------------
-    */
 
     if (selectedReelIndex > 0) {
 
@@ -269,12 +205,6 @@ const previousReel = () => {
 
         return;
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | PREVIOUS USER
-    |--------------------------------------------------------------------------
-    */
 
     if (selectedUserIndex > 0) {
 
@@ -291,8 +221,6 @@ const previousReel = () => {
             previousUser.reels.length - 1
         );
 
-        // Start last reel at its
-        // first media
         setMediaIndex(0);
 
         setReaction(null);
@@ -329,13 +257,6 @@ const previousReel = () => {
 
         }
     };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MESSAGE
-    |--------------------------------------------------------------------------
-    */
 
     const sendMessage = async () => {
 
@@ -381,10 +302,10 @@ const previousReel = () => {
     return (
         <div
             className="
-                lg:w-[480px] md:w-96 w-full
+                lg:w-[480px] md:w-96 w-80
                 overflow-x-auto
                 overflow-y-hidden
-                pt-5 flex items-center justify-center mx-auto
+              lg: flex items-center justify-center mx-auto
                 scrollbar-none
             "
         >
@@ -397,11 +318,6 @@ const previousReel = () => {
                     px-1
                 "
             >
-
-                {/* =================================================
-                    CREATE REEL SKELETON
-                ================================================== */}
-
                 <div
                     className="
                         relative
@@ -469,10 +385,6 @@ const previousReel = () => {
                 </div>
 
 
-                {/* =================================================
-                    USER REEL SKELETONS
-                ================================================== */}
-
                 {Array.from({ length: 4 }).map(
                     (_, index) => (
 
@@ -487,6 +399,7 @@ const previousReel = () => {
                                 sm:h-36
                                 rounded-xl
                                 overflow-hidden
+                                overflow-x-auto
                                 bg-gray-200
                                 dark:bg-gray-800
                                 animate-pulse
@@ -543,6 +456,8 @@ const previousReel = () => {
         </div>
     );
 }
+
+    const hasMyStatus = currentUserReels.length > 0;
    
 
     return (
@@ -562,10 +477,6 @@ const previousReel = () => {
                         min-w-max
                     "
                 >
-
-                    {/* =================================================
-                        CREATE REEL
-                    ================================================== */}
 
                     <button
                         type="button"
@@ -598,27 +509,31 @@ const previousReel = () => {
                         >
 
                             <div
-                                className="
-                                    absolute
-                                    top-2
-                                    left-1/2
-                                    -translate-x-1/2
-                                    w-12
-                                    h-12
-                                    rounded-full
-                                    bg-blue-600
-                                    text-white
-                                    flex
-                                    items-center
-                                    justify-center
-                                    text-xl
-                                    font-bold
-                                    border-2
-                                    border-white
-                                "
-                            >
-                                {currentInitial}
-                            </div>
+                            className={`
+                                absolute
+                                top-2
+                                left-1/2
+                                -translate-x-1/2
+                                w-12
+                                h-12
+                                rounded-full
+                                bg-blue-600
+                                text-white
+                                flex
+                                items-center
+                                justify-center
+                                text-xl
+                                font-bold
+                                border-[3px]
+                                ${
+                                    hasMyStatus
+                                        ? "border-green-500"
+                                        : "border-gray-400"
+                                }
+                            `}
+                        >
+                            {currentInitial}
+                        </div>
 
                             <div
                                 className="
@@ -653,17 +568,15 @@ const previousReel = () => {
 
                     </button>
 
-
-                    {/* =================================================
-                        USERS
-                    ================================================== */}
-
                     {reelUsers.map(
                         (item, index) =>  {
 
-                        const hasViewed = item.reels?.some(
-                                reel => !reel.has_viewed
-                            );
+                    const allReelsViewed =
+                        item.reels?.length > 0 &&
+                        item.reels.every(
+                            reel => reel.has_viewed === true
+                        );
+                            
 
                         return (
                             <button
@@ -798,10 +711,10 @@ const previousReel = () => {
                                         text-sm
                                         border
                                         border-2
-                                     ${
-                                            hasViewed
-                                                ? "border-gray-400"
-                                                : "border-green-500"
+                                        ${
+                                            allReelsViewed
+                                                ? "border-gray-300"
+                                                : "border-green-700"
                                         }
                                     `}
                                 >
@@ -893,7 +806,7 @@ const previousReel = () => {
 
                     currentUserIndex={selectedUserIndex}
                     reelUsers={reelUsers}
-                    currentUser={currentUser}
+                    currentUser={user}
 
                     mediaIndex={mediaIndex}
                     setMediaIndex={setMediaIndex}

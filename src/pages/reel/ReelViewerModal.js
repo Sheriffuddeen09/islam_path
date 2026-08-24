@@ -1,4 +1,5 @@
 import React, {
+    useCallback,
     useEffect,
     useMemo,
     useRef,
@@ -17,7 +18,6 @@ import api from "../../Api/axios";
 export default function ReelViewerModal({
     user,
     reel,
-    reelIndex,
 
     onClose,
     onNext,
@@ -50,7 +50,6 @@ export default function ReelViewerModal({
 }) {
 
     const videoRef = useRef(null);
-    const timerRef = useRef(null);
 
     const [showReactionUsers, setShowReactionUsers] =
         useState(false);
@@ -61,113 +60,118 @@ export default function ReelViewerModal({
     const [loadingReactionUsers, setLoadingReactionUsers] =
         useState(false);
 
-        const [createdTime, setCreatedTime] = useState("");
+    const [createdTime, setCreatedTime] = useState("");
+
+        const timerRef = useRef(null);
+    
+    const [mediaReady, setMediaReady] = useState(true);
 
 
 const allUserReels =
     reelUsers?.[currentUserIndex]?.reels || [];
 
-
 const reelItems = useMemo(() => {
 
     const items = [];
 
-    allUserReels.forEach((reelItem) => {
+    allUserReels
+        .slice()
+        .sort(
+            (a, b) =>
+                new Date(a.created_at) -
+                new Date(b.created_at)
+        )
+        .forEach((reelItem) => {
 
-        // CONTENT
-        if (
-            reelItem?.content &&
-            typeof reelItem.content === "string" &&
-            reelItem.content.trim()
-        ) {
+            if (
+                typeof reelItem.content === "string" &&
+                reelItem.content.trim()
+            ) {
 
-            items.push({
-                type: "content",
-
-                id:
-                    `content-${reelItem.id}`,
-
-                content:
-                    reelItem.content,
-
-                reelId:
-                    reelItem.id,
-            });
-        }
-
-
-        // IMAGE / VIDEO
-        if (
-            Array.isArray(reelItem.media)
-        ) {
-
-            [...reelItem.media]
-                .sort(
-                    (a, b) =>
-                        Number(a.order || 0) -
-                        Number(b.order || 0)
-                )
-                .forEach((item) => {
-
-                    items.push({
-                        ...item,
-
-                        reelId:
-                            reelItem.id,
-                    });
-
+                items.push({
+                    type: "content",
+                    id: `content-${reelItem.id}`,
+                    content: reelItem.content,
+                    reelId: reelItem.id,
+                    created_at: reelItem.created_at,
                 });
-        }
+            }
+            if (
+                Array.isArray(reelItem.media)
+            ) {
 
-    });
+                reelItem.media
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            Number(a.order || 0) -
+                            Number(b.order || 0)
+                    )
+                    .forEach((mediaItem) => {
+
+                        items.push({
+                            ...mediaItem,
+
+                            reelId:
+                                reelItem.id,
+
+                            created_at:
+                                reelItem.created_at,
+                        });
+
+                    });
+            }
+
+        });
 
     return items;
 
-}, [
-    allUserReels
-]);
-
-
-useEffect(() => {
-
-    if (!reel?.id) {
-        return;
-    }
-
-    const index =
-        reelItems.findIndex(
-            item =>
-                Number(item.reelId) ===
-                Number(reel.id)
-        );
-
-    if (index >= 0) {
-
-        setMediaIndex(index);
-
-    }
-
-}, [
-    reel?.id,
-    reelItems
-]);
-
+}, [allUserReels]);
 
 const currentItem =
     reelItems[mediaIndex] || null;
 
 
-    const getContentDuration = (text) => {
+useEffect(() => {
+
+    // Stop previous timer
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+    }
+
+    setProgress(0);
+
+    if (!currentItem) {
+        setMediaReady(false);
+        return;
+    }
+
+    // IMAGE must wait for loading
+    if (currentItem.type === "image") {
+        setMediaReady(false);
+        return;
+    }
+
+    // CONTENT and VIDEO are immediately ready
+    setMediaReady(true);
+
+}, [
+    currentItem?.id,
+    currentItem?.type
+]);
+
+
+
+const getContentDuration = (text) => {
 
     if (!text) {
         return 5;
     }
 
-    const length =
-        text.trim().length;
+    const length = text.trim().length;
 
-    const seconds =
-        Math.ceil(length / 15);
+    const seconds = Math.ceil(length / 15);
 
     return Math.min(
         Math.max(seconds, 5),
@@ -175,33 +179,24 @@ const currentItem =
     );
 };
 
-
 const currentItemDuration = useMemo(() => {
 
     if (!currentItem) {
         return 5;
     }
 
-    if (
-        currentItem.type === "content"
-    ) {
-
+    if (currentItem.type === "content") {
         return getContentDuration(
             currentItem.content
         );
     }
 
-    if (
-        currentItem.type === "image"
-    ) {
-
+    if (currentItem.type === "image") {
         return 30;
     }
 
-    if (
-        currentItem.type === "video"
-    ) {
-
+    // Video is controlled by the <video>
+    if (currentItem.type === "video") {
         return null;
     }
 
@@ -210,7 +205,82 @@ const currentItemDuration = useMemo(() => {
 }, [currentItem]);
 
 
-        useEffect(() => {
+    useEffect(() => {
+
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+    }
+
+    if (!currentItem) {
+        return;
+    }
+
+    // VIDEO controls its own progress
+    if (currentItem.type === "video") {
+        return;
+    }
+
+    // IMAGE is not loaded yet
+    if (!mediaReady) {
+        return;
+    }
+
+    const duration =
+        currentItemDuration || 5;
+
+    const startedAt = Date.now();
+
+    setProgress(0);
+
+    timerRef.current = setInterval(() => {
+
+        const elapsed =
+            (Date.now() - startedAt) / 1000;
+
+        const percent =
+            Math.min(
+                (elapsed / duration) * 100,
+                100
+            );
+
+        setProgress(percent);
+
+        if (percent >= 100) {
+
+            clearInterval(
+                timerRef.current
+            );
+
+            timerRef.current = null;
+
+            handleNextMedia();
+        }
+
+    }, 50);
+
+    return () => {
+
+        if (timerRef.current) {
+
+            clearInterval(
+                timerRef.current
+            );
+
+            timerRef.current = null;
+        }
+
+    };
+
+}, [
+    mediaIndex,
+    currentItem?.id,
+    currentItem?.type,
+    currentItemDuration,
+    mediaReady
+]);
+        
+  useEffect(() => {
     if (!reel?.created_at) {
         setCreatedTime("");
         return;
@@ -277,30 +347,32 @@ const currentItemDuration = useMemo(() => {
         Number(reel?.user?.id);
 
     
-        const markedViewedRef = useRef(new Set());
+       const markedViewedRef = useRef(new Set());
 
         useEffect(() => {
-            if (!reel?.id) {
+            if (!currentItem?.reelId) {
                 return;
             }
 
-            // Don't repeatedly mark the same reel
-            if (markedViewedRef.current.has(reel.id)) {
+            const reelId = Number(currentItem.reelId);
+
+            if (!reelId) {
                 return;
             }
 
-            markedViewedRef.current.add(reel.id);
+            if (markedViewedRef.current.has(reelId)) {
+                return;
+            }
 
-            markReelViewed?.(reel.id);
+            markedViewedRef.current.add(reelId);
 
-        }, [reel?.id, markReelViewed]);
+            // DON'T await this
+            markReelViewed?.(reelId);
 
-
-
-useEffect(() => {
-    setMediaIndex(0);
-    setProgress(0);
-}, [reel?.id]);
+        }, [
+            currentItem?.reelId,
+            markReelViewed
+        ]);
 
 
     const fetchReactionUsers = async () => {
@@ -337,65 +409,142 @@ useEffect(() => {
         }
     };
 
-   const handleNextMedia = () => {
+   const getFirstUnviewedIndex = useCallback(() => {
 
-    if (!reelItems.length) {
+    if (!allUserReels.length || !reelItems.length) {
+        return 0;
+    }
+
+    const firstUnviewedReel =
+        allUserReels.find(
+            reelItem =>
+                reelItem.has_viewed !== true
+        );
+
+
+    if (firstUnviewedReel) {
+
+        const index =
+            reelItems.findIndex(
+                item =>
+                    Number(item.reelId) ===
+                    Number(firstUnviewedReel.id)
+            );
+
+        return index >= 0
+            ? index
+            : 0;
+    }
+
+    return 0;
+
+}, [
+    allUserReels,
+    reelItems
+]);
+
+useEffect(() => {
+
+    if (
+        !reelItems.length ||
+        currentUserIndex == null
+    ) {
         return;
     }
 
-    const nextIndex =
-        mediaIndex + 1;
+    const startIndex =
+        getFirstUnviewedIndex();
 
+    setMediaIndex(startIndex);
+    setProgress(0);
 
-    // There is another item
-    if (
-        nextIndex <
-        reelItems.length
-    ) {
+}, [
+    currentUserIndex
+]);
+
+    const handlePreviousMedia = () => {
+
+        if (mediaIndex > 0) {
+
+            setProgress(0);
+
+            setMediaIndex(
+                mediaIndex - 1
+            );
+
+            return;
+        }
+
+        onPrevious?.();
+
+    };
+
+   const handleNextMedia = useCallback(() => {
+
+    if (!reelItems.length) {
+        onClose?.();
+        return;
+    }
+
+    const nextIndex = mediaIndex + 1;
+
+    // ---------------------------------------------
+    // MORE CONTENT/IMAGE/VIDEO FOR THIS USER
+    // ---------------------------------------------
+    if (nextIndex < reelItems.length) {
 
         setProgress(0);
 
-        setMediaIndex(
-            nextIndex
-        );
+        setMediaIndex(nextIndex);
+
+        return;
+    }
+    setProgress(100);
+
+    // Check if there is another user
+    const hasNextUser =
+        currentUserIndex <
+        (reelUsers?.length || 0) - 1;
+
+    if (hasNextUser) {
+
+        nextReel?.();
 
         return;
     }
 
+    onClose?.();
 
-    // Everything is finished
-    setProgress(100);
-
-    nextReel();
-};
-
+}, [
+    reelItems.length,
+    mediaIndex,
+    currentUserIndex,
+    reelUsers?.length,
+    nextReel,
+    onClose,
+    setMediaIndex,
+    setProgress
+]);
 
 
     const handleVideoTimeUpdate = (e) => {
 
-        const video =
-            e.currentTarget;
+    const video = e.currentTarget;
 
-        if (
-            !video.duration ||
-            !Number.isFinite(video.duration)
-        ) {
-            return;
-        }
+    if (
+        !video.duration ||
+        !Number.isFinite(video.duration)
+    ) {
+        return;
+    }
 
-        const percent =
-            (
-                video.currentTime /
-                video.duration
-            ) * 100;
+    const percent =
+        (video.currentTime / video.duration) * 100;
 
-        setProgress(
-            Math.min(
-                percent,
-                100
-            )
-        );
-    };
+    setProgress(
+        Math.min(percent, 100)
+    );
+};
 
     const handleVideoEnded = async () => {
 
@@ -404,112 +553,6 @@ useEffect(() => {
         await handleNextMedia();
     };
 
-    const textLength =
-    reel?.content?.trim()?.length || 0;
-
-const textDuration = Math.max(
-    5,
-    Math.min(
-        30,
-        textLength / 12
-    )
-);
-
-const imageDuration = 30;
-
-const finishReel = async () => {
-
-    setProgress(100);
-
-    nextReel();
-};
-
-        useEffect(() => {
-
-            if (timerRef.current) {
-
-                clearInterval(
-                    timerRef.current
-                );
-
-                timerRef.current = null;
-            }
-
-            setProgress(0);
-
-            if (
-                currentItem?.type === "video"
-            ) {
-                return;
-            }
-
-            const itemDuration =
-                currentItemDuration || 5;
-
-            const started =
-                Date.now();
-
-            timerRef.current =
-                setInterval(() => {
-
-                    const elapsed =
-                        (
-                            Date.now() -
-                            started
-                        ) / 1000;
-
-                    const percent =
-                        Math.min(
-                            (
-                                elapsed /
-                                itemDuration
-                            ) * 100,
-                            100
-                        );
-
-                    setProgress(
-                        percent
-                    );
-
-                    if (
-                        percent >= 100
-                    ) {
-
-                        clearInterval(
-                            timerRef.current
-                        );
-
-                        timerRef.current =
-                            null;
-
-                        handleNextMedia();
-                    }
-
-                }, 50);
-
-            return () => {
-
-                if (
-                    timerRef.current
-                ) {
-
-                    clearInterval(
-                        timerRef.current
-                    );
-
-                    timerRef.current =
-                        null;
-                }
-
-            };
-
-        }, [
-            reel?.id,
-            mediaIndex,
-            currentItem?.type,
-            currentItemDuration,
-        ]);
-   
     return (
         <div
             className="
@@ -548,64 +591,42 @@ const finishReel = async () => {
         gap-1
     "
 >
+    {reelItems.map((item, index) => {
 
-    {reelItems.map(
-        (item, index) => {
+        let width = "0%";
 
-            let width = "0%";
-
-
-            if (
-                index <
-                mediaIndex
-            ) {
-
-                width = "100%";
-
-            }
-
-
-            else if (
-                index ===
-                mediaIndex
-            ) {
-
-                width =
-                    `${progress}%`;
-
-            }
-
-
-            return (
-                <div
-                    key={`${item.reelId}-${item.id}`}
-                    className="
-                        flex-1
-                        h-1
-                        rounded-full
-                        bg-white/30
-                        overflow-hidden
-                    "
-                >
-
-                    <div
-                        className="
-                            h-full
-                            bg-white
-                            transition-[width]
-                            duration-75
-                        "
-                        style={{
-                            width,
-                        }}
-                    />
-
-                </div>
-            );
-
+        if (index < mediaIndex) {
+            width = "100%";
         }
-    )}
 
+        if (index === mediaIndex) {
+            width = `${progress}%`;
+        }
+
+        return (
+            <div
+                key={`${item.reelId}-${item.id}`}
+                className="
+                    flex-1
+                    h-1
+                    rounded-full
+                    bg-white/30
+                    overflow-hidden
+                "
+            >
+                <div
+                    className="
+                        h-full
+                        bg-white
+                    "
+                    style={{
+                        width
+                    }}
+                />
+            </div>
+        );
+
+    })}
 </div>
                 <div
                     className="
@@ -692,7 +713,7 @@ const finishReel = async () => {
                         "
                     >
 
-                        {/* OPTIONS */}
+                        {/* OPTIONS currentItem */}
 
                         <button
                             type="button"
@@ -799,12 +820,12 @@ const finishReel = async () => {
 
 
             {(
-                reelIndex > 0 ||
+                mediaIndex > 0 ||
                 currentUserIndex > 0
             ) && (
                 <button
                     type="button"
-                    onClick={onPrevious}
+                    onClick={handlePreviousMedia}
                     className="
                         absolute
                         left-2
@@ -867,20 +888,24 @@ const finishReel = async () => {
                     "
                 >
 
-                           {currentItem?.type === "image" && (
-                                <img
-                                    src={currentItem.url}
-                                    key={`${reel.id}-${currentItem.id}`}
-                                    alt=""
-                                    className="
-                                        w-full
-                                        h-full
-                                        object-contain
-                                    "
-                                />
-                            )}
-
-
+                         {currentItem?.type === "image" && (
+                            <img
+                                key={`${currentItem.reelId}-${currentItem.id}`}
+                                src={currentItem.url}
+                                alt=""
+                                onLoad={() => {
+                                    setMediaReady(true);
+                                }}
+                                onError={() => {
+                                    setMediaReady(true);
+                                }}
+                                className="
+                                    w-full
+                                    h-full
+                                    object-contain
+                                "
+                            />
+                        )}
                             {/* VIDEO */}
                             {currentItem?.type === "video" && (
                                 <video
