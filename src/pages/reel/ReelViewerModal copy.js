@@ -1,6 +1,5 @@
 import React, {
     useEffect,
-    useMemo,
     useRef,
     useState,
 } from "react";
@@ -14,10 +13,12 @@ import {
     ArrowRight,
 } from "lucide-react";
 import api from "../../Api/axios";
+
 export default function ReelViewerModal({
     user,
     reel,
     reelIndex,
+    totalReels,
 
     onClose,
     onNext,
@@ -34,26 +35,26 @@ export default function ReelViewerModal({
 
     reaction,
     onReaction,
-
+     
     currentUserIndex,
     reelUsers,
-    currentUser,
-
-    mediaIndex,
-    setMediaIndex,
-
-    progress,
-    setProgress,
-
-    nextReel,
-    markReelViewed
+    currentUser
 }) {
 
+    const [progress, setProgress] =
+        useState(0);
+
     const videoRef = useRef(null);
+
     const timerRef = useRef(null);
 
+
+    const isReelOwner =
+    Number(currentUser?.id) === Number(reel?.user?.id);
+
+
     const [showReactionUsers, setShowReactionUsers] =
-        useState(false);
+    useState(false);
 
     const [reactionUsers, setReactionUsers] =
         useState([]);
@@ -61,455 +62,164 @@ export default function ReelViewerModal({
     const [loadingReactionUsers, setLoadingReactionUsers] =
         useState(false);
 
-        const [createdTime, setCreatedTime] = useState("");
-
-
-const allUserReels =
-    reelUsers?.[currentUserIndex]?.reels || [];
-
-
-const reelItems = useMemo(() => {
-
-    const items = [];
-
-    allUserReels.forEach((reelItem) => {
-
-        // CONTENT
-        if (
-            reelItem?.content &&
-            typeof reelItem.content === "string" &&
-            reelItem.content.trim()
-        ) {
-
-            items.push({
-                type: "content",
-
-                id:
-                    `content-${reelItem.id}`,
-
-                content:
-                    reelItem.content,
-
-                reelId:
-                    reelItem.id,
-            });
-        }
-
-
-        // IMAGE / VIDEO
-        if (
-            Array.isArray(reelItem.media)
-        ) {
-
-            [...reelItem.media]
-                .sort(
-                    (a, b) =>
-                        Number(a.order || 0) -
-                        Number(b.order || 0)
-                )
-                .forEach((item) => {
-
-                    items.push({
-                        ...item,
-
-                        reelId:
-                            reelItem.id,
-                    });
-
-                });
-        }
-
-    });
-
-    return items;
-
-}, [
-    allUserReels
-]);
-
-
-useEffect(() => {
-
+        const fetchReactionUsers = async () => {
     if (!reel?.id) {
         return;
     }
 
-    const index =
-        reelItems.findIndex(
-            item =>
-                Number(item.reelId) ===
-                Number(reel.id)
+    try {
+        setLoadingReactionUsers(true);
+
+        const response = await api.get(
+            `/api/reels/${reel.id}/reactions`
         );
 
-    if (index >= 0) {
+        setReactionUsers(
+            response.data.users || []
+        );
 
-        setMediaIndex(index);
+        setShowReactionUsers(true);
+
+    } catch (error) {
+
+        console.error(
+            "REACTION USERS ERROR:",
+            error
+        );
+
+    } finally {
+
+        setLoadingReactionUsers(false);
 
     }
-
-}, [
-    reel?.id,
-    reelItems
-]);
-
-
-const currentItem =
-    reelItems[mediaIndex] || null;
-
-
-    const getContentDuration = (text) => {
-
-    if (!text) {
-        return 5;
-    }
-
-    const length =
-        text.trim().length;
-
-    const seconds =
-        Math.ceil(length / 15);
-
-    return Math.min(
-        Math.max(seconds, 5),
-        30
-    );
 };
 
-
-const currentItemDuration = useMemo(() => {
-
-    if (!currentItem) {
-        return 5;
-    }
-
-    if (
-        currentItem.type === "content"
-    ) {
-
-        return getContentDuration(
-            currentItem.content
-        );
-    }
-
-    if (
-        currentItem.type === "image"
-    ) {
-
-        return 30;
-    }
-
-    if (
-        currentItem.type === "video"
-    ) {
-
-        return null;
-    }
-
-    return 5;
-
-}, [currentItem]);
+    const duration =
+        Number(reel.duration) > 0
+            ? Number(reel.duration)
+            : 30;
 
 
-        useEffect(() => {
-    if (!reel?.created_at) {
-        setCreatedTime("");
-        return;
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | PROGRESS
+    |--------------------------------------------------------------------------
+    */
 
-    const updateCreatedTime = () => {
-        const created =
-            new Date(reel.created_at).getTime();
-
-        const now = Date.now();
-
-        const difference = Math.max(
-            0,
-            now - created
-        );
-
-        const totalSeconds = Math.floor(
-            difference / 1000
-        );
-
-        if (totalSeconds < 60) {
-            setCreatedTime(
-                `${totalSeconds}s`
-            );
-            return;
-        }
-
-        const totalMinutes = Math.floor(
-            totalSeconds / 60
-        );
-
-        if (totalMinutes < 60) {
-            setCreatedTime(
-                `${totalMinutes}m`
-            );
-            return;
-        }
-
-        const totalHours = Math.floor(
-            totalMinutes / 60
-        );
-
-        setCreatedTime(
-            `${totalHours}h`
-        );
-    };
-
-    updateCreatedTime();
-
-    // Update every second so 59s -> 1m, etc.
-    const interval = setInterval(
-        updateCreatedTime,
-        1000
-    );
-
-    return () => {
-        clearInterval(interval);
-    };
-
-}, [reel?.created_at]);
-
-    const isReelOwner =
-        Number(currentUser?.id) ===
-        Number(reel?.user?.id);
-
-    
-        const markedViewedRef = useRef(new Set());
-
-        useEffect(() => {
-            if (!reel?.id) {
-                return;
-            }
-
-            // Don't repeatedly mark the same reel
-            if (markedViewedRef.current.has(reel.id)) {
-                return;
-            }
-
-            markedViewedRef.current.add(reel.id);
-
-            markReelViewed?.(reel.id);
-
-        }, [reel?.id, markReelViewed]);
-
-
-
-useEffect(() => {
-    setMediaIndex(0);
-    setProgress(0);
-}, [reel?.id]);
-
-
-    const fetchReactionUsers = async () => {
-
-        if (!reel?.id) {
-            return;
-        }
-
-        try {
-
-            setLoadingReactionUsers(true);
-
-            const response = await api.get(
-                `/api/reels/${reel.id}/reactions`
-            );
-
-            setReactionUsers(
-                response.data.users || []
-            );
-
-            setShowReactionUsers(true);
-
-        } catch (error) {
-
-            console.error(
-                "REACTION USERS ERROR:",
-                error
-            );
-
-        } finally {
-
-            setLoadingReactionUsers(false);
-
-        }
-    };
-
-   const handleNextMedia = () => {
-
-    if (!reelItems.length) {
-        return;
-    }
-
-    const nextIndex =
-        mediaIndex + 1;
-
-
-    // There is another item
-    if (
-        nextIndex <
-        reelItems.length
-    ) {
+    useEffect(() => {
 
         setProgress(0);
 
-        setMediaIndex(
-            nextIndex
-        );
-
-        return;
-    }
-
-
-    // Everything is finished
-    setProgress(100);
-
-    nextReel();
-};
-
-
-
-    const handleVideoTimeUpdate = (e) => {
-
-        const video =
-            e.currentTarget;
-
         if (
-            !video.duration ||
-            !Number.isFinite(video.duration)
+            reel.media?.[0]?.type ===
+            "video"
         ) {
             return;
         }
 
-        const percent =
-            (
-                video.currentTime /
-                video.duration
-            ) * 100;
+        const started =
+            Date.now();
 
-        setProgress(
-            Math.min(
-                percent,
-                100
-            )
-        );
-    };
+        timerRef.current =
+            setInterval(() => {
 
-    const handleVideoEnded = async () => {
+                const elapsed =
+                    (
+                        Date.now() -
+                        started
+                    ) / 1000;
 
-        setProgress(100);
-
-        await handleNextMedia();
-    };
-
-    const textLength =
-    reel?.content?.trim()?.length || 0;
-
-const textDuration = Math.max(
-    5,
-    Math.min(
-        30,
-        textLength / 12
-    )
-);
-
-const imageDuration = 30;
-
-const finishReel = async () => {
-
-    setProgress(100);
-
-    nextReel();
-};
-
-        useEffect(() => {
-
-            if (timerRef.current) {
-
-                clearInterval(
-                    timerRef.current
-                );
-
-                timerRef.current = null;
-            }
-
-            setProgress(0);
-
-            if (
-                currentItem?.type === "video"
-            ) {
-                return;
-            }
-
-            const itemDuration =
-                currentItemDuration || 5;
-
-            const started =
-                Date.now();
-
-            timerRef.current =
-                setInterval(() => {
-
-                    const elapsed =
-                        (
-                            Date.now() -
-                            started
-                        ) / 1000;
-
-                    const percent =
-                        Math.min(
-                            (
-                                elapsed /
-                                itemDuration
-                            ) * 100,
-                            100
-                        );
-
-                    setProgress(
-                        percent
+                const percent =
+                    Math.min(
+                        (elapsed /
+                            duration) *
+                            100,
+                        100
                     );
 
-                    if (
-                        percent >= 100
-                    ) {
-
-                        clearInterval(
-                            timerRef.current
-                        );
-
-                        timerRef.current =
-                            null;
-
-                        handleNextMedia();
-                    }
-
-                }, 50);
-
-            return () => {
+                setProgress(percent);
 
                 if (
-                    timerRef.current
+                    percent >= 100
                 ) {
 
                     clearInterval(
                         timerRef.current
                     );
 
-                    timerRef.current =
-                        null;
+                    onNext();
                 }
 
-            };
+            }, 50);
 
-        }, [
-            reel?.id,
-            mediaIndex,
-            currentItem?.type,
-            currentItemDuration,
-        ]);
-   
+
+        return () => {
+
+            clearInterval(
+                timerRef.current
+            );
+
+        };
+
+    }, [
+        reel.id,
+        reelIndex,
+        duration,
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VIDEO PROGRESS
+    |--------------------------------------------------------------------------
+    */
+
+    const handleVideoTimeUpdate =
+        (e) => {
+
+            const video =
+                e.currentTarget;
+
+            if (
+                !video.duration
+            ) {
+                return;
+            }
+
+            const percent =
+                (
+                    video.currentTime /
+                    video.duration
+                ) *
+                100;
+
+            setProgress(
+                Math.min(
+                    percent,
+                    100
+                )
+            );
+        };
+
+
+    const handleVideoEnded = () => {
+
+        setProgress(100);
+
+        onNext();
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEDIA
+    |--------------------------------------------------------------------------
+    */
+
+    const media =
+        reel.media?.[0];
+
+
     return (
         <div
             className="
@@ -522,6 +232,10 @@ const finishReel = async () => {
                 justify-center
             "
         >
+
+            {/* =====================================================
+                MAIN VIEWER
+            ====================================================== */}
 
             <div
                 className="
@@ -536,77 +250,82 @@ const finishReel = async () => {
                 "
             >
 
+                {/* =================================================
+                    PROGRESS LINES
+                ================================================== */}
 
-               <div
-    className="
-        absolute
-        top-3
-        left-3
-        right-3
-        z-50
-        flex
-        gap-1
-    "
->
-
-    {reelItems.map(
-        (item, index) => {
-
-            let width = "0%";
-
-
-            if (
-                index <
-                mediaIndex
-            ) {
-
-                width = "100%";
-
-            }
-
-
-            else if (
-                index ===
-                mediaIndex
-            ) {
-
-                width =
-                    `${progress}%`;
-
-            }
-
-
-            return (
                 <div
-                    key={`${item.reelId}-${item.id}`}
                     className="
-                        flex-1
-                        h-1
-                        rounded-full
-                        bg-white/30
-                        overflow-hidden
+                        absolute
+                        top-3
+                        left-3
+                        right-3
+                        z-50
+                        flex
+                        gap-1
                     "
                 >
 
-                    <div
-                        className="
-                            h-full
-                            bg-white
-                            transition-[width]
-                            duration-75
-                        "
-                        style={{
-                            width,
-                        }}
-                    />
+                    {Array.from({
+                        length:
+                            totalReels,
+                    }).map(
+                        (_, index) => {
+
+                            let width =
+                                "0%";
+
+                            if (
+                                index <
+                                reelIndex
+                            ) {
+
+                                width =
+                                    "100%";
+
+                            } else if (
+                                index ===
+                                reelIndex
+                            ) {
+
+                                width =
+                                    `${progress}%`;
+                            }
+
+                            return (
+                                <div
+                                    key={index}
+                                    className="
+                                        flex-1
+                                        h-1
+                                        rounded-full
+                                        bg-white/30
+                                        overflow-hidden
+                                    "
+                                >
+                                    <div
+                                        className="
+                                            h-full
+                                            bg-white
+                                            transition-[width]
+                                            duration-75
+                                        "
+                                        style={{
+                                            width,
+                                        }}
+                                    />
+                                </div>
+                            );
+                        }
+                    )}
 
                 </div>
-            );
 
-        }
-    )}
 
-</div>
+                {/* =================================================
+                    HEADER
+                ================================================== */}
+
                 <div
                     className="
                         absolute
@@ -630,8 +349,7 @@ const finishReel = async () => {
                     >
 
                         {/* USER INITIAL */}
-                        <a
-                            href={`/profile/${user.id}`}>
+
                         <div
                             className="
                                 w-10
@@ -652,10 +370,6 @@ const finishReel = async () => {
                             }
                         </div>
 
-                        </a>
-
-
-                        <div className="flex flex-col">
 
                         <a
                             href={`/profile/${user.id}`}
@@ -663,23 +377,12 @@ const finishReel = async () => {
                                 text-white
                                 font-semibold
                                 hover:underline
-                                leading-tight
                             "
                         >
-                            {user.first_name}
+                            {
+                                user.first_name
+                            }
                         </a>
-
-                        <span
-                            className="
-                                text-white/70
-                                text-[11px]
-                                leading-tight
-                            "
-                        >
-                            {createdTime}
-                        </span>
-
-                    </div>
 
                     </div>
 
@@ -827,31 +530,39 @@ const finishReel = async () => {
                 </button>
             )}
 
-               {mediaIndex < reelItems.length - 1 && (
-                    <button
-                        type="button"
-                        onClick={handleNextMedia}
-                        className="
-                            absolute
-                            right-2
-                            top-1/2
-                            -translate-y-1/2
-                            z-40
-                            w-10
-                            h-10
-                            rounded-full
-                            bg-black/30
-                            text-white
-                            flex
-                            items-center
-                            justify-center
-                            hover:bg-black/50
-                            transition
-                        "
-                    >
-                        <ArrowRight size={20} />
-                    </button>
-                )}
+
+            {(
+                reelIndex <
+                    (reelUsers?.[currentUserIndex]?.reels?.length || 0) - 1
+                ||
+                currentUserIndex <
+                    (reelUsers?.length || 0) - 1
+            ) && (
+                <button
+                    type="button"
+                    onClick={onNext}
+                    className="
+                        absolute
+                        right-2
+                        top-1/2
+                        -translate-y-1/2
+                        z-40
+                        w-10
+                        h-10
+                        rounded-full
+                        bg-black/30
+                        text-white
+                        flex
+                        items-center
+                        justify-center
+                        hover:bg-black/50
+                        transition
+                    "
+                >
+                    <ArrowRight size={20} />
+                </button>
+            )}
+
                 {/* =================================================
                     MEDIA
                 ================================================== */}
@@ -867,72 +578,52 @@ const finishReel = async () => {
                     "
                 >
 
-                           {currentItem?.type === "image" && (
-                                <img
-                                    src={currentItem.url}
-                                    key={`${reel.id}-${currentItem.id}`}
-                                    alt=""
-                                    className="
-                                        w-full
-                                        h-full
-                                        object-contain
-                                    "
-                                />
-                            )}
+                    {media?.type ===
+                        "image" && (
+
+                        <img
+                            src={media.url}
+                            alt=""
+                            className="
+                                w-full
+                                h-full
+                                object-contain
+                            "
+                        />
+                    )}
 
 
-                            {/* VIDEO */}
-                            {currentItem?.type === "video" && (
-                                <video
-                                    key={`${reel.id}-${currentItem.id}`}
-                                    ref={videoRef}
-                                    src={currentItem.url}
-                                    autoPlay
-                                    muted
-                                    playsInline
-                                    controls={false}
+                    {media?.type ===
+                        "video" && (
 
-                                    onLoadedMetadata={(e) => {
-                                        const video =
-                                            e.currentTarget;
-
-                                        setProgress(0);
-
-                                        video.currentTime = 0;
-
-                                        video
-                                            .play()
-                                            .catch(error => {
-                                                console.log(
-                                                    "VIDEO AUTOPLAY ERROR:",
-                                                    error
-                                                );
-                                            });
-                                    }}
-
-                                    onTimeUpdate={
-                                        handleVideoTimeUpdate
-                                    }
-
-                                    onEnded={
-                                        handleVideoEnded
-                                    }
-
-                                    className="
-                                        w-full
-                                        h-full
-                                        object-contain
-                                    "
-                                />
-                            )}
+                        <video
+                            ref={videoRef}
+                            src={media.url}
+                            autoPlay
+                            playsInline
+                            controls={false}
+                            onTimeUpdate={
+                                handleVideoTimeUpdate
+                            }
+                            onEnded={
+                                handleVideoEnded
+                            }
+                            className="
+                                w-full
+                                h-full
+                                object-contain
+                            "
+                        />
+                    )}
 
 
-                            {/* TEXT ONLY */}
-                           {currentItem?.type === "content" && (
+                    {!media &&
+                        reel.content && (
+
                             <div
                                 className="
-                                    absolute
-                                    inset-0
+                                    w-full
+                                    h-full
                                     flex
                                     items-center
                                     justify-center
@@ -944,38 +635,47 @@ const finishReel = async () => {
                                     to-purple-700
                                 "
                             >
-                                <p className="text-xl font-semibold">
-                                    {currentItem.content}
+                                <p
+                                    className="
+                                        text-xl
+                                        font-semibold
+                                    "
+                                >
+                                    {
+                                        reel.content
+                                    }
                                 </p>
                             </div>
                         )}
 
                 </div>
 
-                            {(currentItem?.type === "image" ||
-                                currentItem?.type === "video") &&
-                                currentItem?.description && (
 
-                                <div
-                                    className="
-                                        absolute
-                                        bottom-24
-                                        left-4
-                                        right-4
-                                        z-30
-                                        text-white
-                                        text-sm
-                                        drop-shadow-lg
-                                    "
-                                >
-                                    <p>
-                                        {typeof currentItem.description === "object"
-                                            ? currentItem.description.content
-                                            : currentItem.description
-                                        }
-                                    </p>
-                                </div>
-                            )}
+                {/* =================================================
+                    DESCRIPTION
+                ================================================== */}
+
+                {reel.content &&
+                    media && (
+
+                    <div
+                        className="
+                            absolute
+                            bottom-24
+                            left-4
+                            right-4
+                            z-30
+                            text-white
+                            text-sm
+                            drop-shadow-lg
+                        "
+                    >
+                        {
+                            reel.content
+                        }
+                    </div>
+                )}
+
 
                 {/* =================================================
                     BOTTOM CHAT BAR
@@ -1268,7 +968,7 @@ const finishReel = async () => {
                             text-gray-400
                         "
                     >
-                        Loading reactions
+                        Loading reactions...
                     </div>
 
                 ) : reactionUsers.length === 0 ? (

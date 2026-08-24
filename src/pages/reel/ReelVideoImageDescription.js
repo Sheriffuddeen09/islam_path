@@ -27,9 +27,6 @@ export default function ReelVideoImageDescription({
     const [selectedMedia, setSelectedMedia] =
     useState(null);
 
-    const [description, setDescription] =
-        useState("");
-
     const [visibility, setVisibility] =
         useState("public");
 
@@ -66,6 +63,14 @@ export default function ReelVideoImageDescription({
         useState(null);
 
     const [videoPreview, setVideoPreview] = useState(null);
+
+    const [showDescriptionModal, setShowDescriptionModal] =
+        useState(false);
+
+    const [descriptionOptions, setDescriptionOptions] = useState({
+        image: false,
+        video: false,
+    });
 
 
     const [video, setVideo] = useState(null);
@@ -292,25 +297,6 @@ const handleCropDone = (blob) => {
         )
     );
 };
-
-
-
-const getMediaSource = (index) => {
-    if (croppedImages[index]) {
-        return URL.createObjectURL(
-            croppedImages[index]
-        );
-    }
-
-    if (media[index]?.file) {
-        return URL.createObjectURL(
-            media[index].file
-        );
-    }
-
-    return "";
-};
-
 
 
 useEffect(() => {
@@ -749,153 +735,186 @@ const handleVideoTrimComplete = () => {
         );
     };
 
+        const submitReel = async () => {
+
+            try {
+
+                setLoading(true);
+                setError("");
+
+                if (!media.length) {
+
+                    setError(
+                        "Please select at least one image or video."
+                    );
+
+                    return;
+                }
+
+                const formData = new FormData();
 
 
-    const submitReel = async () => {
-    try {
-        setLoading(true);
-        setError("");
+                const hasImages = media.some(
+                    (item) => item.type === "image"
+                );
 
-        if (!media.length) {
-            setError("Please select at least one image or video.");
-            return;
-        }
+                const hasVideos = media.some(
+                    (item) => item.type === "video"
+                );
 
-        const formData = new FormData();
+                let reelType = "image";
 
+                if (hasImages && hasVideos) {
 
-        const hasImages = media.some(
-            (item) => item.type === "image"
-        );
+                    reelType = "mixed";
 
-        const hasVideos = media.some(
-            (item) => item.type === "video"
-        );
+                } else if (hasVideos) {
 
-        let reelType = "image";
+                    reelType = "video";
 
-        if (hasImages && hasVideos) {
-            reelType = "mixed";
-        } else if (hasVideos) {
-            reelType = "video";
-        }
+                }
 
-        formData.append(
-            "reel_type",
-            reelType
-        );
-
-
-        media.forEach((item, index) => {
-
-            if (!item.file) {
-                return;
-            }
-
-            formData.append(
-                `media[${index}][file]`,
-                item.file
-            );
-
-            formData.append(
-                `media[${index}][type]`,
-                item.type
-            );
-
-            formData.append(
-                `media[${index}][duration]`,
-                String(
-                    item.duration || 0
-                )
-            );
-
-
-            if (item.type === "video") {
 
                 formData.append(
-                    `media[${index}][trim_start]`,
-                    String(
-                        item.trimStart || 0
-                    )
+                    "reel_type",
+                    reelType
+                );
+
+                media.forEach((item, index) => {
+
+                    if (!item.file) {
+                        return;
+                    }
+
+
+                    formData.append(
+                        `media[${index}][file]`,
+                        item.file
+                    );
+
+
+                    formData.append(
+                        `media[${index}][type]`,
+                        item.type
+                    );
+
+
+                    formData.append(
+                        `media[${index}][duration]`,
+                        String(
+                            item.duration || 0
+                        )
+                    );
+
+
+                    if (
+                        item.description &&
+                        item.description.trim()
+                    ) {
+
+                        formData.append(
+                            `media[${index}][description]`,
+                            item.description.trim()
+                        );
+                    }
+
+                    if (
+                        item.type === "video"
+                    ) {
+
+                        formData.append(
+                            `media[${index}][trim_start]`,
+                            String(
+                                item.trimStart || 0
+                            )
+                        );
+
+
+                        formData.append(
+                            `media[${index}][trim_end]`,
+                            String(
+                                item.trimEnd ||
+                                item.duration ||
+                                0
+                            )
+                        );
+                    }
+
+                });
+
+                formData.append(
+                    "visibility",
+                    visibility
                 );
 
                 formData.append(
-                    `media[${index}][trim_end]`,
+                    "reel_duration",
                     String(
-                        item.trimEnd ||
-                        item.duration ||
-                        0
+                        Math.ceil(
+                            totalReelDuration
+                        )
                     )
                 );
+
+                const response = await api.post(
+                    "/api/reels",
+                    formData,
+                    {
+                        headers: {
+                            "Content-Type":
+                                "multipart/form-data",
+                        },
+                    }
+                );
+
+
+                if (onCreated) {
+
+                    onCreated(
+                        response.data.post
+                    );
+
+                }
+
+
+                closeModal();
+
+
+            } catch (error) {
+
+                console.error(
+                    "REEL ERROR:",
+                    error
+                );
+
+                setError(
+                    error.response?.data?.message ||
+                    "Unable to create reel."
+                );
+
+            } finally {
+
+                setLoading(false);
+
             }
-        });
+
+        };
 
 
-        if (
-            description &&
-            description.trim()
-        ) {
-            formData.append(
-                "content",
-                description.trim()
-            );
-        }
-
-
-        formData.append(
-            "visibility",
-            visibility
-        );
-
-
-        formData.append(
-            "reel_duration",
-            String(
-                Math.ceil(
-                    totalReelDuration
+         const updateMediaDescription = (mediaId, value) => {
+            setMedia((prev) =>
+                prev.map((item) =>
+                    item.id === mediaId
+                        ? {
+                            ...item,
+                            description: value
+                        }
+                        : item
                 )
-            )
-        );
-
-
-        const response = await api.post(
-            "/api/reels",
-            formData,
-            {
-                headers: {
-                    "Content-Type":
-                        "multipart/form-data",
-                },
-            }
-        );
-
-
-        if (onCreated) {
-            onCreated(
-                response.data.post
             );
-        }
+        };
 
-        closeModal();
 
-    } catch (error) {
-
-        console.error(
-            "REEL ERROR:",
-            error
-        );
-
-        setError(
-            error.response?.data?.message ||
-            "Unable to create reel."
-        );
-
-    } finally {
-
-        setLoading(false);
-
-    }
-};
         const editMedia = (item, index) => {
 
     setError("");
@@ -2336,53 +2355,171 @@ if (
 
 
             {/* DESCRIPTION */}
+<div className="px-4">
 
-            <div className="px-4">
+    {/* ADD DESCRIPTION BUTTON */}
 
-                <textarea
-                    value={description}
-                    maxLength={700}
-                    onChange={(e) =>
-                        setDescription(
-                            e.target.value
-                        )
-                    }
-                    placeholder="
-                        Write a description...
-                    "
+    <button
+        type="button"
+        onClick={() =>
+            setShowDescriptionModal(true)
+        }
+        className="
+            w-full
+            border
+            rounded-xl
+            p-4
+            flex
+            items-center
+            justify-between
+            hover:bg-gray-100
+            dark:hover:bg-gray-800
+            transition
+        "
+    >
+
+        <div className="text-left">
+
+            <p className="font-semibold">
+                Add description
+            </p>
+
+            <p className="text-sm mt-1 opacity-70">
+                Add different descriptions to your
+                images or videos
+            </p>
+
+        </div>
+
+        <span className="text-xl">
+            +
+        </span>
+
+    </button>
+
+
+    {/* =====================================================
+        DESCRIPTION INPUTS
+    ====================================================== */}
+
+    <div className="mt-4 space-y-4">
+
+        {media.map((item, index) => {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Only show input if this media type was selected
+            |--------------------------------------------------------------------------
+            */
+
+            const shouldShow =
+                item.type === "image"
+                    ? descriptionOptions.image
+                    : descriptionOptions.video;
+
+            if (!shouldShow) {
+                return null;
+            }
+
+
+            return (
+                <div
+                    key={item.id}
                     className="
-                        w-full
-                        min-h-[140px]
                         border
                         rounded-xl
                         p-4
-                        bg-transparent
-                        outline-none
-                        resize-none scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                     "
-                />
+                >
 
+                    {/* MEDIA TITLE */}
 
-                <div className="
-                    mt-2
-                    text-right
-                    text-sm
-                ">
-
-                    <span
-                        className={
-                            description.length >= 700
-                                ? "text-red-500"
-                                : "opacity-60"
-                        }
+                    <div
+                        className="
+                            flex
+                            items-center
+                            justify-between
+                            mb-3
+                        "
                     >
-                        {description.length}/700
-                    </span>
+
+                        <div>
+
+                            <p className="
+                                font-semibold
+                                text-sm
+                            ">
+                                {item.type === "image"
+                                    ? "Image"
+                                    : "Video"}{" "}
+                                {index + 1}
+                            </p>
+
+                            <p className="
+                                text-xs
+                                opacity-60
+                                mt-1
+                            ">
+                                Add a description for
+                                this{" "}
+                                {item.type}.
+                            </p>
+
+                        </div>
+
+
+                        <span className="
+                            text-xs
+                            opacity-60
+                        ">
+                            {(item.description || "").length}/700
+                        </span>
+
+                    </div>
+
+
+                    {/* DESCRIPTION */}
+
+                    <textarea
+                        value={
+                            item.description || ""
+                        }
+                        maxLength={700}
+                        onChange={(e) =>
+                            updateMediaDescription(
+                                item.id,
+                                e.target.value
+                            )
+                        }
+                        placeholder={
+                            item.type === "image"
+                                ? "Write a description for this image..."
+                                : "Write a description for this video..."
+                        }
+                        className="
+                            w-full
+                            min-h-[120px]
+                            border
+                            rounded-xl
+                            p-4
+                            bg-transparent
+                            outline-none
+                            resize-none
+                            scrollbar
+                            scrollbar-thumb-gray-200
+                            scrollbar-track-transparent
+                            scrollbar-thin
+                        "
+                    />
 
                 </div>
+            );
 
-            </div>
+        })}
 
+    </div>
+
+</div>
 
             {/* VISIBILITY */}
 
@@ -2511,7 +2648,272 @@ if (
             </div>
 
         </div>
+{showDescriptionModal && (
+    <div
+        className="
+            fixed
+            inset-0
+            z-[100]
+            bg-black/70
+            flex
+            items-center
+            justify-center
+            p-4
+        "
+    >
 
+        <div
+            className="
+                w-full
+                max-w-md
+                bg-[var(--bg-color)]
+                text-[var(--text-color)]
+                rounded-2xl
+                p-5
+                shadow-xl
+            "
+        >
+
+            <div className="
+                flex
+                items-center
+                justify-between
+                mb-5
+            ">
+
+                <h3 className="text-lg font-bold">
+                    Add description
+                </h3>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        setShowDescriptionModal(false)
+                    }
+                    className="
+                        w-8
+                        h-8
+                        rounded-full
+                        flex
+                        items-center
+                        justify-center
+                        hover:bg-gray-200
+                        dark:hover:bg-gray-700
+                    "
+                >
+                    <X size={18} />
+                </button>
+
+            </div>
+
+
+            <p className="text-sm  mb-4">
+                Select where you want to add a description.
+            </p>
+
+
+            {/* IMAGE */}
+
+            {media.some(
+                item => item.type === "image"
+            ) && (
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setDescriptionOptions(prev => ({
+                            ...prev,
+                            image: !prev.image,
+                        }));
+                    }}
+                    className={`
+                        w-full
+                        border
+                        rounded-xl
+                        p-4
+                        mb-3
+                        flex
+                        items-center
+                        justify-between
+                        text-left
+                        transition
+                        ${
+                            descriptionOptions.image
+                                ? "border-green-500 bg-green-500/10"
+                                : "border-gray-300"
+                        }
+                    `}
+                >
+
+                    <div>
+                        <p className="font-semibold">
+                            Image description
+                        </p>
+
+                        <p className="text-xs ">
+                            Description for your image
+                        </p>
+                    </div>
+
+                    <div
+                        className={`
+                            w-6
+                            h-6
+                            rounded-full
+                            border
+                            flex
+                            items-center
+                            justify-center
+                            ${
+                                descriptionOptions.image
+                                    ? "bg-green-600 border-green-600 text-white"
+                                    : ""
+                            }
+                        `}
+                    >
+                        {descriptionOptions.image && "✓"}
+                    </div>
+
+                </button>
+            )}
+
+
+            {/* VIDEO */}
+
+            {media.some(
+                item => item.type === "video"
+            ) && (
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setDescriptionOptions(prev => ({
+                            ...prev,
+                            video: !prev.video,
+                        }));
+                    }}
+                    className={`
+                        w-full
+                        border
+                        rounded-xl
+                        p-4
+                        mb-3
+                        flex
+                        items-center
+                        justify-between
+                        text-left
+                        transition
+                        ${
+                            descriptionOptions.video
+                                ? "border-green-500 bg-green-500/10"
+                                : "border-gray-300"
+                        }
+                    `}
+                >
+
+                    <div>
+                        <p className="font-semibold">
+                            Video description
+                        </p>
+
+                        <p className="text-xs ">
+                            Description for your video
+                        </p>
+                    </div>
+
+                    <div
+                        className={`
+                            w-6
+                            h-6
+                            rounded-full
+                            border
+                            flex
+                            items-center
+                            justify-center
+                            ${
+                                descriptionOptions.video
+                                    ? "bg-green-600 border-green-600 text-white"
+                                    : ""
+                            }
+                        `}
+                    >
+                        {descriptionOptions.video && "✓"}
+                    </div>
+
+                </button>
+            )}
+
+
+            {/* BOTH */}
+
+            {media.some(
+                item => item.type === "image"
+            ) &&
+            media.some(
+                item => item.type === "video"
+            ) && (
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setDescriptionOptions({
+                            image: true,
+                            video: true,
+                        });
+                    }}
+                    className="
+                        w-full
+                        border
+                        rounded-xl
+                        p-4
+                        text-left
+                        hover:bg-gray-100
+                        dark:hover:bg-gray-800
+                    "
+                >
+
+                    <p className="font-semibold">
+                        Both
+                    </p>
+
+                    <p className="text-xs ">
+                        Add a separate description to both
+                    </p>
+
+                </button>
+            )}
+
+
+            {/* CONTINUE */}
+
+            <button
+                type="button"
+                disabled={
+                    !descriptionOptions.image &&
+                    !descriptionOptions.video
+                }
+                onClick={() => {
+                    setShowDescriptionModal(false);
+                }}
+                className="
+                    w-full
+                    mt-5
+                    bg-green-600
+                    hover:bg-green-700
+                    disabled:bg-gray-400
+                    text-white
+                    py-3
+                    rounded-xl
+                    font-semibold
+                "
+            >
+                Continue
+            </button>
+
+        </div>
+
+    </div>
+)}
 
         {/* VISIBILITY MODAL */}
 
@@ -2581,7 +2983,7 @@ if (
 
                                 <p className="
                                     text-xs
-                                    opacity-70
+                                    
                                 ">
                                     Everyone can see
                                     this reel
@@ -2623,7 +3025,7 @@ if (
 
                                 <p className="
                                     text-xs
-                                    opacity-70
+                                    
                                 ">
                                     Only accepted
                                     friends

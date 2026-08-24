@@ -39,29 +39,12 @@ export default function Reels({
     const [reaction, setReaction] =
         useState(null);
 
-    const [mediaIndex, setMediaIndex] = useState(0);
-
-    const [progress, setProgress] =
-            useState(0);
-    
 
     useEffect(() => {
 
         fetchReels();
 
     }, []);
-
-
-    const markReelViewed = async (reelId) => {
-        try {
-            await api.post(`/api/reels/${reelId}/view`);
-        } catch (error) {
-            console.error("Failed to mark reel as viewed:", error);
-        }
-    };
-
-
-    
 
 
     const fetchReels = async () => {
@@ -120,18 +103,15 @@ export default function Reels({
     |--------------------------------------------------------------------------
     */
 
-    const openUserReels = (userIndex) => {
+    const openUserReels = (
+        userIndex
+    ) => {
 
-        setSelectedUserIndex(userIndex);
+        setSelectedUserIndex(
+            userIndex
+        );
 
         setSelectedReelIndex(0);
-
-        // VERY IMPORTANT
-        setMediaIndex(0);
-
-        setProgress(0);
-
-        // setShowReelViewer(true);
 
         setShowOptions(false);
 
@@ -141,19 +121,21 @@ export default function Reels({
     };
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | CLOSE
+    |--------------------------------------------------------------------------
+    */
+
     const closeViewer = () => {
-        // setShowReelViewer(false);
 
         setSelectedUserIndex(null);
+
         setSelectedReelIndex(0);
 
-        setMediaIndex(0);
-        setProgress(0);
-
-        setReaction(null);
-        setMessage("");
-
         setShowOptions(false);
+
+        setMessage("");
     };
 
 
@@ -178,77 +160,62 @@ export default function Reels({
             : null;
 
 
-   
+    /*
+    |--------------------------------------------------------------------------
+    | NEXT REEL
+    |--------------------------------------------------------------------------
+    */
+
     const nextReel = () => {
 
-    if (!selectedUser) {
-        return;
-    }
+        if (!selectedUser) {
+            return;
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | NEXT REEL FOR SAME USER
-    |--------------------------------------------------------------------------
-    */
+        if (
+            selectedReelIndex <
+            selectedUser.reels.length - 1
+        ) {
 
-    if (
-        selectedReelIndex <
-        selectedUser.reels.length - 1
-    ) {
+            setSelectedReelIndex(
+                (prev) => prev + 1
+            );
 
-        setSelectedReelIndex(
-            prev => prev + 1
-        );
+            setReaction(null);
 
-        setMediaIndex(0);
-        setProgress(0);
-        setReaction(null);
-        setMessage("");
+            setMessage("");
 
-        return;
-    }
+            return;
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | NEXT USER
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | End of this user's reels.
+        | Move to next user.
+        |--------------------------------------------------------------------------
+        */
 
-    if (
-        selectedUserIndex <
-        reelUsers.length - 1
-    ) {
+        if (
+            selectedUserIndex <
+            reelUsers.length - 1
+        ) {
 
-        setSelectedUserIndex(
-            prev => prev + 1
-        );
+            setSelectedUserIndex(
+                (prev) => prev + 1
+            );
 
-        setSelectedReelIndex(0);
-        setMediaIndex(0);
-        setProgress(0);
-        setReaction(null);
-        setMessage("");
+            setSelectedReelIndex(0);
 
-        return;
-    }
+            setReaction(null);
 
+            setMessage("");
 
-    closeViewer();
-};
+        } else {
 
-const previousReel = () => {
+            closeViewer();
+        }
+    };
 
-
-    if (mediaIndex > 0) {
-
-        setMediaIndex(
-            prev => prev - 1
-        );
-
-        setProgress(0);
-
-        return;
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -256,50 +223,44 @@ const previousReel = () => {
     |--------------------------------------------------------------------------
     */
 
-    if (selectedReelIndex > 0) {
+    const previousReel = () => {
 
-        setSelectedReelIndex(
-            prev => prev - 1
-        );
+        if (
+            selectedReelIndex > 0
+        ) {
 
-        setMediaIndex(0);
+            setSelectedReelIndex(
+                (prev) => prev - 1
+            );
 
-        setReaction(null);
-        setMessage("");
+            return;
+        }
 
-        return;
-    }
+        if (
+            selectedUserIndex > 0
+        ) {
+
+            const previousUser =
+                reelUsers[
+                    selectedUserIndex - 1
+                ];
+
+            setSelectedUserIndex(
+                (prev) => prev - 1
+            );
+
+            setSelectedReelIndex(
+                previousUser.reels.length - 1
+            );
+        }
+    };
+
 
     /*
     |--------------------------------------------------------------------------
-    | PREVIOUS USER
+    | REACTION
     |--------------------------------------------------------------------------
     */
-
-    if (selectedUserIndex > 0) {
-
-        const previousUser =
-            reelUsers[
-                selectedUserIndex - 1
-            ];
-
-        setSelectedUserIndex(
-            prev => prev - 1
-        );
-
-        setSelectedReelIndex(
-            previousUser.reels.length - 1
-        );
-
-        // Start last reel at its
-        // first media
-        setMediaIndex(0);
-
-        setReaction(null);
-        setMessage("");
-    }
-};
-
 
     const sendReaction = async (
         value
@@ -376,15 +337,15 @@ const previousReel = () => {
     };
 
 
-
     if (loading) {
     return (
         <div
             className="
-                lg:w-[480px] md:w-96 w-full
+                w-full
+                max-w-full
                 overflow-x-auto
                 overflow-y-hidden
-                pt-5 flex items-center justify-center mx-auto
+                pt-5
                 scrollbar-none
             "
         >
@@ -543,12 +504,10 @@ const previousReel = () => {
         </div>
     );
 }
-   
-
     return (
         <>
             <div
-                className=" lg:w-[480px] md:w-96 sm:mt-10 mt-4
+                className=" lg:w-[480px] md:w-96 mt-10
                     w-full
                     overflow-x-auto
                     scrollbar-hide
@@ -629,7 +588,7 @@ const previousReel = () => {
                                     rounded-full
                                     bg-blue-600
                                     border-2
-                                    border-white text-white
+                                    border-white
                                     flex
                                     items-center
                                     justify-center
@@ -643,7 +602,7 @@ const previousReel = () => {
                             <span
                                 className="
                                     text-xs
-                                    font-semibold text-white
+                                    font-semibold
                                 "
                             >
                                 Create Reel
@@ -659,13 +618,8 @@ const previousReel = () => {
                     ================================================== */}
 
                     {reelUsers.map(
-                        (item, index) =>  {
+                        (item, index) => (
 
-                        const hasViewed = item.reels?.some(
-                                reel => !reel.has_viewed
-                            );
-
-                        return (
                             <button
                                 key={
                                     item.user.id
@@ -752,7 +706,7 @@ const previousReel = () => {
                                             items-center
                                             justify-center
                                             text-center
-                                            text-xs text-white
+                                            text-xs
                                         "
                                     >
                                         {
@@ -782,7 +736,7 @@ const previousReel = () => {
                                 {/* USER INITIAL */}
 
                                 <div
-                                    className={`
+                                    className="
                                         absolute
                                         top-2
                                         left-2
@@ -797,13 +751,8 @@ const previousReel = () => {
                                         font-bold
                                         text-sm
                                         border
-                                        border-2
-                                     ${
-                                            hasViewed
-                                                ? "border-gray-400"
-                                                : "border-green-500"
-                                        }
-                                    `}
+                                        border-white
+                                    "
                                 >
                                     {
                                         item.user
@@ -835,7 +784,7 @@ const previousReel = () => {
 
                             </button>
 
-                        )}
+                        )
                     )}
 
                 </div>
@@ -895,13 +844,7 @@ const previousReel = () => {
                     reelUsers={reelUsers}
                     currentUser={currentUser}
 
-                    mediaIndex={mediaIndex}
-                    setMediaIndex={setMediaIndex}
-                    progress={progress}
-                    setProgress={setProgress}
-                    nextReel={nextReel}
 
-                    markReelViewed={markReelViewed}
                 />
             )}
 
