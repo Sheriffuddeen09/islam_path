@@ -21,7 +21,6 @@ import api from "../../Api/axios"; // change to your api path
 export default function MyReelReview({
     myReels = [],
     selectedMyIndex,
-    setSelectedMyIndex,
     onPrevious,
     nextReel,
     myProgress,
@@ -58,9 +57,9 @@ export default function MyReelReview({
         useState(false);
 
 
-        const timerRef = useRef(null);
+    const timerRef = useRef(null);
 
-        const [mediaReady, setMediaReady] = useState(true);
+    const [mediaReady, setMediaReady] = useState(true);
     
     
    const reel = myReels?.[selectedMyIndex] || null;
@@ -697,6 +696,12 @@ const reelItems = useMemo(() => {
             }
 
         };
+
+        useEffect(() =>{
+            fetchReactionUsers();
+            fetchViewUsers()
+        })
+
 
     if (!reel) {
         return null;
