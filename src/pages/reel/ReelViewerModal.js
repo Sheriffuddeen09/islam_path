@@ -20,7 +20,6 @@ export default function ReelViewerModal({
     reel,
 
     onClose,
-    onNext,
     onPrevious,
 
     showOptions,
@@ -488,9 +487,6 @@ useEffect(() => {
 
     const nextIndex = mediaIndex + 1;
 
-    // ---------------------------------------------
-    // MORE CONTENT/IMAGE/VIDEO FOR THIS USER
-    // ---------------------------------------------
     if (nextIndex < reelItems.length) {
 
         setProgress(0);

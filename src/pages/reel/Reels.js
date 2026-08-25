@@ -1,5 +1,6 @@
 import {
     useEffect,
+    useMemo,
     useState,
 } from "react";
 
@@ -9,12 +10,16 @@ import {
 import api from "../../Api/axios";
 import ReelViewerModal from './ReelViewerModal'
 import { useAuth } from '../../layout/AuthProvider';
+import MyReelModal from "./MyReelModal";
+import CreateReel from "./CreateReel";
+import MyReelReview from "./MyReelReview";
 export default function Reels({
-    
+    handlePostCreated
 }) {
 
     const {user} = useAuth()
 
+  const [createReel, setCreateReel] = useState(false);
 
     const [reelUsers, setReelUsers] =
         useState([]);
@@ -24,8 +29,7 @@ export default function Reels({
         useState("");
     const [selectedUserIndex, setSelectedUserIndex] =
         useState(null);
-    const [selectedReelIndex, setSelectedReelIndex] =
-        useState(0);
+    
     const [showOptions, setShowOptions] =
         useState(false);
     const [message, setMessage] =
@@ -35,11 +39,39 @@ export default function Reels({
     const [reaction, setReaction] =
         useState(null);
     const [mediaIndex, setMediaIndex] = useState(0);
+
+    const [myReels, setMyReels] = useState([]);
+
+    const [
+    showMyReelModal,
+        setShowMyReelModal
+    ] = useState(false);
+
     const [progress, setProgress] =
             useState(0);
 
-            useEffect(() => {
+
+    const [showMyReelReview, setShowMyReelReview] =
+    useState(false);
+
+    const [selectedMyIndex, setSelectedMyIndex] =
+        useState(0);
+
+    const [selectedReelIndex, setSelectedReelIndex] =
+        useState(0);
+
+    const [myMediaIndex, setMyMediaIndex] =
+        useState(0);
+
+    const [myProgress, setMyProgress] =
+        useState(0);
+    
+    const [reactionUsers, setReactionUsers] =
+        useState([]);
+
+    useEffect(() => {
         fetchReels();
+        fetchMyReel()
     }, []);
 
     const markReelViewed = async (reelId) => {
@@ -84,7 +116,25 @@ export default function Reels({
         }
     };
 
-    console.log('user', user)
+    const fetchMyReel = async () => {
+    try {
+
+        const response = await api.get("/api/reels");
+
+        setMyReels(
+            response.data.my_reels || []
+        );
+
+
+    } catch (error) {
+         setError(
+                error.response?.data?.message ||
+                "Unable to load reels."
+            );
+    }
+  
+};
+
     const currentInitial =
         (
             user?.first_name ||
@@ -121,6 +171,8 @@ export default function Reels({
 
         setShowOptions(false);
     };
+
+
 
     const selectedUser =
         selectedUserIndex !== null
@@ -179,6 +231,57 @@ export default function Reels({
     closeViewer();
 };
 
+        const closeMyReview 
+            = () => {
+                setShowMyReelReview(false);
+                setSelectedReelIndex(0);
+                setMyMediaIndex(0);
+                setMyProgress(0);
+                }
+
+ const nextMyReel = () => {
+
+    if (!selectedReel) {
+        return;
+    }
+
+    if (
+        selectedReelIndex <
+        selectedReel.reels.length - 1
+    ) {
+
+        setSelectedReelIndex(
+            prev => prev + 1
+        );
+
+        setMyMediaIndex(0);
+        setMyProgress(0);
+        setReactionUsers(null);
+
+        return;
+    }
+
+    if (
+        selectedMyIndex <
+        myReels.length - 1
+    ) {
+
+        setSelectedMyIndex(
+            prev => prev + 1
+        );
+
+        setSelectedReelIndex(0);
+        setMyMediaIndex(0);
+        setMyProgress(0);
+        setReactionUsers(null);
+
+        return;
+    }
+    closeMyReview();
+};
+
+
+
 const previousReel = () => {
 
     if (mediaIndex > 0) {
@@ -225,6 +328,53 @@ const previousReel = () => {
 
         setReaction(null);
         setMessage("");
+    }
+};
+
+
+const previousMyReel = () => {
+
+    if (myMediaIndex > 0) {
+
+        setMediaIndex(
+            prev => prev - 1
+        );
+
+        setMyProgress(0);
+
+        return;
+    }
+
+    if (selectedReelIndex > 0) {
+
+        setSelectedReelIndex(
+            prev => prev - 1
+        );
+
+        setMyMediaIndex(0);
+
+        setReactionUsers(null);
+        return;
+    }
+
+    if (selectedMyIndex > 0) {
+
+        const previousMy =
+            myReels[
+                selectedMyIndex - 1
+            ];
+
+        setSelectedMyIndex(
+            prev => prev - 1
+        );
+
+        setSelectedReelIndex(
+            previousMy.reels.length - 1
+        );
+
+        setMyMediaIndex(0);
+
+        setReactionUsers(null);
     }
 };
 
@@ -295,6 +445,36 @@ const previousReel = () => {
 
         }
     };
+
+
+    const hasMyReels =
+    Array.isArray(myReels) &&
+    myReels.length > 0;
+
+    const firstMyReel = useMemo(() => {
+
+    if (!Array.isArray(myReels) || !myReels.length) {
+        return null;
+    }
+
+        return [...myReels]
+            .sort(
+                (a, b) =>
+                    new Date(a.created_at) -
+                    new Date(b.created_at)
+            )[0];
+
+    }, [myReels]);
+
+    const firstMyImage =
+    firstMyReel?.media?.find(
+        media => media.type === "image"
+    );
+
+const firstMyVideo =
+    firstMyReel?.media?.find(
+        media => media.type === "video"
+    );
 
 
 
@@ -457,8 +637,6 @@ const previousReel = () => {
     );
 }
 
-    const hasMyStatus = currentUserReels.length > 0;
-   
 
     return (
         <>
@@ -470,103 +648,195 @@ const previousReel = () => {
                 "
             >
 
-                <div
-                    className="
-                        flex
-                        gap-3
-                        min-w-max
-                    "
+             <div
+                className="
+                    flex
+                    gap-3
+                    min-w-max
+                "
+            >
+                <button
+                    type="button"
+                    onClick={() => {
+                        if (hasMyReels) {
+                            setShowMyReelModal(true);
+                        } else {
+                            setCreateReel(true);
+                        }
+                    }}
+                    className={`
+                        relative
+                        shrink-0
+                        w-20
+                        h-28
+                        sm:w-24
+                        sm:h-36
+                        rounded-xl
+                        overflow-hidden
+                        border-2
+                        ${
+                            hasMyReels
+                                ? "border-green-500"
+                                : "border-gray-700"
+                        }
+                        bg-gray-800
+                    `}
                 >
 
-                    <button
-                        type="button"
-                        // onClick={onCreateReel}
-                        className="
-                            relative
-                            shrink-0
-                            w-20
-                            h-28
-                            sm:w-24
-                            sm:h-36
-                            rounded-xl
-                            overflow-hidden
-                            bg-gray-800
-                            border
-                            border-gray-700
-                        "
-                    >
+                    {firstMyReel ? (
 
-                        <div
-                            className="
-                                w-full
-                                h-full
-                                flex
-                                flex-col
-                                items-center
-                                justify-end
-                                pb-2
-                            "
-                        >
+                        <div className="absolute inset-0">
 
-                            <div
-                            className={`
-                                absolute
-                                top-2
-                                left-1/2
-                                -translate-x-1/2
-                                w-12
-                                h-12
-                                rounded-full
-                                bg-blue-600
-                                text-white
-                                flex
-                                items-center
-                                justify-center
-                                text-xl
-                                font-bold
-                                border-[3px]
-                                ${
-                                    hasMyStatus
-                                        ? "border-green-500"
-                                        : "border-gray-400"
-                                }
-                            `}
-                        >
-                            {currentInitial}
-                        </div>
+                            {firstMyImage && (
+                                <img
+                                    src={firstMyImage.url}
+                                    alt=""
+                                    className="
+                                        absolute
+                                        inset-0
+                                        w-full
+                                        h-full
+                                        object-cover
+                                    "
+                                />
+                            )}
+
+                            {!firstMyImage &&
+                                firstMyVideo && (
+                                    <video
+                                        src={firstMyVideo.url}
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                        className="
+                                            absolute
+                                            inset-0
+                                            w-full
+                                            h-full
+                                            object-cover
+                                        "
+                                    />
+                                )}
+
+                            {!firstMyImage &&
+                                !firstMyVideo &&
+                                firstMyReel.content && (
+                                    <div
+                                        className="
+                                            absolute
+                                            inset-0
+                                            flex
+                                            items-center
+                                            justify-center
+                                            p-3
+                                            text-white
+                                            text-center
+                                            text-xs
+                                            font-semibold
+                                            bg-gradient-to-br
+                                            from-blue-700
+                                            to-purple-700
+                                        "
+                                    >
+                                        <span className="line-clamp-6">
+                                            {firstMyReel.content}
+                                        </span>
+                                    </div>
+                                )}
 
                             <div
                                 className="
                                     absolute
-                                    bottom-8
-                                    w-8
-                                    h-8
-                                    rounded-full
-                                    bg-blue-600
-                                    border-2
-                                    border-white text-white
-                                    flex
-                                    items-center
-                                    justify-center
+                                    inset-0
+                                    bg-black/30
                                 "
-                            >
-                                <Plus
-                                    size={18}
-                                />
-                            </div>
-
-                            <span
-                                className="
-                                    text-xs
-                                    font-semibold text-white
-                                "
-                            >
-                                Create Reel
-                            </span>
+                            />
 
                         </div>
 
-                    </button>
+                    ) : (
+
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                bg-gray-800
+                            "
+                        />
+
+                    )}
+
+                    <div
+                        className={`
+                            absolute
+                            top-2
+                            left-1/2
+                            -translate-x-1/2
+                            w-12
+                            h-12
+                            rounded-full
+                            bg-blue-600
+                            text-white
+                            flex
+                            items-center
+                            justify-center
+                            text-xl
+                            font-bold
+                            border-[3px]
+                            ${
+                                hasMyReels
+                                    ? "border-green-500"
+                                    : "border-gray-400"
+                            }
+                        `}
+                    >
+                        {currentInitial}
+                    </div>
+
+                    <div
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setCreateReel(true);
+                        }}
+                        className="
+                            absolute
+                            bottom-8
+                            left-1/2
+                            -translate-x-1/2
+                            w-8
+                            h-8
+                            rounded-full
+                            bg-blue-600
+                            border-2
+                            border-white
+                            text-white
+                            flex
+                            items-center
+                            justify-center
+                            z-20
+                            cursor-pointer
+                        "
+                    >
+                        <Plus size={18} />
+                    </div>
+
+                    <span
+                        className="
+                            absolute
+                            bottom-2
+                            left-0
+                            right-0
+                            z-20
+                            text-xs
+                            font-semibold
+                            text-white
+                            text-center
+                        "
+                    >
+                        Create Reel
+                    </span>
+
+                </button>
 
                     {reelUsers.map(
                         (item, index) =>  {
@@ -817,6 +1087,65 @@ const previousReel = () => {
                     markReelViewed={markReelViewed}
                 />
             )}
+
+            {showMyReelModal && (
+                <MyReelModal
+                    myReels={myReels}
+                    currentUser={user}
+
+                    onClose={() =>
+                        setShowMyReelModal(false)
+                    }
+                    setReactionUsers={setReactionUsers}
+                    setMyMediaIndex={setMyMediaIndex}
+                    setMyProgress={setMyProgress}
+                    setShowMyReelReview={setShowMyReelReview} 
+                    setSelectedMyIndex={setSelectedMyIndex} 
+                />
+            )}
+
+            {createReel && (
+            <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
+                
+                <CreateReel
+                    setCreateReel={setCreateReel}
+                    handlePostCreated={handlePostCreated}
+                />
+
+                </div>
+            )}
+
+            {showMyReelReview && (
+            <MyReelReview
+                myReels={myReels}
+
+                selectedMyIndex={
+                    selectedMyIndex
+                }
+
+                setSelectedMyIndex={
+                    setSelectedMyIndex
+                }
+
+                myMediaIndex={myMediaIndex}
+                setMyMediaIndex={setMyMediaIndex}
+
+                myProgress={myProgress}
+                setMyProgress={setMyProgress}
+
+                onClose={() => {
+                    setShowMyReelReview(false);
+                    setSelectedReelIndex(0);
+                    setMyMediaIndex(0);
+                    setMyProgress(0);
+                }}
+
+                reactionUsers={reactionUsers}
+                setReactionUsers={setReactionUsers}
+                nextReel={nextMyReel}
+                onPrevious={previousMyReel}
+            />
+        )}
 
         </>
     );

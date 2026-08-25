@@ -11,7 +11,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     setUnreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup, showSettings,
     setShowSettings, setMessages, callMode, setCallMode, incomingCall, setIncomingCall, meetingData, setMeetingData,
     fetchJobProfile, show, setShow, jobProfile, setJobProfile, showSuccessModal, setShowSuccessModal,
-    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate
+    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated
   }) {
 
 
@@ -70,7 +70,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       setJobProfile={setJobProfile}
       fetchJobProfile={fetchJobProfile}
       show={show}
-      setShow={setShow}
+      setShow={setShow} handlePostCreated={handlePostCreated}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
       

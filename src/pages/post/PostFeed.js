@@ -8,7 +8,7 @@ import Reels from "../reel/Reels";
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
-  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate}) {
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
  useEffect(() => {
@@ -67,9 +67,9 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
     
       
     
-    <div className="flex-1 transition-all mx-auto p-4 mt-20 gap-3 flex justif-start flex-col items-center">
+    <div className="flex-1 transition-all mx-auto p-4 gap-3 flex justif-start flex-col items-center">
     
-      <Reels />
+      <Reels handlePostCreated={handlePostCreated} />
 
       {
         posts.length === 0 && (
@@ -111,7 +111,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
      
 
       <div className="flex-1 transition-all p-4 mt-28 gap-4 ml-4 relative">
-      <Reels />
+      <Reels handlePostCreated={handlePostCreated} />
 
       
       {

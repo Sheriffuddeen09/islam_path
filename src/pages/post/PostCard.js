@@ -186,7 +186,6 @@ const shareToChat = async (chatId) => {
     }, [post.id]);
 
     
-    console.log("usersPreview", usersPreview);
 
   
     // Render
@@ -217,15 +216,36 @@ const shareToChat = async (chatId) => {
 
       
         const colors = [
-          "bg-red-400",
-          "bg-blue-400",
-          "bg-green-400",
-          "bg-purple-400",
-          "bg-pink-400",
-          "bg-yellow-400",
-        ];
+    "bg-red-400",
+    "bg-blue-400",
+    "bg-green-400",
+    "bg-purple-400",
+    "bg-pink-400",
+    "bg-yellow-400",
+];
 
-        const getColor = (id) => colors[id % colors.length];
+const getColor = (value) => {
+    if (!value) return "bg-gray-400";
+
+    const str = String(value);
+
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitial = (name) => {
+    if (!name) return "?";
+
+    return name
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+};
 
 const commentInputRef = useRef(null);
 
@@ -255,9 +275,9 @@ const handleHidePost = async (postId) => {
         <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
           <Link to={`/profile/${post.reposted_by?.id}`}>
-        <p className="font-bold pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
-        flex flex-col items-center justify-center">
-          {post.reposted_by?.name[0]}
+        <p className={`text-white font-bold pb-1 text-[32px] rounded-full w-10 h-10 text-center
+        flex flex-col items-center justify-center ${getColor(post.reposted_by?.name)}`}>
+          {getInitial(post.reposted_by?.name)}
         </p>
         </Link>
         
@@ -265,7 +285,7 @@ const handleHidePost = async (postId) => {
           <Link to={`/profile/${post.reposted_by.id}`}>
           <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
           </Link>
-          <p className="text-xs opacity-70">{post.created_at}</p>
+          <p className="text-xs">{post.created_at}</p>
         </div>
          {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded py-1 ">
          Reposted
@@ -289,21 +309,21 @@ const handleHidePost = async (postId) => {
 
                 )} 
   
-      {/* USER */}
-      <div className="flex p-4 border-b border-blue-500 items-start justify-between">
+      {/* USER  */}
+      <div className="flex p-3 border-b border-gray-500 items-start justify-between">
 
       <div className="flex items-center  gap-3">
         <Link to={`/profile/${user?.id}`}>
-        <p className="font-bold pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
-        flex flex-col items-center justify-center">
-          {post.user?.name?.[0]}
+        <p className={`font-bold pb-1 text-white text-[32px] rounded-full w-10 h-10 text-center
+        flex flex-col items-center justify-center ${getColor(post.user?.name)}`}>
+          {getInitial(post.user?.name)}
         </p>
         </Link>
         <div>
           <Link to={`/profile/${user.id}`}>
-          <p className="font-semibold">{post.user?.name}</p>
+          <p className="font-semibold text-sm">{post.user?.name}</p>
           </Link>
-          <p className="text-xs opacity-70">{post.created_at}</p>
+          <p className="text-xs">{post.created_at}</p>
         </div>
       </div>
 
@@ -326,22 +346,58 @@ const handleHidePost = async (postId) => {
       </div>
       {/* TEXT */}
      <div
-  className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px]">
-  {post.content && (
-    <p className="cursor-pointer px-2">
-      {showMore
-        ? text
-        : shortText}
-        {
-          showMore ? "" : <button onClick={(e) => {
-            e.preventDefault();
-            setShowMore(!showMore);
-          }}>See more</button>
-          
-        }
-        
-    </p>
-  )}
+  className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px] ">
+  {/* TEXT */}
+{post.content && (
+    <div
+        className="
+            bg-[var(--bg-color)]
+            text-[var(--text-color)]
+            w-full
+            min-w-0
+            text-[12px]
+            break-words
+            [overflow-wrap:anywhere]
+        "
+    >
+        <p
+          onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowMore(!showMore);
+                    }}
+            className="
+                cursor-pointer
+                w-full
+                min-w-0
+                whitespace-pre-wrap
+                break-words
+                [overflow-wrap:anywhere]
+            "
+        >
+            {showMore ? text : shortText}
+
+            {!showMore && (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowMore(true);
+                    }}
+                    className="
+                        ml-1
+                        text-blue-500
+                        hover:underline
+                        font-medium text-xs
+                    "
+                >
+                    See more
+                </button>
+            )}
+        </p>
+    </div>
+)}
 </div>
 
       {/* IMAGES */}

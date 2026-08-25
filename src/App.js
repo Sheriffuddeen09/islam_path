@@ -733,6 +733,7 @@ function App() {
         setShowSuccessModal={setShowSuccessModal}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+        handlePostCreated={handlePostCreated}
 
          />   
       } />

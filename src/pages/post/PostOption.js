@@ -26,8 +26,6 @@ export default function PostOptions({ post,  chats }) {
   
   const authUser = useAuth()
 
-  console.log('user ID', currentUser)
-
   const isOwner = authUser?.user?.id === post?.user?.id;
 
 
