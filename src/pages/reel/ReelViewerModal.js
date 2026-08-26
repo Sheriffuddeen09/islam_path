@@ -22,8 +22,7 @@ export default function ReelViewerModal({
     onClose,
     onPrevious,
 
-    showOptions,
-    setShowOptions,
+    chats,
 
     message,
     setMessage,
@@ -65,6 +64,8 @@ export default function ReelViewerModal({
     
     const [mediaReady, setMediaReady] = useState(true);
 
+    const [showFullDescription, setShowFullDescription] =
+    useState(false);
 
 const allUserReels =
     reelUsers?.[currentUserIndex]?.reels || [];
@@ -709,32 +710,7 @@ useEffect(() => {
                         "
                     >
 
-                        {/* OPTIONS currentItem */}
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setShowOptions(
-                                    (prev) =>
-                                        !prev
-                                )
-                            }
-                            className="
-                                w-9
-                                h-9
-                                rounded-full
-                                bg-black/40
-                                text-white
-                                flex
-                                items-center
-                                justify-center
-                            "
-                        >
-                            <MoreVertical
-                                size={20}
-                            />
-                        </button>
-
+                    
 
                         {/* CLOSE */}
 
@@ -762,56 +738,6 @@ useEffect(() => {
                     </div>
 
                 </div>
-
-
-                {/* =================================================
-                    OPTIONS
-                ================================================== */}
-
-                {showOptions && (
-                    <div
-                        className="
-                            absolute
-                            top-20
-                            right-4
-                            z-[60]
-                            w-44
-                            bg-white
-                            text-black
-                            rounded-xl
-                            shadow-xl
-                            overflow-hidden
-                        "
-                    >
-
-                        <button
-                            type="button"
-                            className="
-                                w-full
-                                text-left
-                                px-4
-                                py-3
-                                hover:bg-gray-100
-                            "
-                        >
-                            Report Reel
-                        </button>
-
-                        <button
-                            type="button"
-                            className="
-                                w-full
-                                text-left
-                                px-4
-                                py-3
-                                hover:bg-gray-100
-                            "
-                        >
-                            Hide Reel
-                        </button>
-
-                    </div>
-                )}
 
 
 
@@ -869,10 +795,7 @@ useEffect(() => {
                         <ArrowRight size={20} />
                     </button>
                 )}
-                {/* =================================================
-                    MEDIA
-                ================================================== */}
-
+              
                 <div
                     className="
                         absolute
@@ -973,30 +896,68 @@ useEffect(() => {
 
                 </div>
 
-                            {(currentItem?.type === "image" ||
-                                currentItem?.type === "video") &&
-                                currentItem?.description && (
+                           {(currentItem?.type === "image" ||
+                            currentItem?.type === "video") &&
+                            currentItem?.description && (() => {
 
-                                <div
-                                    className="
-                                        absolute
-                                        bottom-24
-                                        left-4
-                                        right-4
-                                        z-30
-                                        text-white
-                                        text-sm
-                                        drop-shadow-lg
-                                    "
-                                >
-                                    <p>
-                                        {typeof currentItem.description === "object"
-                                            ? currentItem.description.content
-                                            : currentItem.description
-                                        }
-                                    </p>
-                                </div>
-                            )}
+                                const description =
+                                    typeof currentItem.description === "object"
+                                        ? currentItem.description.content
+                                        : currentItem.description;
+
+                                if (!description) {
+                                    return null;
+                                }
+
+                                const isLong =
+                                    description.length > 80;
+
+                                const displayedDescription =
+                                    isLong && !showFullDescription
+                                        ? description.slice(0, 80) + "..."
+                                        : description;
+
+                                return (
+                                    <div
+                                        className="
+                                            absolute
+                                            bottom-24
+                                            left-4
+                                            right-4
+                                            z-30
+                                            text-white
+                                            text-sm
+                                            drop-shadow-lg
+                                        "
+                                    >
+                                        <p className="leading-relaxed">
+                                            {displayedDescription}
+                                        </p>
+
+                                        {isLong && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setShowFullDescription(
+                                                        !showFullDescription
+                                                    )
+                                                }
+                                                className="
+                                                    mt-1
+                                                    font-semibold text-xs
+                                                    text-green-400
+                                                    hover:text-green-300
+                                                "
+                                            >
+                                                {showFullDescription
+                                                    ? "Read less"
+                                                    : "Read more"}
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+
+                            })()}
 
                 {/* =================================================
                     BOTTOM CHAT BAR

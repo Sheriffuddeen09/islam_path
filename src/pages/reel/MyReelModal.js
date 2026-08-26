@@ -9,7 +9,7 @@ import {
 
 export default function MyReelModal({
     myReels, setReactionUsers, setMyMediaIndex, currentUser, setMyProgress,
-    onClose, setSelectedMyIndex, setShowMyReelReview
+    onClose, setSelectedMyIndex, setShowMyReelReview, chats
 }) {
 
 
@@ -19,7 +19,6 @@ export default function MyReelModal({
         setSelectedMyIndex(reelIndex);
         setMyMediaIndex(0);
         setMyProgress(0);
-        // setShowOptions(false);
 
         setShowMyReelReview(true);
         setReactionUsers(false)

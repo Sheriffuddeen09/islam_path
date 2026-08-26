@@ -31,7 +31,8 @@ export default function MyReelReview({
     setReactionUsers,
     currentUser,
     myMediaIndex,
-    setMyMediaIndex
+    setMyMediaIndex,
+    chats
 }) {
     const videoRef = useRef(null);
 
@@ -57,6 +58,9 @@ export default function MyReelReview({
         useState(false);
 
 
+    const [showFullDescription, setShowFullDescription] =
+    useState(false);
+
     const timerRef = useRef(null);
 
     const [mediaReady, setMediaReady] = useState(true);
@@ -69,12 +73,6 @@ const allUserReels = useMemo(() => {
         return [];
     }
 
-    // Structure:
-    // [
-    //   {
-    //      reels: [...]
-    //   }
-    // ]
     if (
         Array.isArray(
             myReels?.[selectedMyIndex]?.reels
@@ -83,14 +81,6 @@ const allUserReels = useMemo(() => {
         return myReels[selectedMyIndex].reels;
     }
 
-    // Structure:
-    // [
-    //   {
-    //      id: 1,
-    //      content: "...",
-    //      media: [...]
-    //   }
-    // ]
     return myReels;
 }, [
     myReels,
@@ -594,115 +584,90 @@ const reelItems = useMemo(() => {
     }, [
         reel?.created_at
     ]);
+const fetchReactionUsers = async () => {
+
+    // Open modal immediately
+    setShowReactionUsers(true);
+
+    // Clear old users while loading
+    setReactionUsers?.([]);
+
+    // Show loading immediately
+    setLoadingReactionUsers(true);
+
+    if (!reel?.id) {
+        setLoadingReactionUsers(false);
+        return;
+    }
+
+    try {
+
+        const response = await api.get(
+            `/api/posts/${reel.id}/reactions`
+        );
+
+        setReactionUsers?.(
+            response.data?.users || []
+        );
+
+    } catch (error) {
+
+        console.error(
+            "REACTION USERS ERROR:",
+            error
+        );
+
+        setReactionUsers?.([]);
+
+    } finally {
+
+        setLoadingReactionUsers(false);
+
+    }
+};
 
 
-    const fetchReactionUsers =
-        async () => {
+const fetchViewUsers = async () => {
 
-            if (!reel?.id) {
-                return;
-            }
+    // Open modal immediately
+    setShowViewUsers(true);
 
+    // Clear old users
+    setViewUsers([]);
 
-            try {
+    // Show loading immediately
+    setLoadingViewUsers(true);
 
-                setLoadingReactionUsers(
-                    true
-                );
+    if (!reel?.id) {
+        setLoadingViewUsers(false);
+        return;
+    }
 
+    try {
 
-                const response =
-                    await api.get(
-                        `/api/reels/${reel.id}/reactions`
-                    );
+        const response = await api.get(
+            `/api/posts/${reel.id}/views`
+        );
 
+        setViewUsers(
+            response.data?.users || []
+        );
 
-                const users =
-                    response.data.users ||
-                    [];
+    } catch (error) {
 
+        console.error(
+            "VIEW USERS ERROR:",
+            error
+        );
 
-                setReactionUsers?.(
-                    users
-                );
+        setViewUsers([]);
 
+    } finally {
 
-                setShowReactionUsers(
-                    true
-                );
+        setLoadingViewUsers(false);
 
-            } catch (error) {
-
-                console.error(
-                    "REACTION USERS ERROR:",
-                    error
-                );
-
-            } finally {
-
-                setLoadingReactionUsers(
-                    false
-                );
-
-            }
-
-        };
-
-
-    const fetchViewUsers =
-        async () => {
-
-            if (!reel?.id) {
-                return;
-            }
-
-
-            try {
-
-                setLoadingViewUsers(
-                    true
-                );
-
-
-                const response =
-                    await api.get(
-                        `/api/reels/${reel.id}/views`
-                    );
-
-
-                setViewUsers(
-                    response.data.users ||
-                    []
-                );
-
-
-                setShowViewUsers(
-                    true
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "VIEW USERS ERROR:",
-                    error
-                );
-
-            } finally {
-
-                setLoadingViewUsers(
-                    false
-                );
-
-            }
-
-        };
-
-        useEffect(() =>{
-            fetchReactionUsers();
-            fetchViewUsers()
-        })
-
-
+    }
+};
     if (!reel) {
         return null;
     }
@@ -1128,30 +1093,67 @@ const reelItems = useMemo(() => {
                 </div>
 
                       {(currentItem?.type === "image" ||
-                                currentItem?.type === "video") &&
-                                currentItem?.description && (
+                    currentItem?.type === "video") &&
+                    currentItem?.description && (() => {
 
-                                <div
-                                    className="
-                                        absolute
-                                        bottom-24
-                                        left-4
-                                        right-4
-                                        z-30
-                                        text-white
-                                        text-sm
-                                        drop-shadow-lg
-                                    "
-                                >
-                                    <p>
-                                        {typeof currentItem.description === "object"
-                                            ? currentItem.description.content
-                                            : currentItem.description
+                        const description =
+                            typeof currentItem.description === "object"
+                                ? currentItem.description.content
+                                : currentItem.description;
+
+                        if (!description) {
+                            return null;
+                        }
+
+                        const isLong =
+                            description.length > 80;
+
+                        const displayedDescription =
+                            isLong && !showFullDescription
+                                ? description.slice(0, 80) + "..."
+                                : description;
+
+                        return (
+                            <div
+                                className="
+                                    absolute
+                                    bottom-24
+                                    left-4
+                                    right-4
+                                    z-30
+                                    text-white
+                                    text-sm
+                                    drop-shadow-lg
+                                "
+                            >
+                                <p className="leading-relaxed">
+                                    {displayedDescription}
+                                </p>
+
+                                {isLong && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setShowFullDescription(
+                                                !showFullDescription
+                                            )
                                         }
-                                    </p>
-                                </div>
-                            )}
+                                        className="
+                                            mt-1
+                                            font-semibold
+                                            text-green-400
+                                            hover:text-green-300
+                                        "
+                                    >
+                                        {showFullDescription
+                                            ? "Read less"
+                                            : "Read more"}
+                                    </button>
+                                )}
+                            </div>
+                        );
 
+                    })()}
                 <div
                     className="
                         absolute
@@ -1168,9 +1170,7 @@ const reelItems = useMemo(() => {
 
                     <button
                         type="button"
-                        onClick={ () =>
-                            setShowReactionUsers(true)
-                        }
+                        onClick={fetchReactionUsers}
                         className="
                             w-10
                             h-10
@@ -1193,9 +1193,7 @@ const reelItems = useMemo(() => {
 
                     <button
                         type="button"
-                        onClick={ () =>
-                            setShowViewUsers(true)
-                        }
+                        onClick={fetchViewUsers}
                         className="
                             flex
                             items-center
@@ -1293,7 +1291,7 @@ const reelItems = useMemo(() => {
                                         text-center
                                     "
                                 >
-                                    Loading...
+                                    Loading Reaction
                                 </div>
                             ) : reactionUsers.length ===
                               0 ? (
@@ -1426,7 +1424,7 @@ const reelItems = useMemo(() => {
                                         text-center
                                     "
                                 >
-                                    Loading...
+                                    Loading Viewed Reel
                                 </div>
                             ) : viewUsers.length ===
                               0 ? (

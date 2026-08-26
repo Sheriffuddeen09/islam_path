@@ -14,7 +14,7 @@ import MyReelModal from "./MyReelModal";
 import CreateReel from "./CreateReel";
 import MyReelReview from "./MyReelReview";
 export default function Reels({
-    handlePostCreated
+    handlePostCreated, chats
 }) {
 
     const {user} = useAuth()
@@ -838,192 +838,138 @@ const firstMyVideo =
 
                 </button>
 
-                    {reelUsers.map(
-                        (item, index) =>  {
 
-                    const allReelsViewed =
-                        item.reels?.length > 0 &&
-                        item.reels.every(
-                            reel => reel.has_viewed === true
-                        );
-                            
+    {reelUsers.length === 0 ? (
 
-                        return (
-                            <button
-                                key={
-                                    item.user.id
-                                }
-                                type="button"
-                                onClick={() =>
-                                    openUserReels(
-                                        index
-                                    )
-                                }
-                                className="
-                                    relative
-                                    shrink-0
-                                    w-20
-                                    h-28
-                                    sm:w-24
-                                    sm:h-36
-                                    rounded-xl
-                                    overflow-hidden
-                                    bg-gray-900
-                                    border
-                                    border-gray-700
-                                "
-                            >
+        <div
+            className="
+                shrink-0
+                w-20
+                h-28
+                sm:w-24
+                sm:h-36
+                rounded-xl
+                border-2
+                border-green-600
+                bg-green-50
+                flex
+                items-center
+                justify-center
+                text-center
+                px-2
+            "
+        >
+            <span className="text-xs font-semibold text-green-700 leading-tight">
+                No more reel status to view
+            </span>
+        </div>
 
-                                {/* REEL PREVIEW */}
+    ) : (
 
-                                {item.reels?.[0]
-                                    ?.media?.[0]
-                                    ?.type ===
-                                "image" ? (
+        reelUsers.map((item, index) => {
 
-                                    <img
-                                        src={
-                                            item
-                                                .reels[0]
-                                                .media[0]
-                                                .url
-                                        }
-                                        alt=""
-                                        className="
-                                            absolute
-                                            inset-0
-                                            w-full
-                                            h-full
-                                            object-cover
-                                        "
-                                    />
+            const allReelsViewed =
+                item.reels?.length > 0 &&
+                item.reels.every(
+                    reel => reel.has_viewed === true
+                );
 
-                                ) : item.reels?.[0]
-                                      ?.media?.[0]
-                                      ?.type ===
-                                  "video" ? (
-
-                                    <video
-                                        src={
-                                            item
-                                                .reels[0]
-                                                .media[0]
-                                                .url
-                                        }
-                                        muted
-                                        playsInline
-                                        className="
-                                            absolute
-                                            inset-0
-                                            w-full
-                                            h-full
-                                            object-cover
-                                        "
-                                    />
-
-                                ) : (
-
-                                    <div
-                                        className="
-                                            absolute
-                                            inset-0
-                                            bg-gradient-to-br
-                                            from-blue-700
-                                            to-purple-700
-                                            p-2
-                                            flex
-                                            items-center
-                                            justify-center
-                                            text-center
-                                            text-xs text-white
-                                        "
-                                    >
-                                        {
-                                            item
-                                                .reels[0]
-                                                ?.content
-                                        }
-                                    </div>
-
-                                )}
-
-
-                                {/* DARK OVERLAY */}
-
-                                <div
-                                    className="
-                                        absolute
-                                        inset-0
-                                        bg-gradient-to-t
-                                        from-black/80
-                                        via-transparent
-                                        to-black/20
-                                    "
-                                />
-
-
-                                {/* USER INITIAL */}
-
-                                <div
-                                    className={`
-                                        absolute
-                                        top-2
-                                        left-2
-                                        w-8
-                                        h-8
-                                        rounded-full
-                                        bg-blue-600
-                                        text-white
-                                        flex
-                                        items-center
-                                        justify-center
-                                        font-bold
-                                        text-sm
-                                        border
-                                        border-2
-                                        ${
-                                            allReelsViewed
-                                                ? "border-gray-300"
-                                                : "border-green-700"
-                                        }
-                                    `}
-                                >
-                                    {
-                                        item.user
-                                            .initial
-                                    }
-                                </div>
-
-
-                                {/* NAME */}
-
-                                <span
-                                    className="
-                                        absolute
-                                        bottom-2
-                                        left-2
-                                        right-2
-                                        text-white
-                                        text-xs
-                                        font-semibold
-                                        truncate
-                                        text-left
-                                    "
-                                >
-                                    {
-                                        item.user
-                                            .first_name
-                                    }
-                                </span>
-
-                            </button>
-
-                        )}
+            return (
+                <button
+                    key={item.user.id}
+                    type="button"
+                    onClick={() => openUserReels(index)}
+                    className="
+                        relative
+                        shrink-0
+                        w-20
+                        h-28
+                        sm:w-24
+                        sm:h-36
+                        rounded-xl
+                        overflow-hidden
+                        bg-gray-900
+                        border
+                        border-gray-700
+                    "
+                >
+                    {/* REEL PREVIEW */}
+                    {item.reels?.[0]?.media?.[0]?.type === "image" ? (
+                        <img
+                            src={item.reels[0].media[0].url}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                    ) : item.reels?.[0]?.media?.[0]?.type === "video" ? (
+                        <video
+                            src={item.reels[0].media[0].url}
+                            muted
+                            playsInline
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                bg-gradient-to-br
+                                from-blue-700
+                                to-purple-700
+                                p-2
+                                flex
+                                items-center
+                                justify-center
+                                text-center
+                                text-xs
+                                text-white
+                            "
+                        >
+                            {item.reels[0]?.content}
+                        </div>
                     )}
 
-                </div>
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
 
-            </div>
+                    {/* User Initial */}
+                    <div
+                        className={`
+                            absolute
+                            top-2
+                            left-2
+                            w-8
+                            h-8
+                            rounded-full
+                            bg-blue-600
+                            text-white
+                            flex
+                            items-center
+                            justify-center
+                            font-bold
+                            text-sm
+                            border-2
+                            ${
+                                allReelsViewed
+                                    ? "border-gray-300"
+                                    : "border-green-700"
+                            }
+                        `}
+                    >
+                        {item.user.initial}
+                    </div>
+
+                    {/* Name */}
+                    <span className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
+                        {item.user.first_name}
+                    </span>
+                </button>
+            );
+        })
+
+    )}
+
+</div>
+</div>
 
 
             {error && (
@@ -1043,6 +989,7 @@ const firstMyVideo =
 
             {selectedReel && (
                 <ReelViewerModal
+                    chats={chats}
                     user={selectedUser.user}
                     reel={selectedReel}
                     reelIndex={
@@ -1092,7 +1039,7 @@ const firstMyVideo =
                 <MyReelModal
                     myReels={myReels}
                     currentUser={user}
-
+                    chats={chats}
                     onClose={() =>
                         setShowMyReelModal(false)
                     }
@@ -1119,6 +1066,7 @@ const firstMyVideo =
             <MyReelReview
                 myReels={myReels}
 
+                chats={chats}
                 selectedMyIndex={
                     selectedMyIndex
                 }

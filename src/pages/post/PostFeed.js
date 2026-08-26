@@ -69,7 +69,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
     
     <div className="flex-1 transition-all mx-auto p-4 gap-3 flex justif-start flex-col items-center">
     
-      <Reels handlePostCreated={handlePostCreated} />
+      <Reels chats={chats} handlePostCreated={handlePostCreated} />
 
       {
         posts.length === 0 && (
@@ -111,7 +111,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
      
 
       <div className="flex-1 transition-all p-4 mt-28 gap-4 ml-4 relative">
-      <Reels handlePostCreated={handlePostCreated} />
+      <Reels chats={chats} handlePostCreated={handlePostCreated} />
 
       
       {
