@@ -8,7 +8,6 @@ export default function ChatItem({
   authUser,
   activeChat,
   openChat, 
-  setUiMode
 }) {
 
   const { user } = useAuth();
@@ -103,6 +102,7 @@ export default function ChatItem({
   if (message.type === "system") return message.message;
 
   if (message.type === "link") return message.message;
+  if (message.type === "reel") return message.message;
   if (message.type === "text") return message.message;
   if (message.type === "voice") return "🎤 Voice Message";
   if (message.type === "audio") return "🎧 Audio";

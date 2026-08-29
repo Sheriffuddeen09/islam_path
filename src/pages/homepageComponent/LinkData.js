@@ -24,7 +24,7 @@ background: "bg-black", },
 {
 id: 4, 
 icon: <Tv />, name: "Video",
-link: "/video", 
+link: "/post/video", 
 background: "bg-gray-900", },
 {
 id: 5, 

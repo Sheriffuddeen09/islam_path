@@ -19,12 +19,12 @@ import api from '../Api/axios';
 import useApplicationNotification from '../job/useApplicationNotification';
 
 function Navbar({messageOpen, activeChat, setActiveChat,
-  chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, videoCount,
-  handleFriendClick, handleHomeClick, handleVideoClick, handleMessageClick,
+  chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, reelCount,
+  handleFriendClick, handleHomeClick, handleReelClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
   showSettings, setShowSettings, setMessages, incomingCall, setIncomingCall, callMode, setCallMode,
           showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate,
-  meetingData, setMeetingData, setShow, jobProfile, }) {
+  meetingData, setMeetingData, setShow, jobProfile, handleVideoClick, videoCount }) {
 
       const [menu, setMenu] = useState(false)
       const homepage = useLocation().pathname
@@ -281,8 +281,8 @@ useEffect(() => {
 
                           {/* Video */}
                          <Link
-                          to="/post/video"
-                          onClick={handleVideoClick}
+                          to="/reel/video"
+                          onClick={handleReelClick}
                           className={`${
                             homepage === "/post/video" && !messageOpen
                               ? "text-blue-600"
@@ -294,10 +294,10 @@ useEffect(() => {
                         >
                           <PlaySquare />
           
-                          {videoCount > 0 && (
+                          {reelCount > 0 && (
                             <span className="absolute top-4 right-2 bg-red-500 text-white
                             text-[10px] px-1.5 rounded-full">
-                              {videoCount > 15 ? "15+" : videoCount}
+                              {reelCount > 15 ? "15+" : reelCount}
                             </span>
                           )}
           
@@ -772,6 +772,11 @@ useEffect(() => {
                                   setMenu(false)
                                   return;
                               }
+
+                              if (list.id === 5) {
+                                    handleVideoClick();
+                                    return;
+                                }
           
                               navigate(list.link);
           
@@ -786,17 +791,31 @@ useEffect(() => {
                       >
           
                           <div
-                              className="
-                                  w-10
-                                  h-10
-                                  rounded-full
-                                  flex
-                                  items-center
-                                  justify-center
-                              "
-                          >
-                              {list.icon}
-                          </div>
+                                className="
+                                    relative w-10 h-10 flex items-center
+                                    justify-center rounded-full
+                                    text-[var(--text-color)] hover:text-white
+                                    text-lg font-semibold
+                                "
+                            >
+                                {list.icon}
+
+                                {/* VIDEO COUNT */}
+                                {list.id === 5 && videoCount > 0 && (
+                                    <span
+                                        className="
+                                            absolute -top-2 -right-2
+                                            min-w-[18px] h-[18px]
+                                            flex items-center justify-center
+                                            bg-red-500 text-white
+                                            text-[10px] font-bold
+                                            px-1 rounded-full
+                                        "
+                                    >
+                                        {videoCount > 15 ? "15+" : videoCount}
+                                    </span>
+                                )}
+                            </div>
           
                           <p className="mt-2 text-sm font-semibold">
                               {list.name}

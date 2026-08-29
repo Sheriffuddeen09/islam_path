@@ -813,6 +813,7 @@ const submitPost = async () => {
         rounded-2xl
         shadow-2xl
         p-5
+        scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
       "
     >
 

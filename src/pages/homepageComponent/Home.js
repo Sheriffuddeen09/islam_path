@@ -11,7 +11,9 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     setUnreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup, showSettings,
     setShowSettings, setMessages, callMode, setCallMode, incomingCall, setIncomingCall, meetingData, setMeetingData,
     fetchJobProfile, show, setShow, jobProfile, setJobProfile, showSuccessModal, setShowSuccessModal,
-    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated
+    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated,
+    handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, handleReelClick, reelCount,
+    error, reelLoading, fetchMyReel, fetchReels
   }) {
 
 
@@ -51,6 +53,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       setShowSuccessModal={setShowSuccessModal}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+      handleReelClick={handleReelClick} reelCount={reelCount}
 
       />
 
@@ -73,7 +76,17 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       setShow={setShow} handlePostCreated={handlePostCreated}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
-      
+      handleReelCreated={handleReelCreated}
+      myReels={myReels}
+      setMyReels={setMyReels}
+      reelUsers={reelUsers}
+      setReelUsers={setReelUsers}
+      handleVideoClick={handleVideoClick}
+      videoCount={videoCount}
+      error={error}
+      reelLoading={reelLoading}
+      fetchReels={fetchReels}
+      fetchMyReel={fetchMyReel}
        />
     </div>
   )

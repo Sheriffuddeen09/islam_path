@@ -54,7 +54,6 @@ const onPlay = async () => {
     <div
       key={v.id}
       className="relative rounded-lg  aspect-video bg-black cursor-pointer"
-      onClick={() => navigate(`/post/video/${post.id}`)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

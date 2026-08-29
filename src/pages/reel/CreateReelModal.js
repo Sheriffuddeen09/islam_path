@@ -1,9 +1,17 @@
+
+
+
+
+
 import {Film, Clapperboard, X} from "lucide-react";
 import ReelVideoImageDescription from "./ReelVideoImageDescription";
 import ReelDescriptionOnly from "./ReelDescriptionOnly";
-export default function CreateReelModal({text, setText, visibility, setVisibility, submitPost, loading, showVisibilityModal,
-    setShowVisibilityModal, selected,setSelected, setCreateReel
+import { useState } from "react";
+export default function CreateReelModal({ setCreateReel, handleReelCreated
 }) {
+
+  const [selected,setSelected] = useState(null); 
+
 const options = [
 {
 id:"reel-description", title:"Reel Description", description:"Create reel using description only.", icon:<Film size={25}/>
@@ -17,17 +25,17 @@ description:"Upload video, image and description.", icon:<Clapperboard size={25}
 if(selected === "reel-full"){
 return(
 <ReelVideoImageDescription
-closeModal={() => setSelected(null)}
-text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
-setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
-visibility={visibility} setVisibility={setVisibility}
+closeModal={() => setCreateReel(false)}
+onCreated={handleReelCreated}
 />
 )
 }
 if(selected === "reel-description"){
 return(
 <ReelDescriptionOnly
-closeModal={() => setSelected(null)}
+closeModal={() => setCreateReel(false)}
+onCreated={handleReelCreated}
+
 />
 )
 }

@@ -8,7 +8,9 @@ import Reels from "../reel/Reels";
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
-  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated}) {
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated,
+handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, videoCount, handleVideoClick,
+reelLoading, error, fetchMyReel, fetchReels}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
  useEffect(() => {
@@ -54,6 +56,8 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
 
         {/* SidebarRight */}
         <SidebarLeft 
+        handleVideoClick={handleVideoClick}
+        videoCount={videoCount}
         jobProfile={jobProfile}
         setJobProfile={setJobProfile}
         fetchJobProfile={fetchJobProfile}
@@ -69,7 +73,17 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
     
     <div className="flex-1 transition-all mx-auto p-4 gap-3 flex justif-start flex-col items-center">
     
-      <Reels chats={chats} handlePostCreated={handlePostCreated} />
+      <Reels 
+       error={error}
+        reelLoading={reelLoading}
+        fetchReels={fetchReels}
+        fetchMyReel={fetchMyReel}
+       chats={chats} handlePostCreated={handlePostCreated}
+       handleReelCreated={handleReelCreated}
+        myReels={myReels}
+        setMyReels={setMyReels}
+        reelUsers={reelUsers}
+        setReelUsers={setReelUsers} />
 
       {
         posts.length === 0 && (
@@ -111,7 +125,17 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
      
 
       <div className="flex-1 transition-all p-4 mt-28 gap-4 ml-4 relative">
-      <Reels chats={chats} handlePostCreated={handlePostCreated} />
+      <Reels 
+       error={error}
+        reelLoading={reelLoading}
+        fetchReels={fetchReels}
+        fetchMyReel={fetchMyReel}
+       chats={chats} handlePostCreated={handlePostCreated}
+       handleReelCreated={handleReelCreated}
+        myReels={myReels}
+        setMyReels={setMyReels}
+        reelUsers={reelUsers}
+        setReelUsers={setReelUsers} />
 
       
       {

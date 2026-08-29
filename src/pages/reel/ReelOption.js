@@ -1,26 +1,18 @@
 import { useState } from "react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
-import { PostReportModal } from "./report/PostReportModal";
-import DownloadImageFlex from "./DownloadImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
-import Notification from "../../notification/Notification";
+import { PostReportModal } from "../post/report/PostReportModal";
+import DownloadImageFlex from "../post/DownloadImageFlex";
+import { toast } from "react-toastify";
 
+export default function ReelOptions({ post,  chats, open, setOpen, shares, setShares, showImagePicker,
+    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport }) {
 
-
-export default function PostOptions({ post,  chats }) {
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [notify, setNotify] = useState("");
-  const [openReport, setOpenReport] = useState(false)
-  const [showImagePicker, setShowImagePicker] = useState(false);
-  const [messageOpenShare, setMessageOpenShare,] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
-  const [shares, setShares] = useState(false);
   const [sending, setSending] = useState(false);
-
 
   const currentUser = useAuth()
   
@@ -29,14 +21,6 @@ export default function PostOptions({ post,  chats }) {
   const isOwner = authUser?.user?.id === post?.user?.id;
 
 
-  const showNotification = (message, type = "success") => {
-    setNotify({ message, type });
-
-    // Clear after 5 seconds
-    setTimeout(() => {
-      setNotify({ message: "", type: "" });
-    }, 5000);
-  };
 
    const handleDownloadVideo = async () => {
   try {
@@ -66,10 +50,10 @@ export default function PostOptions({ post,  chats }) {
     link.click();
     link.remove();
 
-    showNotification("Downloading video...", "success");
+    toast.success("Downloading video...", "success");
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download video!", "error");
+    toast.error("Failed to download video!", "error");
   }
 };
 
@@ -104,7 +88,7 @@ const downloadSingleImage = async (img) => {
     link.remove();
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download image", "error");
+    toast.error("Failed to download image", "error");
   }
 };
 
@@ -114,10 +98,10 @@ const downloadSingleImage = async (img) => {
     try {
       setLoading("save");
       await api.post(`/api/post/${post.id}/save-to-library`);
-      showNotification("Saved to your library!", "success");
+      toast.success("Saved to your library!", "success");
     } catch (err) {
       console.error(err);
-      showNotification("Failed to save to library!", "error");
+      toast.error("Failed to save to library!", "error");
     } finally {
       setLoading("");
     }
@@ -146,7 +130,7 @@ const downloadSingleImage = async (img) => {
     setTimeout(() => setCopied(false), 1500);
   } catch (err) {
     console.error("Failed to copy:", err);
-    alert("Copy failed. Try manually.");
+    toast.error("Copy failed. Try manually.", 'error');
   }
 };
 
@@ -178,7 +162,7 @@ const handleShare = async (platform) => {
   } else {
     // For TikTok / Instagram / YouTube
     await navigator.clipboard.writeText(shareUrl);
-    alert("Link copied! Paste it in the app to share.");
+    toast.success("Link copied! Paste it in the app to share.", 'success');
   }
 
   await api.post(`/api/post/${post.id}/share`);
@@ -201,10 +185,13 @@ const handleReport = () =>{
   setOpenReport(!openReport)
 }
   return (
-    <div className="relative bg-[var(--bg-color)] text-[var(--text-color)] inline-block text-left">
+    <div className="inline-block text-left">
       <button
         onClick={() => setOpen(!open)}
-        className="px-1 py-1 rounded-full transition"
+        className="rounded-full transition w-9 bg-black/40
+                                h-9
+                                rounded-full
+                                text-white"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 rotate-90">
     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -213,15 +200,42 @@ const handleReport = () =>{
       </button>
 
       {open && (
-        <div className="absolute top-6 right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
-           {/* <button
+        <div
+                        className="
+                            fixed
+                            inset-0
+                            z-[250]
+                            bg-black/70
+                            flex
+                            w-full 
+                            h-full
+                            flex-1
+                            items-end
+                            justify-center
+                        "
+                    >
+
+                        <div
+                            className="
+                                w-full relative
+                                bg-[var(--bg-color)]
+                                rounded-t-2xl
+                                p-4
+                                max-h-[60%]
+                                sm:max-w-[60%]
+                                overflow-y-auto
+                                scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+                            "
+                        >
+
+          <button
             onClick={() => setOpen(!open)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
+            className="absolute right-3 top-2  transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
 
-      </button> */}
+      </button>
           <ul className="flex flex-col gap- p-4">
             {/* {post.type  && ( */}
                 {post?.media?.some(m => m.type === "video") && (
@@ -289,23 +303,19 @@ const handleReport = () =>{
             </li>
           </ul>
         </div>
-      )}
-
-      {/* Notification */}
-      {notification && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 z-50 text-white px-4 py-2 rounded shadow-lg">
-          {notification}
         </div>
       )}
+
+     
     <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
         <PostReportModal post={post} onClose={handleReport} />
     </div>
     {showImagePicker && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div className="bg-white relative rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+    <div className="bg-[var(--bg-color)] text-[var(--text-color)] relative rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
       <button
             onClick={() => setShowImagePicker(!showImagePicker)}
-            className="absolute right-3 top-4  text-black rounded-full hover:text-gray-700 hover:bg-gray-700 bg-gray-100 transition 
+            className="absolute right-3 top-4 rounded-full transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
@@ -315,7 +325,7 @@ const handleReport = () =>{
 
       {post.media.some(m => m.type === "image") && (
           <div
-            className="flex items-center gap-3 mb-3 cursor-pointer hover:bg-gray-100 p-2 rounded"
+            className="grid grid-cols-2 items-center gap-3 mb-3 cursor-pointer p-2 rounded"
             
           >
             <DownloadImageFlex downloadSingleImage={downloadSingleImage} 
@@ -469,15 +479,7 @@ const handleReport = () =>{
     </div>
   </div>
 )}
+  </div>
 
-
-{notify.message && (
-          <Notification
-            message={notify.message}
-            type={notify.type} // "success" = green, "error" = red
-            onClose={() => setNotify({ message: "", type: "" })}
-          />
-        )}
-    </div>
-  );
-}
+  )
+  }

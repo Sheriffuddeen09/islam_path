@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import { useState } from "react";
 import { X,  Palette, Type,} from "lucide-react";
 import api from "../../Api/axios";

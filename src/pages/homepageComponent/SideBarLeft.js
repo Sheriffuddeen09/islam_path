@@ -8,7 +8,7 @@ import CreateAdvertisementModal from "../../advertisement/CreateAdvertisementMod
 import CreateJobModal from "../../job/CreateJobModal";
 
 export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile, showSuccessModal, setShowSuccessModal,
-    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate
+    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick
 }) {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
@@ -61,9 +61,9 @@ const isApprovedProfile =
 <>
 <aside
 className=" fixed hidden sm:block top-[75px] left-2
-h-[90vh] w-72 bg-[var(--bg-color)] shadow-md p-4 z-40
+h-[90vh] w-72 shadow-md p-4 z-40
 overflow-y-auto overflow-x-hidden
-bg-[var(--bg-color)] text-[var(--text-color)] scrollbar
+bg-[var(--bg-color)] text-[var(--text-color)]  scrollbar
 scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
 ">
 <div className="mb-6">
@@ -73,20 +73,20 @@ scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
 <li
 key={item.id}
 className=" flex items-center gap-3 p-2
-hover:bg-gray-700 hover:text-white transition cursor-pointer
+  rounded-lg transition cursor-pointer
 ">
 <div
 className=" w-8 h-8 flex items-center justify-center
-rounded-full text-[var(--text-color)]
+rounded-full text-[var(--text-color)] 
 text-lg font-semibold
 ">
 {item.icon}
 </div>
-<div className="flex flex-col">
-<span className="text-sm text-[var(--text-color)]">
+<div className="flex flex-col ">
+<span className="text-sm text-[var(--text-color)] ">
 {item.name}
 </span>
-<span className="text-xs text-[var(--text-color)]">
+<span className="text-xs text-[var(--text-color)] ">
 {item.gender}
 </span>
 </div>
@@ -98,6 +98,7 @@ text-lg font-semibold
     
      list.id === 1 ? (
     <li
+    
         key={list.id}
         onClick={() => {
     
@@ -126,11 +127,11 @@ text-lg font-semibold
             }
     
         }}
-        className="flex items-center gap-3 p-2 hover:bg-gray-700 hover:text-white transition cursor-pointer"
+        className="flex items-center gap-3 p-2 hover:border border-green-700  rounded-lg transition cursor-pointer"
     >
     
         <div
-            className="w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-color)] text-lg font-semibold"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-color)]  text-lg font-semibold"
         >
     
             {isPendingProfile ? (
@@ -143,9 +144,9 @@ text-lg font-semibold
     
         </div>
     
-        <div className="flex flex-col">
+        <div className="flex flex-col ">
     
-            <span className="text-[var(--text-color)] text-sm
+            <span className="text-[var(--text-color)]  text-sm
                     ">
     
                 {isPendingProfile
@@ -160,7 +161,7 @@ text-lg font-semibold
     
     </li>
     ) : (
-    <ul key={list.id}>
+    <ul key={list.id} className="">
         <li
             onClick={() => {
                 if (list.toggle) {
@@ -173,34 +174,55 @@ text-lg font-semibold
                     return;
                 }
 
+                if (list.id === 4) {
+                handleVideoClick();
+                return;
+            }
+
                 navigate(list.link);
             }}
             className="
                 flex items-center gap-3 p-2
-                hover:bg-gray-700 hover:text-white transition
-                cursor-pointer
+                  rounded-lg transition
+                cursor-pointer hover:border border-green-700
             "
         >
             <div
-                className="
-                    w-8 h-8 flex items-center
-                    justify-center rounded-full
-                    text-[var(--text-color)]
-                    text-lg font-semibold
-                "
-            >
-                {list.icon}
-            </div>
+            className="
+                relative w-8 h-8 flex items-center
+                justify-center rounded-full
+                text-[var(--text-color)] 
+                text-lg font-semibold
+            "
+        >
+            {list.icon}
+
+            {/* VIDEO COUNT */}
+            {list.id === 4 && videoCount > 0 && (
+                <span
+                    className="
+                        absolute -top-2 -right-2
+                        min-w-[18px] h-[18px]
+                        flex items-center justify-center
+                        bg-red-500 text-white
+                        text-[10px] font-bold
+                        px-1 rounded-full
+                    "
+                >
+                    {videoCount > 15 ? "15+" : videoCount}
+                </span>
+            )}
+        </div>
 
             <div className="flex flex-col flex-1">
-                <span className="text-sm text-[var(--text-color)]">
+                <span className="text-sm text-[var(--text-color)] ">
                     {list.name}
                 </span>
             </div>
         </li>
 
         {list.appDownload && showAppDownload && (
-            <div className="ml-10 space-y-2">
+            <div className="ml-10 space-y-2 ">
                 {(seeMoreApps
                     ? islamicApps
                     : islamicApps.slice(0, 5)
@@ -208,11 +230,11 @@ text-lg font-semibold
                     <button
                         key={app.id}
                         className="
-                            w-full text-left
+                            w-full text-left hover:border border-green-700
                             flex items-center gap-2
                             text-sm p-2 rounded-lg
-                            text-[var(--text-color)]
-                            hover:bg-gray-700 hover:text-white
+                            text-[var(--text-color)] 
+                              rounded-lg 
                         "
                     >
                         {app.icon}

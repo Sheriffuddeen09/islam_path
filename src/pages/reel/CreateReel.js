@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import CreateReelModal from "./CreateReelModal";
 
 
-export default function CreateReel({handlePostCreated, setCreateReel}) {
+export default function CreateReel({handleReelCreated, setCreateReel, handlePostCreated}) {
   const [text, setText] = useState("");
 
   const [images, setImages] = useState([]);          // original files
@@ -521,66 +521,55 @@ const submitPost = async () => {
   setLoading(true);
   try {
 
-    const res =
-      await api.post(
-        "/api/posts",
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
-          },
+   const res = await api.post(
+    "/api/posts",
+    formData,
+    {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    }
+);
 
-        }
-      );
+if (res.data.success) {
+    if (res.data.post) {
+        handlePostCreated?.(
+            res.data.post
+        );
+    }
 
+    // Reel
+    if (res.data.reel) {
+        handleReelCreated?.(
+            res.data.reel
+        );
+    }
 
-    handlePostCreated?.(
-      res.data.post
-    );
-
-
-    toast.success(
-      "Uploaded successfully!"
-    );
-
+    toast.success("Uploaded successfully!");
 
     // RESET
-
     setText("");
-
     setImages([]);
-
     setCroppedImages([]);
-
     setSelectedIndex(null);
 
-
     if (videoPreview) {
-
-      URL.revokeObjectURL(
-        videoPreview
-      );
-
+        URL.revokeObjectURL(videoPreview);
     }
 
     setVideo(null);
-
     setVideoPreview(null);
-
     setVideoDuration(0);
 
     setVideoTrim({
-      start: 0,
-      end: 0,
+        start: 0,
+        end: 0,
     });
 
     setTrimApplied(false);
-
     setShowTrimModal(false);
-
     setShowVisibilityModal(false);
-
+}
   } catch (err) {
 
     console.error(err);

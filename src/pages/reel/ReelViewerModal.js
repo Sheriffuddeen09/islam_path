@@ -8,13 +8,14 @@ import React, {
 
 import {
     X,
-    MoreVertical,
     Heart,
     Send,
     ArrowLeft,
     ArrowRight,
 } from "lucide-react";
+import ReelOptions from "./ReelOption";
 import api from "../../Api/axios";
+
 export default function ReelViewerModal({
     user,
     reel,
@@ -26,37 +27,27 @@ export default function ReelViewerModal({
 
     message,
     setMessage,
-    onSendMessage,
 
     sending,
 
-    reaction,
-    onReaction,
-
     currentUserIndex,
     reelUsers,
-    currentUser,
-
     mediaIndex,
     setMediaIndex,
 
     progress,
     setProgress,
 
+    setReaction,
+
+    setReelUsers,
+
     nextReel,
-    markReelViewed
+    markReelViewed, setSending, selectedReel, setMyReels, open, setOpen, shares, setShares, showImagePicker,
+    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport
 }) {
 
     const videoRef = useRef(null);
-
-    const [showReactionUsers, setShowReactionUsers] =
-        useState(false);
-
-    const [reactionUsers, setReactionUsers] =
-        useState([]);
-
-    const [loadingReactionUsers, setLoadingReactionUsers] =
-        useState(false);
 
     const [createdTime, setCreatedTime] = useState("");
 
@@ -67,11 +58,28 @@ export default function ReelViewerModal({
     const [showFullDescription, setShowFullDescription] =
     useState(false);
 
+    const messageRef = useRef("");
+    const openRef = useRef(false);
+
+    const timerStartRef = useRef(null);
+    const elapsedBeforePauseRef = useRef(0);
+
+    useEffect(() => {
+    openRef.current = open;
+    }, [open]);
+
+    useEffect(() => {
+        messageRef.current = message;
+    }, [message]);
+
+
+    const isProgressPaused =
+    message.trim().length > 0 || open;
+
 const allUserReels =
     reelUsers?.[currentUserIndex]?.reels || [];
 
 const reelItems = useMemo(() => {
-
     const items = [];
 
     allUserReels
@@ -83,22 +91,36 @@ const reelItems = useMemo(() => {
         )
         .forEach((reelItem) => {
 
+            // TEXT / CONTENT
             if (
                 typeof reelItem.content === "string" &&
                 reelItem.content.trim()
             ) {
-
                 items.push({
                     type: "content",
+
                     id: `content-${reelItem.id}`,
-                    content: reelItem.content,
+
+                    // No media for content
+                    mediaId: null,
+
                     reelId: reelItem.id,
+
+                    content: reelItem.content,
+
                     created_at: reelItem.created_at,
+
+                    // Reel-level fallback
+                    user_reaction:
+                        reelItem.user_reaction || null,
+
+                    has_viewed:
+                        reelItem.has_viewed === true,
                 });
             }
-            if (
-                Array.isArray(reelItem.media)
-            ) {
+
+            // MEDIA
+            if (Array.isArray(reelItem.media)) {
 
                 reelItem.media
                     .slice()
@@ -110,26 +132,236 @@ const reelItems = useMemo(() => {
                     .forEach((mediaItem) => {
 
                         items.push({
+
                             ...mediaItem,
 
-                            reelId:
-                                reelItem.id,
+                            // VERY IMPORTANT
+                            mediaId: Number(mediaItem.id),
+
+                            reelId: Number(reelItem.id),
 
                             created_at:
                                 reelItem.created_at,
+
+                            // These should come from backend
+                            user_reaction:
+                                mediaItem.user_reaction || null,
+
+                            has_viewed:
+                                mediaItem.has_viewed === true,
+
+                            message_count:
+                                mediaItem.message_count || 0,
                         });
 
                     });
             }
-
         });
 
     return items;
 
 }, [allUserReels]);
 
+
 const currentItem =
     reelItems[mediaIndex] || null;
+
+    const currentReaction =
+    currentItem?.user_reaction || "";
+
+
+    const onReaction = async (value) => {
+    if (!selectedReel || !currentItem) {
+        return;
+    }
+
+    const reelId = Number(
+        currentItem.reelId || selectedReel.id
+    );
+
+    const mediaId = currentItem.mediaId
+        ? Number(currentItem.mediaId)
+        : null;
+
+    
+    setReaction(value || "");
+
+    // -----------------------------------------
+    // UPDATE REEL USERS
+    // -----------------------------------------
+    setReelUsers(prev =>
+        prev.map(userGroup => ({
+            ...userGroup,
+
+            reels: Array.isArray(userGroup.reels)
+                ? userGroup.reels.map(reel => {
+
+                    if (
+                        Number(reel.id) !==
+                        reelId
+                    ) {
+                        return reel;
+                    }
+
+                    // -------------------------
+                    // CONTENT ITEM
+                    // -------------------------
+                    if (!mediaId) {
+                        return {
+                            ...reel,
+                            user_reaction:
+                                value || null,
+                        };
+                    }
+
+                    // -------------------------
+                    // MEDIA ITEM
+                    // -------------------------
+                    return {
+                        ...reel,
+
+                        media:
+                            Array.isArray(
+                                reel.media
+                            )
+                                ? reel.media.map(
+                                    media => {
+
+                                        if (
+                                            Number(
+                                                media.id
+                                            ) !==
+                                            mediaId
+                                        ) {
+                                            return media;
+                                        }
+
+                                        return {
+                                            ...media,
+                                            user_reaction:
+                                                value ||
+                                                null,
+                                        };
+                                    }
+                                )
+                                : reel.media,
+                    };
+                })
+                : userGroup.reels,
+        }))
+    );
+
+    // -----------------------------------------
+    // UPDATE MY REELS TOO
+    // -----------------------------------------
+    setMyReels(prev =>
+        prev.map(reel => {
+
+            if (
+                Number(reel.id) !== reelId
+            ) {
+                return reel;
+            }
+
+            // CONTENT
+            if (!mediaId) {
+                return {
+                    ...reel,
+                    user_reaction:
+                        value || null,
+                };
+            }
+
+            // MEDIA
+            return {
+                ...reel,
+
+                media:
+                    Array.isArray(reel.media)
+                        ? reel.media.map(media =>
+                            Number(media.id) ===
+                            mediaId
+                                ? {
+                                    ...media,
+                                    user_reaction:
+                                        value ||
+                                        null,
+                                }
+                                : media
+                        )
+                        : reel.media,
+            };
+        })
+    );
+
+    // -----------------------------------------
+    // SEND TO BACKEND
+    // -----------------------------------------
+    try {
+
+        await api.post(
+            `/api/reels/${reelId}/reaction`,
+            {
+                reaction: value,
+
+                // null for text/content
+                media_id: mediaId,
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "REACTION ERROR:",
+            error
+        );
+
+        // You can refetch here if needed
+    }
+};
+
+    const onSendMessage = async () => {
+
+    if (
+        !selectedReel ||
+        !message.trim() ||
+        sending
+    ) {
+        return;
+    }
+
+    if (!currentItem) {
+        return;
+    }
+
+    try {
+
+        setSending(true);
+
+        await api.post(
+            `/api/reels/${selectedReel.id}/message`,
+            {
+                message: message.trim(),
+
+                post_media_id:
+                    currentItem.mediaId || null,
+            }
+        );
+
+        setMessage("");
+
+    } catch (error) {
+
+        console.error(
+            "MESSAGE ERROR:",
+            error
+        );
+
+    } finally {
+
+        setSending(false);
+    }
+};
 
 
 useEffect(() => {
@@ -144,6 +376,10 @@ useEffect(() => {
 
     if (!currentItem) {
         setMediaReady(false);
+        return;
+    }
+
+    if (isProgressPaused) {
         return;
     }
 
@@ -205,8 +441,9 @@ const currentItemDuration = useMemo(() => {
 }, [currentItem]);
 
 
-    useEffect(() => {
+   useEffect(() => {
 
+    // Clear previous timer
     if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -216,12 +453,12 @@ const currentItemDuration = useMemo(() => {
         return;
     }
 
-    // VIDEO controls its own progress
+    // Video has its own progress
     if (currentItem.type === "video") {
         return;
     }
 
-    // IMAGE is not loaded yet
+    // Wait until image is ready
     if (!mediaReady) {
         return;
     }
@@ -229,14 +466,60 @@ const currentItemDuration = useMemo(() => {
     const duration =
         currentItemDuration || 5;
 
-    const startedAt = Date.now();
-
+    // Reset only when a NEW media item starts
     setProgress(0);
+
+    elapsedBeforePauseRef.current = 0;
+    timerStartRef.current = Date.now();
 
     timerRef.current = setInterval(() => {
 
+        /*
+        |--------------------------------------------------------------------------
+        | PAUSE WHEN MESSAGE OR OPTIONS ARE OPEN
+        |--------------------------------------------------------------------------
+        */
+
+        const shouldPause =
+            messageRef.current.trim().length > 0 ||
+            openRef.current === true;
+
+        if (shouldPause) {
+
+            // Save elapsed time only once
+            if (timerStartRef.current) {
+
+                elapsedBeforePauseRef.current +=
+                    (
+                        Date.now() -
+                        timerStartRef.current
+                    ) / 1000;
+
+                timerStartRef.current = null;
+            }
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESUME
+        |--------------------------------------------------------------------------
+        */
+
+        if (!timerStartRef.current) {
+            timerStartRef.current = Date.now();
+        }
+
+
         const elapsed =
-            (Date.now() - startedAt) / 1000;
+            elapsedBeforePauseRef.current +
+            (
+                Date.now() -
+                timerStartRef.current
+            ) / 1000;
+
 
         const percent =
             Math.min(
@@ -244,7 +527,15 @@ const currentItemDuration = useMemo(() => {
                 100
             );
 
+
         setProgress(percent);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NEXT MEDIA
+        |--------------------------------------------------------------------------
+        */
 
         if (percent >= 100) {
 
@@ -254,10 +545,13 @@ const currentItemDuration = useMemo(() => {
 
             timerRef.current = null;
 
+            timerStartRef.current = null;
+
             handleNextMedia();
         }
 
     }, 50);
+
 
     return () => {
 
@@ -270,6 +564,7 @@ const currentItemDuration = useMemo(() => {
             timerRef.current = null;
         }
 
+        timerStartRef.current = null;
     };
 
 }, [
@@ -342,72 +637,93 @@ const currentItemDuration = useMemo(() => {
 
 }, [reel?.created_at]);
 
-    const isReelOwner =
-        Number(currentUser?.id) ===
-        Number(reel?.user?.id);
-
     
        const markedViewedRef = useRef(new Set());
 
-        useEffect(() => {
-            if (!currentItem?.reelId) {
-                return;
-            }
+useEffect(() => {
 
-            const reelId = Number(currentItem.reelId);
+    if (!currentItem) {
+        return;
+    }
 
-            if (!reelId) {
-                return;
-            }
+    // =========================================
+    // CONTENT
+    // =========================================
+    if (
+        currentItem.type === "content"
+    ) {
 
-            if (markedViewedRef.current.has(reelId)) {
-                return;
-            }
+        const reelId =
+            Number(currentItem.reelId);
 
-            markedViewedRef.current.add(reelId);
-
-            // DON'T await this
-            markReelViewed?.(reelId);
-
-        }, [
-            currentItem?.reelId,
-            markReelViewed
-        ]);
-
-
-    const fetchReactionUsers = async () => {
-
-        if (!reel?.id) {
+        if (!reelId) {
             return;
         }
 
-        try {
+        const viewedKey =
+            `reel-content-${reelId}`;
 
-            setLoadingReactionUsers(true);
-
-            const response = await api.get(
-                `/api/reels/${reel.id}/reactions`
-            );
-
-            setReactionUsers(
-                response.data.users || []
-            );
-
-            setShowReactionUsers(true);
-
-        } catch (error) {
-
-            console.error(
-                "REACTION USERS ERROR:",
-                error
-            );
-
-        } finally {
-
-            setLoadingReactionUsers(false);
-
+        if (
+            markedViewedRef.current.has(
+                viewedKey
+            )
+        ) {
+            return;
         }
-    };
+
+        markedViewedRef.current.add(
+            viewedKey
+        );
+
+        markReelViewed?.(
+            reelId,
+            null
+        );
+
+        return;
+    }
+
+    // =========================================
+    // IMAGE / VIDEO
+    // =========================================
+    const mediaId =
+        Number(currentItem.mediaId);
+
+    const reelId =
+        Number(currentItem.reelId);
+
+    if (!reelId || !mediaId) {
+        return;
+    }
+
+    const viewedKey =
+        `media-${mediaId}`;
+
+    if (
+        markedViewedRef.current.has(
+            viewedKey
+        )
+    ) {
+        return;
+    }
+
+    markedViewedRef.current.add(
+        viewedKey
+    );
+
+    markReelViewed?.(
+        reelId,
+        mediaId
+    );
+
+}, [
+    currentItem?.id,
+    currentItem?.type,
+    currentItem?.mediaId,
+    currentItem?.reelId,
+    markReelViewed
+]);
+
 
    const getFirstUnviewedIndex = useCallback(() => {
 
@@ -524,9 +840,42 @@ useEffect(() => {
 ]);
 
 
+useEffect(() => {
+
+    const video =
+        videoRef.current;
+
+    if (!video) {
+        return;
+    }
+
+    if (message.trim()) {
+
+        video.pause();
+
+        return;
+    }
+
+    // Only resume if current item is video
+    if (
+        currentItem?.type === "video"
+    ) {
+        video.play().catch(() => {});
+    }
+
+}, [
+    message,
+    currentItem?.id,
+    currentItem?.type
+]);
+
     const handleVideoTimeUpdate = (e) => {
 
     const video = e.currentTarget;
+
+    if (message.trim()) {
+        return;
+    }
 
     if (
         !video.duration ||
@@ -534,6 +883,7 @@ useEffect(() => {
     ) {
         return;
     }
+    
 
     const percent =
         (video.currentTime / video.duration) * 100;
@@ -711,7 +1061,15 @@ useEffect(() => {
                     >
 
                     
-
+                        <ReelOptions post={reel} chats={chats} open={open} setOpen={setOpen}
+                        showImagePicker={showImagePicker}
+                        setShowImagePicker={setShowImagePicker}
+                        messageOpenShare={messageOpenShare}
+                        setMessageOpenShare={setMessageOpenShare}
+                        openReport={openReport}
+                        setOpenReport={setOpenReport}
+                        shares={shares}
+                        setShares={setShares} />
                         {/* CLOSE */}
 
                         <button
@@ -753,7 +1111,7 @@ useEffect(() => {
                         left-2
                         top-1/2
                         -translate-y-1/2
-                        z-40
+                        z-10
                         w-10
                         h-10
                         rounded-full
@@ -779,7 +1137,7 @@ useEffect(() => {
                             right-2
                             top-1/2
                             -translate-y-1/2
-                            z-40
+                            z-10
                             w-10
                             h-10
                             rounded-full
@@ -959,9 +1317,6 @@ useEffect(() => {
 
                             })()}
 
-                {/* =================================================
-                    BOTTOM CHAT BAR
-                ================================================== */}
 
                 <div
                     className="
@@ -969,7 +1324,7 @@ useEffect(() => {
                         bottom-0
                         left-0
                         right-0
-                        z-50
+                        z-10
                         p-3
                         bg-gradient-to-t
                         from-black
@@ -988,81 +1343,45 @@ useEffect(() => {
 
                         {/* REACTION */}
 
-                        {!isReelOwner && (
                         <button
-                            type="button"
-                            onClick={() =>
-                                onReaction(
-                                    reaction === "❤️"
-                                        ? ""
-                                        : "❤️"
-                                )
-                            }
-                            className={`
-                                shrink-0
-                                w-11
-                                h-11
-                                rounded-full
-                                flex
-                                items-center
-                                justify-center
-                                border
-                                ${
-                                    reaction
-                                        ? "bg-green-500/30 border-red-400"
-                                        : "bg-white/10 border-white/30"
+                                type="button"
+                                onClick={() =>
+                                    onReaction(
+                                        currentReaction === "❤️"
+                                            ? ""
+                                            : "❤️"
+                                    )
                                 }
-                            `}
-                        >
-                            <Heart
-                                size={20}
-                                fill={
-                                    reaction
-                                        ? "currentColor"
-                                        : "none"
-                                }
-                                className={
-                                    reaction
-                                        ? "text-green-400"
-                                        : "text-white"
-                                }
-                            />
-                        </button>
-                    )}
-
-
-                    {Number(reel?.reactions_count || 0) > 0 && (
-                    <button
-                        type="button"
-                        onClick={fetchReactionUsers}
-                        className="
-                            shrink-0
-                            flex
-                            items-center
-                            gap-1
-                            px-2
-                            h-9
-                            rounded-full
-                            bg-black/40
-                            border
-                            border-white/20
-                            text-white
-                            hover:bg-black/60
-                            transition
-                        "
-                    >
-                        <Heart
-                            size={17}
-                            fill="currentColor"
-                            className="text-red-400"
-                        />
-
-                        <span className="text-sm">
-                            {reel.reactions_count}
-                        </span>
-                    </button>
-                )}
-
+                                className={`
+                                    shrink-0
+                                    w-11
+                                    h-11
+                                    rounded-full
+                                    flex
+                                    items-center
+                                    justify-center
+                                    border
+                                    ${
+                                        currentReaction
+                                            ? "bg-green-500/30 border-green-400"
+                                            : "bg-white/10 border-white/30"
+                                    }
+                                `}
+                            >
+                                <Heart
+                                    size={20}
+                                    fill={
+                                        currentReaction
+                                            ? "currentColor"
+                                            : "none"
+                                    }
+                                    className={
+                                        currentReaction
+                                            ? "text-green-400"
+                                            : "text-white"
+                                    }
+                                />
+                            </button>
                         {/* INPUT */}
 
                         <div
@@ -1140,246 +1459,7 @@ useEffect(() => {
                 </div>
 
 
-        {showReactionUsers && (
-    <div
-        className="
-            fixed
-            inset-0
-            z-[100]
-            bg-black/70
-            flex
-            items-center
-            justify-center
-            p-4
-        "
-        onClick={() =>
-            setShowReactionUsers(false)
-        }
-    >
-
-        <div
-            className="
-                w-full
-                max-w-md
-                max-h-[80vh]
-                bg-[var(--bg-color)]
-                rounded-2xl
-                shadow-2xl
-                overflow-hidden
-                border
-                border-white/10
-            "
-            onClick={(e) =>
-                e.stopPropagation()
-            }
-        >
-
-            {/* HEADER */}
-
-            <div
-                className="
-                    flex
-                    items-center
-                    justify-between
-                    px-5
-                    py-4
-                    border-b
-                    border-white/10
-                "
-            >
-
-                <div className="flex items-center gap-2">
-
-                    <Heart
-                        size={20}
-                        fill="currentColor"
-                        className="text-red-400"
-                    />
-
-                    <h3
-                        className="
-                            text-lg
-                            font-semibold
-                        "
-                    >
-                        Reactions
-                    </h3>
-
-                </div>
-
-                <button
-                    type="button"
-                    onClick={() =>
-                        setShowReactionUsers(false)
-                    }
-                    className="
-                        w-8
-                        h-8
-                        rounded-full
-                        flex
-                        items-center
-                        justify-center
-                        bg-white/10
-                        hover:bg-white/20
-                    "
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            {/* USERS */}
-
-            <div
-                className="
-                    max-h-[60vh]
-                    overflow-y-auto
-                    overscroll-contain
-                    px-4
-                    py-3
-                "
-            >
-
-                {loadingReactionUsers ? (
-
-                    <div
-                        className="
-                            py-10
-                            text-center
-                            text-gray-400
-                        "
-                    >
-                        Loading reactions
-                    </div>
-
-                ) : reactionUsers.length === 0 ? (
-
-                    <div
-                        className="
-                            py-10
-                            text-center
-                            text-gray-400
-                        "
-                    >
-                        No reactions yet.
-                    </div>
-
-                ) : (
-
-                    <div className="space-y-2">
-
-                        {reactionUsers.map(
-                            (reactedUser) => (
-
-                                <div
-                                    key={
-                                        reactedUser.id
-                                    }
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-3
-                                        px-3
-                                        py-2
-                                        rounded-xl
-                                        hover:bg-white/5
-                                    "
-                                >
-
-                                    {/* AVATAR */}
-
-                                    {reactedUser.profile_photo ? (
-
-                                        <img
-                                            src={
-                                                reactedUser.profile_photo
-                                            }
-                                            alt=""
-                                            className="
-                                                w-10
-                                                h-10
-                                                rounded-full
-                                                object-cover
-                                            "
-                                        />
-
-                                    ) : (
-
-                                        <div
-                                            className="
-                                                w-10
-                                                h-10
-                                                rounded-full
-                                                bg-white/10
-                                                flex
-                                                items-center
-                                                justify-center
-                                                font-semibold
-                                            "
-                                        >
-                                            {(
-                                                reactedUser.first_name ||
-                                                "U"
-                                            )
-                                                .charAt(0)
-                                                .toUpperCase()}
-                                        </div>
-
-                                    )}
-
-
-                                    {/* NAME */}
-
-                                    <div
-                                        className="
-                                            flex-1
-                                            min-w-0
-                                        "
-                                    >
-
-                                        <p
-                                            className="
-                                                font-medium
-                                                truncate
-                                            "
-                                        >
-                                            {
-                                                reactedUser.first_name
-                                            }{" "}
-                                            {
-                                                reactedUser.last_name
-                                            }
-                                        </p>
-
-                                    </div>
-
-
-                                    {/* REACTION */}
-
-                                    <span
-                                        className="
-                                            text-xl
-                                        "
-                                    >
-                                        ❤️
-                                    </span>
-
-                                </div>
-
-                            )
-                        )}
-
-                    </div>
-
-                )}
-
-            </div>
-
-        </div>
-
-    </div>
-)}
+       
         </div>
         </div>
     );

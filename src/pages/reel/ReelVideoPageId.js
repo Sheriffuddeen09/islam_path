@@ -1,19 +1,22 @@
+
+
+
+
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import api from "../../Api/axios";
-import PostComment from "./PostComment";
+import PostComment from "../post/PostComment";
 import logo from '../../layout/image/favicon.png'
-import PostOptions from "./PostOption";
+import PostOptions from "../post/PostOption";
 import { useAuth } from "../../layout/AuthProvider";
-import Notification from "../../notification/Notification";
-import { PostCommentInput } from "./PostCommentInput";
+import { PostCommentInput } from "../post/PostCommentInput";
 import { useSwipeable } from "react-swipeable";
-import PostOptionsId from "./PostOptionId";
+import PostOptionsId from "../post/PostOptionId";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function PostVideoPageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
+export default function ReelVideoPageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
   showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, chats
  }) {
 
@@ -21,7 +24,7 @@ export default function PostVideoPageId({ image, postComments, setPostComments, 
     const navigate = useNavigate();
     const videoRef = useRef(null);
   
-    const [videos, setVideos] = useState([]);
+    const [reels, setReels] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
   
     const [isPlaying, setIsPlaying] = useState(false);
@@ -100,11 +103,11 @@ useEffect(() => {
   async function fetchVideos() {
       setLoadingVideos(true);
     try {
-      const res = await api.get("/api/posts-get");
+      const res = await api.get("/api/reels-get");
       const data = res.data.posts;
       if (!Array.isArray(data)) return;
 
-      setVideos(data);
+      setReels(data);
 
       const index = data.findIndex(v => v.id === Number(id));
       setCurrentIndex(index >= 0 ? index : 0);
@@ -118,19 +121,19 @@ useEffect(() => {
 
 
 
-   const currentPost = videos[currentIndex];
+   const currentPost = reels[currentIndex];
     const currentMedia = currentPost?.media?.find(m => m.type === "video");
   
     // Preload next video (instant switch)
     useEffect(() => {
-      const next = videos[currentIndex + 1];
+      const next = reels[currentIndex + 1];
       const nextVideo = next?.media?.find(m => m.type === "video");
       if (nextVideo?.url) {
         const v = document.createElement("video");
         v.src = nextVideo.url;
         v.preload = "auto";
       }
-    }, [currentIndex, videos]);
+    }, [currentIndex, reels]);
   
     
     // Sync UI with real video state
@@ -160,7 +163,7 @@ useEffect(() => {
         v.removeEventListener("loadedmetadata", onLoaded);
         v.removeEventListener("ended", onEnded);
       };
-    }, [currentIndex, videos, allowAutoNext]);
+    }, [currentIndex, reels, allowAutoNext]);
   
     const togglePlay = () => {
       const v = videoRef.current;
@@ -210,7 +213,7 @@ useEffect(() => {
   
 
     const handleNext = () => {
-      if (currentIndex < videos.length - 1) {
+      if (currentIndex < reels.length - 1) {
         setCurrentIndex(i => i + 1);
       }
     };
@@ -224,7 +227,7 @@ useEffect(() => {
     const handleVideoEnd = () => {
       if (!allowAutoNext) return;
   
-      if (currentIndex < videos.length - 1) {
+      if (currentIndex < reels.length - 1) {
         setNotifyNext(true);
   
         const t = setTimeout(() => {
@@ -703,7 +706,7 @@ const shareToChat = async (chatId) => {
          {/* Desktop buttons (RIGHT SIDE like Facebook) */}
        <button
           onClick={handleNext}
-          disabled={currentIndex === videos.length - 1}
+          disabled={currentIndex === reels.length - 1}
           className="bg-black/60 text-white px-4 py-3 translate-y-10 rounded-full absolute left-4 hidden sm:block
                     disabled:opacity-40 disabled:pointer-events-none"
         >
@@ -1164,13 +1167,6 @@ const shareToChat = async (chatId) => {
   </div>
 )}
 
- {notify.message && (
-          <Notification
-            message={notify.message}
-            type={notify.type} // "success" = green, "error" = red
-            onClose={() => setNotify({ message: "", type: "" })}
-          />
-        )}
     </div>
   );
 }

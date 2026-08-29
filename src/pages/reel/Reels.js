@@ -11,22 +11,23 @@ import api from "../../Api/axios";
 import ReelViewerModal from './ReelViewerModal'
 import { useAuth } from '../../layout/AuthProvider';
 import MyReelModal from "./MyReelModal";
-import CreateReel from "./CreateReel";
+import CreateReelModal from "./CreateReelModal";
 import MyReelReview from "./MyReelReview";
 export default function Reels({
-    handlePostCreated, chats
+    handleReelCreated, chats, myReels, setMyReels, reelUsers, setReelUsers,
+    reelLoading, fetchMyReel, fetchReels, error
 }) {
 
     const {user} = useAuth()
 
+    const { user: authUser } = useAuth();
+    
+
   const [createReel, setCreateReel] = useState(false);
 
-    const [reelUsers, setReelUsers] =
-        useState([]);
-    const [loading, setLoading] =
-        useState(true);
-    const [error, setError] =
-        useState("");
+    const [open, setOpen] = useState(false);
+    
+    
     const [selectedUserIndex, setSelectedUserIndex] =
         useState(null);
     
@@ -40,7 +41,10 @@ export default function Reels({
         useState(null);
     const [mediaIndex, setMediaIndex] = useState(0);
 
-    const [myReels, setMyReels] = useState([]);
+    const [openReport, setOpenReport] = useState(false)
+    const [showImagePicker, setShowImagePicker] = useState(false);
+    const [messageOpenShare, setMessageOpenShare,] = useState(false)
+    const [shares, setShares] = useState(false);
 
     const [
     showMyReelModal,
@@ -69,10 +73,7 @@ export default function Reels({
     const [reactionUsers, setReactionUsers] =
         useState([]);
 
-    useEffect(() => {
-        fetchReels();
-        fetchMyReel()
-    }, []);
+    
 
     const markReelViewed = async (reelId) => {
         try {
@@ -82,59 +83,7 @@ export default function Reels({
         }
     };
 
-    const fetchReels = async () => {
-
-        try {
-
-            setLoading(true);
-
-            const response =
-                await api.get(
-                    "/api/reels"
-                );
-
-            setReelUsers(
-                response.data.reels || []
-            );
-
-        } catch (error) {
-
-            console.error(
-                "REEL FETCH ERROR:",
-                error
-            );
-
-            setError(
-                error.response?.data?.message ||
-                "Unable to load reels."
-            );
-
-        } finally {
-
-            setLoading(false);
-
-        }
-    };
-
-    const fetchMyReel = async () => {
-    try {
-
-        const response = await api.get("/api/reels");
-
-        setMyReels(
-            response.data.my_reels || []
-        );
-
-
-    } catch (error) {
-         setError(
-                error.response?.data?.message ||
-                "Unable to load reels."
-            );
-    }
   
-};
-
     const currentInitial =
         (
             user?.first_name ||
@@ -256,7 +205,7 @@ export default function Reels({
 
         setMyMediaIndex(0);
         setMyProgress(0);
-        setReactionUsers(null);
+        // setReactionUsers(null);
 
         return;
     }
@@ -273,7 +222,7 @@ export default function Reels({
         setSelectedReelIndex(0);
         setMyMediaIndex(0);
         setMyProgress(0);
-        setReactionUsers(null);
+        // setReactionUsers(null);
 
         return;
     }
@@ -379,73 +328,67 @@ const previousMyReel = () => {
 };
 
 
-    const sendReaction = async (
-        value
-    ) => {
+    const sendReaction = async (value) => {
+    if (!selectedReel) {
+        return;
+    }
 
-        if (!selectedReel) {
-            return;
-        }
+    const reelId = selectedReel.id;
 
-        try {
+    // Update the button immediately
+    setReaction(value);
 
-            setReaction(value);
+    // Update the actual reel inside reelUsers
+    setReelUsers(prev =>
+        prev.map(userGroup => ({
+            ...userGroup,
 
-            await api.post(
-                `/api/reels/${selectedReel.id}/reaction`,
-                {
-                    reaction: value,
+            reels: Array.isArray(userGroup.reels)
+                ? userGroup.reels.map(reel =>
+                    Number(reel.id) === Number(reelId)
+                        ? {
+                            ...reel,
+                            user_reaction: value || null,
+                        }
+                        : reel
+                )
+                : userGroup.reels,
+        }))
+    );
+
+    // If the selected reel is also one of your reels,
+    // update myReels too
+    setMyReels(prev =>
+        prev.map(reel =>
+            Number(reel.id) === Number(reelId)
+                ? {
+                    ...reel,
+                    user_reaction: value || null,
                 }
-            );
+                : reel
+        )
+    );
 
-        } catch (error) {
+    try {
+        await api.post(
+            `/api/reels/${reelId}/reaction`,
+            {
+                reaction: value,
+            }
+        );
 
-            console.error(
-                "REACTION ERROR:",
-                error
-            );
+    } catch (error) {
 
-        }
-    };
+        console.error(
+            "REACTION ERROR:",
+            error
+        );
 
-    const sendMessage = async () => {
+        // Optional: revert if API fails
+    }
+};
 
-        if (
-            !selectedReel ||
-            !message.trim() ||
-            sending
-        ) {
-            return;
-        }
-
-        try {
-
-            setSending(true);
-
-            await api.post(
-                `/api/reels/${selectedReel.id}/message`,
-                {
-                    message:
-                        message.trim(),
-                }
-            );
-
-            setMessage("");
-
-        } catch (error) {
-
-            console.error(
-                "MESSAGE ERROR:",
-                error
-            );
-
-        } finally {
-
-            setSending(false);
-
-        }
-    };
-
+    
 
     const hasMyReels =
     Array.isArray(myReels) &&
@@ -476,9 +419,25 @@ const firstMyVideo =
         media => media.type === "video"
     );
 
+   const isUserInChatList =
+    Array.isArray(chats) &&
+    chats.some(chat => {
+        const chatUser =
+            chat?.other_user ??
+            chat?.other ??
+            (
+                Number(chat?.teacher_id) === Number(authUser?.id)
+                    ? chat?.student
+                    : chat?.teacher
+            );
+
+        return Number(chatUser?.id) === Number(user?.id);
+    });
+
+    const canShowButton = isUserInChatList;
 
 
-    if (loading) {
+    if (reelLoading) {
     return (
         <div
             className="
@@ -647,331 +606,433 @@ const firstMyVideo =
                     scrollbar-hide
                 "
             >
+              {!canShowButton && (
 
-             <div
-                className="
-                    flex
-                    gap-3
-                    min-w-max
-                "
-            >
-                <button
-                    type="button"
-                    onClick={() => {
-                        if (hasMyReels) {
-                            setShowMyReelModal(true);
-                        } else {
-                            setCreateReel(true);
-                        }
-                    }}
-                    className={`
-                        relative
-                        shrink-0
-                        w-20
-                        h-28
-                        sm:w-24
-                        sm:h-36
-                        rounded-xl
-                        overflow-hidden
-                        border-2
-                        ${
-                            hasMyReels
-                                ? "border-green-500"
-                                : "border-gray-700"
-                        }
-                        bg-gray-800
-                    `}
-                >
+    <div
+        className="
+            flex
+            gap-3
+            min-w-max
+        "
+    >
 
-                    {firstMyReel ? (
-
-                        <div className="absolute inset-0">
-
-                            {firstMyImage && (
-                                <img
-                                    src={firstMyImage.url}
-                                    alt=""
-                                    className="
-                                        absolute
-                                        inset-0
-                                        w-full
-                                        h-full
-                                        object-cover
-                                    "
-                                />
-                            )}
-
-                            {!firstMyImage &&
-                                firstMyVideo && (
-                                    <video
-                                        src={firstMyVideo.url}
-                                        muted
-                                        playsInline
-                                        preload="metadata"
-                                        className="
-                                            absolute
-                                            inset-0
-                                            w-full
-                                            h-full
-                                            object-cover
-                                        "
-                                    />
-                                )}
-
-                            {!firstMyImage &&
-                                !firstMyVideo &&
-                                firstMyReel.content && (
-                                    <div
-                                        className="
-                                            absolute
-                                            inset-0
-                                            flex
-                                            items-center
-                                            justify-center
-                                            p-3
-                                            text-white
-                                            text-center
-                                            text-xs
-                                            font-semibold
-                                            bg-gradient-to-br
-                                            from-blue-700
-                                            to-purple-700
-                                        "
-                                    >
-                                        <span className="line-clamp-6">
-                                            {firstMyReel.content}
-                                        </span>
-                                    </div>
-                                )}
-
-                            <div
-                                className="
-                                    absolute
-                                    inset-0
-                                    bg-black/30
-                                "
-                            />
-
-                        </div>
-
-                    ) : (
-
-                        <div
-                            className="
-                                absolute
-                                inset-0
-                                bg-gray-800
-                            "
-                        />
-
-                    )}
-
-                    <div
-                        className={`
-                            absolute
-                            top-2
-                            left-1/2
-                            -translate-x-1/2
-                            w-12
-                            h-12
-                            rounded-full
-                            bg-blue-600
-                            text-white
-                            flex
-                            items-center
-                            justify-center
-                            text-xl
-                            font-bold
-                            border-[3px]
-                            ${
-                                hasMyReels
-                                    ? "border-green-500"
-                                    : "border-gray-400"
-                            }
-                        `}
-                    >
-                        {currentInitial}
-                    </div>
-
-                    <div
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setCreateReel(true);
-                        }}
-                        className="
-                            absolute
-                            bottom-8
-                            left-1/2
-                            -translate-x-1/2
-                            w-8
-                            h-8
-                            rounded-full
-                            bg-blue-600
-                            border-2
-                            border-white
-                            text-white
-                            flex
-                            items-center
-                            justify-center
-                            z-20
-                            cursor-pointer
-                        "
-                    >
-                        <Plus size={18} />
-                    </div>
-
-                    <span
-                        className="
-                            absolute
-                            bottom-2
-                            left-0
-                            right-0
-                            z-20
-                            text-xs
-                            font-semibold
-                            text-white
-                            text-center
-                        "
-                    >
-                        Create Reel
-                    </span>
-
-                </button>
-
-
-    {reelUsers.length === 0 ? (
-
-        <div
-            className="
+        <button
+            type="button"
+            onClick={() => {
+                if (hasMyReels) {
+                    setShowMyReelModal(true);
+                } else {
+                    setCreateReel(true);
+                }
+            }}
+            className={`
+                relative
                 shrink-0
                 w-20
                 h-28
                 sm:w-24
                 sm:h-36
                 rounded-xl
+                overflow-hidden
                 border-2
-                border-green-600
-                bg-green-50
-                flex
-                items-center
-                justify-center
-                text-center
-                px-2
-            "
+                ${
+                    hasMyReels
+                        ? "border-green-500"
+                        : "border-gray-700"
+                }
+                bg-gray-800
+            `}
         >
-            <span className="text-xs font-semibold text-green-700 leading-tight">
-                No more reel status to view
-            </span>
-        </div>
 
-    ) : (
+            {/* MY REEL PREVIEW */}
 
-        reelUsers.map((item, index) => {
+            {firstMyReel ? (
 
-            const allReelsViewed =
-                item.reels?.length > 0 &&
-                item.reels.every(
-                    reel => reel.has_viewed === true
-                );
+                <div className="absolute inset-0">
 
-            return (
-                <button
-                    key={item.user.id}
-                    type="button"
-                    onClick={() => openUserReels(index)}
-                    className="
-                        relative
-                        shrink-0
-                        w-20
-                        h-28
-                        sm:w-24
-                        sm:h-36
-                        rounded-xl
-                        overflow-hidden
-                        bg-gray-900
-                        border
-                        border-gray-700
-                    "
-                >
-                    {/* REEL PREVIEW */}
-                    {item.reels?.[0]?.media?.[0]?.type === "image" ? (
+                    {firstMyImage && (
                         <img
-                            src={item.reels[0].media[0].url}
+                            src={firstMyImage.url}
                             alt=""
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="
+                                absolute
+                                inset-0
+                                w-full
+                                h-full
+                                object-cover
+                            "
                         />
-                    ) : item.reels?.[0]?.media?.[0]?.type === "video" ? (
-                        <video
-                            src={item.reels[0].media[0].url}
-                            muted
-                            playsInline
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
-                    ) : (
+                    )}
+
+                    {!firstMyImage &&
+                        firstMyVideo && (
+                            <video
+                                src={firstMyVideo.url}
+                                muted
+                                playsInline
+                                preload="metadata"
+                                className="
+                                    absolute
+                                    inset-0
+                                    w-full
+                                    h-full
+                                    object-cover
+                                "
+                            />
+                        )}
+
+                    {!firstMyImage &&
+                        !firstMyVideo &&
+                        firstMyReel.content && (
+
                         <div
                             className="
                                 absolute
                                 inset-0
-                                bg-gradient-to-br
-                                from-blue-700
-                                to-purple-700
-                                p-2
                                 flex
                                 items-center
                                 justify-center
+                                p-3
+                                text-white
                                 text-center
                                 text-xs
-                                text-white
+                                font-semibold
+                                bg-gradient-to-br
+                                from-blue-700
+                                to-purple-700
                             "
                         >
-                            {item.reels[0]?.content}
+                            <span className="line-clamp-6">
+                                {firstMyReel.content}
+                            </span>
                         </div>
+
                     )}
 
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-
-                    {/* User Initial */}
                     <div
-                        className={`
+                        className="
                             absolute
-                            top-2
-                            left-2
-                            w-8
-                            h-8
-                            rounded-full
-                            bg-blue-600
-                            text-white
+                            inset-0
+                            bg-black/30
+                        "
+                    />
+
+                </div>
+
+            ) : (
+
+                <div
+                    className="
+                        absolute
+                        inset-0
+                        bg-gray-800
+                    "
+                />
+
+            )}
+
+            {/* USER INITIAL */}
+
+            <div
+                className={`
+                    absolute
+                    top-2
+                    left-1/2
+                    -translate-x-1/2
+                    w-12
+                    h-12
+                    rounded-full
+                    bg-blue-600
+                    text-white
+                    flex
+                    items-center
+                    justify-center
+                    text-xl
+                    font-bold
+                    border-[3px]
+                    ${
+                        hasMyReels
+                            ? "border-green-500"
+                            : "border-gray-400"
+                    }
+                `}
+            >
+                {currentInitial}
+            </div>
+
+            {/* PLUS */}
+
+            <div
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setCreateReel(true);
+                }}
+                className="
+                    absolute
+                    bottom-8
+                    left-1/2
+                    -translate-x-1/2
+                    w-8
+                    h-8
+                    rounded-full
+                    bg-blue-600
+                    border-2
+                    border-white
+                    text-white
+                    flex
+                    items-center
+                    justify-center
+                    z-20
+                    cursor-pointer
+                "
+            >
+                <Plus size={18} />
+            </div>
+
+            {/* TITLE */}
+
+            <span
+                className="
+                    absolute
+                    bottom-2
+                    left-0
+                    right-0
+                    z-20
+                    text-xs
+                    font-semibold
+                    text-white
+                    text-center
+                "
+            >
+                Create Reel
+            </span>
+
+        </button>
+
+
+        {/* =========================
+            OTHER USERS' REELS
+        ========================== */}
+{reelUsers.length === 0 ? (
+
+    <div
+        className="
+            shrink-0
+            w-20
+            h-28
+            sm:w-24
+            sm:h-36
+            rounded-xl
+            border-2
+            border-green-600
+            bg-green-50
+            flex
+            items-center
+            justify-center
+            text-center
+            px-2
+        "
+    >
+        <span
+            className="
+                text-xs
+                font-semibold
+                text-green-700
+                leading-tight
+            "
+        >
+            No more reel status to view
+        </span>
+    </div>
+
+) : (
+
+    reelUsers.map((item, index) => {
+
+        // -----------------------------------------
+        // SAFETY
+        // -----------------------------------------
+
+        const user = item?.user;
+
+        const reels = Array.isArray(item?.reels)
+            ? item.reels
+            : [];
+
+        // Don't render a broken user item
+        if (!user) {
+            return null;
+        }
+
+        const allReelsViewed =
+            reels.length > 0 &&
+            reels.every(
+                reel =>
+                    reel?.has_viewed === true
+            );
+
+        const firstReel = reels[0];
+
+        const firstMedia =
+            firstReel?.media?.[0];
+
+        return (
+            <button
+                key={user.id ?? `reel-user-${index}`}
+                type="button"
+                onClick={() =>
+                    openUserReels(index)
+                }
+                className="
+                    relative
+                    shrink-0
+                    w-20
+                    h-28
+                    sm:w-24
+                    sm:h-36
+                    rounded-xl
+                    overflow-hidden
+                    bg-gray-900
+                    border
+                    border-gray-700
+                "
+            >
+
+                {/* -------------------------------- */}
+                {/* REEL PREVIEW */}
+                {/* -------------------------------- */}
+
+                {firstMedia?.type === "image" ? (
+
+                    <img
+                        src={firstMedia.url}
+                        alt=""
+                        className="
+                            absolute
+                            inset-0
+                            w-full
+                            h-full
+                            object-cover
+                        "
+                    />
+
+                ) : firstMedia?.type === "video" ? (
+
+                    <video
+                        src={firstMedia.url}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="
+                            absolute
+                            inset-0
+                            w-full
+                            h-full
+                            object-cover
+                        "
+                    />
+
+                ) : (
+
+                    <div
+                        className="
+                            absolute
+                            inset-0
+                            bg-gradient-to-br
+                            from-blue-700
+                            to-purple-700
+                            p-2
                             flex
                             items-center
                             justify-center
-                            font-bold
-                            text-sm
-                            border-2
-                            ${
-                                allReelsViewed
-                                    ? "border-gray-300"
-                                    : "border-green-700"
-                            }
-                        `}
+                            text-center
+                            text-xs
+                            text-white
+                        "
                     >
-                        {item.user.initial}
+                        {firstReel?.content || "Reel"}
                     </div>
 
-                    {/* Name */}
-                    <span className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
-                        {item.user.first_name}
-                    </span>
-                </button>
-            );
-        })
+                )}
 
-    )}
+                {/* -------------------------------- */}
+                {/* OVERLAY */}
+                {/* -------------------------------- */}
+
+                <div
+                    className="
+                        absolute
+                        inset-0
+                        bg-gradient-to-t
+                        from-black/80
+                        via-transparent
+                        to-black/20
+                    "
+                />
+
+                {/* -------------------------------- */}
+                {/* USER INITIAL */}
+                {/* -------------------------------- */}
+
+                <div
+                    className={`
+                        absolute
+                        top-2
+                        left-2
+                        w-8
+                        h-8
+                        rounded-full
+                        bg-blue-600
+                        text-white
+                        flex
+                        items-center
+                        justify-center
+                        font-bold
+                        text-sm
+                        border-2
+                        ${
+                            allReelsViewed
+                                ? "border-gray-300"
+                                : "border-green-700"
+                        }
+                    `}
+                >
+                    {user.initial ||
+                        user.first_name?.charAt(0)?.toUpperCase() ||
+                        "U"}
+                </div>
+
+                {/* -------------------------------- */}
+                {/* USER NAME */}
+                {/* -------------------------------- */}
+
+                <span
+                    className="
+                        absolute
+                        bottom-2
+                        left-2
+                        right-2
+                        text-white
+                        text-xs
+                        font-semibold
+                        truncate
+                        text-left
+                    "
+                >
+                    {user.first_name || "User"}
+                </span>
+
+            </button>
+        );
+
+    })
+
+)}
+    </div>
+
+)}
 
 </div>
-</div>
-
-
             {error && (
                 <div
                     className="
@@ -1012,19 +1073,21 @@ const firstMyVideo =
                     }
                     message={message}
                     setMessage={setMessage}
-                    onSendMessage={
-                        sendMessage
-                    }
+                    
                     sending={sending}
+                    setSending={setSending}
                     reaction={reaction}
-                    onReaction={
-                        sendReaction
+                    setReelUsers={setReelUsers}
+                    setMyReels={setMyReels}
+                    setReaction={
+                        setReaction
                     }
 
                     currentUserIndex={selectedUserIndex}
                     reelUsers={reelUsers}
                     currentUser={user}
 
+                    selectedReel={selectedReel}
                     mediaIndex={mediaIndex}
                     setMediaIndex={setMediaIndex}
                     progress={progress}
@@ -1032,6 +1095,17 @@ const firstMyVideo =
                     nextReel={nextReel}
 
                     markReelViewed={markReelViewed}
+                    open={open}
+                    setOpen={setOpen}
+                    showImagePicker={showImagePicker}
+                    setShowImagePicker={setShowImagePicker}
+                    messageOpenShare={messageOpenShare}
+                    setMessageOpenShare={setMessageOpenShare}
+                    openReport={openReport}
+                    setOpenReport={setOpenReport}
+                    shares={shares}
+                    setShares={setShares}
+                    
                 />
             )}
 
@@ -1048,15 +1122,26 @@ const firstMyVideo =
                     setMyProgress={setMyProgress}
                     setShowMyReelReview={setShowMyReelReview} 
                     setSelectedMyIndex={setSelectedMyIndex} 
+                    selectedMyIndex={selectedMyIndex}
+                    open={open}
+                    setOpen={setOpen}
+                    showImagePicker={showImagePicker}
+                    setShowImagePicker={setShowImagePicker}
+                    messageOpenShare={messageOpenShare}
+                    setMessageOpenShare={setMessageOpenShare}
+                    openReport={openReport}
+                    setOpenReport={setOpenReport}
+                    shares={shares}
+                    setShares={setShares}
                 />
             )}
 
             {createReel && (
             <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
                 
-                <CreateReel
+                <CreateReelModal
                     setCreateReel={setCreateReel}
-                    handlePostCreated={handlePostCreated}
+                    handleReelCreated={handleReelCreated}
                 />
 
                 </div>
@@ -1092,6 +1177,18 @@ const firstMyVideo =
                 setReactionUsers={setReactionUsers}
                 nextReel={nextMyReel}
                 onPrevious={previousMyReel}
+                selectedReel={selectedReel}
+                setReaction={setReaction}
+                open={open}
+                setOpen={setOpen}
+                showImagePicker={showImagePicker}
+                setShowImagePicker={setShowImagePicker}
+                messageOpenShare={messageOpenShare}
+                setMessageOpenShare={setMessageOpenShare}
+                openReport={openReport}
+                setOpenReport={setOpenReport}
+                shares={shares}
+                setShares={setShares}
             />
         )}
 

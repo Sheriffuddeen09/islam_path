@@ -1,5 +1,11 @@
+
+
+
+
+
 import { useState } from "react";
 import PostOptions from "./PostOption";
+import { useRef } from "react";
 
 export default function PostImageGridProfile({ media = [], post, chats}) {
   const [open, setOpen] = useState(false);
@@ -119,47 +125,239 @@ if (total === 1 && media[0]) {
     </>
   );
 
-  function PreviewModal({ open, setOpen, media, index, setIndex }) {
-  if (!open || !media || !media[index]) return null;
 
-  const current = media[index];
+function PreviewModal({
+    open,
+    setOpen,
+    media,
+    index,
+    setIndex,
+    post,
+    chats
+}) {
+    const touchStartX = useRef(null);
+    const touchStartY = useRef(null);
 
-  return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
-      <div className="absolute top-4 right-4 inline-flex items-center gap-4">
-        <button
-          className="text-black bg-white rounded-full w-10 h-10 text-xl"
-          onClick={() => setOpen(false)}
+    if (!open || !media || !media[index]) {
+        return null;
+    }
+
+    const current = media[index];
+
+    const goPrevious = () => {
+        setIndex(i => Math.max(i - 1, 0));
+    };
+
+    const goNext = () => {
+        setIndex(i =>
+            Math.min(i + 1, media.length - 1)
+        );
+    };
+
+    const handleTouchStart = (e) => {
+        const touch = e.touches[0];
+
+        touchStartX.current = touch.clientX;
+        touchStartY.current = touch.clientY;
+    };
+
+    const handleTouchEnd = (e) => {
+        if (touchStartX.current === null) {
+            return;
+        }
+
+        const touch = e.changedTouches[0];
+
+        const deltaX =
+            touch.clientX - touchStartX.current;
+
+        const deltaY =
+            touch.clientY - touchStartY.current;
+
+        // Reset
+        touchStartX.current = null;
+        touchStartY.current = null;
+
+        // Ignore mostly vertical movements
+        if (
+            Math.abs(deltaX) <
+            Math.abs(deltaY)
+        ) {
+            return;
+        }
+
+        // Minimum swipe distance
+        if (Math.abs(deltaX) < 50) {
+            return;
+        }
+
+        // Swipe left = NEXT
+        if (deltaX < 0) {
+            goNext();
+        }
+
+        // Swipe right = PREVIOUS
+        if (deltaX > 0) {
+            goPrevious();
+        }
+    };
+
+    return (
+        <div
+            className="
+                fixed
+                inset-0
+                bg-black/80
+                z-50
+                flex
+                items-center
+                justify-center
+            "
         >
-          ✕
-        </button>
-      <div className="bg-white rounded-full">
-       <PostOptions post={post} chats={chats} />
-      </div>
-      </div>
 
-       <button
-            className="absolute left-4  w-8 h-8 border-2 rounded-full flex items-center justify-center pb-2 hover:bg-gray-800 text-white text-2xl"
-            onClick={() => setIndex(i => Math.max(i - 1, 0))}
-          >
-            ‹
-          </button>
+            {/* TOP RIGHT */}
 
-      <img
-        src={current.url}
-        className="max-h-[80vh] max-w-[90vw] object-contain"
-      />
+            <div
+                className="
+                    absolute
+                    top-4
+                    right-4
+                    inline-flex
+                    items-center
+                    gap-4
+                    z-50
+                "
+            >
 
-      <button
-            className="absolute right-4 w-8 h-8 border-2 rounded-full flex items-center justify-center pb-2 hover:bg-gray-800 text-white text-2xl"
-            onClick={() => setIndex(i => Math.min(i + 1, media.length - 1))}
-          >
-          ›
-        </button>
-    
+                {/* CLOSE */}
+
+                <button
+                    type="button"
+                    className="
+                        text-black
+                        bg-white
+                        rounded-full
+                        w-10
+                        h-10
+                        text-xl
+                        flex
+                        items-center
+                        justify-center
+                    "
+                    onClick={() =>
+                        setOpen(false)
+                    }
+                >
+                    ✕
+                </button>
+
+
+                {/* OPTIONS */}
+
+                <div className="bg-white rounded-full">
+                    <PostOptions
+                        post={post}
+                        chats={chats}
+                    />
+                </div>
+
             </div>
-  );
-}
 
-}
 
+            {/* PREVIOUS - DESKTOP ONLY */}
+
+            {index > 0 && (
+                <button
+                    type="button"
+                    className="
+                        hidden
+                        md:flex
+                        absolute
+                        left-4
+                        top-1/2
+                        -translate-y-1/2
+                        w-10
+                        h-10
+                        border-2
+                        rounded-full
+                        items-center
+                        justify-center
+                        pb-2
+                        hover:bg-gray-800
+                        text-white
+                        text-3xl
+                        z-40
+                    "
+                    onClick={goPrevious}
+                >
+                    ‹
+                </button>
+            )}
+
+
+            {/* IMAGE / SWIPE AREA */}
+
+            <div
+                className="
+                    max-w-[90vw]
+                    max-h-[80vh]
+                    flex
+                    items-center
+                    justify-center
+                    touch-pan-y
+                    select-none
+                "
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
+
+                <img
+                    src={current.url}
+                    alt=""
+                    draggable={false}
+                    className="
+                        max-h-[80vh]
+                        max-w-[90vw]
+                        object-contain
+                        select-none
+                        pointer-events-none
+                    "
+                />
+
+            </div>
+
+
+            {/* NEXT - DESKTOP ONLY */}
+
+            {index < media.length - 1 && (
+                <button
+                    type="button"
+                    className="
+                        hidden
+                        md:flex
+                        absolute
+                        right-4
+                        top-1/2
+                        -translate-y-1/2
+                        w-10
+                        h-10
+                        border-2
+                        rounded-full
+                        items-center
+                        justify-center
+                        pb-2
+                        hover:bg-gray-800
+                        text-white
+                        text-3xl
+                        z-40
+                    "
+                    onClick={goNext}
+                >
+                    ›
+                </button>
+            )}
+
+        </div>
+    );
+}
+}

@@ -1531,6 +1531,32 @@ onTouchEnd={() => {
           <FromCommunityForward msg={msg} 
           />
         )}
+        {msg.type === "reel" && msg.reel_preview && (
+    <div className="mb-2">
+        {msg.reel_preview.type === "image" && (
+            <img
+                src={msg.reel_preview.url}
+                alt=""
+                className="w-20 h-20 object-cover rounded-lg"
+            />
+        )}
+
+        {msg.reel_preview.type === "video" && (
+            <video
+                src={msg.reel_preview.url}
+                className="w-20 h-20 object-cover rounded-lg"
+                muted
+                playsInline
+            />
+        )}
+
+        {msg.reel_preview.type === "content" && (
+            <div className="w-20 h-20 rounded-lg bg-gray-700 p-2 text-white text-xs overflow-hidden">
+                {msg.reel_preview.content}
+            </div>
+        )}
+    </div>
+)}
         {msg.message && msg.type === "text" && (
         <div
         className={`
@@ -1576,6 +1602,53 @@ onTouchEnd={() => {
 
           </div>
         )}
+
+        {msg.message && msg.type === "reel" && (
+        <div
+        className={`
+          text-[13px] lg:text-[13px] md:text-[16px]
+          mt-1
+          text-white
+          w-fit
+          break-words
+          ${uiMode === 'full' ? 'max-w-64' : 'max-w-56 lg:max-w-56 md:max-w-96 '}
+        `}>
+        <Linkify
+          options={{
+            target: "_blank",
+            className:
+              "text-blue-400 pointer-events-auto",
+          }}
+        >
+        {displayText}
+      </Linkify>
+
+      {shouldTrim && (
+        <button
+          onClick={() =>
+            setExpandedMessages((prev) => ({
+              ...prev,
+              [msg.id]:
+                !prev[msg.id],
+            }))
+          }
+          className="
+            ml-2
+            text-green-400
+            text-xs
+            font-semibold
+            hover:underline
+          "
+        >
+          {isExpanded
+            ? "See less"
+            : "See more"}
+        </button>
+      )}
+
+          </div>
+        )}
+
 
         {(msg.type === "image" ||
           msg.type === "video") && (

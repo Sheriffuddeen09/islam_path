@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
     ArrowLeft,
     MoreVertical,
@@ -6,23 +6,158 @@ import {
     Heart,
     Lock,
 } from "lucide-react";
+import ReelOptions from "./ReelOption";
 
 export default function MyReelModal({
     myReels, setReactionUsers, setMyMediaIndex, currentUser, setMyProgress,
-    onClose, setSelectedMyIndex, setShowMyReelReview, chats
+    onClose, setSelectedMyIndex, setShowMyReelReview, chats, open, setOpen, shares, setShares, showImagePicker,
+    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport
 }) {
 
 
-    
-    
-    const openMyReels = (reelIndex) => {
-        setSelectedMyIndex(reelIndex);
-        setMyMediaIndex(0);
-        setMyProgress(0);
+    const [selectedMyReelId, setSelectedMyReelId] =
+    useState(null);
 
-        setShowMyReelReview(true);
-        setReactionUsers(false)
-    };
+    const selectedReel =
+    myReels?.find(
+        reel =>
+            Number(reel.id) ===
+            Number(selectedMyReelId)
+    ) || null;
+
+    const reelItems = useMemo(() => {
+    const items = [];
+
+    (myReels || [])
+        .slice()
+        .sort(
+            (a, b) =>
+                new Date(a.created_at) -
+                new Date(b.created_at)
+        )
+        .forEach((reel) => {
+
+            if (
+                typeof reel.content === "string" &&
+                reel.content.trim()
+            ) {
+                items.push({
+                    id: `content-${reel.id}`,
+
+                    type: "content",
+
+                    reelId: Number(reel.id),
+
+                    content: reel.content,
+
+                    created_at: reel.created_at,
+
+                    user_reaction:
+                        reel.user_reaction ?? null,
+
+                    has_viewed:
+                        reel.has_viewed ?? false,
+
+                    views_count:
+                        reel.views_count ?? 0,
+
+                    user: reel.user,
+
+                    reel,
+                });
+            }
+
+            if (Array.isArray(reel.media)) {
+
+                reel.media
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            Number(a.order || 0) -
+                            Number(b.order || 0)
+                    )
+                    .forEach((media, mediaIndex) => {
+
+                        items.push({
+                            ...media,
+
+                            id:
+                                media.id ??
+                                `media-${reel.id}-${mediaIndex}`,
+
+                            mediaId:
+                                Number(media.id),
+
+                            reelId:
+                                Number(reel.id),
+
+                            type:
+                                media.type,
+
+                            content:
+                                reel.content,
+
+                            created_at:
+                                reel.created_at,
+
+                            user_reaction:
+                                media.user_reaction ??
+                                null,
+
+                            has_viewed:
+                                media.has_viewed ??
+                                false,
+
+                            views_count:
+                                media.views_count ??
+                                0,
+
+                            user:
+                                reel.user,
+
+                            reel,
+                        });
+
+                    });
+            }
+
+        });
+
+    return items;
+
+}, [myReels]);
+    
+           const openMyReels = (itemIndex) => {
+
+                const item = reelItems[itemIndex];
+
+                if (!item) {
+                    return;
+                }
+
+                // Find the ORIGINAL reel in myReels
+                const reelIndex = myReels.findIndex(
+                    reel =>
+                        Number(reel.id) ===
+                        Number(item.reelId)
+                );
+
+                if (reelIndex === -1) {
+                    return;
+                }
+
+                // This is the actual Post/Reel index
+                setSelectedMyIndex(reelIndex);
+
+                // Tell Review which flattened item was clicked
+                setMyMediaIndex(itemIndex);
+
+                setMyProgress(0);
+
+                setShowMyReelReview(true);
+
+                setReactionUsers(false);
+            };
 
 
     const formatCreatedTime = (date) => {
@@ -249,20 +384,7 @@ export default function MyReelModal({
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    className="
-                        w-10
-                        h-10
-                        rounded-full
-                        flex
-                        items-center
-                        justify-center
-                        hover:bg-white/10
-                    "
-                >
-                    <MoreVertical size={22} />
-                </button>
+              
             </div>
 
             <div
@@ -273,7 +395,7 @@ export default function MyReelModal({
                 "
             >
 
-                {myReels.length === 0 ? (
+                {reelItems.length === 0 ? (
 
                     <div
                         className="
@@ -334,153 +456,218 @@ export default function MyReelModal({
 
                     <div className="max-w-2xl mx-auto">
 
-                        {myReels.map(
-                            (reel, index) => (
+    {reelItems.map((item, index) => (
 
-                                <button
-                                    key={reel.id}
-                                    type="button"
-                                    onClick={() => openMyReels(index)}
-                                    className="
-                                        w-full
-                                        flex
-                                        items-center
-                                        gap-2
-                                        px-3
-                                        py-2
-                                        border-b
-                                        border-green-800
-                                        text-left
-                                        hover:bg-white/5
-                                        transition
-                                    "
-                                >
+        <button
+            key={item.listId}
+            type="button"
+            className="
+                w-full
+                flex
+                items-center
+                gap-2
+                px-3
+                py-2
+                border-b
+                border-green-800
+                text-left
+                hover:bg-white/5
+                transition
+            "
+        >
 
-                                    {/* PREVIEW */}
+            <div
+                className="
+                    relative
+                    shrink-0
+                    w-10
+                    h-10
+                    rounded-full
+                    overflow-hidden
+                    bg-gray-800
+                "
+                 onClick={() => openMyReels(index)}
+                 key={item.listId}
+            >
 
-                                    <div
-                                    onClick={() => openMyReels(index)}
-                                        className="
-                                            relative
-                                            shrink-0
-                                            w-10
-                                            h-10
-                                            rounded-full
-                                            overflow-hidden
-                                            bg-gray-800
-                                        "
-                                    >
-                                        {getPreview(
-                                            reel
-                                        )}
-                                    </div>
+                {item.type === "image" && item.url && (
 
+                    <img
+                        src={item.url}
+                        alt=""
+                        className="
+                            w-full
+                            h-full
+                            object-cover
+                        "
 
-                                    {/* DETAILS */}
+                    />
 
-                                    <div
-                                    onClick={() => openMyReels(index)}
-                                        className="
-                                            flex-1
-                                            min-w-0
-                                        "
-                                    >
+                )}
 
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                            "
-                                            onClick={() => openMyReels(index)}
-                                        >
-                                            {reel.user_reaction && (
-                                                <Heart
-                                                    size={17}
-                                                    fill="currentColor"
-                                                    className="
-                                                    "
-                                                />
-                                            )}
+                {item.type === "video" && item.url && (
 
-                                        </div>
+                    <video
+                        src={item.url}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="
+                            w-full
+                            h-full
+                            object-cover
+                        "
+                    />
 
+                )}
 
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                                mt-1
-                                                text-sm
-                                            "
-                                            onClick={() => openMyReels(index)}
-                                        >
+                {item.type === "content" && (
 
-                                            <span>
-                                                {formatCreatedTime(
-                                                    reel.created_at
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                •
-                                            </span>
-
-                                            <Eye
-                                                size={15}
-                                            />
-
-                                            <span>
-                                                {reel.views_count || 0}
-                                            </span>
-
-                                        </div>
-
-
-                                        {/* CONTENT PREVIEW */}
-
-                                        {reel.content &&
-                                            reel.content.trim() && (
-
-                                            <p
-                                                onClick={() => openMyReels(index)}
-                                                className="
-                                                    mt-1
-                                                    text-xs
-                                                    truncate
-                                                "
-                                            >
-                                                {
-                                                    reel.content
-                                                }
-                                            </p>
-
-                                        )}
-
-                                    </div>
-
-
-                                    {/* MENU */}
-
-                                    <div
-                                        className="
-                                            shrink-0
-                                        "
-                                    >
-                                        <MoreVertical
-                                            size={20}
-                                        />
-                                    </div>
-
-                                </button>
-
-                            )
-                        )}
-
+                    <div
+                        className="
+                            w-full
+                            h-full
+                            bg-gradient-to-br
+                            from-blue-700
+                            to-purple-700
+                            p-1
+                            flex
+                            items-center
+                            justify-center
+                            text-center
+                            text-white
+                            text-[9px]
+                            leading-tight
+                        "
+                    >
+                        <span className="line-clamp-4">
+                            {item.content}
+                        </span>
                     </div>
 
                 )}
+
+            </div>
+
+            <div
+                className="
+                    flex-1
+                    min-w-0
+                "
+                 onClick={() => openMyReels(index)}
+                 key={item.listId}
+            >
+
+                <div
+                    className="
+                        flex
+                        items-center
+                        gap-2
+                    "
+                    
+                >
+
+                    {item.user_reaction && (
+
+                        <Heart
+                            size={17}
+                            fill="currentColor"
+                            className="text-green-500"
+                        />
+
+                    )}
+
+                </div>
+
+
+                {/* TIME + VIEWS */}
+
+                <div
+                    className="
+                        flex
+                        items-center
+                        gap-2
+                        mt-1
+                        text-sm
+                    "
+                >
+
+                    <span>
+                        {formatCreatedTime(
+                            item.created_at
+                        )}
+                    </span>
+
+                    <span>
+                        •
+                    </span>
+
+                    <Eye size={15} />
+
+                    <span>
+                        {item.views_count || 0}
+                    </span>
+
+                </div>
+
+
+                {/* CONTENT */}
+
+                {item.type === "content" &&
+                    item.content &&
+                    item.content.trim() && (
+
+                    <p
+                        className="
+                            mt-1
+                            text-xs
+                            truncate
+                        "
+                    >
+                        {item.content}
+                    </p>
+
+                )}
+
+
+                {/* MEDIA DESCRIPTION */}
+
+                {item.description?.content && (
+
+                    <p
+                        className="
+                            mt-1
+                            text-xs
+                            truncate
+                        "
+                    >
+                        {item.description.content}
+                    </p>
+
+                )}
+
+            </div>
+
+             <ReelOptions
+                    post={selectedReel}
+                    chats={chats}
+                    open={open}
+                    setOpen={setOpen}
+                    showImagePicker={showImagePicker}
+                    setShowImagePicker={setShowImagePicker}
+                    messageOpenShare={messageOpenShare}
+                    setMessageOpenShare={setMessageOpenShare}
+                    openReport={openReport}
+                    setOpenReport={setOpenReport}
+                    shares={shares}
+                    setShares={setShares}
+                />
+
+        </button>
+
+    ))}
+
+</div>                )}
 
             </div>
 

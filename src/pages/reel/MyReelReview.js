@@ -8,7 +8,6 @@ import React, {
 
 import {
     X,
-    MoreVertical,
     ArrowLeft,
     ArrowRight,
     Eye,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 
 import api from "../../Api/axios"; // change to your api path
+import ReelOptions from "./ReelOption";
 
 
 export default function MyReelReview({
@@ -32,15 +32,15 @@ export default function MyReelReview({
     currentUser,
     myMediaIndex,
     setMyMediaIndex,
-    chats
+    chats,
+    selectedReel,
+    setReaction, open, setOpen, shares, setShares, showImagePicker,
+    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport
 }) {
     const videoRef = useRef(null);
 
     const [createdTime, setCreatedTime] =
         useState("");
-
-    const [showOptions, setShowOptions] =
-        useState(false);
 
     const [showReactionUsers, setShowReactionUsers] =
         useState(false);
@@ -61,12 +61,35 @@ export default function MyReelReview({
     const [showFullDescription, setShowFullDescription] =
     useState(false);
 
+    const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
+    
+
     const timerRef = useRef(null);
 
     const [mediaReady, setMediaReady] = useState(true);
     
     
    const reel = myReels?.[selectedMyIndex] || null;
+
+    const openRef = useRef(false);
+    const reactionRef = useRef(false);
+    const viewRef = useRef(false);
+   
+       const timerStartRef = useRef(null);
+       const elapsedBeforePauseRef = useRef(0);
+   
+       useEffect(() => {
+       openRef.current = open;
+       }, [open]);
+
+        useEffect(() => {
+       reactionRef.current = showReactionUsers;
+       }, [showReactionUsers]);
+
+        useEffect(() => {
+       viewRef.current = showViewUsers;
+       }, [showViewUsers]);
+
 
 const allUserReels = useMemo(() => {
     if (!Array.isArray(myReels)) {
@@ -200,6 +223,10 @@ const reelItems = useMemo(() => {
         }
     
         setMyProgress(0);
+
+         if (isUsersModalOpen) {
+                return;
+            }
     
         if (!currentItem) {
             setMediaReady(false);
@@ -265,79 +292,120 @@ const reelItems = useMemo(() => {
     
     
         useEffect(() => {
-    
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-    
-        if (!currentItem) {
-            return;
-        }
-    
-        // VIDEO controls its own progress
-        if (currentItem.type === "video") {
-            return;
-        }
-    
-        // IMAGE is not loaded yet
-        if (!mediaReady) {
-            return;
-        }
-    
-        const duration =
-            currentItemDuration || 5;
-    
-        const startedAt = Date.now();
-    
-        setMyProgress(0);
-    
-        timerRef.current = setInterval(() => {
-    
-            const elapsed =
-                (Date.now() - startedAt) / 1000;
-    
-            const percent =
-                Math.min(
-                    (elapsed / duration) * 100,
-                    100
-                );
-    
-            setMyProgress(percent);
-    
-            if (percent >= 100) {
-    
-                clearInterval(
-                    timerRef.current
-                );
-    
-                timerRef.current = null;
-    
-                handleNextMedia();
-            }
-    
-        }, 50);
-    
-        return () => {
-    
+        
+            // Clear previous timer
             if (timerRef.current) {
-    
-                clearInterval(
-                    timerRef.current
-                );
-    
+                clearInterval(timerRef.current);
                 timerRef.current = null;
             }
-    
-        };
-    
-    }, [
-        myMediaIndex,
-        currentItem?.id,
-        currentItem?.type,
-        currentItemDuration,
-        mediaReady
-    ]);
+        
+            if (!currentItem) {
+                return;
+            }
+        
+            // Video has its own progress
+            if (currentItem.type === "video") {
+                return;
+            }
+        
+            // Wait until image is ready
+            if (!mediaReady) {
+                return;
+            }
+        
+            const duration =
+                currentItemDuration || 5;
+        
+            // Reset only when a NEW media item starts
+            setMyProgress(0);
+        
+            elapsedBeforePauseRef.current = 0;
+            timerStartRef.current = Date.now();
+        
+            timerRef.current = setInterval(() => {
+        
+                const shouldPause =
+                    reactionRef.current === true ||
+                    viewRef.current === true || 
+                    openRef.current === true;
+        
+                if (shouldPause) {
+        
+                    if (timerStartRef.current) {
+        
+                        elapsedBeforePauseRef.current +=
+                            (
+                                Date.now() -
+                                timerStartRef.current
+                            ) / 1000;
+        
+                        timerStartRef.current = null;
+                    }
+        
+                    return;
+                }
+        
+                if (!timerStartRef.current) {
+                    timerStartRef.current = Date.now();
+                }
+        
+        
+                const elapsed =
+                    elapsedBeforePauseRef.current +
+                    (
+                        Date.now() -
+                        timerStartRef.current
+                    ) / 1000;
+        
+        
+                const percent =
+                    Math.min(
+                        (elapsed / duration) * 100,
+                        100
+                    );
+        
+        
+                setMyProgress(percent);
+        
+        
+                if (percent >= 100) {
+        
+                    clearInterval(
+                        timerRef.current
+                    );
+        
+                    timerRef.current = null;
+        
+                    timerStartRef.current = null;
+        
+                    handleNextMedia();
+                }
+        
+            }, 50);
+        
+        
+            return () => {
+        
+                if (timerRef.current) {
+        
+                    clearInterval(
+                        timerRef.current
+                    );
+        
+                    timerRef.current = null;
+                }
+        
+                timerStartRef.current = null;
+            };
+        
+        }, [
+            myMediaIndex,
+            currentItem?.id,
+            currentItem?.type,
+            currentItemDuration,
+            mediaReady
+        ]);
+           
             
       useEffect(() => {
         if (!reel?.created_at) {
@@ -421,6 +489,10 @@ const reelItems = useMemo(() => {
     
        const handleNextMedia = useCallback(() => {
     
+         if (isUsersModalOpen) {
+        return;
+    }
+
         if (!reelItems.length) {
             onClose?.();
             return;
@@ -465,6 +537,10 @@ const reelItems = useMemo(() => {
     
     
         const handleVideoTimeUpdate = (e) => {
+
+            if (isUsersModalOpen) {
+                return;
+            }
     
         const video = e.currentTarget;
     
@@ -584,26 +660,30 @@ const reelItems = useMemo(() => {
     }, [
         reel?.created_at
     ]);
-const fetchReactionUsers = async () => {
 
-    // Open modal immediately
-    setShowReactionUsers(true);
 
-    // Clear old users while loading
-    setReactionUsers?.([]);
+    useEffect(() => {
+    setReaction(selectedReel?.user_reaction || "");
+    }, [selectedReel?.id]);
 
-    // Show loading immediately
-    setLoadingReactionUsers(true);
-
+    const fetchReactionUsers = async () => {
     if (!reel?.id) {
-        setLoadingReactionUsers(false);
         return;
     }
 
-    try {
+    // Open immediately so loading is visible
+    setIsUsersModalOpen(true);
+    setShowReactionUsers(true);
+    setLoadingReactionUsers(true);
 
+    // Stop video
+    if (videoRef.current) {
+        videoRef.current.pause();
+    }
+
+    try {
         const response = await api.get(
-            `/api/posts/${reel.id}/reactions`
+            `/api/reels/${reel.id}/reactions`
         );
 
         setReactionUsers?.(
@@ -611,42 +691,34 @@ const fetchReactionUsers = async () => {
         );
 
     } catch (error) {
-
         console.error(
             "REACTION USERS ERROR:",
             error
         );
-
-        setReactionUsers?.([]);
-
     } finally {
-
         setLoadingReactionUsers(false);
-
     }
 };
 
 
 const fetchViewUsers = async () => {
-
-    // Open modal immediately
-    setShowViewUsers(true);
-
-    // Clear old users
-    setViewUsers([]);
-
-    // Show loading immediately
-    setLoadingViewUsers(true);
-
     if (!reel?.id) {
-        setLoadingViewUsers(false);
         return;
     }
 
-    try {
+    // Open immediately so loading is visible
+    setIsUsersModalOpen(true);
+    setShowViewUsers(true);
+    setLoadingViewUsers(true);
 
+    // Stop video
+    if (videoRef.current) {
+        videoRef.current.pause();
+    }
+
+    try {
         const response = await api.get(
-            `/api/posts/${reel.id}/views`
+            `/api/reels/${reel.id}/views`
         );
 
         setViewUsers(
@@ -654,20 +726,16 @@ const fetchViewUsers = async () => {
         );
 
     } catch (error) {
-
         console.error(
             "VIEW USERS ERROR:",
             error
         );
-
-        setViewUsers([]);
-
     } finally {
-
         setLoadingViewUsers(false);
-
     }
 };
+
+
     if (!reel) {
         return null;
     }
@@ -836,30 +904,15 @@ const fetchViewUsers = async () => {
                         "
                     >
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setShowOptions(
-                                    prev =>
-                                        !prev
-                                )
-                            }
-                            className="
-                                w-9
-                                h-9
-                                rounded-full
-                                bg-black/40
-                                text-white
-                                flex
-                                items-center
-                                justify-center
-                            "
-                        >
-                            <MoreVertical
-                                size={20}
-                            />
-                        </button>
-
+                       <ReelOptions post={reel} chats={chats} open={open} setOpen={setOpen}
+                       showImagePicker={showImagePicker}
+                        setShowImagePicker={setShowImagePicker}
+                        messageOpenShare={messageOpenShare}
+                        setMessageOpenShare={setMessageOpenShare}
+                        openReport={openReport}
+                        setOpenReport={setOpenReport}
+                        shares={shares}
+                        setShares={setShares} />
 
                         <button
                             type="button"
@@ -883,39 +936,6 @@ const fetchViewUsers = async () => {
                     </div>
 
                 </div>
-
-                {showOptions && (
-                    <div
-                        className="
-                            absolute
-                            top-20
-                            right-4
-                            z-[120]
-                            w-44
-                            bg-white
-                            text-black
-                            rounded-xl
-                            shadow-xl
-                            overflow-hidden
-                        "
-                    >
-
-                        <button
-                            type="button"
-                            className="
-                                w-full
-                                text-left
-                                px-4
-                                py-3
-                                hover:bg-gray-100
-                            "
-                        >
-                            Delete Reel
-                        </button>
-
-                    </div>
-                )}
-
 
                      {(
                 myMediaIndex > 0 ||
@@ -1033,6 +1053,10 @@ const fetchViewUsers = async () => {
                                 setMyProgress(0);
 
                                 video.currentTime = 0;
+
+                                 if (isUsersModalOpen) {
+                                        return;
+                                    }
 
                                 video
                                     .play()
@@ -1160,7 +1184,7 @@ const fetchViewUsers = async () => {
                         bottom-5
                         left-4
                         right-4
-                        z-[100]
+                        z-[10]
                         flex
                         items-center
                         justify-end
@@ -1171,23 +1195,37 @@ const fetchViewUsers = async () => {
                     <button
                         type="button"
                         onClick={fetchReactionUsers}
-                        className="
+                        className={`
                             w-10
                             h-10
                             rounded-full
-                            bg-black/50
                             text-white
                             flex
                             items-center
                             justify-center
                             backdrop-blur-sm
-                        "
+                            relative
+                            transition-colors
+                            ${
+                                reel?.user_reaction
+                                    ? "bg-green-500"
+                                    : "bg-black/50"
+                            }
+                        `}
                     >
                         <Heart
                             size={21}
+                            fill={
+                                reel?.user_reaction
+                                    ? "currentColor"
+                                    : "none"
+                            }
                         />
-                    </button>
 
+                        <span className="text-sm absolute -right-2 top-2">
+                            {reel?.reactions_count || 0}
+                        </span>
+                    </button>
 
                     {/* VIEW USERS */}
 
@@ -1225,9 +1263,7 @@ const fetchViewUsers = async () => {
                 </div>
 
 
-                {/* =================================================
-                    REACTION USERS MODAL
-                ================================================= */}
+              
 
                 {showReactionUsers && (
                     <div
@@ -1250,6 +1286,7 @@ const fetchViewUsers = async () => {
                                 p-4
                                 max-h-[60%]
                                 overflow-y-auto
+                                scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                             "
                         >
 
@@ -1383,6 +1420,7 @@ const fetchViewUsers = async () => {
                                 p-4
                                 max-h-[60%]
                                 overflow-y-auto
+                                scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                             "
                         >
 

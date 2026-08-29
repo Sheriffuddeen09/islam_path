@@ -5,15 +5,12 @@ import { PostReportModal } from "./report/PostReportModal";
 import DownloadImageFlex from "./DownloadImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
-import Notification from "../../notification/Notification";
-
+import { toast } from "react-toastify";
 
 
 export default function PostOptions({ post,  chats }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [notify, setNotify] = useState("");
   const [openReport, setOpenReport] = useState(false)
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [messageOpenShare, setMessageOpenShare,] = useState(false)
@@ -29,14 +26,6 @@ export default function PostOptions({ post,  chats }) {
   const isOwner = authUser?.user?.id === post?.user?.id;
 
 
-  const showNotification = (message, type = "success") => {
-    setNotify({ message, type });
-
-    // Clear after 5 seconds
-    setTimeout(() => {
-      setNotify({ message: "", type: "" });
-    }, 5000);
-  };
 
    const handleDownloadVideo = async () => {
   try {
@@ -66,10 +55,10 @@ export default function PostOptions({ post,  chats }) {
     link.click();
     link.remove();
 
-    showNotification("Downloading video...", "success");
+    toast.success("Downloading video...", "success");
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download video!", "error");
+    toast.error("Failed to download video!", "error");
   }
 };
 
@@ -104,7 +93,7 @@ const downloadSingleImage = async (img) => {
     link.remove();
   } catch (err) {
     console.error(err);
-    showNotification("Failed to download image", "error");
+    toast.error("Failed to download image", "error");
   }
 };
 
@@ -114,10 +103,10 @@ const downloadSingleImage = async (img) => {
     try {
       setLoading("save");
       await api.post(`/api/post/${post.id}/save-to-library`);
-      showNotification("Saved to your library!", "success");
+      toast.success("Saved to your library!", "success");
     } catch (err) {
       console.error(err);
-      showNotification("Failed to save to library!", "error");
+      toast.error("Failed to save to library!", "error");
     } finally {
       setLoading("");
     }
@@ -146,7 +135,7 @@ const downloadSingleImage = async (img) => {
     setTimeout(() => setCopied(false), 1500);
   } catch (err) {
     console.error("Failed to copy:", err);
-    alert("Copy failed. Try manually.");
+    toast.error("Copy failed. Try manually.", 'error');
   }
 };
 
@@ -178,7 +167,7 @@ const handleShare = async (platform) => {
   } else {
     // For TikTok / Instagram / YouTube
     await navigator.clipboard.writeText(shareUrl);
-    alert("Link copied! Paste it in the app to share.");
+    toast.success("Link copied! Paste it in the app to share.", 'success');
   }
 
   await api.post(`/api/post/${post.id}/share`);
@@ -201,7 +190,7 @@ const handleReport = () =>{
   setOpenReport(!openReport)
 }
   return (
-    <div className="relative bg-[var(--bg-color)] text-[var(--text-color)] inline-block text-left">
+    <div className=" bg-[var(--bg-color)] text-[var(--text-color)] inline-block text-left">
       <button
         onClick={() => setOpen(!open)}
         className="px-1 py-1 rounded-full transition"
@@ -213,15 +202,42 @@ const handleReport = () =>{
       </button>
 
       {open && (
-        <div className="absolute top-6 right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
-           {/* <button
+        <div
+                        className="
+                            fixed
+                            inset-0
+                            z-[200]
+                            bg-black/70
+                            flex
+                            w-full 
+                            h-full
+                            flex-1
+                            items-end
+                            justify-center
+                        "
+                    >
+
+                        <div
+                            className="
+                                w-full relative
+                                bg-[var(--bg-color)]
+                                rounded-t-2xl
+                                p-4
+                                max-h-[60%]
+                                sm:max-w-[60%]
+                                overflow-y-auto
+                                scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+                            "
+                        >
+
+          <button
             onClick={() => setOpen(!open)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
+            className="absolute right-3 top-2  transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
 
-      </button> */}
+      </button>
           <ul className="flex flex-col gap- p-4">
             {/* {post.type  && ( */}
                 {post?.media?.some(m => m.type === "video") && (
@@ -289,14 +305,10 @@ const handleReport = () =>{
             </li>
           </ul>
         </div>
-      )}
-
-      {/* Notification */}
-      {notification && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 z-50 text-white px-4 py-2 rounded shadow-lg">
-          {notification}
         </div>
       )}
+
+     
     <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
         <PostReportModal post={post} onClose={handleReport} />
     </div>
@@ -469,15 +481,7 @@ const handleReport = () =>{
     </div>
   </div>
 )}
+  </div>
 
-
-{notify.message && (
-          <Notification
-            message={notify.message}
-            type={notify.type} // "success" = green, "error" = red
-            onClose={() => setNotify({ message: "", type: "" })}
-          />
-        )}
-    </div>
-  );
-}
+  )
+  }

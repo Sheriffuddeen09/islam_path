@@ -12,7 +12,7 @@ rounded-xl
 w-full
 max-w-2xl
 max-h-[95vh]
-overflow-y-auto
+overflow-y-auto scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
 " >
 <div className="flex items-center justify-between mb-5">
 <h2 className="sm:text-2xl text-xl font-bold">

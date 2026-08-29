@@ -27,6 +27,7 @@ import Navbar from "./layout/Header";
 import PostImagePageId from "./pages/post/PostImagePageId";
 import PostFeedVideo from "./pages/post/PostFeedVideo";
 import PostVideoPageId from "./pages/post/PostVideoPageId";
+import ReelVideoPageId from "./pages/reel/ReelVideoPageId";
 import PostTextPageId from "./pages/post/PostTextPageId";
 import QuranGrid from "./pages/homepageComponent/QuranGrid";
 import Friend from "./pages/friend/Friend";
@@ -60,6 +61,7 @@ import Jobs from "./job/Jobs";
 import JobDetails from "./job/JobDetails";
 import AdminAdvertisementApproval from "./advertisement/AdminAdvertisementApproval";
 import SelectAdvertisementVisibility from "./advertisement/SelectAdvertisementVisibility"
+import { useAuth } from "./layout/AuthProvider";
    
 function App() {
 
@@ -97,6 +99,73 @@ function App() {
     const [showJobCreate, setShowJobCreate] = useState(false);
 
       
+    const {authUser} = useAuth()
+
+      const [reelLoading, setReelLoading] =
+        useState(true);
+        
+      const [error, setError] =
+        useState("");
+
+
+        useEffect(() => {
+        fetchReels();
+        fetchMyReel()
+    }, []);
+
+    const fetchReels = async () => {
+
+        try {
+
+            setReelLoading(true);
+
+            const response =
+                await api.get(
+                    "/api/reels"
+                );
+
+            setReelUsers(
+                response.data.reels || []
+            );
+
+        } catch (error) {
+
+            console.error(
+                "REEL FETCH ERROR:",
+                error
+            );
+
+            setError(
+                error.response?.data?.message ||
+                "Unable to load reels."
+            );
+
+        } finally {
+
+            setReelLoading(false);
+
+        }
+    };
+
+    const fetchMyReel = async () => {
+    try {
+
+        const response = await api.get("/api/reels");
+
+        setMyReels(
+            response.data.my_reels || []
+        );
+
+
+    } catch (error) {
+         setError(
+                error.response?.data?.message ||
+                "Unable to load reels."
+            );
+    }
+  
+};
+
       useEffect(() => {
           fetchJobProfile();
       }, []);
@@ -149,6 +218,7 @@ function App() {
       const [friendCount, setFriendCount] = useState(0);
       const [homeCount, setHomeCount] = useState(0);
       const [videoCount, setVideoCount] = useState(0);
+      const [reelCount, setReelCount] = useState(0);
       const [unreadCount, setUnreadCount] = useState(0);
       const [unreadNotification, setUnreadNotification] = useState(0);
 
@@ -158,14 +228,34 @@ function App() {
       const [savedCount, setSavedCount] = useState(0);
       const [orderCount, setOrderCount] = useState(0);
         
+      const [myReels, setMyReels] = useState([]);
+      const [reelUsers, setReelUsers] =
+              useState([]);
         
-      
       
       const fetchPostCounts = async () => {
         const res = await api.get("/api/post-count");
         setHomeCount(res.data.home_count);
         setVideoCount(res.data.video_count);
       };
+
+      
+        const fetchReelCounts = async () => {
+            try {
+                const res = await api.get("/api/post-count");
+
+                setReelCount(
+                    res.data.reel_count || 0
+                );
+
+            } catch (error) {
+                console.error(
+                    "REEL COUNT ERROR:",
+                    error
+                );
+            }
+        };
+
 
       const fetchFriendCount = async () => {
         const res = await api.get("/api/friend-request-count");
@@ -206,6 +296,26 @@ function App() {
         }
         };
 
+      const handleReelClick = async () => {
+          try {
+
+              if (reelCount > 0) {
+
+                  await api.post(
+                      "/api/clear-reel-posts"
+                  );
+
+                  setReelCount(0);
+              }
+
+          } catch (error) {
+              console.error(
+                  "CLEAR REEL COUNT ERROR:",
+                  error
+              );
+          }
+      };
+
         const handleNotification = async () => {
           
           if (unreadNotification > 0) {
@@ -225,6 +335,8 @@ function App() {
         fetchUnreadCount();
         fetchFriendCount();
         fetchUnreadNotification()
+
+        fetchReelCounts()
 
         const interval = setInterval(() => {
           fetchUnreadCount();
@@ -254,13 +366,28 @@ function App() {
     };
 
 
-    // 🔥 This function receives the new video from AdminVideoForm
     const handleVideoCreated = (newVideo) => {
-      setVideos((prev) => [newVideo, ...prev]); // Update UI instantly
+      setVideos((prev) => [newVideo, ...prev]); 
     };
 
     const handlePostCreated = (newPost) => {
-      setPosts((prev) => [newPost, ...prev]); // Update UI instantly
+      setPosts((prev) => [newPost, ...prev]); 
+    };
+
+    const handleReelCreated = async (newReel) => {
+          if (!newReel) return;
+
+          try {
+              await Promise.all([
+                  fetchReels(),
+                  fetchMyReel(),
+              ]);
+          } catch (error) {
+              console.error(
+                  "REFRESH REELS ERROR:",
+                  error
+              );
+          }
     };
 
   
@@ -370,11 +497,11 @@ function App() {
           unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           friendCount={friendCount} setFriendCount={setFriendCount}
           homeCount={homeCount} setHomeCount={setHomeCount}
-          videoCount={videoCount} setVideoCount={setVideoCount}
+          reelCount={reelCount} setVideoCount={setVideoCount}
           fetchUnreadCount={fetchUnreadCount}
           handleFriendClick={handleFriendClick}
           handleHomeClick={handleHomeClick}
-          handleVideoClick={handleVideoClick}
+          handleReelClick={handleReelClick}
           handleMessageClick={handleMessageClick}
           handleNotification={handleNotification}
           unreadNotification={unreadNotification}
@@ -392,7 +519,7 @@ function App() {
           setShow={setShow}
           showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
           showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
-          
+          handleVideoClick={handleVideoClick} videoCount={videoCount}
           />}>
 
         
@@ -548,6 +675,7 @@ function App() {
           setShowSuccessModal={setShowSuccessModal}
           showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
           showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+          handleVideoClick={handleVideoClick} videoCount={videoCount}
 
            />
       } />
@@ -645,7 +773,7 @@ function App() {
           element={<StudentExam />}
         />
       
-      <Route path="/post/image//" element={<PostImagePageId image={image} setImage={setImage}
+      <Route path="/post/image" element={<PostImagePageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -655,7 +783,7 @@ function App() {
         chats={chats}
         />} />
 
-        <Route path="/post/video//" element={<PostVideoPageId image={image} setImage={setImage}
+        <Route path="/post/video" element={<PostVideoPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -667,7 +795,18 @@ function App() {
         />} />
 
 
-         <Route path="/post/text//" element={<PostTextPageId image={image} setImage={setImage}
+        <Route path="/reel/video" element={<ReelVideoPageId image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        chats={chats}
+
+        />} />
+
+
+         <Route path="/post/text" element={<PostTextPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
@@ -734,7 +873,16 @@ function App() {
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
         handlePostCreated={handlePostCreated}
-
+        handleReelCreated={handleReelCreated}
+        myReels={myReels}
+        setMyReels={setMyReels}
+        reelUsers={reelUsers}
+        setReelUsers={setReelUsers}
+        error={error}
+        reelLoading={reelLoading}
+        fetchReels={fetchReels}
+        fetchMyReel={fetchMyReel}
+        
          />   
       } />
 
@@ -780,11 +928,11 @@ function LayoutWithHeader({
   setFriendCount,
   homeCount,
   setHomeCount,
-  videoCount, setVideoCount,
+  reelCount,
   fetchUnreadCount,
   handleFriendClick,
   handleHomeClick,
-  handleVideoClick,
+  handleReelClick,
   handleMessageClick,
   handleNotification,
   unreadNotification,
@@ -802,12 +950,14 @@ function LayoutWithHeader({
   setMessages, jobProfile, setJobProfile,
   fetchJobProfile, setShow, show,
   showAdvertisement, setShowAdvertisement,
-  showJobCreate, setShowJobCreate
+  showJobCreate, setShowJobCreate,
+  handleVideoClick, videoCount
 
 }) {
   return (
     <div>
       <Navbar
+        handleVideoClick={handleVideoClick} videoCount={videoCount}
         handleMessageOpen={handleMessageOpen}
         activeChat={activeChat}
         setActiveChat={setActiveChat}
@@ -819,11 +969,11 @@ function LayoutWithHeader({
         unreadCount={unreadCount} setUnreadCount={setUnreadCount}
         friendCount={friendCount} setFriendCount={setFriendCount}
         homeCount={homeCount} setHomeCount={setHomeCount}
-        videoCount={videoCount} setVideoCount={setVideoCount}
+        reelCount={reelCount}
         fetchUnreadCount={fetchUnreadCount}
         handleFriendClick={handleFriendClick}
         handleHomeClick={handleHomeClick}
-        handleVideoClick={handleVideoClick}
+        handleReelClick={handleReelClick}
         handleMessageClick={handleMessageClick}
         handleNotification={handleNotification}
         unreadNotification={unreadNotification}
