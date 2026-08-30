@@ -1207,7 +1207,7 @@ const fetchViewUsers = async () => {
                             relative
                             transition-colors
                             ${
-                                reel?.user_reaction
+                                reel?.reactions_count  
                                     ? "bg-green-500"
                                     : "bg-black/50"
                             }
@@ -1216,7 +1216,7 @@ const fetchViewUsers = async () => {
                         <Heart
                             size={21}
                             fill={
-                                reel?.user_reaction
+                                reel?.reactions_count  
                                     ? "currentColor"
                                     : "none"
                             }

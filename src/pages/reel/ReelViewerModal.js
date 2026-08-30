@@ -320,31 +320,38 @@ const currentItem =
     }
 };
 
-    const onSendMessage = async () => {
-
+   const onSendMessage = async () => {
     if (
-        !selectedReel ||
         !message.trim() ||
-        sending
+        sending ||
+        !currentItem
     ) {
         return;
     }
 
-    if (!currentItem) {
-        return;
-    }
-
     try {
-
         setSending(true);
 
+        // The post that owns the CURRENT item
+        const postId = Number(
+            currentItem.reelId
+        );
+
+        // Content has no post_media_id
+        // Media has its own post_media_id
+        const mediaId =
+            currentItem.type === "content"
+                ? null
+                : Number(
+                    currentItem.mediaId
+                );
+
         await api.post(
-            `/api/reels/${selectedReel.id}/message`,
+            `/api/reels/${postId}/message`,
             {
                 message: message.trim(),
 
-                post_media_id:
-                    currentItem.mediaId || null,
+                post_media_id: mediaId,
             }
         );
 
@@ -354,12 +361,13 @@ const currentItem =
 
         console.error(
             "MESSAGE ERROR:",
-            error
+            error.response?.data || error
         );
 
     } finally {
 
         setSending(false);
+
     }
 };
 

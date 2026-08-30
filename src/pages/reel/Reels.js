@@ -205,7 +205,7 @@ export default function Reels({
 
         setMyMediaIndex(0);
         setMyProgress(0);
-        // setReactionUsers(null);
+        setReactionUsers(null);
 
         return;
     }
@@ -222,7 +222,7 @@ export default function Reels({
         setSelectedReelIndex(0);
         setMyMediaIndex(0);
         setMyProgress(0);
-        // setReactionUsers(null);
+        setReactionUsers(null);
 
         return;
     }

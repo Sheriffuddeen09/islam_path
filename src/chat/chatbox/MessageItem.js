@@ -1537,21 +1537,21 @@ onTouchEnd={() => {
             <img
                 src={msg.reel_preview.url}
                 alt=""
-                className="w-20 h-20 object-cover rounded-lg"
+                className="w-full h-14 object-cover rounded-lg"
             />
         )}
 
         {msg.reel_preview.type === "video" && (
             <video
                 src={msg.reel_preview.url}
-                className="w-20 h-20 object-cover rounded-lg"
+                className="w-full h-14 object-cover rounded-lg"
                 muted
                 playsInline
             />
         )}
 
         {msg.reel_preview.type === "content" && (
-            <div className="w-20 h-20 rounded-lg bg-gray-700 p-2 text-white text-xs overflow-hidden">
+            <div className="w-full rounded-lg bg-gray-700 p-2 text-white text-xs overflow-hidden">
                 {msg.reel_preview.content}
             </div>
         )}
