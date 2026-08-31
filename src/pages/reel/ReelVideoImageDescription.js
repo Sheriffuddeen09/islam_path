@@ -2372,8 +2372,8 @@ if (
             flex
             items-center
             justify-between
-            hover:bg-gray-100
-            dark:hover:bg-gray-800
+            hover:bg-gray-500
+            dark:hover:bg-gray-100
             transition
         "
     >
@@ -2457,7 +2457,7 @@ if (
 
                             <p className="
                                 text-xs
-                                opacity-60
+                                
                                 mt-1
                             ">
                                 Add a description for
@@ -2470,7 +2470,7 @@ if (
 
                         <span className="
                             text-xs
-                            opacity-60
+                            
                         ">
                             {(item.description || "").length}/700
                         </span>

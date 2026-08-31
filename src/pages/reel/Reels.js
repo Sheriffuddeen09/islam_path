@@ -139,44 +139,32 @@ export default function Reels({
    
     const nextReel = () => {
 
-    if (!selectedUser) {
-        return;
-    }
-
-    if (
-        selectedReelIndex <
-        selectedUser.reels.length - 1
-    ) {
-
-        setSelectedReelIndex(
-            prev => prev + 1
-        );
-
-        setMediaIndex(0);
-        setProgress(0);
-        setReaction(null);
-        setMessage("");
-
-        return;
-    }
-
     if (
         selectedUserIndex <
         reelUsers.length - 1
     ) {
 
+        const nextUserIndex =
+            selectedUserIndex + 1;
+
         setSelectedUserIndex(
-            prev => prev + 1
+            nextUserIndex
         );
 
         setSelectedReelIndex(0);
+
         setMediaIndex(0);
+
         setProgress(0);
+
         setReaction(null);
+
         setMessage("");
 
         return;
     }
+
+
     closeViewer();
 };
 
@@ -188,47 +176,29 @@ export default function Reels({
                 setMyProgress(0);
                 }
 
- const nextMyReel = () => {
+                const nextMyReel = () => {
 
-    if (!selectedReel) {
-        return;
-    }
+                    const nextUserIndex =
+                        selectedMyIndex + 1;
 
-    if (
-        selectedReelIndex <
-        selectedReel.reels.length - 1
-    ) {
+                    if (
+                        nextUserIndex <
+                        myReels.length
+                    ) {
 
-        setSelectedReelIndex(
-            prev => prev + 1
-        );
+                        setSelectedMyIndex(
+                            nextUserIndex
+                        );
 
-        setMyMediaIndex(0);
-        setMyProgress(0);
-        setReactionUsers(null);
+                        setMyMediaIndex(0);
+                        setMyProgress(0);
+                        setReactionUsers(null);
 
-        return;
-    }
+                        return;
+                    }
 
-    if (
-        selectedMyIndex <
-        myReels.length - 1
-    ) {
-
-        setSelectedMyIndex(
-            prev => prev + 1
-        );
-
-        setSelectedReelIndex(0);
-        setMyMediaIndex(0);
-        setMyProgress(0);
-        setReactionUsers(null);
-
-        return;
-    }
-    closeMyReview();
-};
-
+                    closeMyReview();
+                };
 
 
 const previousReel = () => {
@@ -328,66 +298,16 @@ const previousMyReel = () => {
 };
 
 
-    const sendReaction = async (value) => {
-    if (!selectedReel) {
-        return;
-    }
+   const handleReelDeleted = (deletedId) => {
 
-    const reelId = selectedReel.id;
-
-    // Update the button immediately
-    setReaction(value);
-
-    // Update the actual reel inside reelUsers
-    setReelUsers(prev =>
-        prev.map(userGroup => ({
-            ...userGroup,
-
-            reels: Array.isArray(userGroup.reels)
-                ? userGroup.reels.map(reel =>
-                    Number(reel.id) === Number(reelId)
-                        ? {
-                            ...reel,
-                            user_reaction: value || null,
-                        }
-                        : reel
-                )
-                : userGroup.reels,
-        }))
-    );
-
-    // If the selected reel is also one of your reels,
-    // update myReels too
     setMyReels(prev =>
-        prev.map(reel =>
-            Number(reel.id) === Number(reelId)
-                ? {
-                    ...reel,
-                    user_reaction: value || null,
-                }
-                : reel
+        prev.filter(
+            reel =>
+                Number(reel.id) !==
+                Number(deletedId)
         )
     );
-
-    try {
-        await api.post(
-            `/api/reels/${reelId}/reaction`,
-            {
-                reaction: value,
-            }
-        );
-
-    } catch (error) {
-
-        console.error(
-            "REACTION ERROR:",
-            error
-        );
-
-        // Optional: revert if API fails
-    }
 };
-
     
 
     const hasMyReels =
@@ -1133,6 +1053,8 @@ const firstMyVideo =
                     setOpenReport={setOpenReport}
                     shares={shares}
                     setShares={setShares}
+                    myMediaIndex={myMediaIndex}
+                    onReelDeleted={handleReelDeleted}
                 />
             )}
 
@@ -1189,6 +1111,7 @@ const firstMyVideo =
                 setOpenReport={setOpenReport}
                 shares={shares}
                 setShares={setShares}
+                onReelDeleted={handleReelDeleted}
             />
         )}
 

@@ -291,7 +291,17 @@ useEffect(() => {
 };
 
 
+const truncateWords = (text, limit = 20) => {
+    if (!text) return "";
 
+    const words = text.trim().split(/\s+/);
+
+    if (words.length <= limit) {
+        return text;
+    }
+
+    return words.slice(0, limit).join(" ") + "...";
+};
     const resendVoice = async () => {
 
   setMessages(prev =>
@@ -1550,11 +1560,27 @@ onTouchEnd={() => {
             />
         )}
 
-        {msg.reel_preview.type === "content" && (
-            <div className="w-full rounded-lg bg-gray-700 p-2 text-white text-xs overflow-hidden">
-                {msg.reel_preview.content}
-            </div>
+       {msg.reel_preview?.type === "content" && (
+    <div
+        className={`
+            text-[13px] lg:text-[13px] md:text-[16px]
+            mt-1
+            text-white
+            w-fit
+            break-words
+            bg-gray-700 p-2
+            ${uiMode === 'full'
+                ? 'max-w-64'
+                : 'max-w-56 lg:max-w-56 md:max-w-96'
+            }
+        `}
+    >
+        {truncateWords(
+            msg.reel_preview.content,
+            20
         )}
+    </div>
+)}
     </div>
 )}
         {msg.message && msg.type === "text" && (

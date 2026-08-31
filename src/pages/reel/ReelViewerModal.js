@@ -11,10 +11,11 @@ import {
     Heart,
     Send,
     ArrowLeft,
-    ArrowRight,
+    ArrowRight, Smile
 } from "lucide-react";
-import ReelOptions from "./ReelOption";
-import api from "../../Api/axios";
+  import api from "../../Api/axios";
+import ReelOptionPreview from "./ReelOptionPreview";
+import EmojiPicker from "emoji-picker-react";
 
 export default function ReelViewerModal({
     user,
@@ -56,6 +57,9 @@ export default function ReelViewerModal({
     const [mediaReady, setMediaReady] = useState(true);
 
     const [showFullDescription, setShowFullDescription] =
+    useState(false);
+
+    const [showEmojiPicker, setShowEmojiPicker] =
     useState(false);
 
     const messageRef = useRef("");
@@ -734,37 +738,92 @@ useEffect(() => {
 
 
    const getFirstUnviewedIndex = useCallback(() => {
-
-    if (!allUserReels.length || !reelItems.length) {
+    if (!reelItems.length) {
         return 0;
     }
 
-    const firstUnviewedReel =
-        allUserReels.find(
-            reelItem =>
-                reelItem.has_viewed !== true
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | Find first item that has NOT been viewed
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | We check flattened reelItems, not only allUserReels.
+    | This allows:
+    |
+    | content
+    | image
+    | video
+    |
+    | to each be treated as separate items.
+    |
+    */
+
+    const index = reelItems.findIndex(item => {
+        return item.has_viewed !== true;
+    });
+
+    return index >= 0 ? index : 0;
+
+}, [reelItems]);
 
 
-    if (firstUnviewedReel) {
+/*
+|--------------------------------------------------------------------------
+| INITIALIZE WHEN USER CHANGES
+|--------------------------------------------------------------------------
+*/
 
-        const index =
-            reelItems.findIndex(
-                item =>
-                    Number(item.reelId) ===
-                    Number(firstUnviewedReel.id)
-            );
+const previousUserIndexRef = useRef(null);
 
-        return index >= 0
-            ? index
-            : 0;
+useEffect(() => {
+
+    if (
+        currentUserIndex == null ||
+        !reelItems.length
+    ) {
+        return;
     }
 
-    return 0;
+    /*
+    |--------------------------------------------------------------------------
+    | Only initialize when the USER changes.
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        previousUserIndexRef.current ===
+        currentUserIndex
+    ) {
+        return;
+    }
+
+    previousUserIndexRef.current =
+        currentUserIndex;
+
+    const startIndex =
+        getFirstUnviewedIndex();
+
+    setMediaIndex(startIndex);
+    setProgress(0);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reset video
+    |--------------------------------------------------------------------------
+    */
+
+    if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+    }
 
 }, [
-    allUserReels,
-    reelItems
+    currentUserIndex,
+    reelItems,
+    getFirstUnviewedIndex,
+    setMediaIndex,
+    setProgress
 ]);
 
 useEffect(() => {
@@ -810,24 +869,36 @@ useEffect(() => {
         return;
     }
 
-    const nextIndex = mediaIndex + 1;
+    const nextIndex =
+        mediaIndex + 1;
 
-    if (nextIndex < reelItems.length) {
+    if (
+        nextIndex <
+        reelItems.length
+    ) {
 
         setProgress(0);
 
-        setMediaIndex(nextIndex);
+        setMediaIndex(
+            nextIndex
+        );
 
         return;
     }
+
     setProgress(100);
 
-    // Check if there is another user
-    const hasNextUser =
-        currentUserIndex <
-        (reelUsers?.length || 0) - 1;
+    const nextUserIndex =
+        currentUserIndex + 1;
 
-    if (hasNextUser) {
+    if (
+        nextUserIndex <
+        (reelUsers?.length || 0)
+    ) {
+
+        setMediaIndex(0);
+
+        setProgress(0);
 
         nextReel?.();
 
@@ -1069,8 +1140,8 @@ useEffect(() => {
                     >
 
                     
-                        <ReelOptions post={reel} chats={chats} open={open} setOpen={setOpen}
-                        showImagePicker={showImagePicker}
+                        <ReelOptionPreview chats={chats} open={open} setOpen={setOpen}
+                        showImagePicker={showImagePicker} post={selectedReel} currentItem={currentItem}
                         setShowImagePicker={setShowImagePicker}
                         messageOpenShare={messageOpenShare}
                         setMessageOpenShare={setMessageOpenShare}
@@ -1392,73 +1463,141 @@ useEffect(() => {
                             </button>
                         {/* INPUT */}
 
-                        <div
-                            className="
-                                flex
-                                flex-1
-                                items-center
-                                gap-2
-                                bg-white/10
-                                border
-                                border-white/30
-                                rounded-full
-                                px-4
-                                h-11
-                            "
-                        >
+                        <div className="relative flex items-center gap-2 w-full flex-1">
 
-                            <input
-                                type="text"
-                                value={
-                                    message
-                                }
-                                onChange={(e) =>
-                                    setMessage(
-                                        e.target.value
-                                    )
-                                }
-                                onKeyDown={(e) => {
+                            {/* Emoji picker */}
+                            {showEmojiPicker && (
+                                <div
+                                    className="
+                                        absolute
+                                        bottom-14
+                                        left-0
+                                        z-[100]
+                                    "
+                                >
+                                    <EmojiPicker
+                                        className="bg[var(--bg-color)] text[var(--text-color)]  
+                                        scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin "
+                                        onEmojiClick={(emojiData) => {
 
-                                    if (
-                                        e.key ===
-                                        "Enter"
-                                    ) {
-                                        onSendMessage();
-                                    }
+                                            setMessage(
+                                                prev =>
+                                                    prev + emojiData.emoji
+                                            );
 
-                                }}
-                                placeholder={`Message ${user.first_name}...`}
+                                        }}
+                                        width={320}
+                                        height={400}
+                                        searchDisabled={false}
+                                        skinTonesDisabled={false}
+                                    />
+                                </div>
+                            )}
+
+                            <div
                                 className="
+                                    flex
                                     flex-1
-                                    min-w-0
-                                    bg-transparent
-                                    outline-none
-                                    text-white
-                                    placeholder:text-gray-300
-                                    text-sm
-                                "
-                            />
-
-
-                            <button
-                                type="button"
-                                disabled={
-                                    !message.trim() ||
-                                    sending
-                                }
-                                onClick={
-                                    onSendMessage
-                                }
-                                className="
-                                    shrink-0
-                                    text-white
-                                    disabled:opacity-30
+                                    items-center
+                                    gap-2
+                                    bg-white/10
+                                    border
+                                    border-white/30
+                                    rounded-full
+                                    px-3
+                                    h-11
+                                    w-full
                                 "
                             >
-                                <Send
-                                    size={18}
+
+                                {/* EMOJI BUTTON */}
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowEmojiPicker(
+                                            prev => !prev
+                                        )
+                                    }
+                                    className="
+                                        shrink-0
+                                        text-xl
+                                        text-white
+                                        hover:scale-110
+                                        transition
+                                    "
+                                    aria-label="Choose emoji"
+                                >
+                                    <Smile size={20} />
+                                </button>
+
+
+                                {/* MESSAGE INPUT */}
+                                <input
+                                    type="text"
+                                    value={message}
+                                    onChange={(e) =>
+                                        setMessage(
+                                            e.target.value
+                                        )
+                                    }
+                                    onKeyDown={(e) => {
+
+                                        if (
+                                            e.key === "Enter" &&
+                                            !e.shiftKey
+                                        ) {
+                                            e.preventDefault();
+
+                                            if (
+                                                message.trim() &&
+                                                !sending
+                                            ) {
+                                                onSendMessage();
+
+                                                // Close emoji picker
+                                                setShowEmojiPicker(false);
+                                            }
+                                        }
+
+                                    }}
+                                    placeholder={`Message ${user.first_name}...`}
+                                    className="
+                                        flex-1
+                                        bg-transparent
+                                        outline-none
+                                        text-white
+                                        placeholder:text-gray-300
+                                        text-sm w-full
+                                    "
                                 />
-                            </button>
+
+
+                                {/* SEND */}
+                                <button
+                                    type="button"
+                                    disabled={
+                                        !message.trim() ||
+                                        sending
+                                    }
+                                    onClick={() => {
+
+                                        onSendMessage();
+
+                                        setShowEmojiPicker(false);
+
+                                    }}
+                                    className="
+                                        shrink-0
+                                        text-white
+                                        disabled:opacity-30
+                                        hover:scale-110
+                                        transition
+                                    "
+                                >
+                                    <Send size={18} />
+                                </button>
+
+                            </div>
 
                         </div>
 

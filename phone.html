@@ -12,57 +12,95 @@
 
 
 
-
-
-
-myreel next and previous does not work
-
-
-const handleNextMedia = useCallback(() => {
-    
-         if (isUsersModalOpen) {
-        return;
-    }
-
-        if (!reelItems.length) {
-            onClose?.();
-            return;
+  "my_reels": [
+        {
+            "id": 58,
+            "reel_type": "text",
+            "content": "3. Go to:\n   **Settings \u2192 API Keys & Webhooks**\nYou\u2019ll see:\nPublic Key \u2192 pk_test_xxxxx\nSecret Key \u2192 sk_test_xxxxx\n\ud83d\udc49 Use:\npublicKey: \"pk_test_xxxxx\"",
+            "visibility": "friends",
+            "duration": 0,
+            "created_at": "2026-08-30T21:38:11.000000Z",
+            "expires_at": "2026-08-31T21:38:11.000000Z",
+            "has_viewed": false,
+            "views_count": 1,
+            "reactions_count": 0,
+            "user_reaction": null,
+            "user": {
+                "id": 1,
+                "first_name": "Nuruddeen",
+                "last_name": "Sheriff",
+                "initial": "N"
+            },
+            "media": []
+        },
+        {
+            "id": 61,
+            "reel_type": "image",
+            "content": null,
+            "visibility": "friends",
+            "duration": 30,
+            "created_at": "2026-08-30T22:01:08.000000Z",
+            "expires_at": "2026-08-31T22:01:08.000000Z",
+            "has_viewed": false,
+            "views_count": 1,
+            "reactions_count": 0,
+            "user_reaction": null,
+            "user": {
+                "id": 1,
+                "first_name": "Nuruddeen",
+                "last_name": "Sheriff",
+                "initial": "N"
+            },
+            "media": [
+                {
+                    "id": 130,
+                    "type": "image",
+                    "url": "http:\/\/localhost:8000\/storage\/posts\/reels\/images\/yhAneqe9OtBGFaD0mBcdA4wZpd6pqGJcaeFN7RyG.png",
+                    "order": 0,
+                    "description": null
+                }
+            ]
+        },
+        {
+            "id": 62,
+            "reel_type": "mixed",
+            "content": null,
+            "visibility": "friends",
+            "duration": 105,
+            "created_at": "2026-08-30T22:06:04.000000Z",
+            "expires_at": "2026-08-31T22:06:04.000000Z",
+            "has_viewed": false,
+            "views_count": 1,
+            "reactions_count": 0,
+            "user_reaction": null,
+            "user": {
+                "id": 1,
+                "first_name": "Nuruddeen",
+                "last_name": "Sheriff",
+                "initial": "N"
+            },
+            "media": [
+                {
+                    "id": 131,
+                    "type": "image",
+                    "url": "http:\/\/localhost:8000\/storage\/posts\/reels\/images\/JqsAnKyfcATbsG85fJoEmHBGSn2htuUeiwNFe7XC.png",
+                    "order": 0,
+                    "description": null
+                },
+                {
+                    "id": 132,
+                    "type": "image",
+                    "url": "http:\/\/localhost:8000\/storage\/posts\/reels\/images\/2bb3Sjn82zr5VE5rnyZL6XB72rGrzZp7toem5Dfi.png",
+                    "order": 1,
+                    "description": null
+                },
+                {
+                    "id": 133,
+                    "type": "video",
+                    "url": "http:\/\/localhost:8000\/storage\/posts\/reels\/videos\/reel_6a94a94d330a0_1788127565_2.mp4",
+                    "order": 2,
+                    "description": null
+                }
+            ]
         }
-    
-        const nextIndex = myMediaIndex + 1;
-    
-        if (nextIndex < reelItems.length) {
-    
-            setMyProgress(0);
-    
-            setMyMediaIndex(nextIndex);
-    
-            return;
-        }
-        setMyProgress(100);
-    
-        // Check if there is another user
-        const hasNextUser =
-            selectedMyIndex <
-            (myReels?.length || 0) - 1;
-    
-        if (hasNextUser) {
-    
-            nextReel?.();
-    
-            return;
-        }
-    
-        onClose?.();
-    
-    }, [
-        reelItems.length,
-        myMediaIndex,
-        selectedMyIndex,
-        myReels?.length,
-        nextReel,
-        onClose,
-        setMyMediaIndex,
-        setMyProgress
-    ]);
-    
+    ],

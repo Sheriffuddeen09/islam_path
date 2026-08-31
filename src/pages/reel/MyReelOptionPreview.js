@@ -20,10 +20,9 @@ import {
     Trash,
 } from "lucide-react";
 import { PostReportModal } from "../post/report/PostReportModal";
-import DownloadImageFlex from "../post/DownloadImageFlex";
 import { toast } from "react-toastify";
 
-export default function ReelOptions({
+export default function MyReelOptionPreview({
     post,
     chats = [],
     open,
@@ -536,7 +535,6 @@ const mediaId =
             "Reel deleted successfully."
         );
 
-        
         onReelDeleted?.(postId);
 
         setOpen(false);
@@ -747,10 +745,19 @@ const mediaId =
             return;
         }
 
-       
+        /*
+         * Do NOT close the option here
+         * until report is successfully completed.
+         */
+
         setOpenReport(true);
     };
 
+    /*
+    |--------------------------------------------------------------------------
+    | PROFILE
+    |--------------------------------------------------------------------------
+    */
 
     const handleViewProfile = () => {
 
@@ -767,6 +774,18 @@ const mediaId =
             `/profile/${userId}`;
     };
 
+    /*
+    |--------------------------------------------------------------------------
+    | SHOULD SHOW COPY TEXT
+    |--------------------------------------------------------------------------
+    |
+    | Content -> YES
+    | Image description -> YES
+    | Video description -> YES
+    | Plain image/video without text -> NO
+    |
+    */
+
     const copyableText =
         currentItem?.type === "content"
             ? currentItem?.content
@@ -779,6 +798,11 @@ const mediaId =
             copyableText?.trim()
         );
 
+    /*
+    |--------------------------------------------------------------------------
+    | OPTION ICON
+    |--------------------------------------------------------------------------
+    */
 
     return (
         <div
@@ -809,9 +833,12 @@ const mediaId =
                     w-10
                     h-10
                     rounded-full
+                    bg-black/50
+                    text-white
                     flex
                     items-center
                     justify-center
+                    hover:bg-black/70
                     transition
                     relative
                     z-[310]
@@ -916,7 +943,7 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
                                     "
                                 >
 
@@ -959,7 +986,7 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
                                     "
                                 >
 
@@ -994,7 +1021,7 @@ const mediaId =
                                     px-3
                                     py-3
                                     rounded-lg
-                                    hover:bg-gray-700 hover:text-white
+                                    hover:bg-gray-700
                                 "
                             >
 
@@ -1033,7 +1060,7 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
                                     "
                                 >
 
@@ -1075,7 +1102,7 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
                                     "
                                 >
 
@@ -1115,7 +1142,7 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
                                     "
                                 >
 
@@ -1152,7 +1179,7 @@ const mediaId =
                                     px-3
                                     py-3
                                     rounded-lg
-                                    hover:bg-gray-700 hover:text-white
+                                    hover:bg-gray-700
                                 "
                             >
 
@@ -1189,7 +1216,7 @@ const mediaId =
                                     px-3
                                     py-3
                                     rounded-lg
-                                    hover:bg-gray-700 hover:text-white
+                                    hover:bg-gray-700
                                 "
                             >
 

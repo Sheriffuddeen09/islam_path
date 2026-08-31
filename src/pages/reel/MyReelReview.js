@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import api from "../../Api/axios"; // change to your api path
-import ReelOptions from "./ReelOption";
+import MyReelOptionPreview from "./MyReelOptionPreview";
 
 
 export default function MyReelReview({
@@ -35,7 +35,7 @@ export default function MyReelReview({
     chats,
     selectedReel,
     setReaction, open, setOpen, shares, setShares, showImagePicker,
-    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport
+    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport, onReelDeleted
 }) {
     const videoRef = useRef(null);
 
@@ -67,7 +67,7 @@ export default function MyReelReview({
     const timerRef = useRef(null);
 
     const [mediaReady, setMediaReady] = useState(true);
-    
+    const mediaLoadRef = useRef(null);
     
    const reel = myReels?.[selectedMyIndex] || null;
 
@@ -207,7 +207,16 @@ const reelItems = useMemo(() => {
     return items;
 }, [allUserReels]);
     
+const isGroupedReels = useMemo(() => {
 
+    return (
+        Array.isArray(myReels) &&
+        myReels.some(
+            item => Array.isArray(item?.reels)
+        )
+    );
+
+}, [myReels]);
 
     const currentItem =
         reelItems[myMediaIndex] || null;
@@ -215,37 +224,119 @@ const reelItems = useMemo(() => {
     
     
     useEffect(() => {
-    
-        // Stop previous timer
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-    
-        setMyProgress(0);
 
-         if (isUsersModalOpen) {
+            // Stop previous timer
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+
+            // Cancel previous image preload
+            if (mediaLoadRef.current) {
+                mediaLoadRef.current.onload = null;
+                mediaLoadRef.current.onerror = null;
+                mediaLoadRef.current = null;
+            }
+
+            setMyProgress(0);
+
+            if (isUsersModalOpen) {
+                setMediaReady(false);
                 return;
             }
-    
-        if (!currentItem) {
-            setMediaReady(false);
-            return;
-        }
-    
-        // IMAGE must wait for loading
-        if (currentItem.type === "image") {
-            setMediaReady(false);
-            return;
-        }
-    
-        // CONTENT and VIDEO are immediately ready
-        setMediaReady(true);
-    
-    }, [
-        currentItem?.id,
-        currentItem?.type
-    ]);
+
+            if (!currentItem) {
+                setMediaReady(false);
+                return;
+            }
+
+            // -----------------------------------------
+            // CONTENT
+            // -----------------------------------------
+
+            if (currentItem.type === "content") {
+                setMediaReady(true);
+                return;
+            }
+
+            // -----------------------------------------
+            // VIDEO
+            // -----------------------------------------
+
+            if (currentItem.type === "video") {
+                setMediaReady(true);
+                return;
+            }
+
+            // -----------------------------------------
+            // IMAGE
+            // -----------------------------------------
+
+            if (currentItem.type === "image") {
+
+                setMediaReady(false);
+
+                const image = new Image();
+
+                mediaLoadRef.current = image;
+
+                image.onload = () => {
+
+                    // Make sure this is still the
+                    // currently selected image
+                    if (
+                        mediaLoadRef.current === image
+                    ) {
+                        setMediaReady(true);
+                    }
+                };
+
+                image.onerror = () => {
+
+                    // Even if image fails,
+                    // don't allow progress to get stuck
+                    if (
+                        mediaLoadRef.current === image
+                    ) {
+                        setMediaReady(true);
+                    }
+                };
+
+                image.src = currentItem.url;
+
+                // IMPORTANT:
+                // Cached image may already be complete
+                if (image.complete) {
+
+                    if (image.naturalWidth > 0) {
+                        setMediaReady(true);
+                    } else {
+                        setMediaReady(true);
+                    }
+                }
+
+                return;
+            }
+
+            setMediaReady(true);
+
+            return () => {
+
+                if (mediaLoadRef.current) {
+                    mediaLoadRef.current.onload = null;
+                    mediaLoadRef.current.onerror = null;
+                    mediaLoadRef.current = null;
+                }
+
+            };
+
+        }, [
+            currentItem?.id,
+            currentItem?.type,
+            currentItem?.url,
+            myMediaIndex,
+            isUsersModalOpen
+        ]);
     
     
     
@@ -300,6 +391,10 @@ const reelItems = useMemo(() => {
             }
         
             if (!currentItem) {
+                return;
+            }
+
+            if (isUsersModalOpen) {
                 return;
             }
         
@@ -487,53 +582,68 @@ const reelItems = useMemo(() => {
     
         };
     
-       const handleNextMedia = useCallback(() => {
-    
-         if (isUsersModalOpen) {
-        return;
-    }
+      const handleNextMedia = useCallback(() => {
 
-        if (!reelItems.length) {
+            if (isUsersModalOpen) {
+                return;
+            }
+
+            if (!reelItems.length) {
+                onClose?.();
+                return;
+            }
+
+            const nextIndex = myMediaIndex + 1;
+
+            if (nextIndex < reelItems.length) {
+
+                setMyProgress(0);
+
+                setMyMediaIndex(nextIndex);
+
+                return;
+            }
+
+            if (!isGroupedReels) {
+
+                setMyProgress(100);
+
+                onClose?.();
+
+                return;
+            }
+
+            const hasNextUser =
+                selectedMyIndex <
+                myReels.length - 1;
+
+            if (hasNextUser) {
+
+                setMyProgress(0);
+
+                setMyMediaIndex(0);
+
+                nextReel?.();
+
+                return;
+            }
+
+            setMyProgress(100);
+
             onClose?.();
-            return;
-        }
-    
-        const nextIndex = myMediaIndex + 1;
-    
-        if (nextIndex < reelItems.length) {
-    
-            setMyProgress(0);
-    
-            setMyMediaIndex(nextIndex);
-    
-            return;
-        }
-        setMyProgress(100);
-    
-        // Check if there is another user
-        const hasNextUser =
-            selectedMyIndex <
-            (myReels?.length || 0) - 1;
-    
-        if (hasNextUser) {
-    
-            nextReel?.();
-    
-            return;
-        }
-    
-        onClose?.();
-    
-    }, [
-        reelItems.length,
-        myMediaIndex,
-        selectedMyIndex,
-        myReels?.length,
-        nextReel,
-        onClose,
-        setMyMediaIndex,
-        setMyProgress
-    ]);
+
+        }, [
+            isUsersModalOpen,
+            reelItems.length,
+            myMediaIndex,
+            isGroupedReels,
+            selectedMyIndex,
+            myReels.length,
+            nextReel,
+            onClose,
+            setMyMediaIndex,
+            setMyProgress
+        ]);
     
     
         const handleVideoTimeUpdate = (e) => {
@@ -904,7 +1014,8 @@ const fetchViewUsers = async () => {
                         "
                     >
 
-                       <ReelOptions post={reel} chats={chats} open={open} setOpen={setOpen}
+                       <MyReelOptionPreview post={reel} currentItem={currentItem}
+                       chats={chats} open={open} setOpen={setOpen}
                        showImagePicker={showImagePicker}
                         setShowImagePicker={setShowImagePicker}
                         messageOpenShare={messageOpenShare}
@@ -912,7 +1023,7 @@ const fetchViewUsers = async () => {
                         openReport={openReport}
                         setOpenReport={setOpenReport}
                         shares={shares}
-                        setShares={setShares} />
+                        setShares={setShares} onReelDeleted={onReelDeleted} />
 
                         <button
                             type="button"
@@ -969,8 +1080,10 @@ const fetchViewUsers = async () => {
                     </button>
                 )}
 
-                {selectedMyIndex <
-                    myReels.length - 1 && (
+                {(
+                    myMediaIndex < reelItems.length - 1 ||
+                    selectedMyIndex < myReels.length - 1
+                ) && (
                     <button
                         type="button"
                         onClick={
@@ -1222,7 +1335,7 @@ const fetchViewUsers = async () => {
                             }
                         />
 
-                        <span className="text-sm absolute -right-2 top-2">
+                        <span className="text-sm absolute right-2 top-2">
                             {reel?.reactions_count || 0}
                         </span>
                     </button>

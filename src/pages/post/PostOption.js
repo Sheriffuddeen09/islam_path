@@ -312,6 +312,8 @@ const handleReport = () =>{
     <div className={`w-full h-full  fixed inset-0 bg-black bg-opacity-70 z-50 ${openReport ? 'block' : 'hidden'}`}>
         <PostReportModal post={post} onClose={handleReport} />
     </div>
+
+    
     {showImagePicker && (
   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
     <div className="bg-white relative rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">

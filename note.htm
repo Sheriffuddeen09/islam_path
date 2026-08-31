@@ -8,3 +8,609 @@
         ]
     }
  
+have trouble shoot the issue and discover that it was the image when the progress bar automatical get to the image 
+it will stop moving but if it was next it will moving, 
+1. content move automatically
+2. video move automatically
+3. image stop moving automatically
+4. if it was next it will all move 
+
+
+export default function MyReelReview({
+    myReels = [],
+    selectedMyIndex,
+    onPrevious,
+    nextReel,
+    myProgress,
+    setMyProgress,
+    onClose,
+    reactionUsers = [],
+    setReactionUsers,
+    currentUser,
+    myMediaIndex,
+    setMyMediaIndex,
+    chats,
+    selectedReel,
+    setReaction, open, setOpen, shares, setShares, showImagePicker,
+    setShowImagePicker, messageOpenShare, setMessageOpenShare, openReport, setOpenReport
+}) {
+    const videoRef = useRef(null);
+    const [createdTime, setCreatedTime] =
+        useState("");
+    const [showReactionUsers, setShowReactionUsers] =
+        useState(false);
+    const [loadingReactionUsers, setLoadingReactionUsers] =
+        useState(false);
+    const [viewUsers, setViewUsers] =
+        useState([]);
+    const [showViewUsers, setShowViewUsers] =
+        useState(false);
+    const [loadingViewUsers, setLoadingViewUsers] =
+        useState(false);
+    const [showFullDescription, setShowFullDescription] =
+    useState(false);
+    const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
+    
+
+    const timerRef = useRef(null);
+    const [mediaReady, setMediaReady] = useState(true);
+   const reel = myReels?.[selectedMyIndex] || null;
+    const openRef = useRef(false);
+    const reactionRef = useRef(false);
+    const viewRef = useRef(false);
+       const timerStartRef = useRef(null);
+       const elapsedBeforePauseRef = useRef(0);
+   
+       useEffect(() => {
+       openRef.current = open;
+       }, [open]);
+
+        useEffect(() => {
+       reactionRef.current = showReactionUsers;
+       }, [showReactionUsers]);
+
+        useEffect(() => {
+       viewRef.current = showViewUsers;
+       }, [showViewUsers]);
+
+
+const allUserReels = useMemo(() => {
+    if (!Array.isArray(myReels)) {
+        return [];
+    }
+
+    if (
+        Array.isArray(
+            myReels?.[selectedMyIndex]?.reels
+        )
+    ) {
+        return myReels[selectedMyIndex].reels;
+    }
+
+    return myReels;
+}, [
+    myReels,
+    selectedMyIndex
+]);
+
+const reelItems = useMemo(() => {
+    const items = [];
+
+    if (!Array.isArray(allUserReels)) {
+        return items;
+    }
+
+    allUserReels
+        .slice()
+        .sort(
+            (a, b) =>
+                new Date(a.created_at || 0) -
+                new Date(b.created_at || 0)
+        )
+        .forEach((reelItem) => {
+
+            if (
+                typeof reelItem.content === "string" &&
+                reelItem.content.trim()
+            ) {
+                items.push({
+                    type: "content",
+                    id: `content-${reelItem.id}`,
+                    content: reelItem.content,
+                    reelId: reelItem.id,
+                    created_at: reelItem.created_at,
+                    background_color:
+                        reelItem.background_color,
+                    font:
+                        reelItem.font,
+                });
+            }
+
+            
+            if (
+                Array.isArray(reelItem.media)
+            ) {
+                reelItem.media
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            Number(a.order || 0) -
+                            Number(b.order || 0)
+                    )
+                    .forEach((mediaItem) => {
+
+                        const mediaType =
+                            mediaItem.type ||
+                            mediaItem.media_type ||
+                            (
+                                mediaItem.mime_type
+                                    ?.startsWith("video/")
+                                    ? "video"
+                                    : "image"
+                            );
+
+                        items.push({
+                            ...mediaItem,
+
+                            type: mediaType,
+
+                            reelId:
+                                reelItem.id,
+
+                            created_at:
+                                reelItem.created_at,
+
+                            url:
+                                mediaItem.url ||
+                                mediaItem.path ||
+                                mediaItem.media_url,
+                        });
+                    });
+            }
+
+            
+            if (
+                reelItem.video &&
+                !Array.isArray(reelItem.media)
+            ) {
+                items.push({
+                    type: "video",
+                    id: `video-${reelItem.id}`,
+                    reelId: reelItem.id,
+                    url:
+                        typeof reelItem.video === "string"
+                            ? reelItem.video
+                            : reelItem.video.url,
+                    created_at:
+                        reelItem.created_at,
+                });
+            }
+        });
+
+    return items;
+}, [allUserReels]);
+
+    const currentItem =
+        reelItems[myMediaIndex] || null;
+
+        useEffect(() => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+    
+        setMyProgress(0);
+
+         if (isUsersModalOpen) {
+                return;
+            }
+    
+        if (!currentItem) {
+            setMediaReady(false);
+            return;
+        }
+        if (currentItem.type === "image") {
+            setMediaReady(false);
+            return;
+        }
+        setMediaReady(true);
+    
+    }, [
+        currentItem?.id,
+        currentItem?.type
+    ]);
+    
+    const getContentDuration = (text) => {
+    
+        if (!text) {
+            return 5;
+        }
+        const length = text.trim().length;
+    
+        const seconds = Math.ceil(length / 15);
+    
+        return Math.min(
+            Math.max(seconds, 5),
+            30
+        );
+    };
+    
+    const currentItemDuration = useMemo(() => {
+    
+        if (!currentItem) {
+            return 5;
+        }
+        if (currentItem.type === "content") {
+            return getContentDuration(
+                currentItem.content
+            );
+        }
+        if (currentItem.type === "image") {
+            return 30;
+        }
+        if (currentItem.type === "video") {
+            return null;
+        }
+    
+        return 5;
+    
+    }, [currentItem]);
+    
+    
+        useEffect(() => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        
+            if (!currentItem) {
+                return;
+            }
+            if (currentItem.type === "video") {
+                return;
+            }
+            if (!mediaReady) {
+                return;
+            }
+        
+            const duration =
+                currentItemDuration || 5;
+            setMyProgress(0);
+        
+            elapsedBeforePauseRef.current = 0;
+            timerStartRef.current = Date.now();
+        
+            timerRef.current = setInterval(() => {
+        
+                const shouldPause =
+                    reactionRef.current === true ||
+                    viewRef.current === true || 
+                    openRef.current === true;
+        
+                if (shouldPause) {
+        
+                    if (timerStartRef.current) {
+        
+                        elapsedBeforePauseRef.current +=
+                            (
+                                Date.now() -
+                                timerStartRef.current
+                            ) / 1000;
+        
+                        timerStartRef.current = null;
+                    }
+        
+                    return;
+                }
+        
+                if (!timerStartRef.current) {
+                    timerStartRef.current = Date.now();
+                }
+        
+        
+                const elapsed =
+                    elapsedBeforePauseRef.current +
+                    (
+                        Date.now() -
+                        timerStartRef.current
+                    ) / 1000;
+        
+        
+                const percent =
+                    Math.min(
+                        (elapsed / duration) * 100,
+                        100
+                    );
+        
+        
+                setMyProgress(percent);
+        
+        
+                if (percent >= 100) {
+        
+                    clearInterval(
+                        timerRef.current
+                    );
+        
+                    timerRef.current = null;
+        
+                    timerStartRef.current = null;
+        
+                    handleNextMedia();
+                }
+        
+            }, 50);
+        
+        
+            return () => {
+        
+                if (timerRef.current) {
+        
+                    clearInterval(
+                        timerRef.current
+                    );
+        
+                    timerRef.current = null;
+                }
+        
+                timerStartRef.current = null;
+            };
+        
+        }, [
+            myMediaIndex,
+            currentItem?.id,
+            currentItem?.type,
+            currentItemDuration,
+            mediaReady
+        ]);
+           
+            
+      useEffect(() => {
+        if (!reel?.created_at) {
+            setCreatedTime("");
+            return;
+        }
+    
+        const updateCreatedTime = () => {
+            const created =
+                new Date(reel.created_at).getTime();
+    
+            const now = Date.now();
+    
+            const difference = Math.max(
+                0,
+                now - created
+            );
+    
+            const totalSeconds = Math.floor(
+                difference / 1000
+            );
+    
+            if (totalSeconds < 60) {
+                setCreatedTime(
+                    `${totalSeconds}s`
+                );
+                return;
+            }
+    
+            const totalMinutes = Math.floor(
+                totalSeconds / 60
+            );
+    
+            if (totalMinutes < 60) {
+                setCreatedTime(
+                    `${totalMinutes}m`
+                );
+                return;
+            }
+    
+            const totalHours = Math.floor(
+                totalMinutes / 60
+            );
+    
+            setCreatedTime(
+                `${totalHours}h`
+            );
+        };
+    
+        updateCreatedTime();
+        const interval = setInterval(
+            updateCreatedTime,
+            1000
+        );
+    
+        return () => {
+            clearInterval(interval);
+        };
+    
+    }, [reel?.created_at]);
+    
+    
+        const handlePreviousReel = () => {
+    
+            if (myMediaIndex > 0) {
+    
+                setMyProgress(0);
+    
+                setMyMediaIndex(
+                    myMediaIndex - 1
+                );
+    
+                return;
+            }
+    
+            onPrevious?.();
+    
+        };
+    
+       const handleNextMedia = useCallback(() => {
+    
+         if (isUsersModalOpen) {
+        return;
+    }
+
+        if (!reelItems.length) {
+            onClose?.();
+            return;
+        }
+    
+        const nextIndex = myMediaIndex + 1;
+    
+        if (nextIndex < reelItems.length) {
+    
+            setMyProgress(0);
+    
+            setMyMediaIndex(nextIndex);
+    
+            return;
+        }
+        setMyProgress(100);
+        const hasNextUser =
+            selectedMyIndex <
+            (myReels?.length || 0) - 1;
+    
+        if (hasNextUser) {
+    
+            nextReel?.();
+    
+            return;
+        }
+    
+        onClose?.();
+    
+    }, [
+        reelItems.length,
+        myMediaIndex,
+        selectedMyIndex,
+        myReels?.length,
+        nextReel,
+        onClose,
+        setMyMediaIndex,
+        setMyProgress
+    ]);
+    
+    
+        const handleVideoTimeUpdate = (e) => {
+
+            if (isUsersModalOpen) {
+                return;
+            }
+    
+        const video = e.currentTarget;
+    
+        if (
+            !video.duration ||
+            !Number.isFinite(video.duration)
+        ) {
+            return;
+        }
+    
+        const percent =
+            (video.currentTime / video.duration) * 100;
+    
+        setMyProgress(
+            Math.min(percent, 100)
+        );
+    };
+    
+        const handleVideoEnded = async () => {
+    
+            setMyProgress(100);
+    
+            await handleNextMedia();
+        };
+
+    useEffect(() => {
+
+        if (!reel?.created_at) {
+
+            setCreatedTime("");
+
+            return;
+        }
+
+        const updateCreatedTime = () => {
+
+            const created =
+                new Date(
+                    reel.created_at
+                ).getTime();
+
+
+            const difference =
+                Math.max(
+                    0,
+                    Date.now() - created
+                );
+
+
+            const totalSeconds =
+                Math.floor(
+                    difference / 1000
+                );
+
+
+            if (
+                totalSeconds < 60
+            ) {
+
+                setCreatedTime(
+                    `${totalSeconds}s`
+                );
+
+                return;
+            }
+
+
+            const totalMinutes =
+                Math.floor(
+                    totalSeconds / 60
+                );
+
+
+            if (
+                totalMinutes < 60
+            ) {
+
+                setCreatedTime(
+                    `${totalMinutes}m`
+                );
+
+                return;
+            }
+
+
+            const totalHours =
+                Math.floor(
+                    totalMinutes / 60
+                );
+
+
+            setCreatedTime(
+                `${totalHours}h`
+            );
+
+        };
+
+
+        updateCreatedTime();
+
+
+        const interval =
+            setInterval(
+                updateCreatedTime,
+                1000
+            );
+
+
+        return () => {
+
+            clearInterval(
+                interval
+            );
+
+        };
+
+    }, [
+        reel?.created_at
+    ]);
