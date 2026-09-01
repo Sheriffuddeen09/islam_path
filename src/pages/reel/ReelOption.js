@@ -520,7 +520,9 @@ const mediaId =
     }
 
     if (!isOwner) {
-        toast.error("You can only delete your own reel.");
+        toast.error(
+            "You can only delete your own reel."
+        );
         return;
     }
 
@@ -528,23 +530,91 @@ const mediaId =
 
         setLoading("delete");
 
-        await api.delete(
-            `/api/reels/${postId}`
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE ONLY THE CURRENT MEDIA
+        |--------------------------------------------------------------------------
+        */
 
-        toast.success(
-            "Reel deleted successfully."
-        );
+        if (
+            currentItem &&
+            currentItem.type !== "content" &&
+            currentItem.mediaId
+        ) {
 
-        
-        onReelDeleted?.(postId);
+            await api.delete(
+                `/api/reels/${postId}/media/${currentItem.mediaId}`
+            );
+
+            toast.success(
+                "Media deleted successfully."
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tell parent which media was deleted
+            |--------------------------------------------------------------------------
+            */
+
+            onReelDeleted?.({
+                postId,
+                mediaId: currentItem.mediaId,
+            });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE TEXT CONTENT
+        |--------------------------------------------------------------------------
+        */
+
+        else if (
+            currentItem?.type === "content"
+        ) {
+
+            await api.delete(
+                `/api/reels/${postId}/content`
+            );
+
+            toast.success(
+                "Content deleted successfully."
+            );
+
+            onReelDeleted?.({
+                postId,
+                content: true,
+            });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FALLBACK: DELETE WHOLE REEL
+        |--------------------------------------------------------------------------
+        */
+
+        else {
+
+            await api.delete(
+                `/api/reels/${postId}`
+            );
+
+            toast.success(
+                "Reel deleted successfully."
+            );
+
+            onReelDeleted?.({
+                postId,
+                deletedReel: true,
+            });
+        }
 
         setOpen(false);
 
         setShares?.(false);
         setMessageOpenShare?.(false);
         setOpenReport?.(false);
-
 
     } catch (error) {
 
@@ -563,8 +633,6 @@ const mediaId =
         setLoading("");
     }
 };
-
-
    const handleShare = async (platform) => {
    
            if (!selectedPostId) {
@@ -643,99 +711,127 @@ const mediaId =
        };
    
        const shareToChat = async (chatId) => {
-   
-           if (!selectedPostId) {
-   
-               throw new Error(
-                   "No reel selected."
-               );
-           }
-   
-   
-           await api.post(
-               `/api/chats/${chatId}/messages`,
-               {
-                   type: "link",
-   
-                   message:
-                       shareUrl,
-   
-                   post_id:
-                       selectedPostId,
-   
-                   post_media_id:
-                       selectedMediaId,
-               }
-           );
-   
-           await api.post(
-               `/api/post/${selectedPostId}/share`,
-               {
-                   post_media_id:
-                       selectedMediaId,
-               }
-           );
-       };
-   
-       const handleSendToChats = async () => {
-   
-           if (
-               sending ||
-               selectedChats.length === 0
-           ) {
-               return;
-           }
-   
-   
-           try {
-   
-               setSending(true);
-   
-               for (
-                   const chatId of selectedChats
-               ) {
-   
-                   await shareToChat(
-                       chatId
-                   );
-               }
-   
-               toast.success(
-                   `Shared successfully to ${selectedChats.length} ${
-                       selectedChats.length === 1
-                           ? "chat"
-                           : "chats"
-                   }.`
-               );
-   
-   
-               setSelectedChats([]);
-   
-               setMessageOpenShare(false);
-   
-               setShares(false);
-   
-   
-           } catch (error) {
-   
-               console.error(
-                   "CHAT SHARE ERROR:",
-                   error
-               );
-   
-   
-               toast.error(
-                   error.response?.data?.message ||
-                   "Unable to share to one or more chats."
-               );
-   
-           } finally {
-   
-               setSending(false);
-           }
-       };
+
+                if (!selectedPostId) {
+                    throw new Error(
+                        "No reel selected."
+                    );
+                }
+
+                if (!currentItem) {
+                    throw new Error(
+                        "No reel content selected."
+                    );
+                }
+
+                let type;
+                let message;
+
+
+                if (currentItem.type === "content") {
+
+                    type = "text";
+
+                    message =
+                        currentItem.content?.trim();
+
+                }
+
+             
+                else if (currentItem.type === "image") {
+
+                    type = "image";
+
+                    message =
+                        currentItem.url;
+                }
+
+                else if (currentItem.type === "video") {
+
+                    type = "video";
+
+                    message =
+                        currentItem.url;
+                }
+
+                else {
+
+                    throw new Error(
+                        "Unsupported reel type."
+                    );
+                }
+
+                if (!message) {
+                    throw new Error(
+                        "The selected reel has no content."
+                    );
+                }
+
+                await api.post(
+                    `/api/chats/${chatId}/share-reel`,
+                    {
+                        type,
+                        message,
+                        post_id: selectedPostId,
+                    }
+                );
+            };
  
 
+            const handleSendToChats = async () => {
+
+                    if (
+                        sending ||
+                        selectedChats.length === 0
+                    ) {
+                        return;
+                    }
+
+                    try {
+
+                        setSending(true);
+
+                        for (
+                            const chatId of selectedChats
+                        ) {
+
+                            await shareToChat(
+                                chatId
+                            );
+                        }
+
+                        toast.success(
+                            `Shared successfully to ${selectedChats.length} ${
+                                selectedChats.length === 1
+                                    ? "chat"
+                                    : "chats"
+                            }.`
+                        );
+
+                        setSelectedChats([]);
+
+                        setMessageOpenShare(false);
+
+                        setShares(false);
+
+                    } catch (error) {
+
+                        console.error(
+                            "CHAT SHARE ERROR:",
+                            error
+                        );
+
+                        toast.error(
+                            error.response?.data?.message ||
+                            error.message ||
+                            "Unable to share to one or more chats."
+                        );
+
+                    } finally {
+
+                        setSending(false);
+                    }
+                };
     const handleReport = () => {
 
         if (!postId) {
@@ -879,6 +975,7 @@ const mediaId =
                                 items-center
                                 justify-center
                                 hover:bg-gray-500/20
+                                hover:text-white
                             "
                         >
 
@@ -916,7 +1013,8 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -959,7 +1057,8 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -994,7 +1093,8 @@ const mediaId =
                                     px-3
                                     py-3
                                     rounded-lg
-                                    hover:bg-gray-700 hover:text-white
+                                    hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 
@@ -1033,7 +1133,8 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1075,7 +1176,8 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1115,7 +1217,8 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
-                                        hover:bg-gray-700 hover:text-white
+                                        hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1152,7 +1255,8 @@ const mediaId =
                                     px-3
                                     py-3
                                     rounded-lg
-                                    hover:bg-gray-700 hover:text-white
+                                    hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 
@@ -1189,7 +1293,8 @@ const mediaId =
                                     px-3
                                     py-3
                                     rounded-lg
-                                    hover:bg-gray-700 hover:text-white
+                                    hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 

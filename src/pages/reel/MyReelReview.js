@@ -1022,7 +1022,7 @@ const fetchViewUsers = async () => {
                         setMessageOpenShare={setMessageOpenShare}
                         openReport={openReport}
                         setOpenReport={setOpenReport}
-                        shares={shares}
+                        shares={shares} onClose={onClose}
                         setShares={setShares} onReelDeleted={onReelDeleted} />
 
                         <button

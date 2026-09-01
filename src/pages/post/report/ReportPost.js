@@ -38,22 +38,22 @@ export default function ReportPost() {
   /* ---------------- EMPTY ---------------- */
   if (!reports.length) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center bg-[var(--bg-color)] text-[var(--text-color)]">
         No reports found.
       </div>
     );
   }
 
   const content = (
-    <div className="p-4 sm:p-6">
-      <h2 className="text-2xl font-bold mb-6 text-center mt-20 text-gray-800">
+    <div className="p-4 sm:p-6 bg-[var(--bg-color)] text-[var(--text-color)]">
+      <h2 className="text-2xl font-bold mb-6 text-center mt-20 ">
         Reported Content
       </h2>
 
       {/* ================= DESKTOP TABLE ================= */}
-      <div className="hidden md:block overflow-x-auto bg-white rounded-xl shadow border">
+      <div className="hidden md:block overflow-x-auto bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow border">
         <table className="min-w-full border-collapse">
-          <thead className="bg-gray-100 text-gray-700">
+          <thead className="bg-[var(--bg-color)] text-[var(--text-color)]">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-semibold">Reporter</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Reported User</th>
@@ -67,7 +67,7 @@ export default function ReportPost() {
             {reports.map((r) => (
               <tr
                 key={r.id}
-                className="border-t text-black hover:bg-gray-50 transition"
+                className="border-t hover:border border-blue-500 transition"
               >
                 <td className="px-4 py-3 text-sm">
                   {r.reporter
@@ -88,10 +88,10 @@ export default function ReportPost() {
                 <td className="px-4 py-3 text-sm font-medium text-blue-600">
                   {r.reason}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                <td className="px-4 py-3 text-sm max-w-xs truncate">
                   {r.details}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm">
                   {new Date(r.created_at).toLocaleString()}
                 </td>
               </tr>
@@ -105,34 +105,34 @@ export default function ReportPost() {
         {reports.map((r) => (
           <div
             key={r.id}
-            className="bg-white rounded-xl shadow border p-4 space-y-2"
+            className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl shadow border p-4 space-y-2"
           >
             <div className="flex justify-between items-center">
               <span className="text-sm font-semibold text-blue-600">
                 {r.reason}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs">
                 {new Date(r.created_at).toLocaleDateString()}
               </span>
             </div>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-sm">
               <strong>Reporter:</strong> {r.reporter?.first_name || "—"} {r.reporter?.last_name || "—"}
             </p>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-sm">
               <strong>Reported User:</strong> {r.reported_user?.first_name || "—"} {r.reported_user?.last_name || "—"}
             </ p>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-sm">
               <strong>Chat Id:</strong> {r.chat_id || "N/A"}
             </p>
 
-            <p className="text-sm text-gray-700">
+            <p className="text-sm">
               <strong>Reason:</strong> {r.reason || "N/A"}
             </p>
 
-            <p className="text-sm text-gray-600">
+            <p className="text-sm">
               <strong>Description:</strong> {r.details}
             </p>
           </div>

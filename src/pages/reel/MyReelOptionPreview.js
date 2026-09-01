@@ -37,7 +37,7 @@ export default function MyReelOptionPreview({
     setOpenReport,
 
     currentItem = null,
-    onReelDeleted
+    onReelDeleted, onClose
 }) {
     const ownerId =
     currentItem?.user_id ??
@@ -519,7 +519,9 @@ const mediaId =
     }
 
     if (!isOwner) {
-        toast.error("You can only delete your own reel.");
+        toast.error(
+            "You can only delete your own reel."
+        );
         return;
     }
 
@@ -527,22 +529,91 @@ const mediaId =
 
         setLoading("delete");
 
-        await api.delete(
-            `/api/reels/${postId}`
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE ONLY THE CURRENT MEDIA
+        |--------------------------------------------------------------------------
+        */
 
-        toast.success(
-            "Reel deleted successfully."
-        );
+        if (
+            currentItem &&
+            currentItem.type !== "content" &&
+            currentItem.mediaId
+        ) {
 
-        onReelDeleted?.(postId);
+            await api.delete(
+                `/api/reels/${postId}/media/${currentItem.mediaId}`
+            );
+
+            toast.success(
+                "Media deleted successfully."
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tell parent which media was deleted
+            |--------------------------------------------------------------------------
+            */
+
+            onReelDeleted?.({
+                postId,
+                mediaId: currentItem.mediaId,
+            });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE TEXT CONTENT
+        |--------------------------------------------------------------------------
+        */
+
+        else if (
+            currentItem?.type === "content"
+        ) {
+
+            await api.delete(
+                `/api/reels/${postId}/content`
+            );
+
+            toast.success(
+                "Content deleted successfully."
+            );
+
+            onReelDeleted?.({
+                postId,
+                content: true,
+            });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FALLBACK: DELETE WHOLE REEL
+        |--------------------------------------------------------------------------
+        */
+
+        else {
+
+            await api.delete(
+                `/api/reels/${postId}`
+            );
+
+            toast.success(
+                "Reel deleted successfully."
+            );
+
+            onReelDeleted?.({
+                postId,
+                deletedReel: true,
+            });
+        }
 
         setOpen(false);
 
         setShares?.(false);
         setMessageOpenShare?.(false);
         setOpenReport?.(false);
-
 
     } catch (error) {
 
@@ -561,7 +632,6 @@ const mediaId =
         setLoading("");
     }
 };
-
 
    const handleShare = async (platform) => {
    
@@ -905,6 +975,7 @@ const mediaId =
                                 flex
                                 items-center
                                 justify-center
+                                hover:text-white
                                 hover:bg-gray-500/20
                             "
                         >
@@ -943,7 +1014,9 @@ const mediaId =
                                         px-3
                                         py-3
                                         rounded-lg
+                                        hover:text-white
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -987,6 +1060,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1022,6 +1096,7 @@ const mediaId =
                                     py-3
                                     rounded-lg
                                     hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 
@@ -1061,6 +1136,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1103,6 +1179,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1143,6 +1220,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1180,6 +1258,7 @@ const mediaId =
                                     py-3
                                     rounded-lg
                                     hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 
@@ -1217,6 +1296,7 @@ const mediaId =
                                     py-3
                                     rounded-lg
                                     hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 

@@ -510,59 +510,6 @@ const mediaId =
             )}`,
     };
 
-    
-    const handleDeleteReel = async () => {
-
-    if (!postId) {
-        toast.error("Reel not found.");
-        return;
-    }
-
-    if (!isOwner) {
-        toast.error("You can only delete your own reel.");
-        return;
-    }
-
-    try {
-
-        setLoading("delete");
-
-        await api.delete(
-            `/api/reels/${postId}`
-        );
-
-        toast.success(
-            "Reel deleted successfully."
-        );
-
-        onReelDeleted?.(postId);
-
-        setOpen(false);
-
-        setShares?.(false);
-        setMessageOpenShare?.(false);
-        setOpenReport?.(false);
-
-
-    } catch (error) {
-
-        console.error(
-            "DELETE REEL ERROR:",
-            error.response?.data || error
-        );
-
-        toast.error(
-            error.response?.data?.message ||
-            "Failed to delete reel."
-        );
-
-    } finally {
-
-        setLoading("");
-    }
-};
-
-
    const handleShare = async (platform) => {
    
            if (!selectedPostId) {
@@ -745,19 +692,9 @@ const mediaId =
             return;
         }
 
-        /*
-         * Do NOT close the option here
-         * until report is successfully completed.
-         */
-
         setOpenReport(true);
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | PROFILE
-    |--------------------------------------------------------------------------
-    */
 
     const handleViewProfile = () => {
 
@@ -774,18 +711,6 @@ const mediaId =
             `/profile/${userId}`;
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | SHOULD SHOW COPY TEXT
-    |--------------------------------------------------------------------------
-    |
-    | Content -> YES
-    | Image description -> YES
-    | Video description -> YES
-    | Plain image/video without text -> NO
-    |
-    */
-
     const copyableText =
         currentItem?.type === "content"
             ? currentItem?.content
@@ -797,12 +722,6 @@ const mediaId =
         Boolean(
             copyableText?.trim()
         );
-
-    /*
-    |--------------------------------------------------------------------------
-    | OPTION ICON
-    |--------------------------------------------------------------------------
-    */
 
     return (
         <div
@@ -906,6 +825,7 @@ const mediaId =
                                 items-center
                                 justify-center
                                 hover:bg-gray-500/20
+                                hover:text-white
                             "
                         >
 
@@ -944,6 +864,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -987,6 +908,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1022,6 +944,7 @@ const mediaId =
                                     py-3
                                     rounded-lg
                                     hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 
@@ -1061,6 +984,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1076,46 +1000,6 @@ const mediaId =
                                             : copied
                                             ? "Copied!"
                                             : "Copy Text"}
-
-                                    </span>
-
-                                </button>
-                            )}
-
-                            {isOwner && (
-
-                                <button
-                                    type="button"
-                                    disabled={
-                                        Boolean(
-                                            loading
-                                        )
-                                    }
-                                    onClick={
-                                        handleDeleteReel
-                                    }
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-3
-                                        w-full
-                                        px-3
-                                        py-3
-                                        rounded-lg
-                                        hover:bg-gray-700
-                                    "
-                                >
-
-                                     <Trash
-                                        size={20}
-                                    />
-
-                                    <span>
-
-                                        {loading ===
-                                        "delete"
-                                            ? "Deleting..."
-                                            : "Delete"}
 
                                     </span>
 
@@ -1143,6 +1027,7 @@ const mediaId =
                                         py-3
                                         rounded-lg
                                         hover:bg-gray-700
+                                        hover:text-white
                                     "
                                 >
 
@@ -1180,6 +1065,7 @@ const mediaId =
                                     py-3
                                     rounded-lg
                                     hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 
@@ -1217,6 +1103,7 @@ const mediaId =
                                     py-3
                                     rounded-lg
                                     hover:bg-gray-700
+                                    hover:text-white
                                 "
                             >
 

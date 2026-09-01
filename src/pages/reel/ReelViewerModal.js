@@ -1148,7 +1148,7 @@ useEffect(() => {
                         openReport={openReport}
                         setOpenReport={setOpenReport}
                         shares={shares}
-                        setShares={setShares} />
+                        setShares={setShares}  />
                         {/* CLOSE */}
 
                         <button
