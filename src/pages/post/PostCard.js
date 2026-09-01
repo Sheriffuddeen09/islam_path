@@ -402,14 +402,13 @@ const handleHidePost = async (postId) => {
 
       {/* IMAGES */}
       <div className="px-1 -mt-4">
-    {post.media.some(m => m.type === "image") && (
-      <ImageGrid
-        media={post.media.filter(m => m.type === "image")}
-        postId={post.id}
-      />
-    )}
+        {post.media.some(m => m.type === "image") && (
+          <ImageGrid
+            media={post.media.filter(m => m.type === "image")}
+            postId={post.id}
+          />
+        )}
 
-    {/* Video */}
 
         {post.media
           .filter(m => m.type === "video")

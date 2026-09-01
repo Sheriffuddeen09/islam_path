@@ -2,27 +2,24 @@ import { useRef, useState, useEffect } from "react";
 import api from "../../Api/axios";
 
 export default function PostVideoCard({ v, post }) {
+
     const videoRef = useRef(null);
     const controlsTimerRef = useRef(null);
-
-    const [playing, setPlaying] =
-        useState(false);
-
-    const [showControls, setShowControls] =
-        useState(false);
-
     const viewedRef = useRef(false);
+
+    const [playing, setPlaying] = useState(false);
+    const [showControls, setShowControls] = useState(false);
 
     /*
     |--------------------------------------------------------------------------
-    | SHOW CONTROLS
+    | Show native video controls
     |--------------------------------------------------------------------------
     */
 
     const showVideoControls = () => {
+
         setShowControls(true);
 
-        // Clear previous timer
         if (controlsTimerRef.current) {
             clearTimeout(
                 controlsTimerRef.current
@@ -30,41 +27,53 @@ export default function PostVideoCard({ v, post }) {
         }
 
         /*
-        Hide native controls after
-        a few seconds if video is playing.
+        | Keep controls visible while video is paused.
+        | Hide them after 4 seconds while playing.
         */
 
         if (playing) {
+
             controlsTimerRef.current =
                 setTimeout(() => {
+
                     setShowControls(false);
+
                 }, 4000);
         }
     };
 
+
     /*
     |--------------------------------------------------------------------------
-    | CLEANUP
+    | Cleanup
     |--------------------------------------------------------------------------
     */
 
     useEffect(() => {
+
         return () => {
+
             if (controlsTimerRef.current) {
+
                 clearTimeout(
                     controlsTimerRef.current
                 );
+
             }
+
         };
+
     }, []);
+
 
     /*
     |--------------------------------------------------------------------------
-    | AUTOPLAY WHEN VISIBLE
+    | Intersection observer
     |--------------------------------------------------------------------------
     */
 
     useEffect(() => {
+
         const video =
             videoRef.current;
 
@@ -75,16 +84,15 @@ export default function PostVideoCard({ v, post }) {
         const observer =
             new IntersectionObserver(
                 ([entry]) => {
+
                     if (!videoRef.current) {
                         return;
                     }
 
-                    if (
-                        entry.isIntersecting
-                    ) {
+                    if (entry.isIntersecting) {
+
                         /*
-                        Autoplay needs to be
-                        muted in most browsers.
+                        | Auto-play muted when visible
                         */
 
                         videoRef.current.muted =
@@ -93,21 +101,36 @@ export default function PostVideoCard({ v, post }) {
                         videoRef.current
                             .play()
                             .then(() => {
+
                                 setPlaying(true);
+
                             })
                             .catch(() => {
+
                                 setPlaying(false);
+
                             });
+
                     } else {
+
                         if (
-                            !videoRef.current
-                                .paused
+                            !videoRef.current.paused
                         ) {
+
                             videoRef.current.pause();
+
                         }
 
                         setPlaying(false);
+
+                        /*
+                        | Hide native controls when
+                        | leaving viewport
+                        */
+
+                        setShowControls(false);
                     }
+
                 },
                 {
                     threshold: 0.6
@@ -117,137 +140,140 @@ export default function PostVideoCard({ v, post }) {
         observer.observe(video);
 
         return () => {
+
             observer.disconnect();
+
         };
+
     }, []);
+
 
     /*
     |--------------------------------------------------------------------------
-    | MOUSE ENTER
+    | Click video
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | Don't force play here.
+    |
+    | Clicking the video should reveal the native
+    | browser controls.
+    |
+    */
+
+    const handleVideoClick = (e) => {
+
+        /*
+        | If the user clicks the native controls,
+        | don't interfere with them.
+        */
+
+        showVideoControls();
+
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mouse enter
     |--------------------------------------------------------------------------
     */
 
     const handleMouseEnter = () => {
+
         showVideoControls();
 
-        const video =
-            videoRef.current;
-
-        if (!video) {
-            return;
-        }
-
-        /*
-        Do not force play if the user
-        has already paused it.
-        */
-
-        video.play().catch(() => {});
-
-        setPlaying(true);
     };
+
 
     /*
     |--------------------------------------------------------------------------
-    | MOUSE MOVE
+    | Mouse move
     |--------------------------------------------------------------------------
     */
 
     const handleMouseMove = () => {
+
         showVideoControls();
+
     };
+
 
     /*
     |--------------------------------------------------------------------------
-    | MOUSE LEAVE
+    | Mouse leave
     |--------------------------------------------------------------------------
     */
 
     const handleMouseLeave = () => {
-        /*
-        Don't pause or reset the video here.
-
-        This allows the video to continue
-        playing while controls disappear.
-        */
 
         if (controlsTimerRef.current) {
+
             clearTimeout(
                 controlsTimerRef.current
             );
-        }
 
-        controlsTimerRef.current =
-            setTimeout(() => {
-                setShowControls(false);
-            }, 1000);
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | CLICK / TOUCH
-    |--------------------------------------------------------------------------
-    */
-
-    const handleVideoClick = () => {
-        showVideoControls();
-
-        const video =
-            videoRef.current;
-
-        if (!video) {
-            return;
         }
 
         /*
-        If video is playing, don't
-        automatically pause it.
-
-        The native controls will handle
-        play/pause when the user clicks
-        the actual play button.
+        | Don't immediately hide controls.
+        | Give the browser/player time to interact.
         */
 
-        if (video.paused) {
-            video.play().catch(() => {});
-            setPlaying(true);
+        if (playing) {
+
+            controlsTimerRef.current =
+                setTimeout(() => {
+
+                    setShowControls(false);
+
+                }, 1000);
         }
     };
 
+
     /*
     |--------------------------------------------------------------------------
-    | VIDEO PLAY
+    | Video play
     |--------------------------------------------------------------------------
     */
 
     const handlePlay = () => {
+
         setPlaying(true);
+
+        showVideoControls();
+
     };
+
 
     /*
     |--------------------------------------------------------------------------
-    | VIDEO PAUSE
+    | Video pause
     |--------------------------------------------------------------------------
     */
 
     const handlePause = () => {
+
         setPlaying(false);
 
         /*
-        Keep controls visible when
-        the user pauses the video.
+        | Keep controls visible when paused.
         */
 
         setShowControls(true);
+
     };
+
 
     /*
     |--------------------------------------------------------------------------
-    | RECORD VIEW
+    | Count view once
     |--------------------------------------------------------------------------
     */
 
     const onPlay = async () => {
+
         if (viewedRef.current) {
             return;
         }
@@ -255,18 +281,24 @@ export default function PostVideoCard({ v, post }) {
         viewedRef.current = true;
 
         try {
+
             await api.post(
                 `/api/post/${post.id}/view`
             );
+
         } catch (error) {
+
             console.error(
                 "VIDEO VIEW ERROR:",
                 error
             );
+
         }
     };
 
+
     return (
+
         <div
             className="
                 relative
@@ -292,6 +324,7 @@ export default function PostVideoCard({ v, post }) {
             <video
                 ref={videoRef}
                 src={v.url}
+
                 className="
                     w-full
                     h-64
@@ -299,24 +332,53 @@ export default function PostVideoCard({ v, post }) {
                     object-contain
                     bg-black
                 "
+
                 muted
                 playsInline
+
+                /*
+                | metadata allows the duration
+                | to appear in native controls
+                */
+
                 preload="metadata"
 
                 /*
-                This is the important part.
-
-                Controls are controlled by
-                mouse movement / click.
+                |--------------------------------------------------------------------------
+                | Native browser controls
+                |--------------------------------------------------------------------------
+                |
+                | This is what gives you the controls
+                | similar to the screenshot.
+                |
                 */
 
                 controls={
                     showControls
                 }
 
+                /*
+                | Allow all native controls
+                */
+
+                controlsList="
+                    nodownload
+                "
+
+                /*
+                | Keep PiP available
+                */
+
+                disablePictureInPicture={
+                    false
+                }
+
                 onPlay={() => {
+
                     handlePlay();
+
                     onPlay();
+
                 }}
 
                 onPause={
@@ -332,11 +394,20 @@ export default function PostVideoCard({ v, post }) {
                 }
             />
 
-            {/* ===================================================== */}
-            {/* PLAY ICON */}
-            {/* ===================================================== */}
 
-            {!playing && (
+            {/*
+            |--------------------------------------------------------------------------
+            | Custom center play button
+            |--------------------------------------------------------------------------
+            |
+            | Only show it when video is paused AND
+            | native controls are not currently visible.
+            |
+            */}
+
+            {!playing &&
+                !showControls && (
+
                 <div
                     className="
                         absolute
@@ -347,6 +418,7 @@ export default function PostVideoCard({ v, post }) {
                         pointer-events-none
                     "
                 >
+
                     <div
                         className="
                             w-14
@@ -358,6 +430,7 @@ export default function PostVideoCard({ v, post }) {
                             justify-center
                         "
                     >
+
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="
@@ -369,12 +442,22 @@ export default function PostVideoCard({ v, post }) {
                             fill="currentColor"
                             viewBox="0 0 24 24"
                         >
-                            <path d="M8 5v14l11-7z" />
+
+                            <path
+                                d="
+                                    M8 5v14l11-7z
+                                "
+                            />
+
                         </svg>
+
                     </div>
+
                 </div>
+
             )}
 
         </div>
+
     );
 }

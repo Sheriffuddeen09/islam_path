@@ -52,7 +52,7 @@ export default function ReelViewerModal({
 
     const [createdTime, setCreatedTime] = useState("");
 
-        const timerRef = useRef(null);
+    const timerRef = useRef(null);
     
     const [mediaReady, setMediaReady] = useState(true);
 

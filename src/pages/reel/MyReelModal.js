@@ -406,7 +406,7 @@ const openMyReels = (itemIndex) => {
 
                     <div className="max-w-2xl mx-auto bg-[var(--bg-color)]
                     text-[var(--text-color)]">
-{reelItems.map((item, index) => {
+    {reelItems.map((item, index) => {
 
     const optionId =
         `${item.type}-${item.reelId}-${item.mediaId ?? "content"}`;
@@ -559,6 +559,10 @@ const openMyReels = (itemIndex) => {
                 <ReelOptions
                     post={item.reel}
                     currentItem={item}
+                    selectedPostId={item.reelId}
+                    selectedMediaId={item.mediaId}
+                    selectedType={item.type}
+                    
                     chats={chats}
                     onReelDeleted={onReelDeleted}
                     open={

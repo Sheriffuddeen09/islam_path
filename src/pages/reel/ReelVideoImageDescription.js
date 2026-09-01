@@ -2372,8 +2372,7 @@ if (
             flex
             items-center
             justify-between
-            hover:bg-gray-500
-            dark:hover:bg-gray-100
+            hover:border border-blue-500
             transition
         "
     >

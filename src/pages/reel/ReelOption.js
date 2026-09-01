@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import {
     MoreVertical,
-    MessageCircle,
+    Loader2,
     X,
     Download,
     Save,
@@ -20,7 +20,6 @@ import {
     Trash,
 } from "lucide-react";
 import { PostReportModal } from "../post/report/PostReportModal";
-import DownloadImageFlex from "../post/DownloadImageFlex";
 import { toast } from "react-toastify";
 
 export default function ReelOptions({
@@ -28,9 +27,10 @@ export default function ReelOptions({
     chats = [],
     open,
     setOpen,
+    selectedPostId,
+    selectedMediaId,
+    selectedType,
 
-    shares,
-    setShares,
     messageOpenShare,
     setMessageOpenShare,
 
@@ -40,6 +40,8 @@ export default function ReelOptions({
     currentItem = null,
     onReelDeleted
 }) {
+
+
     const ownerId =
     currentItem?.user_id ??
     currentItem?.user?.id ??
@@ -64,37 +66,12 @@ export default function ReelOptions({
         Number(ownerId) === Number(currentUserId);
 
 
-        console.log("AUTH USER:", authUser);
-        console.log("CURRENT USER ID:", currentUserId);
-        console.log("POST:", post);
-        console.log("CURRENT ITEM:", currentItem);
-        console.log("OWNER ID:", ownerId);
-        console.log("IS OWNER:", isOwner);
-
     const [loading, setLoading] = useState("");
     const [selectedChats, setSelectedChats] = useState([]);
     const [sending, setSending] = useState(false);
     const [copied, setCopied] = useState(false);
-    
-   const postId =
-    currentItem?.reelId ??
-    post?.id ??
-    post?.post_id ??
-    null;
-
-const mediaId =
-    currentItem?.type === "content"
-        ? null
-        : currentItem?.mediaId
-            ? Number(currentItem.mediaId)
-            : null;
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Keep menu open while processing
-    |--------------------------------------------------------------------------
-    */
 
     const closeOptions = () => {
         if (loading) {
@@ -181,29 +158,16 @@ const mediaId =
         }
     };
 
+            const postId =
+                selectedPostId != null
+                    ? Number(selectedPostId)
+                    : null;
 
-    const selectedPostId =
-        Number(
-            currentItem?.reelId ||
-            post?.id ||
-            0
-        );
-
-    const selectedMediaId =
-        currentItem?.type === "content"
-            ? null
-            : Number(
-                currentItem?.mediaId ||
-                (
-                    typeof currentItem?.id === "number"
-                        ? currentItem.id
-                        : 0
-                ) ||
-                0
-            );
-
-
-   
+            const mediaId =
+                selectedType === "content" ||
+                selectedMediaId == null
+                    ? null
+                    : Number(selectedMediaId);
 
             const currentType =
                 currentItem?.type ?? null;
@@ -374,11 +338,6 @@ const mediaId =
         }
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | COPY TEXT
-    |--------------------------------------------------------------------------
-    */
 
     const handleCopyText = async () => {
 
@@ -480,37 +439,7 @@ const mediaId =
         }
     };
 
-    /*
-    |--------------------------------------------------------------------------
-    | SHARE URL
-    |--------------------------------------------------------------------------
-    */
-
-    const shareUrl =
-        `${window.location.origin}/post/${postId}/share`;
-
-    const shareLinks = {
-        facebook:
-            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                shareUrl
-            )}`,
-
-        whatsapp:
-            `https://wa.me/?text=${encodeURIComponent(
-                shareUrl
-            )}`,
-
-        twitter:
-            `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-                shareUrl
-            )}`,
-
-        telegram:
-            `https://t.me/share/url?url=${encodeURIComponent(
-                shareUrl
-            )}`,
-    };
-
+    
     
     const handleDeleteReel = async () => {
 
@@ -530,11 +459,6 @@ const mediaId =
 
         setLoading("delete");
 
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE ONLY THE CURRENT MEDIA
-        |--------------------------------------------------------------------------
-        */
 
         if (
             currentItem &&
@@ -550,11 +474,7 @@ const mediaId =
                 "Media deleted successfully."
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Tell parent which media was deleted
-            |--------------------------------------------------------------------------
-            */
+          
 
             onReelDeleted?.({
                 postId,
@@ -563,11 +483,6 @@ const mediaId =
 
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE TEXT CONTENT
-        |--------------------------------------------------------------------------
-        */
 
         else if (
             currentItem?.type === "content"
@@ -588,12 +503,6 @@ const mediaId =
 
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FALLBACK: DELETE WHOLE REEL
-        |--------------------------------------------------------------------------
-        */
-
         else {
 
             await api.delete(
@@ -612,7 +521,6 @@ const mediaId =
 
         setOpen(false);
 
-        setShares?.(false);
         setMessageOpenShare?.(false);
         setOpenReport?.(false);
 
@@ -633,150 +541,93 @@ const mediaId =
         setLoading("");
     }
 };
-   const handleShare = async (platform) => {
    
-           if (!selectedPostId) {
-   
-               toast.error(
-                   "Nothing to share."
-               );
-   
-               return;
-           }
-   
-   
-           if (shares) {
-               return;
-           }
-   
-   
-           try {
-   
-               setShares(true);
-   
-               const externalUrl =
-                   shareLinks[platform];
-   
-   
-               if (externalUrl) {
-   
-                   window.open(
-                       externalUrl,
-                       "_blank",
-                       "noopener,noreferrer"
-                   );
-   
-               } else {
-   
-                   await navigator.clipboard.writeText(
-                       shareUrl
-                   );
-   
-                   toast.success(
-                       "Share link copied."
-                   );
-               }
-   
-               await api.post(
-                   `/api/post/${selectedPostId}/share`,
-                   {
-                       post_media_id:
-                           selectedMediaId,
-                   }
-               );
-               toast.success(
-                   "Shared successfully!"
-               );
-   
-               setShares(false);
-   
-   
-           } catch (error) {
-   
-               console.error(
-                   "SHARE ERROR:",
-                   error
-               );
-   
-   
-               toast.error(
-                   error.response?.data?.message ||
-                   "Share failed. Please try again."
-               );
-   
-           } finally {
-   
-               setShares(false);
-           }
-       };
    
        const shareToChat = async (chatId) => {
 
-                if (!selectedPostId) {
-                    throw new Error(
-                        "No reel selected."
-                    );
-                }
+            if (!selectedPostId) {
+                throw new Error("No reel selected.");
+            }
 
-                if (!currentItem) {
-                    throw new Error(
-                        "No reel content selected."
-                    );
-                }
+            if (!currentItem) {
+                throw new Error("No reel content selected.");
+            }
 
-                let type;
-                let message;
+            let type;
+            let message = null;
 
+            if (currentItem.type === "content") {
 
-                if (currentItem.type === "content") {
+                type = "text";
 
-                    type = "text";
-
-                    message =
-                        currentItem.content?.trim();
-
-                }
-
-             
-                else if (currentItem.type === "image") {
-
-                    type = "image";
-
-                    message =
-                        currentItem.url;
-                }
-
-                else if (currentItem.type === "video") {
-
-                    type = "video";
-
-                    message =
-                        currentItem.url;
-                }
-
-                else {
-
-                    throw new Error(
-                        "Unsupported reel type."
-                    );
-                }
+                message =
+                    currentItem.content?.trim() || null;
 
                 if (!message) {
                     throw new Error(
-                        "The selected reel has no content."
+                        "This reel has no text content."
                     );
                 }
+            }
 
-                await api.post(
-                    `/api/chats/${chatId}/share-reel`,
-                    {
-                        type,
-                        message,
-                        post_id: selectedPostId,
-                    }
+            else if (currentItem.type === "image") {
+
+                type = "image";
+
+                message = null;
+
+                if (!selectedMediaId) {
+                    throw new Error(
+                        "No image media selected."
+                    );
+                }
+            }
+
+            else if (currentItem.type === "video") {
+
+                type = "video";
+
+                message = null;
+
+                if (!selectedMediaId) {
+                    throw new Error(
+                        "No video media selected."
+                    );
+                }
+            }
+
+            else {
+
+                throw new Error(
+                    "Unsupported reel type."
                 );
+            }
+
+            const payload = {
+                type,
+
+                message,
+
+                post_id: Number(
+                    selectedPostId
+                ),
+
+                post_media_id:
+                    selectedMediaId
+                        ? Number(selectedMediaId)
+                        : null,
             };
- 
+
+            console.log(
+                "SHARING REEL:",
+                payload
+            );
+
+            await api.post(
+                `/api/chats/${chatId}/share-reel`,
+                payload
+            );
+        };
 
             const handleSendToChats = async () => {
 
@@ -812,7 +663,7 @@ const mediaId =
 
                         setMessageOpenShare(false);
 
-                        setShares(false);
+                        setOpen(false);
 
                     } catch (error) {
 
@@ -861,6 +712,9 @@ const mediaId =
 
         window.location.href =
             `/profile/${userId}`;
+
+            
+            setOpen(false);
     };
 
     const copyableText =
@@ -951,6 +805,7 @@ const mediaId =
                             p-4
                             max-h-[75vh]
                             overflow-y-auto
+                            scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
                         "
                     >
 
@@ -1233,20 +1088,16 @@ const mediaId =
                                 </button>
                             )}
 
-                            <button
+                           <button
                                 type="button"
                                 disabled={
                                     Boolean(
                                         loading
                                     )
                                 }
-                                onClick={() => {
-
-                                    setShares(
-                                        true
-                                    );
-
-                                }}
+                                onClick={() =>
+                                        setMessageOpenShare(true)
+                                    }
                                 className="
                                     flex
                                     items-center
@@ -1265,10 +1116,11 @@ const mediaId =
                                 />
 
                                 <span>
-                                    Share
+                                    Forward to
                                 </span>
 
                             </button>
+
 
                          {!isOwner && (
                             <button
@@ -1316,373 +1168,6 @@ const mediaId =
             )} 
 
 
-
-            {shares && (
-
-                <div
-                    className="
-                        fixed
-                        inset-0
-                        bg-black/70
-                        z-[300]
-                        flex
-                        items-center
-                        justify-center
-                        p-4
-                    "
-                >
-
-                    <div
-                        className="
-                            bg-[var(--bg-color)]
-                            text-[var(--text-color)]
-                            rounded-xl
-                            p-5
-                            w-full
-                            max-w-sm
-                            relative
-                        "
-                    >
-
-                        {/* CLOSE */}
-
-                        <button
-                            type="button"
-                            disabled={
-                                shares
-                            }
-                            onClick={() =>
-                                setShares(false)
-                            }
-                            className="
-                                absolute
-                                right-3
-                                top-3
-                                w-8
-                                h-8
-                                rounded-full
-                                bg-gray-100
-                                flex
-                                items-center
-                                justify-center
-                                disabled:opacity-40
-                            "
-                        >
-                            <X
-                                size={18}
-                            />
-                        </button>
-
-
-                        <h2
-                            className="
-                                font-bold
-                                text-lg
-                                mb-4
-                            "
-                        >
-                            Share
-                        </h2>
-
-
-                        {/* CURRENT ITEM */}
-
-                        <div
-                            className="
-                                text-sm
-                                mb-4
-                            "
-                        >
-
-                            {isContent &&
-                                "Sharing text content"}
-
-                            {isImage &&
-                                `Sharing image ${selectedMediaId}`}
-
-                            {isVideo &&
-                                `Sharing video ${selectedMediaId}`}
-
-                        </div>
-
-
-                        {/* CHAT */}
-
-                        <button
-                            type="button"
-                            disabled={
-                                shares
-                            }
-                            onClick={() => {
-
-                                setMessageOpenShare(
-                                    true
-                                );
-
-                                setShares(
-                                    false
-                                );
-                            }}
-                            className="
-                                w-full
-                                flex
-                                flex-col
-                                items-center
-                                justify-center
-                                gap-1
-                                py-3
-                                hover:bg-gray-100
-                                rounded-lg
-                            "
-                        >
-
-                            <MessageCircle
-                                className="
-                                    border-2
-                                    border-green-500
-                                    rounded-full
-                                    p-1
-                                "
-                                size={38}
-                            />
-
-                            <span
-                                className="
-                                    text-sm
-                                    font-bold
-                                "
-                            >
-                                Chat List
-                            </span>
-
-                        </button>
-
-
-                        <div
-                            className="
-                                grid
-                                grid-cols-4
-                                border-t
-                                mt-3
-                                pt-4
-                                gap-3
-                                text-center
-                            "
-                        >
-
-                            {/* FACEBOOK */}
-
-                            <button
-                                type="button"
-                                disabled={
-                                    shares
-                                }
-                                onClick={() =>
-                                    handleShare(
-                                        "facebook"
-                                    )
-                                }
-                                className="
-                                    flex
-                                    flex-col
-                                    items-center
-                                    gap-1
-                                    hover:opacity-70
-                                    disabled:opacity-40
-                                "
-                            >
-
-                                <FaFacebook
-                                    size={28}
-                                />
-
-                                <span
-                                    className="
-                                        text-xs
-                                    "
-                                >
-                                    Facebook
-                                </span>
-
-                            </button>
-
-
-                            {/* WHATSAPP */}
-
-                            <button
-                                type="button"
-                                disabled={
-                                    shares
-                                }
-                                onClick={() =>
-                                    handleShare(
-                                        "whatsapp"
-                                    )
-                                }
-                                className="
-                                    flex
-                                    flex-col
-                                    items-center
-                                    gap-1
-                                    hover:opacity-70
-                                    disabled:opacity-40
-                                "
-                            >
-
-                                <FaWhatsapp
-                                    size={28}
-                                />
-
-                                <span
-                                    className="
-                                        text-xs
-                                    "
-                                >
-                                    WhatsApp
-                                </span>
-
-                            </button>
-
-
-                            {/* TWITTER */}
-
-                            <button
-                                type="button"
-                                disabled={
-                                    shares
-                                }
-                                onClick={() =>
-                                    handleShare(
-                                        "twitter"
-                                    )
-                                }
-                                className="
-                                    flex
-                                    flex-col
-                                    items-center
-                                    gap-1
-                                    hover:opacity-70
-                                    disabled:opacity-40
-                                "
-                            >
-
-                                <FaTwitter
-                                    size={28}
-                                />
-
-                                <span
-                                    className="
-                                        text-xs
-                                    "
-                                >
-                                    Twitter
-                                </span>
-
-                            </button>
-
-
-                            {/* TELEGRAM */}
-
-                            <button
-                                type="button"
-                                disabled={
-                                    shares
-                                }
-                                onClick={() =>
-                                    handleShare(
-                                        "telegram"
-                                    )
-                                }
-                                className="
-                                    flex
-                                    flex-col
-                                    items-center
-                                    gap-1
-                                    hover:opacity-70
-                                    disabled:opacity-40
-                                "
-                            >
-
-                                <FaTelegram
-                                    size={28}
-                                />
-
-                                <span
-                                    className="
-                                        text-xs
-                                    "
-                                >
-                                    Telegram
-                                </span>
-
-                            </button>
-
-                        </div>
-
-
-                        {/* SHARING STATUS */}
-
-                        {shares && (
-
-                            <div
-                                className="
-                                    mt-4
-                                    flex
-                                    items-center
-                                    justify-center
-                                    gap-2
-                                    text-sm
-                                    font-semibold
-                                    text-blue-600
-                                "
-                            >
-
-                                <svg
-                                    className="
-                                        animate-spin
-                                        h-5
-                                        w-5
-                                    "
-                                    viewBox="0 0 24 24"
-                                >
-
-                                    <circle
-                                        className="
-                                            opacity-25
-                                        "
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    />
-
-                                    <path
-                                        className="
-                                            opacity-75
-                                        "
-                                        fill="currentColor"
-                                        d="
-                                            M4 12a8 8 0
-                                            018-8v4a4 4
-                                            0 00-4 4H4z
-                                        "
-                                    />
-
-                                </svg>
-
-                                Sharing...
-
-                            </div>
-                        )}
-
-                    </div>
-
-                </div>
-            )}
-
-
             {messageOpenShare && (
 
                 <div
@@ -1711,11 +1196,47 @@ const mediaId =
                         "
                     >
 
-                        <h2 className="font-bold mb-4">
+                    <div className="flex flex-row justify-between items-center ">
+                        <h2 className="font-bold text-sm">
                             Share to chat
                         </h2>
 
+                        <button
+                            type="button"
+                            disabled={
+                                sending
+                            }
+                            onClick={() =>
+                                setMessageOpenShare(false)
+                            }
+                            className="
+                                w-8
+                                h-8
+                                rounded-full
+                                bg-gray-600
+                                flex justify-center items-center
+                                text-white
+                                disabled:opacity-40
+                            "
+                        >
+                            <X
+                                size={18}
+                            />
+                        </button>
 
+                        </div>
+
+                            <p className="text-sm my-2">
+                            {isContent &&
+                                "Sharing text content"}
+
+                            {isImage &&
+                                `Sharing image ${selectedMediaId}`}
+
+                            {isVideo &&
+                                `Sharing video ${selectedMediaId}`}
+
+                            </p>
                         {chats.map(
                             (chat) => {
 
@@ -1739,14 +1260,15 @@ const mediaId =
                                             items-center
                                             gap-2
                                             p-2
+                                            my-1
                                             rounded
                                             cursor-pointer
                                             ${
                                                 selectedChats.includes(
                                                     chat.id
                                                 )
-                                                    ? "bg-blue-200"
-                                                    : "hover:bg-gray-100"
+                                                    ? "bg-blue-500 text-sm"
+                                                    : "hover:border border-blue-500 text-sm"
                                             }
                                         `}
                                         onClick={() =>
@@ -1772,6 +1294,7 @@ const mediaId =
 
                                         <input
                                             type="checkbox"
+                                            className="p-2 cursor-pointer"
                                             checked={selectedChats.includes(
                                                 chat.id
                                             )}
@@ -1809,8 +1332,11 @@ const mediaId =
                         >
 
                             {sending
-                                ? "Sharing..."
-                                : `Send (${selectedChats.length})`}
+                                ? 
+                                <p className='inline-flex gap-2 items-center'>
+                                    <Loader2 className="animate-spin" />
+                                Forwarding {selectedChats.length}</p> 
+                                : `Forward (${selectedChats.length})`}
 
                         </button>
 
@@ -1828,7 +1354,7 @@ const mediaId =
                             className="
                                 mt-2
                                 w-full
-                                bg-gray-200
+                                bg-gray-800
                                 rounded
                                 py-2
                             "
@@ -1840,7 +1366,6 @@ const mediaId =
 
                 </div>
             )}
-
             {openReport && (
 
                 <div

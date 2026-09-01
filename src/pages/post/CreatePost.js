@@ -819,31 +819,6 @@ const submitPost = async () => {
 
       {/* CLOSE */}
 
-      <button
-        type="button"
-        onClick={() => {
-          setShowTrimModal(false);
-        }}
-        className="
-          absolute
-          top-3
-          right-3
-          z-20
-          w-9
-          h-9
-          rounded-full
-          bg-gray-200
-          text-black
-          flex
-          items-center
-          justify-center
-          hover:bg-gray-300
-        "
-      >
-        ✕
-      </button>
-
-
       {/* TITLE */}
 
       <div className="mb-4">

@@ -297,16 +297,127 @@ const previousMyReel = () => {
     }
 };
 
+const handleReelDeleted = (deleted) => {
 
-   const handleReelDeleted = (deletedId) => {
+    if (!deleted) {
+        return;
+    }
 
-    setMyReels(prev =>
-        prev.filter(
-            reel =>
-                Number(reel.id) !==
-                Number(deletedId)
-        )
-    );
+    setMyReels((prev) => {
+
+        if (!Array.isArray(prev)) {
+            return prev;
+        }
+
+        return prev
+            .map((reel) => {
+
+                
+                if (Array.isArray(reel?.reels)) {
+
+                    const updatedReels = reel.reels
+                        .map((item) => {
+
+                            if (
+                                Number(item.id) !==
+                                Number(deleted.postId)
+                            ) {
+                                return item;
+                            }
+
+                            if (
+                                deleted.mediaId != null
+                            ) {
+
+                                return {
+                                    ...item,
+
+                                    media: Array.isArray(item.media)
+                                        ? item.media.filter(
+                                            (media) =>
+                                                Number(
+                                                    media.id ??
+                                                    media.mediaId
+                                                ) !==
+                                                Number(
+                                                    deleted.mediaId
+                                                )
+                                        )
+                                        : [],
+                                };
+                            }
+
+                            if (deleted.content) {
+
+                                return {
+                                    ...item,
+                                    content: null,
+                                };
+                            }
+
+                            if (deleted.deletedReel) {
+                                return null;
+                            }
+
+                            return item;
+                        })
+                        .filter(Boolean);
+
+                    return {
+                        ...reel,
+                        reels: updatedReels,
+                    };
+                }
+
+                if (
+                    Number(reel?.id) ===
+                    Number(deleted.postId)
+                ) {
+
+                    if (deleted.mediaId != null) {
+
+                        return {
+                            ...reel,
+
+                            media: Array.isArray(reel.media)
+                                ? reel.media.filter(
+                                    (media) =>
+                                        Number(
+                                            media.id ??
+                                            media.mediaId
+                                        ) !==
+                                        Number(
+                                            deleted.mediaId
+                                        )
+                                )
+                                : [],
+                        };
+                    }
+
+                    if (deleted.content) {
+
+                        return {
+                            ...reel,
+                            content: null,
+                        };
+                    }
+
+                    if (deleted.deletedReel) {
+                        return null;
+                    }
+                }
+
+                return reel;
+            })
+            .filter((reel) => {
+
+                if (Array.isArray(reel?.reels)) {
+                    return reel.reels.length > 0;
+                }
+
+                return reel !== null;
+            });
+    });
 };
     
 

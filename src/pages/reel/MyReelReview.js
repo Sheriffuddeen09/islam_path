@@ -74,6 +74,7 @@ export default function MyReelReview({
     const openRef = useRef(false);
     const reactionRef = useRef(false);
     const viewRef = useRef(false);
+
    
        const timerStartRef = useRef(null);
        const elapsedBeforePauseRef = useRef(0);
@@ -82,6 +83,7 @@ export default function MyReelReview({
        openRef.current = open;
        }, [open]);
 
+     const isProgressPaused = open
         useEffect(() => {
        reactionRef.current = showReactionUsers;
        }, [showReactionUsers]);
@@ -398,6 +400,9 @@ const isGroupedReels = useMemo(() => {
                 return;
             }
         
+            if (isProgressPaused) {
+                return;
+            }
             // Video has its own progress
             if (currentItem.type === "video") {
                 return;
