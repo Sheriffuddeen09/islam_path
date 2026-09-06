@@ -4,16 +4,7 @@ import { Link } from "react-router-dom";
 import {
   MessageCircle,
 } from "lucide-react";
-import {
-  FaFacebook,
-  FaWhatsapp,
-  FaTwitter,
-  FaTelegram,
-} from "react-icons/fa";
-import { PostFeedIdModal } from "./PostFeedIdModal";
-
-
-export default function PreviewCommentReactionShare({
+export default function ProfileVideoCommentReactionShare({
   chats,
     post,
     currentUser,
@@ -25,6 +16,7 @@ export default function PreviewCommentReactionShare({
     myReaction,
     toggleReaction,
     onLikeClick,  
+    setOpen,
 
     setEmojiList,
     focusCommentInput,
@@ -316,7 +308,7 @@ export default function PreviewCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput()}}
+            onClick={() => {setPostIdModal(post); focusCommentInput(); setOpen(false)}}
             className="
               flex
               flex-col

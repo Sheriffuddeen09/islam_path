@@ -1,14 +1,16 @@
+
+
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import VideoCardProfile from "./VideoCardProfile";
 
 export default function MyVideos({chats, editContent, selectedPost,
-        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,}) {
+        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
+        emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
+        loading, setNewComment, user, image, setImage}) {
     const [videoLoading, setVideoLoading] = useState(true);
     const [posts, setPosts] = useState([]);
-    const [error, setError] = useState("");
-
-
+   
 useEffect(() => {
   const fetchVideos = async () => {
     try {
@@ -31,13 +33,8 @@ useEffect(() => {
 }, []);
 
 
-  const handleDelete = async (id) => {
-    await api.delete(`/api/posts-single${id}`);
-    setPosts(prev => prev.filter(p => p.id !== id));
-  };
-
   if (videoLoading){
-    return <div className="flex items-center mt-5 justify-center">
+    return <div className="flex items-center my-6 justify-center">
     <div className="animate-spin rounded-full h-6 w-6 border-t-4 border-blue-500 border-solid"></div>
   </div>
   }
@@ -62,6 +59,11 @@ useEffect(() => {
         showEditModal={showEditModal} setShowEditModal={setShowEditModal}
         selectedPost={selectedPost} setSelectedPost={setSelectedPost}
         setPosts={setPosts}
+        emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+        postComments={postComments} setPostComments={setPostComments}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+        setNewComment={setNewComment} loading={loading}
+        user={user} image={image} setImage={setImage}
         />
       ))
   )}

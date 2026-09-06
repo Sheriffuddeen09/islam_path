@@ -1,7 +1,3 @@
-
-
-
-
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import api from "../../Api/axios";
@@ -11,7 +7,7 @@ import ImageFlex from "../../pages/post/ImageFlex";
 import { PostCommentInput } from "../../pages/post/PostCommentInput";
 import PostComment from "../../pages/post/PostComment";
 import PostOptionsId from "../../pages/post/PostOptionId";
-import VideoPreviewModalProfile from "../../pages/post/VideoPreviewModalProfile";
+import VideoPreviewModalPreview from "../../pages/post/VideoPreviewModalProfile";
 
 
 export function PostFeedIdModalProfile({ postId, post, onClose, user, total, others,  me, 
@@ -260,7 +256,7 @@ const shareToChat = async (chatId) => {
                  playsInline
                />
          
-               <VideoPreviewModalProfile
+               <VideoPreviewModalPreview
                  open={videoPreviewOpen}
                  setOpen={setVideoPreviewOpen}
                  media={videos}

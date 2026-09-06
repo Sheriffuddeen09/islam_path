@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import api from "../../Api/axios";
+import ImageGridCommentReactionShare from "../../pages/post/previewimagevideo/ImageGridCommentReactionShare";
+import toast from "react-hot-toast";
+import { useAuth } from "../../layout/AuthProvider";
+import { PostFeedIdModalProfile } from "./PostFeedIdModalProfile";
 
-export default function ImageGridProfile({ media = [], post, chats, setEditContent, setSelectedPost,
-  setShowEditModal, setShowDeleteModal, showDeleteModal, setPosts }) {
+export default function ImageGridProfile({ media = [], post, chats, setPosts, loading, setNewComment,
+  emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
+  user, image, setImage
+ }) {
   const [openOptionId, setOpenOptionId] = useState(null);
   const [openOption, setOpenOption] = useState(false);
-  const [index, setIndex] = useState(0);
   const [messageOpenShare, setMessageOpenShare,] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [shares, setShares] = useState(false);
@@ -18,8 +23,24 @@ export default function ImageGridProfile({ media = [], post, chats, setEditConte
   const [previewIndex, setPreviewIndex] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  
+  const {user: currentUser} = useAuth();
+  const [ showUsersPopup, setShowUsersPopup] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
+  const [counts, setCounts] = useState(post.reaction_counts || {});
+  const [myReaction, setMyReaction] = useState(post.my_reaction || null);
+  const [usersPreview, setUsersPreview] = useState([]); 
+  const [postIdModal, setPostIdModal] = useState(null);
+  const [reactionLoading, setReactionLoading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+
+  const postRef = useRef();
+  const commentInputRef = useRef(null);
+
+  const [hasViewed, setHasViewed] = useState(false);
+
   // delete
-  if (!media || media.length === 0) return null;
 
 
   const handleDelete = async () => {
@@ -56,9 +77,35 @@ export default function ImageGridProfile({ media = [], post, chats, setEditConte
 };
 
 
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    async ([entry]) => {
+      if (entry.isIntersecting && !hasViewed) {
+        try {
+          await api.post(`/api/posts/${post.id}/view`);
+          setHasViewed(true); // prevent multiple calls
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    },
+    { threshold: 0.6 }
+  );
+
+  if (postRef.current) {
+    observer.observe(postRef.current);
+  }
+
+  return () => {
+    if (postRef.current) observer.disconnect();
+  };
+}, [post.id, hasViewed]);
 
 
- const shareUrl = `${window.location.origin}/post/${post?.id}/share`;
+
+ 
+
+const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
 const shareLinks = {
   facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
@@ -75,7 +122,7 @@ const handleShare = async (platform) => {
   } else {
     // For TikTok / Instagram / YouTube
     await navigator.clipboard.writeText(shareUrl);
-    alert("Link copied! Paste it in the app to share.");
+    toast.success("Link copied! Paste it in the app to share.", 'success');
   }
 
   await api.post(`/api/post/${post.id}/share`);
@@ -92,6 +139,153 @@ const shareToChat = async (chatId) => {
   await api.post(`/api/post/${post.id}/share`);
 };
 
+
+
+  const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
+
+  
+    const toggleReaction = async (emoji) => {
+  if (!currentUser) {
+    toast.error("Please log in to react.", "error");
+    return;
+  }
+
+  if (reactionLoading) return; // ⛔ prevent double clicks
+
+  setReactionLoading(true);
+
+  try {
+    if (myReaction === emoji) {
+      setMyReaction(null);
+
+      setCounts((prev) => {
+        const copy = { ...prev };
+        copy[emoji] = (Number(copy[emoji] || 0) - 1);
+        if (copy[emoji] <= 0) delete copy[emoji];
+        return copy;
+      });
+
+      setUsersPreview((prev) => prev.filter((u) => u.id !== currentUser.id));
+
+      await api.delete(`/api/post/${post.id}/reaction`);
+      return;
+    }
+
+    setCounts((prev) => {
+      const copy = { ...prev };
+      if (myReaction) {
+        copy[myReaction] = (Number(copy[myReaction] || 1) - 1);
+        if (copy[myReaction] <= 0) delete copy[myReaction];
+      }
+      copy[emoji] = (Number(copy[emoji] || 0) + 1);
+      return copy;
+    });
+
+    setMyReaction(emoji);
+
+    const res = await api.post(`/api/post/${post.id}/reaction`, { emoji });
+
+    if (res?.data?.counts) setCounts(res.data.counts);
+    if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
+    if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
+  } catch (err) {
+    toast.error("Reaction error", "error");
+  } finally {
+    setReactionLoading(false);
+    setShowReactions(false);
+  }
+};
+
+    // Clicking the Like button: quick toggle (use myReaction or default 👍)
+    const onLikeClick = () => {
+      const emoji = myReaction || "👍";
+      toggleReaction(emoji);
+    };
+  
+    useEffect(() => {
+      const fetchReactions = async () => {
+        const res = await api.get(`/api/post/${post.id}/reactions`);
+        setCounts(res.data.counts || {});
+        setUsersPreview(res.data.users || []);
+        setMyReaction(res.data.my_reaction || null);
+      };
+
+      fetchReactions();
+    }, [post.id]);
+
+    
+
+  
+    // Render
+    const text = post.content || "";
+    const shortText = text.length > 200 ? text.substring(0, 200) + "....." : text;
+
+
+ 
+    const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
+
+
+      const uniqueUsers = Array.from(
+        new Map(usersPreview.map((u) => [u.id, u])).values()
+      );
+
+      // Find me
+      const me = uniqueUsers.find(u => u.id === currentUser?.id);
+
+      // Remove me from list
+      const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
+
+      const firstUser = others[0];
+      const lastUser = others[others.length - 1];
+      const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
+
+      const allUsers = uniqueUsers; // 👈 this is your full popup list
+
+
+      
+        const colors = [
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+      ];
+
+const getColor = (value) => {
+    if (!value) return "bg-gray-400";
+
+    const str = String(value);
+
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitial = (name) => {
+    if (!name) return "?";
+
+    return name
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+};
+
+
+const focusCommentInput = () => {
+  setTimeout(() => commentInputRef.current?.focus(), 0);
+};
+
+  const closePreview = () => {
+    setOpenPreview(false)
+  }
+    if (!media || media.length === 0) return null;
+
+
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-3 grid-cols-1 px-3 mb-4 w-full">
@@ -105,18 +299,7 @@ const shareToChat = async (chatId) => {
               setOpenPreview(true);
             }}
           />
-          <button
-           onClick={(e) => {
-              e.stopPropagation();
-              setOpenOption(prev => (prev === img.id ? null : img.id));
-            }}
-            className="px-1 py-1 text-black absolute top-2 right-2 bg-white rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 rotate-90">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-          </svg>
-
-          </button>
+         
 
       {openOption === img.id && (
         <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
@@ -358,6 +541,26 @@ const shareToChat = async (chatId) => {
  
                         
 
+                {postIdModal && (
+                  <PostFeedIdModalProfile
+                    total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
+                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
+                    user={user} counts={counts} setShowReactions={setShowReactions} 
+                    reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                    showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
+                    toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
+                    myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 
+                    onClose={() => setPostIdModal(null)} getColor={getColor} allUsers={allUsers} 
+                    newComment={newComment} setNewComment={setNewComment}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                    emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
+                    setPostIdModal={setPostIdModal} 
+                    postIdModal={postIdModal} setShowEmojiPicker={setShowEmojiPicker} 
+                    showEmojiPicker={showEmojiPicker}
+                  />
+                )}
+
     </>
   );
 
@@ -433,6 +636,65 @@ const shareToChat = async (chatId) => {
         src={current.url}
         className="max-h-[80vh] max-w-[90vw] object-contain"
       />
+
+       <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
+                      <ImageGridCommentReactionShare
+                      post={post}
+                      setOpen={closePreview}
+                      counts = {counts}
+                      total = {total}
+                      me={me}
+                      firstUser={firstUser}
+                      others = {others} 
+                      allUsers = {allUsers}
+                      myReaction={myReaction}
+                      reactionList = {reactionList}
+                      reactionLoading = {reactionLoading}
+                      toggleReaction ={toggleReaction}
+                      onLikeClick = {onLikeClick}
+      
+                      showReactions={showReactions}
+                      setShowReactions={setShowReactions}
+      
+                      showEmojiPicker={showEmojiPicker}
+                      setShowEmojiPicker={setShowEmojiPicker}
+      
+                      showUsersPopup={showUsersPopup}
+                      setShowUsersPopup={setShowUsersPopup}
+                      currentUser={currentUser}
+                      getColor={getColor}
+      
+                      // Comment
+                      postComments = {postComments} 
+                      setPostComments={setPostComments}
+                      commentInputRef={commentInputRef}
+                      focusCommentInput={focusCommentInput}
+                      newComment={newComment}
+                      setNewComment={setNewComment}
+                      loading={loading}
+                      setLoading={setLoading}
+      
+                      showEmoji={showEmoji}
+                      setShowEmoji={setShowEmoji}
+                      emojiList={emojiList}
+                      setEmojiList={setEmojiList}
+      
+                      // Share
+                      chats = {chats}
+                      setPostIdModal={setPostIdModal}
+                      shares={shares}
+                      setShares={setShares}
+                      setMessageOpenShare={setMessageOpenShare}
+                      handleShare={handleShare}
+                      sending={sending}
+                      messageOpenShare={messageOpenShare}
+                      selectedChats={selectedChats}
+                      setSelectedChats={setSelectedChats}
+                      setSending={setSending}
+                      shareToChat={shareToChat}
+                      postIdModal={postIdModal}
+                      />
+                      </div>
 
       <button
         className="absolute right-4 text-white text-3xl"

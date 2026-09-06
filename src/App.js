@@ -710,7 +710,7 @@ function App() {
       show={show}
       setShow={setShow}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
-      showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+      showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate} user={user}
       />}
        />
 

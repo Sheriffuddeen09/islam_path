@@ -25,7 +25,7 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, togglePopup, setActiveChat,
         setMessages, jobProfile, setJobProfile, showAdvertisement, setShowAdvertisement,
-        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow,
+        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow, user
 }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -112,7 +112,7 @@ console.log("Teacher Profile", profile)
       {
             profile.role === "admin" && (
               <>
-    <div className="text-white flex sm:w-full w-80  overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
+    <div className="text-white flex sm:w-full lg:ml-6 w-80  overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
      
           
                     <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
@@ -159,6 +159,11 @@ console.log("Teacher Profile", profile)
                       showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                       showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                       selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+                      postComments={postComments} setPostComments={setPostComments}
+                      showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+                      setNewComment={setNewComment} loading={loading}
+                      user={user} image={image} setImage={setImage}
                       />
                       </div>
                       <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
@@ -167,6 +172,11 @@ console.log("Teacher Profile", profile)
                       showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                       showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                       selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                      emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+                      postComments={postComments} setPostComments={setPostComments}
+                      showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+                      setNewComment={setNewComment} loading={loading}
+                      user={user} image={image} setImage={setImage}
                       />
                       </div>
                     <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
@@ -179,7 +189,7 @@ console.log("Teacher Profile", profile)
                   
                     profile.role === "student" && (
                       <>
-                       <div className="text-white flex sm:w-full w-80 px-2 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">  
+                       <div className="text-white flex sm:w-full w-80 px-2 lg:ml-6 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">  
                                  <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
                        === 1 ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-gray-100" : "bg-gray-800 text-white hover:bg-gray-700 hover:text-gray-100 "
                     }`}>All Post</button>
@@ -214,6 +224,11 @@ console.log("Teacher Profile", profile)
                       showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                       showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                       selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                       emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+                      postComments={postComments} setPostComments={setPostComments}
+                      showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+                      setNewComment={setNewComment} loading={loading}
+                      user={user} image={image} setImage={setImage}
                       />
                       </div>
                       <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
@@ -222,6 +237,11 @@ console.log("Teacher Profile", profile)
                       showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                       showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                       selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                       emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+                      postComments={postComments} setPostComments={setPostComments}
+                      showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+                      setNewComment={setNewComment} loading={loading}
+                      user={user} image={image} setImage={setImage}
                       />
                       </div>
                                <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
@@ -357,7 +377,7 @@ const content = (
      
              />
      
-      <div className="lg:ml-64 mt-2">
+      <div className="lg:ml-72 mt-2">
         
         {content}
          {

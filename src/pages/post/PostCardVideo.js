@@ -10,12 +10,15 @@ import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
-import UndoRepost from "./UndoRepost";
+import EmojiPicker from "emoji-picker-react";
+import PostVideoPreviewModal from "./PostVideoPreviewModal";
+
 
 
 export default function PostCardVideo({ post, setPosts, image, setImage, postComments, setPostComments, 
   loading, setLoading, newComment, setNewComment, emojiList, setEmojiList,
-showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
+showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats,
+ }) {
 
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
@@ -32,7 +35,9 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
   const [ showUsersPopup, setShowUsersPopup] = useState(false);
-
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [videoPreview, setVideoPreview] = useState(null);
+  
   
   const postRef = useRef();
 
@@ -248,7 +253,7 @@ const shareToChat = async (chatId) => {
   return (
     <div
       className={`rounded-xl shadow md:w-96  mt-6 sm:mt-0  lg:w-[400px] w-full border`}
-      ref={postRef}
+      // ref={postRef}
        >
  {post.is_repost && (
          <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
@@ -346,7 +351,11 @@ const shareToChat = async (chatId) => {
       .filter(m => m.type === "video")
       .map(m => (
 
-        <PostVideoCard v={m}  post={post} />
+        <PostVideoCard v={m}  post={post} 
+        onOpenPreview={(previewData) => {
+            setVideoPreview(previewData);
+        }} 
+        />
 
       ))
     }
@@ -451,22 +460,81 @@ const shareToChat = async (chatId) => {
                   <div className="flex justify-between text-gray-600 mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
-                  {showReactions && (
-                    <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
-                      {reactionList.map((emoji) => (
-                      <span
-                        key={emoji}
-                        onClick={() => !reactionLoading && toggleReaction(emoji)}
-                        className={`text-2xl transition cursor-pointer ${
-                          reactionLoading ? "opacity-50 pointer-events-none" : "hover:scale-125"
-                        }`}
-                      >
-                        {reactionLoading && myReaction === emoji ? "⏳" : emoji}
-                      </span>
-                    ))}
+                 {showReactions && (
+  <div
+    className="
+      absolute -top-14 left-0
+      opacity-0 group-hover:opacity-100
+      invisible group-hover:visible
+      group-hover:translate-y-2
+      transform transition-all duration-500
+      bg-white shadow-lg rounded-full
+      px-3 py-2 flex gap-2 z-20
+    "
+  >
+    {reactionList.map((emoji) => (
+      <span
+        key={emoji}
+        onClick={() => !reactionLoading && toggleReaction(emoji)}
+        className={`text-2xl transition cursor-pointer ${
+          reactionLoading
+            ? "opacity-50 pointer-events-none"
+            : "hover:scale-125"
+        }`}
+      >
+        {reactionLoading && myReaction === emoji
+          ? "⏳"
+          : emoji}
+      </span>
+    ))}
 
-                    </div>
-                  )}
+    {/* Plus / More Emojis */}
+    <div className="relative flex items-center">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+
+          if (!reactionLoading) {
+            setShowEmojiPicker((prev) => !prev);
+          }
+        }}
+        disabled={reactionLoading}
+        className={`
+          w-8 h-8
+          rounded-full
+          bg-gray-100
+          text-gray-600
+          text-xl
+          flex items-center justify-center
+          transition
+          ${
+            reactionLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-200 hover:scale-110"
+          }
+        `}
+      >
+        +
+      </button>
+
+      {/* Full Emoji Picker */}
+      {showEmojiPicker && (
+        <div
+          className="absolute bottom-full left-0 mb-2 z-[9999]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <EmojiPicker
+            onEmojiClick={(emojiData) => {
+              toggleReaction(emojiData.emoji);
+              setShowEmojiPicker(false);
+            }}
+          />
+        </div>
+      )}
+    </div>
+  </div>
+)}
         
                   <button onClick={onLikeClick}
                           className={`flex items-center font-semibold ${myReaction ? 'font-bold text-blue-900 p-1 ' : ''}`}>
@@ -699,6 +767,70 @@ const shareToChat = async (chatId) => {
             onClose={() => setNotify({ message: "", type: "" })}
           />
         )}
+
+        <PostVideoPreviewModal
+                    preview={videoPreview}
+                    onClose={() => {
+                        setVideoPreview(null);
+                    }}
+        
+                    setOpen={setVideoPreview}
+                    post={post}
+        
+                    counts = {counts}
+                    total_reaction = {total}
+                    me={me}
+                    firstUser={firstUser}
+                    others = {others} 
+                    allUsers = {allUsers}
+                    myReaction={myReaction}
+                    reactionList = {reactionList}
+                    reactionLoading = {reactionLoading}
+                    toggleReaction ={toggleReaction}
+                    onLikeClick = {onLikeClick}
+        
+                    showReactions={showReactions}
+                    setShowReactions={setShowReactions}
+        
+                    showEmojiPicker={showEmojiPicker}
+                    setShowEmojiPicker={setShowEmojiPicker}
+        
+                    showUsersPopup={showUsersPopup}
+                    setShowUsersPopup={setShowUsersPopup}
+                    currentUser={currentUser}
+                    getColor={getColor}
+        
+                    // Comment
+                    postComments = {postComments} 
+                    setPostComments={setPostComments}
+                    commentInputRef={commentInputRef}
+                    focusCommentInput={focusCommentInput}
+                    newComment={newComment}
+                    setNewComment={setNewComment}
+                    loading={loading}
+                    setLoading={setLoading}
+        
+                    showEmoji={showEmoji}
+                    setShowEmoji={setShowEmoji}
+                    emojiList={emojiList}
+                    setEmojiList={setEmojiList}
+        
+                    // Share
+                    chats = {chats}
+        
+                    setPostIdModal={setPostIdModal}
+                    shares={shares}
+                    setShares={setShares}
+                    setMessageOpenShare={setMessageOpenShare}
+                    handleShare={handleShare}
+                    sending={sending}
+                    messageOpenShare={messageOpenShare}
+                    selectedChats={selectedChats}
+                    setSelectedChats={setSelectedChats}
+                    setSending={setSending}
+                    shareToChat={shareToChat}
+                    postIdModal={postIdModal}
+                />
     </div>
   );
 }

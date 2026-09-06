@@ -6,9 +6,10 @@ import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
-import { PostFeedIdModalProfile } from "./PostFeedIdModalProfile";
+import { PostFeedIdModalProfile } from "../../teacherdashboard/mediaprofile/PostFeedIdModalProfile";
 import { Link } from "react-router-dom";
 import Notification from "../../notification/Notification";
+import EmojiPicker from "emoji-picker-react";
 
 
 export default function PostProfileCard({ post, chats, image, setImage, postComments, 
@@ -18,7 +19,7 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal
  }) {
 
-    const [showMore, setShowMore] = useState(false)
+      const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [open, setOpen] = useState(false)
     const navigate = useNavigate()
     const [messageOpenShare, setMessageOpenShare,] = useState(false)
@@ -36,9 +37,8 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
     const {user: currentUser} = useAuth();
     const {user} = useAuth()
     const [ showUsersPopup, setShowUsersPopup] = useState(false);
-    
-    
-   const showNotification = (message, type = "success") => {
+
+    const showNotification = (message, type = "success") => {
     setNotify({ message, type });
 
     // Clear after 5 seconds
@@ -108,7 +108,7 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
           toggleReaction(emoji);
         };
       
-        useEffect(() => {
+       useEffect(() => {
       const fetchReactions = async () => {
         const res = await api.get(`/api/post/${post.id}/reactions`);
         setCounts(res.data.counts || {});
@@ -119,12 +119,21 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
       fetchReactions();
     }, [post.id]);
 
-    
-
     const text = post.content || "";
-    const shortText = text.length > 330 ? text.substring(0, 330) + "..." : text;
 
-    
+    const hasMedia = post.media?.some(
+      media => media.type === "image" || media.type === "video"
+    );
+
+    // Different limits depending on whether there is media
+    const contentLimit = hasMedia ? 32 :560;
+
+    const shouldShowMore = text.length > contentLimit;
+
+    const shortText = shouldShowMore
+      ? text.substring(0, contentLimit) + "..."
+      : text;
+
     const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
 
@@ -158,6 +167,7 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
         const getColor = (id) => colors[id % colors.length];
 
 
+        
 
   const handleOption = () =>{
     setOpen(!open)
@@ -243,8 +253,8 @@ const handleDelete = async (id) => {
 const media = Array.isArray(post.media) ? post.media : [];
 
   return (
-    <div className="bg-white rounded-t-xl shadow p-4 mb-4 ">
-    <div className="h-56  relative overflow-y-auto no-scrollbar">
+    <div className="bg-[var(----bg-color)] text-[var(----text-color)] rounded-t-xl shadow p-4 mb-4 ">
+    <div className="relative ">
        
           
        <div className="px-2 flex justify-between mb-2 items-center">
@@ -255,12 +265,12 @@ const media = Array.isArray(post.media) ? post.media : [];
                </p>
                <div>
                  <p className="font-semibold">{post.user?.name}</p>
-                 <p className="text-xs opacity-70">{post.created_at}</p>
+                 <p className="text-xs">{post.created_at}</p>
                </div>
              </div>
        <button
         onClick={handleOption}
-        className="px-1 py-1 text-black rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
+        className="px-1 py-1 transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 rotate-90">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -269,10 +279,10 @@ const media = Array.isArray(post.media) ? post.media : [];
       </button>
 
       {open && (
-        <div className=" absolute top-6 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
+        <div className=" absolute top-6 right-0 mt-2 px-3 py-2 w-40 z-50 bg-gray-800 text-white border rounded shadow-lg z-10">
             {post.content && post.content.trim() !== "" && (
             <button
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded"
+            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:border border-blue-600 rounded"
               onClick={() => {
                 setSelectedPost(post);
                 setEditContent(post.content);
@@ -290,11 +300,11 @@ const media = Array.isArray(post.media) ? post.media : [];
               setShowDeleteModal(true);
               handleOption(); 
             }} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
+            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:border border-blue-600  rounded">
               Delete
             </button>
             <button onClick={() => {handleOption(); setShares(!shares)}} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
+            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:border border-blue-600  rounded">
               Share
             </button>
         </div>
@@ -302,20 +312,31 @@ const media = Array.isArray(post.media) ? post.media : [];
       </div>
         
       {post.content && (
-    <p onClick={() => navigate(`/post/text/${post.id}`)}
-     className="cursor-pointer px-2 text-sm mb-5">
-      {showMore
-        ? text
-        : shortText}
-        {
-          showMore ? "" : <button onClick={(e) => {
-            e.preventDefault();
-            setShowMore(!showMore);
-          }}>see more</button>
-          
-        }
-    </p>
-  )}
+        <div className="px-3 pb-2 font-semibold break-words whitespace-normal
+         text-[10px]">
+          <p className="px-2">
+            {shouldShowMore ? shortText : text}
+
+            {shouldShowMore && (
+              <button
+                type="button"
+                onClick={() => {setPostIdModal(post); focusCommentInput()}}
+                className="
+                  ml-1
+                  text-blue-600
+                  font-bold
+                  hover:text-blue-800
+                  hover:underline
+                "
+              >
+                See more
+              </button>
+            )}
+          </p>
+        </div>
+      )}
+
+      
         {/* Image */}
         {media?.some(m => m.type === "image") && (
           <PostImageGridProfile
@@ -333,6 +354,56 @@ const media = Array.isArray(post.media) ? post.media : [];
             handleDelete={handleDelete}
             fetchProfile={fetchProfile}
             setPostLoading={setPostLoading}
+             counts = {counts}
+                              total_reaction = {total}
+                              me={me}
+                              firstUser={firstUser}
+                              others = {others} 
+                              allUsers = {allUsers}
+                              myReaction={myReaction}
+                              reactionList = {reactionList}
+                              reactionLoading = {reactionLoading}
+                              toggleReaction ={toggleReaction}
+                              onLikeClick = {onLikeClick}
+              
+                              showReactions={showReactions}
+                              setShowReactions={setShowReactions}
+              
+                              showEmojiPicker={showEmojiPicker}
+                              setShowEmojiPicker={setShowEmojiPicker}
+              
+                              showUsersPopup={showUsersPopup}
+                              setShowUsersPopup={setShowUsersPopup}
+                              currentUser={currentUser}
+                              getColor={getColor}
+              
+                              // Comment
+                              postComments = {postComments} 
+                              setPostComments={setPostComments}
+                              commentInputRef={commentInputRef}
+                              focusCommentInput={focusCommentInput}
+                              newComment={newComment}
+                              setNewComment={setNewComment}
+                              loading={loading}
+                              setLoading={setLoading}
+              
+                              showEmoji={showEmoji}
+                              setShowEmoji={setShowEmoji}
+                              emojiList={emojiList}
+                              setEmojiList={setEmojiList}
+              
+                              setPostIdModal={setPostIdModal}
+                              shares={shares}
+                              setShares={setShares}
+                              setMessageOpenShare={setMessageOpenShare}
+                              handleShare={handleShare}
+                              sending={sending}
+                              messageOpenShare={messageOpenShare}
+                              selectedChats={selectedChats}
+                              setSelectedChats={setSelectedChats}
+                              setSending={setSending}
+                              shareToChat={shareToChat}
+                              postIdModal={postIdModal}
           />
         )}
       {/* Video */}
@@ -352,41 +423,92 @@ const media = Array.isArray(post.media) ? post.media : [];
               selectedPost={selectedPost}
               handleDelete={handleDelete}
               loadingProfile={loadingProfile}
+               counts = {counts}
+                              total_reaction = {total}
+                              me={me}
+                              firstUser={firstUser}
+                              others = {others} 
+                              allUsers = {allUsers}
+                              myReaction={myReaction}
+                              reactionList = {reactionList}
+                              reactionLoading = {reactionLoading}
+                              toggleReaction ={toggleReaction}
+                              onLikeClick = {onLikeClick}
+              
+                              showReactions={showReactions}
+                              setShowReactions={setShowReactions}
+              
+                              showEmojiPicker={showEmojiPicker}
+                              setShowEmojiPicker={setShowEmojiPicker}
+              
+                              showUsersPopup={showUsersPopup}
+                              setShowUsersPopup={setShowUsersPopup}
+                              currentUser={currentUser}
+                              getColor={getColor}
+              
+                              // Comment
+                              postComments = {postComments} 
+                              setPostComments={setPostComments}
+                              commentInputRef={commentInputRef}
+                              focusCommentInput={focusCommentInput}
+                              newComment={newComment}
+                              setNewComment={setNewComment}
+                              loading={loading}
+                              setLoading={setLoading}
+              
+                              showEmoji={showEmoji}
+                              setShowEmoji={setShowEmoji}
+                              emojiList={emojiList}
+                              setEmojiList={setEmojiList}
+              
+                              setPostIdModal={setPostIdModal}
+                              shares={shares}
+                              setShares={setShares}
+                              setMessageOpenShare={setMessageOpenShare}
+                              handleShare={handleShare}
+                              sending={sending}
+                              messageOpenShare={messageOpenShare}
+                              selectedChats={selectedChats}
+                              setSelectedChats={setSelectedChats}
+                              setSending={setSending}
+                              shareToChat={shareToChat}
+                              postIdModal={postIdModal}
             />
           ))}
 
         {shares && (
-      <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+        <div className="bg-gray-800 text-white  rounded-lg p-4 w-80 relative max-h-[80vh] 
+        scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2   transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
       </button>
         <div className="flex flex-col mx-auto gap-3 items-center">
           <button onClick={() => {setMessageOpenShare(!messageOpenShare); setShares(false);}} 
-          className="text-black flex flex-col  items-center gap-1 hover:text-blue-600">
-                <MessageCircle className="border-2 border-black rounded-full p-1" size={35} />
+          className="bg-gray-800 text-white  flex flex-col  items-center gap-1 hover:text-blue-600">
+                <MessageCircle className="border-2 border-blue-500 rounded-full p-1" size={35} />
                 <span className="text-sm font-bold">Chat List</span>
               </button>
             <div className="grid grid-cols-4 border-t-2 pt-2 gap-4 text-center">
-              <button onClick={() => handleShare("facebook")} className="text-black flex flex-col items-center gap-1 hover:text-blue-600 text-black">
+              <button onClick={() => handleShare("facebook")} className="bg-[var(----bg-color)] text-[var(----text-color)]  flex flex-col items-center gap-1 hover:text-blue-600 bg-[var(----bg-color)] text-[var(----text-color)] ">
                 <FaFacebook size={28} />
                 <span className="text-sm">Facebook</span>
               </button>
 
-              <button onClick={() => handleShare("whatsapp")} className="text-black flex flex-col items-center gap-1 hover:text-green-500">
+              <button onClick={() => handleShare("whatsapp")} className="bg-[var(----bg-color)] text-[var(----text-color)]  flex flex-col items-center gap-1 hover:text-green-500">
                 <FaWhatsapp size={28} />
                 <span className="text-sm">WhatsApp</span>
               </button>
 
-              <button onClick={() => handleShare("twitter")} className="text-black flex flex-col items-center gap-1 hover:text-sky-500">
+              <button onClick={() => handleShare("twitter")} className="bg-[var(----bg-color)] text-[var(----text-color)]  flex flex-col items-center gap-1 hover:text-sky-500">
                 <FaTwitter size={28} />
                 <span className="text-sm">Twitter</span>
               </button>
 
-              <button onClick={() => handleShare("telegram")} className="text-black flex flex-col items-center gap-1 hover:text-blue-400">
+              <button onClick={() => handleShare("telegram")} className="bg-[var(----bg-color)] text-[var(----text-color)]  flex flex-col items-center gap-1 hover:text-blue-400">
                 <FaTelegram size={28} />
                 <span className="text-sm">Telegram</span>
               </button>
@@ -401,7 +523,8 @@ const media = Array.isArray(post.media) ? post.media : [];
 
       {messageOpenShare && (
   <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+    <div className="bg-gray-800 text-white rounded-lg p-4 w-80 max-h-[80vh] 
+    scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 overflow-y-auto">
       <h2 className="font-bold mb-3">Share to chat</h2>
 
           {chats.map((chat) => (
@@ -496,16 +619,16 @@ const media = Array.isArray(post.media) ? post.media : [];
 {/* Reaction List  */}
 
 
-      <div className="flex justify-between border-t-2 mt-4 items-center ">
+      <div className="flex justify-between border-t-2 px-4 mt-4 items-center ">
 
-        <div className="flex flex-wrap gap-1 items-center">
-       <div className=" text-xs  inline-flex items-center gap-2 text-gray-600">
+        <div className="flex gap-1 items-center">
+       <div className=" text-xs inline-flex items-center gap-2 bg-[var(----bg-color)] text-[var(----text-color)] ">
         {Object.keys(counts).map((emoji) => (
           <span key={emoji} className="text-xs -mr-2">{emoji}</span>
         ))}
         
         {total > 0 && (
-  <div className="text-xs flex items-center whitespace-wrap  gap-1 cursor-pointer">
+  <div className="text-xs flex items-center gap-1 cursor-pointer">
 
     {/* YOU */}
     {me && (
@@ -550,33 +673,33 @@ const media = Array.isArray(post.media) ? post.media : [];
       </div>
       <div className="inline-flex items-center gap-3">
 
-        <p className="inline-flex text-gray-800 gap-1 items-center">
+        <p className="inline-flex bg-[var(----bg-color)] text-[var(----text-color)]  gap-1 items-center">
       {post.comments_count}
          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
           </svg>
       </p>
-      <p className="inline-flex gap-1 text-gray-800 items-center">
+      <p className="inline-flex gap-1 bg-[var(----bg-color)] text-[var(----text-color)]  items-center">
       {post.shares_count}
            <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="w-5 h-5 text-gray-600"
+          className="w-5 h-5 bg-[var(----bg-color)] text-[var(----text-color)] "
         >
           <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
         </svg>
       </p>
 
-       <p className="inline-flex gap-1 text-gray-800 items-center">
-        {post.reposts_count}
+       <p className="inline-flex gap-1 bg-[var(----bg-color)] text-[var(----text-color)]  items-center">
+      {post.reposts_count}
            <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 bg-[var(----bg-color)] text-[var(----text-color)] "
           >
             <path
               strokeLinecap="round"
@@ -590,26 +713,85 @@ const media = Array.isArray(post.media) ? post.media : [];
       </div>
 
       </div>
-  <div className="flex items-center bg-white justify-around py-3 text-sm text-gray-600">
-                  <div className="flex justify-between text-gray-600 mx-4">
+  <div className="flex items-center bg-[var(----bg-color)] text-[var(----text-color)]  justify-around py-3 text-sm bg-[var(----bg-color)] text-[var(----text-color)] ">
+                  <div className="flex justify-between text-white  mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
-                  {showReactions && (
-                    <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
-                      {reactionList.map((emoji) => (
-                      <span
-                        key={emoji}
-                        onClick={() => !reactionLoading && toggleReaction(emoji)}
-                        className={`text-2xl transition cursor-pointer ${
-                          reactionLoading ? "opacity-50 pointer-events-none" : "hover:scale-125"
-                        }`}
-                      >
-                        {reactionLoading && myReaction === emoji ? "⏳" : emoji}
-                      </span>
-                    ))}
-
-                    </div>
-                  )}
+                   {showReactions && (
+                   <div
+                     className="
+                       absolute -top-14 left-0
+                       opacity-0 group-hover:opacity-100
+                       invisible group-hover:visible
+                       group-hover:translate-y-2
+                       transform transition-all duration-500
+                       bg-white shadow-lg rounded-full
+                       px-3 py-2 flex gap-2 z-20
+                     "
+                   >
+                     {reactionList.map((emoji) => (
+                       <span
+                         key={emoji}
+                         onClick={() => !reactionLoading && toggleReaction(emoji)}
+                         className={`text-2xl transition cursor-pointer ${
+                           reactionLoading
+                             ? "opacity-50 pointer-events-none"
+                             : "hover:scale-125"
+                         }`}
+                       >
+                         {reactionLoading && myReaction === emoji
+                           ? "⏳"
+                           : emoji}
+                       </span>
+                     ))}
+                 
+                     {/* Plus / More Emojis */}
+                     <div className="relative flex items-center">
+                       <button
+                         type="button"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                 
+                           if (!reactionLoading) {
+                             setShowEmojiPicker((prev) => !prev);
+                           }
+                         }}
+                         disabled={reactionLoading}
+                         className={`
+                           w-8 h-8
+                           rounded-full
+                           bg-gray-100
+                           text-gray-600
+                           text-xl
+                           flex items-center justify-center
+                           transition
+                           ${
+                             reactionLoading
+                               ? "opacity-50 cursor-not-allowed"
+                               : "hover:bg-gray-200 hover:scale-110"
+                           }
+                         `}
+                       >
+                         +
+                       </button>
+                 
+                       {/* Full Emoji Picker */}
+                       {showEmojiPicker && (
+                         <div
+                           className="absolute bottom-full left-0 mb-2 z-[9999]"
+                           onClick={(e) => e.stopPropagation()}
+                         >
+                           <EmojiPicker
+                             onEmojiClick={(emojiData) => {
+                               toggleReaction(emojiData.emoji);
+                               setShowEmojiPicker(false);
+                             }}
+                           />
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 )}
         
                   <button onClick={onLikeClick}
                           className={`flex items-center font-semibold ${myReaction ? 'font-bold text-blue-900 p-1 ' : ''}`}>
@@ -631,7 +813,7 @@ const media = Array.isArray(post.media) ? post.media : [];
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-5 h-5 text-gray-600"
+                    className="w-5 h-5 bg-[var(----bg-color)] text-[var(----text-color)] "
                   >
                     <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
                   </svg>
@@ -640,7 +822,7 @@ const media = Array.isArray(post.media) ? post.media : [];
                 </div>
                     {showDeleteModal && (
                       <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-72 text-center">
+                        <div className="bg-gray-800 text-[var(----text-color)]  p-4 rounded w-72 text-center">
                           <p>Are you sure you want to delete this post?</p>
 
                           <div className="flex justify-end gap-2 mt-3">
@@ -662,11 +844,11 @@ const media = Array.isArray(post.media) ? post.media : [];
 
                     {showEditModal && (
                       <div className="fixed inset-0 bg-black/50 flex z-50 items-center justify-center">
-                        <div className="bg-white p-4 rounded w-80 sm:w-96">
+                        <div className=" text-white bg-gray-800  p-4 rounded-lg w-80 sm:w-96">
                           <h3 className="font-semibold my-4 text-center">Edit Post</h3>
 
                           <textarea
-                            className="w-full border p-2 h-40 rounded-lg no-scrollbar"
+                            className="w-full border text-sm text-black p-2 h-40 rounded-lg no-scrollbar"
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
                           />
@@ -687,12 +869,14 @@ const media = Array.isArray(post.media) ? post.media : [];
                       </div>
                     )}
 
+
                     {showUsersPopup && (
   <div 
     className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
     onClick={() => setShowUsersPopup(false)}
   >
-    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-black py-3">User Likes</h1>
+    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-[var(----bg-color)] text-[var(----text-color)]  p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+      <h1 className="text-xl font-bold bg-[var(----bg-color)] text-[var(----text-color)]  py-3">User Likes</h1>
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
   onClick={() =>setShowUsersPopup(false)}class="size-6 absolute right-4 top-2">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -722,24 +906,27 @@ const media = Array.isArray(post.media) ? post.media : [];
   </div>
 )}      
 
-        {postIdModal && (
-          <PostFeedIdModalProfile
-            total={total} others={others} firstUser={firstUser} currentUser={currentUser} me={me} 
-            image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
-            showUsersPopup={showUsersPopup} usersPreview={usersPreview} getColor={getColor} allUsers={allUsers}
-            user={user} counts={counts} setShowReactions={setShowReactions}
-            reactionLoading={reactionLoading}  setPostComments={setPostComments}
-            showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
-            toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
-            myReaction={myReaction} postId={post.id} post={postIdModal}
-            onClose={() => setPostIdModal(null)}
-            newComment={newComment} setNewComment={setNewComment}
-            showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-            emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
-          />
-        )}
+                {postIdModal && (
+                  <PostFeedIdModalProfile
+                    total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
+                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
+                    user={user} counts={counts} setShowReactions={setShowReactions} 
+                    reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                    showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
+                    toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
+                    myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 
+                    onClose={() => setPostIdModal(null)} getColor={getColor} allUsers={allUsers} 
+                    newComment={newComment} setNewComment={setNewComment}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                    emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
+                    setPostIdModal={setPostIdModal} 
+                    postIdModal={postIdModal} setShowEmojiPicker={setShowEmojiPicker} 
+                    showEmojiPicker={showEmojiPicker}
+                  />
+                )}
 
-        {notify.message && (
+                {notify.message && (
           <Notification
             message={notify.message}
             type={notify.type} // "success" = green, "error" = red

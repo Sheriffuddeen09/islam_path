@@ -4,21 +4,13 @@ import { Link } from "react-router-dom";
 import {
   MessageCircle,
 } from "lucide-react";
-import {
-  FaFacebook,
-  FaWhatsapp,
-  FaTwitter,
-  FaTelegram,
-} from "react-icons/fa";
-import { PostFeedIdModal } from "./PostFeedIdModal";
 
-
-export default function PreviewCommentReactionShare({
-  chats,
+export default function ProfileVideoModalCommentReactionShare({
     post,
     currentUser,
     total,
     me,
+    setOpen,
 
     reactionList,
     reactionLoading,
@@ -67,15 +59,9 @@ export default function PreviewCommentReactionShare({
 }) {
   return (
     <>
-      {/* =========================================================
-          MAIN ACTION AREA
-          LIKE / COMMENT / SHARE ARE IN ONE COLUMN
-      ========================================================== */}
+     
       <div className="flex items-start justify-between px-4 mt-4">
 
-        {/* =====================================================
-            LEFT SIDE - USERS WHO REACTED
-        ====================================================== */}
         <div className="flex-1 min-w-0">
 
           {/* Reaction summary */}
@@ -316,7 +302,15 @@ export default function PreviewCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput()}}
+            
+            onClick={(e) => {
+               e.stopPropagation()
+                setOpen(false);
+
+                setPostIdModal(post);
+                focusCommentInput();
+            }}
+
             className="
               flex
               flex-col
@@ -348,7 +342,7 @@ export default function PreviewCommentReactionShare({
                 <div className="relative flex items-center">
           <button
             type="button"
-            onClick={() => setShares(true)}
+            onClick={() => {setShares(true); setOpen(false)}}
             className="
               flex
               items-center

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import PostProfileCardId from "./PostProfileCardId";
 import api from "../../Api/axios";
 import { useParams } from "react-router-dom";
+import Skeleton from "react-loading-skeleton";
 
 export default function MyPostsIdAdmin({chats, image, setImage, postComments, setPostComments, 
         loading, setLoading, showUsersPopup, setShowUsersPopup, editContent, selectedPost,
@@ -44,12 +45,72 @@ export default function MyPostsIdAdmin({chats, image, setImage, postComments, se
 
 
   
-  if (postLoading)
-    return (
-      <div className="flex items-center mt-5 justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 my-6 border-t-4 border-blue-500 border-solid"></div>
-      </div>
-    );
+  
+      if (postLoading) {
+      return (
+        <div className="">
+          {/* Header skeleton */}
+          <div className="px-4">
+            <Skeleton
+              height={32}
+              width={140}
+              className="mb-4"
+            />
+          </div>
+    
+          {/* Library card skeletons */}
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="relative border rounded-xl overflow-hidden"
+              >
+                {/* Image/video skeleton */}
+                <Skeleton
+                  height={220}
+                  width="100%"
+                />
+    
+                <div className="p-3">
+                  {/* Title */}
+                  <Skeleton
+                    height={18}
+                    width="70%"
+                    className="mb-2"
+                  />
+    
+                  {/* Description */}
+                  <Skeleton
+                    height={14}
+                    width="90%"
+                    className="mb-1"
+                  />
+    
+                  <Skeleton
+                    height={14}
+                    width="60%"
+                    className="mb-3"
+                  />
+    
+                  {/* Buttons */}
+                  <div className="flex gap-2">
+                    <Skeleton
+                      height={32}
+                      width={80}
+                    />
+    
+                    <Skeleton
+                      height={32}
+                      width={80}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     
   if (error) return <p className="text-red-600">{error}</p>;
 

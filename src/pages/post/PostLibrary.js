@@ -3,18 +3,16 @@ import api from "../../Api/axios";
 import Library from "./Library";
 
 
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
 
 export default function PostLibrary() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(null); // NEW ✔v
   const [downloading, setDownLoading] = useState(null); // NEW ✔v
-  const [notification, setNotification] = useState("");
-
-  const showNotification = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 3000); // hide after 3s
-  };
+ 
 
 
   useEffect(() => {
@@ -63,16 +61,76 @@ export default function PostLibrary() {
 
   
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+  if (loading) {
+  return (
+    <div className="lg:ml-64">
+      {/* Header skeleton */}
+      <div className="px-4">
+        <Skeleton
+          height={32}
+          width={140}
+          className="mb-4"
+        />
       </div>
-    );
+
+      {/* Library card skeletons */}
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="relative border rounded-xl overflow-hidden"
+          >
+            {/* Image/video skeleton */}
+            <Skeleton
+              height={220}
+              width="100%"
+            />
+
+            <div className="p-3">
+              {/* Title */}
+              <Skeleton
+                height={18}
+                width="70%"
+                className="mb-2"
+              />
+
+              {/* Description */}
+              <Skeleton
+                height={14}
+                width="90%"
+                className="mb-1"
+              />
+
+              <Skeleton
+                height={14}
+                width="60%"
+                className="mb-3"
+              />
+
+              {/* Buttons */}
+              <div className="flex gap-2">
+                <Skeleton
+                  height={32}
+                  width={80}
+                />
+
+                <Skeleton
+                  height={32}
+                  width={80}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
     if (!posts.length) {
     return (
-      <div className="p-6 text-start border-b-2 border-blue-600 flex flex-col justify-center items-center  text-black text-3xl font-bold">
+      <div className="p-6 text-start border-b-2 border-blue-600 flex flex-col justify-center items-center  
+      text-[var(--text-color)] text-3xl font-bold">
         Library is Empty.
       </div>
     );
@@ -82,7 +140,7 @@ export default function PostLibrary() {
       {posts.map(post => (
         <div
           key={post.id}
-          className="relative border rounded overflow-hidden hover:shadow-xl transition"
+          className="relative border rounded-xl overflow-hidden hover:shadow-xl transition"
         >
          <Library post={post} handleRemove={handleRemove}
          deleteLoading={deleteLoading} downloading={downloading} />
@@ -93,13 +151,8 @@ export default function PostLibrary() {
 
   return (
     <div className="lg:ml-64 ">
-      <h1 className="text-black text-xl border-b-2 border-blue-600 pb-2 font-bold">Library</h1>
+      <h1 className="text-[var(--text-color)] text-xl border-b-2 border-blue-600 pb-2 font-bold">Library</h1>
       {content}
-      {notification && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded shadow-lg">
-          {notification}
-        </div>
-      )}
     </div>
   )
 }

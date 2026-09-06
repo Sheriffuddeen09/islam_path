@@ -20,42 +20,131 @@ export function PostFeedId({ postId, post, user, total, others, setShowUsersPopu
   const [shares, setShares] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
+const replaceCommentById = (comments, tempId, newComment) => {
+  return comments.map(comment => {
+    if (comment.id === tempId) {
+      return newComment;
+    }
+
+    if (comment.replies?.length) {
+      return {
+        ...comment,
+        replies: replaceCommentById(
+          comment.replies,
+          tempId,
+          newComment
+        ),
+      };
+    }
+
+    return comment;
+  });
+};
 
 
-  
-  const postComment = async (emoji = null, imageFile = null, parentId = null) => {
-  setLoading(true)
-  if (!newComment.trim() && !emoji && !imageFile) return;
+const removeCommentById = (comments, tempId) => {
+  return comments
+    .filter(comment => comment.id !== tempId)
+    .map(comment => ({
+      ...comment,
+      replies: comment.replies?.length
+        ? removeCommentById(comment.replies, tempId)
+        : comment.replies,
+    }));
+};
+
+
+const postComment = async (
+  emoji = null,
+  imageFile = null,
+  parentId = null
+) => {
+
+  const commentBody = emoji || newComment.trim();
+
+  if (!commentBody && !imageFile) return;
+
+  // Temporary ID
+  const tempId = `temp-${Date.now()}`;
+
+  // Temporary comment
+  const temporaryComment = {
+    id: tempId,
+    body: commentBody || "",
+    image: imageFile instanceof File
+      ? URL.createObjectURL(imageFile)
+      : null,
+
+    user: currentUser,
+    user_id: currentUser?.id,
+
+    is_pending: true,
+  };
+
+  // ⭐ SHOW COMMENT IMMEDIATELY
+  setPostComments(prev =>
+    parentId
+      ? addReplyToComment(
+          prev,
+          parentId,
+          temporaryComment
+        )
+      : [temporaryComment, ...prev]
+  );
+
+  // Clear input immediately
+  setNewComment("");
+  setImage(null);
+  setShowEmoji(false);
+
   const formData = new FormData();
-  if (emoji) {
-    formData.append("body", emoji);
-  } else if (newComment.trim()) {
-    formData.append("body", newComment.trim());
+
+  if (commentBody) {
+    formData.append("body", commentBody);
   }
+
   if (imageFile instanceof File) {
     formData.append("image", imageFile);
   }
+
   try {
-    const res = await api.post(`/api/posts/${postId}/comments`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // important!
-      },
-    });
-    setPostComments(prev => parentId
-      ? addReplyToComment(prev, parentId, res.data.comment)
-      : [res.data.comment, ...prev]
+
+    const res = await api.post(
+      `/api/posts/${postId}/comments`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
-    setNewComment("");
-    setImage(null);
-    setShowEmoji(false);
+
+    const savedComment = res.data.comment;
+
+    // ⭐ Replace temporary comment with real comment
+    setPostComments(prev =>
+      replaceCommentById(
+        prev,
+        tempId,
+        savedComment
+      )
+    );
+
   } catch (err) {
-    console.error(err.response?.data || err);
-  }
-  finally{
-    setLoading(false)
+
+    console.error(
+      err.response?.data || err
+    );
+
+    // ⭐ Remove temporary comment if request failed
+    setPostComments(prev =>
+      removeCommentById(
+        prev,
+        tempId
+      )
+    );
   }
 };
-
 //
 
 const addReplyToComment = (postComments, parentId, reply) => {
@@ -110,7 +199,8 @@ const shareToChat = async (chatId) => {
 
   return (
     <div>
-      <div className="bg-white text-black rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
+      <div className="bg-[var(--bg-color)]
+            text-[var(--text-color)] rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
 
         {/* HEADER */}
         <div className="flex justify-between items-center px-4 py-3 border-b">
@@ -133,10 +223,10 @@ const shareToChat = async (chatId) => {
               </Link>
             <div>
               <p className="font-semibold text-sm">{post.user.name}</p>
-              <p className="text-xs text-gray-500">{post.created_at}</p>
+              <p className="text-xs">{post.created_at}</p>
             </div>
             </div>
-            <div className="bg-gray-700 rounded-full">
+            <div className="rounded-full">
             <PostOptionsId 
             post={post} 
             chats={chats}
@@ -157,6 +247,7 @@ const shareToChat = async (chatId) => {
                 <ImageFlex
                   media={post.media.filter(m => m.type === "image")}
                   postId={post.id}
+                  
                 />
               )}
           </div>

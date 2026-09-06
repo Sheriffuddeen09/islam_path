@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../Api/axios";
 import ImageGridProfile from "./ImageGridProfile";
+import { useAuth } from "../../layout/AuthProvider";
 
 export default function MyImages({chats, editContent, selectedPost,
-        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,}) {
+        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
+      emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
+      loading, setNewComment, user, image, setImage}) {
   const [posts, setPosts] = useState([]);
   const [imageLoading, setImageLoading] = useState(false)
   
@@ -27,6 +30,7 @@ export default function MyImages({chats, editContent, selectedPost,
 
   fetchImages();
 }, []);
+
 
 
   if(imageLoading){
@@ -59,6 +63,14 @@ export default function MyImages({chats, editContent, selectedPost,
           showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
           showEditModal={showEditModal} setShowEditModal={setShowEditModal}
           selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+          emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+          postComments={postComments} setPostComments={setPostComments}
+          showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+          setNewComment={setNewComment} loading={loading}
+          user={user} image={image} setImage={setImage}
+
+              
+          
         />
       )}
      

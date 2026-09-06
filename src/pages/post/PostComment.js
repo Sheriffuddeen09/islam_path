@@ -97,7 +97,6 @@ const handleDeleteReply = async (replyId) => {
 
 const handleEditReply = async (replyId, text) => {
   try {
-    setIsEditing(true);
     const res = await api.put(`/api/posts/${replyId}/comment`, {
       body: text,
     });
@@ -116,8 +115,6 @@ const handleEditReply = async (replyId, text) => {
   } catch (err) {
     console.error("Failed to edit reply:", err);
     throw err;
-  } finally {
-    setIsEditing(false);
   }
 };
 
@@ -125,13 +122,13 @@ const handleEditReply = async (replyId, text) => {
 if (commentLoading)
     return (
       <div className="flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 my-10 border-t-4 border-blue-500 border-solid"></div>
+        <div className="animate-spin rounded-full h-6 w-6 my-3 border-t-4 border-blue-500 border-solid"></div>
       </div>
     );
 
 
   return (
-    <div className="flex flex-col bg-white w-full bg-white py-2">
+    <div className="flex flex-col bg-[var(--bg-color)] w-full bg-[var(--bg-color)] py-2">
       {/* Comments list */}
       <div className="flex-1 p-4 space-y-4">
         {postComments.map(c => (
@@ -149,7 +146,7 @@ if (commentLoading)
           handleEditReply={handleEditReply}
           isDeleting={isDeleting}
           isEdit={isEditing}
-          setIsEditing={setIsEditing}
+          setIsEdit={setIsEditing}
           setIsDeleting={setIsDeleting}
         />
         ))}

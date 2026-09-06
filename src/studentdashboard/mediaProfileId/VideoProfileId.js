@@ -3,8 +3,10 @@ import api from "../../Api/axios";
 import VideoCardProfileId from "./VideoCardProfileId";
 import { useParams } from "react-router-dom";
 
-export default function MyVideosIdStudent({chats, editContent, selectedPost,
-        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,}) {
+export default function MyVideosIdAdmin({chats, editContent, selectedPost,
+        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
+      emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
+      loading, setNewComment, user, image, setImage}) {
     const [videoLoading, setVideoLoading] = useState(true);
     const [posts, setPosts] = useState([]);
     const [error, setError] = useState("");
@@ -63,6 +65,11 @@ export default function MyVideosIdStudent({chats, editContent, selectedPost,
         showEditModal={showEditModal} setShowEditModal={setShowEditModal}
         selectedPost={selectedPost} setSelectedPost={setSelectedPost}
         setPosts={setPosts}
+        emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+        postComments={postComments} setPostComments={setPostComments}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+        setNewComment={setNewComment} loading={loading}
+        user={user} image={image} setImage={setImage}
         />
       ))
   )}

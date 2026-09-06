@@ -11,6 +11,8 @@ import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
+import PostVideoPreviewModal from "./PostVideoPreviewModal";
+import EmojiPicker from "emoji-picker-react";
 
 
 
@@ -33,6 +35,10 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
   const [shares, setShares] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const [videoPreview, setVideoPreview] = useState(null);
 
   const postRef = useRef();
 
@@ -64,6 +70,24 @@ useEffect(() => {
 
 
 
+ const [showFullText, setShowFullText] = useState(false);
+
+const text = post.content || "";
+
+const hasMedia = post.media?.some(
+  (media) => media.type === "image" || media.type === "video"
+);
+
+// Different limits depending on whether there is media
+const contentLimit = hasMedia ? 200 : 560;
+
+const shouldShowMore = text.length > contentLimit;
+
+const displayedText =
+  shouldShowMore && !showFullText
+    ? text.substring(0, contentLimit) + "..."
+    : text;
+
  
 
 const shareUrl = `${window.location.origin}/post/${post?.id}`;
@@ -83,7 +107,7 @@ const handleShare = async (platform) => {
   } else {
     // For TikTok / Instagram / YouTube
     await navigator.clipboard.writeText(shareUrl);
-    alert("Link copied! Paste it in the app to share.");
+    toast.success("Link copied! Paste it in the app to share.", 'success');
   }
 
   await api.post(`/api/post/${post.id}/share`);
@@ -102,23 +126,12 @@ const shareToChat = async (chatId) => {
 
 
 
-
-
-  const showNotification = (message, type = "success") => {
-    setNotify({ message, type });
-
-    // Clear after 5 seconds
-    setTimeout(() => {
-      setNotify({ message: "", type: "" });
-    }, 5000);
-  };
-
   const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
 
   
     const toggleReaction = async (emoji) => {
   if (!currentUser) {
-    showNotification("Please log in to react.", "error");
+    toast.error("Please log in to react.", "error");
     return;
   }
 
@@ -161,7 +174,7 @@ const shareToChat = async (chatId) => {
     if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
     if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
   } catch (err) {
-    showNotification("Reaction error", "error");
+    toast.error("Reaction error", "error");
   } finally {
     setReactionLoading(false);
     setShowReactions(false);
@@ -188,12 +201,6 @@ const shareToChat = async (chatId) => {
     
 
   
-    // Render
-    const text = post.content || "";
-    const shortText = text.length > 200 ? text.substring(0, 200) + "....." : text;
-
-
- 
     const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
 
@@ -216,13 +223,13 @@ const shareToChat = async (chatId) => {
 
       
         const colors = [
-    "bg-red-400",
-    "bg-blue-400",
-    "bg-green-400",
-    "bg-purple-400",
-    "bg-pink-400",
-    "bg-yellow-400",
-];
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+      ];
 
 const getColor = (value) => {
     if (!value) return "bg-gray-400";
@@ -348,8 +355,9 @@ const handleHidePost = async (postId) => {
      <div
   className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px] ">
   {/* TEXT */}
-{post.content && (
-    <div
+
+        {post.content && (
+         <div
         className="
             bg-[var(--bg-color)]
             text-[var(--text-color)]
@@ -360,44 +368,39 @@ const handleHidePost = async (postId) => {
             [overflow-wrap:anywhere]
         "
     >
-        <p
-          onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowMore(!showMore);
-                    }}
+          <p
             className="
-                cursor-pointer
-                w-full
-                min-w-0
-                whitespace-pre-wrap
-                break-words
-                [overflow-wrap:anywhere]
+              bg-[var(--bg-color)]
+              text-[var(--text-color)]
+              w-full
+              min-w-0
+              text-[12px]
+              break-words
+              [overflow-wrap:anywhere]
             "
-        >
-            {showMore ? text : shortText}
+          >
+            {displayedText}
 
-            {!showMore && (
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowMore(true);
-                    }}
-                    className="
-                        ml-1
-                        text-blue-500
-                        hover:underline
-                        font-medium text-xs
-                    "
-                >
-                    See more
-                </button>
+            {/* SEE MORE */}
+            {shouldShowMore && !showFullText && (
+              <button
+                type="button"
+                onClick={() => setShowFullText(true)}
+                className="
+                  ml-1
+                  text-blue-600
+                  font-bold
+                  hover:text-blue-800
+                  hover:underline
+                "
+              >
+                See more
+              </button>
             )}
-        </p>
-    </div>
-)}
+          </p>
+        </div>
+      )}
+
 </div>
 
       {/* IMAGES */}
@@ -406,6 +409,60 @@ const handleHidePost = async (postId) => {
           <ImageGrid
             media={post.media.filter(m => m.type === "image")}
             postId={post.id}
+             post={post}
+
+                counts = {counts}
+                total = {total}
+                me={me}
+                firstUser={firstUser}
+                others = {others} 
+                allUsers = {allUsers}
+                myReaction={myReaction}
+                reactionList = {reactionList}
+                reactionLoading = {reactionLoading}
+                toggleReaction ={toggleReaction}
+                onLikeClick = {onLikeClick}
+
+                showReactions={showReactions}
+                setShowReactions={setShowReactions}
+
+                showEmojiPicker={showEmojiPicker}
+                setShowEmojiPicker={setShowEmojiPicker}
+
+                showUsersPopup={showUsersPopup}
+                setShowUsersPopup={setShowUsersPopup}
+                currentUser={currentUser}
+                getColor={getColor}
+
+                // Comment
+                postComments = {postComments} 
+                setPostComments={setPostComments}
+                commentInputRef={commentInputRef}
+                focusCommentInput={focusCommentInput}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                loading={loading}
+                setLoading={setLoading}
+
+                showEmoji={showEmoji}
+                setShowEmoji={setShowEmoji}
+                emojiList={emojiList}
+                setEmojiList={setEmojiList}
+
+                // Share
+                chats = {chats}
+                setPostIdModal={setPostIdModal}
+                shares={shares}
+                setShares={setShares}
+                setMessageOpenShare={setMessageOpenShare}
+                handleShare={handleShare}
+                sending={sending}
+                messageOpenShare={messageOpenShare}
+                selectedChats={selectedChats}
+                setSelectedChats={setSelectedChats}
+                setSending={setSending}
+                shareToChat={shareToChat}
+                postIdModal={postIdModal}
           />
         )}
 
@@ -414,7 +471,14 @@ const handleHidePost = async (postId) => {
           .filter(m => m.type === "video")
           .map(m => (
     
-            <PostVideoCard v={m}  post={post} />
+            <PostVideoCard v={m}  post={post}
+              onOpenPreview={(previewData) => {
+                  setVideoPreview(previewData);
+              }} 
+
+              
+              
+              />
     
           ))
         }
@@ -477,7 +541,7 @@ const handleHidePost = async (postId) => {
 
         <p className="inline-flex gap-1 items-center">
       {post.comments_count}
-         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 ">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
           </svg>
       </p>
@@ -520,22 +584,83 @@ const handleHidePost = async (postId) => {
                   <div className="flex justify-between  mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
-                  {showReactions && (
-                    <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
-                      {reactionList.map((emoji) => (
-                      <span
-                        key={emoji}
-                        onClick={() => !reactionLoading && toggleReaction(emoji)}
-                        className={`text-2xl transition cursor-pointer ${
-                          reactionLoading ? "opacity-50 pointer-events-none" : "hover:scale-125"
-                        }`}
-                      >
-                        {reactionLoading && myReaction === emoji ? "⏳" : emoji}
-                      </span>
-                    ))}
+                 {showReactions && (
+  <div
+    className="
+      absolute -top-14 left-0
+      opacity-0 group-hover:opacity-100
+      invisible group-hover:visible
+      group-hover:translate-y-2
+      transform transition-all duration-500
+      bg-white shadow-lg rounded-full
+      px-3 py-2 flex gap-2 z-20
+    "
+  >
+    {reactionList.map((emoji) => (
+      <span
+        key={emoji}
+        onClick={() => !reactionLoading && toggleReaction(emoji)}
+        className={`text-2xl transition cursor-pointer ${
+          reactionLoading
+            ? "opacity-50 pointer-events-none"
+            : "hover:scale-125"
+        }`}
+      >
+        {reactionLoading && myReaction === emoji
+          ? "⏳"
+          : emoji}
+      </span>
+    ))}
 
-                    </div>
-                  )}
+    {/* Plus / More Emojis */}
+    <div className="relative flex items-center">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+
+          if (!reactionLoading) {
+            setShowEmojiPicker((prev) => !prev);
+          }
+        }}
+        disabled={reactionLoading}
+        className={`
+          w-8 h-8
+          rounded-full
+          bg-gray-100
+          text-gray-600
+          text-xl
+          flex items-center justify-center
+          transition
+          ${
+            reactionLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-200 hover:scale-110"
+          }
+        `}
+      >
+        +
+      </button>
+
+      {/* Full Emoji Picker */}
+      {showEmojiPicker && (
+        <div
+          className="absolute bottom-full left-0 mb-2 z-[9999]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <EmojiPicker
+            onEmojiClick={(emojiData) => {
+              toggleReaction(emojiData.emoji);
+              setShowEmojiPicker(false);
+            }}
+          />
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+               
         
                   <button onClick={onLikeClick}
                           className={`flex items-center font-semibold ${myReaction ? 'font-bold text-blue-900 p-1 ' : ''}`}>
@@ -585,6 +710,9 @@ const handleHidePost = async (postId) => {
                     newComment={newComment} setNewComment={setNewComment}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji}
                     emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
+                    setPosts={setPosts} setPostIdModal={setPostIdModal} postIdModal={postIdModal}
+                    showEmojiPicker={showEmojiPicker} setShowEmojiPicker={setShowEmojiPicker}
+                    
                   />
                 )}
               
@@ -592,7 +720,7 @@ const handleHidePost = async (postId) => {
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
         <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-[var(--text-color)] rounded  bg-gray-100 transition 
+            className="absolute right-3 top-2  text-white rounded-full  bg-gray-800 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
@@ -771,6 +899,70 @@ const handleHidePost = async (postId) => {
             onClose={() => setNotify({ message: "", type: "" })}
           />
         )}
+
+        <PostVideoPreviewModal
+            preview={videoPreview}
+            onClose={() => {
+                setVideoPreview(null);
+            }}
+            setVideoPreview={setVideoPreview
+            }
+            post={post}
+
+            counts = {counts}
+            total_reaction = {total}
+            me={me}
+            firstUser={firstUser}
+            others = {others} 
+            allUsers = {allUsers}
+            myReaction={myReaction}
+            reactionList = {reactionList}
+            reactionLoading = {reactionLoading}
+            toggleReaction ={toggleReaction}
+            onLikeClick = {onLikeClick}
+
+            showReactions={showReactions}
+            setShowReactions={setShowReactions}
+
+            showEmojiPicker={showEmojiPicker}
+            setShowEmojiPicker={setShowEmojiPicker}
+
+            showUsersPopup={showUsersPopup}
+            setShowUsersPopup={setShowUsersPopup}
+            currentUser={currentUser}
+            getColor={getColor}
+
+            // Comment
+            postComments = {postComments} 
+            setPostComments={setPostComments}
+            commentInputRef={commentInputRef}
+            focusCommentInput={focusCommentInput}
+            newComment={newComment}
+            setNewComment={setNewComment}
+            loading={loading}
+            setLoading={setLoading}
+
+            showEmoji={showEmoji}
+            setShowEmoji={setShowEmoji}
+            emojiList={emojiList}
+            setEmojiList={setEmojiList}
+
+            // Share
+            chats = {chats}
+
+            setPostIdModal={setPostIdModal}
+            shares={shares}
+            setShares={setShares}
+            setMessageOpenShare={setMessageOpenShare}
+            handleShare={handleShare}
+            sending={sending}
+            messageOpenShare={messageOpenShare}
+            selectedChats={selectedChats}
+            setSelectedChats={setSelectedChats}
+            setSending={setSending}
+            shareToChat={shareToChat}
+            postIdModal={postIdModal}
+        />
     </div>
   );
 }

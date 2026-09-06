@@ -6,16 +6,18 @@ import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
-import { PostFeedIdModalProfile } from "../../teacherdashboard/mediaprofile/PostFeedIdModalProfile";
+import { PostFeedIdModalProfile } from "../mediaprofile/PostFeedIdModalProfile";
 import { Link } from "react-router-dom";
 import Notification from "../../notification/Notification";
+import EmojiPicker from "emoji-picker-react";
 
 
 export default function PostProfileCardId({ post, chats, image, setImage, postComments, 
-  setPostComments, loading, setLoading,setPosts,
+  setPostComments, loading, setLoading, setPosts,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,
          selectedPost, setPostLoading,
-        showDeleteModal,  setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal
+        showDeleteModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
+        
  }) {
 
     const [showMore, setShowMore] = useState(false)
@@ -35,7 +37,9 @@ export default function PostProfileCardId({ post, chats, image, setImage, postCo
     const [loadingProfile, setLoadingProfile] = useState(false);
     const {user: currentUser} = useAuth();
     const {user} = useAuth()
+
     const [ showUsersPopup, setShowUsersPopup] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
     const showNotification = (message, type = "success") => {
     setNotify({ message, type });
@@ -122,11 +126,6 @@ export default function PostProfileCardId({ post, chats, image, setImage, postCo
       });
     }, [post.id]);
 
-    const text = post?.content || "";
-    const shortText = text.length > 330 ? text.substring(0, 330) + "..." : text;
-
-    
-    
     const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
 
@@ -147,7 +146,22 @@ export default function PostProfileCardId({ post, chats, image, setImage, postCo
       const allUsers = uniqueUsers; // 👈 this is your full popup list
 
 
-      const colors = [
+        const text = post.content || "";
+
+    const hasMedia = post.media?.some(
+      media => media.type === "image" || media.type === "video"
+    );
+
+       const contentLimit = hasMedia ? 32 :560;
+
+    const shouldShowMore = text.length > contentLimit;
+
+    const shortText = shouldShowMore
+      ? text.substring(0, contentLimit) + "..."
+      : text;
+
+
+        const colors = [
           "bg-red-400",
           "bg-blue-400",
           "bg-green-400",
@@ -210,8 +224,8 @@ const shareToChat = async (chatId) => {
 const media = Array.isArray(post.media) ? post.media : [];
 
   return (
-    <div className="bg-white text-black rounded-t-xl shadow p-4 mb-4 ">
-    <div className="h-56  relative overflow-y-auto no-scrollbar">
+    <div className="bg-[var(----bg-color)] text-[var(----text-color)] rounded-t-xl shadow p-4 mb-4 ">
+    <div className="relative ">
        
           
        <div className="px-2 flex justify-between mb-2 items-center">
@@ -221,13 +235,13 @@ const media = Array.isArray(post.media) ? post.media : [];
                  {post.user?.name?.[0]}
                </p>
                <div>
-                 <p className="font-semibold text-black">{post.user?.name}</p>
-                 <p className="text-xs opacity-70 text-black">{post.created_at}</p>
+                 <p className="font-semibold">{post.user?.name}</p>
+                 <p className="text-xs">{post.created_at}</p>
                </div>
              </div>
        <button
         onClick={handleOption}
-        className="px-1 py-1 text-black rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
+        className="px-1 py-1 rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 rotate-90">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
@@ -246,21 +260,30 @@ const media = Array.isArray(post.media) ? post.media : [];
       )}
       </div>
         
-      {post?.content && (
-    <p onClick={() => navigate(`/post/text/${post.id}`)}
-     className="cursor-pointer px-2 text-black text-sm mb-5">
-      {showMore
-        ? text
-        : shortText}
-        {
-          showMore ? "" : <button onClick={(e) => {
-            e.preventDefault();
-            setShowMore(!showMore);
-          }}>see more</button>
-          
-        }
-    </p>
-  )}
+      {post.content && (
+        <div className="px-3 pb-2 font-semibold break-words whitespace-normal
+         text-[10px]">
+          <p className="px-2">
+            {shouldShowMore ? shortText : text}
+
+            {shouldShowMore && (
+              <button
+                type="button"
+                onClick={() => {setPostIdModal(post); focusCommentInput()}}
+                className="
+                  ml-1
+                  text-blue-600
+                  font-bold
+                  hover:text-blue-800
+                  hover:underline
+                "
+              >
+                See more
+              </button>
+            )}
+          </p>
+        </div>
+      )}
         {/* Image */}
         {media?.some(m => m.type === "image") && (
           <PostImageGridProfileId
@@ -276,6 +299,56 @@ const media = Array.isArray(post.media) ? post.media : [];
             selectedPost={selectedPost}
             loadingProfile={loadingProfile}
             setPostLoading={setPostLoading}
+             counts = {counts}
+                              total_reaction = {total}
+                              me={me}
+                              firstUser={firstUser}
+                              others = {others} 
+                              allUsers = {allUsers}
+                              myReaction={myReaction}
+                              reactionList = {reactionList}
+                              reactionLoading = {reactionLoading}
+                              toggleReaction ={toggleReaction}
+                              onLikeClick = {onLikeClick}
+              
+                              showReactions={showReactions}
+                              setShowReactions={setShowReactions}
+              
+                              showEmojiPicker={showEmojiPicker}
+                              setShowEmojiPicker={setShowEmojiPicker}
+              
+                              showUsersPopup={showUsersPopup}
+                              setShowUsersPopup={setShowUsersPopup}
+                              currentUser={currentUser}
+                              getColor={getColor}
+              
+                              // Comment
+                              postComments = {postComments} 
+                              setPostComments={setPostComments}
+                              commentInputRef={commentInputRef}
+                              focusCommentInput={focusCommentInput}
+                              newComment={newComment}
+                              setNewComment={setNewComment}
+                              loading={loading}
+                              setLoading={setLoading}
+              
+                              showEmoji={showEmoji}
+                              setShowEmoji={setShowEmoji}
+                              emojiList={emojiList}
+                              setEmojiList={setEmojiList}
+              
+                              setPostIdModal={setPostIdModal}
+                              shares={shares}
+                              setShares={setShares}
+                              setMessageOpenShare={setMessageOpenShare}
+                              handleShare={handleShare}
+                              sending={sending}
+                              messageOpenShare={messageOpenShare}
+                              selectedChats={selectedChats}
+                              setSelectedChats={setSelectedChats}
+                              setSending={setSending}
+                              shareToChat={shareToChat}
+                              postIdModal={postIdModal}
           />
         )}
       {/* Video */}
@@ -294,14 +367,65 @@ const media = Array.isArray(post.media) ? post.media : [];
               showDeleteModal={showDeleteModal}
               selectedPost={selectedPost}
               loadingProfile={loadingProfile}
+               counts = {counts}
+                              total_reaction = {total}
+                              me={me}
+                              firstUser={firstUser}
+                              others = {others} 
+                              allUsers = {allUsers}
+                              myReaction={myReaction}
+                              reactionList = {reactionList}
+                              reactionLoading = {reactionLoading}
+                              toggleReaction ={toggleReaction}
+                              onLikeClick = {onLikeClick}
+              
+                              showReactions={showReactions}
+                              setShowReactions={setShowReactions}
+              
+                              showEmojiPicker={showEmojiPicker}
+                              setShowEmojiPicker={setShowEmojiPicker}
+              
+                              showUsersPopup={showUsersPopup}
+                              setShowUsersPopup={setShowUsersPopup}
+                              currentUser={currentUser}
+                              getColor={getColor}
+              
+                              // Comment
+                              postComments = {postComments} 
+                              setPostComments={setPostComments}
+                              commentInputRef={commentInputRef}
+                              focusCommentInput={focusCommentInput}
+                              newComment={newComment}
+                              setNewComment={setNewComment}
+                              loading={loading}
+                              setLoading={setLoading}
+              
+                              showEmoji={showEmoji}
+                              setShowEmoji={setShowEmoji}
+                              emojiList={emojiList}
+                              setEmojiList={setEmojiList}
+              
+                              setPostIdModal={setPostIdModal}
+                              shares={shares}
+                              setShares={setShares}
+                              setMessageOpenShare={setMessageOpenShare}
+                              handleShare={handleShare}
+                              sending={sending}
+                              messageOpenShare={messageOpenShare}
+                              selectedChats={selectedChats}
+                              setSelectedChats={setSelectedChats}
+                              setSending={setSending}
+                              shareToChat={shareToChat}
+                              postIdModal={postIdModal}
             />
           ))}
 
         {shares && (
-      <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
+       <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+        <div className="bg-gray-800 text-white  rounded-lg p-4 w-80 relative max-h-[80vh] 
+        scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2   transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
@@ -439,149 +563,207 @@ const media = Array.isArray(post.media) ? post.media : [];
 
 
       <div className="flex justify-between border-t-2 px-4 mt-4 items-center ">
-
-        <div className="flex gap-1 items-center">
-       <div className=" text-xs inline-flex items-center gap-2 text-gray-600">
-        {Object.keys(counts).map((emoji) => (
-          <span key={emoji} className="text-xs -mr-2">{emoji}</span>
-        ))}
-        
-       {total > 0 && (
-  <div className="text-xs flex items-center gap-1 cursor-pointer">
-
-    {/* YOU */}
-    {me && (
-      <>
-        <span
-          className="font-semibold hover:underline"
-          onClick={() => setShowUsersPopup(true)}
-        >
-          You
-        </span>
-        {total > 1 && <span>,</span>}
-      </>
-    )}
-
-    {/* FIRST OTHER USER */}
-    {firstUser && (
-      <span
-        className="font-semibold hover:underline"
-        onClick={() => setShowUsersPopup(true)}
-      >
-        {firstUser.name.slice(0, 6)}
-      </span>
-    )}
-
-    {/* REMAINING USERS COUNT */}
-    {others.length > 1 && (
-      <>
-        <span> and </span>
-        <span
-          className="font-semibold hover:underline"
-          onClick={() => setShowUsersPopup(true)}
-        >
-          {others.length - 1} other{others.length - 1 > 1 ? "s" : ""}
-        </span>
-      </>
-    )}
-  </div>
-)}
-
-      </div>  
-      </div>
-      <div className="inline-flex items-center gap-3">
-
-        <p className="inline-flex text-gray-800 gap-1 items-center">
-      {post.comments_count}
-         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
-          </svg>
-      </p>
-      <p className="inline-flex gap-1 text-gray-800 items-center">
-      {post.shares_count}
-           <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-5 h-5 text-gray-600"
-        >
-          <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
-        </svg>
-      </p>
-
-      <p className="inline-flex gap-1 text-gray-800 items-center">
-        {post.reposts_count}
-           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="w-5 h-5 text-gray-600"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
-              3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865
-              a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-            />
-          </svg>
-      </p>
-
-      </div>
-
-      </div>
-  <div className="flex items-center bg-white justify-around py-3 text-sm text-gray-600">
-                  <div className="flex justify-between text-gray-600 mx-4">
-                {/* like with hover picker */}
-                <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
-                  {showReactions && (
-                    <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
-                      {reactionList.map((emoji) => (
-                      <span
-                        key={emoji}
-                        onClick={() => !reactionLoading && toggleReaction(emoji)}
-                        className={`text-2xl transition cursor-pointer ${
-                          reactionLoading ? "opacity-50 pointer-events-none" : "hover:scale-125"
-                        }`}
-                      >
-                        {reactionLoading && myReaction === emoji ? "⏳" : emoji}
-                      </span>
-                    ))}
-
-                    </div>
-                  )}
-        
-                  <button onClick={onLikeClick}
-                          className={`flex items-center font-semibold ${myReaction ? 'font-bold text-blue-900 p-1 ' : ''}`}>
-                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                        </svg>
-                        Like
-                  </button>
-                </div>
-                </div>
-                  <button className="flex items-center font-semibold " onClick={() => {setPostIdModal(post); focusCommentInput()}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
-                    </svg> Comment
-                  </button>
-
-                   <button onClick={() => setShares(!shares)} className="flex items-center font-semibold gap-1 mx-4">
-                    <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5 text-gray-600"
-                  >
-                    <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
-                  </svg>
-                    Share
-                  </button>
-                </div>
-                   
-                   {showUsersPopup && (
+     
+             <div className="flex gap-1 items-center">
+            <div className=" text-xs inline-flex items-center gap-2 bg-[var(----bg-color)] text-[var(----text-color)] ">
+             {Object.keys(counts).map((emoji) => (
+               <span key={emoji} className="text-xs -mr-2">{emoji}</span>
+             ))}
+             
+             {total > 0 && (
+       <div className="text-xs flex items-center gap-1 cursor-pointer">
+     
+         {/* YOU */}
+         {me && (
+           <>
+             <span
+               className="font-semibold hover:underline"
+               onClick={() => setShowUsersPopup(true)}
+             >
+               You
+             </span>
+             {total > 1 && <span>,</span>}
+           </>
+         )}
+     
+         {/* FIRST OTHER USER */}
+         {firstUser && (
+           <span
+             className="font-semibold hover:underline"
+             onClick={() => setShowUsersPopup(true)}
+           >
+             {firstUser.name.slice(0, 6)}
+           </span>
+         )}
+     
+         {/* REMAINING USERS COUNT */}
+         {others.length > 1 && (
+           <>
+             <span> and </span>
+             <span
+               className="font-semibold hover:underline"
+               onClick={() => setShowUsersPopup(true)}
+             >
+               {others.length - 1} other{others.length - 1 > 1 ? "s" : ""}
+             </span>
+           </>
+         )}
+       </div>
+     )}
+     
+     
+           </div>  
+           </div>
+           <div className="inline-flex items-center gap-3">
+     
+             <p className="inline-flex bg-[var(----bg-color)] text-[var(----text-color)]  gap-1 items-center">
+           {post.comments_count}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
+               </svg>
+           </p>
+           <p className="inline-flex gap-1 bg-[var(----bg-color)] text-[var(----text-color)]  items-center">
+           {post.shares_count}
+                <svg
+               xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="currentColor"
+               className="w-5 h-5 bg-[var(----bg-color)] text-[var(----text-color)] "
+             >
+               <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
+             </svg>
+           </p>
+     
+            <p className="inline-flex gap-1 bg-[var(----bg-color)] text-[var(----text-color)]  items-center">
+           {post.reposts_count}
+                <svg
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 strokeWidth="1.5"
+                 stroke="currentColor"
+                 className="w-5 h-5 bg-[var(----bg-color)] text-[var(----text-color)] "
+               >
+                 <path
+                   strokeLinecap="round"
+                   strokeLinejoin="round"
+                   d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                   3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865
+                   a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                 />
+               </svg>
+           </p>
+           </div>
+     
+           </div>
+       <div className="flex items-center bg-[var(----bg-color)] text-[var(----text-color)]  justify-around py-3 text-sm bg-[var(----bg-color)] text-[var(----text-color)] ">
+                       <div className="flex justify-between text-white  mx-4">
+                     {/* like with hover picker */}
+                     <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
+                        {showReactions && (
+                        <div
+                          className="
+                            absolute -top-14 left-0
+                            opacity-0 group-hover:opacity-100
+                            invisible group-hover:visible
+                            group-hover:translate-y-2
+                            transform transition-all duration-500
+                            bg-white shadow-lg rounded-full
+                            px-3 py-2 flex gap-2 z-20
+                          "
+                        >
+                          {reactionList.map((emoji) => (
+                            <span
+                              key={emoji}
+                              onClick={() => !reactionLoading && toggleReaction(emoji)}
+                              className={`text-2xl transition cursor-pointer ${
+                                reactionLoading
+                                  ? "opacity-50 pointer-events-none"
+                                  : "hover:scale-125"
+                              }`}
+                            >
+                              {reactionLoading && myReaction === emoji
+                                ? "⏳"
+                                : emoji}
+                            </span>
+                          ))}
+                      
+                          {/* Plus / More Emojis */}
+                          <div className="relative flex items-center">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                      
+                                if (!reactionLoading) {
+                                  setShowEmojiPicker((prev) => !prev);
+                                }
+                              }}
+                              disabled={reactionLoading}
+                              className={`
+                                w-8 h-8
+                                rounded-full
+                                bg-gray-100
+                                text-gray-600
+                                text-xl
+                                flex items-center justify-center
+                                transition
+                                ${
+                                  reactionLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "hover:bg-gray-200 hover:scale-110"
+                                }
+                              `}
+                            >
+                              +
+                            </button>
+                      
+                            {/* Full Emoji Picker */}
+                            {showEmojiPicker && (
+                              <div
+                                className="absolute bottom-full left-0 mb-2 z-[9999]"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <EmojiPicker
+                                  onEmojiClick={(emojiData) => {
+                                    toggleReaction(emojiData.emoji);
+                                    setShowEmojiPicker(false);
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+             
+                       <button onClick={onLikeClick}
+                               className={`flex items-center font-semibold ${myReaction ? 'font-bold text-blue-900 p-1 ' : ''}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                               <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                             </svg>
+                             Like
+                       </button>
+                     </div>
+                     </div>
+                       <button className="flex items-center font-semibold " onClick={() => {setPostIdModal(post); focusCommentInput()}}>
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
+                         </svg> Comment
+                       </button>
+     
+                        <button onClick={() => setShares(!shares)} className="flex items-center font-semibold gap-1 mx-4">
+                         <svg
+                         xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="currentColor"
+                         className="w-5 h-5 bg-[var(----bg-color)] text-[var(----text-color)] "
+                       >
+                         <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
+                       </svg>
+                         Share
+                       </button>
+                     </div>
+                     {showUsersPopup && (
   <div 
     className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
     onClick={() => setShowUsersPopup(false)}
@@ -615,7 +797,7 @@ const media = Array.isArray(post.media) ? post.media : [];
 </div>
   </div>
 )}      
-
+                   
                 {postIdModal && (
                   <PostFeedIdModalProfile
                     total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
@@ -628,7 +810,7 @@ const media = Array.isArray(post.media) ? post.media : [];
                     myReaction={myReaction} postId={post.id} post={postIdModal}
                     onClose={() => setPostIdModal(null)} firstUser={firstUser} allUsers={allUsers}
                     newComment={newComment} setNewComment={setNewComment}
-                    showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji} setPostIdModal={setPostIdModal}
                     emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
                   />
                 )}

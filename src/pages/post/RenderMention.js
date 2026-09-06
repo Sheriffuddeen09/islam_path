@@ -24,8 +24,4 @@ export function RenderMention(text = "") {
   });
 }
 
-// import { RenderMention } from "./RenderMention";
 
-// <p className="text-sm text-gray-900 whitespace-pre-line">
-//   {RenderMention(comment.body)}
-// </p>

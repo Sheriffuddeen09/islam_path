@@ -1,6 +1,10 @@
+
+
+
+
 import { useRef, useState } from "react";
 
-export default function ImageGridLibrary({
+export default function ImageGridLibraryPreview({
     media = [],
     postId
 }) {
@@ -154,7 +158,7 @@ export default function ImageGridLibrary({
                     alt=""
                     className="
                         w-full
-                        h-40
+                        h-60
                         rounded-lg
                         object-cover
                         cursor-pointer
@@ -210,7 +214,7 @@ export default function ImageGridLibrary({
                                 }
                                 alt=""
                                 className="
-                                    h-40
+                                    h-60
                                     w-full
                                     rounded-lg
                                     object-cover
@@ -288,7 +292,7 @@ export default function ImageGridLibrary({
                                     }
                                     alt=""
                                     className="
-                                        h-20
+                                        h-60
                                         w-full
                                         rounded-lg
                                         object-cover
@@ -319,11 +323,7 @@ export default function ImageGridLibrary({
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 4 OR MORE
-    |--------------------------------------------------------------------------
-    */
+    
 
     const visible =
         media.slice(0, 4);
@@ -352,7 +352,7 @@ export default function ImageGridLibrary({
                                 key={img.id}
                                 className="
                                     relative
-                                    h-20
+                                    h-60
                                     cursor-pointer
                                 "
                                 onClick={() =>
@@ -366,7 +366,7 @@ export default function ImageGridLibrary({
                                     alt=""
                                     className="
                                         w-full
-                                        h-full
+                                        h-60
                                         rounded-lg
                                         object-cover
                                     "

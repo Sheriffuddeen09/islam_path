@@ -6,8 +6,61 @@
 import { useState } from "react";
 import PostOptions from "./PostOption";
 import { useRef } from "react";
+import ImageGridCommentReactionShare from "./previewimagevideo/ImageGridCommentReactionShare";
 
-export default function PostImageGridProfile({ media = [], post, chats}) {
+export default function ImageGrid({ media = [], 
+    chats,
+    post,
+    currentUser,
+    total_reaction,
+    me,
+
+    reactionList,
+    reactionLoading,
+    myReaction,
+    toggleReaction,
+    onLikeClick,
+
+    setEmojiList,
+    focusCommentInput,
+
+    emojiList,
+
+    showEmoji,
+    setShowEmoji,
+    loading,
+    newComment,
+    setNewComment,
+    commentInputRef,
+    postComments,
+    setPostComments,
+    getColor,
+    setShowReactions,
+    showReactions,
+    showUsersPopup,
+    setShowUsersPopup,
+    showEmojiPicker,
+    setShowEmojiPicker,
+    allUsers,
+    firstUser,
+    counts,
+    others,
+    setLoading,
+    setPostIdModal,
+    setShares,
+    shares,
+    setMessageOpenShare,
+    handleShare,
+    sending,
+    messageOpenShare,
+    selectedChats,
+    setSelectedChats,
+    setSending,
+    shareToChat,
+    postIdModal
+
+    
+}) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
@@ -132,8 +185,6 @@ function PreviewModal({
     media,
     index,
     setIndex,
-    post,
-    chats
 }) {
     const touchStartX = useRef(null);
     const touchStartY = useRef(null);
@@ -299,6 +350,7 @@ function PreviewModal({
 
             <div
                 className="
+                    relative
                     max-w-[90vw]
                     max-h-[80vh]
                     flex
@@ -324,6 +376,64 @@ function PreviewModal({
                     "
                 />
 
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
+                <ImageGridCommentReactionShare 
+                post={post}
+                setOpen={setOpen}
+                counts = {counts}
+                total = {total_reaction}
+                me={me}
+                firstUser={firstUser}
+                others = {others} 
+                allUsers = {allUsers}
+                myReaction={myReaction}
+                reactionList = {reactionList}
+                reactionLoading = {reactionLoading}
+                toggleReaction ={toggleReaction}
+                onLikeClick = {onLikeClick}
+
+                showReactions={showReactions}
+                setShowReactions={setShowReactions}
+
+                showEmojiPicker={showEmojiPicker}
+                setShowEmojiPicker={setShowEmojiPicker}
+
+                showUsersPopup={showUsersPopup}
+                setShowUsersPopup={setShowUsersPopup}
+                currentUser={currentUser}
+                getColor={getColor}
+
+                // Comment
+                postComments = {postComments} 
+                setPostComments={setPostComments}
+                commentInputRef={commentInputRef}
+                focusCommentInput={focusCommentInput}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                loading={loading}
+                setLoading={setLoading}
+
+                showEmoji={showEmoji}
+                setShowEmoji={setShowEmoji}
+                emojiList={emojiList}
+                setEmojiList={setEmojiList}
+
+                // Share
+                chats = {chats}
+                setPostIdModal={setPostIdModal}
+                shares={shares}
+                setShares={setShares}
+                setMessageOpenShare={setMessageOpenShare}
+                handleShare={handleShare}
+                sending={sending}
+                messageOpenShare={messageOpenShare}
+                selectedChats={selectedChats}
+                setSelectedChats={setSelectedChats}
+                setSending={setSending}
+                shareToChat={shareToChat}
+                postIdModal={postIdModal}
+                />
+                </div>
             </div>
 
 

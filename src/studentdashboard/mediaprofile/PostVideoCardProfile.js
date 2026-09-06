@@ -1,59 +1,75 @@
+
+
+
+
+
 import { useRef, useState, useEffect } from "react";
 import api from "../../Api/axios";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
+import ProfileVideoCommentReactionShare from "../../pages/post/previewimagevideo/ProfileVideoCommentReactionShare";
 
 export default function PostVideoCardProfile({ v, post, setEditContent, setSelectedPost, setShowEditModal, 
-  setShowDeleteModal, chats, selectedPost, loadingProfile, showDeleteModal, handleDelete }) {
+  setShowDeleteModal, chats, selectedPost, loadingProfile, showDeleteModal, handleDelete, 
+  setPosts,
+  fetchProfile,
+  currentUser,
+    total_reaction,
+    me,
+
+    reactionList,
+    reactionLoading,
+    myReaction,
+    toggleReaction,
+    onLikeClick,
+
+    setEmojiList,
+    focusCommentInput,
+
+    emojiList,
+
+    showEmoji,
+    setShowEmoji,
+    loading,
+    newComment,
+    setNewComment,
+    commentInputRef,
+    postComments,
+    setPostComments,
+    getColor,
+    setShowReactions,
+    showReactions,
+    showUsersPopup,
+    setShowUsersPopup,
+    showEmojiPicker,
+    setShowEmojiPicker,
+    allUsers,
+    firstUser,
+    counts,
+    others,
+    setLoading,
+    setPostIdModal,
+    setShares,
+    shares,
+    handleShare,
+    sending,
+    messageOpenShare,
+    selectedChats,
+    setSelectedChats,
+    shareToChat,
+    postIdModal,
+    setSending,
+    setMessageOpenShare }) {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
   const viewedRef = useRef(false);
-  const [messageOpenShare, setMessageOpenShare,] = useState(false)
-  const [selectedChats, setSelectedChats] = useState([]);
-  const [shares, setShares] = useState(false);
-  const [sending, setSending] = useState(false);
   const [openOption, setOpenOption] = useState(false);
   
     const handleOption = () =>{
       setOpenOption(!openOption)
     }
   
-  
-   const shareUrl = `${window.location.origin}/post/${post?.id}/share`;
-  
-  const shareLinks = {
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareUrl)}`,
-    twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`,
-    telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
-  };
-  
-  const handleShare = async (platform) => {
-    const url = shareLinks[platform];
-  
-    if (url) {
-      window.open(url, "_blank");
-    } else {
-      // For TikTok / Instagram / YouTube
-      await navigator.clipboard.writeText(shareUrl);
-      alert("Link copied! Paste it in the app to share.");
-    }
-  
-    await api.post(`/api/post/${post.id}/share`);
-  };
-  
-  
-  const shareToChat = async (chatId) => {
-    await api.post(`/api/chats/${chatId}/messages`, {
-      type: "link",
-      message: shareUrl,
-      post_id: post.id
-    });
-  
-    await api.post(`/api/post/${post.id}/share`);
-  };
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -169,6 +185,66 @@ export default function PostVideoCardProfile({ v, post, setEditContent, setSelec
               controls
               autoPlay
             />
+
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
+                                      <ProfileVideoCommentReactionShare
+                                      post={post}
+                      
+                                      counts = {counts}
+                                      total = {total_reaction}
+                                      me={me}
+                                      firstUser={firstUser}
+                                      others = {others} 
+                                      allUsers = {allUsers}
+                                      myReaction={myReaction}
+                                      reactionList = {reactionList}
+                                      reactionLoading = {reactionLoading}
+                                      toggleReaction ={toggleReaction}
+                                      onLikeClick = {onLikeClick}
+                      
+                                      showReactions={showReactions}
+                                      setShowReactions={setShowReactions}
+                      
+                                      showEmojiPicker={showEmojiPicker}
+                                      setShowEmojiPicker={setShowEmojiPicker}
+                      
+                                      showUsersPopup={showUsersPopup}
+                                      setShowUsersPopup={setShowUsersPopup}
+                                      currentUser={currentUser}
+                                      getColor={getColor}
+                      
+                                      // Comment
+                                      postComments = {postComments} 
+                                      setPostComments={setPostComments}
+                                      commentInputRef={commentInputRef}
+                                      focusCommentInput={focusCommentInput}
+                                      newComment={newComment}
+                                      setNewComment={setNewComment}
+                                      loading={loading}
+                                      setLoading={setLoading}
+                      
+                                      showEmoji={showEmoji}
+                                      setShowEmoji={setShowEmoji}
+                                      emojiList={emojiList}
+                                      setEmojiList={setEmojiList}
+                      
+                                      // Share
+                                      chats = {chats}
+                                      setPostIdModal={setPostIdModal}
+                                      shares={shares}
+                                      setShares={setShares}
+                                      setMessageOpenShare={setMessageOpenShare}
+                                      handleShare={handleShare}
+                                      sending={sending}
+                                      messageOpenShare={messageOpenShare}
+                                      selectedChats={selectedChats}
+                                      setSelectedChats={setSelectedChats}
+                                      setSending={setSending}
+                                      shareToChat={shareToChat}
+                                      postIdModal={postIdModal}
+                                      setOpen={setOpen}
+                                      />
+                                      </div>
           </div>
         </div>
       )}

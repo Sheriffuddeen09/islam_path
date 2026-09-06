@@ -7,13 +7,15 @@ import ImageFlex from "./ImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import PostOptionsId from "./PostOptionId";
+import PostVideoPreview from "./PostVideoPreview";
 
 export function PostFeedIdModal({ postId, post, onClose, user, total, others, setShowUsersPopup, me, 
                                   counts, setShowReactions,
                                 showReactions, reactionList, toggleReaction, onLikeClick, myReaction, 
                                 focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef,
-                                image, setImage, loading, setLoading, newComment, setNewComment, emojiList, showEmoji,
-                                setShowEmoji, chats, firstUser
+                                image, setImage, loading, currentUser, newComment, setNewComment, emojiList, showEmoji,
+                                setShowEmoji, chats, firstUser, allUsers, showEmojiPicker, setShowEmojiPicker,
+                                getColor, setLoading, setEmojiList, showUsersPopup, setPostIdModal, postIdModal, usersPreview
                               }) {
 
   const [messageOpenShare, setMessageOpenShare] = useState(false)
@@ -22,41 +24,133 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
   const [sending, setSending] = useState(false);
 
 
+  const replaceCommentById = (comments, tempId, newComment) => {
+    return comments.map(comment => {
+      if (comment.id === tempId) {
+        return newComment;
+      }
   
-  const postComment = async (emoji = null, imageFile = null, parentId = null) => {
-  setLoading(true)
-  if (!newComment.trim() && !emoji && !imageFile) return;
-  const formData = new FormData();
-  if (emoji) {
-    formData.append("body", emoji);
-  } else if (newComment.trim()) {
-    formData.append("body", newComment.trim());
-  }
-  if (imageFile instanceof File) {
-    formData.append("image", imageFile);
-  }
-  try {
-    const res = await api.post(`/api/posts/${postId}/comments`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // important!
-      },
+      if (comment.replies?.length) {
+        return {
+          ...comment,
+          replies: replaceCommentById(
+            comment.replies,
+            tempId,
+            newComment
+          ),
+        };
+      }
+  
+      return comment;
     });
-    setPostComments(prev => parentId
-      ? addReplyToComment(prev, parentId, res.data.comment)
-      : [res.data.comment, ...prev]
+  };
+  
+  
+  const removeCommentById = (comments, tempId) => {
+    return comments
+      .filter(comment => comment.id !== tempId)
+      .map(comment => ({
+        ...comment,
+        replies: comment.replies?.length
+          ? removeCommentById(comment.replies, tempId)
+          : comment.replies,
+      }));
+  };
+  
+  
+  const postComment = async (
+    emoji = null,
+    imageFile = null,
+    parentId = null
+  ) => {
+  
+    const commentBody = emoji || newComment.trim();
+  
+    if (!commentBody && !imageFile) return;
+  
+    // Temporary ID
+    const tempId = `temp-${Date.now()}`;
+  
+    // Temporary comment
+    const temporaryComment = {
+      id: tempId,
+      body: commentBody || "",
+      image: imageFile instanceof File
+        ? URL.createObjectURL(imageFile)
+        : null,
+  
+      user: currentUser,
+      user_id: currentUser?.id,
+  
+      is_pending: true,
+    };
+  
+    // ⭐ SHOW COMMENT IMMEDIATELY
+    setPostComments(prev =>
+      parentId
+        ? addReplyToComment(
+            prev,
+            parentId,
+            temporaryComment
+          )
+        : [temporaryComment, ...prev]
     );
+  
+    // Clear input immediately
     setNewComment("");
     setImage(null);
     setShowEmoji(false);
-  } catch (err) {
-    console.error(err.response?.data || err);
-  }
-  finally{
-    setLoading(false)
-  }
-};
+  
+    const formData = new FormData();
+  
+    if (commentBody) {
+      formData.append("body", commentBody);
+    }
+  
+    if (imageFile instanceof File) {
+      formData.append("image", imageFile);
+    }
+  
+    try {
+  
+      const res = await api.post(
+        `/api/posts/${postId}/comments`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+  
+      const savedComment = res.data.comment;
+  
+      // ⭐ Replace temporary comment with real comment
+      setPostComments(prev =>
+        replaceCommentById(
+          prev,
+          tempId,
+          savedComment
+        )
+      );
+  
+    } catch (err) {
+  
+      console.error(
+        err.response?.data || err
+      );
+  
+      // ⭐ Remove temporary comment if request failed
+      setPostComments(prev =>
+        removeCommentById(
+          prev,
+          tempId
+        )
+      );
+    }
+  };
 
-//
+  
 
 const addReplyToComment = (postComments, parentId, reply) => {
 return postComments.map(comment => {
@@ -109,8 +203,9 @@ const shareToChat = async (chatId) => {
   if (!post) return null;
 
   return (
-    <div className="fixed px-2 inset-0 bg-white/90 flex sm:py-5 items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
+    <div className="fixed px-2 inset-0 bg-white/40 flex sm:py-5 items-center justify-center z-50">
+      <div className="bg-[var(--bg-color)] 
+            text-[var(--text-color)] rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
 
         {/* HEADER */}
         <div className="flex justify-between items-center px-4 py-3 border-b">
@@ -119,14 +214,16 @@ const shareToChat = async (chatId) => {
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
+            className="w-8 h-8 rounded-full bg-gray-200 text-black flex items-center justify-center"
           >
             ✕
           </button>
         </div>
 
         {/* BODY */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:h-[400px] h-[300px] relative ">
+        <div className="flex-1 overflow-y-auto
+        scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
+         overflow-x-hidden p-4 sm:h-[400px] h-[300px] relative ">
           {/* User info */}
           <div className="flex justify-between items-center gap-2 mb-3">
             <div className="inline-flex items-center gap-2">
@@ -138,10 +235,10 @@ const shareToChat = async (chatId) => {
               </Link>
             <div>
               <p className="font-semibold text-sm">{post.user.name}</p>
-              <p className="text-xs text-gray-500">{post.created_at}</p>
+              <p className="text-xs">{post.created_at}</p>
             </div>
             </div>
-            <div className="bg-gray-700 rounded-full">
+            <div className="rounded-full">
             <PostOptionsId 
             post={post} 
             chats={chats}
@@ -162,31 +259,137 @@ const shareToChat = async (chatId) => {
                 <ImageFlex
                   media={post.media.filter(m => m.type === "image")}
                   postId={post.id}
+                   post={post}
+
+                counts = {counts}
+                total = {total}
+                me={me}
+                firstUser={firstUser}
+                others = {others} 
+                allUsers = {allUsers}
+                myReaction={myReaction}
+                reactionList = {reactionList}
+                reactionLoading = {reactionLoading}
+                toggleReaction ={toggleReaction}
+                onLikeClick = {onLikeClick}
+
+                showReactions={showReactions}
+                setShowReactions={setShowReactions}
+
+                showEmojiPicker={showEmojiPicker}
+                setShowEmojiPicker={setShowEmojiPicker}
+
+                showUsersPopup={showUsersPopup}
+                setShowUsersPopup={setShowUsersPopup}
+                currentUser={currentUser}
+                getColor={getColor}
+
+                // Comment
+                postComments = {postComments} 
+                setPostComments={setPostComments}
+                commentInputRef={commentInputRef}
+                focusCommentInput={focusCommentInput}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                loading={loading}
+                setLoading={setLoading}
+
+                showEmoji={showEmoji}
+                setShowEmoji={setShowEmoji}
+                emojiList={emojiList}
+                setEmojiList={setEmojiList}
+
+                // Share
+                chats = {chats}
+                setPostIdModal={setPostIdModal}
+                shares={shares}
+                setShares={setShares}
+                setMessageOpenShare={setMessageOpenShare}
+                handleShare={handleShare}
+                sending={sending}
+                messageOpenShare={messageOpenShare}
+                selectedChats={selectedChats}
+                setSelectedChats={setSelectedChats}
+                setSending={setSending}
+                shareToChat={shareToChat}
+                postIdModal={postIdModal}
+                user={user}
+                image={image}
+                usersPreview={usersPreview}
+                setImage={setImage}
                 />
               )}
           </div>
       
 
-          {post.media
-          .filter(m => m.type === "video")
-          .map(m => (
-            <div
-              key={m.id}
-              className=" px-4 cursor-pointer"
-            >
-              <video
-                src={m.url}
-                className="w-full h-64 object-cover"
-                muted
-              />
-              </div>
-              ))}
+      <PostVideoPreview
+        post={post}
+        chats={chats}
+                    
+              counts = {counts}
+              total = {total}
+              me={me}
+              firstUser={firstUser}
+              others = {others} 
+              allUsers = {allUsers}
+              myReaction={myReaction}
+              reactionList = {reactionList}
+              reactionLoading = {reactionLoading}
+              toggleReaction ={toggleReaction}
+              onLikeClick = {onLikeClick}
+
+              showReactions={showReactions}
+              setShowReactions={setShowReactions}
+
+              showEmojiPicker={showEmojiPicker}
+              setShowEmojiPicker={setShowEmojiPicker}
+
+              showUsersPopup={showUsersPopup}
+              setShowUsersPopup={setShowUsersPopup}
+              currentUser={currentUser}
+              getColor={getColor}
+
+              // Comment
+              postComments = {postComments} 
+              setPostComments={setPostComments}
+              commentInputRef={commentInputRef}
+              focusCommentInput={focusCommentInput}
+              newComment={newComment}
+              setNewComment={setNewComment}
+              loading={loading}
+              setLoading={setLoading}
+
+              showEmoji={showEmoji}
+              setShowEmoji={setShowEmoji}
+              emojiList={emojiList}
+              setEmojiList={setEmojiList}
+
+              // Share
+              setPostIdModal={setPostIdModal}
+              shares={shares}
+              setShares={setShares}
+              setMessageOpenShare={setMessageOpenShare}
+              handleShare={handleShare}
+              sending={sending}
+              messageOpenShare={messageOpenShare}
+              selectedChats={selectedChats}
+              setSelectedChats={setSelectedChats}
+              setSending={setSending}
+              shareToChat={shareToChat}
+              postIdModal={postIdModal}
+              user={user}
+              image={image}
+              usersPreview={usersPreview}
+              setImage={setImage}
+      />
+
 
         {/* Reaction Count setShowUsersPopup */}
         <div className="flex justify-between border-t-2 py-2 mt-4 items-center ">
 
         <div className="flex gap-1 items-center">
-       <div className=" text-xs inline-flex items-center gap-2 text-gray-600">
+       <div className=" text-xs inline-flex items-center gap-2 bg-[var(--bg-color)]
+            text-[var(--text-color)]">
         {Object.keys(counts).map((emoji) => (
           <span key={emoji} className="text-xs -mr-2">{emoji}</span>
         ))}
@@ -237,13 +440,15 @@ const shareToChat = async (chatId) => {
       </div>
       <div className="inline-flex items-center gap-3">
 
-        <p className="inline-flex text-gray-800 gap-1 items-center">
+        <p className="inline-flex bg-[var(--bg-color)]
+            text-[var(--text-color)] gap-1 items-center">
       {post.comments_count}
-         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-[var(--text-color)]">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
           </svg>
       </p>
-      <p className="inline-flex text-gray-800 gap-1 items-center">
+      <p className="inline-flex bg-[var(--bg-color)]
+            text-[var(--text-color)] gap-1 items-center">
       {post.shares_count}
            <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +460,8 @@ const shareToChat = async (chatId) => {
           </svg>
       </p>
 
-      <p className="inline-flex gap-1 text-gray-800 items-center">
+      <p className="inline-flex gap-1 bg-[var(--bg-color)]
+            text-[var(--text-color)] items-center">
       {post.reposts_count}
            <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -263,7 +469,8 @@ const shareToChat = async (chatId) => {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 bg-[var(--bg-color)]
+            text-[var(--text-color)]"
           >
             <path
               strokeLinecap="round"
@@ -279,12 +486,14 @@ const shareToChat = async (chatId) => {
       </div>
       
     {/* Reactions */}
-    <div className="flex items-center justify-around py- text-sm text-gray-600">
-                  <div className="flex justify-between text-gray-600 mx-4">
+    <div className="flex items-center justify-around py- text-sm bg-[var(--bg-color)]
+            text-[var(--text-color)]">
+                  <div className="flex justify-between text-[var(--text-color)] mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
                   {showReactions && (
-                    <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
+                    <div className="absolute -top-14 left-0 opacity-0 group-hover:opacity-100 invisible group-hover:visible group-hover:translate-y-2 transform transition-all duration-500 bg-[var(--bg-color)]
+            text-[var(--text-color)] shadow-lg rounded-full px-3 py-2 flex gap-2 z-20">
                       {reactionList.map((emoji) => (
                         <span
                           key={emoji}
@@ -352,36 +561,43 @@ const shareToChat = async (chatId) => {
       
       {shares && (
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
+        <div className="bg-[var(--bg-color)]
+            text-[var(--text-color)] rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2  rounded-full  hover:bg-gray-50 bg-gray-100 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
       </button>
         <div className="flex flex-col mx-auto gap-3 items-center">
           <button onClick={() => {setMessageOpenShare(!messageOpenShare); setShares(false);}} 
-          className="text-black flex flex-col  items-center gap-1 hover:text-blue-600">
+          className="bg-[var(--bg-color)]
+            text-[var(--text-color)] flex flex-col  items-center gap-1 hover:text-blue-600">
                 <MessageCircle className="border-2 border-black rounded-full p-1" size={35} />
                 <span className="text-sm font-bold">Chat List</span>
               </button>
             <div className="grid grid-cols-4 border-t-2 pt-2 gap-4 text-center">
-              <button onClick={() => handleShare("facebook")} className="text-black flex flex-col items-center gap-1 hover:text-blue-600 text-black">
+              <button onClick={() => handleShare("facebook")} className="bg-[var(--bg-color)]
+            text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-blue-600 bg-[var(--bg-color)]
+            text-[var(--text-color)]">
                 <FaFacebook size={28} />
                 <span className="text-sm">Facebook</span>
               </button>
 
-              <button onClick={() => handleShare("whatsapp")} className="text-black flex flex-col items-center gap-1 hover:text-green-500">
+              <button onClick={() => handleShare("whatsapp")} className="bg-[var(--bg-color)]
+            text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-green-500">
                 <FaWhatsapp size={28} />
                 <span className="text-sm">WhatsApp</span>
               </button>
 
-              <button onClick={() => handleShare("twitter")} className="text-black flex flex-col items-center gap-1 hover:text-sky-500">
+              <button onClick={() => handleShare("twitter")} className="bg-[var(--bg-color)]
+            text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-sky-500">
                 <FaTwitter size={28} />
                 <span className="text-sm">Twitter</span>
               </button>
 
-              <button onClick={() => handleShare("telegram")} className="text-black flex flex-col items-center gap-1 hover:text-blue-400">
+              <button onClick={() => handleShare("telegram")} className="bg-[var(--bg-color)]
+            text-[var(--text-color)] flex flex-col items-center gap-1 hover:text-blue-400">
                 <FaTelegram size={28} />
                 <span className="text-sm">Telegram</span>
               </button>
@@ -396,7 +612,8 @@ const shareToChat = async (chatId) => {
 
       {messageOpenShare && (
   <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+    <div className="bg-[var(--bg-color)]
+            text-[var(--text-color)] rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
       <h2 className="font-bold mb-3">Share to chat</h2>
 
        {chats.map((chat) => (

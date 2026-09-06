@@ -180,6 +180,7 @@ const badge = (
                     showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                     showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                     selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                  
                     />
                   </div>
                   <div className={`${visibleProfile === 2 ? 'block' : 'hidden'}`}>
@@ -188,6 +189,11 @@ const badge = (
                     showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                     showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                     selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                    emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+                    postComments={postComments} setPostComments={setPostComments}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+                    setNewComment={setNewComment} loading={loading}
+                    user={user} image={image} setImage={setImage}
                     />
                     </div>
                     <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
@@ -196,6 +202,11 @@ const badge = (
                     showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
                     showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                     selectedPost={selectedPost} setSelectedPost={setSelectedPost}
+                    emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
+                    postComments={postComments} setPostComments={setPostComments}
+                    showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
+                    setNewComment={setNewComment} loading={loading}
+                    user={user} image={image} setImage={setImage}
                     />
                     </div>
         <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>

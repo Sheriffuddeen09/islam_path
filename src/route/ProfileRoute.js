@@ -1,3 +1,7 @@
+
+
+
+
 import { useParams } from "react-router-dom";
 import { useAuth } from "../layout/AuthProvider";
 import ProfileId from "./ProfileId";
@@ -6,7 +10,7 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, openChat, togglePopup,
         setActiveChat, setMessages, jobProfile, setJobProfile, fetchJobProfile, show, setShow, showAdvertisement,
-        setShowAdvertisement, showJobCreate, setShowJobCreate
+        setShowAdvertisement, showJobCreate, setShowJobCreate, user
 }) {
   const { id } = useParams();
 
@@ -25,7 +29,7 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
       setJobProfile={setJobProfile}
       fetchJobProfile={fetchJobProfile}
       show={show}
-      setShow={setShow}
+      setShow={setShow} user={user}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
       />

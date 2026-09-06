@@ -2,9 +2,14 @@ import { useRef, useState, useEffect } from "react";
 import api from "../../Api/axios";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
+import ProfileVideoCommentReactionShare from "../../pages/post/previewimagevideo/ProfileVideoCommentReactionShare";
+import toast from "react-hot-toast";
+import { useAuth } from "../../layout/AuthProvider";
+import { PostFeedIdModalProfile } from "../mediaprofile/PostFeedIdModalProfile";
 
-export default function VideoCardProfileId({ v, post, setSelectedPost,
-  setShowDeleteModal, chats, showDeleteModal, selectedPost, setPosts }) {
+export default function VideoCardProfileId({ v, post, chats,  loading, setNewComment,
+  emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
+  user, image, setImage }) {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
@@ -18,6 +23,162 @@ export default function VideoCardProfileId({ v, post, setSelectedPost,
   const [openOptionId, setOpenOptionId] = useState(false);
   
   
+
+  
+        const {user: currentUser} = useAuth();
+        const [ showUsersPopup, setShowUsersPopup] = useState(false);
+        const [showReactions, setShowReactions] = useState(false);
+        const [counts, setCounts] = useState(post.reaction_counts || {});
+        const [myReaction, setMyReaction] = useState(post.my_reaction || null);
+        const [usersPreview, setUsersPreview] = useState([]); 
+        const [postIdModal, setPostIdModal] = useState(null);
+        const [reactionLoading, setReactionLoading] = useState(false);
+       
+        const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+      
+        
+            
+              const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
+            
+              
+                const toggleReaction = async (emoji) => {
+              if (!currentUser) {
+                toast.error("Please log in to react.", "error");
+                return;
+              }
+            
+              if (reactionLoading) return; // ⛔ prevent double clicks
+            
+              setReactionLoading(true);
+            
+              try {
+                if (myReaction === emoji) {
+                  setMyReaction(null);
+            
+                  setCounts((prev) => {
+                    const copy = { ...prev };
+                    copy[emoji] = (Number(copy[emoji] || 0) - 1);
+                    if (copy[emoji] <= 0) delete copy[emoji];
+                    return copy;
+                  });
+            
+                  setUsersPreview((prev) => prev.filter((u) => u.id !== currentUser.id));
+            
+                  await api.delete(`/api/post/${post.id}/reaction`);
+                  return;
+                }
+            
+                setCounts((prev) => {
+                  const copy = { ...prev };
+                  if (myReaction) {
+                    copy[myReaction] = (Number(copy[myReaction] || 1) - 1);
+                    if (copy[myReaction] <= 0) delete copy[myReaction];
+                  }
+                  copy[emoji] = (Number(copy[emoji] || 0) + 1);
+                  return copy;
+                });
+            
+                setMyReaction(emoji);
+            
+                const res = await api.post(`/api/post/${post.id}/reaction`, { emoji });
+            
+                if (res?.data?.counts) setCounts(res.data.counts);
+                if (res?.data?.users) setUsersPreview(res.data.users.slice(0, 6));
+                if (res?.data?.my_reaction) setMyReaction(res.data.my_reaction);
+              } catch (err) {
+                toast.error("Reaction error", "error");
+              } finally {
+                setReactionLoading(false);
+                setShowReactions(false);
+              }
+            };
+            
+                // Clicking the Like button: quick toggle (use myReaction or default 👍)
+                const onLikeClick = () => {
+                  const emoji = myReaction || "👍";
+                  toggleReaction(emoji);
+                };
+              
+                useEffect(() => {
+                  const fetchReactions = async () => {
+                    const res = await api.get(`/api/post/${post.id}/reactions`);
+                    setCounts(res.data.counts || {});
+                    setUsersPreview(res.data.users || []);
+                    setMyReaction(res.data.my_reaction || null);
+                  };
+            
+                  fetchReactions();
+                }, [post.id]);
+            
+                
+            
+              
+                // Render
+                const text = post.content || "";
+                const shortText = text.length > 200 ? text.substring(0, 200) + "....." : text;
+            
+            
+             
+                const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
+            
+            
+                  const uniqueUsers = Array.from(
+                    new Map(usersPreview.map((u) => [u.id, u])).values()
+                  );
+            
+                  // Find me
+                  const me = uniqueUsers.find(u => u.id === currentUser?.id);
+            
+                  // Remove me from list
+                  const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
+            
+                  const firstUser = others[0];
+                  const lastUser = others[others.length - 1];
+                  const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
+            
+                  const allUsers = uniqueUsers; // 👈 this is your full popup list
+            
+            
+                  
+                    const colors = [
+                      "bg-red-400",
+                      "bg-blue-400",
+                      "bg-green-400",
+                      "bg-purple-400",
+                      "bg-pink-400",
+                      "bg-yellow-400",
+                  ];
+            
+            const getColor = (value) => {
+                if (!value) return "bg-gray-400";
+            
+                const str = String(value);
+            
+                let hash = 0;
+            
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+            
+                return colors[Math.abs(hash) % colors.length];
+            };
+            
+            const getInitial = (name) => {
+                if (!name) return "?";
+            
+                return name
+                    .trim()
+                    .charAt(0)
+                    .toUpperCase();
+            };
+            
+            const commentInputRef = useRef(null);
+            
+            const focusCommentInput = () => {
+              setTimeout(() => commentInputRef.current?.focus(), 0);
+            };
+            
+            
     const handleOption = () =>{
       setOpenOption(!openOption)
     }
@@ -103,14 +264,7 @@ export default function VideoCardProfileId({ v, post, setSelectedPost,
           onPlay={onPlay}
           onClick={() => setOpen(true)}
         />
-      <button
-            onClick={handleOption}
-            className="px-1 py-1 text-black absolute top-2 z-50 right-2 rotate-90 bg-white rounded-full hover:text-gray-700 hover:bg-gray-100 transition"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-        </svg>
-      </button>
+     
         {!playing && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="bg-black/60 p-2 rounded-full text-white">
@@ -125,17 +279,6 @@ export default function VideoCardProfileId({ v, post, setSelectedPost,
             </div>
           </div>
         )}
-
-        {openOption && (
-        <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
-            
-           
-            <button onClick={() => {handleOption(); setShares(!shares)}} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Share
-            </button>
-        </div>
-      )}
       </div>
 
       {/* Preview Modal */}
@@ -158,16 +301,7 @@ export default function VideoCardProfileId({ v, post, setSelectedPost,
         </svg>
 
       </button>
-      {openOptionId && (
-        <div className=" absolute top-10 right-0 mt-2 px-3 py-2 w-40 z-50 bg-white border rounded shadow-lg z-10">
-            
-           
-            <button onClick={() => {handleOptionId(); setShares(!shares)}} 
-            className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-gray-800 hover:bg-gray-50 rounded">
-              Share
-            </button>
-        </div>
-      )}
+     
       </div>
             <video
               src={v.url}
@@ -175,6 +309,65 @@ export default function VideoCardProfileId({ v, post, setSelectedPost,
               controls
               autoPlay
             />
+
+             <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
+                                              <ProfileVideoCommentReactionShare
+                                              post={post}
+                                              setOpen={setOpen}
+                                              counts = {counts}
+                                              total = {total}
+                                              me={me}
+                                              firstUser={firstUser}
+                                              others = {others} 
+                                              allUsers = {allUsers}
+                                              myReaction={myReaction}
+                                              reactionList = {reactionList}
+                                              reactionLoading = {reactionLoading}
+                                              toggleReaction ={toggleReaction}
+                                              onLikeClick = {onLikeClick}
+                              
+                                              showReactions={showReactions}
+                                              setShowReactions={setShowReactions}
+                              
+                                              showEmojiPicker={showEmojiPicker}
+                                              setShowEmojiPicker={setShowEmojiPicker}
+                              
+                                              showUsersPopup={showUsersPopup}
+                                              setShowUsersPopup={setShowUsersPopup}
+                                              currentUser={currentUser}
+                                              getColor={getColor}
+                              
+                                              // Comment
+                                              postComments = {postComments} 
+                                              setPostComments={setPostComments}
+                                              commentInputRef={commentInputRef}
+                                              focusCommentInput={focusCommentInput}
+                                              newComment={newComment}
+                                              setNewComment={setNewComment}
+                                              loading={loading}
+                                              setLoading={setLoading}
+                              
+                                              showEmoji={showEmoji}
+                                              setShowEmoji={setShowEmoji}
+                                              emojiList={emojiList}
+                                              setEmojiList={setEmojiList}
+                              
+                                              // Share
+                                              chats = {chats}
+                                              setPostIdModal={setPostIdModal}
+                                              shares={shares}
+                                              setShares={setShares}
+                                              setMessageOpenShare={setMessageOpenShare}
+                                              handleShare={handleShare}
+                                              sending={sending}
+                                              messageOpenShare={messageOpenShare}
+                                              selectedChats={selectedChats}
+                                              setSelectedChats={setSelectedChats}
+                                              setSending={setSending}
+                                              shareToChat={shareToChat}
+                                              postIdModal={postIdModal}
+                                              />
+                                              </div>
           </div>
         </div>
       )}
@@ -318,6 +511,24 @@ export default function VideoCardProfileId({ v, post, setSelectedPost,
       </div>
     )}
 
+      {postIdModal && (
+                      <PostFeedIdModalProfile
+                        total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
+                        image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                        showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
+                        user={user} counts={counts} setShowReactions={setShowReactions} 
+                        reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                        showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
+                        toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
+                        myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 
+                        onClose={() => setPostIdModal(null)} getColor={getColor} allUsers={allUsers} 
+                        newComment={newComment} setNewComment={setNewComment}
+                        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                        emojiList={emojiList} setEmojiList={setEmojiList} chats={chats}
+                        setPostIdModal={setPostIdModal} 
+                        postIdModal={postIdModal} setShowEmojiPicker={setShowEmojiPicker} 
+                        showEmojiPicker={showEmojiPicker}
+                      />)}
     </>
   );
 }
