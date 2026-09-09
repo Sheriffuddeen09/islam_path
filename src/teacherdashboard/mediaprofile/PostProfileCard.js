@@ -253,10 +253,9 @@ const handleDelete = async (id) => {
 const media = Array.isArray(post.media) ? post.media : [];
 
   return (
-    <div className="bg-[var(----bg-color)] text-[var(----text-color)] rounded-t-xl shadow p-4 mb-4 ">
+    <div className="bg-[var(----bg-color)] border border-green-200 rounded-lg max-w-xl text-[var(----text-color)] 
+    shadow p-4 mb-4 ">
     <div className="relative ">
-       
-          
        <div className="px-2 flex justify-between mb-2 items-center">
        <div className="flex items-center  gap-3">
                <p className="font-bold text-white pb-1 bg-black text-[30px] rounded-full w-10 h-10 text-center

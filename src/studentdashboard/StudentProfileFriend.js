@@ -63,7 +63,7 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
 
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-2xl mx-auto">
         
     {acceptedStudents.length >= 1 && (
       <div className="flex justify-between items-center mb-2 py-2 px-4">
@@ -81,7 +81,7 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
         </p>
       </div>
     ) : (
-      <div className="grid rounded-lg grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
+      <div className="grid max-w-2xl rounded-lg grid-cols-2 md:grid-cols-3 lg:grid-cols-2 p-3 gap-3 md:gap-3 lg:gap-30 items-center justify-items-center">
         {acceptedStudents.slice(0, 2).map((admin) => {
           const status = admin.status ?? "none";
           const isOwnerUser = user?.id === admin.id;
@@ -321,82 +321,30 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
      }
      
 
-
 function Loader() {
   return (
-    <div className="animate-pulse w-full">
-
-      <div className="w-full px-4 flex flex-row justify-center mx-auto gap-2">
-        
-        <div className="w-full bg-gray-500 border border-white/10 rounded-3xl p-5">
-
-          <div className="w-full flex items-center gap-3 mb-6">
+   <div className="max-w-2xl flex flex-col justify-center iems-center mx-4 animate-pulse">
+      <div className="max-w-2xl">
+        <div className="max-w-2xl bg-gray-500 border border-white/10 rounded-3xl p-5">
+          {/* Header */}
+          <div className="flex items-center flex-wrap gap-3 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-white/10" />
             <div className="h-5 w-40 rounded bg-white/10" />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
-
-            {[1, 2, 3, 4].map((item) => (
+          {/* Content */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
                 key={item}
                 className="flex items-start gap-3"
               >
-                <div className="w-10 h-10 rounded-xl bg-white/10" />
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex-shrink-0" />
 
                 <div className="flex-1 space-y-2">
                   <div className="h-3 w-24 rounded bg-white/10" />
                   <div className="h-4 w-full rounded bg-white/10" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-         <div className="bg-gray-500 border sm:block hidden border-white/10 rounded-3xl p-5">
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-white/10" />
-            <div className="h-5 w-40 rounded bg-white/10" />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-5">
-
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="flex items-start gap-3"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/10" />
-
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-24 rounded bg-white/10" />
-                  <div className="h-4 w-full rounded bg-white/10" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-         <div className="bg-gray-500 border lg:block hidden border-white/10 rounded-3xl p-5">
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-white/10" />
-            <div className="h-5 w-40 rounded bg-white/10" />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-5">
-
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="flex items-start gap-3"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/10" />
-
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-24 rounded bg-white/10" />
-                  <div className="h-4 w-full rounded bg-white/10" />
+                  <div className="h-4 w-4/5 rounded bg-white/10" />
                 </div>
               </div>
             ))}

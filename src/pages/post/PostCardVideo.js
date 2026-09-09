@@ -11,7 +11,6 @@ import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
 import EmojiPicker from "emoji-picker-react";
-import PostVideoPreviewModal from "./PostVideoPreviewModal";
 
 
 
@@ -157,12 +156,42 @@ useEffect(() => {
 
 
   
-    // Render
-    const text = post.content || "";
-    const shortText = text.length > 200 ? text.substring(0, 200) + "....." : text;
+   
 
+ const [showFullText, setShowFullText] = useState(false);
 
  
+ const text = post.content || "";
+
+ const hasMedia = post.media?.some(
+   (media) => media.type === "image" || media.type === "video"
+ );
+
+ // Different limits depending on whether there is media
+ const contentLimit = hasMedia ? 200 : 560;
+
+ const shouldShowMore = text.length > contentLimit;
+
+ const displayedText =
+   shouldShowMore && !showFullText
+     ? text.substring(0, contentLimit) + "..."
+     : text;
+
+
+const openVideoPreview = (video, post) => {
+    setVideoPreview({
+        ...post,
+        ...video,
+    });
+};
+
+const closeVideoPreview = () => {
+    setVideoPreview(null);
+};
+
+
+
+
  const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
 
@@ -192,89 +221,146 @@ useEffect(() => {
           "bg-yellow-400",
         ];
 
-      const getColor = (id) => colors[id % colors.length];
+      const getColor = (value) => {
+          if (!value) return "bg-gray-400";
+
+          const str = String(value);
+
+          let hash = 0;
+
+          for (let i = 0; i < str.length; i++) {
+              hash = str.charCodeAt(i) + ((hash << 5) - hash);
+          }
+
+          return colors[Math.abs(hash) % colors.length];
+      };
+
+      const getInitial = (name) => {
+          if (!name) return "?";
+
+          return name
+              .trim()
+              .charAt(0)
+              .toUpperCase();
+      };
+      const commentInputRef = useRef(null);
+
+      const focusCommentInput = () => {
+        setTimeout(() => commentInputRef.current?.focus(), 0);
+      };
 
 
 
-const commentInputRef = useRef(null);
+      const handleHidePost = async (postId) => {
+        try {
+          await api.post(`/api/posts/${postId}/hide`);
+          toast.success("Post removed");
+          setPosts(prev => prev.filter(p => p.id !== postId));
+        } catch (err) {
+          console.error(err);
+        }
+      };
 
-const focusCommentInput = () => {
-  setTimeout(() => commentInputRef.current?.focus(), 0);
-};
+      const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
+      const shareLinks = {
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(shareUrl)}`,
+        twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`,
+        telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
+      };
 
+      const handleShare = async (platform) => {
+        const url = shareLinks[platform];
 
-const handleHidePost = async (postId) => {
-  try {
-    await api.post(`/api/posts/${postId}/hide`);
-    toast.success("Post removed");
-    setPosts(prev => prev.filter(p => p.id !== postId));
-  } catch (err) {
-    console.error(err);
-  }
-};
+        if (url) {
+          window.open(url, "_blank");
+        } else {
+          // For TikTok / Instagram / YouTube
+          await navigator.clipboard.writeText(shareUrl);
+          alert("Link copied! Paste it in the app to share.");
+        }
 
-const shareUrl = `${window.location.origin}/post/${post?.id}`;
-
-const shareLinks = {
-  facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-  whatsapp: `https://wa.me/?text=${encodeURIComponent(shareUrl)}`,
-  twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`,
-  telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
-};
-
-const handleShare = async (platform) => {
-  const url = shareLinks[platform];
-
-  if (url) {
-    window.open(url, "_blank");
-  } else {
-    // For TikTok / Instagram / YouTube
-    await navigator.clipboard.writeText(shareUrl);
-    alert("Link copied! Paste it in the app to share.");
-  }
-
-  await api.post(`/api/post/${post.id}/share`);
-};
+        await api.post(`/api/post/${post.id}/share`);
+      };
 
 
-const shareToChat = async (chatId) => {
-  await api.post(`/api/chats/${chatId}/messages`, {
-    type: "link",
-    message: shareUrl,
-    post_id: post.id
-  });
+      const shareToChat = async (chatId) => {
+        await api.post(`/api/chats/${chatId}/messages`, {
+          type: "link",
+          message: shareUrl,
+          post_id: post.id
+        });
 
-  await api.post(`/api/post/${post.id}/share`);
-};
+        await api.post(`/api/post/${post.id}/share`);
+      };
 
 
 //
   return (
     <div
-      className={`rounded-xl shadow md:w-96  mt-6 sm:mt-0  lg:w-[400px] w-full border`}
-      // ref={postRef}
-       >
- {post.is_repost && (
-         <div className="flex p-4 bg-gray-100 mb-1 items-center justify-between">
-         <div className="inline-flex items-center gap-3 justify-between">
-           <Link to={`/profile/${user?.id}`}>
-         <p className="font-bold text-white pb-1 bg-blue-600 text-[40px] rounded-full w-12 h-12 text-center
-         flex flex-col items-center justify-center">
-           {post.reposted_by?.name[0]}
-         </p>
-         </Link>
-         
-          <div>
-           <Link to={`/profile/${user.id}`}>
-           <p className="font-semibold text-black text-sm">{post.reposted_by?.name}</p>
-           </Link>
-           <p className="text-xs opacity-70">{post.created_at}</p>
-         </div>
-          
-         </div>
-        {/* option */}
-        <PostOptions post={post} 
+          className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
+          // ref={postRef}
+          >
+          {post.is_repost && (
+            <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
+            <div className="inline-flex items-center gap-3 justify-between">
+              <Link to={`/profile/${post.reposted_by?.id}`}>
+            <p className={`text-white font-bold pb-1 text-[32px] rounded-full w-10 h-10 text-center
+            flex flex-col items-center justify-center ${getColor(post.reposted_by?.name)}`}>
+              {getInitial(post.reposted_by?.name)}
+            </p>
+            </Link>
+            
+             <div>
+              <Link to={`/profile/${post.reposted_by.id}`}>
+              <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
+              </Link>
+              <p className="text-xs">{post.created_at}</p>
+            </div>
+             {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded py-1 ">
+             Reposted
+             </p> */}
+            </div>
+            <div className="inline-flex gap-3 items-center">
+             <PostOptions post={post} 
+                       messageOpen={messageOpen}
+                       setMessageOpen={setMessageOpen}
+                       chats={chats}
+                       setChats={setChats}/>
+                       <button
+                       onClick={() => handleHidePost(post.id)}
+                       className="w-8 h-8 flex items-center justify-center"
+                           >
+                             ✕
+                     </button>
+             
+                      </div>
+            </div>
+    
+                    )} 
+      
+          {/* USER  */}
+          <div className="flex p-3 border-b border-gray-500 items-start justify-between">
+    
+          <div className="flex items-center  gap-3">
+            <Link to={`/profile/${user?.id}`}>
+            <p className={`font-bold pb-1 text-white text-[32px] rounded-full w-10 h-10 text-center
+            flex flex-col items-center justify-center ${getColor(post.user?.name)}`}>
+              {getInitial(post.user?.name)}
+            </p>
+            </Link>
+            <div>
+              <Link to={`/profile/${user.id}`}>
+              <p className="font-semibold text-sm">{post.user?.name}</p>
+              </Link>
+              <p className="text-xs">{post.created_at}</p>
+            </div>
+          </div>
+    
+          {!post.is_repost &&
+            <div className='inline-flex items-center gap-3'>
+          <PostOptions post={post} 
           messageOpen={messageOpen}
           setMessageOpen={setMessageOpen}
           chats={chats}
@@ -285,76 +371,68 @@ const shareToChat = async (chatId) => {
               >
                 ✕
         </button>
-
-         </div>
-       )} 
-   
-      {/* USER */}
-      <div className="flex p-4 bg-gray-100 items-start justify-between">
-
-      <div className="flex items-center  gap-3">
-        <Link to={`/profile/${user?.id}`}>
-        <p className="font-bold text-white pb-1 bg-black text-[40px] rounded-full w-12 h-12 text-center
-        flex flex-col items-center justify-center">
-          {post.user.name?.[0]}
-        </p>
-        </Link>
-        <div>
-          <Link to={`/profile/${user.id}`}>
-          <p className="font-semibold">{post.user.name}</p>
-          </Link>
-          <p className="text-xs opacity-70">{post.created_at}</p>
-        </div>
-      </div>
-
-       {!post.is_repost &&
-        <div className='inline-flex items-center gap-3'>
-      <PostOptions post={post} 
-       messageOpen={messageOpen}
-      setMessageOpen={setMessageOpen}
-      chats={chats}
-      setChats={setChats}/>
-      <button
-      onClick={() => handleHidePost(post.id)}
-      className="w-8 h-8 flex items-center justify-center"
-          >
-            ✕
-    </button>
-
-      </div>
-    }
-      </div>
-
-      {/* TEXT */}
-     <div
-  className="bg-white p-4 text-black text-[14px]">
-  {post.content && (
-    <p className="cursor-pointer px-2">
-      {showMore
-        ? text
-        : shortText}
-        {
-          showMore ? "" : <button onClick={(e) => {
-            e.preventDefault();
-            setShowMore(!showMore);
-          }}>See more</button>
-          
+    
+          </div>
         }
-        
-    </p>
-  )}
+          </div>
+ <div
+  className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px] ">
+  {/* TEXT */}
+
+        {post.content && (
+         <div
+        className="
+            bg-[var(--bg-color)]
+            text-[var(--text-color)]
+            w-full
+            min-w-0
+            text-[12px]
+            break-words
+            [overflow-wrap:anywhere]
+        "
+    >
+          <p
+            className="
+              bg-[var(--bg-color)]
+              text-[var(--text-color)]
+              w-full
+              min-w-0
+              text-[12px]
+              break-words
+              [overflow-wrap:anywhere]
+            "
+          >
+            {displayedText}
+
+            {/* SEE MORE */}
+            {shouldShowMore && !showFullText && (
+              <button
+                type="button"
+                onClick={() => setShowFullText(true)}
+                className="
+                  ml-1
+                  text-blue-600
+                  font-bold
+                  hover:text-blue-800
+                  hover:underline
+                "
+              >
+                See more
+              </button>
+            )}
+          </p>
+        </div>
+      )}
+
 </div>
 
 
-{/* VIDEOS video */}
     {post.media
       .filter(m => m.type === "video")
       .map(m => (
 
         <PostVideoCard v={m}  post={post} 
-        onOpenPreview={(previewData) => {
-            setVideoPreview(previewData);
-        }} 
+        onOpenPreview={openVideoPreview} 
         />
 
       ))
@@ -363,7 +441,8 @@ const shareToChat = async (chatId) => {
       <div className="flex justify-between px-4 mt-4 items-center ">
 
         <div className="flex gap-1 items-center">
-       <div className=" text-xs inline-flex items-center gap-2 text-gray-600">
+       <div className=" text-xs inline-flex items-center gap-2 bg-[var(--bg-color)]
+            text-[var(--text-color)]">
         {Object.keys(counts).map((emoji) => (
           <span key={emoji} className="text-xs -mr-2">{emoji}</span>
         ))}
@@ -414,25 +493,29 @@ const shareToChat = async (chatId) => {
       </div>
       <div className="inline-flex items-center gap-3">
 
-        <p className="inline-flex text-gray-800 gap-1 items-center">
+        <p className="inline-flex bg-[var(--bg-color)]
+            text-[var(--text-color)] gap-1 items-center">
       {post.comments_count}
          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-gray-700">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
           </svg>
       </p>
-      <p className="inline-flex text-gray-800 gap-1 items-center">
+      <p className="inline-flex bg-[var(--bg-color)]
+            text-[var(--text-color)] gap-1 items-center">
       {post.shares_count}
            <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="currentColor"
-          className="w-5 h-5 text-gray-600"
+          className="w-5 h-5 bg-[var(--bg-color)]
+            text-[var(--text-color)]"
         >
           <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
         </svg>
       </p>
 
-       <p className="inline-flex gap-1 text-gray-800 items-center">
+       <p className="inline-flex gap-1 bg-[var(--bg-color)]
+            text-[var(--text-color)] items-center">
       {post.reposts_count}
            <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -440,7 +523,8 @@ const shareToChat = async (chatId) => {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 bg-[var(--bg-color)]
+            text-[var(--text-color)]"
           >
             <path
               strokeLinecap="round"
@@ -456,8 +540,10 @@ const shareToChat = async (chatId) => {
 
       </div>
           
-      <div className="flex items-center justify-around py-3 text-sm text-gray-600">
-                  <div className="flex justify-between text-gray-600 mx-4">
+      <div className="flex items-center justify-around py-3 text-sm bg-[var(--bg-color)]
+            text-[var(--text-color)]">
+                  <div className="flex justify-between bg-[var(--bg-color)]
+            text-[var(--text-color)] mx-4">
                 {/* like with hover picker */}
                 <div className="relative group hover:text-blue-800  inline-block" onMouseEnter={() => setShowReactions(true)} onMouseLeave={() => setShowReactions(false)}>
                  {showReactions && (
@@ -504,7 +590,8 @@ const shareToChat = async (chatId) => {
           w-8 h-8
           rounded-full
           bg-gray-100
-          text-gray-600
+          bg-[var(--bg-color)]
+          text-[var(--text-color)]
           text-xl
           flex items-center justify-center
           transition
@@ -556,7 +643,8 @@ const shareToChat = async (chatId) => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-5 h-5 text-gray-600"
+                    className="w-5 h-5 bg-[var(--bg-color)]
+                    text-[var(--text-color)]"
                   >
                     <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
                   </svg>
@@ -570,7 +658,7 @@ const shareToChat = async (chatId) => {
                     }
                 </div>
         
-                    {postIdModal && (
+                {postIdModal && (
                   <PostFeedIdModal
                    total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
@@ -590,9 +678,11 @@ const shareToChat = async (chatId) => {
       
       {shares && (
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
+        <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto
+        scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
+            className="absolute right-3 top-2  text-black rounded-full hover:text-gray-700 hover:bg-gray-50 
+            bg-gray-100 transition 
             w-6 h-6 flex items-center justify-center"
           >
             ✕
@@ -634,7 +724,8 @@ const shareToChat = async (chatId) => {
 
       {messageOpenShare && (
   <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto
+    scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
       <h2 className="font-bold mb-3">Share to chat</h2>
 
        {chats.map((chat) => (
@@ -694,7 +785,8 @@ const shareToChat = async (chatId) => {
   }`}
 >
   {sending ? <svg
-      className="animate-spin h-5 w-5 text-white mx-auto flex justify-center items-center"
+      className="animate-spin h-5 w-5 text-white 
+      mx-auto flex justify-center items-center"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -731,7 +823,8 @@ const shareToChat = async (chatId) => {
     className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
     onClick={() => setShowUsersPopup(false)}
   >
-    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-black py-3">User Likes</h1>
+    <div className="space-y-2 max-h-96 relative overflow-y-auto bg-white p-4 w-80 sm:w-96 mx-autoz-50 rounded-lg pr-2 
+    scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100"><h1 className="text-xl font-bold text-black py-3">User Likes</h1>
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
   onClick={() =>setShowUsersPopup(false)}class="size-6 absolute right-4 top-2">
   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -768,69 +861,6 @@ const shareToChat = async (chatId) => {
           />
         )}
 
-        <PostVideoPreviewModal
-                    preview={videoPreview}
-                    onClose={() => {
-                        setVideoPreview(null);
-                    }}
-        
-                    setOpen={setVideoPreview}
-                    post={post}
-        
-                    counts = {counts}
-                    total_reaction = {total}
-                    me={me}
-                    firstUser={firstUser}
-                    others = {others} 
-                    allUsers = {allUsers}
-                    myReaction={myReaction}
-                    reactionList = {reactionList}
-                    reactionLoading = {reactionLoading}
-                    toggleReaction ={toggleReaction}
-                    onLikeClick = {onLikeClick}
-        
-                    showReactions={showReactions}
-                    setShowReactions={setShowReactions}
-        
-                    showEmojiPicker={showEmojiPicker}
-                    setShowEmojiPicker={setShowEmojiPicker}
-        
-                    showUsersPopup={showUsersPopup}
-                    setShowUsersPopup={setShowUsersPopup}
-                    currentUser={currentUser}
-                    getColor={getColor}
-        
-                    // Comment
-                    postComments = {postComments} 
-                    setPostComments={setPostComments}
-                    commentInputRef={commentInputRef}
-                    focusCommentInput={focusCommentInput}
-                    newComment={newComment}
-                    setNewComment={setNewComment}
-                    loading={loading}
-                    setLoading={setLoading}
-        
-                    showEmoji={showEmoji}
-                    setShowEmoji={setShowEmoji}
-                    emojiList={emojiList}
-                    setEmojiList={setEmojiList}
-        
-                    // Share
-                    chats = {chats}
-        
-                    setPostIdModal={setPostIdModal}
-                    shares={shares}
-                    setShares={setShares}
-                    setMessageOpenShare={setMessageOpenShare}
-                    handleShare={handleShare}
-                    sending={sending}
-                    messageOpenShare={messageOpenShare}
-                    selectedChats={selectedChats}
-                    setSelectedChats={setSelectedChats}
-                    setSending={setSending}
-                    shareToChat={shareToChat}
-                    postIdModal={postIdModal}
-                />
     </div>
   );
 }

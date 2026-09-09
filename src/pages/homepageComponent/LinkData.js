@@ -23,7 +23,8 @@ role: "student", // Only students can see this
 background: "bg-black", },
 {
 id: 4, 
-icon: <Tv />, name: "Video",
+icon: <Tv />, 
+name: "Video",
 link: "/post/video", 
 background: "bg-gray-900", },
 {

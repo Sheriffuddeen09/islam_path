@@ -587,6 +587,17 @@ function App() {
         setMessageOpen={setMessageOpen}
         chats={chats}
         setChats={setChats}
+
+        handleVideoClick={handleVideoClick}
+        videoCount={videoCount}
+        jobProfile={jobProfile}
+        setJobProfile={setJobProfile}
+        fetchJobProfile={fetchJobProfile}
+        show={show}
+        setShow={setShow}
+        showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+        showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+
         
          />   
       } />
@@ -783,7 +794,7 @@ function App() {
         chats={chats}
         />} />
 
-        <Route path="/post/video" element={<PostVideoPageId image={image} setImage={setImage}
+        <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}

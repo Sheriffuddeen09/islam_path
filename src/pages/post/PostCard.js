@@ -11,7 +11,6 @@ import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
-import PostVideoPreviewModal from "./PostVideoPreviewModal";
 import EmojiPicker from "emoji-picker-react";
 
 
@@ -37,8 +36,6 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats }) {
   const [sending, setSending] = useState(false);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
-  const [videoPreview, setVideoPreview] = useState(null);
 
   const postRef = useRef();
 
@@ -88,7 +85,18 @@ const displayedText =
     ? text.substring(0, contentLimit) + "..."
     : text;
 
- 
+ const [videoPreview, setVideoPreview] = useState(null);
+
+const openVideoPreview = (video, post) => {
+    setVideoPreview({
+        ...post,
+        ...video,
+    });
+};
+
+const closeVideoPreview = () => {
+    setVideoPreview(null);
+};
 
 const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
@@ -472,9 +480,7 @@ const handleHidePost = async (postId) => {
           .map(m => (
     
             <PostVideoCard v={m}  post={post}
-              onOpenPreview={(previewData) => {
-                  setVideoPreview(previewData);
-              }} 
+              onOpenPreview={openVideoPreview} 
 
               
               
@@ -900,69 +906,6 @@ const handleHidePost = async (postId) => {
           />
         )}
 
-        <PostVideoPreviewModal
-            preview={videoPreview}
-            onClose={() => {
-                setVideoPreview(null);
-            }}
-            setVideoPreview={setVideoPreview
-            }
-            post={post}
-
-            counts = {counts}
-            total_reaction = {total}
-            me={me}
-            firstUser={firstUser}
-            others = {others} 
-            allUsers = {allUsers}
-            myReaction={myReaction}
-            reactionList = {reactionList}
-            reactionLoading = {reactionLoading}
-            toggleReaction ={toggleReaction}
-            onLikeClick = {onLikeClick}
-
-            showReactions={showReactions}
-            setShowReactions={setShowReactions}
-
-            showEmojiPicker={showEmojiPicker}
-            setShowEmojiPicker={setShowEmojiPicker}
-
-            showUsersPopup={showUsersPopup}
-            setShowUsersPopup={setShowUsersPopup}
-            currentUser={currentUser}
-            getColor={getColor}
-
-            // Comment
-            postComments = {postComments} 
-            setPostComments={setPostComments}
-            commentInputRef={commentInputRef}
-            focusCommentInput={focusCommentInput}
-            newComment={newComment}
-            setNewComment={setNewComment}
-            loading={loading}
-            setLoading={setLoading}
-
-            showEmoji={showEmoji}
-            setShowEmoji={setShowEmoji}
-            emojiList={emojiList}
-            setEmojiList={setEmojiList}
-
-            // Share
-            chats = {chats}
-
-            setPostIdModal={setPostIdModal}
-            shares={shares}
-            setShares={setShares}
-            setMessageOpenShare={setMessageOpenShare}
-            handleShare={handleShare}
-            sending={sending}
-            messageOpenShare={messageOpenShare}
-            selectedChats={selectedChats}
-            setSelectedChats={setSelectedChats}
-            setSending={setSending}
-            shareToChat={shareToChat}
-            postIdModal={postIdModal}
-        />
     </div>
   );
 }

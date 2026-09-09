@@ -152,7 +152,7 @@ export default function PostProfileCardId({ post, chats, image, setImage, postCo
       media => media.type === "image" || media.type === "video"
     );
 
-       const contentLimit = hasMedia ? 32 :560;
+       const contentLimit = hasMedia ? 132 :560;
 
     const shouldShowMore = text.length > contentLimit;
 
@@ -224,7 +224,8 @@ const shareToChat = async (chatId) => {
 const media = Array.isArray(post.media) ? post.media : [];
 
   return (
-    <div className="bg-[var(----bg-color)] text-[var(----text-color)] rounded-t-xl shadow p-4 mb-4 ">
+    <div className="bg-[var(----bg-color)] border border-green-200 rounded-lg max-w-xl text-[var(----text-color)] 
+    shadow p-4 mb-4 ">
     <div className="relative ">
        
           

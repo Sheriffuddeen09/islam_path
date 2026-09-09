@@ -203,7 +203,7 @@ const shareToChat = async (chatId) => {
   if (!post) return null;
 
   return (
-    <div className="fixed px-2 inset-0 bg-white/40 flex sm:py-5 items-center justify-center z-50">
+    <div className="fixed px-2 inset-0 bg-white/40 flex sm:py-5 items-center justify-center z-[999]">
       <div className="bg-[var(--bg-color)] 
             text-[var(--text-color)] rounded-xl w-full h-full sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
 

@@ -176,6 +176,7 @@ text-lg font-semibold
 
                 if (list.id === 4) {
                 handleVideoClick();
+                navigate(list.link);
                 return;
             }
 

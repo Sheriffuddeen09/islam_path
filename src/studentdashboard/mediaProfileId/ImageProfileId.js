@@ -43,7 +43,7 @@ export default function MyImagesIdAdmin({chats, editContent, selectedPost,
     <>
     {
       posts.length === 0 &&(
-        <p className="my-8 text-center text-black font-bold text-sm sm:text-xl">
+        <p className="my-8 text-center text-[var(--text-color)]  font-bold text-sm sm:text-xl">
           No Photo to Display
         </p>
       )

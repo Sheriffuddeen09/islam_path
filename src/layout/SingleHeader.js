@@ -787,6 +787,7 @@ useEffect(() => {
 
                     if (list.id === 5) {
                             handleVideoClick();
+                            navigate(list.link)
                             return;
                         }
 

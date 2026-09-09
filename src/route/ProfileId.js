@@ -17,6 +17,7 @@ import MyVideosIdStudent from "../studentdashboard/mediaProfileId/VideoProfileId
 import MyImagesIdStudent from "../studentdashboard/mediaProfileId/ImageProfileId";
 import BioDataProfile from "./BiodataProfile";
 import SidebarLeft from "../pages/friend/SidebarLeft";
+import SidebarRight from "../pages/homepageComponent/SidebarRight";
 
 
 
@@ -108,11 +109,12 @@ console.log("Teacher Profile", profile)
 
  
   const profile_content = (
-    <div className="max-w-5xl px-2 mx-auto lg:ml-4">
+    <div className="max-w-2xl px-2 mx-auto flex justify-center items-center flex-col max-w-2xl mx-auto lg:ml-4">
       {
             profile.role === "admin" && (
               <>
-    <div className="text-white flex sm:w-full lg:ml-6 w-80  overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
+    <div className="text-white flex md:w-full lg:max-w-2xl lg:ml-6 w-80  overflow-x-auto overflow-y-hidden scrollbar-thin 
+    scrollbar-thumb-gray-400 scrollbar-track-gray-100  mt-7 border-blue-200 border-b-2 mb-5  px-2 py-2 flex flex-row gap-2 no-scrollbar">
      
           
                     <button onClick={() => {handleVisibleProfile(1);}} className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${visibleProfile
@@ -272,9 +274,8 @@ const getInitial = (name) => {
 };
 
 const content = (
-  <div className="max-w-6xl mx-auto px-4 mt py-4">
+  <div className="max-w-2xl mx-auto px-4 mt py-4">
 
-    {/* PROFILE CARD */}
     <div className="relative overflow-hidden mt-16 rounded-3xl border border-white/10
      bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-sm">
 
@@ -377,26 +378,32 @@ const content = (
      
              />
      
-      <div className="lg:ml-72 mt-2">
+      <div className=" mt-2">
         
         {content}
+        <div className="">
          {
-            authUser.role === "student" &&
+            profile.role === "student" &&
           (
             <StudentProfileFriend togglePopup={togglePopup} setActiveChat={setActiveChat} setMessages={setMessages} />
           )
         }
+
         {
           
-            authUser.role === "admin" &&
+            profile.role === "admin" &&
             (
             <AdminProfileFriend handleMessageOpen={handleMessageOpen} />
           )
         }
-        
+        </div>
+        <div className="lg:ml-72">
         {profile_content}
+        </div>
 
     </div>
+
+    <SidebarRight  />
     </div>
   )
 }

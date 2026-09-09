@@ -1,10 +1,21 @@
+
+
+
+
+
+
+
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import PostCardVideo from "./PostCardVideo";
+import SidebarLeft from "../homepageComponent/SideBarLeft";
+import SidebarRight from "../homepageComponent/SidebarRight";
 
 export default function PostFeedVideo({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList,messageOpen, setMessageOpen, chats, setChats,
-  loading, setLoading, setImage, setShowUsersPopup, showUsersPopup}) {
+  loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick,
+}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
  
@@ -33,36 +44,36 @@ useEffect(() => {
 
 
   if (feedLoading) return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
-      </div>
+     <FeedSkeleton />
     );
 
   const largeScreen = (
     <div className="block md:hidden lg:block">
-        <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-white text-gray-800">
-        {/* Mobile Menu Button */}
+         <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
+                {/* Mobile Menu Button */}
+        
+                {/* SidebarRight */}
+                <SidebarLeft
+                handleVideoClick={handleVideoClick}
+                videoCount={videoCount}
+                jobProfile={jobProfile}
+                setJobProfile={setJobProfile}
+                fetchJobProfile={fetchJobProfile}
+                show={show}
+                setShow={setShow}
+                showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+                showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+        
+                />
 
         {/* Sidebar */}
-        <aside
-          className={`fixed hidden sm:block top-[80px] left-2 rounded-xl h-full w-80 mx-auto text-center md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
-            transform transition-transform duration-300
-            overflow-y-auto overflow-x-hidden
-            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-        >
-
-          <h3 className="text-xs text-blue-800 font-bold mb-2">FILTER VIDEO</h3>
-          <ul className="space-y-4 mb-">
-            <li>
-              All
-            </li>
-          </ul>
-        </aside>
+        
     
     
       {
         posts.length === 0 && (
-          <p className="text-black lg:ml-96 translate-y-40 sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
+          <p className="bg-[var(--bg-color)] text-[var(--text-color)] lg:ml-96 translate-y-40 
+          sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
             No Video Available
           </p>
          )
@@ -81,57 +92,29 @@ useEffect(() => {
         chats={chats}
         setChats={setChats}/>
       ))}
-      </div>
-     
 
-      <div className="md:block lg:hidden hidden">
-      <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
-      {posts.map(post => (
-        <PostCardVideo key={post.id} post={post} setPosts={setPosts} 
-        image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        />
-      ))}
       </div>
-      </div>
-      
     </div>
     </div>
   );
 
   const ipadScreen = (
           <div className="md:block lg:hidden hidden">
-        <div className="flex flex-col lg:flex-row  items-end  mx-auto min-h-screen bg-white text-gray-800">
-        {/* Mobile Menu Button */}
-
-        {/* Sidebar */}
-        <aside
-          className={`fixed hidden sm:block top-[80px] left-2 rounded-xl h-full w-80 mx-auto text-center md:py-10 lg:py-8  bg-white border border-t border-2 py-4 sm:px-3 px-4 z-40
-            transform transition-transform duration-300
-            overflow-y-auto overflow-x-hidden
-            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
-        >
-
-          <h3 className="text-xs text-blue-800 font-bold mb-2">FILTER VIDEO</h3>
-          <ul className="space-y-4 mb-">
-            <li>
-              All
-            </li>
-          </ul>
-        </aside>
-    
-    
-      {
-        posts.length === 0 && (
-          <p className="text-black lg:ml-96 translate-y-40 sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
-            No Video Available
-          </p>
-         )
-      }
-     
+            <div className="flex flex-col items-start mx-auto min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
+                    {/* Mobile Menu Button */}
+            
+                    {/* SidebarRight */}
+                   
+                <SidebarRight />
+            {
+                posts.length === 0 && (
+                <p className="bg-[var(--bg-color)] text-[var(--text-color)] lg:ml-96 translate-y-40 sm:translate-y-0 
+                mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
+                    No Video Available
+                </p>
+                )
+            }
+            
 
       <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
       {posts.map(post => (
@@ -144,8 +127,8 @@ useEffect(() => {
         />
       ))}
       </div>
+      </div>
       
-    </div>
     </div>
   );
 
@@ -156,3 +139,654 @@ useEffect(() => {
     </div>
   )
 }
+
+
+
+const FeedSkeleton = () => {
+    return (
+        <div
+            className="
+                w-full
+                max-w-full
+                min-w-0
+                min-h-screen
+                overflow-x-hidden
+                sm:pt-20
+                pt-14
+            "
+        >
+
+            <div
+                className="
+                    w-full
+                    max-w-full
+                    min-w-0
+                    mx-auto
+                    px-2
+                    sm:px-4
+                    lg:px-6
+                    py-4
+                    overflow-x-hidden
+                "
+            >
+
+                <div
+                    className="
+                        grid
+                        w-full
+                        max-w-full
+                        min-w-0
+                        grid-cols-1
+                        sm:grid-cols-[220px_minmax(0,1fr)]
+                        lg:grid-cols-[240px_minmax(0,1fr)_280px]
+                        gap-4
+                        lg:gap-6
+                    "
+                >
+
+                    {/* ==================================================
+                        LEFT SIDEBAR
+                    ================================================== */}
+
+                    <aside
+                        className="
+                            hidden
+                            sm:block
+                            min-w-0
+                            max-w-full
+                        "
+                    >
+
+                        <div
+                            className="
+                                sticky
+                                top-4
+                                space-y-4
+                                animate-pulse
+                                min-w-0
+                            "
+                        >
+
+                            {/* PROFILE */}
+
+                            <div
+                                className="
+                                    w-full
+                                    max-w-full
+                                    min-w-0
+                                    rounded-2xl
+                                    border
+                                    border-gray-200
+                                    dark:border-gray-800
+                                    bg-[var(--bg-color)]
+                                    p-4
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-3
+                                        min-w-0
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                            w-12
+                                            h-12
+                                            rounded-full
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                            shrink-0
+                                        "
+                                    />
+
+                                    <div
+                                        className="
+                                            flex-1
+                                            min-w-0
+                                            space-y-2
+                                        "
+                                    >
+
+                                        <div
+                                            className="
+                                                h-3
+                                                w-24
+                                                max-w-full
+                                                rounded
+                                                bg-gray-200
+                                                dark:bg-gray-700
+                                            "
+                                        />
+
+                                        <div
+                                            className="
+                                                h-2
+                                                w-16
+                                                max-w-full
+                                                rounded
+                                                bg-gray-200
+                                                dark:bg-gray-700
+                                            "
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            {/* MENU */}
+
+                            <div
+                                className="
+                                    w-full
+                                    max-w-full
+                                    min-w-0
+                                    rounded-2xl
+                                    border
+                                    border-gray-200
+                                    dark:border-gray-800
+                                    bg-[var(--bg-color)]
+                                    p-3
+                                "
+                            >
+
+                                <div className="space-y-4">
+
+                                    {Array.from({
+                                        length: 7,
+                                    }).map((_, index) => (
+
+                                        <div
+                                            key={index}
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-3
+                                                px-2
+                                                min-w-0
+                                            "
+                                        >
+
+                                            <div
+                                                className="
+                                                    w-9
+                                                    h-9
+                                                    rounded-lg
+                                                    bg-gray-200
+                                                    dark:bg-gray-700
+                                                    shrink-0
+                                                "
+                                            />
+
+                                            <div
+                                                className="
+                                                    h-3
+                                                    flex-1
+                                                    min-w-0
+                                                    rounded
+                                                    bg-gray-200
+                                                    dark:bg-gray-700
+                                                "
+                                            />
+
+                                        </div>
+
+                                    ))}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+
+                    {/* ==================================================
+                        MAIN FEED
+                    ================================================== */}
+
+                    <main
+                        className="
+                            w-full
+                            max-w-full
+                            min-w-0
+                            overflow-x-hidden
+                            sm:pt-0
+                            pt-10 no-scrollbar
+                        "
+                    >
+
+                        {Array.from({
+                            length: 3,
+                        }).map((_, index) => (
+
+                            <div
+                                key={index}
+                                className="
+                                    w-full
+                                    max-w-full
+                                    min-w-0
+                                    mb-5
+                                    rounded-2xl
+                                    overflow-hidden
+                                    border
+                                    border-gray-200
+                                    dark:border-gray-800
+                                    bg-[var(--bg-color)]
+                                    animate-pulse no-scrollbar
+                                "
+                            >
+
+                                {/* USER HEADER */}
+
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-3
+                                        p-4
+                                        min-w-0
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                            w-11
+                                            h-11
+                                            rounded-full
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                            shrink-0
+                                        "
+                                    />
+
+                                    <div
+                                        className="
+                                            flex-1
+                                            min-w-0
+                                            space-y-2
+                                        "
+                                    >
+
+                                        <div
+                                            className="
+                                                h-3
+                                                w-32
+                                                max-w-full
+                                                rounded
+                                                bg-gray-200
+                                                dark:bg-gray-700
+                                            "
+                                        />
+
+                                        <div
+                                            className="
+                                                h-2
+                                                w-20
+                                                max-w-full
+                                                rounded
+                                                bg-gray-200
+                                                dark:bg-gray-700
+                                            "
+                                        />
+
+                                    </div>
+
+                                    <div
+                                        className="
+                                            w-8
+                                            h-8
+                                            rounded-full
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                            shrink-0
+                                        "
+                                    />
+
+                                </div>
+
+
+                                {/* CONTENT */}
+
+                                <div
+                                    className="
+                                        w-full
+                                        max-w-full
+                                        min-w-0
+                                        px-4
+                                        pb-4
+                                        space-y-2
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                            h-3
+                                            w-full
+                                            max-w-full
+                                            rounded
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                        "
+                                    />
+
+                                    <div
+                                        className="
+                                            h-3
+                                            w-5/6
+                                            max-w-full
+                                            rounded
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                        "
+                                    />
+
+                                    <div
+                                        className="
+                                            h-3
+                                            w-2/3
+                                            max-w-full
+                                            rounded
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                        "
+                                    />
+
+                                </div>
+
+
+                                {/* MEDIA */}
+
+                                <div
+                                    className="
+                                        w-full
+                                        max-w-full
+                                        h-[320px]
+                                        sm:h-[420px]
+                                        bg-gray-200
+                                        dark:bg-gray-700
+                                    "
+                                />
+
+
+                                {/* ACTION BUTTONS */}
+
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        justify-between
+                                        gap-3
+                                        p-4
+                                        min-w-0
+                                        max-w-full
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                            flex
+                                            items-center
+                                            gap-2
+                                            sm:gap-4
+                                            min-w-0
+                                            overflow-hidden
+                                        "
+                                    >
+
+                                        {[1, 2, 3].map(
+                                            (button) => (
+
+                                                <div
+                                                    key={button}
+                                                    className="
+                                                        h-8
+                                                        w-14
+                                                        sm:w-16
+                                                        rounded-lg
+                                                        bg-gray-200
+                                                        dark:bg-gray-700
+                                                        shrink-0
+                                                    "
+                                                />
+
+                                            )
+                                        )}
+
+                                    </div>
+
+                                    <div
+                                        className="
+                                            w-8
+                                            h-8
+                                            rounded-full
+                                            bg-gray-200
+                                            dark:bg-gray-700
+                                            shrink-0
+                                        "
+                                    />
+
+                                </div>
+
+                            </div>
+
+                        ))}
+
+                    </main>
+
+
+                    {/* ==================================================
+                        RIGHT SIDEBAR
+                    ================================================== */}
+
+                    <aside
+                        className="
+                            hidden
+                            lg:block
+                            min-w-0
+                            max-w-full
+                            overflow-hidden
+                        "
+                    >
+
+                        <div
+                            className="
+                                sticky
+                                top-4
+                                space-y-4
+                                animate-pulse
+                                min-w-0
+                            "
+                        >
+
+                            {/* SEARCH */}
+
+                            <div
+                                className="
+                                    h-11
+                                    w-full
+                                    max-w-full
+                                    rounded-xl
+                                    bg-gray-200
+                                    dark:bg-gray-700
+                                "
+                            />
+
+
+                            {/* PEOPLE */}
+
+                            <div
+                                className="
+                                    w-full
+                                    max-w-full
+                                    min-w-0
+                                    rounded-2xl
+                                    border
+                                    border-gray-200
+                                    dark:border-gray-800
+                                    bg-[var(--bg-color)]
+                                    p-4
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        h-4
+                                        w-32
+                                        max-w-full
+                                        rounded
+                                        bg-gray-200
+                                        dark:bg-gray-700
+                                        mb-5
+                                    "
+                                />
+
+                                <div className="space-y-5">
+
+                                    {Array.from({
+                                        length: 5,
+                                    }).map((_, index) => (
+
+                                        <div
+                                            key={index}
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-3
+                                                min-w-0
+                                            "
+                                        >
+
+                                            <div
+                                                className="
+                                                    w-10
+                                                    h-10
+                                                    rounded-full
+                                                    bg-gray-200
+                                                    dark:bg-gray-700
+                                                    shrink-0
+                                                "
+                                            />
+
+                                            <div
+                                                className="
+                                                    flex-1
+                                                    min-w-0
+                                                    space-y-2
+                                                "
+                                            >
+
+                                                <div
+                                                    className="
+                                                        h-3
+                                                        w-24
+                                                        max-w-full
+                                                        rounded
+                                                        bg-gray-200
+                                                        dark:bg-gray-700
+                                                    "
+                                                />
+
+                                                <div
+                                                    className="
+                                                        h-2
+                                                        w-16
+                                                        max-w-full
+                                                        rounded
+                                                        bg-gray-200
+                                                        dark:bg-gray-700
+                                                    "
+                                                />
+
+                                            </div>
+
+                                            <div
+                                                className="
+                                                    w-14
+                                                    h-7
+                                                    rounded-lg
+                                                    bg-gray-200
+                                                    dark:bg-gray-700
+                                                    shrink-0
+                                                "
+                                            />
+
+                                        </div>
+
+                                    ))}
+
+                                </div>
+
+                            </div>
+
+
+                            {/* SECOND RIGHT CARD */}
+
+                            <div
+                                className="
+                                    w-full
+                                    max-w-full
+                                    min-w-0
+                                    rounded-2xl
+                                    border
+                                    border-gray-200
+                                    dark:border-gray-800
+                                    bg-[var(--bg-color)]
+                                    p-4
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        h-4
+                                        w-28
+                                        max-w-full
+                                        rounded
+                                        bg-gray-200
+                                        dark:bg-gray-700
+                                        mb-5
+                                    "
+                                />
+
+                                <div className="space-y-3">
+
+                                    {Array.from({
+                                        length: 4,
+                                    }).map((_, index) => (
+
+                                        <div
+                                            key={index}
+                                            className="
+                                                h-3
+                                                w-full
+                                                max-w-full
+                                                rounded
+                                                bg-gray-200
+                                                dark:bg-gray-700
+                                            "
+                                        />
+
+                                    ))}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+            </div>
+
+        </div>
+    );
+};

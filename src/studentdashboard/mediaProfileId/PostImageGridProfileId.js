@@ -241,7 +241,7 @@ export default function PostImageGridProfileId({
           alt=""
           className="
             w-full
-            max-h-[450px]
+            max-h-[350px]
             object-cover
             rounded
             cursor-pointer
@@ -274,7 +274,7 @@ export default function PostImageGridProfileId({
               src={img?.url}
               alt=""
               className="
-                h-40
+                h-full
                 w-full
                 object-cover
                 rounded
@@ -326,7 +326,7 @@ export default function PostImageGridProfileId({
               src={img?.url}
               alt=""
               className="
-                h-24
+                h-40
                 w-full
                 object-cover
                 rounded

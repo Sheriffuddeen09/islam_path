@@ -1,3 +1,8 @@
+
+
+
+
+
 import { useState } from "react";
 import { quranList } from "./QuranData";
 import { Link } from "react-router-dom";

@@ -20,7 +20,6 @@ import { MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 
-
 export default function PostVideoPageId({
   image,
   postComments,
@@ -40,6 +39,7 @@ export default function PostVideoPageId({
   const navigate = useNavigate();
 
   const videoRef = useRef(null);
+
 
   const [videos, setVideos] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -70,24 +70,8 @@ export default function PostVideoPageId({
 
   const [notifyNext, setNotifyNext] = useState(false);
   const [cancelTimer, setCancelTimer] = useState(null);
-  const [nextCountdown, setNextCountdown] = useState(5);
 
   const navigationLockRef = useRef(false);
-
-  /*
-   * IMPORTANT:
-   * Only the video that was opened directly from the URL
-   * gets automatic next once.
-   *
-   * Example:
-   * /post-video/93
-   *
-   * 93 -> automatically goes to 94
-   *
-   * 94 -> does NOT automatically go to 95.
-   */
-  const autoNextUsedRef = useRef(false);
-
   const [counts, setCounts] = useState({});
   const [myReaction, setMyReaction] = useState(null);
   const [usersPreview, setUsersPreview] = useState([]);
@@ -139,11 +123,6 @@ export default function PostVideoPageId({
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // --------------------------------------------------
-  // SHOW / HIDE VIDEO CONTROLS
-  // WORKS FOR DESKTOP + MOBILE
-  // --------------------------------------------------
-
   const showVideoControls = () => {
     setShowOverlay(true);
 
@@ -152,16 +131,10 @@ export default function PostVideoPageId({
     }
 
     controlsTimeoutRef.current = setTimeout(() => {
-      /*
-       * Hide regardless of desktop or mobile.
-       *
-       * This is intentionally not only checking isPlaying.
-       * If the user stops touching/moving the video,
-       * the controls disappear.
-       */
-      setShowOverlay(false);
-      setShowSpeed(false);
-    }, 3000);
+      if (isPlaying) {
+        setShowOverlay(false);
+      }
+    }, 4000);
   };
 
   useEffect(() => {
@@ -180,20 +153,8 @@ export default function PostVideoPageId({
     };
   }, [cancelTimer]);
 
-  // --------------------------------------------------
-  // FETCH VIDEOS
-  // --------------------------------------------------
-
   useEffect(() => {
     let mounted = true;
-
-    /*
-     * New URL/open = allow exactly ONE automatic next.
-     *
-     * Example:
-     * open 93 -> 93 can auto next
-     */
-    autoNextUsedRef.current = false;
 
     const fetchVideos = async () => {
       setLoadingVideos(true);
@@ -209,14 +170,13 @@ export default function PostVideoPageId({
           ? res.data.posts
           : [];
 
-        const videoPosts = data.filter(
-          (post) =>
-            Array.isArray(post?.media) &&
-            post.media.some(
-              (media) =>
-                media?.type === "video" &&
-                media?.url
-            )
+        const videoPosts = data.filter((post) =>
+          Array.isArray(post?.media) &&
+          post.media.some(
+            (media) =>
+              media?.type === "video" &&
+              media?.url
+          )
         );
 
         console.log("VIDEO POSTS:", videoPosts);
@@ -237,15 +197,7 @@ export default function PostVideoPageId({
           setCurrentIndex(0);
         }
 
-        /*
-         * We don't know whether the next video is unviewed
-         * until the backend checks it.
-         *
-         * So don't use videos.length here to decide.
-         */
-        setHasNextVideo(true);
-
-        setShowResetPopup(false);
+        setHasNextVideo(videoPosts.length > 1);
       } catch (error) {
         console.error(
           "FETCH VIDEO ERROR:",
@@ -312,7 +264,6 @@ export default function PostVideoPageId({
     setIsPlaying(false);
     setShowMore(false);
     setShowOverlay(true);
-    setShowSpeed(false);
 
     viewedRef.current = null;
     viewPromiseRef.current = null;
@@ -341,6 +292,7 @@ export default function PostVideoPageId({
     const onPlay = () => {
       setIsPlaying(true);
       setVideoLoading(false);
+      showVideoControls();
     };
 
     const onPause = () => {
@@ -372,11 +324,7 @@ export default function PostVideoPageId({
       video.muted = isMuted;
       video.playbackRate = playbackRate;
 
-      /*
-       * Do NOT automatically play here.
-       *
-       * The normal browser autoplay behavior is preserved.
-       */
+      // AUTOPLAY AFTER LOADING
       video
         .play()
         .then(() => {
@@ -386,10 +334,8 @@ export default function PostVideoPageId({
         .catch((error) => {
           console.log("AUTOPLAY BLOCKED:", error);
 
-          /*
-           * Browser may block autoplay with sound.
-           * Fall back to muted.
-           */
+          // If browser blocks autoplay with sound,
+          // try muted autoplay.
           video.muted = true;
 
           setIsMuted(true);
@@ -448,25 +394,13 @@ export default function PostVideoPageId({
       onLoadedMetadata
     );
 
-    video.addEventListener(
-      "loadeddata",
-      onLoadedData
-    );
+    video.addEventListener("loadeddata", onLoadedData);
 
-    video.addEventListener(
-      "canplay",
-      onCanPlay
-    );
+    video.addEventListener("canplay", onCanPlay);
 
-    video.addEventListener(
-      "playing",
-      onPlaying
-    );
+    video.addEventListener("playing", onPlaying);
 
-    video.addEventListener(
-      "timeupdate",
-      onTimeUpdate
-    );
+    video.addEventListener("timeupdate", onTimeUpdate);
 
     video.addEventListener(
       "volumechange",
@@ -478,10 +412,7 @@ export default function PostVideoPageId({
       onRateChange
     );
 
-    video.addEventListener(
-      "ended",
-      onEnded
-    );
+    video.addEventListener("ended", onEnded);
 
     return () => {
       video.removeEventListener("play", onPlay);
@@ -556,10 +487,7 @@ export default function PostVideoPageId({
     if (!currentId) return;
 
     if (viewedRef.current === currentId) {
-      return (
-        viewPromiseRef.current ||
-        Promise.resolve()
-      );
+      return viewPromiseRef.current || Promise.resolve();
     }
 
     viewedRef.current = currentId;
@@ -572,9 +500,7 @@ export default function PostVideoPageId({
           error.response?.data || error
         );
 
-        if (
-          viewedRef.current === currentId
-        ) {
+        if (viewedRef.current === currentId) {
           viewedRef.current = null;
         }
       })
@@ -611,10 +537,7 @@ export default function PostVideoPageId({
         setIsPlaying(false);
       }
     } catch (error) {
-      console.error(
-        "PLAY ERROR:",
-        error
-      );
+      console.error("PLAY ERROR:", error);
     }
   };
 
@@ -643,9 +566,7 @@ export default function PostVideoPageId({
   const handleVolumeChange = (e) => {
     e?.stopPropagation();
 
-    const value = Number(
-      e.target.value
-    );
+    const value = Number(e.target.value);
 
     const video = videoRef.current;
 
@@ -653,10 +574,7 @@ export default function PostVideoPageId({
 
     video.volume = value;
 
-    if (
-      value > 0 &&
-      video.muted
-    ) {
+    if (value > 0 && video.muted) {
       video.muted = false;
       setIsMuted(false);
     }
@@ -678,9 +596,7 @@ export default function PostVideoPageId({
   const handleSpeedChange = (e) => {
     e?.stopPropagation();
 
-    const value = Number(
-      e.target.value
-    );
+    const value = Number(e.target.value);
 
     const video = videoRef.current;
 
@@ -707,16 +623,11 @@ export default function PostVideoPageId({
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
-      } else if (
-        video.requestFullscreen
-      ) {
+      } else if (video.requestFullscreen) {
         await video.requestFullscreen();
       }
     } catch (error) {
-      console.error(
-        "FULLSCREEN ERROR:",
-        error
-      );
+      console.error("FULLSCREEN ERROR:", error);
     }
 
     showVideoControls();
@@ -732,9 +643,7 @@ export default function PostVideoPageId({
   };
 
   const handleSeekChange = (e) => {
-    const value = Number(
-      e.target.value
-    );
+    const value = Number(e.target.value);
 
     setCurrentTime(value);
 
@@ -742,13 +651,10 @@ export default function PostVideoPageId({
   };
 
   const handleSeekEnd = (e) => {
-    const value = Number(
-      e.target.value
-    );
+    const value = Number(e.target.value);
 
     if (videoRef.current) {
-      videoRef.current.currentTime =
-        value;
+      videoRef.current.currentTime = value;
     }
 
     setCurrentTime(value);
@@ -763,27 +669,17 @@ export default function PostVideoPageId({
   // --------------------------------------------------
 
   const fetchNextVideo = async () => {
-    if (!currentPost?.id) {
-      return false;
-    }
+    if (!currentPost?.id) return false;
 
     try {
       const res = await api.get(
         `/api/post/${currentPost.id}/next-video`
       );
 
-      console.log(
-        "NEXT VIDEO:",
-        res.data
-      );
+      console.log("NEXT VIDEO:", res.data);
 
-      const nextVideo =
-        res.data?.video;
+      const nextVideo = res.data?.video;
 
-      /*
-       * BACKEND CONFIRMED THERE IS NO
-       * MORE UNVIEWED VIDEO.
-       */
       if (!nextVideo) {
         setHasNextVideo(false);
         setShowResetPopup(true);
@@ -792,32 +688,21 @@ export default function PostVideoPageId({
       }
 
       setHasNextVideo(true);
-      setShowResetPopup(false);
 
       setVideos((prev) => {
-        const existingIndex =
-          prev.findIndex(
-            (item) =>
-              Number(item.id) ===
-              Number(nextVideo.id)
-          );
+        const existingIndex = prev.findIndex(
+          (item) => Number(item.id) === Number(nextVideo.id)
+        );
 
         if (existingIndex >= 0) {
-          setCurrentIndex(
-            existingIndex
-          );
+          setCurrentIndex(existingIndex);
 
           return prev;
         }
 
-        const updated = [
-          ...prev,
-          nextVideo,
-        ];
+        const updated = [...prev, nextVideo];
 
-        setCurrentIndex(
-          updated.length - 1
-        );
+        setCurrentIndex(updated.length - 1);
 
         return updated;
       });
@@ -826,22 +711,12 @@ export default function PostVideoPageId({
     } catch (error) {
       console.error(
         "NEXT VIDEO ERROR:",
-        error.response?.data ||
-          error
+        error.response?.data || error
       );
 
-      /*
-       * THIS IS IMPORTANT.
-       *
-       * If backend says all videos have
-       * already been viewed, immediately
-       * show reset popup.
-       */
       if (
-        error.response?.status ===
-          404 ||
-        error.response?.data
-          ?.all_viewed === true
+        error.response?.status === 404 ||
+        error.response?.data?.all_viewed === true
       ) {
         setHasNextVideo(false);
         setShowResetPopup(true);
@@ -852,54 +727,58 @@ export default function PostVideoPageId({
       return false;
     }
   };
- 
+
+  // --------------------------------------------------
+  // NEXT
+  // --------------------------------------------------
+
   const handleNext = async () => {
-    if (
-      navigationLockRef.current ||
-      !currentPost?.id
-    ) {
-      return;
-    }
+    if (navigationLockRef.current) return;
 
     navigationLockRef.current = true;
 
     try {
-      setNextCountdown(5);
-      setNotifyNext(true);
+      setNotifyNext(false);
 
       if (cancelTimer) {
         clearTimeout(cancelTimer);
         setCancelTimer(null);
       }
- 
+
+      // FIRST USE LOCAL NEXT VIDEO IF AVAILABLE
+      if (currentIndex < videos.length - 1) {
+        await markVideoViewed();
+
+        setCurrentIndex((index) => index + 1);
+
+        setHasNextVideo(true);
+
+        return;
+      }
+
+      // OTHERWISE ASK BACKEND
       await markVideoViewed();
 
-      const found =
-        await fetchNextVideo();
+      const found = await fetchNextVideo();
 
       if (!found) {
         setHasNextVideo(false);
         setShowResetPopup(true);
       }
     } finally {
-      navigationLockRef.current =
-        false;
+      navigationLockRef.current = false;
     }
   };
 
-   
+  // --------------------------------------------------
+  // PREVIOUS
+  // --------------------------------------------------
 
   const handlePrev = () => {
-    if (
-      navigationLockRef.current
-    ) {
-      return;
-    }
+    if (navigationLockRef.current) return;
 
     if (currentIndex > 0) {
-      setCurrentIndex(
-        (index) => index - 1
-      );
+      setCurrentIndex((index) => index - 1);
 
       setHasNextVideo(true);
 
@@ -912,69 +791,40 @@ export default function PostVideoPageId({
   // --------------------------------------------------
 
   const handleVideoEnd = async () => {
-    if (!currentPost?.id) {
-      return;
-    }
+    if (!currentPost?.id) return;
 
+    // IMPORTANT:
+    // Wait for the view request before asking API
+    // for the next unviewed video.
     await markVideoViewed();
 
     setIsPlaying(false);
- 
-    if (
-      !autoNextUsedRef.current
-    ) {
-      autoNextUsedRef.current =
-        true;
 
-      setNotifyNext(true);
+    // Show next notification
+    setNotifyNext(true);
 
-      if (cancelTimer) {
-        clearTimeout(cancelTimer);
+    if (cancelTimer) {
+      clearTimeout(cancelTimer);
+    }
+
+    const timer = setTimeout(async () => {
+      setNotifyNext(false);
+      setCancelTimer(null);
+
+      const found = await fetchNextVideo();
+
+      if (!found) {
+        setHasNextVideo(false);
+        setShowResetPopup(true);
       }
+    }, 2000);
 
-      const timer =
-        setTimeout(async () => {
-          setNotifyNext(false);
-          setCancelTimer(null);
-
-          const found =
-            await fetchNextVideo();
-
-          if (!found) {
-            setHasNextVideo(false);
-            setShowResetPopup(true);
-          }
-        }, 5000);
-
-      setCancelTimer(timer);
-
-      return;
-    }
- 
-    const found =
-      await fetchNextVideo();
-
-    if (!found) {
-      setHasNextVideo(false);
-      setShowResetPopup(true);
-    }
+    setCancelTimer(timer);
   };
 
-   useEffect(() => {
-    if (!notifyNext) return;
-
-    if (nextCountdown <= 0) {
-        setNotifyNext(false);
-        handleNext();
-        return;
-    }
-
-    const timer = setTimeout(() => {
-        setNextCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-}, [notifyNext, nextCountdown]);
+  // --------------------------------------------------
+  // CANCEL AUTO NEXT
+  // --------------------------------------------------
 
   const cancelAutoNext = () => {
     if (cancelTimer) {
@@ -982,185 +832,122 @@ export default function PostVideoPageId({
     }
 
     setCancelTimer(null);
-    setNextCountdown(5);
+
     setNotifyNext(false);
   };
 
-   
+  // --------------------------------------------------
+  // RESET VIEWED VIDEOS
+  // --------------------------------------------------
 
-  const resetViewedVideos =
-    async () => {
-      if (resettingVideos) {
-        return;
-      }
+  const resetViewedVideos = async () => {
+    if (resettingVideos) return;
 
-      setResettingVideos(true);
-      setShowResetPopup(false);
+    setResettingVideos(true);
+    setShowResetPopup(false);
 
-      try {
-        await api.post(
-          "/api/videos/reset-views"
-        );
+    try {
+      await api.post("/api/videos/reset-views");
 
-        const res =
-          await api.get(
-            "/api/posts-get"
-          );
+      const res = await api.get("/api/posts-get");
 
-        const data =
-          Array.isArray(
-            res.data?.posts
-          )
-            ? res.data.posts
-            : [];
+      const data = Array.isArray(res.data?.posts)
+        ? res.data.posts
+        : [];
 
-        const videoPosts =
-          data.filter(
-            (post) =>
-              Array.isArray(
-                post?.media
-              ) &&
-              post.media.some(
-                (media) =>
-                  media?.type ===
-                    "video" &&
-                  media?.url
-              )
-          );
+      const videoPosts = data.filter((post) =>
+        Array.isArray(post?.media) &&
+        post.media.some(
+          (media) =>
+            media?.type === "video" &&
+            media?.url
+        )
+      );
 
-        setVideos(videoPosts);
+      setVideos(videoPosts);
 
-        const requestedId =
-          Number(id);
+      const requestedId = Number(id);
 
-        const foundIndex =
-          videoPosts.findIndex(
-            (post) =>
-              Number(post.id) ===
-              requestedId
-          );
+      const foundIndex = videoPosts.findIndex(
+        (post) => Number(post.id) === requestedId
+      );
 
-        setCurrentIndex(
-          foundIndex >= 0
-            ? foundIndex
-            : 0
-        );
+      setCurrentIndex(
+        foundIndex >= 0 ? foundIndex : 0
+      );
 
-        setHasNextVideo(
-          videoPosts.length > 1
-        );
+      setHasNextVideo(videoPosts.length > 1);
 
-        /*
-         * Reset automatic-next state.
-         *
-         * The video that was originally
-         * opened can automatically move once
-         * again after reset.
-         */
-        autoNextUsedRef.current =
-          false;
+      viewedRef.current = null;
+      viewPromiseRef.current = null;
 
-        viewedRef.current = null;
-        viewPromiseRef.current =
-          null;
+      setCurrentTime(0);
+      setDuration(0);
+      setVideoLoading(true);
 
-        setCurrentTime(0);
-        setDuration(0);
-        setVideoLoading(true);
+      setTimeout(() => {
+        const video = videoRef.current;
 
-        setTimeout(() => {
-          const video =
-            videoRef.current;
+        if (!video) return;
 
-          if (!video) return;
+        video.currentTime = 0;
 
-          video.currentTime = 0;
+        video.load();
 
-          video.load();
+        video.play().catch(() => {});
+      }, 100);
+    } catch (error) {
+      console.error(
+        "RESET VIDEO ERROR:",
+        error.response?.data || error
+      );
 
-          video.play().catch(
-            () => {}
-          );
-        }, 100);
-      } catch (error) {
-        console.error(
-          "RESET VIDEO ERROR:",
-          error.response?.data ||
-            error
-        );
-
-        setNotify({
-          message:
-            error.response?.data
-              ?.message ||
-            "Unable to reset viewed videos.",
-          type: "error",
-        });
-      } finally {
-        setResettingVideos(
-          false
-        );
-      }
-    };
+      setNotify({
+        message:
+          error.response?.data?.message ||
+          "Unable to reset viewed videos.",
+        type: "error",
+      });
+    } finally {
+      setResettingVideos(false);
+    }
+  };
 
   // --------------------------------------------------
   // SWIPE
   // --------------------------------------------------
 
-  const handlers =
-    useSwipeable({
-      onSwipedUp: (
-        eventData
-      ) => {
-        if (
-          Math.abs(
-            eventData.deltaY
-          ) < 50
-        ) {
-          return;
-        }
+  const handlers = useSwipeable({
+    onSwipedUp: (eventData) => {
+      if (Math.abs(eventData.deltaY) < 50) {
+        return;
+      }
 
-        handleNext();
-      },
+      handleNext();
+    },
 
-      onSwipedDown: (
-        eventData
-      ) => {
-        if (
-          Math.abs(
-            eventData.deltaY
-          ) < 50
-        ) {
-          return;
-        }
+    onSwipedDown: (eventData) => {
+      if (Math.abs(eventData.deltaY) < 50) {
+        return;
+      }
 
-        handlePrev();
-      },
+      handlePrev();
+    },
 
-      preventScrollOnSwipe:
-        true,
+    preventScrollOnSwipe: true,
 
-      trackTouch: true,
+    trackTouch: true,
 
-      trackMouse: false,
+    trackMouse: false,
 
-      delta: 50,
-    });
+    delta: 50,
+  });
 
   // --------------------------------------------------
-  // MOUSE / TOUCH CONTROLS
+  // MOUSE
   // --------------------------------------------------
 
   const handleMouseMove = () => {
-    showVideoControls();
-  };
-
-  const handleVideoTouch = () => {
-    /*
-     * Mobile:
-     * touching the video shows controls
-     * and starts the hide timer again.
-     */
     showVideoControls();
   };
 
@@ -1177,160 +964,114 @@ export default function PostVideoPageId({
     "🔥",
   ];
 
-  const toggleReaction =
-    async (emoji) => {
-      if (!currentPost?.id)
-        return;
+  const toggleReaction = async (emoji) => {
+    if (!currentPost?.id) return;
 
-      if (!currentUser) {
-        toast.error(
-          "Please log in to react.",
-          "error"
-        );
+    if (!currentUser) {
+      toast.error(
+        "Please log in to react.",
+        "error"
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (reactionLoading)
-        return;
+    if (reactionLoading) return;
 
-      setReactionLoading(true);
+    setReactionLoading(true);
 
-      try {
-        if (
-          myReaction === emoji
-        ) {
-          setMyReaction(null);
-
-          setCounts((prev) => {
-            const copy = {
-              ...prev,
-            };
-
-            copy[emoji] =
-              Number(
-                copy[emoji] || 0
-              ) - 1;
-
-            if (
-              copy[emoji] <= 0
-            ) {
-              delete copy[
-                emoji
-              ];
-            }
-
-            return copy;
-          });
-
-          setUsersPreview(
-            (prev) =>
-              prev.filter(
-                (u) =>
-                  u.id !==
-                  currentUser.id
-              )
-          );
-
-          await api.delete(
-            `/api/post/${currentPost.id}/reaction`
-          );
-
-          return;
-        }
+    try {
+      if (myReaction === emoji) {
+        setMyReaction(null);
 
         setCounts((prev) => {
-          const copy = {
-            ...prev,
-          };
-
-          if (myReaction) {
-            copy[myReaction] =
-              Number(
-                copy[
-                  myReaction
-                ] || 1
-              ) - 1;
-
-            if (
-              copy[myReaction] <=
-              0
-            ) {
-              delete copy[
-                myReaction
-              ];
-            }
-          }
+          const copy = { ...prev };
 
           copy[emoji] =
-            Number(
-              copy[emoji] || 0
-            ) + 1;
+            Number(copy[emoji] || 0) - 1;
+
+          if (copy[emoji] <= 0) {
+            delete copy[emoji];
+          }
 
           return copy;
         });
 
-        setMyReaction(emoji);
-
-        const res =
-          await api.post(
-            `/api/post/${currentPost.id}/reaction`,
-            {
-              emoji,
-            }
-          );
-
-        if (
-          res?.data?.counts
-        ) {
-          setCounts(
-            res.data.counts
-          );
-        }
-
-        if (
-          res?.data?.users
-        ) {
-          setUsersPreview(
-            res.data.users.slice(
-              0,
-              6
-            )
-          );
-        }
-
-        if (
-          res?.data?.my_reaction
-        ) {
-          setMyReaction(
-            res.data.my_reaction
-          );
-        }
-      } catch (err) {
-        console.error(
-          "REACTION ERROR:",
-          err.response?.data ||
-            err
+        setUsersPreview((prev) =>
+          prev.filter(
+            (u) => u.id !== currentUser.id
+          )
         );
 
-        toast.error(
-          "Reaction error",
-          "error"
-        );
-      } finally {
-        setReactionLoading(
-          false
+        await api.delete(
+          `/api/post/${currentPost.id}/reaction`
         );
 
-        setShowReactions(
-          false
+        return;
+      }
+
+      setCounts((prev) => {
+        const copy = { ...prev };
+
+        if (myReaction) {
+          copy[myReaction] =
+            Number(
+              copy[myReaction] || 1
+            ) - 1;
+
+          if (copy[myReaction] <= 0) {
+            delete copy[myReaction];
+          }
+        }
+
+        copy[emoji] =
+          Number(copy[emoji] || 0) + 1;
+
+        return copy;
+      });
+
+      setMyReaction(emoji);
+
+      const res = await api.post(
+        `/api/post/${currentPost.id}/reaction`,
+        {
+          emoji,
+        }
+      );
+
+      if (res?.data?.counts) {
+        setCounts(res.data.counts);
+      }
+
+      if (res?.data?.users) {
+        setUsersPreview(
+          res.data.users.slice(0, 6)
         );
       }
-    };
+
+      if (res?.data?.my_reaction) {
+        setMyReaction(
+          res.data.my_reaction
+        );
+      }
+    } catch (err) {
+      console.error(
+        "REACTION ERROR:",
+        err.response?.data || err
+      );
+
+      toast.error(
+        "Reaction error",
+        "error"
+      );
+    } finally {
+      setReactionLoading(false);
+      setShowReactions(false);
+    }
+  };
 
   const onLikeClick = () => {
-    const emoji =
-      myReaction || "👍";
+    const emoji = myReaction || "👍";
 
     toggleReaction(emoji);
   };
@@ -1339,26 +1080,21 @@ export default function PostVideoPageId({
     if (!currentPost) return;
 
     setCounts(
-      currentPost.reaction_counts ||
-        {}
+      currentPost.reaction_counts || {}
     );
 
     setMyReaction(
-      currentPost.my_reaction ||
-        null
+      currentPost.my_reaction || null
     );
 
     setUsersPreview(
-      currentPost.reacted_users?.slice(
-        0,
-        6
-      ) || []
+      currentPost.reacted_users?.slice(0, 6) ||
+        []
     );
   }, [currentPost]);
 
   useEffect(() => {
-    if (!currentPost?.id)
-      return;
+    if (!currentPost?.id) return;
 
     api
       .get(
@@ -1370,22 +1106,17 @@ export default function PostVideoPageId({
         );
 
         setUsersPreview(
-          res.data.users?.slice(
-            0,
-            6
-          ) || []
+          res.data.users?.slice(0, 6) || []
         );
 
         setMyReaction(
-          res.data.my_reaction ||
-            null
+          res.data.my_reaction || null
         );
       })
       .catch((error) => {
         console.error(
           "REACTIONS ERROR:",
-          error.response?.data ||
-            error
+          error.response?.data || error
         );
       });
   }, [currentPost?.id]);
@@ -1404,39 +1135,30 @@ export default function PostVideoPageId({
     parentId,
     reply
   ) => {
-    return comments.map(
-      (comment) => {
-        if (
-          comment.id ===
-          parentId
-        ) {
-          return {
-            ...comment,
-            replies: [
-              ...(comment.replies ||
-                []),
-              reply,
-            ],
-          };
-        }
-
-        if (
-          comment.replies?.length
-        ) {
-          return {
-            ...comment,
-            replies:
-              addReplyToComment(
-                comment.replies,
-                parentId,
-                reply
-              ),
-          };
-        }
-
-        return comment;
+    return comments.map((comment) => {
+      if (comment.id === parentId) {
+        return {
+          ...comment,
+          replies: [
+            ...(comment.replies || []),
+            reply,
+          ],
+        };
       }
-    );
+
+      if (comment.replies?.length) {
+        return {
+          ...comment,
+          replies: addReplyToComment(
+            comment.replies,
+            parentId,
+            reply
+          ),
+        };
+      }
+
+      return comment;
+    });
   };
 
   const postComment = async (
@@ -1444,8 +1166,7 @@ export default function PostVideoPageId({
     imageFile = null,
     parentId = null
   ) => {
-    if (!currentPost?.id)
-      return;
+    if (!currentPost?.id) return;
 
     if (
       !newComment.trim() &&
@@ -1457,26 +1178,18 @@ export default function PostVideoPageId({
 
     setLoading(true);
 
-    const formData =
-      new FormData();
+    const formData = new FormData();
 
     if (emoji) {
-      formData.append(
-        "body",
-        emoji
-      );
-    } else if (
-      newComment.trim()
-    ) {
+      formData.append("body", emoji);
+    } else if (newComment.trim()) {
       formData.append(
         "body",
         newComment.trim()
       );
     }
 
-    if (
-      imageFile instanceof File
-    ) {
+    if (imageFile instanceof File) {
       formData.append(
         "image",
         imageFile
@@ -1484,30 +1197,28 @@ export default function PostVideoPageId({
     }
 
     try {
-      const res =
-        await api.post(
-          `/api/posts/${currentPost.id}/comments`,
-          formData,
-          {
-            headers: {
-              "Content-Type":
-                "multipart/form-data",
-            },
-          }
-        );
+      const res = await api.post(
+        `/api/posts/${currentPost.id}/comments`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
 
-      setPostComments(
-        (prev) =>
-          parentId
-            ? addReplyToComment(
-                prev,
-                parentId,
-                res.data.comment
-              )
-            : [
-                res.data.comment,
-                ...prev,
-              ]
+      setPostComments((prev) =>
+        parentId
+          ? addReplyToComment(
+              prev,
+              parentId,
+              res.data.comment
+            )
+          : [
+              res.data.comment,
+              ...prev,
+            ]
       );
 
       setNewComment("");
@@ -1516,8 +1227,7 @@ export default function PostVideoPageId({
     } catch (err) {
       console.error(
         "COMMENT ERROR:",
-        err.response?.data ||
-          err
+        err.response?.data || err
       );
     } finally {
       setLoading(false);
@@ -1527,24 +1237,20 @@ export default function PostVideoPageId({
   const total = Object.values(
     counts || {}
   ).reduce(
-    (a, b) =>
-      a + Number(b || 0),
+    (a, b) => a + Number(b || 0),
     0
   );
 
   const othersCount =
     usersPreview.filter(
       (u) =>
-        u.id !==
-        currentUser?.id
+        u.id !== currentUser?.id
     ).length;
 
-  const me =
-    usersPreview.find(
-      (u) =>
-        u.id ===
-        currentUser?.id
-    );
+  const me = usersPreview.find(
+    (u) =>
+      u.id === currentUser?.id
+  );
 
   const text =
     currentPost?.content || "";
@@ -1554,20 +1260,16 @@ export default function PostVideoPageId({
 
   const shortText =
     hasLongText
-      ? `${text.substring(
-          0,
-          200
-        )}...`
+      ? `${text.substring(0, 200)}...`
       : text;
 
-  const handleCommentPop =
-    () => {
-      setShowCommentPop(
-        (prev) => !prev
-      );
+  const handleCommentPop = () => {
+    setShowCommentPop(
+      (prev) => !prev
+    );
 
-      focusCommentInput();
-    };
+    focusCommentInput();
+  };
 
   const shareUrl =
     `${window.location.origin}/post/${currentPost?.id}`;
@@ -1594,33 +1296,34 @@ export default function PostVideoPageId({
       )}`,
   };
 
-  const handleShare =
-    async (platform) => {
-      const url =
-        shareLinks[platform];
+  const handleShare = async (
+    platform
+  ) => {
+    const url =
+      shareLinks[platform];
 
-      if (url) {
-        window.open(
-          url,
-          "_blank",
-          "noopener,noreferrer"
-        );
-      } else {
-        await navigator.clipboard.writeText(
-          shareUrl
-        );
+    if (url) {
+      window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    } else {
+      await navigator.clipboard.writeText(
+        shareUrl
+      );
 
-        alert(
-          "Link copied! Paste it in the app to share."
-        );
-      }
+      alert(
+        "Link copied! Paste it in the app to share."
+      );
+    }
 
-      if (currentPost?.id) {
-        await api.post(
-          `/api/post/${currentPost.id}/share`
-        );
-      }
-    };
+    if (currentPost?.id) {
+      await api.post(
+        `/api/post/${currentPost.id}/share`
+      );
+    }
+  };
 
   // --------------------------------------------------
   // SHARE TO CHAT
@@ -1629,6 +1332,9 @@ export default function PostVideoPageId({
   const shareToChat = async (
     chatId
   ) => {
+    // FIXED:
+    // api.currentPost -> api.post
+
     await api.post(
       `/api/chats/${chatId}/messages`,
       {
@@ -1660,7 +1366,7 @@ export default function PostVideoPageId({
     );
   }
 
-  // --------------------------------------------------
+  // -------------------------------------------------- ...
   // NO VIDEO
   // --------------------------------------------------
 
@@ -1706,10 +1412,12 @@ export default function PostVideoPageId({
   // COMMENT SCREEN
   // --------------------------------------------------
 
-  const commentScreen = (
-    <div className="lg:w-[400px] w-full border-l z-50 bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col h-full">
-      <div className="flex p-4 items-start justify-between">
-        <div className="flex items-center gap-3">
+   const commentScreen = (
+
+      <div className="lg:w-[400px] w-full border-l z-50 bg-[var(--bg-color)] text-[var(--text-color)]">
+        <div className="flex p-4 items-start justify-between">
+              <div className="flex items-center  gap-3">
+
           <Link
             to={`/profile/${currentPost?.user?.id}`}
           >
@@ -1798,16 +1506,16 @@ export default function PostVideoPageId({
       <div className="flex justify-between border-t py-3 mx-4 items-center">
         <div className="flex gap-1 items-center">
           <div className="text-xs inline-flex items-center gap-2 bg-[var(--bg-color)] text-[var(--text-color)]">
-            {Object.keys(
-              counts
-            ).map((emoji) => (
-              <span
-                key={emoji}
-                className="text-xs"
-              >
-                {emoji}
-              </span>
-            ))}
+            {Object.keys(counts).map(
+              (emoji) => (
+                <span
+                  key={emoji}
+                  className="text-xs"
+                >
+                  {emoji}
+                </span>
+              )
+            )}
 
             {total > 0 && (
               <div className="text-xs flex items-center gap-1 cursor-pointer">
@@ -1826,9 +1534,7 @@ export default function PostVideoPageId({
 
                 {me &&
                   othersCount > 0 && (
-                    <span>
-                      and
-                    </span>
+                    <span>and</span>
                   )}
 
                 {othersCount > 0 && (
@@ -1842,8 +1548,7 @@ export default function PostVideoPageId({
                   >
                     {othersCount}{" "}
                     other
-                    {othersCount >
-                    1
+                    {othersCount > 1
                       ? "s"
                       : ""}
                   </span>
@@ -1880,7 +1585,7 @@ export default function PostVideoPageId({
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="currentColor"
-              className="w-5 h-5"
+              className="w-5 h-5 bg-[var(--bg-color)] text-[var(--text-color)]"
             >
               <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 0 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z" />
             </svg>
@@ -1901,11 +1606,10 @@ export default function PostVideoPageId({
           }
         >
           {showReactions && (
-            <div className="absolute bottom-10 left-0 bg-white shadow-xl rounded-full px-3 py-2 flex flex-row items-center gap-2 z-20">
+            <div className="absolute bottom-10 left-0 bg-white shadow-xl rounded-full px-3 py-2 flex gap-2 z-20">
               {reactionList.map(
                 (emoji) => (
-                  <button
-                    type="button"
+                  <span
                     key={emoji}
                     onClick={() =>
                       !reactionLoading &&
@@ -1913,35 +1617,12 @@ export default function PostVideoPageId({
                         emoji
                       )
                     }
-                    className="text-2xl cursor-pointer hover:scale-125 transition shrink-0"
+                    className="text-2xl cursor-pointer hover:scale-125 transition"
                   >
                     {emoji}
-                  </button>
+                  </span>
                 )
               )}
-
-              {/* PLUS - OPEN MORE EMOJI PICKER */}
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  setShowReactions(
-                    false
-                  );
-
-                  /*
-                   * This opens your existing
-                   * emoji picker.
-                   */
-                  setShowEmoji(true);
-                }}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl font-semibold shrink-0"
-                title="More emojis"
-              >
-                +
-              </button>
             </div>
           )}
 
@@ -2054,8 +1735,9 @@ export default function PostVideoPageId({
     </div>
   );
 
+ 
   return (
-    <div className="flex h-screen w-full bg-neutral-950 overflow-hidden">
+    <div className="flex h-screen w-full  bg-neutral-950 overflow-hidden">
       {/* VIDEO AREA */}
 
       <div className="flex-1 bg-black/50 flex items-center justify-center relative">
@@ -2064,27 +1746,13 @@ export default function PostVideoPageId({
         {currentIndex > 0 && (
           <button
             onClick={handlePrev}
-            disabled={
-              navigationLockRef.current
-            }
-            className="bg-black/60 border border-white text-white p-2 rounded-full absolute left-4 top-1/2 -translate-y-16 hidden sm:flex items-center justify-center disabled:opacity-40 
-            disabled:cursor-not-allowed hover:bg-black/80 transition"
-            title="Previous video"
+            disabled={currentIndex === 0}
+            className="bg-black/60 text-white px-4 py-3 rotate-180 -translate-y-10 rounded-full absolute left-4 hidden sm:block
+                    disabled:opacity-40 disabled:pointer-events-none"
           >
-            {/* UP */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.8"
-              stroke="currentColor"
-              className="w-10 h-10"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m6 14 6-6 6 6"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="bg-transparent size-14 rotate-180 bg-black/50 w-10 h-10 border-2 
+            hover:bg-gray-100 hover:text-gray-600 border-white rounded-full text-white rounded-full">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
             </svg>
           </button>
         )}
@@ -2094,28 +1762,14 @@ export default function PostVideoPageId({
         {hasNextVideo && (
           <button
             onClick={handleNext}
-            disabled={
-              navigationLockRef.current
-            }
-            className="bg-black/60 border border-white text-white p-2 rounded-full absolute left-4 top-1/2 translate-y-4 hidden 
-            sm:flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/80 transition"
-            title="Next video"
+            disabled={currentIndex === videos.length - 1}
+            className="bg-black/60 text-white px-4 py-3 translate-y-10 rounded-full absolute left-4 hidden sm:block
+                    disabled:opacity-40 disabled:pointer-events-none"
           >
-            {/* DOWN */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.8"
-              stroke="currentColor"
-              className="w-10 h-10"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m6 10 6 6 6-6"
-              />
-            </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="bg-transparent size-14 rotate-180 bg-black/50 w-10 h-10 border-2
+           hover:bg-gray-100 hover:text-gray-600 border-white rounded-full text-white rounded-full">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+          </svg>
           </button>
         )}
 
@@ -2126,7 +1780,18 @@ export default function PostVideoPageId({
             onClick={() =>
               navigate("/")
             }
-            className="pointer-events-auto w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white flex items-center justify-center hover:bg-white/20 transition"
+            className="
+              pointer-events-auto
+              w-10 h-10
+              rounded-full
+              bg-white/10
+              backdrop-blur-xl
+              border border-white/20
+              text-white
+              flex items-center justify-center
+              hover:bg-white/20
+              transition
+            "
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -2150,7 +1815,14 @@ export default function PostVideoPageId({
             }
             src={logo}
             alt="IPK"
-            className="pointer-events-auto w-10 h-10 rounded-full bg-white p-1 cursor-pointer"
+            className="
+              pointer-events-auto
+              w-10 h-10
+              rounded-full
+              bg-white
+              p-1
+              cursor-pointer
+            "
           />
         </div>
 
@@ -2159,14 +1831,34 @@ export default function PostVideoPageId({
         <div
           {...handlers}
           onMouseMove={handleMouseMove}
-          onTouchStart={handleVideoTouch}
           onClick={showVideoControls}
-          className="relative h-full w-full sm:w-auto sm:max-w-[min(720px,90vw)] flex items-center justify-center overflow-hidden bg-neutral-900 sm:rounded-2xl shadow-2xl select-none"
+          className="
+            relative
+            h-full
+            w-full
+            sm:w-auto
+            sm:max-w-[min(720px,90vw)]
+            flex
+            items-center
+            justify-center
+            overflow-hidden
+            bg-neutral-900
+            sm:rounded-2xl
+            shadow-2xl
+            select-none
+          "
         >
           <video
             ref={videoRef}
             src={currentMedia.url}
-            className="h-full w-full sm:w-auto sm:max-w-full object-contain bg-neutral-900"
+            className="
+              h-full
+              w-full
+              sm:w-auto
+              sm:max-w-full
+              object-contain
+              bg-neutral-900
+            "
             preload="auto"
             playsInline
             muted={isMuted}
@@ -2177,11 +1869,22 @@ export default function PostVideoPageId({
           {/* SUBTLE GRADIENT */}
 
           <div
-            className={`pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/65 transition-opacity duration-300 ${
-              showOverlay
-                ? "opacity-100"
-                : "opacity-0"
-            }`}
+            className={`
+              pointer-events-none
+              absolute
+              inset-0
+              bg-gradient-to-b
+              from-black/25
+              via-transparent
+              to-black/65
+              transition-opacity
+              duration-300
+              ${
+                showOverlay
+                  ? "opacity-100"
+                  : "opacity-0"
+              }
+            `}
           />
 
           {/* LOADING */}
@@ -2196,13 +1899,40 @@ export default function PostVideoPageId({
 
           <button
             onClick={togglePlay}
-            className={`absolute inset-0 z-[80] flex items-center justify-center transition-opacity duration-300 ${
-              showOverlay
-                ? "opacity-100"
-                : "opacity-0 pointer-events-none"
-            }`}
+            className={`
+              absolute
+              inset-0
+              z-[80]
+              flex
+              items-center
+              justify-center
+              transition-opacity
+              duration-300
+              ${
+                showOverlay
+                  ? "opacity-100"
+                  : "opacity-0"
+              }
+            `}
           >
-            <span className="w-16 h-16 sm:w-14 sm:h-14 rounded-full bg-black/30 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-xl">
+            <span
+              className="
+                w-16
+                h-16
+                sm:w-14
+                sm:h-14
+                rounded-full
+                bg-black/30
+                backdrop-blur-md
+                border
+                border-white/20
+                flex
+                items-center
+                justify-center
+                text-white
+                shadow-xl
+              "
+            >
               {isPlaying ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -2234,17 +1964,40 @@ export default function PostVideoPageId({
           {/* TOP VIDEO CONTROLS */}
 
           <div
-            className={`absolute top-4 right-3 z-[110] flex items-center gap-2 transition-all duration-300 ${
-              showOverlay
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 -translate-y-2 pointer-events-none"
-            }`}
+            className={`
+              absolute
+              top-16
+              right-3
+              z-[110]
+              flex
+              items-center
+              gap-2
+              transition-all
+              duration-300
+              ${
+                showOverlay
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 -translate-y-2 pointer-events-none"
+              }
+            `}
           >
             {/* FULLSCREEN */}
 
             <button
               onClick={goFullScreen}
-              className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/50 transition"
+              className="
+                w-10 h-10
+                rounded-full
+                bg-black/30
+                backdrop-blur-md
+                border border-white/10
+                text-white
+                flex
+                items-center
+                justify-center
+                hover:bg-black/50
+                transition
+              "
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -2257,10 +2010,12 @@ export default function PostVideoPageId({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m-4.5 0L15 9m5.25 16.5h-4.5m4.5 0v-4.5m4.5 0L15 15"
+                  d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m4.5 0L15 15"
                 />
               </svg>
             </button>
+
+            
 
             {/* SPEED */}
 
@@ -2268,14 +2023,24 @@ export default function PostVideoPageId({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-
                   setShowSpeed(
                     (prev) => !prev
                   );
-
                   showVideoControls();
                 }}
-                className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/50 transition"
+                className="
+                  w-10 h-10
+                  rounded-full
+                  bg-black/30
+                  backdrop-blur-md
+                  border border-white/10
+                  text-white
+                  flex
+                  items-center
+                  justify-center
+                  hover:bg-black/50
+                  transition
+                "
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -2304,7 +2069,18 @@ export default function PostVideoPageId({
                   onClick={(e) =>
                     e.stopPropagation()
                   }
-                  className="absolute top-12 right-0 w-48 rounded-xl bg-black/80 backdrop-blur-xl border border-white/10 p-3 shadow-2xl"
+                  className="
+                    absolute
+                    top-12
+                    right-0
+                    w-48
+                    rounded-xl
+                    bg-black/80
+                    backdrop-blur-xl
+                    border border-white/10
+                    p-3
+                    shadow-2xl
+                  "
                 >
                   <div className="flex justify-between text-white text-xs mb-2">
                     <span>
@@ -2321,28 +2097,29 @@ export default function PostVideoPageId({
                     min="0.5"
                     max="2"
                     step="0.25"
-                    value={
-                      playbackRate
-                    }
+                    value={playbackRate}
                     onChange={
                       handleSpeedChange
                     }
-                    className="w-full h-[3px] appearance-none accent-white cursor-pointer"
+                    className="
+                      w-full
+                      h-[3px]
+                      appearance-none
+                      accent-white
+                      cursor-pointer
+                    "
                   />
 
                   <div className="flex justify-between text-[10px] text-white/50 mt-2">
                     <span>
                       0.5x
                     </span>
-
                     <span>
                       1x
                     </span>
-
                     <span>
                       1.5x
                     </span>
-
                     <span>
                       2x
                     </span>
@@ -2351,14 +2128,25 @@ export default function PostVideoPageId({
               )}
             </div>
 
-            {/* MUTE */}
+          {/* MUTE */}
 
             <button
               onClick={toggleMute}
-              className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/50 transition"
+              className="
+                w-10 h-10
+                rounded-full
+                bg-black/30
+                backdrop-blur-md
+                border border-white/10
+                text-white
+                flex
+                items-center
+                justify-center
+                hover:bg-black/50
+                transition
+              "
             >
-              {isMuted ||
-              volume === 0 ? (
+              {isMuted || volume === 0 ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -2428,15 +2216,17 @@ export default function PostVideoPageId({
                 min="0"
                 max="1"
                 step="0.01"
-                value={
-                  isMuted
-                    ? 0
-                    : volume
-                }
+                value={isMuted ? 0 : volume}
                 onChange={
                   handleVolumeChange
                 }
-                className="w-20 h-[3px] appearance-none accent-white cursor-pointer"
+                className="
+                  w-20
+                  h-[3px]
+                  appearance-none
+                  accent-white
+                  cursor-pointer
+                "
               />
             </div>
           </div>
@@ -2445,11 +2235,22 @@ export default function PostVideoPageId({
 
           {currentPost?.content && (
             <div
-              className={`absolute bottom-16 left-3 right-3 sm:left-5 sm:right-5 z-[70] transition-all duration-300 ${
-                showOverlay
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-3 pointer-events-none"
-              }`}
+              className={`
+                absolute
+                bottom-16
+                left-3
+                right-3
+                sm:left-5
+                sm:right-5
+                z-[70]
+                transition-all
+                duration-300
+                ${
+                  showOverlay
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-3"
+                }
+              `}
             >
               <div className="max-w-2xl mx-auto">
                 <div className="flex items-start gap-3">
@@ -2467,18 +2268,13 @@ export default function PostVideoPageId({
 
                   <div className="min-w-0 flex-1">
                     <div className="text-white font-bold text-xs">
-                      {currentPost
-                        ?.user?.name ||
+                      {currentPost?.user
+                        ?.name ||
                         "Unknown User"}
                     </div>
 
-                    <div
-                      className={`rounded-xl bg-black/25 backdrop-blur-sm px-3 py-2 ${
-                        showMore
-                          ? "max-h-[55vh] overflow-y-auto"
-                          : ""
-                      }`}
-                    >
+
+                    <div className="rounded-xl bg-black/25 backdrop-blur-sm px-3 py-2">
                       <p className="text-white text-xs sm:text-sm leading-5 break-words [overflow-wrap:anywhere]">
                         {showMore
                           ? text
@@ -2487,15 +2283,11 @@ export default function PostVideoPageId({
                         {hasLongText && (
                           <button
                             type="button"
-                            onClick={(
-                              e
-                            ) => {
+                            onClick={(e) => {
                               e.stopPropagation();
 
                               setShowMore(
-                                (
-                                  prev
-                                ) =>
+                                (prev) =>
                                   !prev
                               );
 
@@ -2519,11 +2311,22 @@ export default function PostVideoPageId({
           {/* BOTTOM CONTROLS */}
 
           <div
-            className={`absolute bottom-2 left-3 right-3 sm:left-5 sm:right-5 z-[100] transition-all duration-300 ${
-              showOverlay
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-2 pointer-events-none"
-            }`}
+            className={`
+              absolute
+              bottom-2
+              left-3
+              right-3
+              sm:left-5
+              sm:right-5
+              z-[100]
+              transition-all
+              duration-300
+              ${
+                showOverlay
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-2 pointer-events-none"
+              }
+            `}
           >
             <div className="flex items-center gap-2 text-white text-[11px] mb-1">
               <span className="min-w-[34px]">
@@ -2556,7 +2359,13 @@ export default function PostVideoPageId({
                 onTouchEnd={
                   handleSeekEnd
                 }
-                className="flex-1 h-[3px] appearance-none accent-white cursor-pointer"
+                className="
+                  flex-1
+                  h-[3px]
+                  appearance-none
+                  accent-white
+                  cursor-pointer
+                "
               />
 
               <span className="min-w-[34px] text-right">
@@ -2634,15 +2443,19 @@ export default function PostVideoPageId({
                 onChange={
                   handleVolumeChange
                 }
-                className="w-24 h-[3px] appearance-none accent-white"
+                className="
+                  w-24
+                  h-[3px]
+                  appearance-none
+                  accent-white
+                "
               />
 
               <span className="text-white/70 text-[10px]">
                 {Math.round(
                   (isMuted
                     ? 0
-                    : volume) *
-                    100
+                    : volume) * 100
                 )}
                 %
               </span>
@@ -2653,24 +2466,37 @@ export default function PostVideoPageId({
 
           {notifyNext && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[200] bg-black/75 backdrop-blur-xl border border-white/10 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm whitespace-nowrap">
-                <span>
-                    Next video in {nextCountdown}s
-                </span>
+              <span>
+                Next video in 2s
+              </span>
 
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        cancelAutoNext();
-                    }}
-                    className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-xs font-semibold"
-                >
-                    Cancel
-                </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cancelAutoNext();
+                }}
+                className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-xs font-semibold"
+              >
+                Cancel
+              </button>
             </div>
-        )}
-          {/* RIGHT ACTIONS */}
+          )}
 
-          <div className="absolute right-2 sm:right-4 bottom-24 z-[100] flex flex-col items-center gap-3">
+          {/* RIGHT ACTIONS ... */}
+
+          <div
+            className="
+              absolute
+              right-2
+              sm:right-4
+              bottom-24
+              z-[100]
+              flex
+              flex-col
+              items-center
+              gap-3
+            "
+          >
             {/* REACTION */}
 
             <div
@@ -2687,16 +2513,10 @@ export default function PostVideoPageId({
               }
             >
               {showReactions && (
-                <div
-                  className="absolute right-12 top-0 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
-                  onClick={(e) =>
-                    e.stopPropagation()
-                  }
-                >
+                <div className="absolute right-12 top-0 bg-white rounded-full shadow-xl px-2 py-2 flex flex-col gap-1">
                   {reactionList.map(
                     (emoji) => (
                       <button
-                        type="button"
                         key={emoji}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2715,29 +2535,6 @@ export default function PostVideoPageId({
                       </button>
                     )
                   )}
-
-                  {/* PLUS BUTTON */}
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-
-                      setShowReactions(
-                        false
-                      );
-
-                      /*
-                       * Opens your existing
-                       * emoji picker.
-                       */
-                      setShowEmoji(true);
-                    }}
-                    className="ml-1 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl font-semibold"
-                    title="More emojis"
-                  >
-                    +
-                  </button>
                 </div>
               )}
 
@@ -2749,19 +2546,26 @@ export default function PostVideoPageId({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-
                   setShowReactions(
-                    (prev) =>
-                      !prev
+                    (prev) => !prev
                   );
-
-                  showVideoControls();
                 }}
-                className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-xl border transition ${
-                  myReaction
-                    ? "bg-blue-600 border-blue-400"
-                    : "bg-black/40 text-white border-white/10"
-                }`}
+                className={`
+                  w-11
+                  h-11
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                  backdrop-blur-xl
+                  border
+                  transition
+                  ${
+                    myReaction
+                      ? "bg-blue-600 border-blue-400"
+                      : "bg-black/40 text-white border-white/10"
+                  }
+                `}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -2785,7 +2589,6 @@ export default function PostVideoPageId({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-
                 handleCommentPop();
               }}
               className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white flex items-center justify-center hover:bg-black/60 transition"
@@ -2811,7 +2614,6 @@ export default function PostVideoPageId({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-
                 setShares(
                   (prev) => !prev
                 );
@@ -2864,11 +2666,9 @@ export default function PostVideoPageId({
             </h2>
 
             <p className="text-white/60 text-sm mt-2">
-              You have viewed all
-              available videos.
-              Reset your viewed
-              videos to watch them
-              again.
+              You have viewed all available
+              videos. Reset your viewed
+              videos to watch them again.
             </p>
 
             <button
@@ -2878,7 +2678,19 @@ export default function PostVideoPageId({
               disabled={
                 resettingVideos
               }
-              className="mt-6 w-full py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-gray-200 transition disabled:opacity-50"
+              className="
+                mt-6
+                w-full
+                py-3
+                rounded-xl
+                bg-white
+                text-black
+                font-semibold
+                text-sm
+                hover:bg-gray-200
+                transition
+                disabled:opacity-50
+              "
             >
               {resettingVideos
                 ? "Reloading"
@@ -2899,15 +2711,18 @@ export default function PostVideoPageId({
         </div>
       )}
 
-      {/* COMMENT POPUP */}
+      {/* COMMENT POPUP ... */}
 
-      {showCommentPop && (
-        <div className="fixed px-2 inset-0 bg-white/70 flex sm:py-5 items-center justify-center z-50">
-          <div className="bg-white rounded-xl w-full lg:w-[400px] h-full sm:my-4 flex flex-col max-w-xl border shadow-lg">
-            {commentScreen}
-          </div>
-        </div>
-      )}
+     {
+      showCommentPop &&(
+      <div className="fixed px-2 inset-0 bg-white/70 flex sm:py-5 items-center justify-center z-50">
+      <div className="bg-white rounded-xl w-full lg:w-[400px] h-full sm:my-4 flex flex-col max-w-xl border shadow-lg">
+
+      {commentScreen}
+      </div>
+      </div>
+      )
+    }
 
       {/* SHARE POPUP */}
 
@@ -3030,57 +2845,53 @@ export default function PostVideoPageId({
               Share to chat
             </h2>
 
-            {chats.map(
-              (chat) => (
-                <div
-                  key={chat.id}
-                  className={`flex items-center gap-3 p-3 cursor-pointer rounded-xl mb-1 ${
-                    selectedChats.includes(
-                      chat.id
-                    )
-                      ? "bg-blue-100"
-                      : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => {
-                    setSelectedChats(
-                      (prev) =>
-                        prev.includes(
-                          chat.id
-                        )
-                          ? prev.filter(
-                              (
-                                id
-                              ) =>
-                                id !==
-                                chat.id
-                            )
-                          : [
-                              ...prev,
-                              chat.id,
-                            ]
-                    );
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedChats.includes(
-                      chat.id
-                    )}
-                    readOnly
-                  />
+            {chats.map((chat) => (
+              <div
+                key={chat.id}
+                className={`flex items-center gap-3 p-3 cursor-pointer rounded-xl mb-1 ${
+                  selectedChats.includes(
+                    chat.id
+                  )
+                    ? "bg-blue-100"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  setSelectedChats(
+                    (prev) =>
+                      prev.includes(
+                        chat.id
+                      )
+                        ? prev.filter(
+                            (id) =>
+                              id !==
+                              chat.id
+                          )
+                        : [
+                            ...prev,
+                            chat.id,
+                          ]
+                  );
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedChats.includes(
+                    chat.id
+                  )}
+                  readOnly
+                />
 
-                  <span className="text-sm">
-                    {chat.other_user
-                      ? `${chat.other_user.first_name} ${chat.other_user.last_name}`
-                      : chat.teacher
-                      ? `${chat.teacher.first_name} ${chat.teacher.last_name}`
-                      : chat.student
-                      ? `${chat.student.first_name} ${chat.student.last_name}`
-                      : "Unknown User"}
-                  </span>
-                </div>
-              )
-            )}
+                <span className="text-sm">
+                  {chat.other_user
+                    ? `${chat.other_user.first_name} ${chat.other_user.last_name}`
+                    : chat.teacher
+                    ? `${chat.teacher.first_name} ${chat.teacher.last_name}`
+                    : chat.student
+                    ? `${chat.student.first_name} ${chat.student.last_name}`
+                    : "Unknown User"}
+                </span>
+              </div>
+            ))}
 
             <button
               disabled={
@@ -3109,13 +2920,21 @@ export default function PostVideoPageId({
                   setSending(false);
                 }
               }}
-              className={`mt-4 w-full rounded-xl py-3 text-white font-semibold ${
-                sending ||
-                selectedChats.length ===
-                  0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
+              className={`
+                mt-4
+                w-full
+                rounded-xl
+                py-3
+                text-white
+                font-semibold
+                ${
+                  sending ||
+                  selectedChats.length ===
+                    0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }
+              `}
             >
               {sending
                 ? "Sending"
@@ -3177,6 +2996,8 @@ export default function PostVideoPageId({
           </div>
         </div>
       )}
+
+     
     </div>
   );
 }
