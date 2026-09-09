@@ -24,6 +24,14 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
   const [showReplyMenu, setShowReplyMenu] = useState(false);
   const [selectedReply, setSelectedReply] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState({});
+
+  const toggleReplyText = (replyId) => {
+  setExpandedReplies((prev) => ({
+    ...prev,
+    [replyId]: !prev[replyId],
+  }));
+};
   
      const handleReport = () =>{
     setOpenReport(!openReport)
@@ -219,13 +227,57 @@ const navigate = useNavigate()
   
         </div>
       
-    <p className="text-black my-2 text-sm font-semibold">
-          {reply.body && (
-              <p className="text-sm text-black max-w-xs break-words">
-                <RenderCommentText text={reply.body} />
-              </p>
+    {reply.body && (() => {
+        const words = reply.body.trim().split(/\s+/);
+        const isLongReply = words.length > 20;
+        const isExpanded = expandedReplies[reply.id];
+
+        const displayedText =
+          isLongReply && !isExpanded
+            ? words.slice(0, 20).join(" ") + "..."
+            : reply.body;
+
+        return (
+          <div className="my-2">
+            <p
+              className="
+                text-sm
+                text-black
+                max-w-full
+                whitespace-normal
+                break-words
+                overflow-wrap-anywhere
+              "
+            >
+              <Linkify
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "text-blue-600 underline break-all",
+                }}
+              >
+                {renderWithMention(displayedText)}
+              </Linkify>
+            </p>
+
+            {isLongReply && (
+              <button
+                type="button"
+                onClick={() => toggleReplyText(reply.id)}
+                className="
+                  mt-1
+                  text-sm
+                  font-medium
+                  text-blue-600
+                  hover:underline
+                "
+              >
+                {isExpanded ? "Show less" : "Show more"}
+              </button>
             )}
-    </p>
+          </div>
+        );
+      })()}
         {/* ✅ Image preview */}
        {reply.image && <ReplyImage image={reply.image} />}
 
@@ -345,7 +397,7 @@ const navigate = useNavigate()
         </div>
 
     </div>
-    <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 ">
+    <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-8 h-8 flex flex-col justify-center items-center text-2xl font-bold  rounded-full bg-blue-800 ">
        {reply.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
     </div>
 

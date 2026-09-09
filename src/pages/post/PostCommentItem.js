@@ -279,11 +279,11 @@ const navigate = useNavigate()
 
 
       {comment.body && (() => {
-  const words = comment.body.trim().split(/\s+/);
-  const isLongComment = words.length > 20;
-  const displayedText = isLongComment
-    ? words.slice(0, 20).join(" ") + "..."
-    : comment.body;
+      const words = comment.body.trim().split(/\s+/);
+      const isLongComment = words.length > 20;
+      const displayedText = isLongComment
+        ? words.slice(0, 20).join(" ") + "..."
+        : comment.body;
 
   return (
     <div>

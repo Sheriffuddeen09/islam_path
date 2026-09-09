@@ -8,4 +8,655 @@
 
 
 
+i want to add the advertisement to the post where by if a user create a advertisement and enable the visibility it should show in postvideopageid 1. the advertisement should show as post but have button for link if user select or choose visibiilty 2. user can also comment like and share just like post 3. after 5 next video it should advertisement randomly 4. if user select 25 for 1 month, 50 for 2 month, 75 for 3 month and 100 for 4 month to be display in postvideopageid randomly until it will expired 5. the randomly can show available advertisement to user 
+public function indexVideo()
+{
+    $userId = auth()->id();
 
+    $friendIds = auth()->user()
+        ->allFriendIds()
+        ->toArray();
+
+    $viewedPostIds = PostView::where('user_id', $userId)
+        ->pluck('post_id')
+        ->toArray();
+
+    $posts = Post::where('post_type', '!=', 'reel')
+
+        ->where(function ($query) use ($friendIds, $userId) {
+
+            // PUBLIC
+            $query->where('visibility', 'public')
+
+                // PRIVATE - only owner
+                ->orWhere(function ($q) use ($userId) {
+                    $q->where('visibility', 'private')
+                      ->where('user_id', $userId);
+                })
+
+                // FRIENDS
+                ->orWhere(function ($q) use ($friendIds, $userId) {
+                    $q->where('visibility', 'friends')
+                      ->where(function ($sub) use ($friendIds, $userId) {
+                          $sub->where('user_id', $userId)
+                              ->orWhereIn('user_id', $friendIds);
+                      });
+                });
+        })
+
+        ->with([
+            'user:id,first_name,last_name,image',
+            'media',
+            'originalPost.user',
+            'originalPost.media'
+        ])
+
+        ->withCount([
+            'reactions',
+            'comments',
+            'shares',
+            'reposts'
+        ])
+
+        ->latest()
+        ->get()
+
+        ->map(function ($post) use ($viewedPostIds) {
+
+            $isRepost = !is_null($post->original_post_id);
+
+            $basePost = $post->original_post_id
+                ? $post->rootOriginal()
+                : $post;
+
+            /*
+             * Viewed belongs to the current user's PostView.
+             *
+             * IMPORTANT:
+             * This does NOT apply to reels.
+             */
+            $viewed = false;
+
+            if (
+                $post->post_type === 'post' &&
+                $basePost->media->contains('type', 'video')
+            ) {
+                $viewed = in_array(
+                    $basePost->id,
+                    $viewedPostIds
+                );
+            }
+
+            return [
+                'id' => $post->id,
+
+                'post_type' => $post->post_type,
+
+                /*
+                 * true / false for normal video posts.
+                 */
+                'viewed' => $viewed,
+
+                'is_repost' => $isRepost,
+
+                'original_post_id' =>
+                    $post->original_post_id,
+
+                'reposted_by' => $isRepost
+                    ? [
+                        'id' => $post->user->id,
+                        'name' =>
+                            $post->user->first_name .
+                            ' ' .
+                            $post->user->last_name,
+                    ]
+                    : null,
+
+                'content' =>
+                    $basePost->content,
+
+                'media' =>
+                    $basePost->media->map(
+                        fn ($m) => [
+                            'id' => $m->id,
+                            'type' => $m->type,
+                            'url' =>
+                                asset(
+                                    'storage/' .
+                                    $m->path
+                                ),
+                        ]
+                    ),
+
+                'user' => [
+                    'id' =>
+                        $basePost->user->id,
+
+                    'name' =>
+                        $basePost->user->first_name .
+                        ' ' .
+                        $basePost->user->last_name,
+                ],
+
+                'created_at' =>
+                    $post->created_at->diffForHumans(),
+
+                'reactions_count' =>
+                    $basePost->reactions_count ?? 0,
+
+                'comments_count' =>
+                    $basePost->comments_count ?? 0,
+
+                'shares_count' =>
+                    $basePost->shares_count ?? 0,
+
+                'reposts_count' =>
+                    $basePost->reposts_count ?? 0,
+            ];
+        });
+
+    return response()->json([
+        'status' => true,
+        'posts' => $posts
+    ]);
+}  public function nextVideo(Post $post)
+{
+    $userId = auth()->id();
+
+    /*
+     * ONLY normal post videos.
+     * Reels are excluded.
+     */
+    $baseQuery = Post::where('post_type', 'post')
+        ->whereHas('media', function ($q) {
+            $q->where('type', 'video');
+        });
+
+    /*
+     * Find next UNVIEWED video after current post.
+     */
+    $nextPost = (clone $baseQuery)
+        ->where('id', '>', $post->id)
+        ->whereDoesntHave('views', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
+        ->orderBy('id', 'asc')
+        ->with([
+            'user:id,first_name,last_name,role,image',
+            'media',
+        ])
+        ->first();
+
+    /*
+     * If nothing after current post,
+     * search from the beginning.
+     */
+    if (!$nextPost) {
+        $nextPost = (clone $baseQuery)
+            ->where('id', '<', $post->id)
+            ->whereDoesntHave('views', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->orderBy('id', 'asc')
+            ->with([
+                'user:id,first_name,last_name,role,image',
+                'media',
+            ])
+            ->first();
+    }
+
+    /*
+     * No unviewed videos remain.
+     */
+    if (!$nextPost) {
+        return response()->json([
+            'status' => false,
+            'video' => null,
+            'all_viewed' => true,
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => true,
+        'video' => $this->formatVideoPost(
+            $nextPost,
+            $userId
+        ),
+        'all_viewed' => false,
+    ]);
+}
+
+
+private function formatVideoPost(
+    Post $post,
+    $userId = null
+) {
+    $video = $post->media
+        ->where('type', 'video')
+        ->first();
+
+    /*
+     * Only calculate viewed for normal post videos.
+     */
+    $viewed = false;
+
+    if (
+        $userId &&
+        $post->post_type === 'post'
+    ) {
+        $viewed = $post->views()
+            ->where('user_id', $userId)
+            ->exists();
+    }
+
+    return [
+        'id' => $post->id,
+
+        'post_type' => $post->post_type,
+
+        /*
+         * IMPORTANT
+         */
+        'viewed' => $viewed,
+
+        'content' => $post->content,
+
+        'created_at' =>
+            $post->created_at?->diffForHumans(),
+
+        'video' => $video
+            ? [
+                'id' => $video->id,
+                'type' => 'video',
+                'url' => asset(
+                    'storage/' . $video->path
+                ),
+            ]
+            : null,
+
+        'media' => $video
+            ? [
+                [
+                    'id' => $video->id,
+                    'type' => 'video',
+                    'url' => asset(
+                        'storage/' . $video->path
+                    ),
+                ],
+            ]
+            : [],
+
+        'user' => $post->user
+            ? [
+                'id' =>
+                    $post->user->id,
+
+                'name' =>
+                    trim(
+                        $post->user->first_name .
+                        ' ' .
+                        $post->user->last_name
+                    ),
+
+                'role' =>
+                    $post->user->role,
+
+                'image' =>
+                    $post->user->image,
+            ]
+            : null,
+    ];
+}
+
+
+public function previousVideo(
+    Request $request,
+    Post $post
+) {
+    $allowWrap = $request->boolean(
+        'allow_wrap',
+        true
+    );
+
+    $userId = auth()->id();
+
+    $baseQuery = Post::where(
+        'post_type',
+        'post'
+    )
+        ->whereHas('media', function ($q) {
+            $q->where('type', 'video');
+        });
+
+    $previousPost = (clone $baseQuery)
+        ->where(
+            'id',
+            '<',
+            $post->id
+        )
+        ->orderBy(
+            'id',
+            'desc'
+        )
+        ->with([
+            'user:id,first_name,last_name,role,image',
+            'media',
+        ])
+        ->first();
+
+    if (
+        !$previousPost &&
+        $allowWrap
+    ) {
+        $previousPost = (clone $baseQuery)
+            ->orderBy(
+                'id',
+                'desc'
+            )
+            ->with([
+                'user:id,first_name,last_name,role,image',
+                'media',
+            ])
+            ->first();
+    }
+
+    if (!$previousPost) {
+        return response()->json([
+            'status' => false,
+            'video' => null,
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => true,
+        'video' => $this->formatVideoPost(
+            $previousPost,
+            $userId
+        ),
+    ]);
+}
+// index
+
+public function resetVideoViews()
+{
+    $userId = auth()->id();
+
+    PostView::where('user_id', $userId)
+        ->whereHas('post', function ($q) {
+            $q->where('post_type', 'post')
+                ->whereHas('media', function ($media) {
+                    $media->where('type', 'video');
+                });
+        })
+        ->delete();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Video views reset successfully.',
+    ]);
+}  private function totalBadges()
+{
+return UserBadge::where(
+"user_id", auth()->id()
+)->sum("badges");
+}
+
+
+private function visibilityOption($audience)
+{
+    return match ($audience) {
+
+        '25' => [
+            'badges' => 50,
+            'months' => 1,
+            'label' => '1/4 of users',
+        ],
+
+        '50' => [
+            'badges' => 100,
+            'months' => 2,
+            'label' => '1/2 of users',
+        ],
+
+        '75' => [
+            'badges' => 200,
+            'months' => 3,
+            'label' => '3/4 of users',
+        ],
+
+        '100' => [
+            'badges' => 300,
+            'months' => 4,
+            'label' => 'All users',
+        ],
+
+        default => null,
+    };
+}
+
+
+public function store(Request $request)
+{
+$request->validate([ "title"=>"required|string|max:255", "description"=>"required|string", "link"=>"nullable|url", "type"=>"required|in:advertisement,sponsorship", "media"=>"required|file|mimes:jpg,jpeg,png,mp4,mov,avi|max:51200"
+]);
+$media = null;
+$mediaType = null;
+if($request->hasFile("media"))
+{
+$media = $request
+->file("media")
+->store(
+"advertisements", "public" );
+$extension = strtolower(
+$request->file("media")
+->getClientOriginalExtension()
+);
+if(
+in_array(
+$extension,
+["jpg","jpeg","png"]
+)
+)
+{
+$mediaType="image";
+}
+else{
+$mediaType="video";
+}
+}
+$advertisement=Advertisement::create([ "user_id"=>auth()->id(), "title"=>$request->title, "description"=>$request->description, "link"=>$request->link, "media"=>$media, "media_type"=>$mediaType,
+"type"=>$request->type, "status"=>"pending"
+]);
+Mail::to(
+"odukoyasheriff@gmail.com" )->send(
+new AdvertisementPendingMail(
+$advertisement
+)
+);
+return response()->json([ "message"=>"Advertisement successfully submitted.", "advertisement"=>$advertisement
+],200);
+}
+
+public function pending()
+{
+    $advertisements = Advertisement::with('user')
+        ->where('status', 'pending')
+        ->latest()
+        ->get();
+
+    return response()->json([
+        'advertisements' => $advertisements
+    ], 200);
+}
+
+public function show($id)
+{
+    $advertisement = Advertisement::with('user')
+        ->where('id', $id)
+        ->first();
+    return response()->json([
+        'advertisement' => $advertisement
+    ], 200);
+}
+
+public function approve($id)
+{
+$advertisement= Advertisement::findOrFail($id);
+$advertisement->update([ "status"=>"approved", "approved_at"=>now()
+]);
+Mail::to(
+$advertisement->user->email
+)->send(
+new AdvertisementApprovedMail(
+$advertisement
+)
+);
+return response()->json([ "message"=>"Advertisement approved successfully."
+]);
+}
+public function decline(Request $request,$id)
+{
+$advertisement= Advertisement::findOrFail($id);
+$advertisement->update([ "status"=>"declined", "decline_reason"=>$request->decline_reason
+]);
+Mail::to(
+$advertisement->user->email
+)->send(
+new AdvertisementDeclinedMail(
+$advertisement
+)
+);
+return response()->json([ "message"=>"Advertisement declined."
+]);
+}
+
+
+public function unlockVisibility(Request $request, $id)
+{
+    $request->validate([
+        'audience' => 'required|in:25,50,75,100',
+    ]);
+
+    $advertisement = Advertisement::where('id', $id)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    if ($advertisement->status !== 'approved') {
+
+        return response()->json([
+            'message' => 'Advertisement has not been approved.'
+        ], 403);
+
+    }
+
+    $option = $this->visibilityOption(
+        $request->audience
+    );
+
+    $requiredBadges = $option['badges'];
+
+    $months = $option['months'];
+
+    $totalBadges = $this->totalBadges();
+
+    if ($totalBadges < $requiredBadges) {
+
+        return response()->json([
+            'message' =>
+                "You need {$requiredBadges} badges to unlock this visibility."
+        ], 403);
+
+    }
+
+    UserBadge::create([
+        'user_id' => auth()->id(),
+        'badges' => -$requiredBadges,
+        'source' => 'registration',
+    ]);
+
+    $startedAt = now();
+
+    $expiresAt = now()->addMonths($months);
+
+    $advertisement->update([
+
+        'audience' =>
+            $request->audience,
+
+        'required_badges' =>
+            $requiredBadges,
+
+        'visibility_unlocked' =>
+            true,
+
+        'visibility_started_at' =>
+            $startedAt,
+
+        'visibility_expires_at' =>
+            $expiresAt,
+
+    ]);
+
+    return response()->json([
+
+        'message' =>
+            'Advertisement visibility unlocked successfully.',
+
+        'advertisement' =>
+            $advertisement->fresh(),
+
+    ], 200);
+}
+
+
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration
+{
+public function up(): void
+{
+Schema::create('advertisements', function (Blueprint $table) {
+$table->id();
+$table->foreignId("user_id")
+->constrained()
+->cascadeOnDelete();
+
+$table->enum("type", [ "advertisement", "sponsorship"
+]);
+
+$table->string("title");
+
+$table->longText("description");
+
+$table->string("link")
+->nullable();
+
+$table->string("media")
+->nullable();
+
+$table->enum("media_type", [ "image", "video"
+])->nullable();
+
+$table->enum("audience", [ "25", "50", "75", "100"
+])->nullable("25");
+
+$table->unsignedInteger("required_badges")
+->default(0);
+
+$table->enum("status", [ "pending", "approved", "declined"
+])->default("pending");
+$table->boolean("visibility_unlocked")
+->default(false);
+
+$table->timestamp("approved_at")
+->nullable();
+$table->timestamps();
+});
+}
+public function down(): void
+{
+Schema::dropIfExists('advertisements');
+}
+};  

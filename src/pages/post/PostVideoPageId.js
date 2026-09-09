@@ -10,7 +10,6 @@ import { useEffect, useRef, useState } from "react";
 import api from "../../Api/axios";
 import PostComment from "./PostComment";
 import logo from '../../layout/image/favicon.png'
-import PostOptions from "./PostOption";
 import { useAuth } from "../../layout/AuthProvider";
 import { PostCommentInput } from "./PostCommentInput";
 import { useSwipeable } from "react-swipeable";
@@ -114,6 +113,8 @@ export default function PostVideoPageId({
     (m) => m.type === "video"
   );
 
+
+  
   const overlayTimerRef = useRef(null);
 
     const showVideoControls = () => {
@@ -196,7 +197,6 @@ export default function PostVideoPageId({
   }, [cancelTimer]);
 
   
-  
   useEffect(() => {
   let mounted = true;
 
@@ -216,6 +216,7 @@ export default function PostVideoPageId({
 
       const allVideoPosts = data.filter(
         (post) =>
+          post?.post_type === "post" &&
           Array.isArray(post?.media) &&
           post.media.some(
             (media) =>
@@ -293,8 +294,7 @@ export default function PostVideoPageId({
   return () => {
     mounted = false;
   };
-}, [id]);
-
+}, []);
 
 
   useEffect(() => {
@@ -317,10 +317,6 @@ export default function PostVideoPageId({
       preload.src = "";
     };
   }, [currentIndex, videos]);
-
-  // --------------------------------------------------
-  // RESET VIDEO STATE WHEN VIDEO CHANGES
-  // --------------------------------------------------
 
   useEffect(() => {
     setCurrentTime(0);
@@ -345,10 +341,6 @@ export default function PostVideoPageId({
       video.load();
     }
   }, [currentPost?.id, currentMedia?.url]);
-
-  // --------------------------------------------------
-  // VIDEO EVENTS
-  // --------------------------------------------------
 
   useEffect(() => {
     const video = videoRef.current;
@@ -389,11 +381,7 @@ export default function PostVideoPageId({
       video.muted = isMuted;
       video.playbackRate = playbackRate;
 
-      /*
-       * Do NOT automatically play here.
-       *
-       * The normal browser autoplay behavior is preserved.
-       */
+
       video
         .play()
         .then(() => {
@@ -403,10 +391,7 @@ export default function PostVideoPageId({
         .catch((error) => {
           console.log("AUTOPLAY BLOCKED:", error);
 
-          /*
-           * Browser may block autoplay with sound.
-           * Fall back to muted.
-           */
+         
           video.muted = true;
 
           setIsMuted(true);
@@ -777,74 +762,81 @@ export default function PostVideoPageId({
         return false;
       }
 
+      const localNext = videos[currentIndex + 1];
+
+      if (localNext) {
+        setCurrentIndex((prev) => prev + 1);
+        setHasNextVideo(true);
+        setShowResetPopup(false);
+
+        return true;
+      }
+
       try {
         const res = await api.get(
           `/api/post/${currentPost.id}/next-video`
         );
 
-        console.log(
-          "NEXT VIDEO:",
-          res.data
-        );
+        console.log("NEXT VIDEO:", res.data);
 
-        const nextVideo =
-          res.data?.video;
-
-       
-        if (!nextVideo) {
+        if (
+          res.data?.all_viewed === true ||
+          !res.data?.video
+        ) {
           setHasNextVideo(false);
           setShowResetPopup(true);
+          setNotifyNext(false);
 
           return false;
         }
 
-        setHasNextVideo(true);
-        setShowResetPopup(false);
+        const nextVideo = {
+          ...res.data.video,
+          viewed: false,
+        };
+
+        const alreadyExists = videos.some(
+          (item) =>
+            Number(item.id) === Number(nextVideo.id)
+        );
+
+        if (alreadyExists) {
+          setHasNextVideo(false);
+          setShowResetPopup(true);
+          setNotifyNext(false);
+
+          return false;
+        }
 
         setVideos((prev) => {
-          const existingIndex =
-            prev.findIndex(
-              (item) =>
-                Number(item.id) ===
-                Number(nextVideo.id)
-            );
-
-          if (existingIndex >= 0) {
-            setCurrentIndex(
-              existingIndex
-            );
-
-            return prev;
-          }
-
           const updated = [
             ...prev,
             nextVideo,
           ];
 
-          setCurrentIndex(
-            updated.length - 1
-          );
+          setCurrentIndex(updated.length - 1);
 
           return updated;
         });
 
+        setHasNextVideo(true);
+        setShowResetPopup(false);
+
         return true;
+
       } catch (error) {
         console.error(
           "NEXT VIDEO ERROR:",
-          error.response?.data ||
-            error
+          error.response?.data || error
         );
 
         if (
-          error.response?.status ===
-            404 ||
-          error.response?.data
-            ?.all_viewed === true
+          error.response?.status === 404 ||
+          error.response?.data?.all_viewed === true
         ) {
           setHasNextVideo(false);
           setShowResetPopup(true);
+          setNotifyNext(false);
 
           return false;
         }
@@ -852,8 +844,9 @@ export default function PostVideoPageId({
         return false;
       }
     };
-  
-    const handleNext = async () => {
+
+
+   const handleNext = async () => {
   if (
     navigationLockRef.current ||
     !currentPost?.id
@@ -864,7 +857,6 @@ export default function PostVideoPageId({
   navigationLockRef.current = true;
 
   try {
-    
     if (cancelTimer) {
       clearTimeout(cancelTimer);
       setCancelTimer(null);
@@ -873,7 +865,6 @@ export default function PostVideoPageId({
     setNotifyNext(false);
     setNextCountdown(5);
 
-    
     await markVideoViewed();
 
     const found = await fetchNextVideo();
@@ -881,6 +872,7 @@ export default function PostVideoPageId({
     if (!found) {
       setHasNextVideo(false);
       setShowResetPopup(true);
+      setNotifyNext(false);
     }
 
   } finally {
@@ -889,23 +881,27 @@ export default function PostVideoPageId({
 };
     
 
-    const handlePrev = () => {
-      if (
-        navigationLockRef.current
-      ) {
-        return;
-      }
+   const handlePrev = () => {
+  if (navigationLockRef.current) {
+    return;
+  }
 
-      if (currentIndex > 0) {
-        setCurrentIndex(
-          (index) => index - 1
-        );
+  if (currentIndex <= 0) {
+    return;
+  }
 
-        setHasNextVideo(true);
+  navigationLockRef.current = true;
 
-        setShowResetPopup(false);
-      }
-    };
+  try {
+    setNotifyNext(false);
+    setShowResetPopup(false);
+    setHasNextVideo(true);
+
+    setCurrentIndex((prev) => prev - 1);
+  } finally {
+    navigationLockRef.current = false;
+  }
+};
 
     const handleVideoEnd = async () => {
         if (!currentPost?.id) {
@@ -986,89 +982,79 @@ export default function PostVideoPageId({
 
     
 
-    const resetViewedVideos =
-      async () => {
-        if (resettingVideos) {
-          return;
-        }
+    const resetViewedVideos = async () => {
+      if (resettingVideos) {
+        return;
+      }
 
-        setResettingVideos(true);
-        setShowResetPopup(false);
+      setResettingVideos(true);
+      setShowResetPopup(false);
 
-        try {
-          await api.post(
-            "/api/videos/reset-views"
-          );
+      try {
+        await api.post(
+          "/api/videos/reset-views"
+        );
 
-          const res =
-            await api.get(
-              "/api/posts-get-video"
-            );
+        const res = await api.get(
+          "/api/posts-get-video"
+        );
 
-          const data =
-            Array.isArray(
-              res.data?.posts
+        const data = Array.isArray(
+          res.data?.posts
+        )
+          ? res.data.posts
+          : [];
+    
+        const videoPosts = data.filter(
+          (post) =>
+            post?.post_type === "post" &&
+            Array.isArray(post?.media) &&
+            post.media.some(
+              (media) =>
+                media?.type === "video" &&
+                media?.url
             )
-              ? res.data.posts
-              : [];
-
-          const videoPosts =
-            data.filter(
-              (post) =>
-                Array.isArray(
-                  post?.media
-                ) &&
-                post.media.some(
-                  (media) =>
-                    media?.type ===
-                      "video" &&
-                    media?.url
-                )
-            );
+        );
 
         setVideos(videoPosts);
 
-        const requestedId =
-          Number(id);
+        const requestedId = Number(id);
 
-        const foundIndex =
-          videoPosts.findIndex(
-            (post) =>
-              Number(post.id) ===
-              requestedId
-          );
+        const foundIndex = videoPosts.findIndex(
+          (post) =>
+            Number(post.id) === requestedId
+        );
 
-        setCurrentIndex(
+        const newIndex =
           foundIndex >= 0
             ? foundIndex
-            : 0
-        );
+            : 0;
+
+        setCurrentIndex(newIndex);
 
         setHasNextVideo(
-          videoPosts.length > 1
+          videoPosts.length > newIndex + 1
         );
-
-        /*
-         * Reset automatic-next state.
-         *
-         * The video that was originally
-         * opened can automatically move once
-         * again after reset.
-         */
-        autoNextUsedRef.current =
-          false;
-
+    
+        autoNextUsedRef.current = false;
+        autoNextCancelledRef.current = false;
+    
+        initialVideoIdRef.current = Number(
+          videoPosts[newIndex]?.id || id
+        );
+    
         viewedRef.current = null;
-        viewPromiseRef.current =
-          null;
+        viewPromiseRef.current = null;
+
+        setNotifyNext(false);
+        setNextCountdown(5);
 
         setCurrentTime(0);
         setDuration(0);
         setVideoLoading(true);
 
         setTimeout(() => {
-          const video =
-            videoRef.current;
+          const video = videoRef.current;
 
           if (!video) return;
 
@@ -1076,34 +1062,26 @@ export default function PostVideoPageId({
 
           video.load();
 
-          video.play().catch(
-            () => {}
-          );
+          video.play().catch(() => {});
         }, 100);
+
       } catch (error) {
         console.error(
           "RESET VIDEO ERROR:",
-          error.response?.data ||
-            error
+          error.response?.data || error
         );
 
         setNotify({
           message:
-            error.response?.data
-              ?.message ||
+            error.response?.data?.message ||
             "Unable to reset viewed videos.",
           type: "error",
         });
+
       } finally {
-        setResettingVideos(
-          false
-        );
+        setResettingVideos(false);
       }
     };
-
-  // --------------------------------------------------
-  // SWIPE
-  // --------------------------------------------------
 
   const handlers =
     useSwipeable({

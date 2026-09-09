@@ -257,7 +257,7 @@ const contentEdit = (
           Reply {comment?.replies.length}</p>
   <div className="px-4 py-2">
     <div className="inline-flex gap-2 items-start">
-      <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-12 h-12 flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
+      <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-8 h-8 flex flex-col justify-center items-center text-2xl font-bold  rounded-full bg-blue-800 "> 
         {comment?.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
     <div className="bg-gray-100 w-fit
     max-w-64
