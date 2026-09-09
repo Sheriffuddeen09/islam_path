@@ -206,7 +206,8 @@ const navigate = useNavigate()
   return (
     <div className="flex gap-3">
       
-     <button onClick={() => navigate(`/profile/${user.id}`)}  className="text-white w-12 h-12 mx-auto flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </button>
+     <button onClick={() => navigate(`/profile/${user.id}`)}  className="text-white w-8 h-8 mx-auto flex flex-col justify-center 
+     items-center text-2xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </button>
       
       <div className="flex-1">
        <div

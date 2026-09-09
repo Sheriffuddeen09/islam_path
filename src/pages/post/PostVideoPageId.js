@@ -73,19 +73,8 @@ export default function PostVideoPageId({
   const [nextCountdown, setNextCountdown] = useState(5);
 
   const navigationLockRef = useRef(false);
-
-  /*
-   * IMPORTANT:
-   * Only the video that was opened directly from the URL
-   * gets automatic next once.
-   *
-   * Example:
-   * /post-video/93
-   *
-   * 93 -> automatically goes to 94
-   *
-   * 94 -> does NOT automatically go to 95.
-   */
+  const initialVideoIdRef = useRef(Number(id));
+  const autoNextCancelledRef = useRef(false);
   const autoNextUsedRef = useRef(false);
 
   const [counts, setCounts] = useState({});
@@ -111,7 +100,7 @@ export default function PostVideoPageId({
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
 
-  const { user } = useAuth();
+
 
   const [messageOpenShare, setMessageOpenShare] = useState(false);
   const [shares, setShares] = useState(false);
@@ -124,6 +113,56 @@ export default function PostVideoPageId({
   const currentMedia = currentPost?.media?.find(
     (m) => m.type === "video"
   );
+
+  const overlayTimerRef = useRef(null);
+
+    const showVideoControls = () => {
+      setShowOverlay(true);
+
+      if (overlayTimerRef.current) {
+        clearTimeout(overlayTimerRef.current);
+      }
+
+      if (!isPlaying || videoLoading) {
+        return;
+      }
+
+      overlayTimerRef.current = setTimeout(() => {
+        setShowOverlay(false);
+      }, 1500);
+    };
+
+    const hideVideoControls = () => {
+      if (overlayTimerRef.current) {
+        clearTimeout(overlayTimerRef.current);
+        overlayTimerRef.current = null;
+      }
+
+      setShowOverlay(false);
+    };
+
+    useEffect(() => {
+      return () => {
+        if (overlayTimerRef.current) {
+          clearTimeout(overlayTimerRef.current);
+        }
+      };
+    }, []);
+
+    useEffect(() => {
+        if (videoLoading) {
+          hideVideoControls();
+          return;
+        }
+
+        if (!isPlaying) {
+          showVideoControls();
+          return;
+      }
+
+  showVideoControls();
+}, [isPlaying, videoLoading]);
+
 
   const formatTime = (seconds) => {
     if (!Number.isFinite(seconds) || seconds < 0) {
@@ -139,31 +178,7 @@ export default function PostVideoPageId({
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // --------------------------------------------------
-  // SHOW / HIDE VIDEO CONTROLS
-  // WORKS FOR DESKTOP + MOBILE
-  // --------------------------------------------------
-
-  const showVideoControls = () => {
-    setShowOverlay(true);
-
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-
-    controlsTimeoutRef.current = setTimeout(() => {
-      /*
-       * Hide regardless of desktop or mobile.
-       *
-       * This is intentionally not only checking isPlaying.
-       * If the user stops touching/moving the video,
-       * the controls disappear.
-       */
-      setShowOverlay(false);
-      setShowSpeed(false);
-    }, 3000);
-  };
-
+  
   useEffect(() => {
     return () => {
       if (controlsTimeoutRef.current) {
@@ -180,105 +195,107 @@ export default function PostVideoPageId({
     };
   }, [cancelTimer]);
 
-  // --------------------------------------------------
-  // FETCH VIDEOS
-  // --------------------------------------------------
-
+  
+  
   useEffect(() => {
-    let mounted = true;
+  let mounted = true;
 
-    /*
-     * New URL/open = allow exactly ONE automatic next.
-     *
-     * Example:
-     * open 93 -> 93 can auto next
-     */
-    autoNextUsedRef.current = false;
+  autoNextUsedRef.current = false;
+  autoNextCancelledRef.current = false;
+  initialVideoIdRef.current = Number(id);
 
-    const fetchVideos = async () => {
-      setLoadingVideos(true);
+  const fetchVideos = async () => {
+    setLoadingVideos(true);
 
-      try {
-        console.log("FETCHING VIDEOS");
+    try {
+      const res = await api.get("/api/posts-get-video");
 
-        const res = await api.get("/api/posts-get");
+      const data = Array.isArray(res.data?.posts)
+        ? res.data.posts
+        : [];
 
-        console.log("POSTS API RESPONSE:", res.data);
+      const allVideoPosts = data.filter(
+        (post) =>
+          Array.isArray(post?.media) &&
+          post.media.some(
+            (media) =>
+              media?.type === "video" &&
+              media?.url
+          )
+      );
 
-        const data = Array.isArray(res.data?.posts)
-          ? res.data.posts
-          : [];
+      const requestedId = Number(id);
 
-        const videoPosts = data.filter(
-          (post) =>
-            Array.isArray(post?.media) &&
-            post.media.some(
-              (media) =>
-                media?.type === "video" &&
-                media?.url
-            )
-        );
+      const requestedVideo = allVideoPosts.find(
+        (post) => Number(post.id) === requestedId
+      );
 
-        console.log("VIDEO POSTS:", videoPosts);
+      const unviewedVideos = allVideoPosts.filter(
+        (post) => post?.viewed === false
+      );
 
-        if (!mounted) return;
+      const videoPosts = requestedVideo
+        ? [
+            requestedVideo,
+            ...unviewedVideos.filter(
+              (post) =>
+                Number(post.id) !== requestedId
+            ),
+          ]
+        : unviewedVideos;
 
-        setVideos(videoPosts);
+      if (!mounted) return;
 
-        const requestedId = Number(id);
+      setVideos(videoPosts);
 
-        const foundIndex = videoPosts.findIndex(
-          (post) => Number(post.id) === requestedId
-        );
+      const foundIndex = videoPosts.findIndex(
+        (post) =>
+          Number(post.id) === requestedId
+      );
 
-        if (foundIndex >= 0) {
-          setCurrentIndex(foundIndex);
-        } else {
-          setCurrentIndex(0);
-        }
+      setCurrentIndex(
+        foundIndex >= 0 ? foundIndex : 0
+      );
 
-        /*
-         * We don't know whether the next video is unviewed
-         * until the backend checks it.
-         *
-         * So don't use videos.length here to decide.
-         */
+      if (unviewedVideos.length === 0) {
+        setHasNextVideo(false);
+        setShowResetPopup(true);
+      } else {
         setHasNextVideo(true);
-
         setShowResetPopup(false);
-      } catch (error) {
-        console.error(
-          "FETCH VIDEO ERROR:",
-          error.response?.data || error
-        );
-
-        if (mounted) {
-          setNotify({
-            message:
-              error.response?.data?.message ||
-              "Unable to load videos.",
-            type: "error",
-          });
-
-          setVideos([]);
-        }
-      } finally {
-        if (mounted) {
-          setLoadingVideos(false);
-        }
       }
-    };
 
-    fetchVideos();
+    } catch (error) {
+      console.error(
+        "FETCH VIDEO ERROR:",
+        error.response?.data || error
+      );
 
-    return () => {
-      mounted = false;
-    };
-  }, [id]);
+      if (mounted) {
+        setNotify({
+          message:
+            error.response?.data?.message ||
+            "Unable to load videos.",
+          type: "error",
+        });
 
-  // --------------------------------------------------
-  // PRELOAD NEXT LOCAL VIDEO
-  // --------------------------------------------------
+        setVideos([]);
+      }
+    } finally {
+      if (mounted) {
+        setLoadingVideos(false);
+      }
+    }
+  };
+
+  fetchVideos();
+
+  return () => {
+    mounted = false;
+  };
+}, [id]);
+
+
 
   useEffect(() => {
     const next = videos[currentIndex + 1];
@@ -546,10 +563,6 @@ export default function PostVideoPageId({
     playbackRate,
   ]);
 
-  // --------------------------------------------------
-  // MARK VIDEO VIEWED
-  // --------------------------------------------------
-
   const markVideoViewed = async () => {
     const currentId = currentPost?.id;
 
@@ -758,275 +771,260 @@ export default function PostVideoPageId({
     showVideoControls();
   };
 
-  // --------------------------------------------------
-  // NEXT VIDEO API
-  // --------------------------------------------------
-
-  const fetchNextVideo = async () => {
-    if (!currentPost?.id) {
-      return false;
-    }
-
-    try {
-      const res = await api.get(
-        `/api/post/${currentPost.id}/next-video`
-      );
-
-      console.log(
-        "NEXT VIDEO:",
-        res.data
-      );
-
-      const nextVideo =
-        res.data?.video;
-
-      /*
-       * BACKEND CONFIRMED THERE IS NO
-       * MORE UNVIEWED VIDEO.
-       */
-      if (!nextVideo) {
-        setHasNextVideo(false);
-        setShowResetPopup(true);
-
+    
+    const fetchNextVideo = async () => {
+      if (!currentPost?.id) {
         return false;
       }
 
-      setHasNextVideo(true);
-      setShowResetPopup(false);
-
-      setVideos((prev) => {
-        const existingIndex =
-          prev.findIndex(
-            (item) =>
-              Number(item.id) ===
-              Number(nextVideo.id)
-          );
-
-        if (existingIndex >= 0) {
-          setCurrentIndex(
-            existingIndex
-          );
-
-          return prev;
-        }
-
-        const updated = [
-          ...prev,
-          nextVideo,
-        ];
-
-        setCurrentIndex(
-          updated.length - 1
+      try {
+        const res = await api.get(
+          `/api/post/${currentPost.id}/next-video`
         );
 
-        return updated;
-      });
+        console.log(
+          "NEXT VIDEO:",
+          res.data
+        );
 
-      return true;
-    } catch (error) {
-      console.error(
-        "NEXT VIDEO ERROR:",
-        error.response?.data ||
-          error
-      );
+        const nextVideo =
+          res.data?.video;
 
-      /*
-       * THIS IS IMPORTANT.
-       *
-       * If backend says all videos have
-       * already been viewed, immediately
-       * show reset popup.
-       */
-      if (
-        error.response?.status ===
-          404 ||
-        error.response?.data
-          ?.all_viewed === true
-      ) {
-        setHasNextVideo(false);
-        setShowResetPopup(true);
+       
+        if (!nextVideo) {
+          setHasNextVideo(false);
+          setShowResetPopup(true);
+
+          return false;
+        }
+
+        setHasNextVideo(true);
+        setShowResetPopup(false);
+
+        setVideos((prev) => {
+          const existingIndex =
+            prev.findIndex(
+              (item) =>
+                Number(item.id) ===
+                Number(nextVideo.id)
+            );
+
+          if (existingIndex >= 0) {
+            setCurrentIndex(
+              existingIndex
+            );
+
+            return prev;
+          }
+
+          const updated = [
+            ...prev,
+            nextVideo,
+          ];
+
+          setCurrentIndex(
+            updated.length - 1
+          );
+
+          return updated;
+        });
+
+        return true;
+      } catch (error) {
+        console.error(
+          "NEXT VIDEO ERROR:",
+          error.response?.data ||
+            error
+        );
+
+        if (
+          error.response?.status ===
+            404 ||
+          error.response?.data
+            ?.all_viewed === true
+        ) {
+          setHasNextVideo(false);
+          setShowResetPopup(true);
+
+          return false;
+        }
 
         return false;
       }
+    };
+  
+    const handleNext = async () => {
+  if (
+    navigationLockRef.current ||
+    !currentPost?.id
+  ) {
+    return;
+  }
 
-      return false;
-    }
-  };
- 
-  const handleNext = async () => {
-    if (
-      navigationLockRef.current ||
-      !currentPost?.id
-    ) {
-      return;
-    }
+  navigationLockRef.current = true;
 
-    navigationLockRef.current = true;
-
-    try {
-      setNextCountdown(5);
-      setNotifyNext(true);
-
-      if (cancelTimer) {
-        clearTimeout(cancelTimer);
-        setCancelTimer(null);
-      }
- 
-      await markVideoViewed();
-
-      const found =
-        await fetchNextVideo();
-
-      if (!found) {
-        setHasNextVideo(false);
-        setShowResetPopup(true);
-      }
-    } finally {
-      navigationLockRef.current =
-        false;
-    }
-  };
-
-   
-
-  const handlePrev = () => {
-    if (
-      navigationLockRef.current
-    ) {
-      return;
+  try {
+    
+    if (cancelTimer) {
+      clearTimeout(cancelTimer);
+      setCancelTimer(null);
     }
 
-    if (currentIndex > 0) {
-      setCurrentIndex(
-        (index) => index - 1
-      );
+    setNotifyNext(false);
+    setNextCountdown(5);
 
-      setHasNextVideo(true);
-
-      setShowResetPopup(false);
-    }
-  };
-
-  // --------------------------------------------------
-  // VIDEO END
-  // --------------------------------------------------
-
-  const handleVideoEnd = async () => {
-    if (!currentPost?.id) {
-      return;
-    }
-
+    
     await markVideoViewed();
 
-    setIsPlaying(false);
- 
-    if (
-      !autoNextUsedRef.current
-    ) {
-      autoNextUsedRef.current =
-        true;
-
-      setNotifyNext(true);
-
-      if (cancelTimer) {
-        clearTimeout(cancelTimer);
-      }
-
-      const timer =
-        setTimeout(async () => {
-          setNotifyNext(false);
-          setCancelTimer(null);
-
-          const found =
-            await fetchNextVideo();
-
-          if (!found) {
-            setHasNextVideo(false);
-            setShowResetPopup(true);
-          }
-        }, 5000);
-
-      setCancelTimer(timer);
-
-      return;
-    }
- 
-    const found =
-      await fetchNextVideo();
+    const found = await fetchNextVideo();
 
     if (!found) {
       setHasNextVideo(false);
       setShowResetPopup(true);
     }
-  };
 
-   useEffect(() => {
-    if (!notifyNext) return;
+  } finally {
+    navigationLockRef.current = false;
+  }
+};
+    
 
-    if (nextCountdown <= 0) {
-        setNotifyNext(false);
-        handleNext();
-        return;
-    }
-
-    const timer = setTimeout(() => {
-        setNextCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-}, [notifyNext, nextCountdown]);
-
-  const cancelAutoNext = () => {
-    if (cancelTimer) {
-      clearTimeout(cancelTimer);
-    }
-
-    setCancelTimer(null);
-    setNextCountdown(5);
-    setNotifyNext(false);
-  };
-
-   
-
-  const resetViewedVideos =
-    async () => {
-      if (resettingVideos) {
+    const handlePrev = () => {
+      if (
+        navigationLockRef.current
+      ) {
         return;
       }
 
-      setResettingVideos(true);
-      setShowResetPopup(false);
-
-      try {
-        await api.post(
-          "/api/videos/reset-views"
+      if (currentIndex > 0) {
+        setCurrentIndex(
+          (index) => index - 1
         );
 
-        const res =
-          await api.get(
-            "/api/posts-get"
+        setHasNextVideo(true);
+
+        setShowResetPopup(false);
+      }
+    };
+
+    const handleVideoEnd = async () => {
+        if (!currentPost?.id) {
+          return;
+        }
+
+        await markVideoViewed();
+
+        setIsPlaying(false);
+
+        const isInitialVideo =
+          Number(currentPost.id) ===
+          Number(initialVideoIdRef.current);
+
+       
+        if (
+          isInitialVideo &&
+          !autoNextUsedRef.current &&
+          !autoNextCancelledRef.current
+        ) {
+          autoNextUsedRef.current = true;
+
+          setNextCountdown(5);
+          setNotifyNext(true);
+
+          return;
+        }
+
+        setNotifyNext(false);
+      };
+
+    
+      
+      useEffect(() => {
+          if (!notifyNext) {
+            return;
+          }
+
+          if (nextCountdown <= 0) {
+            setNotifyNext(false);
+
+            if (
+              !autoNextCancelledRef.current &&
+              !navigationLockRef.current
+            ) {
+              handleNext();
+            }
+
+            return;
+          }
+
+          const timer = setTimeout(() => {
+            setNextCountdown(
+              (prev) => prev - 1
+            );
+          }, 1000);
+
+          return () => {
+            clearTimeout(timer);
+          };
+        }, [notifyNext, nextCountdown]);
+
+
+
+
+    const cancelAutoNext = () => {
+        if (cancelTimer) {
+          clearTimeout(cancelTimer);
+        }
+
+        setCancelTimer(null);
+
+        autoNextCancelledRef.current = true;
+
+        setNotifyNext(false);
+        setNextCountdown(5);
+      };
+
+    
+
+    const resetViewedVideos =
+      async () => {
+        if (resettingVideos) {
+          return;
+        }
+
+        setResettingVideos(true);
+        setShowResetPopup(false);
+
+        try {
+          await api.post(
+            "/api/videos/reset-views"
           );
 
-        const data =
-          Array.isArray(
-            res.data?.posts
-          )
-            ? res.data.posts
-            : [];
+          const res =
+            await api.get(
+              "/api/posts-get-video"
+            );
 
-        const videoPosts =
-          data.filter(
-            (post) =>
-              Array.isArray(
-                post?.media
-              ) &&
-              post.media.some(
-                (media) =>
-                  media?.type ===
-                    "video" &&
-                  media?.url
-              )
-          );
+          const data =
+            Array.isArray(
+              res.data?.posts
+            )
+              ? res.data.posts
+              : [];
+
+          const videoPosts =
+            data.filter(
+              (post) =>
+                Array.isArray(
+                  post?.media
+                ) &&
+                post.media.some(
+                  (media) =>
+                    media?.type ===
+                      "video" &&
+                    media?.url
+                )
+            );
 
         setVideos(videoPosts);
 
@@ -1705,17 +1703,18 @@ export default function PostVideoPageId({
   // --------------------------------------------------
   // COMMENT SCREEN
   // --------------------------------------------------
+const commentScreen = (
+  <div className="h-full flex flex-col overflow-hidden bg-[var(--bg-color)] text-[var(--text-color)]">
 
-  const commentScreen = (
-    <div className="lg:w-[400px] w-full border-l z-50 bg-[var(--bg-color)] text-[var(--text-color)] flex flex-col h-full">
+    {/* HEADER */}
+    <div className="shrink-0">
       <div className="flex p-4 items-start justify-between">
         <div className="flex items-center gap-3">
           <Link
             to={`/profile/${currentPost?.user?.id}`}
           >
             <p className="font-bold text-white bg-black text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center">
-              {currentPost?.user?.name?.[0] ||
-                "?"}
+              {currentPost?.user?.name?.[0] || "?"}
             </p>
           </Link>
 
@@ -1724,8 +1723,7 @@ export default function PostVideoPageId({
               to={`/profile/${currentPost?.user?.id}`}
             >
               <p className="font-semibold">
-                {currentPost?.user?.name ||
-                  "Unknown"}
+                {currentPost?.user?.name || "Unknown"}
               </p>
             </Link>
 
@@ -1736,15 +1734,14 @@ export default function PostVideoPageId({
         </div>
 
         <div className="inline-flex items-center gap-3">
-          <PostOptions
+          <PostOptionsId
             post={currentPost}
             chats={chats}
           />
 
           <button
-            onClick={
-              handleCommentPop
-            }
+            type="button"
+            onClick={handleCommentPop}
             className="w-10 h-10 rounded-full text-black bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
           >
             <svg
@@ -1766,41 +1763,31 @@ export default function PostVideoPageId({
       </div>
 
       {/* TEXT */}
-
       {currentPost?.content && (
         <div className="px-5 pb-4">
-          <p className="text-xs leading-6 break-words [overflow-wrap:anywhere]">
-            {showMore
-              ? text
-              : shortText}
+          <div className="max-h-28 overflow-y-auto no-scrollbar">
+            <p className="text-xs leading-6 break-words [overflow-wrap:anywhere]">
+              {showMore ? text : shortText}
 
-            {hasLongText && (
-              <button
-                type="button"
-                onClick={() =>
-                  setShowMore(
-                    (prev) => !prev
-                  )
-                }
-                className="ml-1 text-blue-600 font-semibold hover:underline"
-              >
-                {showMore
-                  ? " See less"
-                  : " See more"}
-              </button>
-            )}
-          </p>
+              {hasLongText && (
+                <button
+                  type="button"
+                  onClick={() => setShowMore((prev) => !prev)}
+                  className="ml-1 text-blue-600 font-semibold hover:underline"
+                >
+                  {showMore ? " See less" : " See more"}
+                </button>
+              )}
+            </p>
+          </div>
         </div>
       )}
 
       {/* COUNTS */}
-
-      <div className="flex justify-between border-t py-3 mx-4 items-center">
+      <div className="flex justify-between border-t py-3 mx-4 items-center bg-[var(--bg-color)] text-[var(--text-color)]">
         <div className="flex gap-1 items-center">
           <div className="text-xs inline-flex items-center gap-2 bg-[var(--bg-color)] text-[var(--text-color)]">
-            {Object.keys(
-              counts
-            ).map((emoji) => (
+            {Object.keys(counts).map((emoji) => (
               <span
                 key={emoji}
                 className="text-xs"
@@ -1815,37 +1802,28 @@ export default function PostVideoPageId({
                   <span
                     className="font-semibold hover:underline"
                     onClick={() =>
-                      setShowUsersPopup(
-                        true
-                      )
+                      setShowUsersPopup(true)
                     }
                   >
                     You
                   </span>
                 )}
 
-                {me &&
-                  othersCount > 0 && (
-                    <span>
-                      and
-                    </span>
-                  )}
+                {me && othersCount > 0 && (
+                  <span>
+                    and
+                  </span>
+                )}
 
                 {othersCount > 0 && (
                   <span
                     className="hover:underline"
                     onClick={() =>
-                      setShowUsersPopup(
-                        true
-                      )
+                      setShowUsersPopup(true)
                     }
                   >
-                    {othersCount}{" "}
-                    other
-                    {othersCount >
-                    1
-                      ? "s"
-                      : ""}
+                    {othersCount} other
+                    {othersCount > 1 ? "s" : ""}
                   </span>
                 )}
               </div>
@@ -1854,6 +1832,7 @@ export default function PostVideoPageId({
         </div>
 
         <div className="inline-flex items-center gap-3">
+          {/* COMMENTS COUNT */}
           <p className="inline-flex bg-[var(--bg-color)] text-[var(--text-color)] gap-1 items-center">
             {currentPost?.comments_count}
 
@@ -1873,6 +1852,7 @@ export default function PostVideoPageId({
             </svg>
           </p>
 
+          {/* SHARES COUNT */}
           <p className="inline-flex bg-[var(--bg-color)] text-[var(--text-color)] gap-1 items-center">
             {currentPost?.shares_count}
 
@@ -1889,7 +1869,6 @@ export default function PostVideoPageId({
       </div>
 
       {/* REACTION BUTTONS */}
-
       <div className="flex items-center justify-around px-3 py-2 text-sm bg-[var(--bg-color)] text-[var(--text-color)] border-t">
         <div
           className="relative group"
@@ -1902,39 +1881,27 @@ export default function PostVideoPageId({
         >
           {showReactions && (
             <div className="absolute bottom-10 left-0 bg-white shadow-xl rounded-full px-3 py-2 flex flex-row items-center gap-2 z-20">
-              {reactionList.map(
-                (emoji) => (
-                  <button
-                    type="button"
-                    key={emoji}
-                    onClick={() =>
-                      !reactionLoading &&
-                      toggleReaction(
-                        emoji
-                      )
-                    }
-                    className="text-2xl cursor-pointer hover:scale-125 transition shrink-0"
-                  >
-                    {emoji}
-                  </button>
-                )
-              )}
+              {reactionList.map((emoji) => (
+                <button
+                  type="button"
+                  key={emoji}
+                  onClick={() =>
+                    !reactionLoading &&
+                    toggleReaction(emoji)
+                  }
+                  className="text-2xl cursor-pointer hover:scale-125 transition shrink-0"
+                >
+                  {emoji}
+                </button>
+              ))}
 
-              {/* PLUS - OPEN MORE EMOJI PICKER */}
-
+              {/* MORE EMOJIS */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
 
-                  setShowReactions(
-                    false
-                  );
-
-                  /*
-                   * This opens your existing
-                   * emoji picker.
-                   */
+                  setShowReactions(false);
                   setShowEmoji(true);
                 }}
                 className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl font-semibold shrink-0"
@@ -1945,12 +1912,14 @@ export default function PostVideoPageId({
             </div>
           )}
 
+          {/* LIKE */}
           <button
+            type="button"
             onClick={onLikeClick}
             className={`flex items-center gap-1 font-semibold ${
               myReaction
                 ? "text-blue-800"
-                : "text-gray-700"
+                : ""
             }`}
           >
             <svg
@@ -1972,7 +1941,9 @@ export default function PostVideoPageId({
           </button>
         </div>
 
+        {/* COMMENT */}
         <button
+          type="button"
           className="flex items-center gap-1 font-semibold"
           onClick={handleCommentPop}
         >
@@ -1987,14 +1958,16 @@ export default function PostVideoPageId({
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
+              d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
             />
           </svg>
 
           Comment
         </button>
 
+        {/* SHARE */}
         <button
+          type="button"
           onClick={() =>
             setShares(!shares)
           }
@@ -2012,47 +1985,42 @@ export default function PostVideoPageId({
           Share
         </button>
       </div>
-
-      {/* COMMENTS */}
-
-      <div className="overflow-y-auto flex-1 min-h-0 px-1 no-scrollbar">
-        {currentPost && (
-          <PostComment
-            postId={currentPost.id}
-            image={image}
-            post={currentPost}
-            postComments={postComments}
-            setPostComments={
-              setPostComments
-            }
-          />
-        )}
-      </div>
-
-      {/* COMMENT INPUT */}
-
-      <div className="shrink-0 p-2 border-t bg-white">
-        <PostCommentInput
-          newComment={newComment}
-          loading={loadingComment}
-          setNewComment={
-            setNewComment
-          }
-          setImage={setImage}
-          image={image}
-          showEmoji={showEmoji}
-          setShowEmoji={
-            setShowEmoji
-          }
-          emojiList={emojiList}
-          postComment={postComment}
-          commentInputRef={
-            commentInputRef
-          }
-        />
-      </div>
     </div>
-  );
+
+    <div className="shrink-0 overflow-hidden">
+      {currentPost && (
+        <PostComment
+          postId={currentPost.id}
+          image={image}
+          post={currentPost}
+          postComments={postComments}
+          setPostComments={setPostComments}
+        />
+      )}
+    </div>
+    
+    <div
+      className="shrink-0 p-2 border-t"
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+    >
+      <PostCommentInput
+        newComment={newComment}
+        loading={loadingComment}
+        setNewComment={setNewComment}
+        setImage={setImage}
+        image={image}
+        showEmoji={showEmoji}
+        setShowEmoji={setShowEmoji}
+        emojiList={emojiList}
+        postComment={postComment}
+        commentInputRef={commentInputRef}
+      />
+    </div>
+
+  </div>
+);
+
 
   return (
     <div className="flex h-screen w-full bg-neutral-950 overflow-hidden">
@@ -2156,13 +2124,22 @@ export default function PostVideoPageId({
 
         {/* VIDEO CARD */}
 
-        <div
-          {...handlers}
-          onMouseMove={handleMouseMove}
-          onTouchStart={handleVideoTouch}
-          onClick={showVideoControls}
-          className="relative h-full w-full sm:w-auto sm:max-w-[min(720px,90vw)] flex items-center justify-center overflow-hidden bg-neutral-900 sm:rounded-2xl shadow-2xl select-none"
-        >
+       <div
+        {...handlers}
+        onMouseMove={(e) => {
+          handleMouseMove(e);
+          showVideoControls();
+        }}
+        onTouchStart={handleVideoTouch}
+        onClick={showVideoControls}
+        onMouseEnter={showVideoControls}
+        onMouseLeave={() => {
+          if (isPlaying && !videoLoading) {
+            hideVideoControls();
+          }
+        }}
+        className="relative h-full w-full sm:w-auto sm:max-w-[min(720px,90vw)] flex items-center justify-center overflow-hidden bg-neutral-900 sm:rounded-2xl shadow-2xl select-none"
+      >
           <video
             ref={videoRef}
             src={currentMedia.url}
@@ -2177,10 +2154,14 @@ export default function PostVideoPageId({
           {/* SUBTLE GRADIENT */}
 
           <div
-            className={`pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/65 transition-opacity duration-300 ${
-              showOverlay
-                ? "opacity-100"
-                : "opacity-0"
+            className={`absolute inset-0 z-[80] flex items-center justify-center transition-opacity duration-300 ${
+              videoLoading
+                ? "opacity-0 pointer-events-none"
+                : !isPlaying
+                  ? "opacity-100"
+                  : showOverlay
+                    ? "opacity-100"
+                    : "opacity-0 pointer-events-none"
             }`}
           />
 
@@ -2457,7 +2438,7 @@ export default function PostVideoPageId({
                     to={`/profile/${currentPost?.user?.id}`}
                     className="shrink-0"
                   >
-                    <span className="w-8 h-8 sm:w-11 sm:h-11 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg">
+                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg">
                       {currentPost?.user?.name
                         ?.charAt(0)
                         ?.toUpperCase() ||
@@ -2479,7 +2460,7 @@ export default function PostVideoPageId({
                           : ""
                       }`}
                     >
-                      <p className="text-white text-xs sm:text-sm leading-5 break-words [overflow-wrap:anywhere]">
+                      <p className="text-white text-xs leading-5 break-words [overflow-wrap:anywhere]">
                         {showMore
                           ? text
                           : shortText}
@@ -2901,13 +2882,26 @@ export default function PostVideoPageId({
 
       {/* COMMENT POPUP */}
 
-      {showCommentPop && (
-        <div className="fixed px-2 inset-0 bg-white/70 flex sm:py-5 items-center justify-center z-50">
-          <div className="bg-white rounded-xl w-full lg:w-[400px] h-full sm:my-4 flex flex-col max-w-xl border shadow-lg">
-            {commentScreen}
-          </div>
+     {showCommentPop && (
+      <div className="fixed inset-0 px-2 bg-black/70 flex items-center justify-center z-[999]">
+        <div
+          className="
+            rounded-xl
+            w-full
+            lg:w-[400px]
+            max-w-xl
+            max-h-[90vh]
+            flex
+            flex-col
+            shadow-lg
+            overflow-hidden
+            bg-[var(--bg-color)]
+          "
+        >
+          {commentScreen}
         </div>
-      )}
+      </div>
+    )}
 
       {/* SHARE POPUP */}
 
