@@ -136,22 +136,7 @@ const totalReactions = reactionArray.length;
     console.error(err.response?.data || err);
   }
 };
-
-const pressTimerRef = useRef(null);
-
-const handleCommentTouchStart = (comment) => {
-  pressTimerRef.current = setTimeout(() => {
-    setSelectedComment(comment);
-    setShowCommentMenu(true);
-  }, 500);
-};
-
-const handleCommentTouchEnd = () => {
-  if (pressTimerRef.current) {
-    clearTimeout(pressTimerRef.current);
-    pressTimerRef.current = null;
-  }
-};
+ 
 
 
   const handleDelete = async () => {
@@ -170,6 +155,30 @@ const handleReport = () =>{
   setOpenReport(!openReport)
 }
 
+const commentPressTimer = useRef(null);
+const commentLongPressTriggered = useRef(false);
+
+const handleCommentTouchStart = (comment) => {
+  clearTimeout(commentPressTimer.current);
+
+  commentLongPressTriggered.current = false;
+
+  commentPressTimer.current = setTimeout(() => {
+    commentLongPressTriggered.current = true;
+
+    // Select the comment
+    setSelectedComment(comment);
+
+    // Open comment options
+    setShowCommentMenu(true);
+
+    console.log("COMMENT LONG PRESS:", comment.id);
+  }, 500);
+};
+
+const handleCommentTouchEnd = () => {
+  clearTimeout(commentPressTimer.current);
+};
   
   function timeAgo(dateString) {
   const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
@@ -220,10 +229,38 @@ const navigate = useNavigate()
     sm:max-w-64
     relative
     group
-  "
- onTouchStart={() => handleCommentTouchStart(comment)}
-  onTouchEnd={handleCommentTouchEnd}
-  onTouchCancel={handleCommentTouchEnd}
+        "
+      onTouchStart={(e) => {
+        e.stopPropagation();
+
+        // Don't start long press from buttons/links/images
+        if (
+          e.target.closest("button") ||
+          e.target.closest("a") ||
+          e.target.closest("input") ||
+          e.target.closest("textarea")
+        ) {
+          return;
+        }
+
+        handleCommentTouchStart(comment);
+      }}
+
+      onTouchMove={() => {
+        // Moving means scrolling, not long press
+        if (!commentLongPressTriggered.current) {
+          clearTimeout(commentPressTimer.current);
+        }
+      }}
+
+      onTouchEnd={(e) => {
+        e.stopPropagation();
+        handleCommentTouchEnd();
+      }}
+
+      onTouchCancel={() => {
+        handleCommentTouchEnd();
+      }}
 >
 
   {!isEditing && (
@@ -231,10 +268,16 @@ const navigate = useNavigate()
   group-hover:visible transition-all duration-150">
     <button
       type="button"
-      onClick={() => {
-        setSelectedComment(comment);
-        setShowCommentMenu(true);
-      }}
+     onTouchStart={(e) => {
+          e.stopPropagation();
+          clearTimeout(commentPressTimer.current);
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+
+          setSelectedComment(comment);
+          setShowCommentMenu(true);
+        }}
       className="text-black p-1 rounded-full hover:bg-gray-200"
     >
       <svg

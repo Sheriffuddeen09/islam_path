@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import VoiceWave from "../chatbox/VoiceWave";
 import EmojiPicker from "emoji-picker-react";
 import MediaCommunityPreviewModal from "./MediaCommunityPreviewModal";
 import AttachmentMenuCommunity from "./AttachmentMenuCommunity";
@@ -534,9 +533,8 @@ const handlePick = (type) => {
     cropAppliedMap={cropAppliedMapCommunity}
     selected={selectedCommunity}
     onClose={() => setShowPreviewCommunity(false)}
-    onSend={({ selectedFiles }) => {
-      sendFileCommunity(selectedFiles); // 👈 pass only selectedCommunity
-      setShowPreviewCommunity(false);
+    onSend={({ selectedFiles, response_mode = false }) => {
+      sendFileCommunity(selectedFiles, response_mode);
     }}
     setDurationMap={setDurationMapCommunity}
     durationMap={durationMapCommunity}

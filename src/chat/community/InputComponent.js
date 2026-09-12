@@ -447,91 +447,101 @@ const sendTextCommunity = async ({
 
   }
 };
-
 const sendFileCommunity = async (
+  selectedFiles = [],
   response_mode = false
 ) => {
-  
- if (!files.length) return;
+  if (!selectedFiles.length) return;
 
-  // 🚫 Prevent more than 2 files
-  if (files.length > 2) {
-    toast.error(
-      "You can only send a maximum of 2 files at a time."
-    );
+  // Only one image/video/file should be sent
+  if (selectedFiles.length > 1) {
+    toast.error("You can only send one image, video or file at a time.");
     return;
   }
-  const reply =
-    replyingToCommunity;
+
+  const originalFile = selectedFiles[0];
+
+  const reply = replyingToCommunity;
+
   setReplyingToCommunity(null);
-  const tempId = Date.now();
-  const originalFile = files[0];
+
+  const tempId = `temp-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+
   const getType = (file) => {
-    if (
-      file.type.startsWith("image/")
-    ) {
+    if (file.type?.startsWith("image/")) {
       return "image";
     }
-    if (
-      file.type.startsWith("video/")
-    ) {
+
+    if (file.type?.startsWith("video/")) {
       return "video";
     }
-    if (
-      file.type.startsWith("audio/")
-    ) {
+
+    if (file.type?.startsWith("audio/")) {
       return "audio";
     }
+
     return "file";
   };
-  const type =
-    getType(originalFile);
+
+  const type = getType(originalFile);
+
   let finalFile = originalFile;
+
   if (
     type === "image" &&
-    croppedImagesCommunity[0]
+    croppedImagesCommunity?.[0]
   ) {
-    finalFile =
-      croppedImagesCommunity[0];
+    finalFile = croppedImagesCommunity[0];
   }
-  const preview =
-    URL.createObjectURL(finalFile);
+
+  const preview = URL.createObjectURL(finalFile);
+
   const tempMessage = {
     id: tempId,
+    temp_id: tempId,
+
     type,
+
     sender_id: authUser.id,
     sender: authUser,
+
     status: "sending",
+
     message: captionCommunity,
+
     response_mode,
-    created_at:
-      new Date().toISOString(),
-    replied_to:
-      reply || null,
+
+    created_at: new Date().toISOString(),
+
+    replied_to: reply || null,
+
     files: [
       {
         file_url: preview,
-        file_name:
-          finalFile.name,
+        file_name: finalFile.name,
         type,
       },
     ],
   };
 
-  setMessages(prev => {
+  // -----------------------------
+  // OPTIMISTIC MESSAGE
+  // -----------------------------
 
+  setMessages((prev) => {
     const updated = [
-        ...prev,
-        tempMessage,
+      ...prev,
+      tempMessage,
     ];
 
     communityMessagesCache.current[
-        activeCommunity.id
+      activeCommunity.id
     ] = updated;
 
     return updated;
-
-});
+  });
 
   requestAnimationFrame(() => {
     bottomRef.current?.scrollIntoView({
@@ -539,57 +549,79 @@ const sendFileCommunity = async (
       block: "end",
     });
   });
-  
+
   try {
-    const data =
-      await communityMessageAction({
-        action: "send",
-        file: finalFile,
-        type,
-        message:
-          captionCommunity,
-        replied_to:
-          reply?.id || null,
-        response_mode,
-        tempMessage,
-      });
-    const realMessage =
-      data.message;
+    const data = await communityMessageAction({
+      action: "send",
+
+      file: finalFile,
+
+      type,
+
+      message: captionCommunity,
+
+      replied_to: reply?.id || null,
+
+      response_mode,
+
+      tempMessage,
+    });
+
+    const realMessage = data.message;
+
     const normalized = {
       ...realMessage,
+
       status: "sent",
+
       files: realMessage.file
         ? [
             {
               file_url:
-                realMessage.file.startsWith(
-                  "http"
-                )
+                realMessage.file.startsWith("http")
                   ? realMessage.file
                   : `http://127.0.0.1:8000/storage/${realMessage.file}`,
-              type:
-                realMessage.type,
+
+              type: realMessage.type,
             },
           ]
         : [],
     };
-   
-    setMessages(prev => {
 
-    const updated = prev.map(m =>
-        m.id === tempId
+    // -----------------------------
+    // REPLACE TEMP MESSAGE
+    // -----------------------------
+
+    setMessages((prev) => {
+      const alreadyExists = prev.some(
+        (m) =>
+          String(m.id) === String(realMessage.id)
+      );
+
+      let updated;
+
+      if (alreadyExists) {
+        // Server message already arrived through
+        // websocket/listener, so remove the temp one.
+        updated = prev.filter(
+          (m) =>
+            String(m.id) !== String(tempId)
+        );
+      } else {
+        // Replace temp message with real message.
+        updated = prev.map((m) =>
+          String(m.id) === String(tempId)
             ? normalized
             : m
-    );
+        );
+      }
 
-    communityMessagesCache.current[
+      communityMessagesCache.current[
         activeCommunity.id
-    ] = updated;
+      ] = updated;
 
-    return updated;
-
-});
-
+      return updated;
+    });
 
     requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({
@@ -598,56 +630,62 @@ const sendFileCommunity = async (
       });
     });
   } catch (err) {
-    setMessages(prev => {
+    setMessages((prev) => {
+      const updated = prev.map((m) =>
+        String(m.id) === String(tempId)
+          ? {
+              ...m,
+              status: "failed",
+            }
+          : m
+      );
 
-    const updated = prev.map(m =>
-        m.id === tempId
-            ? {
-                  ...m,
-                  status: "failed",
-              }
-            : m
-    );
-
-    communityMessagesCache.current[
+      communityMessagesCache.current[
         activeCommunity.id
-    ] = updated;
+      ] = updated;
 
-    return updated;
+      return updated;
+    });
 
-});
     toast.error(
-      err?.response?.data
-        ?.message ||
-      "Failed to send"
+      err?.response?.data?.message ||
+        "Failed to send"
     );
   }
+
+  // -----------------------------
+  // RESET
+  // -----------------------------
+
   setShowPreviewCommunity(false);
+
   setFiles([]);
+
   setPreviewUrlsCommunity([]);
+
   setCaptionCommunity("");
+
   setCroppedImagesCommunity({});
-  setCropAppliedMapCommunity(
-    false
-  );
+
+  setCropAppliedMapCommunity(false);
+
   setCropCommunity({
     x: 0,
     y: 0,
   });
+
   setSelectedCommunity([]);
+
   setTrimMapCommunity({});
+
   setDurationMapCommunity({});
-  setTrimAppliedMapCommunity(
-    {}
-  );
-  if (
-    fileInputRefCommunity.current
-  ) {
-    fileInputRefCommunity.current.value =
-      "";
+
+  setTrimAppliedMapCommunity({});
+
+  if (fileInputRefCommunity.current) {
+    fileInputRefCommunity.current.value = "";
   }
 };
-
 
 
 

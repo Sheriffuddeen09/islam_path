@@ -36,21 +36,26 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
      const handleReport = () =>{
     setOpenReport(!openReport)
   }
-
-const replyPressTimer = useRef(null);
+ const replyPressTimer = useRef(null);
+const replyLongPressTriggered = useRef(false);
 
 const handleReplyPressStart = (reply) => {
+  clearTimeout(replyPressTimer.current);
+
+  replyLongPressTriggered.current = false;
+
   replyPressTimer.current = setTimeout(() => {
+    replyLongPressTriggered.current = true;
+
     setSelectedReply(reply);
     setShowReplyMenu(true);
+
+    console.log("REPLY LONG PRESS:", reply.id);
   }, 500);
 };
 
 const handleReplyPressEnd = () => {
-  if (replyPressTimer.current) {
-    clearTimeout(replyPressTimer.current);
-    replyPressTimer.current = null;
-  }
+  clearTimeout(replyPressTimer.current);
 };
 
   useEffect(() => {
@@ -161,36 +166,43 @@ const handleReplyToReply = (reply) => {
   });
 }
 
-
-function RenderCommentText({ text }) {
-  if (!text) return null;
-
-  return (
-    <Linkify
-      options={{
-        target: "_blank",
-        rel: "noopener noreferrer",
-        className: "text-blue-600 underline break-all"
-      }}
-    >
-      {renderWithMention(text)}
-    </Linkify>
-  );
-}
-
-
+ 
 const navigate = useNavigate()
 
     return(
 
         <div className="px-4 py-2">
-    <div className="flex gap-2 items-start justify-end">
-    <div className="bg-gray-100 rounded
-    w-fit
-    max-w-64
-    sm:max-w-64 relative group  px-4 py-2 " onTouchStart={() => handleReplyPressStart(reply)}
-  onTouchEnd={handleReplyPressEnd}
-  onTouchCancel={handleReplyPressEnd}>
+        <div className="flex gap-2 items-start justify-end">
+        <div className="bg-gray-100 rounded
+        w-fit
+        max-w-64
+        sm:max-w-64 relative group  px-4 py-2 " 
+        onTouchStart={(e) => {
+        e.stopPropagation();
+
+        // Do not start long press from buttons/links
+        if (
+          e.target.closest("button") ||
+          e.target.closest("a") ||
+          e.target.closest("input") ||
+          e.target.closest("textarea")
+        ) {
+          return;
+        }
+
+        handleReplyPressStart(reply);
+      }}
+      onTouchMove={() => {
+        // Moving means this is probably scrolling, not long press
+        if (!replyLongPressTriggered.current) {
+          clearTimeout(replyPressTimer.current);
+        }
+      }}
+      onTouchEnd={(e) => {
+        e.stopPropagation();
+        handleReplyPressEnd();
+      }}
+      onTouchCancel={handleReplyPressEnd}>
         <div className=" flex flex-row justify-between  items-start">
         <button onClick={() => navigate(`/profile/${user.id}`)}
          className="text-black font-bold mr-6">{reply?.user?.first_name} {reply?.user?.last_name}
@@ -199,13 +211,19 @@ const navigate = useNavigate()
         <div className="absolute top-2 right-1 opacity-0 invisible group-hover:opacity-100 
   group-hover:visible transition-all duration-150">
     <button
-      type="button"
-      onClick={() => {
-        setSelectedReply(reply);
-        setShowReplyMenu(true);
-      }}
-      className="text-black p-1 rounded-full hover:bg-gray-200"
-    >
+    type="button"
+    onTouchStart={(e) => {
+      e.stopPropagation();
+      clearTimeout(replyPressTimer.current);
+    }}
+    onClick={(e) => {
+      e.stopPropagation();
+
+      setSelectedReply(reply);
+      setShowReplyMenu(true);
+    }}
+    className="text-black p-1 rounded-full hover:bg-gray-200"
+  >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"

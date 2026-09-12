@@ -34,38 +34,33 @@ export default function PostCommentReplyItem ({image, handleReplyToComment, load
   setOpenReport(!openReport)
 }
 // loading
-    
-const pressTimerRef = useRef(null);
+  const commentPressTimer = useRef(null);
+const commentLongPressTriggered = useRef(false);
 
 const handleCommentTouchStart = (comment) => {
-  pressTimerRef.current = setTimeout(() => {
+  clearTimeout(commentPressTimer.current);
+
+  commentLongPressTriggered.current = false;
+
+  commentPressTimer.current = setTimeout(() => {
+    commentLongPressTriggered.current = true;
+
+    // Select the comment
     setSelectedComment(comment);
+
+    // Open comment options
     setShowCommentMenu(true);
+
+    console.log("COMMENT LONG PRESS:", comment.id);
   }, 500);
 };
 
 const handleCommentTouchEnd = () => {
-  if (pressTimerRef.current) {
-    clearTimeout(pressTimerRef.current);
-    pressTimerRef.current = null;
-  }
+  clearTimeout(commentPressTimer.current);
 };
-
 
 const [isSubmitting, setIsSubmitting] = useState(false);
-
-const buildReplyBody = (baseText = "") => {
-  if (!replyTo) return baseText;
-
-  const mention = `@${replyTo.name}`;
-
-  // If user deleted the mention, do NOT re-add it
-  if (!baseText.includes(mention)) {
-    return baseText;
-  }
-
-  return baseText;
-};
+ 
 
 
 const sendTextReply = async () => {
@@ -262,18 +257,54 @@ const contentEdit = (
     <div className="bg-gray-100 w-fit
     max-w-64
     sm:max-w-64 flex-1 relative group 
-     px-4 py-2 rounded " onTouchStart={() => handleCommentTouchStart(comment)}
-  onTouchEnd={handleCommentTouchEnd}
-  onTouchCancel={handleCommentTouchEnd}>
+     px-4 py-2 rounded "
+     
+      onTouchStart={(e) => {
+        e.stopPropagation();
+
+        // Don't start long press from buttons/links/images
+        if (
+          e.target.closest("button") ||
+          e.target.closest("a") ||
+          e.target.closest("input") ||
+          e.target.closest("textarea")
+        ) {
+          return;
+        }
+
+        handleCommentTouchStart(comment);
+      }}
+
+      onTouchMove={() => {
+        // Moving means scrolling, not long press
+        if (!commentLongPressTriggered.current) {
+          clearTimeout(commentPressTimer.current);
+        }
+      }}
+
+      onTouchEnd={(e) => {
+        e.stopPropagation();
+        handleCommentTouchEnd();
+      }}
+
+      onTouchCancel={() => {
+        handleCommentTouchEnd();
+      }}>
 
     <div className="absolute top-2 right-1 opacity-0 invisible group-hover:opacity-100 
   group-hover:visible transition-all duration-150">
     <button
       type="button"
-      onClick={() => {
-        setSelectedComment(comment);
-        setShowCommentMenu(true);
-      }}
+      onTouchStart={(e) => {
+          e.stopPropagation();
+          clearTimeout(commentPressTimer.current);
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+
+          setSelectedComment(comment);
+          setShowCommentMenu(true);
+        }}
       className="text-black p-1 rounded-full hover:bg-gray-200"
     >
       <svg

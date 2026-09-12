@@ -216,134 +216,153 @@ const handleDownloadMessage =
             key={msg.id}
            
             className={`
-              relative
-              group
-              transition-all
-              cursor-pointer  
-              mb-5
-              ${msg.is_system === 1
-                ? "w-full flex justify-center text-[--text-color]"
-                : "max-w-md w-full mx-auto rounded-2xl bg-[#202c33] text-white"
-              }
-            `}
+                  relative
+                  group
+                  transition-all
+                  cursor-pointer
+                  mb-5
+                  rounded-2xl
+
+                  ${
+                    msg.is_system === 1
+                      ? "w-full flex justify-center text-[--text-color]"
+                      : `max-w-md w-full mx-auto text-white ${
+                          selectedMessage?.id === msg.id
+                            ? "bg-green-600/20 ring-1 ring-green-500/40"
+                            : "bg-[#202c33]"
+                        }`
+                  }
+        `}
 
            style={{
-    transform: `translateX(${translateX}px)`,
+                transform: `translateX(${translateX}px)`,
 
-    transition:
-      translateX === 0
-        ? "transform 0.2s ease"
-        : "none",
+                transition:
+                  translateX === 0
+                    ? "transform 0.2s ease"
+                    : "none",
 
-    touchAction: "none",
-  }}
+                touchAction: "none",
+              }}
 
-  onPointerDown={(e) => {
-  if (isInteractive(e.target)) {
-    return;
-  }
+              onPointerDown={(e) => {
+              if (isInteractive(e.target)) {
+                return;
+              }
 
-  // Only handle the primary mouse button
-  if (e.pointerType === "mouse" && e.button !== 0) {
-    return;
-  }
+              // Only handle the primary mouse button
+              if (e.pointerType === "mouse" && e.button !== 0) {
+                return;
+              }
 
-  clearTimeout(pressTimer.current);
+              clearTimeout(pressTimer.current);
 
-  longPressTriggered.current = false;
-  isDragging.current = true;
+              longPressTriggered.current = false;
+              isDragging.current = true;
 
-  startX.current = e.clientX;
-  dragX.current = 0;
+              startX.current = e.clientX;
+              dragX.current = 0;
 
-  pressTimer.current = setTimeout(() => {
-    longPressTriggered.current = true;
+              pressTimer.current = setTimeout(() => {
+              longPressTriggered.current = true;
 
-    // Select the exact message that was held
-    setSelectedMessage(msg);
-    setReactionMsg(msg);
+              setSelectedMessage((prev) => {
+                const isAlreadySelected = prev?.id === msg.id;
 
-    // Close any existing menu
-    setShowMessageMenu(false);
+                if (isAlreadySelected) {
+                  // Long press again → deselect
+                  setReactionMsg(null);
+                  setShowMessageMenu(false);
 
-    console.log("LONG PRESSING", msg.id);
-  }, 500);
-}}
+                  console.log("DESELECTED", msg.id);
 
-  onPointerMove={(e) => {
-  if (isInteractive(e.target)) {
-    return;
-  }
+                  return null;
+                }
 
-  if (!isDragging.current) {
-    return;
-  }
+                // Long press → select
+                setReactionMsg(msg);
+                setShowMessageMenu(false);
 
-  const diff = e.clientX - startX.current;
+                console.log("SELECTED", msg.id);
 
-  // Finger moved → cancel long press
-  if (Math.abs(diff) > 10) {
-    clearTimeout(pressTimer.current);
-  }
+                return msg;
+              });
+            }, 500);            }}
 
-  // RIGHT SWIPE ONLY
-  if (diff > 0) {
-    const MAX = 80;
+              onPointerMove={(e) => {
+              if (isInteractive(e.target)) {
+                return;
+              }
 
-    const x = Math.min(diff, MAX);
+              if (!isDragging.current) {
+                return;
+              }
 
-    dragX.current = diff;
+              const diff = e.clientX - startX.current;
 
-    setTranslateX(x);
-  }
-}}
+              // Finger moved → cancel long press
+              if (Math.abs(diff) > 10) {
+                clearTimeout(pressTimer.current);
+              }
 
-       onPointerUp={(e) => {
-  isDragging.current = false;
+              // RIGHT SWIPE ONLY
+              if (diff > 0) {
+                const MAX = 80;
 
-  clearTimeout(pressTimer.current);
+                const x = Math.min(diff, MAX);
 
-  const diff = dragX.current;
+                dragX.current = diff;
 
-  setTranslateX(0);
-  dragX.current = 0;
+                setTranslateX(x);
+              }
+            }}
 
-  // Long press already handled this interaction
-  if (longPressTriggered.current) {
-    return;
-  }
+                  onPointerUp={(e) => {
+              isDragging.current = false;
 
-  // SWIPE TO REPLY
-  if (diff > 60) {
-    setReplyingToCommunity(msg);
-  }
-}}
+              clearTimeout(pressTimer.current);
 
-       onPointerCancel={() => {
-  clearTimeout(pressTimer.current);
+              const diff = dragX.current;
 
-  isDragging.current = false;
+              setTranslateX(0);
+              dragX.current = 0;
 
-  setTranslateX(0);
-  dragX.current = 0;
-}}
+              // Long press already handled this interaction
+              if (longPressTriggered.current) {
+                return;
+              }
 
-onClick={(e) => {
-  e.stopPropagation();
+              // SWIPE TO REPLY
+              if (diff > 60) {
+                setReplyingToCommunity(msg);
+              }
+            }}
 
-  if (isInteractive(e.target)) {
-    return;
-  }
+                  onPointerCancel={() => {
+              clearTimeout(pressTimer.current);
 
-  // A long press has already selected the message.
-  // Prevent the normal click action.
-  if (longPressTriggered.current) {
-    longPressTriggered.current = false;
-    return;
-  }
+              isDragging.current = false;
 
-  // Normal message click logic here
-}}
+              setTranslateX(0);
+              dragX.current = 0;
+            }}
+
+            onClick={(e) => {
+              e.stopPropagation();
+
+              if (isInteractive(e.target)) {
+                return;
+              }
+
+              // A long press has already selected the message.
+              // Prevent the normal click action.
+              if (longPressTriggered.current) {
+                longPressTriggered.current = false;
+                return;
+              }
+
+              // Normal message click logic here
+            }}
            onMouseEnter={() => {
             setHoverMsgId(msg.id);
             }}
