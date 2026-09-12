@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import CommunityMediaReaction from "./CommunityMediaReaction";
 import DeleteMessageModal from "./DeleteMessageModal";
 import api from "../../Api/axios";
+import PreviewMessageText from "../chatbox/PreviewMessageText";
 
 export default function MediaPreview({
   showPreview,
@@ -544,9 +545,9 @@ const handleCopyText = async (msg) => {
       "
     >
 
-      <ReadMoreCaption
-        text={
-          previewMessage.message
+      <PreviewMessageText
+        msg={
+          previewMessage
         }
       />
 

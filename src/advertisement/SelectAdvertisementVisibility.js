@@ -4,6 +4,7 @@ import React, {
 } from "react";
 
 import {
+    Link,
     useNavigate,
     useParams
 } from "react-router-dom";
@@ -25,7 +26,7 @@ import toast from "react-hot-toast";
 
 import api from "../Api/axios";
 
-
+// Unlocking...
 export default function SelectAdvertisementVisibility() {
 
     const {
@@ -1393,7 +1394,12 @@ export default function SelectAdvertisementVisibility() {
                                                         </p>
 
                                                     )}
-
+                                    <div className="flex flex-col mt-4 gap-2 items-center">
+                                         {badges.total < 20 && (
+                                              <Link to={'/contact'} className="font-bold text-blue-700 text-sm ">
+                                                Inquiry for more Badges 🏅</Link>
+                                        )}
+                                        </div>
                                                 </button>
 
                                             );
@@ -1455,7 +1461,7 @@ export default function SelectAdvertisementVisibility() {
                                             </p>
 
                                         </div>
-
+                                   
                                     </div>
 
 
@@ -1798,7 +1804,8 @@ export default function SelectAdvertisementVisibility() {
                                     flex
                                     items-center
                                     justify-center
-                                    gap-2
+                                    gap-2 whitespace-nowrap
+                                    px-2
                                 "
                             >
 
@@ -1813,7 +1820,7 @@ export default function SelectAdvertisementVisibility() {
                                             "
                                         />
 
-                                        Unlocking...
+                                        Unlocking
 
                                     </>
 

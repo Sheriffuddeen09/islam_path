@@ -4,24 +4,25 @@ import { useState } from "react";
 
 export default function MediaMessage({
   msg,
-  setPreview, uiMode
+  setPreview, uiMode, toggleSelect
 }) {
 
   const [expandedMessages, setExpandedMessages] = useState({});
     
-      const isExpanded =
-      expandedMessages[msg.id];
     
     const messageText =
       msg.message || "";
     
-    const shouldTrim =
-      messageText.length > 250;
-    
-    const displayText =
-      shouldTrim && !isExpanded
-        ? messageText.slice(0, 250) + "..."
-        : messageText;
+
+        const visibleLength =
+          expandedMessages[msg.id] || 700;
+
+        const hasMoreText =
+          messageText.length > visibleLength;
+
+        const displayText = hasMoreText
+          ? `${messageText.slice(0, visibleLength)}...`
+          : messageText;
     
 
 
@@ -45,6 +46,7 @@ export default function MediaMessage({
         msg={msg}
         setPreview={setPreview}
         uiMode={uiMode}
+        toggleSelect={toggleSelect}
       />
 
       {/* caption */}
@@ -68,28 +70,45 @@ export default function MediaMessage({
             >
        {displayText}
        </Linkify> 
-           {shouldTrim && (
-          <button
-            onClick={() =>
-              setExpandedMessages((prev) => ({
-                 ...prev,
-                 [msg.id]:
-                   !prev[msg.id],
-               }))
-             }
-             className="
-               ml-2
-               text-green-400
-               text-xs
-               font-semibold
-               hover:underline
-             "
-           >
-             {isExpanded
-               ? "See less"
-               : "See more"}
-           </button>
-         )} 
+           {hasMoreText && (
+            <button
+              onClick={() =>
+                setExpandedMessages((prev) => ({
+                  ...prev,
+                  [msg.id]: (prev[msg.id] || 700) + 700,
+                }))
+              }
+              className="
+                ml-2
+                text-green-400
+                text-xs
+                font-semibold
+                hover:underline
+              "
+            >
+              See more
+            </button>
+          )}
+
+          {!hasMoreText && visibleLength > 700 && messageText.length > 700 && (
+            <button
+              onClick={() =>
+                setExpandedMessages((prev) => ({
+                  ...prev,
+                  [msg.id]: 700,
+                }))
+              }
+              className="
+                ml-2
+                text-green-400
+                text-xs
+                font-semibold
+                hover:underline
+              "
+            >
+              See less
+            </button>
+          )} 
            </div>
            )}
         

@@ -452,7 +452,7 @@ const firstMyVideo =
 
    const isUserInChatList =
     Array.isArray(chats) &&
-    chats.some(chat => {
+    chats.some((chat) => {
         const chatUser =
             chat?.other_user ??
             chat?.other ??
@@ -462,10 +462,14 @@ const firstMyVideo =
                     : chat?.teacher
             );
 
-        return Number(chatUser?.id) === Number(user?.id);
+        // Must have another user in the chat
+        return (
+            chatUser?.id &&
+            Number(chatUser.id) !== Number(authUser?.id)
+        );
     });
 
-    const canShowButton = isUserInChatList;
+const canShowButton = isUserInChatList;
 
 
     if (reelLoading) {
@@ -637,7 +641,7 @@ const firstMyVideo =
                     scrollbar-hide
                 "
             >
-              {!canShowButton && (
+              {canShowButton && (
 
     <div
         className="

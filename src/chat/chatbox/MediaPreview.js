@@ -5,6 +5,7 @@ import ReactionMediaPopup from "./ReactionMediaPopup";
 import DeleteModal from "../chatcomponent/DeleteModal";
 import { ReportModal } from "../chatcomponent/ReportModal";
 import { useAuth } from "../../layout/AuthProvider";
+import PreviewMessageText from "./PreviewMessageText";
 
 export default function MediaPreview({
   preview,
@@ -281,7 +282,7 @@ const avatarName = isGroup
 
   return (
   
-  <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col">
+  <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[999] flex flex-col">
 
   <div
     className="
@@ -604,8 +605,8 @@ const avatarName = isGroup
             w-full max-w-md
           "
         >
-          <ReadMoreCaption
-            text={msg.message}
+          <PreviewMessageText
+            msg={msg}
           />
         </div>
       )}

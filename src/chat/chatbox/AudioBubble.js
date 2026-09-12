@@ -1,8 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-export default function AudioBubble({ file, msg, isMine, index, uiMode }) {
-
+export default function AudioBubble({toggleSelect,
+  file,
+  msg,
+  isMine,
+  index,
+  uiMode,
+}) {
   const audioRef = useRef(null);
+  const progressRef = useRef(null);
+  const draggingRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -10,16 +21,63 @@ export default function AudioBubble({ file, msg, isMine, index, uiMode }) {
   const [speed, setSpeed] = useState(1);
   const [showSpeed, setShowSpeed] = useState(false);
 
+  const longPressTimer = useRef(null);
+const longPressTriggered = useRef(false);
+
+const handleAudioPointerDown = (e) => {
+  // Don't let the parent message receive this event
+  e.stopPropagation();
+
+  longPressTriggered.current = false;
+
+  clearTimeout(longPressTimer.current);
+
+  longPressTimer.current = setTimeout(() => {
+    longPressTriggered.current = true;
+
+    // SELECT THE MESSAGE
+    if (toggleSelect && msg) {
+      toggleSelect(msg);
+    }
+  }, 500);
+};
+
+const handleAudioPointerMove = (e) => {
+  e.stopPropagation();
+
+  // Moving means this is not a long press
+  clearTimeout(longPressTimer.current);
+};
+
+const handleAudioPointerUp = (e) => {
+  e.stopPropagation();
+
+  clearTimeout(longPressTimer.current);
+};
+
+const handleAudioPointerCancel = (e) => {
+  e.stopPropagation();
+
+  clearTimeout(longPressTimer.current);
+};
+
   const GLOBAL_AUDIO_EVENT = "audio-play";
 
   const isAudio =
-    file?.type === "audio" || file?.type === "voice";
+    file?.type === "audio" ||
+    file?.type === "voice";
 
   const audioSrc =
-  msg.local ||                    // ✅ ALWAYS FIRST
-  msg.voice_url ||
-  (isAudio ? file?.file_url : null) ||
-  null;
+    msg.local ||
+    msg.voice_url ||
+    (isAudio ? file?.file_url : null) ||
+    null;
+
+  /*
+  |--------------------------------------------------------------------------
+  | COLORS
+  |--------------------------------------------------------------------------
+  */
 
   const colors = [
     "bg-orange-500",
@@ -30,29 +88,51 @@ export default function AudioBubble({ file, msg, isMine, index, uiMode }) {
   ];
 
   const getColor = (name = "") =>
-    colors[name.charCodeAt(0) % colors.length] || "bg-gray-500";
+    colors[
+      name.charCodeAt(0) % colors.length
+    ] || "bg-gray-500";
 
   const getInitial = (name = "") =>
-    name ? name.charAt(0).toUpperCase() : "?";
+    name
+      ? name.charAt(0).toUpperCase()
+      : "?";
+
+  /*
+  |--------------------------------------------------------------------------
+  | TIME FORMAT
+  |--------------------------------------------------------------------------
+  */
 
   const formatDuration = (seconds) => {
-    if (!seconds || isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const format = (seconds) => {
     const sec = Number(seconds);
-    if (!sec || isNaN(sec)) return "0:00";
+
+    if (
+      !Number.isFinite(sec) ||
+      sec <= 0
+    ) {
+      return "0:00";
+    }
+
     const mins = Math.floor(sec / 60);
     const secs = Math.floor(sec % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+
+    return `${mins}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
+
+  /*
+  |--------------------------------------------------------------------------
+  | RESET AUDIO WHEN SOURCE CHANGES
+  |--------------------------------------------------------------------------
+  */
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !audioSrc) return;
+
+    if (!audio || !audioSrc) {
+      return;
+    }
 
     audio.src = audioSrc;
     audio.pause();
@@ -65,183 +145,705 @@ export default function AudioBubble({ file, msg, isMine, index, uiMode }) {
 
   const togglePlay = async () => {
     const audio = audioRef.current;
-    if (!audio) return;
+
+    if (!audio) {
+      return;
+    }
 
     try {
       if (audio.paused) {
         window.dispatchEvent(
-          new CustomEvent(GLOBAL_AUDIO_EVENT, {
-            detail: { id: msg.id + "_" + index },
-          })
+          new CustomEvent(
+            GLOBAL_AUDIO_EVENT,
+            {
+              detail: {
+                id:
+                  msg.id +
+                  "_" +
+                  index,
+              },
+            }
+          )
         );
+
         await audio.play();
       } else {
         audio.pause();
       }
     } catch (err) {
-      console.log("Play interrupted safely:", err);
+      console.log(
+        "Play interrupted safely:",
+        err
+      );
     }
   };
 
   useEffect(() => {
     const handleGlobalPlay = (e) => {
       const audio = audioRef.current;
-      if (!audio) return;
 
-      if (e.detail.id === msg.id + "_" + index) return;
+      if (!audio) {
+        return;
+      }
+
+      if (
+        e.detail.id ===
+        msg.id + "_" + index
+      ) {
+        return;
+      }
 
       if (!audio.paused) {
         audio.pause();
       }
     };
 
-    window.addEventListener(GLOBAL_AUDIO_EVENT, handleGlobalPlay);
-    return () =>
-      window.removeEventListener(GLOBAL_AUDIO_EVENT, handleGlobalPlay);
+    window.addEventListener(
+      GLOBAL_AUDIO_EVENT,
+      handleGlobalPlay
+    );
+
+    return () => {
+      window.removeEventListener(
+        GLOBAL_AUDIO_EVENT,
+        handleGlobalPlay
+      );
+    };
   }, [msg.id, index]);
+ 
 
   const onTimeUpdate = () => {
-    setCurrentTime(audioRef.current?.currentTime || 0);
+    const audio = audioRef.current;
+
+    if (!audio || draggingRef.current) {
+      return;
+    }
+
+    setCurrentTime(
+      audio.currentTime || 0
+    );
   };
 
-   const onLoadedMetadata = () => {
-  const audio = audioRef.current;
-  if (!audio) return;
+  const onLoadedMetadata = () => {
+    const audio = audioRef.current;
 
-  // 🔥 FORCE duration for m4a
-  if (audio.duration === Infinity || isNaN(audio.duration)) {
-    audio.currentTime = 1e10;
+    if (!audio) {
+      return;
+    }
 
-    audio.ontimeupdate = () => {
-      audio.ontimeupdate = null;
-      audio.currentTime = 0;
+    if (
+      Number.isFinite(audio.duration) &&
+      audio.duration > 0
+    ) {
       setDuration(audio.duration);
-    };
-  } else {
-    setDuration(audio.duration);
-  }
-};
+      return;
+    }
+ 
+    try {
+      audio.currentTime = 1e10;
+
+      const handleDuration = () => {
+        audio.removeEventListener(
+          "timeupdate",
+          handleDuration
+        );
+
+        const realDuration =
+          audio.duration;
+
+        if (
+          Number.isFinite(realDuration) &&
+          realDuration > 0
+        ) {
+          setDuration(realDuration);
+        }
+
+        audio.currentTime = 0;
+        setCurrentTime(0);
+      };
+
+      audio.addEventListener(
+        "timeupdate",
+        handleDuration
+      );
+    } catch (error) {
+      console.log(
+        "Unable to determine audio duration:",
+        error
+      );
+    }
+  };
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
 
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
+    if (!audio) {
+      return;
+    }
 
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
+    const onPlay = () => {
+      setPlaying(true);
+    };
+
+    const onPause = () => {
+      setPlaying(false);
+    };
+
+    audio.addEventListener(
+      "play",
+      onPlay
+    );
+
+    audio.addEventListener(
+      "pause",
+      onPause
+    );
 
     return () => {
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener(
+        "play",
+        onPlay
+      );
+
+      audio.removeEventListener(
+        "pause",
+        onPause
+      );
     };
   }, []);
 
+  /*
+  |--------------------------------------------------------------------------
+  | PLAYBACK SPEED
+  |--------------------------------------------------------------------------
+  */
+
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = speed;
+    const audio = audioRef.current;
+
+    if (audio) {
+      audio.playbackRate = speed;
     }
   }, [speed]);
 
-  const progress = duration ? (currentTime / duration) * 100 : 0;
+  /*
+  |--------------------------------------------------------------------------
+  | PROGRESS
+  |--------------------------------------------------------------------------
+  */
 
-  return (
-    <div
-      className={`p-2 rounded-2xl my-2  text-black ${
-        isMine ? "bg-green-200" : "bg-gray-100"
-      } 
-      ${uiMode === 'full' ? 'w-64' : 'w-56 lg:w-56 md:w-96'}
-      `}
-    >
-      <div className="flex items-center gap-1">
-        {!playing && (
-          <div
-            className={`w-12 pb-1 px-2 rounded-full flex items-center justify-center text-3xl text-white font-bold ${getColor(
+  const progress =
+    duration > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            (currentTime / duration) *
+              100
+          )
+        )
+      : 0;
+
+  /*
+  |--------------------------------------------------------------------------
+  | SEEK TO POSITION
+  |--------------------------------------------------------------------------
+  */
+
+  const seekFromClientX = (clientX) => {
+    const audio = audioRef.current;
+    const progressBar =
+      progressRef.current;
+
+    if (
+      !audio ||
+      !progressBar ||
+      !duration
+    ) {
+      return;
+    }
+
+    const rect =
+      progressBar.getBoundingClientRect();
+
+    let percentage =
+      (clientX - rect.left) /
+      rect.width;
+
+    percentage = Math.min(
+      1,
+      Math.max(0, percentage)
+    );
+
+    const newTime =
+      percentage * duration;
+
+    audio.currentTime = newTime;
+
+    setCurrentTime(newTime);
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | POINTER DOWN
+  |--------------------------------------------------------------------------
+  */
+
+  const handlePointerDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    draggingRef.current = true;
+
+    e.currentTarget.setPointerCapture?.(
+      e.pointerId
+    );
+
+    seekFromClientX(e.clientX);
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | POINTER MOVE
+  |--------------------------------------------------------------------------
+  */
+
+  const handlePointerMove = (e) => {
+    if (!draggingRef.current) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    seekFromClientX(e.clientX);
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | POINTER UP
+  |--------------------------------------------------------------------------
+  */
+
+  const handlePointerUp = (e) => {
+    if (!draggingRef.current) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    draggingRef.current = false;
+
+    try {
+      e.currentTarget.releasePointerCapture?.(
+        e.pointerId
+      );
+    } catch {}
+
+    seekFromClientX(e.clientX);
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | TOUCH / MOUSE SAFETY
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    const handleWindowPointerUp = () => {
+      draggingRef.current = false;
+    };
+
+    window.addEventListener(
+      "pointerup",
+      handleWindowPointerUp
+    );
+
+    return () => {
+      window.removeEventListener(
+        "pointerup",
+        handleWindowPointerUp
+      );
+    };
+  }, []);
+
+  /*
+  |--------------------------------------------------------------------------
+  | WAVEFORM
+  |--------------------------------------------------------------------------
+  */
+
+  const waveform = [
+    8, 13, 20, 11, 16, 25, 14,
+    9, 19, 28, 15, 23, 12, 18,
+    30, 20, 10, 17, 26, 14, 22,
+    12, 19, 29, 16, 9, 21, 27,
+    13, 18, 24, 11, 20, 15, 9,
+    17, 25, 13, 21, 16, 10, 23,
+    28, 15, 19, 12, 26, 18, 9,
+    16, 22, 14, 20, 11, 24, 17,
+    8, 14, 21, 12, 18, 27, 15,
+    10, 19, 24, 13, 22, 16, 9,
+    18, 26, 14, 20, 11, 17, 23,
+    12, 28, 16, 9, 19, 25, 14,
+  ];
+
+  /*
+  |--------------------------------------------------------------------------
+  | UI
+  |--------------------------------------------------------------------------
+  */
+return (
+  <div
+    className={`
+      p-1
+      rounded-2xl
+      my-1 md:my-2
+      text-black
+      shadow-sm
+      border
+      transition-all
+      duration-200
+      overflow-hidden
+      ${
+        isMine
+          ? "bg-green-200 border-green-300"
+          : "bg-gray-100 border-gray-200"
+      }
+      ${
+        uiMode === "full"
+          ? "w-64"
+          : "w-56 lg:w-56 md:w-96"
+      }
+    `}
+    onPointerDown={handleAudioPointerDown}
+    onPointerMove={handleAudioPointerMove}
+    onPointerUp={handleAudioPointerUp}
+    onPointerCancel={handleAudioPointerCancel}
+    onClick={(e) => {
+      e.stopPropagation();
+
+      // If this click came from a long press,
+      // do nothing.
+      if (longPressTriggered.current) {
+        longPressTriggered.current = false;
+        return;
+      }
+    }}
+  >
+    {/* AUDIO ROW */}
+    <div className="flex items-center gap-1 min-w-0">
+
+      {/* AVATAR / SPEED */}
+      {!playing ? (
+        <div
+          className={`
+            w-8
+            h-8
+            shrink-0
+            rounded-full
+            flex
+            items-center
+            justify-center
+            text-xl
+            text-white
+            font-bold
+            ml-2 mt-2
+            shadow-sm
+            ${getColor(
               msg.sender?.first_name || "U"
-            )}`}
+            )}
+          `}
+        >
+          {getInitial(
+            msg.sender?.first_name || "U"
+          )}
+        </div>
+      ) : (
+        <div className="relative p-2 shrink-0">
+
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+
+              setShowSpeed(
+                (prev) => !prev
+              );
+            }}
+            className="
+              shadow-sm
+              text-[11px]
+              font-bold
+              text-gray-700
+              active:scale-95
+              transition
+            "
           >
-            {getInitial(msg.sender?.first_name || "U")}
-          </div>
-        )}
-        {playing && (
-          <div className="relative">
-            <button
-              onClick={() => setShowSpeed(!showSpeed)}
-              className="w-10 h-10 rounded-full bg-white text-xs font-bold"
+            {speed}x
+          </button>
+
+          {showSpeed && (
+            <div
+              className="
+                absolute
+                bottom-12
+                left-0
+                bg-white
+                border
+                border-gray-200
+                shadow-xl
+                rounded-xl
+                overflow-hidden
+                text-xs
+                z-[100]
+                min-w-[60px]
+              "
             >
-              {speed}x
-            </button>
-            {showSpeed && (
-              <div className="absolute bottom-10 left-0 bg-white shadow rounded text-xs z-10">
-                {[1, 1.5, 2].map((v) => (
-                  <div
-                    key={v}
-                    onClick={() => {
-                      setSpeed(v);
+              {[1, 1.5, 2].map(
+                (value) => (
+                  <button
+                    type="button"
+                    key={value}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setSpeed(value);
                       setShowSpeed(false);
                     }}
-                    className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                    className={`
+                      block
+                      w-full
+                      px-3
+                      py-2
+                      text-left
+                      hover:bg-gray-100
+                      ${
+                        speed === value
+                          ? "font-bold text-green-600"
+                          : "text-gray-700"
+                      }
+                    `}
                   >
-                    {v}x
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        <button
-          onClick={togglePlay}
-          className="w-10 h-10 flex items-center justify-center"
-        >
-          {playing ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-              </svg> :  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-              </svg>}
-        </button>
-        <div className="flex-1 flex items-center gap-[2px] h-6">
-          {[...Array(35)].map((_, i) => {
-            const active = (i / 35) * 100 < progress;
-            return (
-              <div
-                key={i}
-                className={`w-[2px] rounded-sm ${
-                  active ? "bg-green-600" : "bg-gray-400"
-                }`}
-                style={{
-                  height: `${10 + Math.sin(i) * 10 + 10}px`,
-                }}
-              />
-            );
-          })}
+                    {value}x
+                  </button>
+                )
+              )}
+            </div>
+          )}
         </div>
-      </div>
-      <div className="mt-1 text-[10px] text-center text-gray-600 font-bold">
-        {format(currentTime)} / {msg.files?.[0]?.duration
-      ? `${formatDuration(msg.files?.[0]?.duration)}`
-      : `${format(duration)}`}
-      </div>
-      {audioSrc && (
-        <audio
-          ref={audioRef}
-          src={audioSrc}
-          preload="metadata"
-          className="pointer-events-auto"
-          onPointerDown={(e) => e.stopPropagation()}
-          onTimeUpdate={onTimeUpdate}
-          onLoadedMetadata={onLoadedMetadata}
-          onCanPlayThrough={onLoadedMetadata}
-          onEnded={() => {
-            const audio = audioRef.current;
-            if (!audio) return;
-
-            audio.currentTime = 0;
-            setPlaying(false);
-            setCurrentTime(0);
-          }}
-        />
       )}
+
+      {/* PLAY BUTTON */}
+      <button
+        type="button"
+        onPointerDown={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+
+          togglePlay();
+        }}
+        className="
+          shrink-0 
+          flex
+          items-center
+          justify-center
+          shadow-sm
+          hover:scale-105
+          active:scale-95
+          transition-all
+          p-1
+        "
+      >
+        {playing ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="w-5 h-5 text-gray-600"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+            />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            className="w-5 h-5 text-green-600 ml-0.5"
+          >
+            <path d="M8 5.14v13.72c0 .78.86 1.26 1.53.85l10.85-6.86a1 1 0 0 0 0-1.7L9.53 4.29C8.86 3.88 8 4.36 8 5.14Z" />
+          </svg>
+        )}
+      </button>
+
+      {/* WAVEFORM */}
+      {/* AUDIO PROGRESS LINE */}
+<div
+  ref={progressRef}
+  className={`
+    relative
+    flex-1
+    min-w-0
+    h-6
+    flex
+    items-center
+    cursor-pointer
+    touch-none
+    select-none
+  `}
+  onPointerDown={(e) => {
+    e.stopPropagation();
+
+    clearTimeout(longPressTimer.current);
+
+    handlePointerDown(e);
+  }}
+  onPointerMove={(e) => {
+    e.stopPropagation();
+
+    clearTimeout(longPressTimer.current);
+
+    handlePointerMove(e);
+  }}
+  onPointerUp={(e) => {
+    e.stopPropagation();
+
+    clearTimeout(longPressTimer.current);
+
+    handlePointerUp(e);
+  }}
+  onPointerCancel={(e) => {
+    e.stopPropagation();
+
+    clearTimeout(longPressTimer.current);
+
+    draggingRef.current = false;
+  }}
+  onClick={(e) => {
+    e.stopPropagation();
+  }}
+>
+  {/* FULL TRACK */}
+  <div
+    className={`
+      absolute
+      left-0
+      right-0
+      top-1/2
+      -translate-y-1/2
+      h-[2px]
+      rounded-full
+      bg-gray-300
+    `}
+  />
+
+  {/* PLAYED PROGRESS */}
+  <div
+    className="
+      absolute
+      left-0
+      top-1/2
+      -translate-y-1/2
+      h-[2px]
+      rounded-full
+      bg-green-600
+      pointer-events-none
+    "
+    style={{
+      width: `${Math.min(100, Math.max(0, progress))}%`,
+    }}
+  />
+
+  {/* DRAG HANDLE */}
+  {duration > 0 && (
+    <div
+      className="
+        absolute
+        top-1/2
+        -translate-y-1/2
+        w-3
+        h-3
+        rounded-full
+        bg-green-600
+        shadow-sm
+        pointer-events-none
+      "
+      style={{
+        left: `${Math.min(100, Math.max(0, progress))}%`,
+        transform: "translate(-50%, -50%)",
+      }}
+    />
+  )}
+</div>
+</div>
+    {/* TIME */}
+    <div
+      className="
+        flex
+        justify-between
+        items-center
+        px-8
+        text-[10px]
+        font-semibold
+        text-gray-500
+      "
+    >
+      <span>
+        {formatDuration(currentTime)}
+      </span>
+
+      <span>
+        {formatDuration(
+          duration ||
+            msg.files?.[0]?.duration ||
+            msg.duration
+        )}
+      </span>
     </div>
-  );
+
+    {/* HIDDEN AUDIO ELEMENT */}
+    {audioSrc && (
+      <audio
+        ref={audioRef}
+        src={audioSrc}
+        preload="metadata"
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          clearTimeout(longPressTimer.current);
+        }}
+        onTimeUpdate={onTimeUpdate}
+        onLoadedMetadata={onLoadedMetadata}
+        onCanPlayThrough={onLoadedMetadata}
+        onEnded={() => {
+          const audio = audioRef.current;
+
+          if (!audio) {
+            return;
+          }
+
+          audio.currentTime = 0;
+
+          setPlaying(false);
+          setCurrentTime(0);
+        }}
+      />
+    )}
+  </div>
+);
+
 }

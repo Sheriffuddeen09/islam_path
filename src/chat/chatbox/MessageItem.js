@@ -55,13 +55,8 @@ export default function MessageItem({
   const [hasMarkedRead, setHasMarkedRead] = useState(false);
 
 
-  const [isLongPress, setIsLongPress] = useState(false);
-  const pressTimer = useRef(null);
-
   const [translateX, setTranslateX] = useState(0);
   const startX = useRef(0);
-  const isDragging = useRef(false);
-  const dragX = useRef(0);
 
 
   const longPressTriggered = useRef(false);
@@ -84,21 +79,19 @@ export default function MessageItem({
 
   return msg.message || "";
 };
+const messageText = getMessageText(msg);
 
-const isExpanded =
-  expandedMessages[msg.id];
+const visibleLength =
+  expandedMessages[msg.id] || 700;
 
-const messageText =
-  getMessageText(msg);
+const hasMoreText =
+  messageText.length > visibleLength;
 
-const shouldTrim =
-  messageText.length > 250;
+const displayText = hasMoreText
+  ? `${messageText.slice(0, visibleLength)}...`
+  : messageText;
 
-const displayText =
-  shouldTrim && !isExpanded
-    ? `${messageText.slice(0, 250)}...`
-    : messageText;
-    
+
     const goToCommunityMessage = async (communityId, messageId) => {
       openCommunityMessage(communityId, messageId);
     };
@@ -999,7 +992,7 @@ useEffect(() => {
   // ❌ FAILED
   if (msg.status === "failed") {
     return (
-      <button onClick={retryMessage} className="text-red-500 z-50">
+      <button onClick={retryMessage} className="text-red-500 z-50 text-[8px">
         Retry
       </button>
     );
@@ -1121,8 +1114,47 @@ const isInteractive = (target) => {
   return target.closest("img, video, audio, button, a");
 };
 
+const longPressTimer = useRef(null);
+const touchActive = useRef(false);
+
+const handleTouchStart = (e) => {
+    console.log("TOUCH START", msg.id);
+
+    clearTimeout(longPressTimer.current);
+
+    longPressTimer.current = setTimeout(() => {
+        console.log("LONG PRESSING", msg.id);
 
 
+        toggleSelect(msg);
+    }, 800);
+};
+
+
+const handleTouchMove = (e) => {
+    
+    if (!longPressTriggered.current) {
+        clearTimeout(longPressTimer.current);
+    }
+};
+
+const handleTouchEnd = (e) => {
+    console.log("TOUCH END", msg.id);
+
+    clearTimeout(longPressTimer.current);
+
+    touchActive.current = false;
+
+    // Keep this true until the click event has been blocked.
+};
+
+const handleTouchCancel = (e) => {
+    clearTimeout(longPressTimer.current);
+
+    touchActive.current = false;
+    longPressTriggered.current = false;
+};
+ 
   return (
   <>
     
@@ -1189,9 +1221,27 @@ const isInteractive = (target) => {
       style={{
         touchAction: "none",
       }}
+       onClick={(e) => {
+          e.stopPropagation();
+          if (isInteractive(e.target)) return;
+          if (longPressTriggered.current) return;
+          if (selectionMode || selectedMessages.length > 0) {
+            toggleSelect(msg);
+            return;
+          }
+
+          if (!forwardMode) {
+            if (isMobile) setShowActions(prev => !prev);
+            return;
+          }
+
+          toggleSelect(msg);
+        }}
+
     >
 
      <div
+     
   className={`relative group p-2 my-1 rounded-lg max-w-md text-sm transition
     ${isMine 
       ? "ml-auto bg-green-800 text-white" 
@@ -1451,7 +1501,24 @@ onTouchEnd={() => {
 )}
 
     
-       
+<div
+  onTouchStart={handleTouchStart}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
+  onTouchCancel={handleTouchCancel}
+  onClick={(e) => {
+        if (longPressTriggered.current) {
+            e.preventDefault();
+            e.stopPropagation();
+ 
+            longPressTriggered.current = false;
+
+            return;
+        }
+    }}
+  className="select-none"
+>
+     
 
        {msg.deleted ? (
 
@@ -1573,7 +1640,14 @@ onTouchEnd={() => {
                 ? 'max-w-64'
                 : 'max-w-56 lg:max-w-56 md:max-w-96'
             }
+            
         `}
+
+        style={{
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none",
+    userSelect: "none",
+  }}
     >
         {truncateWords(
             msg.reel_preview.content,
@@ -1592,7 +1666,11 @@ onTouchEnd={() => {
           w-fit
           break-words
           ${uiMode === 'full' ? 'max-w-64' : 'max-w-56 lg:max-w-56 md:max-w-96 '}
-        `}>
+        `} style={{
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none",
+    userSelect: "none",
+  }}>
         <Linkify
           options={{
             target: "_blank",
@@ -1603,29 +1681,51 @@ onTouchEnd={() => {
         {displayText}
       </Linkify>
 
-      {shouldTrim && (
+      {hasMoreText && (
         <button
-          onClick={() =>
-            setExpandedMessages((prev) => ({
-              ...prev,
-              [msg.id]:
-                !prev[msg.id],
-            }))
-          }
-          className="
-            ml-2
-            text-green-400
-            text-xs
-            font-semibold
-            hover:underline
-          "
-        >
-          {isExpanded
-            ? "See less"
-            : "See more"}
-        </button>
+  type="button"
+  onTouchStart={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onTouchEnd={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onClick={() => {
+    setExpandedMessages((prev) => ({
+      ...prev,
+      [msg.id]: (prev[msg.id] || 700) + 700,
+    }));
+  }}
+  className="ml-2 text-green-400 text-xs font-semibold hover:underline"
+>
+  See more
+</button>
       )}
 
+      {!hasMoreText && visibleLength > 700 && messageText.length > 700 && (
+        <button
+  type="button"
+  onTouchStart={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onTouchEnd={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onClick={() => {
+    setExpandedMessages((prev) => ({
+      ...prev,
+      [msg.id]: 700,
+    }));
+  }}
+  className="ml-2 text-green-400 text-xs font-semibold hover:underline"
+>
+  See less
+</button>
+      )}
           </div>
         )}
 
@@ -1638,7 +1738,11 @@ onTouchEnd={() => {
           w-fit
           break-words
           ${uiMode === 'full' ? 'max-w-64' : 'max-w-56 lg:max-w-56 md:max-w-96 '}
-        `}>
+        `} style={{
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none",
+    userSelect: "none",
+  }}>
         <Linkify
           options={{
             target: "_blank",
@@ -1649,29 +1753,51 @@ onTouchEnd={() => {
         {displayText}
       </Linkify>
 
-      {shouldTrim && (
+      {hasMoreText && (
         <button
-          onClick={() =>
-            setExpandedMessages((prev) => ({
-              ...prev,
-              [msg.id]:
-                !prev[msg.id],
-            }))
-          }
-          className="
-            ml-2
-            text-green-400
-            text-xs
-            font-semibold
-            hover:underline
-          "
-        >
-          {isExpanded
-            ? "See less"
-            : "See more"}
-        </button>
+  type="button"
+  onTouchStart={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onTouchEnd={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onClick={() => {
+    setExpandedMessages((prev) => ({
+      ...prev,
+      [msg.id]: (prev[msg.id] || 700) + 700,
+    }));
+  }}
+  className="ml-2 text-green-400 text-xs font-semibold hover:underline"
+>
+  See more
+</button>
       )}
 
+      {!hasMoreText && visibleLength > 700 && messageText.length > 700 && (
+        <button
+  type="button"
+  onTouchStart={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onTouchEnd={(e) => {
+    e.stopPropagation();
+    clearTimeout(longPressTimer.current);
+  }}
+  onClick={() => {
+    setExpandedMessages((prev) => ({
+      ...prev,
+      [msg.id]: 700,
+    }));
+  }}
+  className="ml-2 text-green-400 text-xs font-semibold hover:underline"
+>
+  See less
+</button>
+      )}
           </div>
         )}
 
@@ -1682,6 +1808,7 @@ onTouchEnd={() => {
             msg={msg}
             setPreview={setPreview}
             uiMode={uiMode}
+            toggleSelect={toggleSelect}
           />
         )}
       </>
@@ -1692,11 +1819,15 @@ onTouchEnd={() => {
             {msg.files?.some(f =>
                 f.type === "audio" || f.type === "voice"
               ) && (
-                <AudioPlayer msg={msg} isMine={isMine} uiMode={uiMode} />
+                <AudioPlayer msg={msg} isMine={isMine} 
+                toggleSelect={toggleSelect}
+                uiMode={uiMode} />
               )}
 
             {msg.files?.some(f => f.type === "file") && (
-                <DocumentMessage msg={msg} uiMode={uiMode} />
+                <DocumentMessage msg={msg} 
+                toggleSelect={toggleSelect}
+                uiMode={uiMode} />
               )}
 
               {
@@ -1818,7 +1949,7 @@ onTouchEnd={() => {
 
           
         </div>
-
+    </div>    
         {/* ================= REACTIONS ================= */}
         {showReactionPopup && (
           <div

@@ -1,4 +1,3 @@
-import React from "react";
 
 export function ChatSkeleton({ type = "list" }) {
   // 🔹 CHAT LIST SKELETON

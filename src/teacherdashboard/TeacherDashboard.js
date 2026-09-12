@@ -61,6 +61,25 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 const lastScrollY = useRef(0);
 const scrollTimeout = useRef(null);
 
+const [isScrolling, setIsScrolling] = useState(false);
+const scrollTimerRef = useRef(null);
+
+const handleMessagesScroll = () => {
+  setIsScrolling(true);
+
+  clearTimeout(scrollTimerRef.current);
+
+  scrollTimerRef.current = setTimeout(() => {
+    setIsScrolling(false);
+  }, 700);
+};
+
+useEffect(() => {
+  return () => {
+    clearTimeout(scrollTimerRef.current);
+  };
+}, []);
+
 useEffect(() => {
     const handleScroll = () => {
         const currentScrollY = window.scrollY;
@@ -390,8 +409,14 @@ useEffect(() => {
                       />
     <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside
+      onScroll={handleMessagesScroll}
   className={`fixed top-0 left-0 lg:block hidden h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
     transform transition-transform duration-300
+    ${
+      isScrolling
+        ? "scrollbar-thumb-green-500"
+        : "scrollbar-thumb-transparent"
+    }
     ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
     lg:translate-x-0
     overflow-y-auto overflow-x-hidden
@@ -632,8 +657,14 @@ useEffect(() => {
       {/* ---------------------- SIDEBAR ---------------------- */}
       {/* Desktop: always visible. Mobile: slide-in */}
     <aside
+     onScroll={handleMessagesScroll}
   className={`fixed top-0 lg:hidden left-0 h-full lg:w-64 md:w-80 md:py-10 lg:py-0 w-72 bg-[var(--bg-color)] shadow-lg py-3 md:px-8 lg:px-2 px-4 z-40
     transform transition-transform duration-300
+    ${
+      isScrolling
+        ? "scrollbar-thumb-green-500"
+        : "scrollbar-thumb-transparent"
+    }
     ${sidebarOpen ? " block" : "hidden"}
     lg:translate-x-0
     overflow-y-auto overflow-x-hidden

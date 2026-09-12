@@ -75,6 +75,8 @@ export default function PostVideoPageId({
   const initialVideoIdRef = useRef(Number(id));
   const autoNextCancelledRef = useRef(false);
   const autoNextUsedRef = useRef(false);
+  const videosSinceAdRef = useRef(0);
+  const lastNormalVideoIdRef = useRef(Number(id));
 
   const [counts, setCounts] = useState({});
   const [myReaction, setMyReaction] = useState(null);
@@ -114,6 +116,18 @@ export default function PostVideoPageId({
   );
 
 
+    const isAdvertisement =
+      currentPost?.is_advertisement === true;
+
+  const currentImage = currentPost?.media?.find(
+      (m) => m.type === "image"
+  );
+
+  const currentVideo = currentPost?.media?.find(
+      (m) => m.type === "video"
+  );
+
+ 
   
   const overlayTimerRef = useRef(null);
 
@@ -208,105 +222,128 @@ export default function PostVideoPageId({
     setLoadingVideos(true);
 
     try {
-      const res = await api.get("/api/posts-get-video");
+        const res = await api.get("/api/posts-get-video");
 
-      const data = Array.isArray(res.data?.posts)
-        ? res.data.posts
-        : [];
+        const data = Array.isArray(res.data?.posts)
+            ? res.data.posts
+            : [];
+ 
+        const allVideoPosts = data.filter(
+            (post) =>
+                post?.post_type === "post" &&
+                post?.is_advertisement !== true &&
+                Array.isArray(post?.media) &&
+                post.media.some(
+                    (media) =>
+                        media?.type === "video" &&
+                        media?.url
+                )
+        );
 
-      const allVideoPosts = data.filter(
-        (post) =>
-          post?.post_type === "post" &&
-          Array.isArray(post?.media) &&
-          post.media.some(
-            (media) =>
-              media?.type === "video" &&
-              media?.url
-          )
-      );
-
-      const requestedId = Number(id);
-
-      const requestedVideo = allVideoPosts.find(
-        (post) => Number(post.id) === requestedId
-      );
-
-      const unviewedVideos = allVideoPosts.filter(
-        (post) => post?.viewed === false
-      );
-
-      const videoPosts = requestedVideo
-        ? [
-            requestedVideo,
-            ...unviewedVideos.filter(
-              (post) =>
+        const requestedId = Number(id);
+ 
+        const requestedVideo = allVideoPosts.find(
+            (post) =>
+                Number(post.id) === requestedId
+        );
+        const unviewedVideos = allVideoPosts.filter(
+            (post) =>
+                post?.viewed === false &&
                 Number(post.id) !== requestedId
-            ),
-          ]
-        : unviewedVideos;
+        );
+ 
+        const videoPosts = requestedVideo
+            ? [
+                requestedVideo,
+                ...unviewedVideos,
+            ]
+            : unviewedVideos;
 
-      if (!mounted) return;
+        if (!mounted) {
+            return;
+        }
+ 
+        setVideos(videoPosts);
+ 
+        setCurrentIndex(0);
 
-      setVideos(videoPosts);
+        lastNormalVideoIdRef.current =
+          requestedVideo?.id ??
+          videoPosts.find(
+              (post) => post?.is_advertisement !== true
+          )?.id ??
+          Number(id);
+ 
+        videosSinceAdRef.current =
+            videoPosts.length > 0 ? 1 : 0;
 
-      const foundIndex = videoPosts.findIndex(
-        (post) =>
-          Number(post.id) === requestedId
-      );
 
-      setCurrentIndex(
-        foundIndex >= 0 ? foundIndex : 0
-      );
-
-      if (unviewedVideos.length === 0) {
-        setHasNextVideo(false);
-        setShowResetPopup(true);
-      } else {
-        setHasNextVideo(true);
+ 
+        setHasNextVideo(
+            videoPosts.length > 0
+        );
+ 
         setShowResetPopup(false);
-      }
 
     } catch (error) {
-      console.error(
-        "FETCH VIDEO ERROR:",
-        error.response?.data || error
-      );
 
-      if (mounted) {
-        setNotify({
-          message:
-            error.response?.data?.message ||
-            "Unable to load videos.",
-          type: "error",
-        });
+        console.error(
+            "FETCH VIDEO ERROR:",
+            error.response?.data || error
+        );
 
-        setVideos([]);
-      }
+        if (mounted) {
+            setNotify({
+                message:
+                    error.response?.data?.message ||
+                    "Unable to load videos.",
+                type: "error",
+            });
+
+            setVideos([]);
+            setCurrentIndex(0);
+
+            videosSinceAdRef.current = 0;
+
+            setHasNextVideo(false);
+        }
+
     } finally {
-      if (mounted) {
-        setLoadingVideos(false);
-      }
+
+        if (mounted) {
+            setLoadingVideos(false);
+        }
     }
-  };
+};
 
-  fetchVideos();
+fetchVideos();
 
-  return () => {
+return () => {
     mounted = false;
-  };
+};
+  
 }, []);
 
 
   useEffect(() => {
-    const next = videos[currentIndex + 1];
+    const next =
+        videos[currentIndex + 1];
+ 
+    if (next?.is_advertisement) {
+        return;
+    }
 
-    const nextVideo = next?.media?.find(
-      (m) => m.type === "video"
-    );
+    const nextVideo =
+        next?.media?.find(
+            (m) => m.type === "video"
+        );
 
-    if (!nextVideo?.url) return;
+    if (!nextVideo?.url) {
+        return;
+    }
 
-    const preload = document.createElement("video");
+    const preload =
+        document.createElement("video");
 
     preload.src = nextVideo.url;
     preload.preload = "auto";
@@ -314,14 +351,16 @@ export default function PostVideoPageId({
     preload.load();
 
     return () => {
-      preload.src = "";
+        preload.src = "";
     };
-  }, [currentIndex, videos]);
+}, [currentIndex, videos]);
+
+
 
   useEffect(() => {
     setCurrentTime(0);
     setDuration(0);
-    setVideoLoading(true);
+    setVideoLoading(false);
     setIsPlaying(false);
     setShowMore(false);
     setShowOverlay(true);
@@ -329,18 +368,33 @@ export default function PostVideoPageId({
 
     viewedRef.current = null;
     viewPromiseRef.current = null;
+ 
+
+    if (
+        currentPost?.is_advertisement &&
+        currentImage?.url
+    ) {
+        return;
+    }
 
     const video = videoRef.current;
 
-    if (!video) return;
+    if (!video) {
+        return;
+    }
 
     video.pause();
     video.currentTime = 0;
 
     if (currentMedia?.url) {
-      video.load();
+        video.load();
     }
-  }, [currentPost?.id, currentMedia?.url]);
+}, [
+    currentPost?.id,
+    currentMedia?.url,
+    currentImage?.url,
+]);
+
 
   useEffect(() => {
     const video = videoRef.current;
@@ -548,44 +602,58 @@ export default function PostVideoPageId({
     playbackRate,
   ]);
 
+
   const markVideoViewed = async () => {
     const currentId = currentPost?.id;
 
     if (!currentId) return;
 
+    if (currentPost?.is_advertisement === true) {
+        return;
+    }
+
     if (viewedRef.current === currentId) {
-      return (
-        viewPromiseRef.current ||
-        Promise.resolve()
-      );
+        return (
+            viewPromiseRef.current ||
+            Promise.resolve()
+        );
     }
 
     viewedRef.current = currentId;
 
     viewPromiseRef.current = api
-      .post(`/api/post/${currentId}/view`)
-      .catch((error) => {
-        console.error(
-          "VIDEO VIEW ERROR:",
-          error.response?.data || error
-        );
+        .post(`/api/post/${currentId}/view`)
+        .then(() => {
+            // VERY IMPORTANT:
+            // Keep React state synchronized with Laravel.
+            setVideos((prev) =>
+                prev.map((post) =>
+                    Number(post.id) === Number(currentId)
+                        ? {
+                              ...post,
+                              viewed: true,
+                          }
+                        : post
+                )
+            );
+        })
+        .catch((error) => {
+            console.error(
+                "VIDEO VIEW ERROR:",
+                error.response?.data || error
+            );
 
-        if (
-          viewedRef.current === currentId
-        ) {
-          viewedRef.current = null;
-        }
-      })
-      .finally(() => {
-        viewPromiseRef.current = null;
-      });
+            if (viewedRef.current === currentId) {
+                viewedRef.current = null;
+            }
+        })
+        .finally(() => {
+            viewPromiseRef.current = null;
+        });
 
     return viewPromiseRef.current;
-  };
+};
 
-  // --------------------------------------------------
-  // PLAY
-  // --------------------------------------------------
 
   const togglePlay = async (e) => {
     e?.stopPropagation();
@@ -616,10 +684,6 @@ export default function PostVideoPageId({
     }
   };
 
-  // --------------------------------------------------
-  // MUTE
-  // --------------------------------------------------
-
   const toggleMute = (e) => {
     e?.stopPropagation();
 
@@ -633,10 +697,6 @@ export default function PostVideoPageId({
 
     showVideoControls();
   };
-
-  // --------------------------------------------------
-  // VOLUME
-  // --------------------------------------------------
 
   const handleVolumeChange = (e) => {
     e?.stopPropagation();
@@ -669,10 +729,7 @@ export default function PostVideoPageId({
     showVideoControls();
   };
 
-  // --------------------------------------------------
-  // SPEED
-  // --------------------------------------------------
-
+ 
   const handleSpeedChange = (e) => {
     e?.stopPropagation();
 
@@ -690,10 +747,6 @@ export default function PostVideoPageId({
 
     showVideoControls();
   };
-
-  // --------------------------------------------------
-  // FULLSCREEN
-  // --------------------------------------------------
 
   const goFullScreen = async (e) => {
     e?.stopPropagation();
@@ -719,10 +772,6 @@ export default function PostVideoPageId({
 
     showVideoControls();
   };
-
-  // --------------------------------------------------
-  // SEEK
-  // --------------------------------------------------
 
   const handleSeekStart = () => {
     setIsSeeking(true);
@@ -756,183 +805,477 @@ export default function PostVideoPageId({
     showVideoControls();
   };
 
-    
-    const fetchNextVideo = async () => {
-      if (!currentPost?.id) {
-        return false;
-      }
+     
 
-      const localNext = videos[currentIndex + 1];
+const fetchNextVideo = async () => {
+    console.log("FETCH NEXT STARTED");
+    console.log("CURRENT INDEX:", currentIndex);
+    console.log("CURRENT POST:", currentPost);
+    console.log("VIDEOS:", videos);
 
-      if (localNext) {
-        setCurrentIndex((prev) => prev + 1);
-        setHasNextVideo(true);
-        setShowResetPopup(false);
+    // ============================================
+    // CURRENT ITEM IS AN AD
+    // ============================================
+    if (currentPost?.is_advertisement === true) {
 
-        return true;
-      }
+        console.log("CURRENT ITEM IS AD");
 
-      try {
-        const res = await api.get(
-          `/api/post/${currentPost.id}/next-video`
+        // ONLY search AFTER the advertisement
+        // AND ONLY for unviewed normal videos.
+        const nextNormalIndex = videos.findIndex(
+            (post, index) =>
+                index > currentIndex &&
+                post?.is_advertisement !== true &&
+                post?.post_type === "post" &&
+                post?.viewed === false &&
+                Array.isArray(post?.media) &&
+                post.media.some(
+                    (media) =>
+                        media?.type === "video" &&
+                        media?.url
+                )
         );
 
-        console.log("NEXT VIDEO:", res.data);
-
-        if (
-          res.data?.all_viewed === true ||
-          !res.data?.video
-        ) {
-          setHasNextVideo(false);
-          setShowResetPopup(true);
-          setNotifyNext(false);
-
-          return false;
-        }
-
-        const nextVideo = {
-          ...res.data.video,
-          viewed: false,
-        };
-
-        const alreadyExists = videos.some(
-          (item) =>
-            Number(item.id) === Number(nextVideo.id)
+        console.log(
+            "NEXT UNVIEWED AFTER AD:",
+            nextNormalIndex
         );
 
-        if (alreadyExists) {
-          setHasNextVideo(false);
-          setShowResetPopup(true);
-          setNotifyNext(false);
+        if (nextNormalIndex !== -1) {
+            const nextPost = videos[nextNormalIndex];
 
-          return false;
+            lastNormalVideoIdRef.current =
+                nextPost.id;
+
+            videosSinceAdRef.current = 1;
+
+            setHasNextVideo(true);
+            setShowResetPopup(false);
+
+            setCurrentIndex(nextNormalIndex);
+
+            return;
         }
 
-        setVideos((prev) => {
-          const updated = [
-            ...prev,
-            nextVideo,
-          ];
+        // ========================================
+        // NO LOCAL VIDEO AFTER AD
+        // ASK BACKEND
+        // ========================================
 
-          setCurrentIndex(updated.length - 1);
-
-          return updated;
-        });
-
-        setHasNextVideo(true);
-        setShowResetPopup(false);
-
-        return true;
-
-      } catch (error) {
-        console.error(
-          "NEXT VIDEO ERROR:",
-          error.response?.data || error
+        console.log(
+            "NO LOCAL VIDEO AFTER AD. ASKING BACKEND..."
         );
 
-        if (
-          error.response?.status === 404 ||
-          error.response?.data?.all_viewed === true
-        ) {
-          setHasNextVideo(false);
-          setShowResetPopup(true);
-          setNotifyNext(false);
+        try {
+            const response = await api.get(
+                `/api/post/${lastNormalVideoIdRef.current}/next-video`,
+                {
+                    params: {
+                        show_advertisement: false,
+                    },
+                }
+            );
 
-          return false;
+            console.log(
+                "NEXT AFTER AD RESPONSE:",
+                response.data
+            );
+
+            const nextVideo = response.data?.post;
+
+            // ------------------------------------
+            // NEW NORMAL VIDEO
+            // ------------------------------------
+            if (
+                nextVideo &&
+                nextVideo.is_advertisement !== true &&
+                nextVideo.post_type === "post"
+            ) {
+                const newIndex = videos.length;
+
+                setVideos((prev) => [
+                    ...prev,
+                    {
+                        ...nextVideo,
+                        viewed: false,
+                    },
+                ]);
+
+                lastNormalVideoIdRef.current =
+                    nextVideo.id;
+
+                videosSinceAdRef.current = 1;
+
+                setHasNextVideo(true);
+                setShowResetPopup(false);
+
+                setCurrentIndex(newIndex);
+
+                return;
+            }
+
+            // ------------------------------------
+            // NOTHING LEFT
+            // ------------------------------------
+            console.log(
+                "NO MORE VIDEOS AFTER AD"
+            );
+
+            setHasNextVideo(false);
+            setNotifyNext(false);
+            setShowResetPopup(true);
+
+            return;
+
+        } catch (error) {
+            console.error(
+                "NEXT AFTER AD ERROR:",
+                error.response?.data || error
+            );
+
+            return;
         }
-
-        return false;
-      }
-    };
-
-
-   const handleNext = async () => {
-  if (
-    navigationLockRef.current ||
-    !currentPost?.id
-  ) {
-    return;
-  }
-
-  navigationLockRef.current = true;
-
-  try {
-    if (cancelTimer) {
-      clearTimeout(cancelTimer);
-      setCancelTimer(null);
     }
 
-    setNotifyNext(false);
-    setNextCountdown(5);
+    // ============================================
+    // NORMAL VIDEO
+    // ============================================
+
+    console.log("CURRENT ITEM IS NORMAL VIDEO");
+
+    // Record this video as viewed.
+    await markVideoViewed();
+
+    // ============================================
+    // FIND NEXT UNVIEWED NORMAL VIDEO
+    // ============================================
+
+    const nextNormalIndex = videos.findIndex(
+        (post, index) =>
+            index > currentIndex &&
+            post?.is_advertisement !== true &&
+            post?.post_type === "post" &&
+            post?.viewed === false &&
+            Array.isArray(post?.media) &&
+            post.media.some(
+                (media) =>
+                    media?.type === "video" &&
+                    media?.url
+            )
+    );
+
+    console.log(
+        "NEXT LOCAL UNVIEWED INDEX:",
+        nextNormalIndex
+    );
+
+    // ============================================
+    // FOUND LOCAL VIDEO
+    // ============================================
+
+    if (nextNormalIndex !== -1) {
+        const nextPost = videos[nextNormalIndex];
+
+        console.log(
+            "MOVING TO LOCAL VIDEO:",
+            nextPost.id
+        );
+
+        lastNormalVideoIdRef.current =
+            nextPost.id;
+
+        videosSinceAdRef.current += 1;
+
+        setHasNextVideo(true);
+        setShowResetPopup(false);
+
+        setCurrentIndex(nextNormalIndex);
+
+        return;
+    }
+
+    // ============================================
+    // NO LOCAL VIDEO
+    // ASK BACKEND
+    // ============================================
+
+    console.log(
+        "NO LOCAL UNVIEWED VIDEO. ASKING BACKEND..."
+    );
+
+    try {
+        const response = await api.get(
+            `/api/post/${lastNormalVideoIdRef.current}/next-video`,
+            {
+                params: {
+                    show_advertisement:
+                        videosSinceAdRef.current >= 5,
+                },
+            }
+        );
+
+        console.log(
+            "NEXT VIDEO RESPONSE:",
+            response.data
+        );
+
+        const nextVideo = response.data?.post;
+
+        // ========================================
+        // ADVERTISEMENT
+        // ========================================
+
+        if (nextVideo?.is_advertisement === true) {
+
+            console.log("ADVERTISEMENT RECEIVED");
+
+            setVideos((prev) => [
+                ...prev,
+                nextVideo,
+            ]);
+
+            // New sequence starts AFTER this ad.
+            videosSinceAdRef.current = 0;
+
+            setHasNextVideo(true);
+            setShowResetPopup(false);
+
+            setCurrentIndex(videos.length);
+
+            return;
+        }
+
+        // ========================================
+        // NORMAL VIDEO
+        // ========================================
+
+        if (
+            nextVideo &&
+            nextVideo.is_advertisement !== true &&
+            nextVideo.post_type === "post"
+        ) {
+            console.log(
+                "NEW NORMAL VIDEO:",
+                nextVideo.id
+            );
+
+            const newIndex = videos.length;
+
+            setVideos((prev) => [
+                ...prev,
+                {
+                    ...nextVideo,
+                    viewed: false,
+                },
+            ]);
+
+            lastNormalVideoIdRef.current =
+                nextVideo.id;
+
+            videosSinceAdRef.current += 1;
+
+            setHasNextVideo(true);
+            setShowResetPopup(false);
+
+            setCurrentIndex(newIndex);
+
+            return;
+        }
+
+        // ========================================
+        // ALL VIDEOS VIEWED
+        // ========================================
+
+        console.log(
+            "ALL VIDEOS VIEWED - SHOW RESET"
+        );
+
+        setHasNextVideo(false);
+        setNotifyNext(false);
+        setShowResetPopup(true);
+
+    } catch (error) {
+        console.error(
+            "NEXT VIDEO ERROR:",
+            error.response?.data || error
+        );
+    }
+};
+
+
+
+const handleNext = async () => {
+    console.log("NEXT CLICKED");
+
+    if (navigationLockRef.current) {
+        console.log("NEXT BLOCKED: navigation locked");
+        return;
+    }
+
+    if (!currentPost?.id) {
+        console.log("NEXT BLOCKED: no current post");
+        return;
+    }
+
+    navigationLockRef.current = true;
+
+    try {
+        setNotifyNext(false);
+
+        if (cancelTimer) {
+            clearTimeout(cancelTimer);
+            setCancelTimer(null);
+        }
+
+        console.log("CURRENT POST:", currentPost);
+        console.log("CURRENT INDEX:", currentIndex);
+
+        await fetchNextVideo();
+
+    } catch (error) {
+        console.error("HANDLE NEXT ERROR:", error);
+    } finally {
+        navigationLockRef.current = false;
+    }
+};
+
+  const handlePrev = () => {
+
+    if (navigationLockRef.current) {
+        return;
+    }
+
+    if (currentIndex <= 0) {
+        return;
+    }
+
+    navigationLockRef.current = true;
+
+    try {
+
+        setNotifyNext(false);
+        setShowResetPopup(false);
+        setHasNextVideo(true);
+
+        const previousIndex =
+            currentIndex - 1;
+
+        const previousPost =
+            videos[previousIndex];
+
+        if (
+            previousPost &&
+            previousPost.is_advertisement !== true
+        ) {
+
+            lastNormalVideoIdRef.current =
+                previousPost.id;
+        }
+
+        let countSinceAd = 0;
+
+        for (
+            let i = previousIndex;
+            i >= 0;
+            i--
+        ) {
+
+            if (
+                videos[i]?.is_advertisement === true
+            ) {
+                break;
+            }
+
+            countSinceAd++;
+        }
+
+        videosSinceAdRef.current =
+            countSinceAd;
+
+        setCurrentIndex(previousIndex);
+
+    } finally {
+
+        navigationLockRef.current = false;
+    }
+};
+
+useEffect(() => {
+    setCurrentTime(0);
+    setDuration(0);
+    setVideoLoading(false);
+    setIsPlaying(false);
+    setShowMore(false);
+    setShowOverlay(true);
+    setShowSpeed(false);
+
+    viewedRef.current = null;
+    viewPromiseRef.current = null;
+ 
+    if (currentPost?.is_advertisement) {
+        return;
+    }
+
+    const video = videoRef.current;
+
+    if (!video) {
+        return;
+    }
+
+    video.pause();
+
+    try {
+        video.currentTime = 0;
+    } catch (e) {}
+
+    if (currentMedia?.url) {
+        video.load();
+    }
+
+}, [
+    currentPost?.id,
+    currentPost?.is_advertisement,
+    currentMedia?.url,
+    currentImage?.url,
+]);
+
+    const handleVideoEnd = async () => {
+    if (!currentPost?.id) {
+        return;
+    }
+ 
+
+    if (
+        currentPost?.is_advertisement === true
+    ) {
+        setIsPlaying(false);
+
+        return;
+    }
 
     await markVideoViewed();
 
-    const found = await fetchNextVideo();
+    setIsPlaying(false);
 
-    if (!found) {
-      setHasNextVideo(false);
-      setShowResetPopup(true);
-      setNotifyNext(false);
+    const isInitialVideo =
+        Number(currentPost.id) ===
+        Number(initialVideoIdRef.current);
+
+    if (
+        isInitialVideo &&
+        !autoNextUsedRef.current &&
+        !autoNextCancelledRef.current
+    ) {
+        autoNextUsedRef.current = true;
+
+        setNextCountdown(5);
+        setNotifyNext(true);
+
+        return;
     }
 
-  } finally {
-    navigationLockRef.current = false;
-  }
-};
-    
-
-   const handlePrev = () => {
-  if (navigationLockRef.current) {
-    return;
-  }
-
-  if (currentIndex <= 0) {
-    return;
-  }
-
-  navigationLockRef.current = true;
-
-  try {
     setNotifyNext(false);
-    setShowResetPopup(false);
-    setHasNextVideo(true);
-
-    setCurrentIndex((prev) => prev - 1);
-  } finally {
-    navigationLockRef.current = false;
-  }
 };
-
-    const handleVideoEnd = async () => {
-        if (!currentPost?.id) {
-          return;
-        }
-
-        await markVideoViewed();
-
-        setIsPlaying(false);
-
-        const isInitialVideo =
-          Number(currentPost.id) ===
-          Number(initialVideoIdRef.current);
-
-       
-        if (
-          isInitialVideo &&
-          !autoNextUsedRef.current &&
-          !autoNextCancelledRef.current
-        ) {
-          autoNextUsedRef.current = true;
-
-          setNextCountdown(5);
-          setNotifyNext(true);
-
-          return;
-        }
-
-        setNotifyNext(false);
-      };
-
     
       
       useEffect(() => {
@@ -982,67 +1325,106 @@ export default function PostVideoPageId({
 
     
 
-    const resetViewedVideos = async () => {
-      if (resettingVideos) {
+   const resetViewedVideos = async () => {
+
+    if (resettingVideos) {
         return;
-      }
+    }
 
-      setResettingVideos(true);
-      setShowResetPopup(false);
+    navigationLockRef.current = true;
 
-      try {
+    setResettingVideos(true);
+
+    setShowResetPopup(false);
+    setNotifyNext(false);
+
+    try {
+
+        const video = videoRef.current;
+
+        if (video) {
+            video.pause();
+
+            try {
+                video.currentTime = 0;
+            } catch (e) {
+                console.log(
+                    "VIDEO RESET POSITION ERROR:",
+                    e
+                );
+            }
+        }
+
+        viewedRef.current = null;
+        viewPromiseRef.current = null;
+
         await api.post(
-          "/api/videos/reset-views"
+            "/api/reset-video-views"
         );
 
         const res = await api.get(
-          "/api/posts-get-video"
+            "/api/posts-get-video"
         );
 
-        const data = Array.isArray(
-          res.data?.posts
-        )
-          ? res.data.posts
-          : [];
-    
-        const videoPosts = data.filter(
-          (post) =>
-            post?.post_type === "post" &&
-            Array.isArray(post?.media) &&
-            post.media.some(
-              (media) =>
-                media?.type === "video" &&
-                media?.url
-            )
-        );
+        const data =
+            Array.isArray(res.data?.posts)
+                ? res.data.posts
+                : [];
+
+        const allVideoPosts =
+            data.filter(
+                (post) =>
+                    post?.post_type === "post" &&
+                    post?.is_advertisement !== true &&
+                    Array.isArray(post?.media) &&
+                    post.media.some(
+                        (media) =>
+                            media?.type === "video" &&
+                            media?.url
+                    )
+            );
+
+        const requestedId =
+            Number(id);
+
+        const requestedVideo =
+            allVideoPosts.find(
+                (post) =>
+                    Number(post.id) ===
+                    requestedId
+            );
+
+        const videoPosts =
+            requestedVideo
+                ? [
+                    requestedVideo,
+                    ...allVideoPosts.filter(
+                        (post) =>
+                            Number(post.id) !==
+                            requestedId
+                    ),
+                ]
+                : allVideoPosts;
 
         setVideos(videoPosts);
 
-        const requestedId = Number(id);
+        setCurrentIndex(0);
 
-        const foundIndex = videoPosts.findIndex(
-          (post) =>
-            Number(post.id) === requestedId
-        );
+        lastNormalVideoIdRef.current =
+            videoPosts[0]?.id ?? null;
 
-        const newIndex =
-          foundIndex >= 0
-            ? foundIndex
-            : 0;
-
-        setCurrentIndex(newIndex);
+        videosSinceAdRef.current =
+            videoPosts.length > 0
+                ? 1
+                : 0;
 
         setHasNextVideo(
-          videoPosts.length > newIndex + 1
+            videoPosts.length > 0
         );
-    
+
         autoNextUsedRef.current = false;
         autoNextCancelledRef.current = false;
-    
-        initialVideoIdRef.current = Number(
-          videoPosts[newIndex]?.id || id
-        );
-    
+
         viewedRef.current = null;
         viewPromiseRef.current = null;
 
@@ -1052,36 +1434,58 @@ export default function PostVideoPageId({
         setCurrentTime(0);
         setDuration(0);
         setVideoLoading(true);
+        setIsPlaying(false);
+        setShowMore(false);
+        setShowOverlay(true);
+        setShowSpeed(false);
 
         setTimeout(() => {
-          const video = videoRef.current;
 
-          if (!video) return;
+            const newVideo =
+                videoRef.current;
 
-          video.currentTime = 0;
+            if (!newVideo) {
+                return;
+            }
 
-          video.load();
+            newVideo.pause();
 
-          video.play().catch(() => {});
+            try {
+                newVideo.currentTime = 0;
+            } catch (e) {}
+
+            newVideo.load();
+
         }, 100);
 
-      } catch (error) {
+    } catch (error) {
+
         console.error(
-          "RESET VIDEO ERROR:",
-          error.response?.data || error
+            "RESET VIDEOS ERROR:",
+            error.response?.data ||
+                error
         );
 
+        setShowResetPopup(true);
+
         setNotify({
-          message:
-            error.response?.data?.message ||
-            "Unable to reset viewed videos.",
-          type: "error",
+            message:
+                error.response?.data?.message ||
+                "Unable to reset videos.",
+            type: "error",
         });
 
-      } finally {
+    } finally {
+
         setResettingVideos(false);
-      }
-    };
+ 
+        setTimeout(() => {
+            navigationLockRef.current = false;
+        }, 150);
+    }
+};
+
+
 
   const handlers =
     useSwipeable({
@@ -1332,6 +1736,8 @@ export default function PostVideoPageId({
     );
   }, [currentPost]);
 
+  
+
   useEffect(() => {
     if (!currentPost?.id)
       return;
@@ -1545,8 +1951,11 @@ export default function PostVideoPageId({
       focusCommentInput();
     };
 
-  const shareUrl =
-    `${window.location.origin}/post/${currentPost?.id}`;
+    
+
+ const shareUrl = currentPost?.is_advertisement
+    ? `${window.location.origin}/advertisement/${currentPost.advertisement_id}`
+    : `${window.location.origin}/post/${currentPost?.id}`;
 
   const shareLinks = {
     facebook:
@@ -1636,11 +2045,13 @@ export default function PostVideoPageId({
     );
   }
 
-  // --------------------------------------------------
-  // NO VIDEO
-  // --------------------------------------------------
+  const hasCurrentMedia =
+    currentPost?.media?.some(
+        (media) => media?.url
+    );
 
-  if (!currentMedia) {
+// video
+  if (!hasCurrentMedia) {
     return (
       <div className="fixed inset-0 bg-neutral-950 flex items-center justify-center z-[100]">
         <div className="text-center text-white px-6">
@@ -2043,8 +2454,8 @@ const commentScreen = (
             disabled={
               navigationLockRef.current
             }
-            className="bg-black/60 border border-white text-white p-2 rounded-full absolute left-4 top-1/2 translate-y-4 hidden 
-            sm:flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/80 transition"
+            className="bg-black/60 border border-white text-white p-2 rounded-full absolute left-4 top-1/2 translate-y-4
+            flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/80 transition"
             title="Next video"
           >
             {/* DOWN */}
@@ -2118,17 +2529,29 @@ const commentScreen = (
         }}
         className="relative h-full w-full sm:w-auto sm:max-w-[min(720px,90vw)] flex items-center justify-center overflow-hidden bg-neutral-900 sm:rounded-2xl shadow-2xl select-none"
       >
-          <video
-            ref={videoRef}
-            src={currentMedia.url}
-            className="h-full w-full sm:w-auto sm:max-w-full object-contain bg-neutral-900"
-            preload="auto"
-            playsInline
-            muted={isMuted}
-            volume={volume}
-            playbackRate={playbackRate}
-          />
-
+         {currentVideo?.url ? (
+            <video
+                ref={videoRef}
+                src={currentVideo.url}
+                className="h-full w-full object-contain bg-black"
+                playsInline
+                preload="auto"
+            />
+        ) : currentImage?.url ? (
+            <img
+                src={currentImage.url}
+                alt={
+                    currentPost?.title ||
+                    currentPost?.advertisement_type ||
+                    "Advertisement"
+                }
+                className="h-full w-full object-contain bg-black"
+            />
+        ) : (
+            <div className="flex items-center justify-center h-full text-white">
+                No media available
+            </div>
+        )}
           {/* SUBTLE GRADIENT */}
 
           <div
@@ -2153,6 +2576,7 @@ const commentScreen = (
 
           {/* CENTER PLAY */}
 
+          {!isAdvertisement && (
           <button
             onClick={togglePlay}
             className={`absolute inset-0 z-[80] flex items-center justify-center transition-opacity duration-300 ${
@@ -2189,9 +2613,9 @@ const commentScreen = (
               )}
             </span>
           </button>
-
+          )}
           {/* TOP VIDEO CONTROLS */}
-
+          {!isAdvertisement && (
           <div
             className={`absolute top-4 right-3 z-[110] flex items-center gap-2 transition-all duration-300 ${
               showOverlay
@@ -2311,12 +2735,10 @@ const commentScreen = (
             </div>
 
             {/* MUTE */}
-
             <button
-              onClick={toggleMute}
-              className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/50 transition"
-            >
-              {isMuted ||
+              onClick={toggleMute} 
+              className="flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/10 rounded-full px-3 h-10">
+               {isMuted ||
               volume === 0 ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -2362,25 +2784,7 @@ const commentScreen = (
                   />
                 </svg>
               )}
-            </button>
 
-            {/* VOLUME RANGE */}
-
-            <div className="hidden sm:flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/10 rounded-full px-3 h-10">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="w-4 h-4 text-white"
-              >
-                <path
-                  d="M11 5 6 9H3v6h3l5 4V5Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
 
               <input
                 type="range"
@@ -2397,86 +2801,200 @@ const commentScreen = (
                 }
                 className="w-20 h-[3px] appearance-none accent-white cursor-pointer"
               />
-            </div>
-          </div>
-
-          {/* DESCRIPTION */}
-
-          {currentPost?.content && (
-            <div
-              className={`absolute bottom-16 left-3 right-3 sm:left-5 sm:right-5 z-[70] transition-all duration-300 ${
-                showOverlay
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-3 pointer-events-none"
-              }`}
-            >
-              <div className="max-w-2xl mx-auto">
-                <div className="flex items-start gap-3">
-                  <Link
-                    to={`/profile/${currentPost?.user?.id}`}
-                    className="shrink-0"
-                  >
-                    <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg">
-                      {currentPost?.user?.name
-                        ?.charAt(0)
-                        ?.toUpperCase() ||
-                        "A"}
-                    </span>
-                  </Link>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="text-white font-bold text-xs">
-                      {currentPost
-                        ?.user?.name ||
-                        "Unknown User"}
-                    </div>
-
-                    <div
-                      className={`rounded-xl bg-black/25 backdrop-blur-sm px-3 py-2 ${
-                        showMore
-                          ? "max-h-[55vh] overflow-y-auto"
-                          : ""
-                      }`}
-                    >
-                      <p className="text-white text-xs leading-5 break-words [overflow-wrap:anywhere]">
-                        {showMore
-                          ? text
-                          : shortText}
-
-                        {hasLongText && (
-                          <button
-                            type="button"
-                            onClick={(
-                              e
-                            ) => {
-                              e.stopPropagation();
-
-                              setShowMore(
-                                (
-                                  prev
-                                ) =>
-                                  !prev
-                              );
-
-                              showVideoControls();
-                            }}
-                            className="ml-1 text-white underline font-semibold"
-                          >
-                            {showMore
-                              ? "See less"
-                              : "See more"}
-                          </button>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          </button>
             </div>
           )}
 
-          {/* BOTTOM CONTROLS */}
+    {isAdvertisement && (
+        <div className="absolute top-4 left-4 z-[130]">
+            <span className="px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold tracking-wide">
+                {currentPost?.advertisement_type === "sponsorship"
+                    ? "SPONSORSHIP"
+                    : "ADVERTISEMENT"}
+            </span>
+        </div>
+    )}
+          {/* DESCRIPTION */}
+          
 
+               {isAdvertisement && (
+    <div
+        className={`absolute bottom-16 left-3 right-3 sm:left-5 sm:right-5 z-[80] transition-all duration-300 ${
+            showOverlay
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-3 pointer-events-none"
+        }`}
+    >
+        <div className="max-w-2xl mx-auto">
+            <div
+                className="
+                    bg-black/45
+                    backdrop-blur-md
+                    rounded-2xl
+                    border border-white/10
+                    p-4
+                    text-white
+                    max-h-[55vh]
+                    overflow-y-auto
+                    overscroll-contain
+                    scrollbar-thin
+                    scrollbar-thumb-white/30
+                    scrollbar-track-transparent
+                "
+            >
+
+                {/* TYPE */}
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-1 rounded-md bg-white text-black text-[9px] font-bold">
+                        {currentPost?.advertisement_type === "sponsorship"
+                            ? "SPONSOR"
+                            : "AD"}
+                    </span>
+
+                    <span className="text-white/60 text-[10px]">
+                        {currentPost?.advertisement_type === "sponsorship"
+                            ? "Sponsored"
+                            : "Advertisement"}
+                    </span>
+                </div>
+
+                {/* TITLE */}
+                {currentPost?.title && (
+                    <h2 className="text-base sm:text-lg font-bold break-words [overflow-wrap:anywhere]">
+                        {currentPost.title}
+                    </h2>
+                )}
+
+                {/* DESCRIPTION */}
+                {currentPost?.description && (
+                    <p className="text-xs sm:text-sm text-white/85 mt-1 leading-5 break-words [overflow-wrap:anywhere]">
+                        {currentPost.description}
+                    </p>
+                )}
+
+                {/* LINK */}
+                {currentPost?.link && (
+                    <a
+                        href={currentPost.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="
+                            inline-flex
+                            items-center
+                            gap-2
+                            mt-3
+                            px-4
+                            py-2
+                            rounded-lg
+                            bg-white
+                            text-black
+                            text-xs
+                            font-bold
+                            hover:bg-gray-200
+                            transition
+                        "
+                    >
+                        Visit Link
+
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.8"
+                            stroke="currentColor"
+                            className="w-4 h-4"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M13.5 4.5H19.5V10.5M19.5 4.5 12 12M19.5 13.5v4.5a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 4.5 18V6a1.5 1.5 0 0 1 1.5-1.5h4.5"
+                            />
+                        </svg>
+                    </a>
+                )}
+
+            </div>
+        </div>
+    </div>
+)} 
+
+
+{!isAdvertisement &&
+  currentPost?.content && (
+    <div
+      className={`absolute bottom-16 left-3 right-3 sm:left-5 sm:right-5 z-[70] transition-all duration-300 ${
+        showOverlay
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-3 pointer-events-none"
+      }`}
+    >
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-start gap-3">
+
+          {/* USER */}
+          <Link
+            to={`/profile/${currentPost?.user?.id}`}
+            className="shrink-0"
+          >
+            <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg">
+              {currentPost?.user?.name
+                ?.charAt(0)
+                ?.toUpperCase() || "A"}
+            </span>
+          </Link>
+
+          <div className="min-w-0 flex-1">
+
+            {/* USER NAME */}
+            <div className="text-white font-bold text-xs mb-1">
+              {currentPost?.user?.name || "Unknown User"}
+            </div>
+
+            {/* CONTENT */}
+            <div
+              className="
+                rounded-xl
+                bg-black/25
+                backdrop-blur-sm
+                px-3
+                py-2
+                max-h-[55vh]
+                overflow-y-auto
+                overscroll-contain
+                scrollbar-thin
+                scrollbar-thumb-white/30
+                scrollbar-track-transparent
+              "
+            >
+              <p className="text-white text-xs leading-5 break-words [overflow-wrap:anywhere]">
+                {showMore ? text : shortText}
+
+                {hasLongText && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setShowMore((prev) => !prev);
+
+                      showVideoControls();
+                    }}
+                    className="ml-1 text-white underline font-semibold"
+                  >
+                    {showMore ? "See less" : "See more"}
+                  </button>
+                )}
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+          {/* BOTTOM CONTROLS */}
+          {!isAdvertisement && (
           <div
             className={`absolute bottom-2 left-3 right-3 sm:left-5 sm:right-5 z-[100] transition-all duration-300 ${
               showOverlay
@@ -2524,89 +3042,9 @@ const commentScreen = (
                 )}
               </span>
             </div>
-
-            {/* VOLUME ON MOBILE */}
-
-            <div className="sm:hidden flex items-center gap-2">
-              <button
-                onClick={toggleMute}
-                className="text-white"
-              >
-                {isMuted ||
-                volume === 0 ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      d="M11 5 6 9H3v6h3l5 4V5Z"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-
-                    <path
-                      d="m17 9 4 4m0-4-4 4"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      d="M11 5 6 9H3v6h3l5 4V5Z"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-
-                    <path
-                      d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                )}
-              </button>
-
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={
-                  isMuted
-                    ? 0
-                    : volume
-                }
-                onChange={
-                  handleVolumeChange
-                }
-                className="w-24 h-[3px] appearance-none accent-white"
-              />
-
-              <span className="text-white/70 text-[10px]">
-                {Math.round(
-                  (isMuted
-                    ? 0
-                    : volume) *
-                    100
-                )}
-                %
-              </span>
-            </div>
           </div>
+          )}
+
 
           {/* AUTO NEXT */}
 
@@ -2629,7 +3067,7 @@ const commentScreen = (
         )}
           {/* RIGHT ACTIONS */}
 
-          <div className="absolute right-2 sm:right-4 bottom-24 z-[100] flex flex-col items-center gap-3">
+          <div className="absolute right-0 bottom-14 z-[100] flex flex-col items-center gap-3">
             {/* REACTION */}
 
             <div
@@ -2685,11 +3123,6 @@ const commentScreen = (
                       setShowReactions(
                         false
                       );
-
-                      /*
-                       * Opens your existing
-                       * emoji picker.
-                       */
                       setShowEmoji(true);
                     }}
                     className="ml-1 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl font-semibold"
@@ -2716,10 +3149,10 @@ const commentScreen = (
 
                   showVideoControls();
                 }}
-                className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-xl border transition ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl border transition ${
                   myReaction
                     ? "bg-blue-600 border-blue-400"
-                    : "bg-black/40 text-white border-white/10"
+                    : "bg-black/20 text-white border-gray-600"
                 }`}
               >
                 <svg
@@ -2728,7 +3161,7 @@ const commentScreen = (
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="w-5 h-5"
+                  className="w-4 h-4"
                 >
                   <path
                     strokeLinecap="round"
@@ -2747,7 +3180,7 @@ const commentScreen = (
 
                 handleCommentPop();
               }}
-              className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white flex items-center justify-center hover:bg-black/60 transition"
+              className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -2755,7 +3188,7 @@ const commentScreen = (
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
                 stroke="currentColor"
-                className="w-5 h-5"
+                className="w-4 h-4"
               >
                 <path
                   strokeLinecap="round"
@@ -2775,19 +3208,21 @@ const commentScreen = (
                   (prev) => !prev
                 );
               }}
-              className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white flex items-center justify-center hover:bg-black/60 transition"
+             className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                className="w-5 h-5"
+                className="w-4 h-4"
               >
                 <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 0 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z" />
               </svg>
             </button>
 
-            <div className="bg-black/40 rounded-full">
+            <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border 
+            border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
+            >
               <PostOptionsId
                 post={currentPost}
               />

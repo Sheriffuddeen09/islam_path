@@ -286,6 +286,8 @@ const handleHidePost = async (postId) => {
       className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
       // ref={postRef}
       >
+
+        
       {post.is_repost && (
         <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
@@ -300,11 +302,13 @@ const handleHidePost = async (postId) => {
           <Link to={`/profile/${post.reposted_by.id}`}>
           <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
           </Link>
-          <p className="text-xs">{post.created_at}</p>
+          <div>
+            <p className="text-xs">{post.created_at}</p>
+
+           
+          </div>
         </div>
-         {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded py-1 ">
-         Reposted
-         </p> */}
+      
         </div>
         <div className="inline-flex gap-3 items-center">
          <PostOptions post={post} 
@@ -338,7 +342,19 @@ const handleHidePost = async (postId) => {
           <Link to={`/profile/${user.id}`}>
           <p className="font-semibold text-sm">{post.user?.name}</p>
           </Link>
-          <p className="text-xs">{post.created_at}</p>
+            <p className="text-xs">{post.created_at}</p>
+          {post.is_advertisement === true && (
+              <p className="text-xs inline-flex gap-1 items-center font-semibold text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+                class='size-4'>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                </svg>
+
+                {post.advertisement?.type === "advertisement"
+                  ? "Advertisement"
+                  : "Sponsorship"}
+              </p>
+            )}
         </div>
       </div>
 
@@ -562,7 +578,7 @@ const handleHidePost = async (postId) => {
           <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
         </svg>
       </p>
-
+    {!post.is_advertisement && post.user?.id !== user?.id && (
       <p className="inline-flex gap-1 items-center">
       {post.reposts_count}
            <svg
@@ -582,6 +598,7 @@ const handleHidePost = async (postId) => {
             />
           </svg>
       </p>
+      )}
       </div>
 
       </div>
@@ -694,11 +711,11 @@ const handleHidePost = async (postId) => {
                   </svg>
                     Share
                   </button>
-                  {post.user.id !== user.id &&
-                  <button className="flex items-center font-semibold gap-1 mx-4">
-                    <Repost post={post} setPosts={setPosts} />
-                  </button>
-                  }
+                 {post.user.id !== user.id && !post.is_advertisement && (
+                    <button className="flex items-center font-semibold gap-1 mx-4">
+                      <Repost post={post} setPosts={setPosts} />
+                    </button>
+                  )}
                 </div>
         
                     {postIdModal && (

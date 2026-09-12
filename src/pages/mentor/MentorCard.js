@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import { Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 
 export default function MentorCard({filteredCourse, loadingId, requestStatus, sendLiveRequest, setLoadingId, setNotification
@@ -584,8 +585,11 @@ const handleWatchAd = async () => {
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
       </button>
-      <div className="inline-flex mt-4 gap-2 items-center">
+      <div className="flex flex-col mt-4 gap-2 items-center">
       <p className="font-bold text-sm">Balance: <b>{badges.total}</b> 🏅</p>
+      {badges.total < 20 && (
+      <Link to={'/contact'} className="font-bold text-blue-700 text-sm ">Inquiry for more Badges 🏅</Link>
+      )}
       </div>
     </div>
   </div>

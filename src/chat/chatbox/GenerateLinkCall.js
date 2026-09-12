@@ -88,7 +88,7 @@ const generateMeetingLink = async (type) => {
         ">
 
         <div className="
-        bg-white
+        bg-white text-black
         rounded-xl
         w-96
         p-5

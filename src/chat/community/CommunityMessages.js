@@ -35,6 +35,25 @@ export default function CommunityMessages({
       window.innerWidth < 1024
     );
 
+    const [isScrolling, setIsScrolling] = useState(false);
+const scrollTimerRef = useRef(null);
+
+const handleMessagesScroll = () => {
+  setIsScrolling(true);
+
+  clearTimeout(scrollTimerRef.current);
+
+  scrollTimerRef.current = setTimeout(() => {
+    setIsScrolling(false);
+  }, 700);
+};
+
+useEffect(() => {
+  return () => {
+    clearTimeout(scrollTimerRef.current);
+  };
+}, []);
+
     useEffect(() => {
       const handleResize = () => {
         setIsMobiled(window.innerWidth < 1024);
@@ -773,18 +792,26 @@ const resendCommunityFile =
 
             <div
            ref={communityContainerRef}
-            className="
+          
+           onScroll={handleMessagesScroll}
+          className={`
             flex-1
+            px-1
             min-h-0
             overflow-y-auto
-            overflow-hidden
+            overflow-x-hidden
             scrollbar-thin
-            scrollbar-thumb-green-500
-            scrollbar-track-transparent
+            space-y-3
             bg-[var(--primary-color)]
             relative
-            px-1
-          "
+
+            scrollbar-track-transparent
+
+            ${
+              isScrolling
+                ? "scrollbar-thumb-green-500"
+                : "scrollbar-thumb-transparent"
+            }`}
           >
           {loadingMessages ? (
 

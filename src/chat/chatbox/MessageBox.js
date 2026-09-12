@@ -48,6 +48,25 @@ export default function MessageBox({
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
 
+  const [isScrolling, setIsScrolling] = useState(false);
+const scrollTimerRef = useRef(null);
+
+const handleMessagesScroll = () => {
+  setIsScrolling(true);
+
+  clearTimeout(scrollTimerRef.current);
+
+  scrollTimerRef.current = setTimeout(() => {
+    setIsScrolling(false);
+  }, 700);
+};
+
+useEffect(() => {
+  return () => {
+    clearTimeout(scrollTimerRef.current);
+  };
+}, []);
+
 useEffect(() => {
   const fetchGroups = async () => {
     try {
@@ -498,7 +517,6 @@ const handlePin = async (msg) => {
     setSearchMode(true);
     setSearchQuery(text);
   };
-const menuRef = useRef(null);
  
 
     {loadingMessages && <ChatSkeleton type="messages" />}
@@ -547,9 +565,7 @@ const firstUnreadMessageId =
   setIncomingCall(null);
 };
 
-console.log("isCaller:", isCaller);
-console.log("activeChat:", activeChat);
-console.log("incomingCall:", incomingCall);
+
 
   return (
     <div className={`flex flex-col h-full bg-[var(--primary-color)] text-[var(--text-color)] relative
@@ -771,7 +787,7 @@ console.log("incomingCall:", incomingCall);
         </div>
 
         {/* RIGHT */}
-        <div className="flex text-xl flex-shrink-0 gap-1 md:gap-3">
+        <div className="flex text-xl flex-shrink-0 gap-2 md:gap-3">
           {!isGroup && !loadingMessages &&
           <button
             onClick={() =>
@@ -898,12 +914,28 @@ console.log("incomingCall:", incomingCall);
   </div>
 </div>
  
-
       <div
-        ref={messagesContainerRef}
-        className="flex-1 px-1 min-h-0 overflow-y-auto scrollbar-thin overflow-hidden
-        scrollbar-thumb-green-500 scrollbar-track-transparent space-y-3 bg-[var(--primary-color)] relative">
+  ref={messagesContainerRef}
+  onScroll={handleMessagesScroll}
+  className={`
+    flex-1
+    px-1
+    min-h-0
+    overflow-y-auto
+    overflow-x-hidden
+    scrollbar-thin
+    space-y-3
+    bg-[var(--primary-color)]
+    relative
+    scrollbar-track-transparent
 
+    ${
+      isScrolling
+        ? "scrollbar-thumb-green-500"
+        : "scrollbar-thumb-transparent"
+    }
+  `}
+>
 
   {isRestrictedGroupUser ? (
     <div className="flex flex-col items-center justify-center h-full text-center p-6">

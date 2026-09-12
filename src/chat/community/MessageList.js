@@ -51,19 +51,22 @@ export default function MessageList({msg, setReactionMsg,
     msg.message || ""
   );
 
-  const isExpanded =
-  expandedMessages[msg.id];
+  
 
-const messageText =
-  msg.message || "";
+    const messageText =
+      msg.message || "";
 
-const shouldTrim =
-  messageText.length > 250;
 
-const displayText =
-  shouldTrim && !isExpanded
-    ? messageText.slice(0, 250) + " "
-    : messageText;
+    const visibleLength =
+      expandedMessages[msg.id] || 700;
+
+    const hasMoreText =
+      messageText.length > visibleLength;
+
+    const displayText = hasMoreText
+      ? `${messageText.slice(0, visibleLength)}...`
+      : messageText;
+
 
   const isInteractive = (target) => {
   return !!target.closest(
@@ -236,119 +239,111 @@ const handleDownloadMessage =
   }}
 
   onPointerDown={(e) => {
+  if (isInteractive(e.target)) {
+    return;
+  }
 
-    if (isInteractive(e.target))
-      return;
+  // Only handle the primary mouse button
+  if (e.pointerType === "mouse" && e.button !== 0) {
+    return;
+  }
 
-    longPressTriggered.current =
-      false;
+  clearTimeout(pressTimer.current);
 
-    isDragging.current = true;
+  longPressTriggered.current = false;
+  isDragging.current = true;
 
-    startX.current = e.clientX;
+  startX.current = e.clientX;
+  dragX.current = 0;
 
-    dragX.current = 0;
+  pressTimer.current = setTimeout(() => {
+    longPressTriggered.current = true;
 
-    pressTimer.current =
-      setTimeout(() => {
+    // Select the exact message that was held
+    setSelectedMessage(msg);
+    setReactionMsg(msg);
 
-        longPressTriggered.current =
-          true;
+    // Close any existing menu
+    setShowMessageMenu(false);
 
-        setReactionMsg(msg);
-        setSelectedMessage(msg);
-        setShowMessageMenu(false);
-
-      }, 500);
-  }}
+    console.log("LONG PRESSING", msg.id);
+  }, 500);
+}}
 
   onPointerMove={(e) => {
+  if (isInteractive(e.target)) {
+    return;
+  }
 
-    if (isInteractive(e.target))
-      return;
+  if (!isDragging.current) {
+    return;
+  }
 
-    if (!isDragging.current)
-      return;
+  const diff = e.clientX - startX.current;
 
-    const diff =
-      e.clientX - startX.current;
+  // Finger moved → cancel long press
+  if (Math.abs(diff) > 10) {
+    clearTimeout(pressTimer.current);
+  }
 
-    // cancel long press if dragging
-    if (Math.abs(diff) > 10) {
+  // RIGHT SWIPE ONLY
+  if (diff > 0) {
+    const MAX = 80;
 
-      clearTimeout(
-        pressTimer.current
-      );
-    }
+    const x = Math.min(diff, MAX);
 
-    // RIGHT SWIPE ONLY
-    if (diff > 0) {
+    dragX.current = diff;
 
-      const MAX = 80;
+    setTranslateX(x);
+  }
+}}
 
-      const x = Math.min(
-        diff,
-        MAX
-      );
+       onPointerUp={(e) => {
+  isDragging.current = false;
 
-      dragX.current = diff;
+  clearTimeout(pressTimer.current);
 
-      setTranslateX(x);
-          }
-        }}
+  const diff = dragX.current;
 
-        onPointerUp={(e) => {
+  setTranslateX(0);
+  dragX.current = 0;
 
-          isDragging.current = false;
+  // Long press already handled this interaction
+  if (longPressTriggered.current) {
+    return;
+  }
 
-          clearTimeout(
-            pressTimer.current
-          );
+  // SWIPE TO REPLY
+  if (diff > 60) {
+    setReplyingToCommunity(msg);
+  }
+}}
 
-          const diff = dragX.current;
+       onPointerCancel={() => {
+  clearTimeout(pressTimer.current);
 
-          setTranslateX(0);
+  isDragging.current = false;
 
-          dragX.current = 0;
+  setTranslateX(0);
+  dragX.current = 0;
+}}
 
-          // SWIPE TO REPLY
-          if (diff > 60) {
+onClick={(e) => {
+  e.stopPropagation();
 
-            setReplyingToCommunity(
-              msg
-            );
-          }
-        }}
+  if (isInteractive(e.target)) {
+    return;
+  }
 
-        onPointerCancel={() => {
+  // A long press has already selected the message.
+  // Prevent the normal click action.
+  if (longPressTriggered.current) {
+    longPressTriggered.current = false;
+    return;
+  }
 
-          clearTimeout(
-            pressTimer.current
-          );
-
-          isDragging.current = false;
-
-          setTranslateX(0);
-
-          dragX.current = 0;
-        }}
-
-        onClick={(e) => {
-
-          e.stopPropagation();
-
-          if (isInteractive(e.target))
-            return;
-
-          // prevent click after long press
-          if (
-            longPressTriggered.current
-          ) {
-            return;
-          }
-
-          // normal click logic here
-        }}
+  // Normal message click logic here
+}}
            onMouseEnter={() => {
             setHoverMsgId(msg.id);
             }}
@@ -471,6 +466,8 @@ const handleDownloadMessage =
                     handleDownloadMessage(message);
                   }}
                   msg={msg} 
+                  setSelectedMessage={setSelectedMessage}
+                  setReactionMsg={setReactionMsg}
                 
                  />
                 <div
@@ -518,28 +515,46 @@ const handleDownloadMessage =
                 
                   </Linkify>
 
-                  {shouldTrim && (
-                    <button
-                      onClick={() =>
-                        setExpandedMessages((prev) => ({
-                          ...prev,
-                          [msg.id]:
-                            !prev[msg.id],
-                        }))
-                      }
-                      className="
-                        text-green-400
-                        text-xs
-                        font-semibold
-                        hover:underline
-                      "
-                    >
-                      {isExpanded
-                        ? ""
-                        : "See more"}
-                    </button>
-                  )}
-                </div>
+                   {hasMoreText && (
+                      <button
+                        onClick={() =>
+                          setExpandedMessages((prev) => ({
+                            ...prev,
+                            [msg.id]: (prev[msg.id] || 700) + 700,
+                          }))
+                        }
+                        className="
+                          ml-2
+                          text-green-400
+                          text-xs
+                          font-semibold
+                          hover:underline
+                        "
+                      >
+                        See more
+                      </button>
+                    )}
+
+                    {!hasMoreText && visibleLength > 700 && messageText.length > 700 && (
+                      <button
+                        onClick={() =>
+                          setExpandedMessages((prev) => ({
+                            ...prev,
+                            [msg.id]: 700,
+                          }))
+                        }
+                        className="
+                          ml-2
+                          text-green-400
+                          text-xs
+                          font-semibold
+                          hover:underline
+                        "
+                      >
+                        See less
+                      </button>
+                    )}
+               </div>
                  )}
 
                  {

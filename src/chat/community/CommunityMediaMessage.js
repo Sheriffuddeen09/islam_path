@@ -1,55 +1,93 @@
+import { useRef } from "react";
+
 export default function CommunityMediaMessage({
   msg,
- 
   onPreview,
-  
+  setSelectedMessage,
+  setReactionMsg,
 }) {
+  const pressTimer = useRef(null);
+  const longPressTriggered = useRef(false);
 
-  const files =
-    msg?.files || [];
-
-  const media =
-    files?.[0] || null;
+  const files = msg?.files || [];
+  const media = files?.[0] || null;
 
   const mediaUrl =
     media?.file_url ||
     media?.file ||
     "";
 
-  const isImage =
-    msg?.type === "image";
+  const isImage = msg?.type === "image";
+  const isVideo = msg?.type === "video";
 
-  const isVideo =
-    msg?.type === "video";
-
- 
   if (!mediaUrl) {
     return null;
   }
 
-  return (
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
 
+    longPressTriggered.current = false;
+
+    pressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+
+      // SELECT MESSAGE
+      setSelectedMessage?.(msg);
+
+      // Show reaction/action state
+      setReactionMsg?.(msg);
+    }, 500);
+  };
+
+  const handlePointerMove = (e) => {
+    e.stopPropagation();
+
+    // Moving cancels long press
+    clearTimeout(pressTimer.current);
+  };
+
+  const handlePointerUp = (e) => {
+    e.stopPropagation();
+
+    clearTimeout(pressTimer.current);
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+
+    // A click can fire after a long press.
+    // Don't open the preview in that case.
+    if (longPressTriggered.current) {
+      longPressTriggered.current = false;
+      return;
+    }
+
+    // NORMAL TAP
+    onPreview?.(msg);
+  };
+
+  return (
     <div
-      className={`
+      className="
         relative
         overflow-hidden
         px-3
         rounded-lg
         w-full
-      `}
+      "
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
 
-      {/* TOP ACTIONS */}
       {/* IMAGE */}
-
       {isImage && (
-
         <img
           src={mediaUrl}
           alt=""
-          onClick={() =>
-            onPreview?.(msg)
-          }
+          onClick={handleClick}
           className="
             w-full
             mt-2
@@ -57,15 +95,14 @@ export default function CommunityMediaMessage({
             object-cover
             rounded-xl
             cursor-pointer
+            select-none
           "
+          draggable={false}
         />
-
       )}
 
       {/* VIDEO */}
-
       {isVideo && (
-
         <div
           className="
             relative
@@ -73,7 +110,6 @@ export default function CommunityMediaMessage({
             rounded-xl
           "
         >
-
           <video
             controls
             poster={media?.thumbnail}
@@ -83,20 +119,22 @@ export default function CommunityMediaMessage({
               max-h-[250px]
               object-cover
               rounded-lg
-
             "
+            onClick={(e) => {
+              // Don't let the video controls interfere
+              // with the long-press logic.
+              if (longPressTriggered.current) {
+                e.stopPropagation();
+              }
+            }}
           >
-            <source
-              src={mediaUrl}
-            />
+            <source src={mediaUrl} />
           </video>
 
           {/* PREVIEW BUTTON */}
-
           <button
-            onClick={() =>
-              onPreview?.(msg)
-            }
+            type="button"
+            onClick={handleClick}
             className="
               absolute
               inset-0
@@ -105,32 +143,23 @@ export default function CommunityMediaMessage({
               justify-center
             "
           >
-
             <div
               className="
                 w-10
                 h-10
-
                 rounded-full
-
                 bg-black/50
                 backdrop-blur-md
-
                 flex
                 items-center
                 justify-center
               "
             >
-
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"
                 viewBox="0 0 24 24"
-                className="
-                  size-8
-                  text-white
-                  ml-1
-                "
+                className="size-8 text-white ml-1"
               >
                 <path
                   fillRule="evenodd"
@@ -138,16 +167,10 @@ export default function CommunityMediaMessage({
                   clipRule="evenodd"
                 />
               </svg>
-
             </div>
-
           </button>
-
         </div>
-
       )}
-
-      
     </div>
   );
 }
