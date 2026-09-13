@@ -181,7 +181,20 @@ const handleCommentTouchEnd = () => {
 };
   
   function timeAgo(dateString) {
-  const seconds = Math.floor((Date.now() - new Date(dateString)) / 1000);
+  if (!dateString) {
+    return "now";
+  }
+
+  const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return "now";
+  }
+
+  const seconds = Math.max(
+    0,
+    Math.floor((Date.now() - date.getTime()) / 1000)
+  );
 
   if (seconds < 5) return "now";
   if (seconds < 60) return `${seconds}s`;
@@ -199,11 +212,10 @@ const handleCommentTouchEnd = () => {
   if (weeks < 52) return `${weeks}w`;
 
   const years = Math.floor(days / 365);
+
   return `${years}y`;
 }
-
 const isOwner = authUser?.user?.id === comment.user?.id;
-const hasText = !!comment.body;
 
 
 
@@ -221,7 +233,7 @@ const navigate = useNavigate()
       <div className="flex-1">
        <div
   className="
-    bg-gray-100
+    bg-blue-100
     p-3
     rounded
     w-fit
@@ -263,9 +275,43 @@ const navigate = useNavigate()
       }}
 >
 
+
+
+  {/* Comment Header absolute */}
+  <div className="flex items-start">
+
+    <div className="min-w-0 max-w-full">
+
+      {/* User */}
+      <div className="
+          flex flex-1 justify-between items-center
+      ">
+      <button
+        onClick={() => navigate(`/profile/${comment.user?.id}`)}
+        className="
+          font-semibold
+          text-black
+          block
+          max-w-full
+          break-words
+        "
+      >
+        {comment.user?.first_name || "Anonymous"}{" "}
+        {comment.user?.last_name || ""}
+      </button>
+
+      
   {!isEditing && (
-  <div className="absolute top-2 right-2 opacity-0 invisible group-hover:opacity-100 
-  group-hover:visible transition-all duration-150">
+  <div className="  
+  lg:block hidden
+          shrink-0
+          opacity-0
+          invisible
+          group-hover:opacity-100
+          group-hover:visible
+          transition-all
+          duration-150
+        ">
     <button
       type="button"
      onTouchStart={(e) => {
@@ -278,7 +324,7 @@ const navigate = useNavigate()
           setSelectedComment(comment);
           setShowCommentMenu(true);
         }}
-      className="text-black p-1 rounded-full hover:bg-gray-200"
+      className="text-black p-1"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -298,28 +344,7 @@ const navigate = useNavigate()
 
   </div>
 )}
-
-
-  {/* Comment Header absolute */}
-  <div className="flex items-start">
-
-    <div className="min-w-0 max-w-full">
-
-      {/* User */}
-      <button
-        onClick={() => navigate(`/profile/${comment.user?.id}`)}
-        className="
-          font-semibold
-          text-black
-          block
-          max-w-full
-          break-words
-        "
-      >
-        {comment.user?.first_name || "Anonymous"}{" "}
-        {comment.user?.last_name || ""}
-      </button>
-
+      </div>
 
       {comment.body && (() => {
       const words = comment.body.trim().split(/\s+/);
@@ -377,38 +402,6 @@ const navigate = useNavigate()
           <PostCommentImage image={comment.image} />
         </div>
       )}
-
-      {/* Sending */}
-      {comment.is_pending && (
-        <div className="flex items-center gap-1 mt-2">
-          <svg
-            className="animate-spin h-4 w-4 text-blue-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="3"
-            />
-
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            />
-          </svg>
-
-          <span className="text-xs text-gray-400">
-            Sending...
-          </span>
-        </div>
-      )}
-
     
               {isEditing && (
           <div  className=" flex fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -462,7 +455,7 @@ const navigate = useNavigate()
     onClick={() => setShowCommentMenu(false)}
   >
     <div
-      className="bg-[var(----bg-color)] text-[var(----text-color)] rounded-xl shadow-xl w-full max-w-xs p-4"
+      className="bg-white text-black rounded-xl shadow-xl w-full max-w-xs p-4"
       onClick={e => e.stopPropagation()}
     >
 
@@ -685,28 +678,6 @@ const navigate = useNavigate()
 
             {comment.is_pending && (
         <div className="flex items-center gap-2 mt-1">
-          <svg
-            className="animate-spin h-4 w-4 text-blue-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="3"
-            />
-
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            />
-          </svg>
-
           <span className="text-xs bg-[var(----bg-color)] text-[var(----text-color)] ">
             Sending
           </span>
@@ -735,7 +706,7 @@ const navigate = useNavigate()
 
               {/* RIGHT: count */}
               {totalReactions > 0 && (
-                <span className="text-sm bg-[var(----bg-color)] text-[var(----text-color)] ">{totalReactions}</span>
+                <span className="text-sm  ">{totalReactions}</span>
               )}
 
   
@@ -835,7 +806,7 @@ const navigate = useNavigate()
 
   <button
      onClick={() => {handleReplyToggle(); handleReplyToComment()}}
-    className="bg-[var(----bg-color)] text-[var(----text-color)]  text-sm"
+    className=" text-sm"
   >
     reply
   </button>

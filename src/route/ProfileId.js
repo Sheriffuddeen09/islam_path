@@ -26,7 +26,7 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, togglePopup, setActiveChat,
         setMessages, jobProfile, setJobProfile, showAdvertisement, setShowAdvertisement,
-        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow, user
+        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow, user, commentsByPost, setCommentsByPost
 }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -146,7 +146,8 @@ console.log("Teacher Profile", profile)
                       image={image} setImage={setImage}
                       postComments={postComments} setPostComments={setPostComments} loading={loading} 
                       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-                      newComment={newComment} setNewComment={setNewComment}
+                      newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
                       emojiList={emojiList} setEmojiList={setEmojiList}
                       editContent={editContent} setEditContent={setEditContent}
@@ -162,7 +163,8 @@ console.log("Teacher Profile", profile)
                       showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                       selectedPost={selectedPost} setSelectedPost={setSelectedPost}
                       emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-                      postComments={postComments} setPostComments={setPostComments}
+                      postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                       setNewComment={setNewComment} loading={loading}
                       user={user} image={image} setImage={setImage}
@@ -177,7 +179,8 @@ console.log("Teacher Profile", profile)
                       emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
                       postComments={postComments} setPostComments={setPostComments}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
-                      setNewComment={setNewComment} loading={loading}
+                      setNewComment={setNewComment} loading={loading} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       user={user} image={image} setImage={setImage}
                       />
                       </div>
@@ -211,7 +214,8 @@ console.log("Teacher Profile", profile)
                       image={image} setImage={setImage}
                       postComments={postComments} setPostComments={setPostComments} loading={loading} 
                       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-                      newComment={newComment} setNewComment={setNewComment}
+                      newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
                       emojiList={emojiList} setEmojiList={setEmojiList}
                       editContent={editContent} setEditContent={setEditContent}
@@ -227,7 +231,8 @@ console.log("Teacher Profile", profile)
                       showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                       selectedPost={selectedPost} setSelectedPost={setSelectedPost}
                        emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-                      postComments={postComments} setPostComments={setPostComments}
+                      postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                       setNewComment={setNewComment} loading={loading}
                       user={user} image={image} setImage={setImage}
@@ -242,7 +247,8 @@ console.log("Teacher Profile", profile)
                        emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
                       postComments={postComments} setPostComments={setPostComments}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
-                      setNewComment={setNewComment} loading={loading}
+                      setNewComment={setNewComment} loading={loading} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       user={user} image={image} setImage={setImage}
                       />
                       </div>

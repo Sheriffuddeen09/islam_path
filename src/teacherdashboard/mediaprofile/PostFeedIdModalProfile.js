@@ -21,7 +21,8 @@ export function PostFeedIdModalProfile({ postId, post, onClose, user, total, oth
                                 image, setImage, loading, setLoading, newComment, setNewComment, emojiList, showEmoji,
                                 setShowEmoji, chats, firstUser, showUsersPopup, setShowUsersPopup,
                                 setEditContent, setSelectedPost, setShowEditModal, setPosts, fetchProfile,
-                                setEmojiList, setPostIdModal, postIdModal, setShowEmojiPicker, showEmojiPicker
+                                setEmojiList, setPostIdModal, postIdModal, setShowEmojiPicker, showEmojiPicker,
+                                commentsByPost, setCommentsByPost
                               }) {
 
   const [messageOpenShare, setMessageOpenShare] = useState(false)
@@ -213,7 +214,8 @@ const shareToChat = async (chatId) => {
                 // Comment
                 postComments = {postComments} 
                 setPostComments={setPostComments}
-                commentInputRef={commentInputRef}
+                commentInputRef={commentInputRef} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                 focusCommentInput={focusCommentInput}
                 newComment={newComment}
                 setNewComment={setNewComment}
@@ -295,7 +297,8 @@ const shareToChat = async (chatId) => {
               
                               // Comment
                               postComments = {postComments} 
-                              setPostComments={setPostComments}
+                              setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                               commentInputRef={commentInputRef}
                               focusCommentInput={focusCommentInput}
                               newComment={newComment}
@@ -448,8 +451,15 @@ const shareToChat = async (chatId) => {
                   </button>
                 </div>
          <div className="flex-1 w-full">
-        <PostComment postId={post.id} image={image} post={post} postComments={postComments} 
-        setPostComments={setPostComments} />
+        <PostComment
+                    postId={post.id}
+                    image={image}
+                    post={post}
+                    postComments={postComments}
+                    setPostComments={setPostComments}
+                    commentsByPost={commentsByPost}  
+                    setCommentsByPost={setCommentsByPost}
+                  />
         </div> 
        
         </div>

@@ -30,7 +30,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
         togglePopup, savedCount, setSavedCount, setActiveChat, setMessages,
         setChats, activeChat, messagesMap, setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings,
-        incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData
+        incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, commentsByPost, setCommentsByPost
       }){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -668,7 +668,8 @@ const fetchNotification = async () => {
                         image={image} setImage={setImage}
                         postComments={postComments} setPostComments={setPostComments} loading={loading} 
                         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-                        newComment={newComment} setNewComment={setNewComment}
+                        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
                         emojiList={emojiList} setEmojiList={setEmojiList}/>
                          </div>

@@ -1,5 +1,4 @@
 import  { useState } from "react";
-import ReadMoreCaption from "./ReadMoreCaption";
 import toast from "react-hot-toast";
 import CommunityMediaReaction from "./CommunityMediaReaction";
 import DeleteMessageModal from "./DeleteMessageModal";
@@ -12,7 +11,6 @@ export default function MediaPreview({
   previewMessage,
   authUser,
   isAdmin,
-  onReport,
   react,
   msg,
   activeCommunity,
@@ -20,53 +18,89 @@ export default function MediaPreview({
   setMessages, openForward, setSelectedMessage, selectedMessage
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  
+  const [showPinDuration, setShowPinDuration] = useState(false);
+const [pinningMessage, setPinningMessage] = useState(null);
   const [showDeleteModal,
   setShowDeleteModal] =
   useState(false);
 
+  const openPinDuration = (message) => {
+    if (!message) return;
+
+    // Already pinned → unpin immediately
+    if (message.is_pinned) {
+        handlePin(message);
+        setSelectedMessage(null);
+        setMenuOpen(false);
+        return;
+    }
+
+    // Not pinned → ask for duration
+    setPinningMessage(message);
+    setShowPinDuration(true);
+
+    setSelectedMessage(null);
+    setMenuOpen(false);
+};
 
 
   if (!showPreview || !previewMessage) return null;
 
+const handlePin = async (msg, days = null) => {
+    if (!msg) return;
 
-   const handlePin = async (msg) => {
-     try {
-       if (msg.is_pinned) {
-         await api.delete("/api/community/messages/pin", {
-           data: { message_id: msg.id },
-         });
-       } else {
-         await api.put("/api/community/messages/pin", {
-           message_id: msg.id,
-         });
-       }
-   
-       setMessages(prev =>
-         prev.map(m =>
-           m.id === msg.id
-             ? {
-                 ...m,
-                 is_pinned: !m.is_pinned,
-               }
-             : m
-         )
-       );
-   
-       setSelectedMessage(prev =>
-         prev?.id === msg.id
-           ? {
-               ...prev,
-               is_pinned: !prev.is_pinned,
-             }
-           : prev
-       );
-   
-     } catch (err) {
-       console.error(err);
-     }
-   };
+    try {
+        if (msg.is_pinned) {
+            await api.delete("/api/messages/pin", {
+                data: {
+                    message_id: msg.id,
+                },
+            });
 
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === msg.id
+                        ? {
+                            ...m,
+                            is_pinned: false,
+                            pin_expires_at: null,
+                        }
+                        : m
+                )
+            );
+
+            return;
+        }
+
+        if (!days) return;
+
+        const res = await api.put("/api/messages/pin", {
+            message_id: msg.id,
+            days,
+        });
+
+        const updatedMessage = res.data.data;
+
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === msg.id
+                    ? {
+                        ...m,
+                        is_pinned: true,
+                        pin_expires_at:
+                            updatedMessage.pin_expires_at,
+                    }
+                    : m
+            )
+        );
+
+        setShowPinDuration(false);
+        setPinningMessage(null);
+
+    } catch (err) {
+        console.error("Pin error:", err);
+    }
+};
 
 const handleDownloadMessage = async (message) => {
   console.log("Downloading:", message);
@@ -435,11 +469,13 @@ const handleCopyText = async (msg) => {
 
             {isAdmin && (
               <>
-                <MenuItem
-          onClick={() =>{
-            handlePin(previewMessage); setMenuOpen(false) }
-            }
-            label={
+               
+
+<MenuItem
+    onClick={() => {
+        openPinDuration(previewMessage);
+    }}
+    label={
               previewMessage.is_pinned
                 ? "Unpin"
                 : "Pin"
@@ -472,7 +508,7 @@ const handleCopyText = async (msg) => {
                 </svg>
               )
             }
-          />
+/>
 
               </>
             )}
@@ -650,6 +686,71 @@ const handleCopyText = async (msg) => {
     }}
   />
    
+
+   {showPinDuration && (
+    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+        <div
+            className="w-full max-w-sm rounded-xl p-5 shadow-xl"
+            style={{
+                backgroundColor: "var(--bg-color)",
+                color: "var(--text-color)",
+            }}
+        >
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-lg">
+                    Pin message
+                </h2>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setShowPinDuration(false);
+                        setPinningMessage(null);
+                    }}
+                    className="text-lg"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <p className="text-sm opacity-70 mb-4">
+                How long should this message stay pinned?
+            </p>
+
+            <div className="space-y-2">
+                {[7, 14, 30].map((days) => (
+                    <button
+                        key={days}
+                        type="button"
+                        onClick={() => handlePin(pinningMessage, days)}
+                        className="
+                            w-full
+                            px-4
+                            py-3
+                            rounded-lg
+                            border
+                            text-left
+                            hover:bg-black/5
+                            dark:hover:bg-white/5
+                            transition
+                        "
+                        style={{
+                            borderColor: "var(--text-color)",
+                        }}
+                    >
+                        <div className="font-medium">
+                            {days} days
+                        </div>
+
+                        <div className="text-xs opacity-60">
+                            Message will expire after {days} days
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    </div>
+)}
 </div>
   );
 }

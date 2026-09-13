@@ -12,7 +12,7 @@ export function PostCommentInput({
   const hasText = newComment?.trim().length > 0;
 
   return (
-    <div className="px-3 py-3 bg-[var(--bg-color)]">
+    <div className="px-3 py-3 bg-transparent">
       <div className="relative">
 
         {/* Comment composer */}
@@ -102,7 +102,6 @@ export function PostCommentInput({
 
                 setImage(file);
 
-                // Submit image comment immediately
                 postComment(null, file);
 
                 e.target.value = "";

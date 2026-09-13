@@ -10,7 +10,7 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, openChat, togglePopup,
         setActiveChat, setMessages, jobProfile, setJobProfile, fetchJobProfile, show, setShow, showAdvertisement,
-        setShowAdvertisement, showJobCreate, setShowJobCreate, user
+        setShowAdvertisement, showJobCreate, setShowJobCreate, user, commentsByPost, setCommentsByPost
 }) {
   const { id } = useParams();
 
@@ -22,7 +22,8 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
       image={image} setImage={setImage} openChat={openChat} togglePopup={togglePopup}
       postComments={postComments} setPostComments={setPostComments} loading={loading} 
       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-      newComment={newComment} setNewComment={setNewComment}
+      newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
       jobProfile={jobProfile}

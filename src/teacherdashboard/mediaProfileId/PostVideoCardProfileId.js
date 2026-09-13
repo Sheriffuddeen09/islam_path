@@ -9,7 +9,7 @@ export default function PostVideoCardProfileId({ v, post, setEditContent, setSel
 currentUser,
     total_reaction,
     me,
-
+commentsByPost, setCommentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -189,7 +189,8 @@ currentUser,
                                   
                                                   // Comment
                                                   postComments = {postComments} 
-                                                  setPostComments={setPostComments}
+                                                  setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                                   commentInputRef={commentInputRef}
                                                   focusCommentInput={focusCommentInput}
                                                   newComment={newComment}

@@ -2,27 +2,52 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../Api/axios";
 import PostCommentItem from "./PostCommentItem";
 
-export default function PostComment({ post, postId, postComments, setPostComments, image }) {
+export default function PostComment({
+  post,
+  postId,
+  postComments,
+  setPostComments,
+  image,
+  commentsByPost,
+  setCommentsByPost,
+}) {
   const [isEditing, setIsEditing] = useState(false)
-  const [commentLoading, setCommentLoading] = useState(false)
-  
+  const [commentLoading, setCommentLoading] = useState(false);
 
-  
-  const fetchComments = async () => {
-    setCommentLoading(true)
-    try {
-      const res = await api.get(`/api/posts/${postId}/comments`);
-      setPostComments(res.data.comments);
-    } catch (err) {
-      console.error(err);
-    }
-    setCommentLoading(false)
-  };
+const fetchComments = async () => {
+  if (!postId) return;
 
-  useEffect(() => {
-    fetchComments();
-  }, [postId]);
+  // Already cached
+  if (commentsByPost?.[postId]) {
+    setPostComments(commentsByPost[postId]);
+    return;
+  }
 
+  setCommentLoading(true);
+
+  try {
+    const res = await api.get(`/api/posts/${postId}/comments`);
+
+    const comments = res.data.comments || [];
+
+    // Current comments
+    setPostComments(comments);
+
+    // Cache comments for this post
+    setCommentsByPost((prev) => ({
+      ...prev,
+      [postId]: comments,
+    }));
+  } catch (err) {
+    console.error("Failed to fetch comments:", err);
+  } finally {
+    setCommentLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchComments();
+}, [postId]);
  
    const updateCommentTree = (postComments, updatedComment) => {
   return postComments.map(c => {
@@ -159,7 +184,7 @@ return (
       </div>
     ) : (
       /* COMMENTS */
-      <div className="h-44 max-h-44 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-4 no-scrollbar overscroll-contain">
+      <div className="h-64 max-h-64  px-4 py-2 space-y-4">
         {postComments.map((c) => (
           <PostCommentItem
             key={c.id}
@@ -171,6 +196,7 @@ return (
             updateCommentTree={updateCommentTree}
             postComments={postComments}
             setPostComments={setPostComments}
+            
             handleDeleteReply={handleDeleteReply}
             handleEditReply={handleEditReply}
             isDeleting={isDeleting}

@@ -589,7 +589,8 @@ const getPreviewSrc = (index) => {
              {/* SEND BUTTON */}
   <div className="relative">
     
-    {/* FLOAT ACTIONS */}
+    
+
     {showSendOptions && (
       <div className="
         absolute bottom-14 right-0
@@ -646,9 +647,7 @@ const getPreviewSrc = (index) => {
           No Respond
         </button>
 
-        {/* SEND WITH RESPOND */}
-        {
-          caption &&
+         
         <button
             disabled={isLimitExceeded}
             onClick={() => {
@@ -693,10 +692,10 @@ const getPreviewSrc = (index) => {
          Respond
         </button>
 
-        }
 
       </div>
     )}
+      
 
     {/* MAIN BUTTON */}
     <button

@@ -98,9 +98,8 @@ function App() {
     const [showAdvertisement, setShowAdvertisement] = useState(false);
     const [showJobCreate, setShowJobCreate] = useState(false);
 
+    const [commentsByPost, setCommentsByPost] = useState({});                     
       
-    const {authUser} = useAuth()
-
       const [reelLoading, setReelLoading] =
         useState(true);
         
@@ -427,6 +426,8 @@ function App() {
               incomingCall={incomingCall}
               setMeetingData={setMeetingData}
               meetingData={meetingData}
+              commentsByPost={commentsByPost}
+                                  setCommentsByPost={setCommentsByPost}
                />
             </ProtectedRoute>
           }
@@ -473,6 +474,8 @@ function App() {
           incomingCall={incomingCall}
           setMeetingData={setMeetingData}
           meetingData={meetingData}
+          commentsByPost={commentsByPost}
+                              setCommentsByPost={setCommentsByPost}
           />
         </ProtectedRoute>
       } />
@@ -572,6 +575,8 @@ function App() {
         setMessageOpen={setMessageOpen}
         chats={chats}
         setChats={setChats}
+        commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
       />} />
 
       {/* Video */}
@@ -580,7 +585,8 @@ function App() {
         <PostFeedVideo posts={posts} setPosts={setPosts} image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         messageOpen={messageOpen}
@@ -712,7 +718,8 @@ function App() {
       image={image} setImage={setImage}
       postComments={postComments} setPostComments={setPostComments} loading={loading} 
       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-      newComment={newComment} setNewComment={setNewComment}
+      newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                          setCommentsByPost={setCommentsByPost}
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
       jobProfile={jobProfile}
@@ -787,7 +794,8 @@ function App() {
       <Route path="/post/image" element={<PostImagePageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
@@ -797,7 +805,8 @@ function App() {
         <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
@@ -809,7 +818,8 @@ function App() {
         <Route path="/reel/video" element={<ReelVideoPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         chats={chats}
@@ -820,7 +830,8 @@ function App() {
          <Route path="/post/text" element={<PostTextPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
@@ -837,7 +848,8 @@ function App() {
       <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                            setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         messageOpen={messageOpen}

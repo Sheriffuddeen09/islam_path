@@ -4,7 +4,6 @@ import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import ChatComponent from "./ChatComponent";
 import { decryptMessage } from "../../utils/encryption";
-import { useSearchParams } from "react-router-dom";
 
 
 export default function ChatPage({

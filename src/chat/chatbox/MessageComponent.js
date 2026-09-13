@@ -27,9 +27,50 @@ export default function MessageComponent({
   const isMine = msg.sender_id === user.id;
   const [toast, setToast] = useState(false)
 
+  const [showPinDuration, setShowPinDuration] = useState(false);
+const [pinningMessage, setPinningMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
   
+  const openPinDuration = (message) => {
+  if (message.is_pinned) {
+    togglePin(message);
+    return;
+  }
+
+  setPinningMessage(message);
+  setShowPinDuration(true);
+};
+
+const confirmPin = async (days) => {
+  if (!pinningMessage) return;
+
+  try {
+    await api.put("/api/messages/pin", {
+      message_id: pinningMessage.id,
+      days,
+    });
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === pinningMessage.id
+          ? {
+              ...m,
+              is_pinned: true,
+              pin_expires_at: new Date(
+                Date.now() + days * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }
+          : m
+      )
+    );
+
+    setShowPinDuration(false);
+    setPinningMessage(null);
+  } catch (err) {
+    console.error("Pin error:", err);
+  }
+};
       const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -399,10 +440,13 @@ useEffect(() => {
 }
   },
   {
-    label: msg.is_pinned ? "Unpin" : "Pin",
-    show: isMine,
-    onClick: () => {togglePin(msg); setActiveMenuId(null)},
+  label: msg.is_pinned ? "Unpin" : "Pin",
+  show: isMine,
+  onClick: () => {
+    openPinDuration(msg);
+    setActiveMenuId(null);
   },
+},
   
   {
     label: "Report",
@@ -600,6 +644,70 @@ useEffect(() => {
         />
       )}
 
+      {showPinDuration && (
+  <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+    <div
+      className="w-full max-w-sm rounded-xl p-5 shadow-xl"
+      style={{
+        backgroundColor: "var(--bg-color)",
+        color: "var(--text-color)",
+      }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-lg">
+          Pin message
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowPinDuration(false);
+            setPinningMessage(null);
+          }}
+          className="text-lg"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p className="text-sm opacity-70 mb-4">
+        How long should this message stay pinned?
+      </p>
+
+      <div className="space-y-2">
+        {[7, 14, 30].map((days) => (
+          <button
+            key={days}
+            type="button"
+            onClick={() => confirmPin(days)}
+            className="
+              w-full
+              px-4
+              py-3
+              rounded-lg
+              border
+              text-left
+              hover:bg-black/5
+              dark:hover:bg-white/5
+              transition
+            "
+            style={{
+              borderColor: "var(--text-color)",
+            }}
+          >
+            <div className="font-medium">
+              {days} days
+            </div>
+
+            <div className="text-xs opacity-60">
+              Expires after {days} days
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
   </>
 );
 }

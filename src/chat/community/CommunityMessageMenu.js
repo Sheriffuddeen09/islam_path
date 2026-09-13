@@ -1,3 +1,4 @@
+import { useState } from "react";
 import api from "../../Api/axios";
 
 export default function CommunityMessageMenu({
@@ -17,47 +18,87 @@ export default function CommunityMessageMenu({
   setMessages,
 }) {
 
+  
+const [showPinDuration, setShowPinDuration] = useState(false);
+const [pinningMessage, setPinningMessage] = useState(null);
+
   if (!open || !selectedMessage) {
     return null;
   }
+const handlePin = async (msg, days = null) => {
+    if (!msg) return;
 
-  const handlePin = async (msg) => {
-  try {
-    if (msg.is_pinned) {
-      await api.delete("/api/community/messages/pin", {
-        data: { message_id: msg.id },
-      });
-    } else {
-      await api.put("/api/community/messages/pin", {
-        message_id: msg.id,
-      });
+    try {
+        if (msg.is_pinned) {
+            await api.delete("/api/messages/pin", {
+                data: {
+                    message_id: msg.id,
+                },
+            });
+
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === msg.id
+                        ? {
+                            ...m,
+                            is_pinned: false,
+                            pin_expires_at: null,
+                        }
+                        : m
+                )
+            );
+
+            return;
+        }
+
+        if (!days) return;
+
+        const res = await api.put("/api/messages/pin", {
+            message_id: msg.id,
+            days,
+        });
+
+        const updatedMessage = res.data.data;
+
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === msg.id
+                    ? {
+                        ...m,
+                        is_pinned: true,
+                        pin_expires_at:
+                            updatedMessage.pin_expires_at,
+                    }
+                    : m
+            )
+        );
+
+        setShowPinDuration(false);
+        setPinningMessage(null);
+
+    } catch (err) {
+        console.error("Pin error:", err);
     }
-
-    setMessages(prev =>
-      prev.map(m =>
-        m.id === msg.id
-          ? {
-              ...m,
-              is_pinned: !m.is_pinned,
-            }
-          : m
-      )
-    );
-
-    setSelectedMessage(prev =>
-      prev?.id === msg.id
-        ? {
-            ...prev,
-            is_pinned: !prev.is_pinned,
-          }
-        : prev
-    );
-
-  } catch (err) {
-    console.error(err);
-  }
 };
 
+const openPinDuration = (message) => {
+    if (!message) return;
+
+    // Already pinned → unpin immediately
+    if (message.is_pinned) {
+        handlePin(message);
+        setSelectedMessage(null);
+        setShowMessageMenu(false);
+        return;
+    }
+
+    // Not pinned → ask for duration
+    setPinningMessage(message);
+    setShowPinDuration(true);
+
+    setSelectedMessage(null);
+    setShowMessageMenu(false);
+};
   
 const handleDownloadMessage =
   async (message) => {
@@ -313,45 +354,43 @@ const handleDownloadMessage =
             {isAdmin && (
               <>
               {/* Pin  */}
-              <MenuButton
-              onClick={() => {
-                handlePin(selectedMessage);
-                setSelectedMessage(null)
-                setShowMessageMenu(false);
-              }}
-              label={
-                selectedMessage?.is_pinned
-                  ? "Unpin"
-                  : "Pin"
-              }
-              icon={
-                selectedMessage?.is_pinned ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    className="size-5"
-                  >
-                    <path d="M12 2a1 1 0 0 1 1 1v6.586l3.707 3.707A1 1 0 0 1 16 15H8a1 1 0 0 1-.707-1.707L11 9.586V3a1 1 0 0 1 1-1Z" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="size-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 3v6m0 0 3 3m-3-3-3 3m3-3v12"
-                    />
-                  </svg>
-                )
-              }
-            />
+             <MenuButton
+    onClick={() => {
+        openPinDuration(selectedMessage);
+    }}
+    label={
+        selectedMessage?.is_pinned
+            ? "Unpin"
+            : "Pin"
+    }
+    icon={
+        selectedMessage?.is_pinned ? (
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                className="size-5"
+            >
+                <path d="M12 2a1 1 0 0 1 1 1v6.586l3.707 3.707A1 1 0 0 1 16 15H8a1 1 0 0 1-.707-1.707L11 9.586V3a1 1 0 0 1 1-1Z" />
+            </svg>
+        ) : (
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-5"
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 3v6m0 0 3 3m-3-3-3 3m3-3v12"
+                />
+            </svg>
+        )
+    }
+/>
 
                 {/* EDIT */}
                 {selectedMessage?.replied_to === null && 
@@ -471,6 +510,70 @@ const handleDownloadMessage =
 
         </div>
       </div>
+      {showPinDuration && (
+    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+        <div
+            className="w-full max-w-sm rounded-xl p-5 shadow-xl"
+            style={{
+                backgroundColor: "var(--bg-color)",
+                color: "var(--text-color)",
+            }}
+        >
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-lg">
+                    Pin message
+                </h2>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        setShowPinDuration(false);
+                        setPinningMessage(null);
+                    }}
+                    className="text-lg"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <p className="text-sm opacity-70 mb-4">
+                How long should this message stay pinned?
+            </p>
+
+            <div className="space-y-2">
+                {[7, 14, 30].map((days) => (
+                    <button
+                        key={days}
+                        type="button"
+                        onClick={() => handlePin(pinningMessage, days)}
+                        className="
+                            w-full
+                            px-4
+                            py-3
+                            rounded-lg
+                            border
+                            text-left
+                            hover:bg-black/5
+                            dark:hover:bg-white/5
+                            transition
+                        "
+                        style={{
+                            borderColor: "var(--text-color)",
+                        }}
+                    >
+                        <div className="font-medium">
+                            {days} days
+                        </div>
+
+                        <div className="text-xs opacity-60">
+                            Message will expire after {days} days
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    </div>
+)}
     </>
   );
 }

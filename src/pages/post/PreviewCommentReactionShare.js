@@ -19,7 +19,7 @@ export default function PreviewCommentReactionShare({
     currentUser,
     total,
     me,
-
+commentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -316,7 +316,15 @@ export default function PreviewCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput()}}
+                              onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                      }}
             className="
               flex
               flex-col

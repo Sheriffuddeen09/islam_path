@@ -10,7 +10,7 @@ export default function ImageFlexCommentReactionShare({
     currentUser,
     total,
     me,
-
+commentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -308,7 +308,15 @@ export default function ImageFlexCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput(); setOpen(false)}}
+                              onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                      }}
             className="
               flex
               flex-col

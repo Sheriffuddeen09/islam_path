@@ -1122,11 +1122,15 @@ const handleTouchStart = (e) => {
 
     clearTimeout(longPressTimer.current);
 
+    touchActive.current = true;
+    longPressTriggered.current = false;
+
     longPressTimer.current = setTimeout(() => {
         console.log("LONG PRESSING", msg.id);
 
 
         toggleSelect(msg);
+        setShowReactionPopup(true)
     }, 800);
 };
 
@@ -1154,7 +1158,93 @@ const handleTouchCancel = (e) => {
     touchActive.current = false;
     longPressTriggered.current = false;
 };
- 
+  
+const touchStartX = useRef(0);
+const touchMoved = useRef(false);
+
+const handleMessageTouchStart = (e) => {
+  if (isInteractive(e.target)) {
+    return;
+  }
+
+  clearTimeout(longPressTimer.current);
+
+  longPressTriggered.current = false;
+  touchMoved.current = false;
+
+  touchStartX.current = e.touches[0].clientX;
+
+  longPressTimer.current = setTimeout(() => {
+    // IMPORTANT
+    longPressTriggered.current = true;
+
+    // Select this message
+    setSelectedMsg(msg);
+
+    if (!selectedMessages.includes(msg.id)) {
+      setSelectedMessages([msg.id]);
+    }
+
+    // IMPORTANT:
+    // ReactionPopup checks showReactions === message.id
+    setShowReactionPopup(msg.id);
+
+    // Stop any action menu
+    setActiveMenuId(null);
+  }, 800);
+};
+
+const handleMessageTouchMove = (e) => {
+  const currentX = e.touches[0].clientX;
+
+  const diff = currentX - touchStartX.current;
+
+  // If user moves horizontally, this is a swipe,
+  // not a long press.
+  if (Math.abs(diff) > 10) {
+    touchMoved.current = true;
+
+    clearTimeout(longPressTimer.current);
+
+    // Right swipe
+    if (diff > 0) {
+      setTranslateX(Math.min(diff, 80));
+    }
+  }
+};
+
+const handleMessageTouchEnd = () => {
+  clearTimeout(longPressTimer.current);
+
+  // Long press already handled
+  if (longPressTriggered.current) {
+    setTranslateX(0);
+    return;
+  }
+
+  // If it was a swipe
+  if (touchMoved.current) {
+    const diff = translateX;
+
+    if (diff > 35) {
+      setReplyingTo(msg);
+    }
+
+    setTranslateX(0);
+    return;
+  }
+
+  setTranslateX(0);
+};
+
+const handleMessageTouchCancel = () => {
+  clearTimeout(longPressTimer.current);
+
+  longPressTriggered.current = false;
+  touchMoved.current = false;
+
+  setTranslateX(0);
+};
   return (
   <>
     
@@ -1240,95 +1330,62 @@ const handleTouchCancel = (e) => {
 
     >
 
-     <div
-     
-  className={`relative group p-2 my-1 rounded-lg max-w-md text-sm transition
-    ${isMine 
-      ? "ml-auto bg-green-800 text-white" 
-      : "mr-auto bg-blue-900 text-white"
+    <div
+  className={`relative group p-2 lg:my-1 rounded-lg max-w-md text-sm transition
+    ${
+      isMine
+        ? "ml-auto bg-green-800 text-white"
+        : "mr-auto bg-blue-900 text-white"
     }
   `}
- style={{
-  transform: `translateX(${translateX}px)`,
-  transition:
-    translateX === 0
-      ? "transform 0.2s ease"
-      : "none",
-  touchAction: "pan-y",
-}}
+  style={{
+    transform: `translateX(${translateX}px)`,
+    transition:
+      translateX === 0
+        ? "transform 0.2s ease"
+        : "none",
+    touchAction: "pan-y",
+  }}
 
-
-onTouchStart={(e) => {
-  startX.current = e.touches[0].clientX;
-
-  isSwiping.current = false;
-
-  touchTimer.current = setTimeout(() => {
-    setSelectedMsg(msg);
-    toggleSelect(msg);
-
-  }, 500);
-}}
-
-onTouchMove={(e) => {
-  const diff =
-    e.touches[0].clientX -
-    startX.current;
-
-  if (Math.abs(diff) > 10) {
-    isSwiping.current = true;
-
-    clearTimeout(
-      touchTimer.current
-    );
-  }
-
-  if (diff > 0) {
-    setTranslateX(
-      Math.min(diff, 80)
-    );
-  }
-}}
-
-onTouchEnd={() => {
-  clearTimeout(
-    touchTimer.current
-  );
-
-  if (
-    !isSwiping.current &&
-    translateX === 0
-  ) {
-    return;
-  }
-
-  if (translateX > 35) {
-    setReplyingTo(msg);
-  }
-
-  setTranslateX(0);
-}}
-
+  onTouchStart={handleMessageTouchStart}
+  onTouchMove={handleMessageTouchMove}
+  onTouchEnd={handleMessageTouchEnd}
+  onTouchCancel={handleMessageTouchCancel}
 
   onClick={(e) => {
-  e.stopPropagation();
-  if (isInteractive(e.target)) return;
-  if (longPressTriggered.current) return;
-  if (selectionMode || selectedMessages.length > 0) {
+    e.stopPropagation();
+
+    if (isInteractive(e.target)) {
+      return;
+    }
+
+    // IMPORTANT:
+    // Prevent the click generated after a long press.
+    if (longPressTriggered.current) {
+      e.preventDefault();
+      longPressTriggered.current = false;
+      return;
+    }
+
+    if (
+      selectionMode ||
+      selectedMessages.length > 0
+    ) {
+      toggleSelect(msg);
+      return;
+    }
+
+    if (!forwardMode) {
+      if (isMobile) {
+        setShowActions((prev) => !prev);
+      }
+
+      return;
+    }
+
     toggleSelect(msg);
-    return;
-  }
-
-  if (!forwardMode) {
-    if (isMobile) setShowActions(prev => !prev);
-    return;
-  }
-
-  toggleSelect(msg);
-}}
-
+  }}
 >
-
     {translateX > 20 && (
       <div
         className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -1809,6 +1866,10 @@ onTouchEnd={() => {
             setPreview={setPreview}
             uiMode={uiMode}
             toggleSelect={toggleSelect}
+            onLongPress={(message) => {
+              setSelectedMessages(message);
+              setShowReactionPopup(true);
+            }}
           />
         )}
       </>

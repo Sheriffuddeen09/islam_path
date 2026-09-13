@@ -226,8 +226,8 @@ const contentEdit = (
     return(
     
         <div className="fixed px-2 inset-0 bg-white/90 flex sm:py-5 items-center justify-center z-50">
-      <div className="bg-[var(----bg-color)] text-[var(----text-color)]  rounded-xl w-full md:h-[570px]  sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
-
+      <div className="bg-white  text-black rounded-xl w-full md:h-[570px]  sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
+{/* bg-gray-100 */}
     <div>
     <div className="flex justify-around sm:justify-between items-center px-4 py-3 border-b">
           <h2 className="text-lg font-semibold text-center sm:mx-auto">
@@ -248,13 +248,13 @@ const contentEdit = (
         </div>
 <div className="overflow-y-auto overflow-x-hidden scroll-bar h-[340px]
     scrollbar-thin scrollbar-thumb-transparent scrollbar-track-transparent">
-         <p className="bg-[var(----bg-color)] text-[var(----text-color)]  px-5 inline-flex text-sm font-bold my-2 items-center gap-2 ">
-          Reply {comment?.replies.length}</p>
+         <p className="text-black  px-5 inline-flex text-sm font-bold my-2 items-center gap-2 ">
+          Reply {comment?.replies?.length}</p>
   <div className="px-4 py-2">
     <div className="inline-flex gap-2 items-start">
       <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-8 h-8 flex flex-col justify-center items-center text-2xl font-bold  rounded-full bg-blue-800 "> 
         {comment?.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
-    <div className="bg-gray-100 w-fit
+    <div className="bg-blue-100 w-fit
     max-w-64
     sm:max-w-64 flex-1 relative group 
      px-4 py-2 rounded "
@@ -291,8 +291,13 @@ const contentEdit = (
         handleCommentTouchEnd();
       }}>
 
-    <div className="absolute top-2 right-1 opacity-0 invisible group-hover:opacity-100 
-  group-hover:visible transition-all duration-150">
+           
+          <div className="
+          flex flex-1 justify-between items-center
+      ">
+          <button onClick={() => navigate(`/profile/${user.id}`)} className="text-black mr-6 font-bold">
+            {comment?.user.first_name} {comment?.user.last_name}</button>
+             
     <button
       type="button"
       onTouchStart={(e) => {
@@ -305,7 +310,10 @@ const contentEdit = (
           setSelectedComment(comment);
           setShowCommentMenu(true);
         }}
-      className="text-black p-1 rounded-full hover:bg-gray-200"
+      className="text-black p-1 lg:block hidden
+      opacity-0 invisible group-hover:opacity-100 
+      group-hover:visible transition-all duration-150
+      "
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -323,12 +331,9 @@ const contentEdit = (
       </svg>
     </button>
 
-  </div>
+    </div>
 
-        <div className=" flex flex-row justify-between  items-start">
-          <div>
-          <button onClick={() => navigate(`/profile/${user.id}`)} className="text-black mr-6 font-bold">
-            {comment?.user.first_name} {comment?.user.last_name}</button>
+
            {comment?.body && (
             <p className="text-sm text-black  max-w-full
           whitespace-normal
@@ -346,29 +351,27 @@ const contentEdit = (
             </p>
           )}
 
-        </div>
      {/* Comment in Reply */}
             
-    </div>
 
      {comment?.image && <PostCommentImage image={comment?.image} />}
 
         
 <div className="inline-flex gap-3 items-center cursor-pointer">
-  <span className="bg-[var(----bg-color)] text-[var(----text-color)]  text-xs">{timeAgo(comment.created_at)}</span>
+  <span className="text-xs">{timeAgo(comment.created_at)}</span>
 
   {/* Reaction hover group */}
   <div className="relative group/react inline-block">
     {uniqueEmojisr.length > 0 &&
       uniqueEmojisr.map(e => (
-        <span className="bg-[var(----bg-color)] text-[var(----text-color)]  text-sm" key={e}>{e}</span>
+        <span className="text-sm" key={e}>{e}</span>
       ))
     }
 
-    <span className="text-sm bg-[var(----bg-color)] text-[var(----text-color)] ">Like</span>
+    <span className="text-sm  ">Like</span>
 
     {totalReaction > 0 && (
-      <span className="ml-2 bg-[var(----bg-color)] text-[var(----text-color)]  text-sm font-semibold">{totalReaction}</span>
+      <span className="ml-2   text-sm font-semibold">{totalReaction}</span>
     )}
 
     {/* Hover reactions: ONLY when hovering this area */}
@@ -487,7 +490,7 @@ const contentEdit = (
   >
     <div
       className="
-        bg-[var(----bg-color)] text-[var(----text-color)] 
+        bg-white text-black
         rounded-xl
         shadow-xl
         w-full
@@ -508,7 +511,7 @@ const contentEdit = (
           onClick={() => setShowCommentMenu(false)}
           className="
             
-            hover:text-black
+            
             p-1
             rounded-full
             
@@ -711,29 +714,59 @@ const contentEdit = (
 
 
 {/* replies */}
-{comment?.replies.map(reply => (
+      {(comment?.replies ?? []).map((reply) => (
+        <PostReplyListMap
+          key={reply.id}
 
-        <>
-        <PostReplyListMap 
-          editing = {editing} 
-          setEditing={setEditing} reply={reply} 
-          setShowDeleteConfirm={setShowDeleteConfirm} setShowReactions={setShowReactions} comment={comment} 
-          timeAgo={timeAgo} showReactions={showReactions}
-          editText={editText} setEditText={setEditText} onEdit={onEdit} onDelete={onDelete}
-          isDeleting={isDeleting} isEditing={isEditing} showDeleteConfirm ={showDeleteConfirm}
-          onReact={onReact} authUser={authUser ?? null}
-          totalReaction={totalReaction} toggleReaction={toggleReaction} uniqueEmojisr={uniqueEmojisr}
-            replyTo={replyTo}
-            setReplyTo={setReplyTo}
-            setReplyText={setReplyText}
-            handleReplyToComment={handleReplyToComment}
-            focusReplyInput={focusReplyInput}
-            setEmojiClick={setEmojiClick}
-            setReplyImage={setReplyImage}
-            emojiClick={emojiClick} replyImage={replyImage}
-             />
-        </>
-    ))}
+          editing={editing}
+          setEditing={setEditing}
+
+          reply={reply}
+
+          setShowDeleteConfirm={setShowDeleteConfirm}
+          setShowReactions={setShowReactions}
+
+          comment={comment}
+
+          timeAgo={timeAgo}
+
+          showReactions={showReactions}
+
+          editText={editText}
+          setEditText={setEditText}
+
+          onEdit={onEdit}
+          onDelete={onDelete}
+
+          isDeleting={isDeleting}
+          isEditing={isEditing}
+          showDeleteConfirm={showDeleteConfirm}
+
+          onReact={onReact}
+
+          authUser={authUser ?? null}
+
+          totalReaction={totalReaction}
+          toggleReaction={toggleReaction}
+          uniqueEmojisr={uniqueEmojisr}
+
+          replyTo={replyTo}
+          setReplyTo={setReplyTo}
+
+          setReplyText={setReplyText}
+
+          handleReplyToComment={handleReplyToComment}
+
+          focusReplyInput={focusReplyInput}
+
+          setEmojiClick={setEmojiClick}
+
+          setReplyImage={setReplyImage}
+
+          emojiClick={emojiClick}
+          replyImage={replyImage}
+        />
+      ))}
 
       
       

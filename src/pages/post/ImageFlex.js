@@ -71,7 +71,8 @@ export default function ImageFlex({
     setSelectedChats,
     setSending,
     shareToChat,
-    postIdModal, image, setImage, user, usersPreview 
+    postIdModal, image, setImage, user, usersPreview,
+    commentsByPost,setCommentsByPost
 
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -673,6 +674,8 @@ export default function ImageFlex({
                          // Comment
                          postComments = {postComments} 
                          setPostComments={setPostComments}
+                         commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                          commentInputRef={commentInputRef}
                          focusCommentInput={focusCommentInput}
                          newComment={newComment}

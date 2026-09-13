@@ -10,7 +10,7 @@ export default function ProfileImageCommentReactionShare({
     currentUser,
     total,
     me,
-
+commentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -308,7 +308,15 @@ export default function ProfileImageCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput(); setOpen()}}
+           onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                     setOpen()}}
             className="
               flex
               flex-col

@@ -13,7 +13,7 @@ import BiodataDashboard from "./BioDataDashboard";
 
 
 export default function StudentProfilePage({togglePopup,  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats,  setMessages, setActiveChat}) {
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats,  setMessages, setActiveChat,commentsByPost, setCommentsByPost}) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -173,7 +173,8 @@ const badge = (
                     image={image} setImage={setImage}
                     postComments={postComments} setPostComments={setPostComments} loading={loading} 
                     setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-                    newComment={newComment} setNewComment={setNewComment}
+                    newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji}
                     emojiList={emojiList} setEmojiList={setEmojiList}
                     editContent={editContent} setEditContent={setEditContent}
@@ -190,7 +191,8 @@ const badge = (
                     showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                     selectedPost={selectedPost} setSelectedPost={setSelectedPost}
                     emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-                    postComments={postComments} setPostComments={setPostComments}
+                    postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                     setNewComment={setNewComment} loading={loading}
                     user={user} image={image} setImage={setImage}
@@ -203,7 +205,8 @@ const badge = (
                     showEditModal={showEditModal} setShowEditModal={setShowEditModal}
                     selectedPost={selectedPost} setSelectedPost={setSelectedPost}
                     emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-                    postComments={postComments} setPostComments={setPostComments}
+                    postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                     setNewComment={setNewComment} loading={loading}
                     user={user} image={image} setImage={setImage}

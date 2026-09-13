@@ -7,7 +7,7 @@ import VideoCardProfile from "./VideoCardProfile";
 export default function MyVideos({chats, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
         emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-        loading, setNewComment, user, image, setImage}) {
+        loading, setNewComment, user, image, setImage, commentsByPost, setCommentsByPost}) {
     const [videoLoading, setVideoLoading] = useState(true);
     const [posts, setPosts] = useState([]);
    
@@ -60,7 +60,8 @@ useEffect(() => {
         selectedPost={selectedPost} setSelectedPost={setSelectedPost}
         setPosts={setPosts}
         emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-        postComments={postComments} setPostComments={setPostComments}
+        postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
         setNewComment={setNewComment} loading={loading}
         user={user} image={image} setImage={setImage}

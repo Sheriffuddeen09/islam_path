@@ -18,7 +18,7 @@ import ProfileVideoCommentReactionShare from "../../pages/post/previewimagevideo
 export default function VideoCardProfile({ v, post, setSelectedPost,
   setShowDeleteModal, chats, showDeleteModal, selectedPost, setPosts, loading, setNewComment,
   emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-  user, image, setImage }) {
+  user, image, setImage, commentsByPost, setCommentsByPost }) {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
@@ -404,7 +404,8 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
                   
                                   // Comment
                                   postComments = {postComments} 
-                                  setPostComments={setPostComments}
+                                  setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                   commentInputRef={commentInputRef}
                                   focusCommentInput={focusCommentInput}
                                   newComment={newComment}
@@ -606,7 +607,8 @@ export default function VideoCardProfile({ v, post, setSelectedPost,
                                         image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
                                         showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                                         user={user} counts={counts} setShowReactions={setShowReactions} 
-                                        reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                                        reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                         showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
                                         toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
                                         myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 

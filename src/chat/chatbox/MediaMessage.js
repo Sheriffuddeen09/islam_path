@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function MediaMessage({
   msg,
-  setPreview, uiMode, toggleSelect
+  setPreview, uiMode, toggleSelect, onLongPress
 }) {
 
   const [expandedMessages, setExpandedMessages] = useState({});
@@ -47,6 +47,7 @@ export default function MediaMessage({
         setPreview={setPreview}
         uiMode={uiMode}
         toggleSelect={toggleSelect}
+        onLongPress={onLongPress}
       />
 
       {/* caption */}

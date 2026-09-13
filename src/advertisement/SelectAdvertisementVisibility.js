@@ -626,6 +626,9 @@ export default function SelectAdvertisementVisibility() {
 
     };
 
+    const hasInsufficientVisibilityBadges = visibilityOptions.some(
+    (option) => badges.total < option.badges
+);
 
     const Skeleton = () => {
 
@@ -1394,12 +1397,7 @@ export default function SelectAdvertisementVisibility() {
                                                         </p>
 
                                                     )}
-                                    <div className="flex flex-col mt-4 gap-2 items-center">
-                                         {badges.total < 20 && (
-                                              <Link to={'/contact'} className="font-bold text-blue-700 text-sm ">
-                                                Inquiry for more Badges 🏅</Link>
-                                        )}
-                                        </div>
+                                   
                                                 </button>
 
                                             );
@@ -1496,7 +1494,22 @@ export default function SelectAdvertisementVisibility() {
                                     </button>
 
                                 </div>
-
+                                <div className=" flex justify-center flex-col mx-auto items-center">
+                                        {hasInsufficientVisibilityBadges && (
+                                        <Link
+                                            to="/contact"
+                                            className="
+                                                font-bold
+                                                text-blue-700
+                                                my-3  flex justify-center flex-col mx-auto items-center
+                                                text-sm
+                                                hover:underline
+                                            "
+                                        >
+                                            Inquiry for more Badges 🏅
+                                        </Link>
+                                    )}
+                                    </div>
                             </div>
 
                         )}
@@ -1522,8 +1535,7 @@ export default function SelectAdvertisementVisibility() {
                 ">
 
                     <div className="
-                        bg-[var(--bg-color)]
-                        text-[var(--text-color)]
+                        bg-white text-black
                         rounded-3xl
                         max-w-lg
                         w-full

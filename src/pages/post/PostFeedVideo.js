@@ -14,7 +14,7 @@ import SidebarRight from "../homepageComponent/SidebarRight";
 export default function PostFeedVideo({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList,messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
-  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick,
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick, commentsByPost, setCommentsByPost
 }) {
 
     const [feedLoading, setFeedLoading] = useState(false)
@@ -87,7 +87,8 @@ useEffect(() => {
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        messageOpen={messageOpen}
+        messageOpen={messageOpen} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         setMessageOpen={setMessageOpen}
         chats={chats}
         setChats={setChats}/>
@@ -122,7 +123,8 @@ useEffect(() => {
         image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
+        emojiList={emojiList} setEmojiList={setEmojiList} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
         />
       ))}

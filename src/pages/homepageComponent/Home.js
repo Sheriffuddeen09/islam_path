@@ -13,7 +13,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     fetchJobProfile, show, setShow, jobProfile, setJobProfile, showSuccessModal, setShowSuccessModal,
     setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated,
     handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, handleReelClick, reelCount,
-    error, reelLoading, fetchMyReel, fetchReels
+    error, reelLoading, fetchMyReel, fetchReels, commentsByPost, setCommentsLoaded
   }) {
 
 
@@ -63,7 +63,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       newComment={newComment} setNewComment={setNewComment}
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
-      postComments={postComments} setPostComments={setPostComments} 
+      postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                          setCommentsLoaded={setCommentsLoaded}
       loading={loading} setLoading={setLoading}
       messageOpen={messageOpen}
       setMessageOpen={setMessageOpen}

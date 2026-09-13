@@ -16,7 +16,7 @@ export default function PostProfileCard({ post, chats, image, setImage, postComm
   setPostComments, loading, setLoading, setPosts,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,
         editContent, selectedPost, setPostLoading,fetchProfile,
-        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal
+        showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal, commentsByPost, setCommentsByPost
  }) {
 
       const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -253,7 +253,7 @@ const handleDelete = async (id) => {
 const media = Array.isArray(post.media) ? post.media : [];
 
   return (
-    <div className="bg-[var(----bg-color)] border border-green-200 rounded-lg max-w-xl text-[var(----text-color)] 
+    <div className="bg-[var(----bg-color)] border border-green-200 lg:ml-52 rounded-lg max-w-xl text-[var(----text-color)] 
     shadow p-4 mb-4 ">
     <div className="relative ">
        <div className="px-2 flex justify-between mb-2 items-center">
@@ -319,7 +319,15 @@ const media = Array.isArray(post.media) ? post.media : [];
             {shouldShowMore && (
               <button
                 type="button"
-                onClick={() => {setPostIdModal(post); focusCommentInput()}}
+                onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                      }}
                 className="
                   ml-1
                   text-blue-600
@@ -378,7 +386,8 @@ const media = Array.isArray(post.media) ? post.media : [];
               
                               // Comment
                               postComments = {postComments} 
-                              setPostComments={setPostComments}
+                              setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                               commentInputRef={commentInputRef}
                               focusCommentInput={focusCommentInput}
                               newComment={newComment}
@@ -447,7 +456,8 @@ const media = Array.isArray(post.media) ? post.media : [];
               
                               // Comment
                               postComments = {postComments} 
-                              setPostComments={setPostComments}
+                              setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                               commentInputRef={commentInputRef}
                               focusCommentInput={focusCommentInput}
                               newComment={newComment}
@@ -801,7 +811,15 @@ const media = Array.isArray(post.media) ? post.media : [];
                   </button>
                 </div>
                 </div>
-                  <button className="flex items-center font-semibold " onClick={() => {setPostIdModal(post); focusCommentInput()}}>
+                  <button className="flex items-center font-semibold " onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                      }}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z" />
                     </svg> Comment
@@ -911,7 +929,8 @@ const media = Array.isArray(post.media) ? post.media : [];
                     image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
                     showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
-                    reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                    reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                     showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
                     toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
                     myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 

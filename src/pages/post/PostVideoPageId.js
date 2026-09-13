@@ -21,7 +21,7 @@ import toast from "react-hot-toast";
 
 
 export default function PostVideoPageId({
-  image,
+  image, commentsByPost, setCommentsByPost,
   postComments,
   setPostComments,
   showUsersPopup,
@@ -2384,6 +2384,8 @@ const commentScreen = (
           post={currentPost}
           postComments={postComments}
           setPostComments={setPostComments}
+          commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         />
       )}
     </div>

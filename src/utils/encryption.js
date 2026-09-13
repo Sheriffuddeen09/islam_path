@@ -66,45 +66,93 @@ export async function encryptMessage(text, chatKey) {
   };
 }
 
+export async function decryptMessage  (incoming, chatId) {
+  const chatKey = localStorage.getItem(
+    `chat_key_${chatId}`
+  );
 
-export async function decryptMessage(encrypted, iv, chatKey) {
+  console.log("CHAT DECRYPT INFO:", {
+    chatId,
+    hasChatKey: !!chatKey,
+    messageCount: incoming?.length,
+  });
 
-  try {
-    const keyBytes = base64ToBytes(chatKey);
-
-    const cryptoKey = await crypto.subtle.importKey(
-      "raw",
-      keyBytes,
-      "AES-GCM",
-      false,
-      ["decrypt"]
+  if (!chatKey) {
+    console.error(
+      "NO CHAT KEY FOUND:",
+      chatId
     );
 
-    const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
-    const ivBytes = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
-
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: ivBytes
-      },
-      cryptoKey,
-      encryptedBytes
-    );
-
-    return new TextDecoder().decode(decryptedBuffer);
-
-  } catch (err) {
-    console.log("DECRYPT FAILED:", {
-      encrypted,
-      iv,
-      chatKey,
-      error: err
-    });
-
+    return incoming;
   }
-}
 
+  return Promise.all(
+    (incoming || []).map(async (msg) => {
+      const decryptedMsg = {
+        ...msg,
+      };
+
+      // ------------------------------------------
+      // MAIN MESSAGE
+      // ------------------------------------------
+
+      if (
+        msg.message &&
+        msg.iv
+      ) {
+        try {
+          decryptedMsg.message =
+            await decryptMessage(
+              msg.message,
+              msg.iv,
+              chatKey
+            );
+        } catch (err) {
+          console.error(
+            "MESSAGE DECRYPT FAILED:",
+            {
+              id: msg.id,
+              chatId,
+              error: err,
+            }
+          );
+        }
+      }
+
+      // ------------------------------------------
+      // REPLY
+      // ------------------------------------------
+
+      if (
+        msg.replied_to?.message &&
+        msg.replied_to?.iv
+      ) {
+        try {
+          decryptedMsg.replied_to = {
+            ...msg.replied_to,
+
+            message:
+              await decryptMessage(
+                msg.replied_to.message,
+                msg.replied_to.iv,
+                chatKey
+              ),
+          };
+        } catch (err) {
+          console.error(
+            "REPLY DECRYPT FAILED:",
+            {
+              id: msg.id,
+              error: err,
+            }
+          );
+        }
+      }
+
+      return decryptedMsg;
+    })
+  );
+};
 
 export async function sha256(text) {
 

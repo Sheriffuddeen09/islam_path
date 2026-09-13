@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 export default function MyImagesIdAdmin({chats, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
       emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-      loading, setNewComment, user, image, setImage}) {
+      loading, setNewComment, user, image, setImage, commentsByPost, setCommentsByPost}) {
   const [posts, setPosts] = useState([]);
   const [imageLoading, setImageLoading] = useState(false)
   const {id} = useParams()
@@ -64,7 +64,8 @@ export default function MyImagesIdAdmin({chats, editContent, selectedPost,
           showEditModal={showEditModal} setShowEditModal={setShowEditModal}
           selectedPost={selectedPost} setSelectedPost={setSelectedPost}
           emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-          postComments={postComments} setPostComments={setPostComments}
+          postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
           showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
           setNewComment={setNewComment} loading={loading}
           user={user} image={image} setImage={setImage}

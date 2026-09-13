@@ -6,6 +6,7 @@ import DeleteModal from "../chatcomponent/DeleteModal";
 import { ReportModal } from "../chatcomponent/ReportModal";
 import { useAuth } from "../../layout/AuthProvider";
 import PreviewMessageText from "./PreviewMessageText";
+import api from "../../Api/axios";
 
 export default function MediaPreview({
   preview,
@@ -21,7 +22,8 @@ export default function MediaPreview({
   const [openDelete, setOpenDelete] = useState(false)
   const [reportMessage, setReportMessage] = useState(false)
   const { items, index } = preview;
-
+const [showPinDuration, setShowPinDuration] = useState(false);
+const [pinningMessage, setPinningMessage] = useState(null);
   const { user } = useAuth();
   
 
@@ -29,6 +31,45 @@ export default function MediaPreview({
   const touchEndX = useRef(0);
 
   const isGroup = activeChat?.type === "group";
+  const openPinDuration = (message) => {
+  if (message.is_pinned) {
+    togglePin(message);
+    return;
+  }
+
+  setPinningMessage(message);
+  setShowPinDuration(true);
+};
+
+const confirmPin = async (days) => {
+  if (!pinningMessage) return;
+
+  try {
+    await api.put("/api/messages/pin", {
+      message_id: pinningMessage.id,
+      days,
+    });
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === pinningMessage.id
+          ? {
+              ...m,
+              is_pinned: true,
+              pin_expires_at: new Date(
+                Date.now() + days * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }
+          : m
+      )
+    );
+
+    setShowPinDuration(false);
+    setPinningMessage(null);
+  } catch (err) {
+    console.error("Pin error:", err);
+  }
+};
 
 const displayName = isGroup
   ? activeChat?.group_name || activeChat?.name || "Unnamed Group"
@@ -152,11 +193,13 @@ const avatarName = isGroup
 }
   },
   {
-    label: msg.is_pinned ? "Unpin" : "Pin",
-    show: true,
-    onClick: () => {togglePin(msg)},
-
+  label: msg.is_pinned ? "Unpin" : "Pin",
+  show: isMine,
+  onClick: () => {
+    openPinDuration(msg);
+    setShowMenu(false);
   },
+},
   {
     label: "Report",
     show: !isMine,
@@ -745,6 +788,71 @@ const avatarName = isGroup
           onClose={() => setReportMessage(false)}
         />
       )}
+
+      {showPinDuration && (
+  <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+    <div
+      className="w-full max-w-sm rounded-xl p-5 shadow-xl"
+      style={{
+        backgroundColor: "var(--bg-color)",
+        color: "var(--text-color)",
+      }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-lg">
+          Pin message
+        </h2>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowPinDuration(false);
+            setPinningMessage(null);
+          }}
+          className="text-lg"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p className="text-sm opacity-70 mb-4">
+        How long should this message stay pinned?
+      </p>
+
+      <div className="space-y-2">
+        {[7, 14, 30].map((days) => (
+          <button
+            key={days}
+            type="button"
+            onClick={() => confirmPin(days)}
+            className="
+              w-full
+              px-4
+              py-3
+              rounded-lg
+              border
+              text-left
+              hover:bg-black/5
+              dark:hover:bg-white/5
+              transition
+            "
+            style={{
+              borderColor: "var(--text-color)",
+            }}
+          >
+            <div className="font-medium">
+              {days} days
+            </div>
+
+            <div className="text-xs opacity-60">
+              Expires after {days} days
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
      
   </div>
 

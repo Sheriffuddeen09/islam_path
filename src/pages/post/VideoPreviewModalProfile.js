@@ -20,7 +20,7 @@ export default function VideoPreviewModalProfile({
   setOpen,
   media = [],
   index = 0,
-  setIndex,
+  setIndex, commentsByPost, setCommentsByPost,
   setPosts,
   chats,
     post,
@@ -500,7 +500,8 @@ export default function VideoPreviewModalProfile({
               
                               // Comment
                               postComments = {postComments} 
-                              setPostComments={setPostComments}
+                              setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                               commentInputRef={commentInputRef}
                               focusCommentInput={focusCommentInput}
                               newComment={newComment}

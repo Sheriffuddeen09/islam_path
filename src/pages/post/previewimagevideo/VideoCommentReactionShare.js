@@ -10,7 +10,7 @@ export default function VideoCommentReactionShare({
     currentUser,
     total,
     me,
-
+  commentsByPost, setCommentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -308,7 +308,15 @@ export default function VideoCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput(); setOpen(false); setShares(false)}}
+            onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                      setOpen(false); setShares(false)}}
             className="
               flex
               flex-col

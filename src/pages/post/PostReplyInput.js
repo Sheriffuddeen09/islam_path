@@ -16,7 +16,7 @@ export function PostReplyInput({
   const hasText = replyText?.trim().length > 0;
 
   return (
-    <div className="px-3 py-3 bg-[var(--bg-color)]">
+    <div className="px-3 py-3 bg-transparent">
       <div className="relative">
 
         {/* Reply composer */}

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import CommunityInput from "./CommunityInput";
 import api from "../../Api/axios";
+import toast from "react-hot-toast";
 
 export default function InputComponent({activeCommunity,
   setMessages, textCommunity, setTextCommunity,
@@ -9,7 +10,7 @@ export default function InputComponent({activeCommunity,
  setLastReadMessageId, myId, setCommunities, latestMessage, messagesCommunityEndRef, communityMessagesCache}){
 
     
-  const [files, setFiles={setFiles}] = useState([]);
+  const [files, setFiles ] = useState([]);
   const [captionCommunity, setCaptionCommunity] = useState("");
   const [previewUrlsCommunity, setPreviewUrlsCommunity] = useState([]);
   const [croppedImagesCommunity, setCroppedImagesCommunity] = useState({});
@@ -19,11 +20,10 @@ export default function InputComponent({activeCommunity,
   const [cropCommunity, setCropCommunity] = useState({ x: 0, y: 0 });
   const [trimMapCommunity, setTrimMapCommunity] = useState({});
   const [durationMapCommunity, setDurationMapCommunity] = useState({});
-  const [trimAppliedMapCommunity, setTrimAppliedMapCommunity] = useState({});
-  const [toast, setToast] = useState(false)
+  const [trimAppliedMapCommunity, setTrimAppliedMapCommunity] = useState({}); 
 
   const [recordingCommunity, setRecordingCommunity] = useState(false);
-  const mediaRecorderRefCommunity={} = useRef(null);
+  const mediaRecorderRefCommunity = useRef(null);
   const audioChunksRefCommunity = useRef([]);
   const [paused, setPaused] = useState(false);
 
@@ -447,15 +447,65 @@ const sendTextCommunity = async ({
 
   }
 };
+const updateCommunityMessages = (updater) => {
+  setMessages((prev) => {
+    const updated = updater(prev);
+
+    if (activeCommunity?.id) {
+      communityMessagesCache.current[activeCommunity.id] = updated;
+    }
+
+    return updated;
+  });
+};
+
+const normalizeCommunityMessage = (message) => {
+  if (!message) return null;
+
+  const normalized = {
+    ...message,
+    status: "sent",
+  };
+
+  // Server returns `file`
+  if (message.file) {
+    normalized.files = [
+      {
+        file_url: message.file.startsWith("http")
+          ? message.file
+          : `http://127.0.0.1:8000/storage/${message.file}`,
+        type: message.type,
+        file_name: message.file_name,
+      },
+    ];
+  }
+
+  // If server already returned files, preserve them
+  if (
+    !message.file &&
+    Array.isArray(message.files)
+  ) {
+    normalized.files = message.files;
+  }
+
+  return normalized;
+};
+
 const sendFileCommunity = async (
   selectedFiles = [],
   response_mode = false
 ) => {
   if (!selectedFiles.length) return;
 
-  // Only one image/video/file should be sent
   if (selectedFiles.length > 1) {
-    toast.error("You can only send one image, video or file at a time.");
+    toast.error(
+      "You can only send one image, video or file at a time."
+    );
+    return;
+  }
+
+  if (!activeCommunity?.id || !authUser?.id) {
+    toast.error("Community is not available.");
     return;
   }
 
@@ -465,20 +515,29 @@ const sendFileCommunity = async (
 
   setReplyingToCommunity(null);
 
-  const tempId = `temp-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2)}`;
+  // --------------------------------------------------
+  // TEMP ID
+  // --------------------------------------------------
+
+  const tempId =
+    `temp-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
+
+  // --------------------------------------------------
+  // FILE TYPE
+  // --------------------------------------------------
 
   const getType = (file) => {
-    if (file.type?.startsWith("image/")) {
+    if (file?.type?.startsWith("image/")) {
       return "image";
     }
 
-    if (file.type?.startsWith("video/")) {
+    if (file?.type?.startsWith("video/")) {
       return "video";
     }
 
-    if (file.type?.startsWith("audio/")) {
+    if (file?.type?.startsWith("audio/")) {
       return "audio";
     }
 
@@ -486,6 +545,10 @@ const sendFileCommunity = async (
   };
 
   const type = getType(originalFile);
+
+  // --------------------------------------------------
+  // FINAL FILE
+  // --------------------------------------------------
 
   let finalFile = originalFile;
 
@@ -496,7 +559,15 @@ const sendFileCommunity = async (
     finalFile = croppedImagesCommunity[0];
   }
 
+  // --------------------------------------------------
+  // LOCAL PREVIEW
+  // --------------------------------------------------
+
   const preview = URL.createObjectURL(finalFile);
+
+  // --------------------------------------------------
+  // OPTIMISTIC MESSAGE
+  // --------------------------------------------------
 
   const tempMessage = {
     id: tempId,
@@ -509,7 +580,7 @@ const sendFileCommunity = async (
 
     status: "sending",
 
-    message: captionCommunity,
+    message: captionCommunity || "",
 
     response_mode,
 
@@ -526,21 +597,20 @@ const sendFileCommunity = async (
     ],
   };
 
-  // -----------------------------
-  // OPTIMISTIC MESSAGE
-  // -----------------------------
+  // --------------------------------------------------
+  // ADD ONLY ONE OPTIMISTIC MESSAGE
+  // --------------------------------------------------
 
-  setMessages((prev) => {
-    const updated = [
-      ...prev,
-      tempMessage,
-    ];
+  updateCommunityMessages((prev) => {
+    if (
+      prev.some(
+        (m) => String(m.temp_id) === String(tempId)
+      )
+    ) {
+      return prev;
+    }
 
-    communityMessagesCache.current[
-      activeCommunity.id
-    ] = updated;
-
-    return updated;
+    return [...prev, tempMessage];
   });
 
   requestAnimationFrame(() => {
@@ -551,6 +621,10 @@ const sendFileCommunity = async (
   });
 
   try {
+    // ------------------------------------------------
+    // SEND
+    // ------------------------------------------------
+
     const data = await communityMessageAction({
       action: "send",
 
@@ -564,64 +638,53 @@ const sendFileCommunity = async (
 
       response_mode,
 
-      tempMessage,
+      temp_id: tempId,
     });
 
-    const realMessage = data.message;
+    const realMessage = data?.message;
 
-    const normalized = {
-      ...realMessage,
-
-      status: "sent",
-
-      files: realMessage.file
-        ? [
-            {
-              file_url:
-                realMessage.file.startsWith("http")
-                  ? realMessage.file
-                  : `http://127.0.0.1:8000/storage/${realMessage.file}`,
-
-              type: realMessage.type,
-            },
-          ]
-        : [],
-    };
-
-    // -----------------------------
-    // REPLACE TEMP MESSAGE
-    // -----------------------------
-
-    setMessages((prev) => {
-      const alreadyExists = prev.some(
-        (m) =>
-          String(m.id) === String(realMessage.id)
+    if (!realMessage?.id) {
+      throw new Error(
+        "The server did not return the sent message."
       );
+    }
 
-      let updated;
+    // ------------------------------------------------
+    // NORMALIZE
+    // ------------------------------------------------
 
-      if (alreadyExists) {
-        // Server message already arrived through
-        // websocket/listener, so remove the temp one.
-        updated = prev.filter(
-          (m) =>
-            String(m.id) !== String(tempId)
-        );
-      } else {
-        // Replace temp message with real message.
-        updated = prev.map((m) =>
-          String(m.id) === String(tempId)
-            ? normalized
-            : m
-        );
-      }
+    const normalized =
+      normalizeCommunityMessage(realMessage);
 
-      communityMessagesCache.current[
-        activeCommunity.id
-      ] = updated;
+    // Preserve temp_id if backend did not return it
+    normalized.temp_id =
+      realMessage.temp_id || tempId;
 
-      return updated;
+    normalized.status = "sent";
+
+    // ------------------------------------------------
+    // REPLACE TEMP
+    // ------------------------------------------------
+
+    updateCommunityMessages((prev) => {
+      const withoutDuplicates = prev.filter((m) => {
+        const isTemp =
+          String(m.id) === String(tempId) ||
+          String(m.temp_id) === String(tempId);
+
+        const isReal =
+          String(m.id) === String(realMessage.id);
+
+        return !isTemp && !isReal;
+      });
+
+      return [
+        ...withoutDuplicates,
+        normalized,
+      ];
     });
+
+    URL.revokeObjectURL(preview);
 
     requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({
@@ -629,33 +692,33 @@ const sendFileCommunity = async (
         block: "end",
       });
     });
+
   } catch (err) {
-    setMessages((prev) => {
-      const updated = prev.map((m) =>
+    // ------------------------------------------------
+    // FAILED
+    // ------------------------------------------------
+
+    updateCommunityMessages((prev) =>
+      prev.map((m) =>
         String(m.id) === String(tempId)
           ? {
               ...m,
               status: "failed",
             }
           : m
-      );
-
-      communityMessagesCache.current[
-        activeCommunity.id
-      ] = updated;
-
-      return updated;
-    });
+      )
+    );
 
     toast.error(
       err?.response?.data?.message ||
-        "Failed to send"
+      err?.message ||
+      "Failed to send"
     );
   }
 
-  // -----------------------------
+  // --------------------------------------------------
   // RESET
-  // -----------------------------
+  // --------------------------------------------------
 
   setShowPreviewCommunity(false);
 
@@ -667,7 +730,7 @@ const sendFileCommunity = async (
 
   setCroppedImagesCommunity({});
 
-  setCropAppliedMapCommunity(false);
+  setCropAppliedMapCommunity({});
 
   setCropCommunity({
     x: 0,
@@ -686,8 +749,6 @@ const sendFileCommunity = async (
     fileInputRefCommunity.current.value = "";
   }
 };
-
-
 
 return (
     <div>

@@ -12,7 +12,8 @@ export default function PostVideoPreview({
     currentUser,
     total_reaction,
     me,
-
+  commentsByPost,
+  setCommentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -329,7 +330,8 @@ export default function PostVideoPreview({
                     
                                     // Comment
                                     postComments = {postComments} 
-                                    setPostComments={setPostComments}
+                                    setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                     commentInputRef={commentInputRef}
                                     focusCommentInput={focusCommentInput}
                                     newComment={newComment}

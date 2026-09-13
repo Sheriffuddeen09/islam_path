@@ -17,7 +17,7 @@ import { MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ReelVideoPageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
-  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, chats
+  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, chats, commentsByPost, setCommentsByPost
  }) {
 
    const { id } = useParams();
@@ -651,6 +651,8 @@ const shareToChat = async (chatId) => {
               post={currentPost}
               postComments={postComments}
               setPostComments={setPostComments}
+              commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             />
           )}
         </div>

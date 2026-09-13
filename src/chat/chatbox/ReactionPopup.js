@@ -9,73 +9,169 @@ export default function ReactionPopup({
   setSelectedMessages,
   setSelectedMsg,
   isMine,
-  setUiState
+  setUiState,
 }) {
-  const emojis = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
+  const emojis = [
+    "❤️",
+    "😂",
+    "😮",
+    "😢",
+    "🙏",
+    "👍",
+  ];
 
-  const [openPicker, setOpenPicker] = useState(false);
+  const [openPicker, setOpenPicker] =
+    useState(false);
 
   const closeAll = () => {
-    setSelectedMessages([])
-    setSelectedMsg(null)
+    setSelectedMessages([]);
+    setSelectedMsg(null);
     setShowReactions(null);
     setOpenPicker(false);
-    setUiState(prev => ({ ...prev, openMenu: false }));
+
+    setUiState((prev) => ({
+      ...prev,
+      openMenu: false,
+    }));
   };
 
+  if (showReactions !== message.id) {
+    return null;
+  }
+
   return (
-    <>
-      {showReactions === message.id && (
-        <div
-          className={`absolute bottom-6 bg-black rounded-full flex items-center gap-2 p-2 z-50
-            ${isMine ? "right-0" : "left-0"}
-          `}
+    <div
+      className={`
+        absolute
+        bottom-full
+        mb-2
+        z-[100]
+        bg-black
+        rounded-full
+        flex
+        items-center
+        gap-1
+        p-2
+        shadow-2xl
+        whitespace-nowrap
+
+        ${
+          isMine
+            ? "right-0"
+            : "left-0"
+        }
+      `}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+      }}
+      onTouchStart={(e) => {
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      {emojis.map((emoji) => (
+        <button
+          key={emoji}
+          type="button"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+
+            onReact(
+              message.id,
+              emoji
+            );
+
+            closeAll();
+          }}
+          className="
+            text-lg
+            p-1
+            hover:scale-125
+            transition-transform
+          "
         >
-          {/* NORMAL EMOJIS */}
-          {emojis.map((emoji) => (
-            <button
-              key={emoji}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => {
-                onReact(message.id, emoji);
-                closeAll();
-              }}
-              className="text-lg hover:scale-125 transition"
-            >
-              {emoji}
-            </button>
-          ))}
+          {emoji}
+        </button>
+      ))}
 
-          {/* ➕ ADD BUTTON */}
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => setOpenPicker((prev) => !prev)}
-            className="text-white text-lg px-2 hover:scale-125 transition"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor" class="size-6 text-white border-2 rounded-full border-white">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      <button
+        type="button"
+        onPointerDown={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+
+          setOpenPicker(
+            (prev) => !prev
+          );
+        }}
+        className="
+          text-white
+          text-lg
+          px-2
+          hover:scale-125
+          transition
+        "
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="
+            size-6
+            text-white
+            border-2
+            rounded-full
+            border-white
+          "
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
         </svg>
+      </button>
 
-          </button>
+      {openPicker && (
+        <div
+          className={`
+            absolute
+            bottom-12
+            z-[110]
+            ${
+              isMine
+                ? "right-0"
+                : "left-0"
+            }
+          `}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <EmojiPicker
+            onEmojiClick={(emojiData) => {
+              onReact(
+                message.id,
+                emojiData.emoji
+              );
 
-          {/* EMOJI PICKER */}
-          {openPicker && (
-            <div
-              className={`absolute bottom-12 z-50 ${
-                isMine ? "right-0" : "left-0"
-              }`}
-            >
-              <EmojiPicker
-                onEmojiClick={(emojiData) => {
-                  onReact(message.id, emojiData.emoji);
-                  closeAll();
-                }}
-              />
-            </div>
-          )}
+              closeAll();
+            }}
+          />
         </div>
       )}
-    </>
+    </div>
   );
 }

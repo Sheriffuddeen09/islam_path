@@ -41,6 +41,7 @@ export default function ImageGrid({ media = [],
     setShowUsersPopup,
     showEmojiPicker,
     setShowEmojiPicker,
+    commentsByPost, setCommentsByPost,
     allUsers,
     firstUser,
     counts,
@@ -407,6 +408,8 @@ function PreviewModal({
                 postComments = {postComments} 
                 setPostComments={setPostComments}
                 commentInputRef={commentInputRef}
+                commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                 focusCommentInput={focusCommentInput}
                 newComment={newComment}
                 setNewComment={setNewComment}

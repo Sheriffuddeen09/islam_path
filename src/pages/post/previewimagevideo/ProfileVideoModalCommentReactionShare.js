@@ -11,7 +11,7 @@ export default function ProfileVideoModalCommentReactionShare({
     total,
     me,
     setOpen,
-
+commentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -307,10 +307,14 @@ export default function ProfileVideoModalCommentReactionShare({
                e.stopPropagation()
                 setOpen(false);
 
-                setPostIdModal(post);
-                focusCommentInput();
-            }}
+                        setPostIdModal(post);
 
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                      }}
             className="
               flex
               flex-col

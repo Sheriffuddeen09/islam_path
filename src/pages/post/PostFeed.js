@@ -10,7 +10,7 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
   showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated,
 handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, videoCount, handleVideoClick,
-reelLoading, error, fetchMyReel, fetchReels}) {
+reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost}) {
 
     const [feedLoading, setFeedLoading] = useState(false)
  useEffect(() => {
@@ -100,7 +100,8 @@ reelLoading, error, fetchMyReel, fetchReels}) {
         emojiList={emojiList} setEmojiList={setEmojiList}
         messageOpen={messageOpen}
         setMessageOpen={setMessageOpen}
-        chats={chats}
+        chats={chats} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         setChats={setChats}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
         />
@@ -154,7 +155,8 @@ reelLoading, error, fetchMyReel, fetchReels}) {
         emojiList={emojiList} setEmojiList={setEmojiList}
         postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
         messageOpen={messageOpen}
-        setMessageOpen={setMessageOpen}
+        setMessageOpen={setMessageOpen} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         chats={chats}
         setChats={setChats}
         />

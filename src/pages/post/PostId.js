@@ -8,7 +8,7 @@ import SideBarRIght from "../homepageComponent/SidebarRight";
 
 export default function PostId({image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, chats,
-  loading, setLoading, setImage}) {
+  loading, setLoading, setImage, commentsByPost, setCommentsByPost}) {
 
 
   const { id } = useParams();
@@ -188,7 +188,8 @@ const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
             total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
             image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
             showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
-            user={user} counts={counts} setShowReactions={setShowReactions} 
+            user={user} counts={counts} setShowReactions={setShowReactions} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             reactionLoading={reactionLoading}  setPostComments={setPostComments}
             showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
             toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
@@ -218,7 +219,8 @@ const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
             showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
             user={user} counts={counts} setShowReactions={setShowReactions} allUsers={allUsers} firstUser={firstUser}
             getColor={getColor}
-            reactionLoading={reactionLoading}  setPostComments={setPostComments}
+            reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
             toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
             myReaction={myReaction} postId={post.id} post={post}

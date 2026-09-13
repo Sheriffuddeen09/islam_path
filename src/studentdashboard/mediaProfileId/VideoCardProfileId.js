@@ -9,7 +9,7 @@ import { PostFeedIdModalProfile } from "../mediaprofile/PostFeedIdModalProfile";
 
 export default function VideoCardProfileId({ v, post, chats,  loading, setNewComment,
   emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-  user, image, setImage }) {
+  user, image, setImage, commentsByPost, setCommentsByPost }) {
   const videoRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
@@ -340,6 +340,8 @@ export default function VideoCardProfileId({ v, post, chats,  loading, setNewCom
                                               // Comment
                                               postComments = {postComments} 
                                               setPostComments={setPostComments}
+                                              commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                               commentInputRef={commentInputRef}
                                               focusCommentInput={focusCommentInput}
                                               newComment={newComment}
@@ -518,6 +520,8 @@ export default function VideoCardProfileId({ v, post, chats,  loading, setNewCom
                         showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                         user={user} counts={counts} setShowReactions={setShowReactions} 
                         reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                        commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                         showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
                         toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
                         myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 

@@ -5,7 +5,7 @@ import { MessageCircle } from "lucide-react";
 import ProfileVideoCommentReactionShare from "../../pages/post/previewimagevideo/ProfileVideoCommentReactionShare";
 
 export default function PostVideoCardProfileId({ v, post, setEditContent, setSelectedPost, setShowEditModal, 
-  setShowDeleteModal, chats, selectedPost, loadingProfile, showDeleteModal, handleDelete,
+  setShowDeleteModal, chats, selectedPost, loadingProfile, showDeleteModal, handleDelete, commentsByPost, setCommentsByPost, 
 currentUser,
     total_reaction,
     me,
@@ -190,6 +190,8 @@ currentUser,
                                                   // Comment
                                                   postComments = {postComments} 
                                                   setPostComments={setPostComments}
+                                                  commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                                   commentInputRef={commentInputRef}
                                                   focusCommentInput={focusCommentInput}
                                                   newComment={newComment}

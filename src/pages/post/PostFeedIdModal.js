@@ -10,7 +10,7 @@ import PostOptionsId from "./PostOptionId";
 import PostVideoPreview from "./PostVideoPreview";
 
 export function PostFeedIdModal({ postId, post, onClose, user, total, others, setShowUsersPopup, me, 
-                                  counts, setShowReactions,
+                                  counts, setShowReactions, commentsByPost, setCommentsByPost,
                                 showReactions, reactionList, toggleReaction, onLikeClick, myReaction, 
                                 focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef,
                                 image, setImage, loading, currentUser, newComment, setNewComment, emojiList, showEmoji,
@@ -22,7 +22,6 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
   const [shares, setShares] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
-
 
   const replaceCommentById = (comments, tempId, newComment) => {
     return comments.map(comment => {
@@ -57,99 +56,106 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
       }));
   };
   
-  
   const postComment = async (
-    emoji = null,
-    imageFile = null,
-    parentId = null
-  ) => {
-  
-    const commentBody = emoji || newComment.trim();
-  
-    if (!commentBody && !imageFile) return;
-  
-    // Temporary ID
-    const tempId = `temp-${Date.now()}`;
-  
-    // Temporary comment
-    const temporaryComment = {
-      id: tempId,
-      body: commentBody || "",
-      image: imageFile instanceof File
-        ? URL.createObjectURL(imageFile)
-        : null,
-  
-      user: currentUser,
-      user_id: currentUser?.id,
-  
-      is_pending: true,
-    };
-  
-    // ⭐ SHOW COMMENT IMMEDIATELY
-    setPostComments(prev =>
-      parentId
-        ? addReplyToComment(
-            prev,
-            parentId,
-            temporaryComment
-          )
-        : [temporaryComment, ...prev]
-    );
-  
-    // Clear input immediately
-    setNewComment("");
-    setImage(null);
-    setShowEmoji(false);
-  
-    const formData = new FormData();
-  
-    if (commentBody) {
-      formData.append("body", commentBody);
-    }
-  
-    if (imageFile instanceof File) {
-      formData.append("image", imageFile);
-    }
-  
-    try {
-  
-      const res = await api.post(
-        `/api/posts/${postId}/comments`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-  
-      const savedComment = res.data.comment;
-  
-      // ⭐ Replace temporary comment with real comment
-      setPostComments(prev =>
-        replaceCommentById(
-          prev,
-          tempId,
-          savedComment
-        )
-      );
-  
-    } catch (err) {
-  
-      console.error(
-        err.response?.data || err
-      );
-  
-      // ⭐ Remove temporary comment if request failed
-      setPostComments(prev =>
-        removeCommentById(
-          prev,
-          tempId
-        )
-      );
-    }
+  emoji = null,
+  imageFile = null,
+  parentId = null
+) => {
+  const commentBody =
+    emoji || newComment?.trim() || "";
+
+  if (!commentBody && !imageFile) return;
+
+  const tempId = `temp-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+
+  const imagePreview =
+    imageFile instanceof File
+      ? URL.createObjectURL(imageFile)
+      : null;
+
+  const temporaryComment = {
+    id: tempId,
+
+    body: commentBody,
+
+    image: imagePreview,
+
+    user: currentUser,
+    user_id: currentUser?.id,
+
+    created_at: new Date().toISOString(),
+
+    is_pending: true,
   };
 
+  setPostComments((prev) =>
+    parentId
+      ? addReplyToComment(
+          prev,
+          parentId,
+          temporaryComment
+        )
+      : [temporaryComment, ...prev]
+  );
+
+  setNewComment("");
+  setImage(null);
+  setShowEmoji(false);
+
+  const formData = new FormData();
+
+  if (commentBody) {
+    formData.append("body", commentBody);
+  }
+
+  if (imageFile instanceof File) {
+    formData.append("image", imageFile);
+  }
+
+  try {
+    const res = await api.post(
+      `/api/posts/${postId}/comments`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    const savedComment = res.data.comment;
+
+    setPostComments((prev) =>
+      replaceCommentById(
+        prev,
+        tempId,
+        savedComment
+      )
+    );
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+  } catch (err) {
+    console.error(
+      err.response?.data || err
+    );
+
+    setPostComments((prev) =>
+      removeCommentById(
+        prev,
+        tempId
+      )
+    );
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+  }
+};
   
 
 const addReplyToComment = (postComments, parentId, reply) => {
@@ -290,7 +296,8 @@ const shareToChat = async (chatId) => {
                 commentInputRef={commentInputRef}
                 focusCommentInput={focusCommentInput}
                 newComment={newComment}
-                setNewComment={setNewComment}
+                setNewComment={setNewComment} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                 loading={loading}
                 setLoading={setLoading}
 
@@ -353,7 +360,8 @@ const shareToChat = async (chatId) => {
               postComments = {postComments} 
               setPostComments={setPostComments}
               commentInputRef={commentInputRef}
-              focusCommentInput={focusCommentInput}
+              focusCommentInput={focusCommentInput} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
               newComment={newComment}
               setNewComment={setNewComment}
               loading={loading}
@@ -454,7 +462,7 @@ const shareToChat = async (chatId) => {
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 "
           >
             <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
           </svg>
@@ -529,15 +537,22 @@ const shareToChat = async (chatId) => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-5 h-5 text-gray-600"
+                    className="w-5 h-5 "
                   >
                     <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
                   </svg> Share
                   </button>
                 </div>
          <div className="flex-1 w-full">
-        <PostComment postId={post.id} image={image} post={post} postComments={postComments} 
-        setPostComments={setPostComments} />
+       <PostComment
+          postId={post.id}
+          image={image}
+          post={post}
+          postComments={postComments}
+          setPostComments={setPostComments}
+          commentsByPost={commentsByPost}
+          setCommentsByPost={setCommentsByPost}
+        />
         </div> 
        
         </div>

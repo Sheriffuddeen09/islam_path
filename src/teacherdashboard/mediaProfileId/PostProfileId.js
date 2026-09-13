@@ -7,7 +7,7 @@ import Skeleton from "react-loading-skeleton";
 export default function MyPostsIdAdmin({chats, image, setImage, postComments, setPostComments, 
         loading, setLoading, showUsersPopup, setShowUsersPopup, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList}) {
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, commentsByPost, setCommentsByPost}) {
 
     const [posts, setPosts] = useState([]);
     const [error, setError] = useState("");
@@ -72,7 +72,8 @@ export default function MyPostsIdAdmin({chats, image, setImage, postComments, se
             editable={true}
             chats={chats}
             image={image} setImage={setImage}
-            postComments={postComments} setPostComments={setPostComments} loading={loading} 
+            postComments={postComments} setPostComments={setPostComments} loading={loading} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
             newComment={newComment} setNewComment={setNewComment}
             showEmoji={showEmoji} setShowEmoji={setShowEmoji}

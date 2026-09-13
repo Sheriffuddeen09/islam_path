@@ -6,6 +6,7 @@ export default function MediaItem({
   openPreview,
   msg,
   toggleSelect,
+  onLongPress,
 }) {
   const longPressTimer = useRef(null);
   const longPressTriggered = useRef(false);
@@ -29,9 +30,18 @@ export default function MediaItem({
 
     longPressTriggered.current = false;
 
+    clearTimeout(longPressTimer.current);
+
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
 
+      // Open reaction popup
+      if (onLongPress && msg) {
+        onLongPress(msg);
+      }
+
+      // Optional: also select the message
+      // Remove this if you don't want selection
       if (toggleSelect && msg) {
         toggleSelect(msg);
       }
@@ -41,8 +51,7 @@ export default function MediaItem({
   const handlePointerMove = (e) => {
     e.stopPropagation();
 
-    // Moving means the user is probably scrolling/swiping,
-    // so cancel the long press.
+    // User is moving/scrolling, cancel long press
     clearTimeout(longPressTimer.current);
   };
 
@@ -52,11 +61,17 @@ export default function MediaItem({
     clearTimeout(longPressTimer.current);
   };
 
+  const handlePointerCancel = (e) => {
+    e.stopPropagation();
+
+    clearTimeout(longPressTimer.current);
+  };
+
   const handleClick = (e) => {
     e.stopPropagation();
 
-    // A click can be generated after a long press.
-    // Don't open the preview in that case.
+    // Browser can fire click after long press.
+    // Prevent preview from opening.
     if (longPressTriggered.current) {
       longPressTriggered.current = false;
       return;
@@ -69,11 +84,11 @@ export default function MediaItem({
 
   return (
     <div
-      className="relative cursor-pointer w-full h-full"
+      className="relative cursor-pointer w-full h-full select-none"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       onClick={handleClick}
     >
       {isVideo ? (
@@ -93,6 +108,7 @@ export default function MediaItem({
           src={url}
           className="w-full h-full object-cover"
           alt=""
+          draggable={false}
         />
       )}
 

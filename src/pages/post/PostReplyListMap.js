@@ -173,7 +173,7 @@ const navigate = useNavigate()
 
         <div className="px-4 py-2">
         <div className="flex gap-2 items-start justify-end">
-        <div className="bg-gray-100 rounded
+        <div className="bg-blue-100 rounded
         w-fit
         max-w-64
         sm:max-w-64 relative group  px-4 py-2 " 
@@ -203,46 +203,42 @@ const navigate = useNavigate()
         handleReplyPressEnd();
       }}
       onTouchCancel={handleReplyPressEnd}>
-        <div className=" flex flex-row justify-between  items-start">
+        <div className=" flex flex-row justify-between  items-center flex-1">
         <button onClick={() => navigate(`/profile/${user.id}`)}
          className="text-black font-bold mr-6">{reply?.user?.first_name} {reply?.user?.last_name}
         </button>
-        
-        <div className="absolute top-2 right-1 opacity-0 invisible group-hover:opacity-100 
-  group-hover:visible transition-all duration-150">
-    <button
-    type="button"
-    onTouchStart={(e) => {
-      e.stopPropagation();
-      clearTimeout(replyPressTimer.current);
-    }}
-    onClick={(e) => {
-      e.stopPropagation();
+              
+          <button
+          type="button"
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            clearTimeout(replyPressTimer.current);
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
 
-      setSelectedReply(reply);
-      setShowReplyMenu(true);
-    }}
-    className="text-black p-1 rounded-full hover:bg-gray-200"
-  >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="currentColor"
-        className="w-5 h-5"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
-        />
-      </svg>
-    </button>
+            setSelectedReply(reply);
+            setShowReplyMenu(true);
+          }}
+          className="text-black p-1 opacity-0 invisible group-hover:opacity-100 
+        group-hover:visible transition-all duration-150 lg:block hidden"
+        >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+              />
+            </svg>
+          </button>
 
-  </div>
-      
-  
         </div>
       
     {reply.body && (() => {
@@ -302,23 +298,23 @@ const navigate = useNavigate()
         {/* Time and Reaction */}
 
         <div className="inline-flex gap-3 items-center cursor-pointer">
-          <span className="bg-[var(----bg-color)] text-[var(----text-color)]  text-xs">{timeAgo(reply.created_at)}</span>
+          <span className="  text-xs">{timeAgo(reply.created_at)}</span>
           <div className="relative group/react inline-block">
         {/* Current reactions */}
 {uniqueEmojisr.length > 0 &&
   uniqueEmojisr.map(e => (
     <span
-      className="bg-[var(----bg-color)] text-[var(----text-color)]  text-sm"
+      className="  text-sm"
       key={e}
     >
       {e}
     </span>
   ))}
 
-<span className="text-sm bg-[var(----bg-color)] text-[var(----text-color)] ">Like</span>
+<span className="text-sm  ">Like</span>
 
 {totalReaction > 0 && (
-  <span className="text-black ml-2 bg-[var(----bg-color)] text-[var(----text-color)]  text-sm font-semibold">
+  <span className="text-black ml-2   text-sm font-semibold">
     {totalReaction}
   </span>
 )}
@@ -425,7 +421,7 @@ const navigate = useNavigate()
     {editingReplyId === reply.id && (
 
         <div className=" flex fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-[var(----bg-color)] text-[var(----text-color)]  p-6 rounded w-96 flex flex-col gap-4 relative">
+            <div className="bg-white text-black  p-6 rounded w-96 flex flex-col gap-4 relative">
               <h3 className="font-semibold text-lg text-center">Edit Reply</h3>
 
               {/* Text Input reply.body */}
@@ -488,7 +484,7 @@ const navigate = useNavigate()
   >
     <div
       className="
-       bg-[var(----bg-color)] text-[var(----text-color)] 
+       bg-white text-black
         rounded-xl
         shadow-xl
         w-full
@@ -501,7 +497,7 @@ const navigate = useNavigate()
       {/* HEADER */}
       <div className="flex items-center justify-between mb-3">
 
-        <h3 className="font-semibold bg-[var(----bg-color)] text-[var(----text-color)]  text-lg">
+        <h3 className="font-semibold text-lg">
           Reply Options
         </h3>
 
@@ -509,7 +505,7 @@ const navigate = useNavigate()
           type="button"
           onClick={() => setShowReplyMenu(false)}
           className="
-            bg-[var(----bg-color)] text-[var(----text-color)] 
+             
             p-1
             rounded-full
            
@@ -737,7 +733,7 @@ const navigate = useNavigate()
      {deletingReplyId === reply.id && (
       <>
             <div   className={`fixed inset-0 bg-black/30 z-50 flex items-center justify-center z-50 `}>
-              <div className="bg-[var(----bg-color)] text-[var(----text-color)]  p-6 font-semibold text-center rounded w-80 flex flex-col gap-3">
+              <div className=" bg-white text-black p-6 font-semibold text-center rounded w-80 flex flex-col gap-3">
                 <span>Are you sure you want to delete this reply?</span>
                 <div className="flex gap-3 justify-center">
                   <button

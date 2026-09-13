@@ -37,7 +37,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         savedCount, setSavedCount, setActiveChat, setMessages,
         togglePopup, activeChat, setChats, messagesMap,
         setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
-        callMode, setCallMode, meetingData, setMeetingData
+        callMode, setCallMode, meetingData, setMeetingData, commentsByPost, setCommentsByPost
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -887,7 +887,8 @@ useEffect(() => {
         <ProfilePage chats={chats} handleVisible={handleVisible} user={user} setUser={setUser} 
         teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} togglePopup={togglePopup}
         image={image} setImage={setImage} onProfileCompleted={onProfileCompleted}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} 
+        postComments={postComments} setPostComments={setPostComments} loading={loading}  commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}

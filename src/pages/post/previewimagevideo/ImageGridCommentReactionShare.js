@@ -10,7 +10,7 @@ export default function ImageGridCommentReactionShare({
     currentUser,
     total,
     me,
-
+commentsByPost,
     reactionList,
     reactionLoading,
     myReaction,
@@ -308,7 +308,16 @@ export default function ImageGridCommentReactionShare({
 
           <button
             type="button"
-            onClick={() => {setPostIdModal(post); focusCommentInput(); setOpen(false)}}
+           onClick={() => {
+                        setPostIdModal(post);
+
+                        setPostComments(
+                          commentsByPost[post.id] || []
+                        );
+
+                        focusCommentInput();
+                        setOpen(false)
+                      }}
             className="
               flex
               flex-col

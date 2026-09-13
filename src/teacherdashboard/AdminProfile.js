@@ -16,7 +16,7 @@ import Notification from "../notification/Notification";
 export default function ProfilePage({teachers, chats, setTeachers, handleEdit, togglePopup, 
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, onProfileCompleted,
-        setMessages, setActiveChat, user, setUser, badges, setBadges
+        setMessages, setActiveChat, user, setUser, badges, setBadges, commentsByPost, setCommentsByPost
 }) {
   const [profile, setProfile] = useState(null);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -270,7 +270,8 @@ const badge = (
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
             <MyPosts chats={chats} 
             image={image} setImage={setImage}
-            postComments={postComments} setPostComments={setPostComments} loading={loading} 
+            postComments={postComments} setPostComments={setPostComments} loading={loading}  commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
             newComment={newComment} setNewComment={setNewComment}
             showEmoji={showEmoji} setShowEmoji={setShowEmoji}
@@ -288,7 +289,8 @@ const badge = (
             showEditModal={showEditModal} setShowEditModal={setShowEditModal}
             selectedPost={selectedPost} setSelectedPost={setSelectedPost}
             emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-            postComments={postComments} setPostComments={setPostComments}
+            postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
             setNewComment={setNewComment} loading={loading}
             user={user} image={image} setImage={setImage}
@@ -301,7 +303,8 @@ const badge = (
             showEditModal={showEditModal} setShowEditModal={setShowEditModal}
             selectedPost={selectedPost} setSelectedPost={setSelectedPost}
             emojiList={emojiList} setEmojiList={setEmojiList} setLoading={setLoading}
-            postComments={postComments} setPostComments={setPostComments}
+            postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
             showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
             setNewComment={setNewComment} loading={loading}
             user={user} image={image} setImage={setImage}

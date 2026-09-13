@@ -17,7 +17,7 @@ export default function PostImageGridProfile({
   media = [],
   post,
   chats ,
-  setEditContent,
+  setEditContent, commentsByPost, setCommentsByPost,
   setSelectedPost,
   setShowEditModal,
   setPosts,
@@ -773,7 +773,8 @@ export default function PostImageGridProfile({
           
                           // Comment
                           postComments = {postComments} 
-                          setPostComments={setPostComments}
+                          setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                           commentInputRef={commentInputRef}
                           focusCommentInput={focusCommentInput}
                           newComment={newComment}

@@ -12,7 +12,7 @@ import { MessageCircle } from "lucide-react";
 import PostOptionsId from "./PostOptionId";
 
 export default function PostImagePageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
-  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId, chats
+  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId, chats, commentsByPost, setCommentsByPost
  }) {
   const { id } = useParams();
   const [counts, setCounts] = useState({});
@@ -410,7 +410,8 @@ focusCommentInput()
                 {/* Comment */}
         <div className=" overflow-y-auto h-60 md:h-96 lg:h-60 md:translate-y-10 lg:translate-y-0  no-scrollbar ">
         <PostComment postId={post.id} image={image} post={post} postComments={postComments} 
-        setPostComments={setPostComments} />
+        setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}/>
         </div>
         
         {/* Input Comment sm*/}

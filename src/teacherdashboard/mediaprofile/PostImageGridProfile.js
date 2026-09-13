@@ -14,7 +14,7 @@ import {
 import ProfileImageCommentReactionShare from "../../pages/post/previewimagevideo/ProfileImageCommentReactionShare";
 
 export default function PostImageGridProfile({
-  media = [],
+  media = [], commentsByPost, setCommentsByPost,
   post,
   chats ,
   setEditContent,
@@ -773,7 +773,8 @@ export default function PostImageGridProfile({
           
                           // Comment
                           postComments = {postComments} 
-                          setPostComments={setPostComments}
+                          setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                           commentInputRef={commentInputRef}
                           focusCommentInput={focusCommentInput}
                           newComment={newComment}

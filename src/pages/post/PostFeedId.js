@@ -13,7 +13,7 @@ export function PostFeedId({ postId, post, user, total, others, setShowUsersPopu
                                 showReactions, reactionList, toggleReaction, onLikeClick, myReaction, 
                                 focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef,
                                 image, setImage, loading, setLoading, newComment, setNewComment, emojiList, showEmoji,
-                                setShowEmoji, chats, firstUser
+                                setShowEmoji, chats, firstUser, commentsByPost, setCommentsByPost
                               }) {
 
   const [messageOpenShare, setMessageOpenShare] = useState(false)
@@ -413,7 +413,8 @@ const shareToChat = async (chatId) => {
                 </div>
          <div className="flex-1 w-full">
         <PostComment postId={post.id} image={image} post={post} postComments={postComments} 
-        setPostComments={setPostComments} />
+        setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost} />
         </div> 
        
         </div>

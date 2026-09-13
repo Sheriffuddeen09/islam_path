@@ -9,7 +9,7 @@ import { PostFeedIdModalProfile } from "./PostFeedIdModalProfile";
 
 export default function ImageGridProfile({ media = [], post, chats, setPosts, loading, setNewComment,
   emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-  user, image, setImage
+  user, image, setImage, commentsByPost, setCommentsByPost
  }) {
   const [openOptionId, setOpenOptionId] = useState(null);
   const [openOption, setOpenOption] = useState(false);
@@ -547,7 +547,8 @@ const focusCommentInput = () => {
                     image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
                     showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
-                    reactionLoading={reactionLoading}  setPostComments={setPostComments}
+                    reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                     showReactions={showReactions} reactionList={reactionList} commentInputRef={commentInputRef}
                     toggleReaction={toggleReaction} onLikeClick={onLikeClick} focusCommentInput={focusCommentInput}
                     myReaction={myReaction} postId={post.id} post={postIdModal} firstUser={firstUser} 
@@ -666,7 +667,8 @@ const focusCommentInput = () => {
       
                       // Comment
                       postComments = {postComments} 
-                      setPostComments={setPostComments}
+                      setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                       commentInputRef={commentInputRef}
                       focusCommentInput={focusCommentInput}
                       newComment={newComment}

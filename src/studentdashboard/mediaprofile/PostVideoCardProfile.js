@@ -12,7 +12,7 @@ import ProfileVideoCommentReactionShare from "../../pages/post/previewimagevideo
 export default function PostVideoCardProfile({ v, post, setEditContent, setSelectedPost, setShowEditModal, 
   setShowDeleteModal, chats, selectedPost, loadingProfile, showDeleteModal, handleDelete, 
   setPosts,
-  fetchProfile,
+  fetchProfile, commentsByPost, setCommentsByPost,
   currentUser,
     total_reaction,
     me,
@@ -215,7 +215,8 @@ export default function PostVideoCardProfile({ v, post, setEditContent, setSelec
                       
                                       // Comment
                                       postComments = {postComments} 
-                                      setPostComments={setPostComments}
+                                      setPostComments={setPostComments} commentsByPost={commentsByPost}
+                    setCommentsByPost={setCommentsByPost}
                                       commentInputRef={commentInputRef}
                                       focusCommentInput={focusCommentInput}
                                       newComment={newComment}

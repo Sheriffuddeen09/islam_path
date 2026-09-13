@@ -535,6 +535,7 @@ const handlePick = (type) => {
     onClose={() => setShowPreviewCommunity(false)}
     onSend={({ selectedFiles, response_mode = false }) => {
       sendFileCommunity(selectedFiles, response_mode);
+      setShowPreviewCommunity(false);
     }}
     setDurationMap={setDurationMapCommunity}
     durationMap={durationMapCommunity}
