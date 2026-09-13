@@ -9,7 +9,7 @@ export function PinnedMessagesBar({
 }) {
   const pinned = messages.filter((m) => m.is_pinned);
 
-  const lastPinned = pinned[pinned.length - 1];
+  c         onst lastPinned = pinned[pinned.length - 1];
 
   const [showModal, setShowModal] = useState(false);
   const [showPinDuration, setShowPinDuration] = useState(false);
