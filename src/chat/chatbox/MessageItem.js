@@ -1866,10 +1866,13 @@ const handleMessageTouchCancel = () => {
             setPreview={setPreview}
             uiMode={uiMode}
             toggleSelect={toggleSelect}
-            onLongPress={(message) => {
-              setSelectedMessages(message);
-              setShowReactionPopup(true);
-            }}
+           
+              onLongPress={(message) => {
+                  setSelectedMsg(message);
+                  setSelectedMessages([message.id]);
+                  setShowReactionPopup(message.id);
+                  setActiveMenuId(null);
+              }}
           />
         )}
       </>

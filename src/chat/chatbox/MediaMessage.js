@@ -48,6 +48,7 @@ export default function MediaMessage({
         uiMode={uiMode}
         toggleSelect={toggleSelect}
         onLongPress={onLongPress}
+       
       />
 
       {/* caption */}

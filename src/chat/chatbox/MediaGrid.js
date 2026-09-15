@@ -6,7 +6,7 @@ export default function MediaGrid({
   setPreview,
   uiMode,
   toggleSelect, 
-  onLongPress
+  onLongPress, 
 }) {
   const files = msg.files || [msg];
   const total = files.length;
@@ -90,7 +90,9 @@ export default function MediaGrid({
         }`}
       >
         <MediaItem
+         
         onLongPress={onLongPress}
+       
           msg={msg}
           toggleSelect={toggleSelect}
           file={files[0]}
@@ -112,7 +114,9 @@ export default function MediaGrid({
       >
         {files.map((file, i) => (
           <MediaItem
-          onLongPress={onLongPress}
+           
+        onLongPress={onLongPress}
+         
             msg={msg}
             toggleSelect={toggleSelect}
             key={i}
@@ -135,7 +139,9 @@ export default function MediaGrid({
         }`}
       >
         <MediaItem
+         
         onLongPress={onLongPress}
+       
           msg={msg}
           toggleSelect={toggleSelect}
           file={files[0]}
@@ -162,7 +168,9 @@ export default function MediaGrid({
               className="relative"
             >
               <MediaItem
+               
               onLongPress={onLongPress}
+             
                 msg={msg}
                 toggleSelect={toggleSelect}
                 file={file}

@@ -45,7 +45,6 @@ const handleAudioPointerDown = (e) => {
 const handleAudioPointerMove = (e) => {
   e.stopPropagation();
 
-  // Moving means this is not a long press
   clearTimeout(longPressTimer.current);
 };
 
@@ -73,12 +72,6 @@ const handleAudioPointerCancel = (e) => {
     (isAudio ? file?.file_url : null) ||
     null;
 
-  /*
-  |--------------------------------------------------------------------------
-  | COLORS
-  |--------------------------------------------------------------------------
-  */
-
   const colors = [
     "bg-orange-500",
     "bg-blue-500",
@@ -97,12 +90,6 @@ const handleAudioPointerCancel = (e) => {
       ? name.charAt(0).toUpperCase()
       : "?";
 
-  /*
-  |--------------------------------------------------------------------------
-  | TIME FORMAT
-  |--------------------------------------------------------------------------
-  */
-
   const formatDuration = (seconds) => {
     const sec = Number(seconds);
 
@@ -120,12 +107,6 @@ const handleAudioPointerCancel = (e) => {
       .toString()
       .padStart(2, "0")}`;
   };
-
-  /*
-  |--------------------------------------------------------------------------
-  | RESET AUDIO WHEN SOURCE CHANGES
-  |--------------------------------------------------------------------------
-  */
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -224,6 +205,7 @@ const handleAudioPointerCancel = (e) => {
     );
   };
 
+  
   const onLoadedMetadata = () => {
     const audio = audioRef.current;
 
@@ -312,11 +294,6 @@ const handleAudioPointerCancel = (e) => {
     };
   }, []);
 
-  /*
-  |--------------------------------------------------------------------------
-  | PLAYBACK SPEED
-  |--------------------------------------------------------------------------
-  */
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -325,12 +302,6 @@ const handleAudioPointerCancel = (e) => {
       audio.playbackRate = speed;
     }
   }, [speed]);
-
-  /*
-  |--------------------------------------------------------------------------
-  | PROGRESS
-  |--------------------------------------------------------------------------
-  */
 
   const progress =
     duration > 0
@@ -343,12 +314,6 @@ const handleAudioPointerCancel = (e) => {
           )
         )
       : 0;
-
-  /*
-  |--------------------------------------------------------------------------
-  | SEEK TO POSITION
-  |--------------------------------------------------------------------------
-  */
 
   const seekFromClientX = (clientX) => {
     const audio = audioRef.current;
@@ -383,12 +348,6 @@ const handleAudioPointerCancel = (e) => {
     setCurrentTime(newTime);
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | POINTER DOWN
-  |--------------------------------------------------------------------------
-  */
-
   const handlePointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -402,12 +361,6 @@ const handleAudioPointerCancel = (e) => {
     seekFromClientX(e.clientX);
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | POINTER MOVE
-  |--------------------------------------------------------------------------
-  */
-
   const handlePointerMove = (e) => {
     if (!draggingRef.current) {
       return;
@@ -418,12 +371,6 @@ const handleAudioPointerCancel = (e) => {
 
     seekFromClientX(e.clientX);
   };
-
-  /*
-  |--------------------------------------------------------------------------
-  | POINTER UP
-  |--------------------------------------------------------------------------
-  */
 
   const handlePointerUp = (e) => {
     if (!draggingRef.current) {
@@ -444,12 +391,6 @@ const handleAudioPointerCancel = (e) => {
     seekFromClientX(e.clientX);
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | TOUCH / MOUSE SAFETY
-  |--------------------------------------------------------------------------
-  */
-
   useEffect(() => {
     const handleWindowPointerUp = () => {
       draggingRef.current = false;
@@ -468,32 +409,6 @@ const handleAudioPointerCancel = (e) => {
     };
   }, []);
 
-  /*
-  |--------------------------------------------------------------------------
-  | WAVEFORM
-  |--------------------------------------------------------------------------
-  */
-
-  const waveform = [
-    8, 13, 20, 11, 16, 25, 14,
-    9, 19, 28, 15, 23, 12, 18,
-    30, 20, 10, 17, 26, 14, 22,
-    12, 19, 29, 16, 9, 21, 27,
-    13, 18, 24, 11, 20, 15, 9,
-    17, 25, 13, 21, 16, 10, 23,
-    28, 15, 19, 12, 26, 18, 9,
-    16, 22, 14, 20, 11, 24, 17,
-    8, 14, 21, 12, 18, 27, 15,
-    10, 19, 24, 13, 22, 16, 9,
-    18, 26, 14, 20, 11, 17, 23,
-    12, 28, 16, 9, 19, 25, 14,
-  ];
-
-  /*
-  |--------------------------------------------------------------------------
-  | UI
-  |--------------------------------------------------------------------------
-  */
 return (
   <div
     className={`

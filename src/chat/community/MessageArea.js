@@ -26,6 +26,9 @@ export default function MessagesArea({
   const [forwardSuccess, setForwardSuccess] =
   useState(null);
 
+   
+const [showPinDuration, setShowPinDuration] = useState(false);
+const [pinningMessage, setPinningMessage] = useState(null);
   const [showForwardModal,
     setShowForwardModal] =
     useState(false);
@@ -37,20 +40,49 @@ export default function MessagesArea({
   const [actionMessage, setActionMessage] = useState(null);
 
   const [hoverMsgId, setHoverMsgId] = useState(null);
+  const [loadingPinId, setLoadingPinId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
 
-  //
+  const handlePin = async (msg, days) => {
+    if (!msg?.id || loadingPinId !== null) {
+        return false;
+    }
 
-  const systemMessages = communityMessages.filter(
-  (msg) => msg.is_system
-  );
+    setLoadingPinId(msg.id);
 
-  const normalMessages = communityMessages.filter(
-    (msg) => !msg.is_system
-  );
+    try {
+        await api.put("/api/messages/pin", {
+            message_id: msg.id,
+            days,
+        });
+
+        setCommunityMessages((prev) =>
+            prev.map((message) =>
+                Number(message.id) === Number(msg.id)
+                    ? {
+                          ...message,
+                          is_pinned: true,
+                          pin_expires_at: null,
+                      }
+                    : message
+            )
+        );
+
+        setShowPinDuration(false);
+        setPinningMessage(null);
+
+        return true;
+    } catch (error) {
+        console.error("Pin error:", error);
+        return false;
+    } finally {
+        setLoadingPinId(null);
+    }
+};
+
 
   const scrollToForwardedMessage = (
   messageId
@@ -653,6 +685,10 @@ return (
   <CommunityMessageMenu
       setMessages={setCommunityMessages}
       isAdmin={isAdmin}
+      showPinDuration={showPinDuration}
+      setShowPinDuration={setShowPinDuration}
+      setPinningMessage={setPinningMessage}
+      pinningMessage={pinningMessage}
       open={showMessageMenu}
       isMobile={isMobile}
       selectedMessage={selectedMessage}
@@ -708,6 +744,126 @@ return (
           )}
           </div>
 
+          {showPinDuration && (
+    <div
+        className={`
+            fixed
+            inset-0
+            z-[100]
+            bg-black/50
+            flex
+            items-center
+            justify-center
+            p-4
+            ${loadingPinId !== null
+                ? "cursor-not-allowed"
+                : ""}
+        `}
+        onMouseDown={(e) => {
+            if (loadingPinId !== null) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }}
+        onClick={(e) => {
+            if (loadingPinId !== null) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }}
+    >
+        <div
+            className={`
+                w-full
+                max-w-sm
+                rounded-xl
+                p-5
+                shadow-xl
+                ${loadingPinId !== null
+                    ? "pointer-events-none select-none"
+                    : ""}
+            `}
+            style={{
+                backgroundColor: "var(--bg-color)",
+                color: "var(--text-color)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+        >
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-lg">
+                    Pin message
+                </h2>
+
+                <button
+                    type="button"
+                    disabled={loadingPinId !== null}
+                    onClick={() => {
+                        if (loadingPinId !== null) return;
+
+                        setShowPinDuration(false);
+                        setPinningMessage(null);
+                    }}
+                    className="
+                        text-lg
+                        px-1
+                        rounded
+                        disabled:opacity-40
+                        disabled:cursor-not-allowed
+                    "
+                >
+                    ✕
+                </button>
+            </div>
+
+            <p className="text-sm opacity-70 mb-4">
+                How long should this message stay pinned?
+            </p>
+
+            <div className="space-y-2">
+                {[7, 14, 30].map((days) => (
+                    <button
+                        key={days}
+                        type="button"
+                        disabled={loadingPinId !== null}
+                        onClick={() => {
+                            if (loadingPinId !== null) return;
+
+                            handlePin(pinningMessage, days);
+                        }}
+                        className="
+                            w-full
+                            px-4
+                            py-3
+                            rounded-lg
+                            border
+                            text-left
+                            hover:bg-black/5
+                            dark:hover:bg-white/5
+                            transition
+                            disabled:opacity-50
+                            disabled:cursor-not-allowed
+                        "
+                        style={{
+                            borderColor: "var(--text-color)",
+                        }}
+                    >
+                        <div className="font-medium">
+                            {days} days
+                        </div>
+
+                        <div className="text-xs opacity-60">
+                            Message will expire after {days} days
+                        </div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    </div>
+)}
+      
          {forwardSuccess && (
     <div
       className="

@@ -30,7 +30,8 @@ export default function MessageComponent({
   const [showPinDuration, setShowPinDuration] = useState(false);
 const [pinningMessage, setPinningMessage] = useState(null);
   const [loading, setLoading] = useState(false);
-
+   const [pinLoading, setPinLoading] = useState(false);
+ 
   
   const openPinDuration = (message) => {
   if (message.is_pinned) {
@@ -43,33 +44,38 @@ const [pinningMessage, setPinningMessage] = useState(null);
 };
 
 const confirmPin = async (days) => {
-  if (!pinningMessage) return;
+    if (!pinningMessage || pinLoading) return;
 
-  try {
-    await api.put("/api/messages/pin", {
-      message_id: pinningMessage.id,
-      days,
-    });
+    setPinLoading(true);
 
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === pinningMessage.id
-          ? {
-              ...m,
-              is_pinned: true,
-              pin_expires_at: new Date(
-                Date.now() + days * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            }
-          : m
-      )
-    );
+    try {
+        await api.put("/api/messages/pin", {
+            message_id: pinningMessage.id,
+            days,
+        });
 
-    setShowPinDuration(false);
-    setPinningMessage(null);
-  } catch (err) {
-    console.error("Pin error:", err);
-  }
+        setMessages((prev) =>
+            prev.map((m) =>
+                Number(m.id) === Number(pinningMessage.id)
+                    ? {
+                          ...m,
+                          is_pinned: true,
+                          pin_expires_at: new Date(
+                              Date.now() +
+                                  days * 24 * 60 * 60 * 1000
+                          ).toISOString(),
+                      }
+                    : m
+            )
+        );
+
+        setShowPinDuration(false);
+        setPinningMessage(null);
+    } catch (err) {
+        console.error("Pin error:", err);
+    } finally {
+        setPinLoading(false);
+    }
 };
       const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -644,69 +650,127 @@ useEffect(() => {
         />
       )}
 
-      {showPinDuration && (
-  <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+     {showPinDuration && (
     <div
-      className="w-full max-w-sm rounded-xl p-5 shadow-xl"
-      style={{
-        backgroundColor: "var(--bg-color)",
-        color: "var(--text-color)",
-      }}
+        className={`
+            fixed
+            inset-0
+            z-[100]
+            bg-black/50
+            flex
+            items-center
+            justify-center
+            p-4
+            ${pinLoading ? "cursor-not-allowed" : ""}
+        `}
+        onMouseDown={(e) => {
+            if (pinLoading) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }}
+        onClick={(e) => {
+            if (pinLoading) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+
+            // Optional: allow backdrop click to close
+            if (e.target === e.currentTarget) {
+                setShowPinDuration(false);
+                setPinningMessage(null);
+            }
+        }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-lg">
-          Pin message
-        </h2>
-
-        <button
-          type="button"
-          onClick={() => {
-            setShowPinDuration(false);
-            setPinningMessage(null);
-          }}
-          className="text-lg"
-        >
-          ✕
-        </button>
-      </div>
-
-      <p className="text-sm opacity-70 mb-4">
-        How long should this message stay pinned?
-      </p>
-
-      <div className="space-y-2">
-        {[7, 14, 30].map((days) => (
-          <button
-            key={days}
-            type="button"
-            onClick={() => confirmPin(days)}
-            className="
-              w-full
-              px-4
-              py-3
-              rounded-lg
-              border
-              text-left
-              hover:bg-black/5
-              dark:hover:bg-white/5
-              transition
-            "
+        <div
+            className={`
+                w-full
+                max-w-sm
+                rounded-xl
+                p-5
+                shadow-xl
+                ${pinLoading
+                    ? "pointer-events-none select-none"
+                    : ""}
+            `}
             style={{
-              borderColor: "var(--text-color)",
+                backgroundColor: "var(--bg-color)",
+                color: "var(--text-color)",
             }}
-          >
-            <div className="font-medium">
-              {days} days
+            onClick={(e) => e.stopPropagation()}
+        >
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-lg">
+                    Pin message
+                </h2>
+
+                <button
+                    type="button"
+                    disabled={pinLoading}
+                    onClick={() => {
+                        if (pinLoading) return;
+
+                        setShowPinDuration(false);
+                        setPinningMessage(null);
+                    }}
+                    className="
+                        text-lg
+                        px-1
+                        rounded
+                        disabled:opacity-40
+                        disabled:cursor-not-allowed
+                    "
+                >
+                    ✕
+                </button>
             </div>
 
-            <div className="text-xs opacity-60">
-              Expires after {days} days
+            <p className="text-sm opacity-70 mb-4">
+                How long should this message stay pinned?
+            </p>
+
+            <div className="space-y-2">
+                {[7, 14, 30].map((days) => (
+                    <button
+                        key={days}
+                        type="button"
+                        disabled={pinLoading}
+                        onClick={() => {
+                            if (pinLoading) return;
+
+                            confirmPin(days);
+                        }}
+                        className="
+                            w-full
+                            px-4
+                            py-3
+                            rounded-lg
+                            border
+                            text-left
+                            hover:bg-black/5
+                            dark:hover:bg-white/5
+                            transition
+                            disabled:opacity-50
+                            disabled:cursor-not-allowed
+                        "
+                        style={{
+                            borderColor: "var(--text-color)",
+                        }}
+                    >
+                        <div className="font-medium">
+                            {days} days
+                        </div>
+
+                        <div className="text-xs opacity-60">
+                            Expires after {days} days
+                        </div>
+                    </button>
+                ))}
             </div>
-          </button>
-        ))}
-      </div>
+        </div>
     </div>
-  </div>
 )}
   </>
 );

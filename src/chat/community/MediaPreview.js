@@ -23,6 +23,7 @@ const [pinningMessage, setPinningMessage] = useState(null);
   const [showDeleteModal,
   setShowDeleteModal] =
   useState(false);
+  const [loadingPinId, setLoadingPinId] = useState(null);
 
   const openPinDuration = (message) => {
     if (!message) return;
@@ -46,59 +47,40 @@ const [pinningMessage, setPinningMessage] = useState(null);
 
   if (!showPreview || !previewMessage) return null;
 
-const handlePin = async (msg, days = null) => {
-    if (!msg) return;
+const handlePin = async (msg, days) => {
+    if (!msg?.id || loadingPinId !== null) {
+        return false;
+    }
+
+    setLoadingPinId(msg.id);
 
     try {
-        if (msg.is_pinned) {
-            await api.delete("/api/messages/pin", {
-                data: {
-                    message_id: msg.id,
-                },
-            });
-
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === msg.id
-                        ? {
-                            ...m,
-                            is_pinned: false,
-                            pin_expires_at: null,
-                        }
-                        : m
-                )
-            );
-
-            return;
-        }
-
-        if (!days) return;
-
-        const res = await api.put("/api/messages/pin", {
+        await api.put("/api/messages/pin", {
             message_id: msg.id,
             days,
         });
 
-        const updatedMessage = res.data.data;
-
         setMessages((prev) =>
-            prev.map((m) =>
-                m.id === msg.id
+            prev.map((message) =>
+                Number(message.id) === Number(msg.id)
                     ? {
-                        ...m,
-                        is_pinned: true,
-                        pin_expires_at:
-                            updatedMessage.pin_expires_at,
-                    }
-                    : m
+                          ...message,
+                          is_pinned: true,
+                          pin_expires_at: null,
+                      }
+                    : message
             )
         );
 
         setShowPinDuration(false);
         setPinningMessage(null);
 
-    } catch (err) {
-        console.error("Pin error:", err);
+        return true;
+    } catch (error) {
+        console.error("Pin error:", error);
+        return false;
+    } finally {
+        setLoadingPinId(null);
     }
 };
 
@@ -687,15 +669,54 @@ const handleCopyText = async (msg) => {
   />
    
 
-   {showPinDuration && (
-    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+    {showPinDuration && (
+    <div
+        className={`
+            fixed
+            inset-0
+            z-[100]
+            bg-black/50
+            flex
+            items-center
+            justify-center
+            p-4
+            ${loadingPinId !== null
+                ? "cursor-not-allowed"
+                : ""}
+        `}
+        onMouseDown={(e) => {
+            if (loadingPinId !== null) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }}
+        onClick={(e) => {
+            if (loadingPinId !== null) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }}
+    >
         <div
-            className="w-full max-w-sm rounded-xl p-5 shadow-xl"
+            className={`
+                w-full
+                max-w-sm
+                rounded-xl
+                p-5
+                shadow-xl
+                ${loadingPinId !== null
+                    ? "pointer-events-none select-none"
+                    : ""}
+            `}
             style={{
                 backgroundColor: "var(--bg-color)",
                 color: "var(--text-color)",
             }}
+            onClick={(e) => e.stopPropagation()}
         >
+            {/* HEADER */}
             <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-lg">
                     Pin message
@@ -703,11 +724,20 @@ const handleCopyText = async (msg) => {
 
                 <button
                     type="button"
+                    disabled={loadingPinId !== null}
                     onClick={() => {
+                        if (loadingPinId !== null) return;
+
                         setShowPinDuration(false);
                         setPinningMessage(null);
                     }}
-                    className="text-lg"
+                    className="
+                        text-lg
+                        px-1
+                        rounded
+                        disabled:opacity-40
+                        disabled:cursor-not-allowed
+                    "
                 >
                     ✕
                 </button>
@@ -722,7 +752,12 @@ const handleCopyText = async (msg) => {
                     <button
                         key={days}
                         type="button"
-                        onClick={() => handlePin(pinningMessage, days)}
+                        disabled={loadingPinId !== null}
+                        onClick={() => {
+                            if (loadingPinId !== null) return;
+
+                            handlePin(pinningMessage, days);
+                        }}
                         className="
                             w-full
                             px-4
@@ -733,6 +768,8 @@ const handleCopyText = async (msg) => {
                             hover:bg-black/5
                             dark:hover:bg-white/5
                             transition
+                            disabled:opacity-50
+                            disabled:cursor-not-allowed
                         "
                         style={{
                             borderColor: "var(--text-color)",
@@ -751,7 +788,9 @@ const handleCopyText = async (msg) => {
         </div>
     </div>
 )}
-</div>
+      
+      
+      </div>
   );
 }
 
