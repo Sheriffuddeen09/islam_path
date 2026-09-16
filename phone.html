@@ -10,5 +10,164 @@
 
     CHAT DECRYPT INFO: {chatId: 'udSzzYyLia166dH9', hasChatKey: false, messageCount: 28}
 
+<div
+          className="
+            absolute
+            top-2
+            right-2
+            inline-flex
+            items-center
+            gap-2
+          "
+          onClick={(e) =>
+            e.stopPropagation()
+          }
+        >
+          {/* VIEWS */}
 
-    add to the preview 1. hide previous button if not next 2. hide next button if no more item to next 3. hide both previous and next button in mobile use swipe right and left for image while for video use swipe up and down 4. change video design adding at the top speaker and mute and speaker increase drag, speed range, fullscreen while bottom drag range of the video, and duration of video and at middle play and pause 5. auto play when open modal 6. if mouse stop moving or stop it should hide the function 
+          {post.media?.some(
+            (m) =>
+              m.type === "video"
+          ) && (
+            <p
+              className="
+                text-black
+                p-1
+                text-center
+                rounded-lg
+                bg-gray-200
+                text-xs
+              "
+            >
+              <Eye />
+              {post.views || 0}
+            </p>
+          )}
+
+          {/* DELETE */}
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+
+              handleRemove(post.id);
+            }}
+            className="
+              rounded
+              hover:bg-gray-200
+            "
+            title="Remove"
+            disabled={
+              deleteLoading === post.id
+            }
+          >
+            {deleteLoading === post.id ? (
+              <Loader2
+                className="
+                  w-4
+                  h-4
+                  animate-spin
+                  text-red-600
+                "
+              />
+            ) : (
+              <Trash2
+                className="
+                  w-4
+                  h-4
+                  text-red-600
+                "
+              />
+            )}
+          </button>
+
+          {/* VIDEO DOWNLOAD */}
+
+          {post.media?.some(
+            (m) =>
+              m.type === "video"
+          ) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+
+                handleDownloadVideo();
+              }}
+              className="
+                p-1
+                rounded
+                hover:bg-gray-200
+              "
+            >
+              {downloading ===
+              post.id ? (
+                <Loader2
+                  className="
+                    w-4
+                    h-4
+                    animate-spin
+                    text-blue-600
+                  "
+                />
+              ) : (
+                <Download
+                  className="
+                    w-4
+                    h-4
+                    text-blue-600
+                  "
+                />
+              )}
+            </button>
+          )}
+
+          {/* IMAGE DOWNLOAD */}
+
+          {post.media?.some(
+            (m) =>
+              m.type === "image"
+          ) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+
+                setShowImagePicker(
+                  true
+                );
+              }}
+              className="
+                flex
+                items-center
+                gap-2
+                font-bold
+                text-[15px]
+                px-2
+                py-2
+                hover:text-gray-600
+                text-gray-800
+                hover:bg-gray-50
+                rounded
+              "
+            >
+              {downloading ===
+              post.id ? (
+                <Loader2
+                  className="
+                    w-4
+                    h-4
+                    animate-spin
+                    text-blue-600
+                  "
+                />
+              ) : (
+                <Download
+                  className="
+                    w-4
+                    h-4
+                    text-blue-600
+                  "
+                />
+              )}
+            </button>
+          )}
+        </div>

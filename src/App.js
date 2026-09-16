@@ -791,7 +791,7 @@ function App() {
           element={<StudentExam />}
         />
       
-      <Route path="/post/image" element={<PostImagePageId image={image} setImage={setImage}
+      <Route path="/post/image/:id" element={<PostImagePageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -815,7 +815,7 @@ function App() {
         />} />
 
 
-        <Route path="/reel/video" element={<ReelVideoPageId image={image} setImage={setImage}
+        <Route path="/reel/video/:id" element={<ReelVideoPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -827,7 +827,7 @@ function App() {
         />} />
 
 
-         <Route path="/post/text" element={<PostTextPageId image={image} setImage={setImage}
+         <Route path="/post/text/:id" element={<PostTextPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}

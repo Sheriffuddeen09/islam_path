@@ -479,7 +479,7 @@ const fetchNotification = async () => {
           className={`
               lg:hidden
               fixed
-              top-10
+              top-3
               right-4
               z-50
               bg-[var(--bg-color)]

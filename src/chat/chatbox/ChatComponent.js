@@ -50,11 +50,17 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const timerRef = useRef(null)
 
     const [showChannel, setShowChannel] = useState(false);
-    
+     const [forwardMessage, setForwardMessage] = useState({
+        open: false,
+        messages: []
+      });
+
 
     const [showAvatarPreview, setShowAvatarPreview] = useState(false);
     const isGroup = activeChat?.type === "group";
 
+      const [showMeetingModal, setShowMeetingModal] = useState(false);
+    
     const { user } = useAuth();
     
 
@@ -747,6 +753,11 @@ setMessages((prev) => {
         `}
       >
       <MessageBox
+      
+          forwardMessage={forwardMessage} 
+          setForwardMessage={setForwardMessage} 
+          showMeetingModal={showMeetingModal} 
+          setShowMeetingModal={setShowMeetingModal}
           incomingCall={incomingCall} setIncomingCall={setIncomingCall}
           meetingData={meetingData} setMeetingData={setMeetingData}
           callMode={callMode} setCallMode={setCallMode}
@@ -810,6 +821,13 @@ setMessages((prev) => {
     "
   >
     <ActiveUsers
+      forwardMessage={forwardMessage} 
+      setForwardMessage={setForwardMessage} 
+      incomingCall={incomingCall} setIncomingCall={setIncomingCall}
+      setCallMode={setCallMode}
+      showMeetingModal={showMeetingModal} 
+      setShowMeetingModal={setShowMeetingModal}
+      
       avatarName={avatarName} isGroup={isGroup} displayName={displayName} 
       getColor={getColor} getInitial={getInitial} 
       setShowAvatarPreview={setShowAvatarPreview} 
@@ -877,6 +895,10 @@ setMessages((prev) => {
 
       {activeChat ? (
       <MessageBox
+          forwardMessage={forwardMessage} 
+          setForwardMessage={setForwardMessage} 
+          showMeetingModal={showMeetingModal} 
+          setShowMeetingModal={setShowMeetingModal}
           incomingCall={incomingCall} setIncomingCall={setIncomingCall}
           meetingData={meetingData} setMeetingData={setMeetingData}
           callMode={callMode} setCallMode={setCallMode}
@@ -948,6 +970,10 @@ setMessages((prev) => {
 
   {activeChat ? (
     <ActiveUsers
+      forwardMessage={forwardMessage} 
+      setForwardMessage={setForwardMessage} 
+      showMeetingModal={showMeetingModal} 
+      setShowMeetingModal={setShowMeetingModal}
       avatarName={avatarName} isGroup={isGroup} displayName={displayName} 
       getColor={getColor} getInitial={getInitial} 
       setShowAvatarPreview={setShowAvatarPreview} 

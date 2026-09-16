@@ -323,7 +323,7 @@ export default function StudentProfileFriend({setMessages, setActiveChat, toggle
 
 function Loader() {
   return (
-   <div className="max-w-2xl flex flex-col justify-center iems-center mx-4 animate-pulse">
+   <div className="max-w-2xl lg:ml-72 translate-x-4 flex flex-col justify-center iems-center mx-4 animate-pulse">
       <div className="max-w-2xl">
         <div className="max-w-2xl bg-gray-500 border border-white/10 rounded-3xl p-5">
           {/* Header */}

@@ -84,7 +84,7 @@ const generateMeetingLink = async (type) => {
         flex
         items-center
         justify-center
-        z-50
+        z-[999]
         ">
 
         <div className="

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Copy,  Shield, Flag, UserCircle, MessageCircleHeart, Search, Group, GroupIcon, Link2Icon, Settings, TimerReset } from "lucide-react";
+import { Copy,  Shield, Flag, UserCircle, MessageCircleHeart, Search, Group, GroupIcon, Link2Icon, Settings, TimerReset, LinkIcon } from "lucide-react";
 import { useAuth } from "../../layout/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -22,6 +22,7 @@ import DisappearingMessagesModal from "./DisappearingMessagesModal";
 import EncryptionModal from "./EncryptionModal";
 import ClearChatModal from "../chatcomponent/ClearModal";
 import DeleteChatModal from "./DeleteChatModal";
+import GenerateLinkCall from "./GenerateLinkCall";
 
 const socket = io("http://localhost:8000");
 
@@ -34,7 +35,8 @@ export default function ActiveUsers({
   openChat, 
   setMessages,
   onHeaderClick,
-  uiMode, setShowAvatarPreview, getColor, getInitial, avatarName, isGroup, displayName
+  uiMode, setShowAvatarPreview, getColor, getInitial, avatarName, isGroup, displayName, setShowMeetingModal, showMeetingModal,
+  incomingCall, setIncomingCall, setCallMode, setForwardMessage
 }) {
 
   const [copiedField, setCopiedField] = useState(null);
@@ -49,6 +51,8 @@ export default function ActiveUsers({
 
   const [clearMessage, setClearMessage] = useState(false);
   
+  const [generatedMeeting, setGeneratedMeeting] = useState(null);
+  const [selectedExpiry, setSelectedExpiry] = useState("1h");
 
   const blockedMe = activeChat?.block_info?.blocked_me;
 
@@ -424,6 +428,13 @@ export default function ActiveUsers({
          onClick={() => setShowModal(true)}
          label="New Group Chat" />
 
+        <ActionButton icon={<LinkIcon size={24} />} 
+          onClick={() =>
+              setShowMeetingModal(true)
+            }
+         label="Group Call Link" />
+
+
         <ActionButton
           icon={<Shield size={24} />}
           label="Encryption"
@@ -501,6 +512,7 @@ export default function ActiveUsers({
       />
         
       
+      
       {isAdmin && (
       <div className="relative flex flex-co border-b">
 
@@ -547,12 +559,22 @@ export default function ActiveUsers({
         
 
         {isAdmin && (
+          <>
           <ActionButton
             icon={<Settings size={24} />}
             label="Group Setting"
             onClick={() => setShowSettings(true)}
           />
+
+           <ActionButton icon={<LinkIcon size={24} />} 
+              onClick={() =>
+              setShowMeetingModal(true)
+            }
+              label="Group Call Link" />
+            </>
         )}
+
+
 
         <ActionButton
           icon={<MessageCircleHeart size={24} />}
@@ -956,6 +978,14 @@ export default function ActiveUsers({
         />
       )}
      
+       <GenerateLinkCall
+         incomingCall={incomingCall} setIncomingCall={setIncomingCall}
+         showMeetingModal={showMeetingModal} setShowMeetingModal={setShowMeetingModal}
+         generatedMeeting={generatedMeeting} setGeneratedMeeting={setGeneratedMeeting}
+         selectedExpiry={selectedExpiry} setSelectedExpiry={setSelectedExpiry}
+         setForwardMessage={setForwardMessage} setCallMode={setCallMode}
+     
+         />
 
 {showGroupSearchModal && (
   <ModalOverlay onClose={() => setShowGroupSearchModal(false)}>
