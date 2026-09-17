@@ -300,7 +300,7 @@ const closeVideoPreview = () => {
   return (
     <div
           className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
-          // ref={postRef}
+          ref={postRef}
           >
           {post.is_repost && (
             <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">

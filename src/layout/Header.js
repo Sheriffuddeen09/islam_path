@@ -300,7 +300,6 @@ useEffect(() => {
                               {reelCount > 15 ? "15+" : reelCount}
                             </span>
                           )}
-          
                           Reel Video
                         </Link>
           

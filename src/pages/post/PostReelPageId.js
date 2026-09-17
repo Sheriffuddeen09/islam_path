@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import api from "../../Api/axios";
@@ -20,7 +13,7 @@ import toast from "react-hot-toast";
 
 
 
-export default function PostVideoPageId({
+export default function PostReelPageId({
   image, commentsByPost, setCommentsByPost,
   postComments,
   setPostComments,

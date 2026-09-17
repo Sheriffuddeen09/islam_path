@@ -1,29 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, ShoppingCart, Star } from "lucide-react";
-
+import logo from '../post/image/product.png'
 export default function ProductFeedBlock({ products = [] }) {
 
     const navigate = useNavigate();
+
+    const symbols = { USD: "$", NGN: "₦", EUR: "€" };
 
     const [currentIndex, setCurrentIndex] = useState(0);
 
     if (!Array.isArray(products) || products.length === 0) {
         return null;
     }
- 
-
-    const getProductImage = (product) => {
-
-        if (
-            Array.isArray(product?.images) &&
-            product.images.length > 0
-        ) {
-            return product.images[0]?.url;
-        }
-
-        return null;
-    };
  
 
     const getPrice = (product) => {
@@ -43,7 +32,10 @@ export default function ProductFeedBlock({ products = [] }) {
 
     const ProductCard = ({ product }) => {
 
-        const image = getProductImage(product);
+         const image = product.images?.[0]?.url || logo;
+
+        const symbol = symbols[product.currency] || product.currency;
+
 
         const finalPrice = getPrice(product);
 
@@ -81,20 +73,17 @@ export default function ProductFeedBlock({ products = [] }) {
                     shadow-sm
                 "
             >
-
-                {/* IMAGE */}
-
                 <button
                     type="button"
                     onClick={openProduct}
                     className="
                         block
                         w-full
-                        h-[260px]
+                        h-[180px]
                         sm:h-[320px]
                         overflow-hidden
-                        bg-gray-100
-                        dark:bg-gray-900
+                        bg-gray-900
+                        dark:bg-gray-300
                     "
                 >
 
@@ -156,7 +145,7 @@ export default function ProductFeedBlock({ products = [] }) {
                             hover:underline
                         "
                     >
-                        {product?.name ||
+                        {product?.title ||
                             "Unnamed Product"}
                     </button>
 
@@ -170,7 +159,6 @@ export default function ProductFeedBlock({ products = [] }) {
                             gap-1.5
                             mt-2
                             text-sm
-                            text-gray-500
                         "
                     >
 
@@ -210,7 +198,7 @@ export default function ProductFeedBlock({ products = [] }) {
                                     font-bold
                                 "
                             >
-                                ₦{finalPrice.toLocaleString()}
+                                {symbol}{finalPrice.toLocaleString()}
                             </span>
 
 
@@ -223,7 +211,7 @@ export default function ProductFeedBlock({ products = [] }) {
                                         line-through
                                     "
                                 >
-                                    ₦{price.toLocaleString()}
+                                    {symbol}{price.toLocaleString()}
                                 </span>
 
                             )}
@@ -240,7 +228,7 @@ export default function ProductFeedBlock({ products = [] }) {
                                     mt-1
                                 "
                             >
-                                Save ₦
+                                discount {symbol}
                                 {discount.toLocaleString()}
                             </p>
 
@@ -275,7 +263,7 @@ export default function ProductFeedBlock({ products = [] }) {
                             size={18}
                         />
 
-                        Add
+                        Order Now
 
                     </button>
 
@@ -284,16 +272,7 @@ export default function ProductFeedBlock({ products = [] }) {
             </div>
         );
     };
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | 1 OR 2 PRODUCTS
-    |--------------------------------------------------------------------------
-    |
-    | Same width as the normal feed cards.
-    |
-    */
+ 
 
     if (products.length <= 2) {
 
@@ -304,7 +283,7 @@ export default function ProductFeedBlock({ products = [] }) {
                     max-w-[650px]
                     flex
                     flex-col
-                    gap-4
+                    sm:gap-4 gap-2
                     mb-5
                 "
             >
@@ -322,18 +301,7 @@ export default function ProductFeedBlock({ products = [] }) {
         );
 
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | MORE THAN 2 PRODUCTS
-    |--------------------------------------------------------------------------
-    |
-    | Slider.
-    |
-    | Two cards are visible at once on larger screens.
-    |
-    */
+ 
 
     const visibleCount = 2;
 
@@ -373,11 +341,11 @@ export default function ProductFeedBlock({ products = [] }) {
             className="
                 w-full
                 max-w-[650px]
-                mb-5
+                py-3 sm:4 px-2 border border-gray-900 rounded-lg
+                bg-[var(--bg-color)]
+                text-[var(--text-color)]
             "
         >
-
-            {/* HEADER */}
 
             <div
                 className="
@@ -401,8 +369,7 @@ export default function ProductFeedBlock({ products = [] }) {
 
                     <p
                         className="
-                            text-xs
-                            text-gray-500
+                            text-xs 
                         "
                     >
                         Products available from sellers
@@ -477,9 +444,6 @@ export default function ProductFeedBlock({ products = [] }) {
                 </div>
 
             </div>
-
-
-            {/* SLIDER */}
 
             <div
                 className="
