@@ -11,6 +11,7 @@ export default function ImageFlexCommentReactionShare({
     total,
     me,
 commentsByPost,
+setShowCommentPop,
     reactionList,
     reactionLoading,
     myReaction,
@@ -314,7 +315,7 @@ commentsByPost,
                         setPostComments(
                           commentsByPost[post.id] || []
                         );
-
+                        setShowCommentPop()
                         focusCommentInput();
                       }}
             className="

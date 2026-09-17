@@ -179,6 +179,37 @@ export default function PostVideoPageId({
 }, [isPlaying, videoLoading]);
 
 
+const formatPostTime = (date) => {
+  if (!date) return "";
+
+  const created = new Date(date);
+  const now = new Date();
+
+  const diffMs = now - created;
+  const diffSeconds = Math.floor(diffMs / 1000);
+
+  if (diffSeconds < 60) {
+    return `${diffSeconds} sec${diffSeconds === 1 ? "" : "s"}`;
+  }
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} min${diffMinutes === 1 ? "" : "s"}`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? "" : "s"}`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  return `${diffDays} day${diffDays === 1 ? "" : "s"}`;
+};
+
+
   const formatTime = (seconds) => {
     if (!Number.isFinite(seconds) || seconds < 0) {
       return "0:00";
@@ -1952,6 +1983,37 @@ useEffect(() => {
     };
 
     
+        const colors = [
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+      ];
+
+const getColor = (value) => {
+    if (!value) return "bg-gray-400";
+
+    const str = String(value);
+
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitial = (name) => {
+    if (!name) return "?";
+
+    return name
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+};
 
  const shareUrl = currentPost?.is_advertisement
     ? `${window.location.origin}/advertisement/${currentPost.advertisement_id}`
@@ -2102,9 +2164,10 @@ const commentScreen = (
           <Link
             to={`/profile/${currentPost?.user?.id}`}
           >
-            <p className="font-bold text-white bg-black text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center">
-              {currentPost?.user?.name?.[0] || "?"}
-            </p>
+            <p className={`font-bold text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center
+                  ${getColor(currentPost.user?.name)}`}>
+                  {getInitial(currentPost?.user?.name)}
+                </p>
           </Link>
 
           <div>
@@ -2116,9 +2179,9 @@ const commentScreen = (
               </p>
             </Link>
 
-            <p className="text-xs">
-              {currentPost?.created_at}
-            </p>
+            <div className="text-[11px] sm:text-[12px] sm:mt-1">
+              {formatPostTime(currentPost?.created_at)}
+              </div>
           </div>
         </div>
 
@@ -2151,7 +2214,7 @@ const commentScreen = (
         </div>
       </div>
 
-      {/* TEXT */}
+      {/* TEXT post */}
       {currentPost?.content && (
         <div className="px-5 pb-4">
           <div className="max-h-28 overflow-y-auto no-scrollbar">
@@ -2375,20 +2438,20 @@ const commentScreen = (
         </button>
       </div>
     </div>
-
-    <div className="shrink-0 overflow-hidden">
-      {currentPost && (
-        <PostComment
-          postId={currentPost.id}
-          image={image}
-          post={currentPost}
-          postComments={postComments}
-          setPostComments={setPostComments}
-          commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
-        />
-      )}
-    </div>
+<div className="flex-1 min-h-0 overflow-y-auto">
+  {currentPost && (
+    <PostComment
+      postId={currentPost.id}
+      image={image}
+      post={currentPost}
+      postComments={postComments}
+      setPostComments={setPostComments}
+      commentsByPost={commentsByPost}
+      setCommentsByPost={setCommentsByPost}
+    />
+  )}
+</div>
+{/* absolute right-0 */}
     
     <div
       className="shrink-0 p-2 border-t"
@@ -2414,7 +2477,7 @@ const commentScreen = (
 
 
   return (
-    <div className="flex h-screen w-full bg-neutral-950 overflow-hidden">
+    <div className="relative flex h-screen w-full overflow-hidden bg-neutral-950">
       {/* VIDEO AREA */}
 
       <div className="flex-1 bg-black/50 flex items-center justify-center relative">
@@ -2480,7 +2543,7 @@ const commentScreen = (
 
         {/* TOP */}
 
-        <div className="absolute top-4 left-4 right-4 z-[120] flex items-center justify-between pointer-events-none">
+        <div className="absolute top-4 left-4 z-[120] inline-flex items-center gap-4 pointer-events-none">
           <button
             onClick={() =>
               navigate("/")
@@ -2859,7 +2922,9 @@ const commentScreen = (
                             : "Advertisement"}
                     </span>
                 </div>
-
+              <div className="text-[11px] sm:text-[12px]">
+              {formatPostTime(currentPost?.created_at)}
+              </div>
                 {/* TITLE */}
                 {currentPost?.title && (
                     <h2 className="text-base sm:text-lg font-bold break-words [overflow-wrap:anywhere]">
@@ -2925,7 +2990,7 @@ const commentScreen = (
 {!isAdvertisement &&
   currentPost?.content && (
     <div
-      className={`absolute bottom-16 left-3 right-3 sm:left-5 sm:right-5 z-[70] transition-all duration-300 ${
+      className={`absolute bottom-16 left-0 z-[70] transition-all duration-300 ${
         showOverlay
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-3 pointer-events-none"
@@ -2939,20 +3004,21 @@ const commentScreen = (
             to={`/profile/${currentPost?.user?.id}`}
             className="shrink-0"
           >
-            <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg">
-              {currentPost?.user?.name
-                ?.charAt(0)
-                ?.toUpperCase() || "A"}
-            </span>
+             <span className={`w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg
+              ${getColor(currentPost.user?.name)}`}>
+              {getInitial(currentPost?.user?.name)}
+              </span>
           </Link>
 
           <div className="min-w-0 flex-1">
 
-            {/* USER NAME */}
+            {/* USER NAME post */}
+            <div className="flex flex-col">
             <div className="text-white font-bold text-xs mb-1">
               {currentPost?.user?.name || "Unknown User"}
             </div>
-
+                 
+              </div>
             {/* CONTENT */}
             <div
               className="
@@ -3068,7 +3134,7 @@ const commentScreen = (
             </div>
         )}
           {/* RIGHT ACTIONS */}
-
+        {!showCommentPop && (
           <div className="absolute right-0 bottom-14 z-[100] flex flex-col items-center gap-3">
             {/* REACTION */}
 
@@ -3230,6 +3296,8 @@ const commentScreen = (
               />
             </div>
           </div>
+            )}
+
         </div>
       </div>
 
@@ -3296,28 +3364,70 @@ const commentScreen = (
       )}
 
       {/* COMMENT POPUP */}
+{/* COMMENT POPUP */}
 
-     {showCommentPop && (
-      <div className="fixed inset-0 px-2 bg-black/70 flex items-center justify-center z-[999]">
-        <div
-          className="
-            rounded-xl
-            w-full
-            lg:w-[400px]
-            max-w-xl
-            max-h-[90vh]
-            flex
-            flex-col
-            shadow-lg
-            overflow-hidden
-            bg-[var(--bg-color)]
-          "
-        >
-          {commentScreen}
-        </div>
+{showCommentPop && (
+  <>
+    {/* LARGE SCREEN - RIGHT SIDE */}
+
+    <div
+      className="
+        hidden lg:flex
+        fixed
+        top-0
+        right-0
+        bottom-0
+        z-[999]
+        w-[400px]
+        xl:w-[450px]
+        flex-col
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        border-l
+        border-white/10
+        shadow-2xl
+        overflow-hidden
+      "
+    >
+      {commentScreen}
+    </div>
+
+
+    {/* MOBILE - FIXED POPUP */}
+
+    <div
+      className="
+        lg:hidden
+        fixed
+        inset-0
+        px-2
+        bg-black/70
+        backdrop-blur-sm
+        flex
+        items-center
+        justify-center
+        z-[999]
+      "
+    >
+      <div
+        className="
+          rounded-xl
+          w-full
+          max-w-xl
+          h-[90vh]
+          flex
+          flex-col
+          shadow-2xl
+          overflow-hidden
+          bg-[var(--bg-color)]
+          text-[var(--text-color)]
+        "
+      >
+        {commentScreen}
       </div>
-    )}
-
+    </div>
+  </>
+)}
       {/* SHARE POPUP */}
 
       {shares && (

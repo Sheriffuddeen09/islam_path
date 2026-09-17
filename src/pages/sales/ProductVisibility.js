@@ -1169,92 +1169,124 @@ export default function ProductVisibility() {
                 </div>
 
             )}
-                    
-            {showUnlockModal && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-5 w-80 text-center relative text-black">
-                <div className="inline-flex items-end gap-2">
+                 {showUnlockModal && (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-5 w-80 text-center relative text-black">
+
+            <div className="inline-flex items-end gap-2">
                 <Lock />
-                <h2 className="font-bold text-sm   ">Unlock Product Visibility</h2>
-                </div>
-                <hr />
-                <button
-                    disabled={adsWatched >= 6}
-                    onClick={handleWatchAd}
-                    className={`w-44 text-xs py-1 mb-12 border-b-2 mt-10 flex justify-center text-center  rounded-lg  text-white ${
-                    adsWatched >= 6 ? "bg-gray-300" : "bg-blue-600 text-white"
-                    }`}
-                >
-                    Watch Ad (+5 badges) ({adsWatched}/6)
-                </button>
-                <div className="flex flex-col mb-10 gap-2">
-                    <Lock className="lock  p-1 w-8 h-8 mx-auto border-2 border-black rounded-full"/>
-                <p className="font-bold text-sm ">Badges Required {selectedPlan.badges} 🏅</p>
-                </div>
-                <button
-                    disabled={badges.total < selectedPlan.badges || 
-                    !selectedPlan || upgradingId !== null}
-                    onClick={ renewVisibility }
-                    className={`w-52  py-3 rounded-full font-bold  text-white ${
-                    badges.total >= selectedPlan.badges ? "bg-red-600" : "bg-gray-400 cursor-not-allowed"
-                    }`}
-                >
-                    {upgradingId ? (
+                <h2 className="font-bold text-sm">
+                    Unlock Product Visibility
+                </h2>
+            </div>
 
-                                <span
-                                    className="
-                                        flex
-                                        justify-center
-                                        items-center
-                                        gap-2
-                                    "
-                                >
+            <hr />
 
-                                    <LoaderCircle
-                                        className="
-                                            animate-spin
-                                        "
-                                    />
+            <button
+                disabled={adsWatched >= 6}
+                onClick={handleWatchAd}
+                className={`w-44 text-xs py-1 mb-12 border-b-2 mt-10 flex justify-center text-center rounded-lg text-white ${
+                    adsWatched >= 6
+                        ? "bg-gray-300"
+                        : "bg-blue-600"
+                }`}
+            >
+                Watch Ad (+5 badges) ({adsWatched}/6)
+            </button>
 
-                                    Updating
+            <div className="flex flex-col mb-10 gap-2">
 
-                                </span>
+                <Lock className="lock p-1 w-8 h-8 mx-auto border-2 border-black rounded-full" />
 
-                            ) : (
+                <p className="font-bold text-sm">
+                    Badges Required{" "}
+                    {selectedPlan?.badges ?? 0} 🏅
+                </p>
 
-                                selectedPlan
-                                    ? `Update With Badges`
-                                    : "Select a Visibility Plan"
+            </div>
 
-                            )}
-                </button>
+            <button
+                disabled={
+                    !selectedPlan ||
+                    badges?.total < (selectedPlan?.badges ?? 0) ||
+                    upgradingId !== null
+                }
+                onClick={renewVisibility}
+                className={`w-52 py-3 rounded-full font-bold text-white ${
+                    selectedPlan &&
+                    badges?.total >= selectedPlan.badges
+                        ? "bg-red-600"
+                        : "bg-gray-400 cursor-not-allowed"
+                }`}
+            >
 
-               
-                {badges.total < selectedPlan.badges && (
-                    <p className="text-sm text-red-500 mt-2 text-xs font-semibold ">
-                    Your badge is low. Watch ads or pass exam to earn badges.
+                {upgradingId ? (
+
+                    <span className="flex justify-center items-center gap-2">
+
+                        <LoaderCircle className="animate-spin" />
+
+                        Updating
+
+                    </span>
+
+                ) : (
+
+                    selectedPlan
+                        ? "Update With Badges"
+                        : "Select a Visibility Plan"
+
+                )}
+
+            </button>
+
+            {selectedPlan &&
+                badges?.total < selectedPlan.badges && (
+                    <p className="text-sm text-red-500 mt-2 font-semibold">
+                        Your badge is low. Watch ads or pass exam to earn badges.
                     </p>
                 )}
 
-                <button
-                    onClick={() => setShowUnlockModal(false)}
-                    className="mt-3 top-0 right-2 absolute rounded-full"
+            <button
+                onClick={() => setShowUnlockModal(false)}
+                className="mt-3 top-0 right-2 absolute rounded-full"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition w-10 h-10 cursor-pointer"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
-                        w-10  h-10 cursor-pointer">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                </button>
-                <div className="flex flex-col mt-4 gap-2 items-center">
-                <p className="font-bold text-sm">Balance: <b>{badges.total}</b> 🏅</p>
-                {badges.total < 20 && (
-                <Link to={'/contact'} className="font-bold text-blue-700 text-sm ">Inquiry for more Badges 🏅</Link>
-                )}
-                </div>
-                </div>
-            </div>
-            )}
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18 18 6M6 6l12 12"
+                    />
+                </svg>
+            </button>
 
+            <div className="flex flex-col mt-4 gap-2 items-center">
+
+                <p className="font-bold text-sm">
+                    Balance: <b>{badges?.total ?? 0}</b> 🏅
+                </p>
+
+                {(badges?.total ?? 0) < 20 && (
+                    <Link
+                        to="/contact"
+                        className="font-bold text-blue-700 text-sm"
+                    >
+                        Inquiry for more Badges 🏅
+                    </Link>
+                )}
+
+            </div>
+
+        </div>
+    </div>
+)}
         </div>
 
     );

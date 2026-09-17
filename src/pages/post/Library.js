@@ -178,11 +178,7 @@ export default function Library({
       }
     };
   }, []);
-
-  // =========================================================
-  // CLOSE CONTENT MODAL
-  // =========================================================
-
+ 
   const closeContentModal = () => {
     if (reelControlsTimerRef.current) {
       clearTimeout(
@@ -212,261 +208,210 @@ export default function Library({
     setShowContentModal(false);
     setSelectedReel(null);
   };
-
-  // =========================================================
-  // OPEN SAVED POST / REEL
-  // =========================================================
-
-  const handlePostClick = (e) => {
-    if (e) {
-      e.preventDefault();
-
-      /*
-       * IMPORTANT:
-       * Do not allow buttons, links, ranges, selects etc.
-       * to trigger the card click.
-       */
-
-      if (
-        e.target.closest("button") ||
-        e.target.closest("a") ||
-        e.target.closest("input") ||
-        e.target.closest("select") ||
-        e.target.closest("textarea")
-      ) {
-        return;
-      }
-    }
-
-    // =======================================================
-    // REEL
-    // =======================================================
-
-    if (post?.post_type === "reel") {
-      setSelectedReel(post);
-
-      setVideoCurrentTime(0);
-      setVideoDuration(0);
-
-      setVideoPlaying(false);
-      setVideoLoading(
-        post?.media?.some(
-          (item) => item.type === "video"
-        )
-      );
-
-      setVideoMuted(true);
-      setVideoVolume(1);
-      setVideoSpeed(1);
-
-      setShowVideoControls(true);
-      setShowVideoSpeed(false);
-
-      setShowContentModal(true);
-
-      return;
-    }
-
-    // =======================================================
-    // NORMAL POST
-    // =======================================================
-
-    if (post?.post_type === "post") {
-      const postHasVideo =
-        post?.media?.some(
-          (item) =>
-            item.type === "video"
-        );
-
-      const postHasImage =
-        post?.media?.some(
-          (item) =>
-            item.type === "image"
-        );
-
-      if (postHasVideo) {
-        navigate(
-          `/post/video/${post.id}`
-        );
-        return;
-      }
-
-      if (postHasImage) {
-        navigate(
-          `/post/image/${post.id}`
-        );
-        return;
-      }
-
-      navigate(
-        `/post/text/${post.id}`
-      );
-    }
-  };
-
-  // =========================================================
-  // VIEW POST
-  // =========================================================
-
-  const handleViewPost = (e) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-
-    /*
-     * Normal post:
-     * redirect immediately.
-     */
-
-    if (post?.post_type === "post") {
-      const postHasVideo =
-        post?.media?.some(
-          (item) =>
-            item.type === "video"
-        );
-
-      const postHasImage =
-        post?.media?.some(
-          (item) =>
-            item.type === "image"
-        );
-
-      if (postHasVideo) {
-        navigate(
-          `/post/video/${post.id}`
-        );
-        return;
-      }
-
-      if (postHasImage) {
-        navigate(
-          `/post/image/${post.id}`
-        );
-        return;
-      }
-
-      navigate(
-        `/post/text/${post.id}`
-      );
-
-      return;
-    }
-
-    /*
-     * Reel:
-     * keep it in the reel modal.
-     */
-
-    if (post?.post_type === "reel") {
-      setSelectedReel(post);
-
-      setVideoCurrentTime(0);
-      setVideoDuration(0);
-      setVideoPlaying(false);
-
-      setVideoLoading(
-        post?.media?.some(
-          (item) =>
-            item.type === "video"
-        )
-      );
-
-      setVideoMuted(true);
-      setVideoVolume(1);
-      setVideoSpeed(1);
-
-      setShowVideoControls(true);
-      setShowVideoSpeed(false);
-
-      setShowContentModal(true);
-    }
-  };
-
-  // =========================================================
-  // VIEW SELECTED REEL / POST FROM MODAL
-  // =========================================================
-
-  const handleModalView = (e) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-
-    const selected =
-      selectedReel;
-
-    if (!selected) {
-      return;
-    }
-
-    /*
-     * Close modal first.
-     */
-
-    closeContentModal();
-
-    /*
-     * If normal post.
-     */
+ const handlePostClick = (e) => {
+  if (e) {
+    e.preventDefault();
 
     if (
-      selected.post_type ===
-      "post"
+      e.target.closest("button") ||
+      e.target.closest("a") ||
+      e.target.closest("input") ||
+      e.target.closest("select") ||
+      e.target.closest("textarea")
     ) {
-      const selectedHasVideo =
-        selected.media?.some(
-          (item) =>
-            item.type === "video"
-        );
+      return;
+    }
+  }
 
-      const selectedHasImage =
-        selected.media?.some(
-          (item) =>
-            item.type === "image"
-        );
+  /*
+   * REEL
+   */
+  if (post?.post_type === "reel") {
+    const reelHasVideo = post?.media?.some(
+      (item) => item.type === "video"
+    );
 
-      if (selectedHasVideo) {
-        navigate(
-          `/post/video/${selected.id}`
-        );
-        return;
-      }
-
-      if (selectedHasImage) {
-        navigate(
-          `/post/image/${selected.id}`
-        );
-        return;
-      }
-
-      navigate(
-        `/post/text/${selected.id}`
-      );
-
+    // Reel video → navigate
+    if (reelHasVideo) {
+      navigate(`/reel/video/${post.id}`);
       return;
     }
 
-    /*
-     * Reel:
-     *
-     * Keep the modal open because reels
-     * are intended to be viewed here.
-     *
-     * Since closeContentModal above clears
-     * selectedReel, reopen it.
-     */
+    // Reel image/text → open modal
+    setSelectedReel(post);
 
-    if (
-      selected.post_type ===
-      "reel"
-    ) {
-      setTimeout(() => {
-        setSelectedReel(selected);
-        setShowContentModal(true);
-      }, 0);
+    setVideoCurrentTime(0);
+    setVideoDuration(0);
+    setVideoPlaying(false);
+
+    setVideoLoading(false);
+
+    setVideoMuted(true);
+    setVideoVolume(1);
+    setVideoSpeed(1);
+
+    setShowVideoControls(true);
+    setShowVideoSpeed(false);
+
+    setShowContentModal(true);
+
+    return;
+  }
+
+  /*
+   * NORMAL POST
+   */
+  if (post?.post_type === "post") {
+    const postHasVideo = post?.media?.some(
+      (item) => item.type === "video"
+    );
+
+    const postHasImage = post?.media?.some(
+      (item) => item.type === "image"
+    );
+
+    if (postHasVideo) {
+      navigate(`/post/video/${post.id}`);
+      return;
     }
-  };
 
-  // =========================================================
-  // DELETE CARD POST
-  // =========================================================
+    if (postHasImage) {
+      navigate(`/post/image/${post.id}`);
+      return;
+    }
+
+    navigate(`/post/text/${post.id}`);
+  }
+}; 
+
+
+const handleViewPost = (e) => {
+  e?.preventDefault();
+  e?.stopPropagation();
+
+  /*
+   * REEL
+   */
+  if (post?.post_type === "reel") {
+    const reelHasVideo = post?.media?.some(
+      (item) => item.type === "video"
+    );
+
+    // Reel video → navigate
+    if (reelHasVideo) {
+      navigate(`/reel/video/${post.id}`);
+      return;
+    }
+
+    // Reel image/text → modal
+    setSelectedReel(post);
+
+    setVideoCurrentTime(0);
+    setVideoDuration(0);
+    setVideoPlaying(false);
+
+    setVideoLoading(false);
+
+    setVideoMuted(true);
+    setVideoVolume(1);
+    setVideoSpeed(1);
+
+    setShowVideoControls(true);
+    setShowVideoSpeed(false);
+
+    setShowContentModal(true);
+
+    return;
+  }
+
+  /*
+   * NORMAL POST
+   */
+  if (post?.post_type === "post") {
+    const postHasVideo = post?.media?.some(
+      (item) => item.type === "video"
+    );
+
+    const postHasImage = post?.media?.some(
+      (item) => item.type === "image"
+    );
+
+    if (postHasVideo) {
+      navigate(`/post/video/${post.id}`);
+      return;
+    }
+
+    if (postHasImage) {
+      navigate(`/post/image/${post.id}`);
+      return;
+    }
+
+    navigate(`/post/text/${post.id}`);
+  }
+};
+
+
+const handleModalView = (e) => {
+  e?.preventDefault();
+  e?.stopPropagation();
+
+  const selected = selectedReel;
+
+  if (!selected) {
+    return;
+  }
+
+  /*
+   * REEL
+   */
+  if (selected.post_type === "reel") {
+    const reelHasVideo = selected.media?.some(
+      (item) => item.type === "video"
+    );
+
+    // Reel video → navigate to video page
+    if (reelHasVideo) {
+      closeContentModal();
+      navigate(`/reel/video/${selected.id}`);
+      return;
+    }
+
+    // Reel image/text → keep/open modal
+    setSelectedReel(selected);
+    setShowContentModal(true);
+
+    return;
+  }
+
+  /*
+   * NORMAL POST
+   */
+  closeContentModal();
+
+  if (selected.post_type === "post") {
+    const selectedHasVideo = selected.media?.some(
+      (item) => item.type === "video"
+    );
+
+    const selectedHasImage = selected.media?.some(
+      (item) => item.type === "image"
+    );
+
+    if (selectedHasVideo) {
+      navigate(`/post/video/${selected.id}`);
+      return;
+    }
+
+    if (selectedHasImage) {
+      navigate(`/post/image/${selected.id}`);
+      return;
+    }
+
+    navigate(`/post/text/${selected.id}`);
+  }
+};
+
+
 
   const handleCardDelete = async (e) => {
     e?.preventDefault();
@@ -476,11 +421,7 @@ export default function Library({
       post.id
     );
   };
-
-  // =========================================================
-  // DELETE FROM MODAL
-  // =========================================================
-
+ 
   const handleModalDelete = async (
     e
   ) => {
@@ -493,22 +434,14 @@ export default function Library({
     if (!postId) {
       return;
     }
-
-    /*
-     * Close modal before deleting.
-     */
-
+ 
     closeContentModal();
 
     await handleRemove(
       postId
     );
   };
-
-  // =========================================================
-  // DOWNLOAD VIDEO
-  // =========================================================
-
+ 
   const handleDownloadVideo = async (
     e,
     targetPost = post
@@ -584,10 +517,7 @@ export default function Library({
     }
   };
 
-  // =========================================================
-  // DOWNLOAD SINGLE IMAGE
-  // =========================================================
-
+   
   const downloadSingleImage =
     async (img) => {
       try {
@@ -688,11 +618,7 @@ export default function Library({
         );
       }
     };
-
-  // =========================================================
-  // VIDEO AUTOPLAY WHEN REEL MODAL OPENS
-  // =========================================================
-
+ 
   useEffect(() => {
     if (
       !showContentModal ||
@@ -726,10 +652,7 @@ export default function Library({
     setVideoCurrentTime(0);
 
     video.currentTime = 0;
-
-    /*
-     * Muted autoplay.
-     */
+ 
 
     video.muted = true;
 
@@ -742,10 +665,7 @@ export default function Library({
     const playVideo =
       async () => {
         try {
-          /*
-           * Ensure muted before play.
-           */
-
+          
           video.muted = true;
 
           await video.play();
@@ -766,11 +686,7 @@ export default function Library({
           }
         }
       };
-
-    /*
-     * Give the browser a moment to
-     * attach the source before play.
-     */
+ 
 
     const timer =
       setTimeout(() => {
@@ -792,11 +708,7 @@ export default function Library({
     showContentModal,
     selectedReel?.id,
   ]);
-
-  // =========================================================
-  // KEYBOARD
-  // =========================================================
-
+ 
   useEffect(() => {
     if (!showContentModal) {
       return;
@@ -815,10 +727,7 @@ export default function Library({
       if (
         e.key === " "
       ) {
-        /*
-         * Don't interfere with inputs.
-         */
-
+        
         if (
           e.target.tagName ===
             "INPUT" ||
@@ -852,10 +761,7 @@ export default function Library({
     videoPlaying,
   ]);
 
-  // =========================================================
-  // VIDEO METADATA
-  // =========================================================
-
+  
   const handleVideoLoadedMetadata =
     (e) => {
       const video =
@@ -879,10 +785,7 @@ export default function Library({
       setVideoLoading(false);
     };
 
-  // =========================================================
-  // VIDEO CAN PLAY
-  // =========================================================
-
+   
   const handleVideoCanPlay =
     (e) => {
       const video =
@@ -900,11 +803,7 @@ export default function Library({
 
       setVideoLoading(false);
     };
-
-  // =========================================================
-  // VIDEO PLAYING
-  // =========================================================
-
+ 
   const handleVideoPlaying =
     () => {
       setVideoPlaying(true);
@@ -913,19 +812,12 @@ export default function Library({
       showControls();
     };
 
-  // =========================================================
-  // VIDEO WAITING
-  // =========================================================
-
+   
   const handleVideoWaiting =
     () => {
       setVideoLoading(true);
     };
-
-  // =========================================================
-  // VIDEO PAUSE
-  // =========================================================
-
+ 
   const handleVideoPause =
     () => {
       setVideoPlaying(false);
@@ -942,11 +834,7 @@ export default function Library({
         );
       }
     };
-
-  // =========================================================
-  // VIDEO TIME UPDATE
-  // =========================================================
-
+ 
   const handleVideoTimeUpdate =
     (e) => {
       const video =
@@ -968,10 +856,6 @@ export default function Library({
       }
     };
 
-  // =========================================================
-  // VIDEO ENDED
-  // =========================================================
-
   const handleVideoEnded =
     () => {
       setVideoPlaying(false);
@@ -991,11 +875,7 @@ export default function Library({
         );
       }
     };
-
-  // =========================================================
-  // PLAY / PAUSE
-  // =========================================================
-
+ 
   const toggleVideoPlay =
     async (e) => {
       e?.preventDefault();
@@ -1023,11 +903,7 @@ export default function Library({
 
       showControls();
     };
-
-  // =========================================================
-  // VIDEO CLICK
-  // =========================================================
-
+ 
   const handleVideoClick =
     (e) => {
       e.preventDefault();
@@ -1035,11 +911,7 @@ export default function Library({
 
       toggleVideoPlay(e);
     };
-
-  // =========================================================
-  // MUTE
-  // =========================================================
-
+ 
   const toggleVideoMute =
     (e) => {
       e?.preventDefault();
@@ -1062,11 +934,7 @@ export default function Library({
 
       showControls();
     };
-
-  // =========================================================
-  // VOLUME
-  // =========================================================
-
+ 
   const handleVideoVolume =
     (e) => {
       e.preventDefault();
@@ -1114,11 +982,7 @@ export default function Library({
 
       showControls();
     };
-
-  // =========================================================
-  // SEEK
-  // =========================================================
-
+ 
   const handleVideoSeek =
     (e) => {
       e.preventDefault();
@@ -1148,11 +1012,7 @@ export default function Library({
 
       showControls();
     };
-
-  // =========================================================
-  // SPEED
-  // =========================================================
-
+ 
   const handleVideoSpeed =
     (e) => {
       e.preventDefault();
@@ -1180,11 +1040,7 @@ export default function Library({
 
       showControls();
     };
-
-  // =========================================================
-  // FULLSCREEN
-  // =========================================================
-
+ 
   const handleVideoFullscreen =
     async (e) => {
       e.preventDefault();
@@ -1213,20 +1069,13 @@ export default function Library({
 
       showControls();
     };
-
-  // =========================================================
-  // MOUSE MOVE
-  // =========================================================
-
+ 
   const handleVideoMouseMove =
     () => {
       showControls();
     };
 
-  // =========================================================
-  // IMAGE PICKER CLOSE
-  // =========================================================
-
+  
   const closeImagePicker =
     (e) => {
       e?.preventDefault();
@@ -1234,17 +1083,10 @@ export default function Library({
 
       setShowImagePicker(false);
     };
-
-  // =========================================================
-  // RENDER
-  // =========================================================
-
+ 
   return (
     <>
-      {/* =====================================================
-          SAVED POST CARD
-      ====================================================== */}
-
+      
       <div
         onClick={
           handlePostClick
@@ -1720,6 +1562,7 @@ export default function Library({
                     title="View"
                   >
                     <Eye size={17} />
+                    {selectedReel.views || 0}
                   </button>
 
                   {/* VIDEO DOWNLOAD */}

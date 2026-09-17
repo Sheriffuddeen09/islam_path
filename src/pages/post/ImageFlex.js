@@ -13,7 +13,6 @@ import {
   FaTwitter,
   FaTelegram,
 } from "react-icons/fa";
-import PreviewCommentReactionShare from "./PreviewCommentReactionShare";
 import ImageFlexCommentReactionShare from "./previewimagevideo/ImageFlexCommentReactionShare";
 
 export default function ImageFlex({
@@ -72,7 +71,7 @@ export default function ImageFlex({
     setSending,
     shareToChat,
     postIdModal, image, setImage, user, usersPreview,
-    commentsByPost,setCommentsByPost
+    commentsByPost,setCommentsByPost, setShowCommentPop
 
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -647,7 +646,7 @@ export default function ImageFlex({
          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-30">
                          <ImageFlexCommentReactionShare
                          post={post}
-            
+                         setShowCommentPop={closePreview}
                          counts = {counts}
                          total = {total_reaction}
                          me={me}
@@ -675,7 +674,7 @@ export default function ImageFlex({
                          postComments = {postComments} 
                          setPostComments={setPostComments}
                          commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
+                        setCommentsByPost={setCommentsByPost}
                          commentInputRef={commentInputRef}
                          focusCommentInput={focusCommentInput}
                          newComment={newComment}

@@ -29,58 +29,105 @@ export default function PostTextPageId({ image, postComments, setPostComments, s
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
 
-    const [showOverlay, setShowOverlay] = useState(true);
-  
-  
   const {user} = useAuth()
 
   
-    const overlayTimerRef = useRef(null);
-  
-      const showVideoControls = () => {
-        setShowOverlay(true);
-  
-        if (overlayTimerRef.current) {
-          clearTimeout(overlayTimerRef.current);
-        }
-  
-        if (loading) {
-          return;
-        }
-  
-        overlayTimerRef.current = setTimeout(() => {
-          setShowOverlay(false);
-        }, 1500);
+    
+         const [showHeader, setShowHeader] = useState(true);
+    
+    const lastScrollY = useRef(0);
+    const scrollTimeout = useRef(null);
+    
+    const [isScrolling, setIsScrolling] = useState(false);
+    const scrollTimerRef = useRef(null);
+    
+    const handleMessagesScroll = () => {
+      setIsScrolling(true);
+    
+      clearTimeout(scrollTimerRef.current);
+    
+      scrollTimerRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 700);
+    };
+    
+    useEffect(() => {
+      return () => {
+        clearTimeout(scrollTimerRef.current);
       };
-  
-      const hideVideoControls = () => {
-        if (overlayTimerRef.current) {
-          clearTimeout(overlayTimerRef.current);
-          overlayTimerRef.current = null;
-        }
-  
-        setShowOverlay(false);
-      };
-  
-      useEffect(() => {
-        return () => {
-          if (overlayTimerRef.current) {
-            clearTimeout(overlayTimerRef.current);
-          }
+    }, []);
+    
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+    
+            // Always show header at the top
+            if (currentScrollY <= 10) {
+                setShowHeader(true);
+                lastScrollY.current = currentScrollY;
+                return;
+            }
+    
+            // Scrolling down
+            if (currentScrollY > lastScrollY.current) {
+                setShowHeader(false);
+            }
+    
+            // Scrolling up
+            if (currentScrollY < lastScrollY.current) {
+                setShowHeader(true);
+            }
+    
+            lastScrollY.current = currentScrollY;
+    
+            // If user stops scrolling, show header
+            clearTimeout(scrollTimeout.current);
+    
+            scrollTimeout.current = setTimeout(() => {
+                setShowHeader(true);
+            }, 500);
         };
-      }, []);
-  
-      useEffect(() => {
-          if (loading) {
-            hideVideoControls();
-            return;
-          }
-  
-          
-  }, [loading]);
-  
-  
-  
+    
+        window.addEventListener("scroll", handleScroll, { passive: true });
+    
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            clearTimeout(scrollTimeout.current);
+        };
+    }, []);
+
+
+
+    const formatPostTime = (date) => {
+  if (!date) return "";
+
+  const created = new Date(date);
+  const now = new Date();
+
+  const diffMs = now - created;
+  const diffSeconds = Math.floor(diffMs / 1000);
+
+  if (diffSeconds < 60) {
+    return `${diffSeconds} sec${diffSeconds === 1 ? "" : "s"}`;
+  }
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} min${diffMinutes === 1 ? "" : "s"}`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? "" : "s"}`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  return `${diffDays} day${diffDays === 1 ? "" : "s"}`;
+};
+
 const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
 const shareLinks = {
@@ -279,6 +326,38 @@ const me = usersPreview.find(
 );
 
 
+        const colors = [
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+      ];
+
+const getColor = (value) => {
+    if (!value) return "bg-gray-400";
+
+    const str = String(value);
+
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitial = (name) => {
+    if (!name) return "?";
+
+    return name
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+};
+
 const handleCommentPop = () =>{
 
 setShowCommentPop(!showCommentPop)
@@ -364,9 +443,10 @@ focusCommentInput()
             <Link
               to={`/profile/${post?.user?.id}`}
             >
-              <p className="font-bold text-white bg-black text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center">
-                {post?.user?.name?.[0] || "?"}
-              </p>
+              <p className={`font-bold text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center
+                  ${getColor(post.user?.name)}`}>
+                  {getInitial(post?.user?.first_name)}
+                </p>
             </Link>
   
             <div>
@@ -374,12 +454,12 @@ focusCommentInput()
                 to={`/profile/${post?.user?.id}`}
               >
                 <p className="font-semibold">
-                  {post?.user?.name || "Unknown"}
+                  {post?.user?.first_name || "Unknown"} {post?.user?.last_name || "Unknown"}
                 </p>
               </Link>
   
               <p className="text-xs">
-                {post?.created_at}
+               {formatPostTime(post?.created_at)}
               </p>
             </div>
           </div>
@@ -675,391 +755,701 @@ focusCommentInput()
   );
   
   
+return (
+  <div className="relative flex h-screen w-full overflow-hidden">
+ 
+    <div
+      className={`
+        relative
+        h-full
+        flex
+        items-center
+        justify-center
+        bg-black
+        transition-all
+        duration-300
 
-  return (
-    <div className="flex h-screen">
-      {/* Left: Image slider sm */}
-      <div className="flex-1 bg-black flex items-center justify-center relative">
-    
-      {/* Top Left Logo */}
-      <div
-          className="absolute top-4 right-4 z-50"
+        ${
+          showCommentPop
+            ? "w-full lg:w-[calc(100%-400px)]"
+            : "w-full"
+        }
+      `}
+    >
+
+      {/* TOP RIGHT CLOSE + LOGO */}
+      <div className="absolute top-4 left-4 z-[200]">
+        <div className="inline-flex gap-4 items-center">
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            onClick={() => navigate("/")}
+            className="
+              w-10
+              h-10
+              bg-white
+              text-black
+              p-2
+              rounded-full
+              hover:text-gray-700
+              hover:bg-gray-100
+              transition
+              cursor-pointer
+            "
           >
-            <div className="inline-flex sm:gap-12 gap-4 items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
-            onClick={() => navigate('/')}
-            class="size-12 bg-white text-black text-xs px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 bg-gray-200 transition 
-            w-10  h-10 cursor-pointer">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18 18 6M6 6l12 12"
+            />
+          </svg>
 
-            <img onClick={() => navigate('/')} src={logo} alt="IPK" className="w-10 h-10 bg-white rounded-full
-            p-0.5 cursor-pointer" />
-          </div>
-          </div>
-    
-         <div
-  className="relative h-screen my-2 sm:rounded-lg sm:max-w-xl w-full bg-white flex
-   flex-col items-center overflow-y-auto h-[400px]"
->
-    <div>
-      <div className="flex my-6 z-50 gap-2">
-        <Link to={`/profile/${user.id}`} className="z-50 ">
-      <span className="text-white w-12 h-12 mx-auto flex flex-col justify-center items-center text-4xl font-bold  rounded-full bg-blue-800 "> 
-              {post.user?.name?.charAt(0)?.toUpperCase() || "A"} 
-        </span>
-      </Link>
-        <div className="text-xs">
-          
-          <div className="font-bold text-[14px] sm:text-[14px] text-black">
-            {post?.user?.name}
-          </div>
-          <div className="text-[11px] sm:text-[12px] sm:mt-1 text-black">
-            {post?.created_at}
-          </div>
-        
+          <img
+            onClick={() => navigate("/")}
+            src={logo}
+            alt="IPK"
+            className="
+              w-10
+              h-10
+              bg-white
+              rounded-full
+              p-0.5
+              cursor-pointer
+            "
+          />
+
         </div>
-        </div>
-        
-          {post.content && (
-            <p className="cursor-pointer sm:w-96 w-72 my-3 text-black text-[14px] font-semibold">
-             {post.content}
-            </p>
-          )} 
       </div>
-           
-         <div className="absolute right-0 bottom-14 z-[100] flex flex-col items-center gap-3">
-                               {/* REACTION */}
-                   
-                               <div
-                                 className="relative"
-                                 onMouseEnter={() =>
-                                   setShowReactions(
-                                     true
-                                   )
-                                 }
-                                 onMouseLeave={() =>
-                                   setShowReactions(
-                                     false
-                                   )
-                                 }
-                               >
-                                 {showReactions && (
-                                   <div
-                                     className="absolute right-12 top-0 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
-                                     onClick={(e) =>
-                                       e.stopPropagation()
-                                     }
-                                   >
-                                     {reactionList.map(
-                                       (emoji) => (
-                                         <button
-                                           type="button"
-                                           key={emoji}
-                                           onClick={(e) => {
-                                             e.stopPropagation();
-                   
-                                             if (
-                                               !reactionLoading
-                                             ) {
-                                               toggleReaction(
-                                                 emoji
-                                               );
-                                             }
-                                           }}
-                                           className="text-xl hover:scale-125 transition"
-                                         >
-                                           {emoji}
-                                         </button>
-                                       )
-                                     )}
-                   
-                                     {/* PLUS BUTTON */}
-                   
-                                     <button
-                                       type="button"
-                                       onClick={(e) => {
-                                         e.stopPropagation();
-                   
-                                         setShowReactions(
-                                           false
-                                         );
-                                         setShowEmoji(true);
-                                       }}
-                                       className="ml-1 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl font-semibold"
-                                       title="More emojis"
-                                     >
-                                       +
-                                     </button>
-                                   </div>
-                                 )}
-                   
-                                 <div className="text-white text-[10px] text-center mb-1">
-                                   {total > 0 &&
-                                     total}
-                                 </div>
-                   
-                                 <button
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                   
-                                     setShowReactions(
-                                       (prev) =>
-                                         !prev
-                                     );
-                   
-                                   }}
-                                   className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl border transition ${
-                                     myReaction
-                                       ? "bg-blue-600 border-blue-400"
-                                       : "bg-black/20 text-white border-gray-600"
-                                   }`}
-                                 >
-                                   <svg
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     fill="none"
-                                     viewBox="0 0 24 24"
-                                     strokeWidth="1.5"
-                                     stroke="currentColor"
-                                     className="w-4 h-4"
-                                   >
-                                     <path
-                                       strokeLinecap="round"
-                                       strokeLinejoin="round"
-                                       d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z"
-                                     />
-                                   </svg>
-                                 </button>
-                               </div>
-                   
-                               {/* COMMENT */}
-                   
-                               <button
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                   
-                                   handleCommentPop();
-                                 }}
-                                 className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
-                               >
-                                 <svg
-                                   xmlns="http://www.w3.org/2000/svg"
-                                   fill="none"
-                                   viewBox="0 0 24 24"
-                                   strokeWidth="1.5"
-                                   stroke="currentColor"
-                                   className="w-4 h-4"
-                                 >
-                                   <path
-                                     strokeLinecap="round"
-                                     strokeLinejoin="round"
-                                     d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
-                                   />
-                                 </svg>
-                               </button>
-                   
-                               {/* SHARE */}
-                   
-                               <button
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                   
-                                   setShares(
-                                     (prev) => !prev
-                                   );
-                                 }}
-                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
-                               >
-                                 <svg
-                                   xmlns="http://www.w3.org/2000/svg"
-                                   viewBox="0 0 24 24"
-                                   fill="currentColor"
-                                   className="w-4 h-4"
-                                 >
-                                   <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 0 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z" />
-                                 </svg>
-                               </button>
-                   
-                               <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border 
-                               border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
-                               >
-                                 <PostOptionsId
-                                   post={post}
-                                 />
-                               </div>
-                             </div>
-                   
-                 </div>
-       </div>
+ 
+      <div onScroll={handleMessagesScroll} 
+ className={ `bg-[var(--bg-color)] shadow-lg border border-green-400 
+ transform duration-300 relative my-2 sm:rounded-lg sm:max-w-xl w-full flex flex-col items-center
+  h-[400px] ${ isScrolling ? "scrollbar-thumb-green-500" : "scrollbar-thumb-transparent" } overflow-y-auto 
+  overflow-x-hidden scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin `} >
 
-    
+        {/* USER */}
+        <div className="w-full px-4">
+
+          <div className="flex my-6 gap-2 items-center">
+
+            <Link
+              to={`/profile/${post?.user?.id}`}
+              className="shrink-0"
+            >
+              <span
+                className={`
+                  w-8
+                  h-8
+                  flex
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-blue-700
+                  text-white
+                  text-lg
+                  font-bold
+                  border
+                  border-white/20
+                  shadow-lg
+                  ${getColor(post?.user?.name)}
+                `}
+              >
+                {getInitial(post?.user?.first_name)}
+              </span>
+            </Link>
+
+            {/* USER NAME */}
+            <div className="min-w-0">
+
+              <div className="text-white font-bold text-xs">
+                {post?.user?.first_name || "Unknown User"}{" "}
+                {post?.user?.last_name || ""}
+              </div>
+
+              <div className="text-[11px] sm:text-[12px] sm:mt-1 text-white">
+                {formatPostTime(post?.created_at)}
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* CONTENT */}
+          {post?.content && (
+            <p className="cursor-pointer sm:w-96 w-72 mx-auto my-3 text-[14px] font-semibold text-white break-words">
+              {post.content}
+            </p>
+          )}
+
+        </div>
+ 
+        {!showCommentPop && (
+          <div className="absolute right-2 bottom-14 z-[100] flex flex-col items-center gap-3">
+
+            {/* REACTION */}
+            <div
+              className="relative"
+              onMouseEnter={() =>
+                setShowReactions(true)
+              }
+              onMouseLeave={() =>
+                setShowReactions(false)
+              }
+            >
+
+              {showReactions && (
+                <div
+                  className="
+                    absolute
+                    right-12
+                    top-0
+                    bg-white
+                    rounded-full
+                    shadow-xl
+                    px-3
+                    py-2
+                    flex
+                    flex-row
+                    items-center
+                    gap-1
+                    z-20
+                    whitespace-nowrap
+                  "
+                  onClick={(e) =>
+                    e.stopPropagation()
+                  }
+                >
+
+                  {reactionList.map((emoji) => (
+                    <button
+                      type="button"
+                      key={emoji}
+                      onClick={(e) => {
+                        e.stopPropagation();
+
+                        if (!reactionLoading) {
+                          toggleReaction(emoji);
+                        }
+                      }}
+                      className="
+                        text-xl
+                        hover:scale-125
+                        transition
+                      "
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+
+                  {/* MORE EMOJIS */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setShowReactions(false);
+                      setShowEmoji(true);
+                    }}
+                    className="
+                      ml-1
+                      w-8
+                      h-8
+                      rounded-full
+                      bg-gray-100
+                      hover:bg-gray-200
+                      text-gray-700
+                      flex
+                      items-center
+                      justify-center
+                      text-xl
+                      font-semibold
+                    "
+                  >
+                    +
+                  </button>
+
+                </div>
+              )}
+
+              {/* REACTION COUNT */}
+              <div className="text-white text-[10px] text-center mb-1">
+                {total > 0 && total}
+              </div>
+
+              {/* LIKE */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  setShowReactions((prev) => !prev);
+                }}
+                className={`
+                  w-8
+                  h-8
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                  backdrop-blur-xl
+                  border
+                  transition
+                  ${
+                    myReaction
+                      ? "bg-blue-700 border-blue-400"
+                      : "bg-black/60 text-white border-gray-600"
+                  }
+                `}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z"
+                  />
+                </svg>
+              </button>
+
+            </div>
+
+
+            {/* COMMENT */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCommentPop();
+              }}
+              className="
+                w-8
+                h-8
+                rounded-full
+                bg-black/60
+                backdrop-blur-xl
+                border
+                border-gray-600
+                text-white
+                flex
+                items-center
+                justify-center
+                hover:bg-black/40
+                transition
+              "
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-4 h-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
+                />
+              </svg>
+            </button>
+
+
+            {/* SHARE */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+
+                setShares((prev) => !prev);
+              }}
+              className="
+                w-8
+                h-8
+                rounded-full
+                bg-black/60
+                backdrop-blur-xl
+                border
+                border-gray-600
+                text-white
+                flex
+                items-center
+                justify-center
+                hover:bg-black/40
+                transition
+              "
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-4 h-4"
+              >
+                <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 0 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z" />
+              </svg>
+            </button>
+
+
+            {/* OPTIONS */}
+            <div
+              className="
+                w-8
+                h-8
+                rounded-full
+                bg-black/60
+                backdrop-blur-xl
+                border
+                border-gray-600
+                text-white
+                flex
+                items-center
+                justify-center
+                hover:bg-black/40
+                transition
+              "
+            >
+              <PostOptionsId
+                post={post}
+              />
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+ 
     {showCommentPop && (
-      <div className="fixed inset-0 px-2 bg-black/70 flex items-center justify-center z-[999]">
+      <div
+        className="
+          hidden
+          lg:flex
+          w-[400px]
+          h-full
+          shrink-0
+          bg-[var(--bg-color)]
+          text-[var(--text-color)]
+          border-l
+          border-green-400
+          shadow-2xl
+          flex-col
+          overflow-hidden
+          z-[300]
+        "
+      >
+        {commentScreen}
+      </div>
+    )}
+ 
+    {showCommentPop && (
+      <div
+        className="
+          fixed
+          inset-0
+          bg-black/80
+          z-[999]
+          flex
+          items-end
+          lg:hidden
+        "
+        onClick={handleCommentPop}
+      >
         <div
           className="
-            rounded-xl
             w-full
-            lg:w-[400px]
-            max-w-xl
-            max-h-[90vh]
+            h-[85vh]
+            rounded-t-2xl
+            bg-[var(--bg-color)]
+            text-[var(--text-color)]
+            shadow-2xl
+            overflow-hidden
             flex
             flex-col
-            shadow-lg
-            overflow-hidden
-            bg-[var(--bg-color)]
           "
+          onClick={(e) =>
+            e.stopPropagation()
+          }
         >
           {commentScreen}
         </div>
       </div>
     )}
-      
-      {shares && (
-      <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+ 
+    {shares && (
+      <div className="fixed inset-0 bg-black/70 z-[1000] flex items-center justify-center">
         <div className="bg-white rounded-lg p-4 w-80 relative max-h-[80vh] overflow-y-auto">
-          <button onClick={() => setShares(!shares)}
-            className="absolute right-3 top-2  text-black rounded hover:text-gray-700 hover:bg-gray-50 bg-gray-100 transition 
-            w-6 h-6 flex items-center justify-center"
+
+          <button
+            onClick={() => setShares(false)}
+            className="
+              absolute
+              right-3
+              top-2
+              text-black
+              rounded
+              hover:text-gray-700
+              hover:bg-gray-50
+              bg-gray-100
+              transition
+              w-6
+              h-6
+              flex
+              items-center
+              justify-center
+            "
           >
             ✕
-      </button>
-        <div className="flex flex-col mx-auto gap-3 items-center">
-          <button onClick={() => {setMessageOpenShare(!messageOpenShare); setShares(false);}} 
-          className="text-black flex flex-col  items-center gap-1 hover:text-blue-600">
-                <MessageCircle className="border-2 border-black rounded-full p-1" size={35} />
-                <span className="text-sm font-bold">Chat List</span>
-              </button>
+          </button>
+
+          <div className="flex flex-col mx-auto gap-3 items-center">
+
+            <button
+              onClick={() => {
+                setMessageOpenShare(true);
+                setShares(false);
+              }}
+              className="
+                text-black
+                flex
+                flex-col
+                items-center
+                gap-1
+                hover:text-blue-600
+              "
+            >
+              <MessageCircle
+                className="border-2 border-black rounded-full p-1"
+                size={35}
+              />
+
+              <span className="text-sm font-bold">
+                Chat List
+              </span>
+            </button>
+
             <div className="grid grid-cols-4 border-t-2 pt-2 gap-4 text-center">
-              <button onClick={() => handleShare("facebook")} className="text-black flex flex-col items-center gap-1 hover:text-blue-600 text-black">
+
+              <button
+                onClick={() =>
+                  handleShare("facebook")
+                }
+                className="text-black flex flex-col items-center gap-1 hover:text-blue-600"
+              >
                 <FaFacebook size={28} />
-                <span className="text-sm">Facebook</span>
+                <span className="text-sm">
+                  Facebook
+                </span>
               </button>
 
-              <button onClick={() => handleShare("whatsapp")} className="text-black flex flex-col items-center gap-1 hover:text-green-500">
+              <button
+                onClick={() =>
+                  handleShare("whatsapp")
+                }
+                className="text-black flex flex-col items-center gap-1 hover:text-green-500"
+              >
                 <FaWhatsapp size={28} />
-                <span className="text-sm">WhatsApp</span>
+                <span className="text-sm">
+                  WhatsApp
+                </span>
               </button>
 
-              <button onClick={() => handleShare("twitter")} className="text-black flex flex-col items-center gap-1 hover:text-sky-500">
+              <button
+                onClick={() =>
+                  handleShare("twitter")
+                }
+                className="text-black flex flex-col items-center gap-1 hover:text-sky-500"
+              >
                 <FaTwitter size={28} />
-                <span className="text-sm">Twitter</span>
+                <span className="text-sm">
+                  Twitter
+                </span>
               </button>
 
-              <button onClick={() => handleShare("telegram")} className="text-black flex flex-col items-center gap-1 hover:text-blue-400">
+              <button
+                onClick={() =>
+                  handleShare("telegram")
+                }
+                className="text-black flex flex-col items-center gap-1 hover:text-blue-400"
+              >
                 <FaTelegram size={28} />
-                <span className="text-sm">Telegram</span>
+                <span className="text-sm">
+                  Telegram
+                </span>
               </button>
+
             </div>
 
+          </div>
+
         </div>
-      
       </div>
-      </div>
-      )
-      }
+    )}
 
-      {messageOpenShare && (
-  <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
-      <h2 className="font-bold mb-3">Share to chat</h2>
+  
+    {messageOpenShare && (
+      <div className="fixed inset-0 bg-black/40 z-[1100] flex items-center justify-center">
 
-       {chats.map((chat) => (
-          <div
-            key={chat.id}
-            className={`flex items-center gap-2 p-2 cursor-pointer rounded ${
-              selectedChats.includes(chat.id)
-                ? "bg-blue-200 my-1"
-                : "hover:bg-gray-100 my-1"
-            }`}
-            onClick={() => {
-              setSelectedChats((prev) =>
-                prev.includes(chat.id)
-                  ? prev.filter((id) => id !== chat.id)
-                  : [...prev, chat.id]
-              );
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={selectedChats.includes(chat.id)}
-              readOnly
-            />
-            <span>
+        <div className="bg-white rounded-lg p-4 w-80 max-h-[80vh] overflow-y-auto">
+
+          <h2 className="font-bold mb-3">
+            Share to chat
+          </h2>
+
+          {chats.map((chat) => (
+            <div
+              key={chat.id}
+              className={`
+                flex
+                items-center
+                gap-2
+                p-2
+                cursor-pointer
+                rounded
+                ${
+                  selectedChats.includes(chat.id)
+                    ? "bg-blue-200 my-1"
+                    : "hover:bg-gray-100 my-1"
+                }
+              `}
+              onClick={() => {
+                setSelectedChats((prev) =>
+                  prev.includes(chat.id)
+                    ? prev.filter(
+                        (id) =>
+                          id !== chat.id
+                      )
+                    : [
+                        ...prev,
+                        chat.id,
+                      ]
+                );
+              }}
+            >
+
+              <input
+                type="checkbox"
+                checked={selectedChats.includes(
+                  chat.id
+                )}
+                readOnly
+              />
+
               <span>
-              {chat.other_user
-                ? `${chat.other_user.first_name} ${chat.other_user.last_name}`
-                : chat.teacher
+                {chat.other_user
+                  ? `${chat.other_user.first_name} ${chat.other_user.last_name}`
+                  : chat.teacher
                   ? `${chat.teacher.first_name} ${chat.teacher.last_name}`
                   : chat.student
-                    ? `${chat.student.first_name} ${chat.student.last_name}`
-                    : "Unknown User"}
-            </span>
+                  ? `${chat.student.first_name} ${chat.student.last_name}`
+                  : "Unknown User"}
+              </span>
 
-            </span>
-          </div>
-        ))}
+            </div>
+          ))}
 
-<button
-  disabled={sending || selectedChats.length === 0}
-  onClick={async () => {
-    try {
-      setSending(true);
-      for (const chatId of selectedChats) {
-        await shareToChat(chatId);
-      }
-      setSelectedChats([]);
-      setMessageOpenShare(false);
-    } finally {
-      setSending(false);
-    }
-  }}
-  className={`mt-3 w-full rounded py-2 text-white ${
-    sending || selectedChats.length === 0
-      ? "bg-gray-400 cursor-not-allowed"
-      : "bg-blue-600 hover:bg-blue-700"
-  }`}
->
-  {sending ? <svg
-      className="animate-spin h-5 w-5 text-white mx-auto flex justify-center items-center"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25 text-blue-800"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg> : `Send (${selectedChats.length})`}
-</button>
+          <button
+            disabled={
+              sending ||
+              selectedChats.length === 0
+            }
+            onClick={async () => {
+              try {
+                setSending(true);
+
+                for (const chatId of selectedChats) {
+                  await shareToChat(chatId);
+                }
+
+                setSelectedChats([]);
+                setMessageOpenShare(false);
+              } finally {
+                setSending(false);
+              }
+            }}
+            className={`
+              mt-3
+              w-full
+              rounded
+              py-2
+              text-white
+              ${
+                sending ||
+                selectedChats.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }
+            `}
+          >
+            {sending ? (
+              <svg
+                className="animate-spin h-5 w-5 text-white mx-auto"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+            ) : (
+              `Send (${selectedChats.length})`
+            )}
+          </button>
+
+          <button
+            onClick={() =>
+              setMessageOpenShare(false)
+            }
+            className="
+              mt-3
+              w-full
+              bg-gray-200
+              rounded
+              py-2
+            "
+          >
+            Cancel
+          </button>
+
+        </div>
+      </div>
+    )}
 
 
-      <button
-        onClick={() => setMessageOpenShare(false)}
-        className="mt-3 w-full bg-gray-200 rounded py-2"
-      >
-        Cancel
-      </button>
-    </div>
+    {/* NOTIFICATION */}
+    {notify.message && (
+      <Notification
+        message={notify.message}
+        type={notify.type}
+        onClose={() =>
+          setNotify({
+            message: "",
+            type: "",
+          })
+        }
+      />
+    )}
+
   </div>
-)}
-
-
- {notify.message && (
-          <Notification
-            message={notify.message}
-            type={notify.type} // "success" = green, "error" = red
-            onClose={() => setNotify({ message: "", type: "" })}
-          />
-        )}
-    </div>
-  );
-}
+);}

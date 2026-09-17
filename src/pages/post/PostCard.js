@@ -22,7 +22,6 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsB
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
   const [ showUsersPopup, setShowUsersPopup] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [counts, setCounts] = useState(post.reaction_counts || {});
   const [myReaction, setMyReaction] = useState(post.my_reaction || null);
@@ -85,18 +84,6 @@ const displayedText =
     ? text.substring(0, contentLimit) + "..."
     : text;
 
- const [videoPreview, setVideoPreview] = useState(null);
-
-const openVideoPreview = (video, post) => {
-    setVideoPreview({
-        ...post,
-        ...video,
-    });
-};
-
-const closeVideoPreview = () => {
-    setVideoPreview(null);
-};
 
 const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
@@ -498,10 +485,6 @@ const handleHidePost = async (postId) => {
           .map(m => (
     
             <PostVideoCard v={m}  post={post}
-              onOpenPreview={openVideoPreview} 
-
-              
-              
               />
     
           ))
@@ -937,6 +920,7 @@ const handleHidePost = async (postId) => {
           />
         )}
 
+        
     </div>
   );
 }

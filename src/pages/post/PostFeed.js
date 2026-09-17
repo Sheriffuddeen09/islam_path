@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import api from "../../Api/axios";
 import SidebarRight from "../homepageComponent/SidebarRight";
 import SidebarLeft from "../homepageComponent/SideBarLeft";
 import Reels from "../reel/Reels";
+import ProductFeedBlock from "./ProductFeedBlock";
 
 export default function PostFeed({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
@@ -12,39 +13,100 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
 handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, videoCount, handleVideoClick,
 reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost}) {
 
-    const [feedLoading, setFeedLoading] = useState(false)
- useEffect(() => {
-  const fetchPosts = async () => {
-    setFeedLoading(true);
+    const [feedLoading, setFeedLoading] = useState(false);
+    const [feedRefreshing, setFeedRefreshing] = useState(false);
 
-    try {
-      const res = await api.get("/api/posts-get");
+    const [feedProducts, setFeedProducts] = useState([]);
 
-      const filtered = res.data.posts.filter(post => {
+    const [feedExhausted, setFeedExhausted] = useState(false);
 
-        const hasContent = !!post.content;
-
-        const hasImage = post.media?.some(m => m.type === "image");
-        const hasVideo = post.media?.some(m => m.type === "video");
-
-        if (hasVideo && !hasContent) {
-          return false;
+    const fetchFeed = async (refresh = false) => {
+        if (refresh) {
+            setFeedRefreshing(true);
+        } else {
+            setFeedLoading(true);
         }
-        return hasContent || hasImage || (hasVideo && hasContent);
 
-      });
+        try {
+            const res = await api.get(
+                "/api/posts-get",
+                {
+                    params: refresh
+                        ? { refresh: 1 }
+                        : {},
+                }
+            );
 
-      setPosts(filtered);
+            const serverPosts =
+                Array.isArray(res.data.posts)
+                    ? res.data.posts
+                    : [];
 
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setFeedLoading(false);
-    }
-  };
+            const products =
+                Array.isArray(res.data.products)
+                    ? res.data.products
+                    : [];
+    
 
-  fetchPosts();
-}, []);
+            const filteredPosts = serverPosts.filter(
+                (post) => {
+
+                    const hasContent =
+                        !!post.content;
+
+                    const hasImage =
+                        post.media?.some(
+                            (m) => m.type === "image"
+                        );
+
+                    const hasVideo =
+                        post.media?.some(
+                            (m) => m.type === "video"
+                        );
+
+                    if (
+                        hasVideo &&
+                        !hasContent
+                    ) {
+                        return false;
+                    }
+
+                    return (
+                        hasContent ||
+                        hasImage ||
+                        (hasVideo && hasContent)
+                    );
+                }
+            );
+
+            setPosts(filteredPosts);
+
+            setFeedProducts(products);
+    
+
+            setFeedExhausted(
+                filteredPosts.length === 0
+            );
+
+        } catch (err) {
+
+            console.error(
+                "Feed fetch error:",
+                err
+            );
+
+        } finally {
+
+            setFeedLoading(false);
+
+            setFeedRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchFeed(false);
+    }, []);
+
 
   if (feedLoading) {
     return <FeedSkeleton />;
@@ -92,20 +154,116 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
           </p>
          )
       }
-      {posts.map(post => (
+
+      {/* 
+      
+      */}
+     {posts.map((post, index) => (
+        <React.Fragment key={post.id}>
         <PostCard key={post.id} post={post} setPosts={setPosts} 
-        image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        messageOpen={messageOpen}
-        setMessageOpen={setMessageOpen}
-        chats={chats} commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
-        setChats={setChats}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        />
-      ))}
+                image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+                newComment={newComment} setNewComment={setNewComment}
+                showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                emojiList={emojiList} setEmojiList={setEmojiList}
+                messageOpen={messageOpen}
+                setMessageOpen={setMessageOpen}
+                chats={chats} commentsByPost={commentsByPost}
+                setCommentsByPost={setCommentsByPost}
+                setChats={setChats}
+                postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
+                />
+
+
+            {index === 9 && feedProducts.length > 0 && (
+            <ProductFeedBlock
+                products={feedProducts}
+            />
+            )}
+        </React.Fragment>
+    ))}
+
+      {feedExhausted && (
+            <div
+                className="
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    py-10
+                    w-full
+                "
+            >
+
+                <p className="text-sm text-gray-500 mb-4">
+                    You have reached the end of your feed.
+                </p>
+
+                <button
+                    type="button"
+                    onClick={() => fetchFeed(true)}
+                    disabled={feedRefreshing}
+                    className="
+                        px-5
+                        py-2.5
+                        rounded-lg
+                        bg-green-600
+                        hover:bg-green-700
+                        text-white
+                        font-semibold
+                        disabled:opacity-50
+                        flex
+                        items-center
+                        gap-2
+                    "
+                >
+
+                    {feedRefreshing ? (
+                        <>
+                            <svg
+                                className="
+                                    animate-spin
+                                    h-5
+                                    w-5
+                                "
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="
+                                        M4 12
+                                        a8 8 0 018-8
+                                        v4
+                                        a4 4 0 00-4 4
+                                        H4z
+                                    "
+                                />
+                            </svg>
+
+                            Refreshing
+                        </>
+                    ) : (
+                        <>
+                            ↻
+                            Refresh Feed
+                        </>
+                    )}
+
+                </button>
+
+            </div>
+        )}
       </div>
      
       
@@ -147,20 +305,113 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
           </p>
          )
       }
-      {posts.map(post => (
+      {posts.map((post, index) => (
+        <React.Fragment key={post.id}>
         <PostCard key={post.id} post={post} setPosts={setPosts} 
-        image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        messageOpen={messageOpen}
-        setMessageOpen={setMessageOpen} commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
-        chats={chats}
-        setChats={setChats}
-        />
-      ))}
+                image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+                newComment={newComment} setNewComment={setNewComment}
+                showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+                emojiList={emojiList} setEmojiList={setEmojiList}
+                messageOpen={messageOpen}
+                setMessageOpen={setMessageOpen}
+                chats={chats} commentsByPost={commentsByPost}
+                setCommentsByPost={setCommentsByPost}
+                setChats={setChats}
+                postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
+                />
+
+
+            {index === 9 && feedProducts.length > 0 && (
+            <ProductFeedBlock
+                products={feedProducts}
+            />
+            )}
+        </React.Fragment>
+    ))}
+  
+  
+      {feedExhausted && (
+            <div
+                className="
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    py-10
+                    w-full
+                "
+            >
+
+                <p className="text-sm text-gray-500 mb-4">
+                    You have reached the end of your feed.
+                </p>
+
+                <button
+                    type="button"
+                    onClick={() => fetchFeed(true)}
+                    disabled={feedRefreshing}
+                    className="
+                        px-5
+                        py-2.5
+                        rounded-lg
+                        bg-green-600
+                        hover:bg-green-700
+                        text-white
+                        font-semibold
+                        disabled:opacity-50
+                        flex
+                        items-center
+                        gap-2
+                    "
+                >
+
+                    {feedRefreshing ? (
+                        <>
+                            <svg
+                                className="
+                                    animate-spin
+                                    h-5
+                                    w-5
+                                "
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="
+                                        M4 12
+                                        a8 8 0 018-8
+                                        v4
+                                        a4 4 0 00-4 4
+                                        H4z
+                                    "
+                                />
+                            </svg>
+
+                            Refreshing
+                        </>
+                    ) : (
+                        <>
+                            ↻
+                            Refresh Feed
+                        </>
+                    )}
+
+                </button>
+
+            </div>
+        )}
       </div>
       
     </div>
@@ -172,6 +423,7 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
       
       {largeScreen}
       {ipadScreen}  
+
     </div>
   )
 }

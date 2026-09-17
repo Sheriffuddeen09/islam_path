@@ -100,6 +100,8 @@ function App() {
 
     const [commentsByPost, setCommentsByPost] = useState({});                     
       
+    const [postIdModal, setPostIdModal] = useState(null);
+    
       const [reelLoading, setReelLoading] =
         useState(true);
         
@@ -795,11 +797,12 @@ function App() {
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
-                            setCommentsByPost={setCommentsByPost}
+        setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
-        chats={chats}
+        chats={chats} user={user} postIdModal={postIdModal} 
+        setPostIdModal={setPostIdModal}
         />} />
 
         <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}

@@ -3,16 +3,19 @@ import { useEffect, useRef, useState } from "react";
 import api from "../../Api/axios";
 import PostComment from "./PostComment";
 import ReplyImageSlider from "./ReplyImageSlider";
-import PostOptions from "./PostOption";
 import { useAuth } from "../../layout/AuthProvider";
 import Notification from "../../notification/Notification";
 import { PostCommentInput } from "./PostCommentInput";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import PostOptionsId from "./PostOptionId";
+import ImageFlex from "./ImageFlex"; 
+import logo from "../../layout/image/favicon.png";
+
 
 export default function PostImagePageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
-  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId, chats, commentsByPost, setCommentsByPost
+  showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId, chats, commentsByPost, setCommentsByPost,
+  user, setEmojiList, postIdModal, setPostIdModal
  }) {
   const { id } = useParams();
   const [counts, setCounts] = useState({});
@@ -29,53 +32,41 @@ export default function PostImagePageId({ image, postComments, setPostComments, 
   const [shares, setShares] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const [showOverlay, setShowOverlay] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(true);
   
     
-        const overlayTimerRef = useRef(null);
-      
-          const showVideoControls = () => {
-            setShowOverlay(true);
-      
-            if (overlayTimerRef.current) {
-              clearTimeout(overlayTimerRef.current);
-            }
-      
-            if (loading) {
-              return;
-            }
-      
-            overlayTimerRef.current = setTimeout(() => {
-              setShowOverlay(false);
-            }, 1500);
-          };
-      
-          const hideVideoControls = () => {
-            if (overlayTimerRef.current) {
-              clearTimeout(overlayTimerRef.current);
-              overlayTimerRef.current = null;
-            }
-      
-            setShowOverlay(false);
-          };
-      
-          useEffect(() => {
-            return () => {
-              if (overlayTimerRef.current) {
-                clearTimeout(overlayTimerRef.current);
-              }
-            };
-          }, []);
-      
-          useEffect(() => {
-              if (loading) {
-                hideVideoControls();
-                return;
-              }
-      
-              
-      }, [loading]);
+       const formatPostTime = (date) => {
+  if (!date) return "";
+
+  const created = new Date(date);
+  const now = new Date();
+
+  const diffMs = now - created;
+  const diffSeconds = Math.floor(diffMs / 1000);
+
+  if (diffSeconds < 60) {
+    return `${diffSeconds} sec${diffSeconds === 1 ? "" : "s"}`;
+  }
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} min${diffMinutes === 1 ? "" : "s"}`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? "" : "s"}`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  return `${diffDays} day${diffDays === 1 ? "" : "s"}`;
+};
+
       
   const shareUrl = `${window.location.origin}/post/${post?.id}`;
   
@@ -259,15 +250,59 @@ useEffect(() => {
       }
     };
 
-const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
+      const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
-const othersCount = usersPreview.filter(
-  (u) => u.id !== currentUser?.id
-).length;
+      const me = usersPreview.find(
+        (u) => u.id === currentUser?.id
+      );
 
-const me = usersPreview.find(
-  (u) => u.id === currentUser?.id
-);
+
+
+      const uniqueUsers = Array.from(
+        new Map(usersPreview.map((u) => [u.id, u])).values()
+      );
+
+    const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
+
+      const firstUser = others[0];
+      const lastUser = others[others.length - 1];
+      const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
+
+      const allUsers = uniqueUsers; // 👈 this is your full popup list
+
+
+      
+        const colors = [
+          "bg-red-400",
+          "bg-blue-400",
+          "bg-green-400",
+          "bg-purple-400",
+          "bg-pink-400",
+          "bg-yellow-400",
+      ];
+
+const getColor = (value) => {
+    if (!value) return "bg-gray-400";
+
+    const str = String(value);
+
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+};
+
+const getInitial = (name) => {
+    if (!name) return "?";
+
+    return name
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+};
 
 
 
@@ -294,6 +329,12 @@ focusCommentInput()
           )}...`
         : text;
   
+    const imageMedia = post?.media?.find(
+        media => media.type === "image"
+      );
+
+      const imageUrl = imageMedia?.url || imageMedia?.media_url || imageMedia?.path;
+
     if (loading) {
         return (
           <div className="fixed inset-0 bg-neutral-950 flex items-center justify-center z-[100]">
@@ -308,7 +349,7 @@ focusCommentInput()
         );
       }
     
-      const hasCurrentMedia = post
+      const hasCurrentMedia = Boolean(imageUrl);
     
       if (!hasCurrentMedia) {
         return (
@@ -358,8 +399,9 @@ focusCommentInput()
               <Link
                 to={`/profile/${post?.user?.id}`}
               >
-                <p className="font-bold text-white bg-black text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center">
-                  {post?.user?.name?.[0] || "?"}
+                <p className={`font-bold text-[30px] rounded-full w-12 h-12 text-center flex items-center justify-center
+                  ${getColor(post.user?.name)}`}>
+                  {getInitial(post?.user?.first_name)}
                 </p>
               </Link>
     
@@ -368,16 +410,15 @@ focusCommentInput()
                   to={`/profile/${post?.user?.id}`}
                 >
                   <p className="font-semibold">
-                    {post?.user?.name || "Unknown"}
+                    {post?.user?.first_name || "Unknown"} {post?.user?.last_name || "Unknown"}
                   </p>
                 </Link>
     
                 <p className="text-xs">
-                  {post?.created_at}
+                  {formatPostTime(post?.created_at)}
                 </p>
               </div>
             </div>
-    
             <div className="inline-flex items-center gap-3">
               <PostOptionsId
                 post={post}
@@ -427,7 +468,74 @@ focusCommentInput()
               </div>
             </div>
           )}
-    
+
+            {post.media.some(m => m.type === "image") && (
+                          <ImageFlex
+                            media={post.media.filter(m => m.type === "image")}
+                            postId={post.id}
+                             post={post}
+                          setShowCommentPop={setShowCommentPop}
+                          counts = {counts}
+                          total = {total}
+                          me={me}
+                          firstUser={firstUser}
+                          others = {others} 
+                          allUsers = {allUsers}
+                          myReaction={myReaction}
+                          reactionList = {reactionList}
+                          reactionLoading = {reactionLoading}
+                          toggleReaction ={toggleReaction}
+                          onLikeClick = {onLikeClick}
+          
+                          showReactions={showReactions}
+                          setShowReactions={setShowReactions}
+          
+                          showEmojiPicker={showEmojiPicker}
+                          setShowEmojiPicker={setShowEmojiPicker}
+          
+                          showUsersPopup={showUsersPopup}
+                          setShowUsersPopup={setShowUsersPopup}
+                          currentUser={currentUser}
+                          getColor={getColor}
+          
+                          // Comment
+                          postComments = {postComments} 
+                          setPostComments={setPostComments}
+                          commentInputRef={commentInputRef}
+                          focusCommentInput={focusCommentInput}
+                          newComment={newComment}
+                          setNewComment={setNewComment} commentsByPost={commentsByPost}
+                          setCommentsByPost={setCommentsByPost}
+                          loading={loading}
+                          setLoading={setLoading}
+          
+                          showEmoji={showEmoji}
+                          setShowEmoji={setShowEmoji}
+                          emojiList={emojiList}
+                          setEmojiList={setEmojiList}
+          
+                          // Share
+                          chats = {chats}
+                          setPostIdModal={setPostIdModal}
+                          shares={shares}
+                          setShares={setShares}
+                          setMessageOpenShare={setMessageOpenShare}
+                          handleShare={handleShare}
+                          sending={sending}
+                          messageOpenShare={messageOpenShare}
+                          selectedChats={selectedChats}
+                          setSelectedChats={setSelectedChats}
+                          setSending={setSending}
+                          shareToChat={shareToChat}
+                          postIdModal={postIdModal}
+                          user={user}
+                          image={image}
+                          usersPreview={usersPreview}
+                          setImage={setImage}
+
+                          />
+                        )}
+          
           {/* COUNTS */}
           <div className="flex justify-between border-t py-3 mx-4 items-center bg-[var(--bg-color)] text-[var(--text-color)]">
             <div className="flex gap-1 items-center">
@@ -641,7 +749,7 @@ focusCommentInput()
               postComments={postComments}
               setPostComments={setPostComments}
               commentsByPost={commentsByPost}
-                        setCommentsByPost={setCommentsByPost}
+              setCommentsByPost={setCommentsByPost}
             />
           )}
         </div>
@@ -670,271 +778,130 @@ focusCommentInput()
     
 
   return (
-    <div className="flex h-screen">
-      {/* Left: Image slider sm */}
-      <div className="flex-1 bg-[var(--bg-color)] text-[var(--text-color)] flex items-center justify-center relative">
-         {Array.isArray(post.media) && post.media.some(m => m.type === "image") && (
+    <div className="relative flex h-screen w-full overflow-hidden">
+
+ <div
+            onClick={() => navigate("/")}
+            className="absolute top-4 left-4 z-50"
+          >
+            <div className="inline-flex gap-4 items-center">
+              {/* CLOSE */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-10 h-10 bg-white text-black px-2 py-2 font-bold rounded-full hover:text-gray-700 hover:bg-gray-100 transition cursor-pointer"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18 18 6M6 6l12 12"
+                />
+              </svg>
+
+              {/* LOGO */}
+              <img
+                onClick={() => navigate("/")}
+                src={logo}
+                alt="IPK"
+                className="
+                 w-10
+                h-10
+                bg-white
+                rounded-full
+                p-0.5
+                cursor-pointer
+                "
+              />
+            </div>
+          </div>
+ <div
+    className={`
+      bg-[var(--bg-color)]
+      text-[var(--text-color)]
+      flex
+      items-center
+      justify-center
+      relative
+      h-full
+      transition-all
+      duration-300
+
+      ${
+        showCommentPop
+          ? "w-full lg:w-[calc(100%-400px)]"
+          : "w-full"
+      }
+    `}
+  >
+    {Array.isArray(post.media) && post.media.some(m => m.type === "image") && (
             <ReplyImageSlider
             images={post.media.filter(m => m.type === "image").map(m => m.url)}
-            post={post} chats={chats}
+            post={post} chats={chats} showOverlay={showOverlay} showMore={showMore} text={text} shortText={shortText}
+            hasLongText={hasLongText} showReactions={showReactions} setShowReactions={setShowReactions} 
+            handleCommentPop={handleCommentPop} setShowMore={setShowMore} reactionList={reactionList} 
+            reactionLoading={reactionLoading} toggleReaction={toggleReaction} setShowEmoji={setShowEmoji} 
+            total={total} myReaction={myReaction} setShares={setShares} setShowOverlay={setShowOverlay}
+            getColor={getColor} getInitial={getInitial}
           />
           )}
+  </div>
+ 
+  {showCommentPop && (
+    <div
+      className="
+        hidden
+        lg:flex
+        w-[400px]
+        h-full
+        shrink-0
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        border-l
+        border-green-400
+        shadow-2xl
+        flex-col
+        overflow-hidden
+        z-[100]
+      "
+    >
+      {commentScreen}
+    </div>
+  )}
 
-          { post?.content && (
-              <div
-                className={`absolute bottom-16 left-3 right-3 sm:left-5 sm:right-5 z-[70] transition-all duration-300 ${
-                  showOverlay
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-3 pointer-events-none"
-                }`}
-              >
-                <div className="max-w-2xl mx-auto">
-                  <div className="flex items-start gap-3">
-          
-                    {/* USER */}
-                    <Link
-                      to={`/profile/${post?.user?.id}`}
-                      className="shrink-0"
-                    >
-                      <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-700 text-white text-lg font-bold border border-white/20 shadow-lg">
-                        {post?.user?.name
-                          ?.charAt(0)
-                          ?.toUpperCase() || "A"}
-                      </span>
-                    </Link>
-          
-                    <div className="min-w-0 flex-1">
-          
-                      {/* USER NAME */}
-                      <div className="text-white font-bold text-xs mb-1">
-                        {post?.user?.name || "Unknown User"}
-                      </div>
-          
-                      {/* CONTENT */}
-                      <div
-                        className="
-                          rounded-xl
-                          bg-black/25
-                          backdrop-blur-sm
-                          px-3
-                          py-2
-                          max-h-[55vh]
-                          overflow-y-auto
-                          overscroll-contain
-                          scrollbar-thin
-                          scrollbar-thumb-white/30
-                          scrollbar-track-transparent
-                        "
-                      >
-                        <p className="text-white text-xs leading-5 break-words [overflow-wrap:anywhere]">
-                          {showMore ? text : shortText}
-          
-                          {hasLongText && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-          
-                                setShowMore((prev) => !prev);
-          
-                              }}
-                              className="ml-1 text-white underline font-semibold"
-                            >
-                              {showMore ? "See less" : "See more"}
-                            </button>
-                          )}
-                        </p>
-                      </div>
-          
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-                    <div className="absolute right-0 bottom-14 z-[100] flex flex-col items-center gap-3">
-                      {/* REACTION */}
-          
-                      <div
-                        className="relative"
-                        onMouseEnter={() =>
-                          setShowReactions(
-                            true
-                          )
-                        }
-                        onMouseLeave={() =>
-                          setShowReactions(
-                            false
-                          )
-                        }
-                      >
-                        {showReactions && (
-                          <div
-                            className="absolute right-12 top-0 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
-                            onClick={(e) =>
-                              e.stopPropagation()
-                            }
-                          >
-                            {reactionList.map(
-                              (emoji) => (
-                                <button
-                                  type="button"
-                                  key={emoji}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-          
-                                    if (
-                                      !reactionLoading
-                                    ) {
-                                      toggleReaction(
-                                        emoji
-                                      );
-                                    }
-                                  }}
-                                  className="text-xl hover:scale-125 transition"
-                                >
-                                  {emoji}
-                                </button>
-                              )
-                            )}
-          
-                            {/* PLUS BUTTON */}
-          
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-          
-                                setShowReactions(
-                                  false
-                                );
-                                setShowEmoji(true);
-                              }}
-                              className="ml-1 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl font-semibold"
-                              title="More emojis"
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-          
-                        <div className="text-white text-[10px] text-center mb-1">
-                          {total > 0 &&
-                            total}
-                        </div>
-          
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-          
-                            setShowReactions(
-                              (prev) =>
-                                !prev
-                            );
-          
-                          }}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl border transition ${
-                            myReaction
-                              ? "bg-blue-600 border-blue-400"
-                              : "bg-black/20 text-white border-gray-600"
-                          }`}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth="1.5"
-                            stroke="currentColor"
-                            className="w-4 h-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-          
-                      {/* COMMENT */}
-          
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-          
-                          handleCommentPop();
-                        }}
-                        className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          className="w-4 h-4"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
-                          />
-                        </svg>
-                      </button>
-          
-                      {/* SHARE */}
-          
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-          
-                          setShares(
-                            (prev) => !prev
-                          );
-                        }}
-                       className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          className="w-4 h-4"
-                        >
-                          <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 0 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z" />
-                        </svg>
-                      </button>
-          
-                      <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border 
-                      border-gray-600 text-white flex items-center justify-center hover:bg-black/40 transition"
-                      >
-                        <PostOptionsId
-                          post={post}
-                        />
-                      </div>
-                    </div>
-          
-        </div>
-
-     {showCommentPop && (
-      <div className="fixed inset-0 px-2 bg-black/70 flex items-center justify-center z-[999]">
-        <div
-          className="
-            rounded-xl
-            w-full
-            lg:w-[400px]
-            max-w-xl
-            max-h-[90vh]
-            flex
-            flex-col
-            shadow-lg
-            overflow-hidden
-            bg-[var(--bg-color)]
-          "
-        >
-          {commentScreen}
-        </div>
+  {showCommentPop && (
+    <div
+      className="
+        lg:hidden
+        fixed
+        inset-0
+        bg-black/60
+        z-[999]
+        flex
+        items-end
+      "
+      onClick={handleCommentPop}
+    >
+      <div
+        className="
+          w-full
+          h-[85vh]
+          bg-[var(--bg-color)]
+          text-[var(--text-color)]
+          rounded-t-2xl
+          shadow-2xl
+          overflow-hidden
+          flex
+          flex-col
+        "
+        onClick={(e) => e.stopPropagation()}
+      >
+        {commentScreen}
       </div>
-    )}
-      
+    </div>
+  )}
       
 {shares && (
       <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">

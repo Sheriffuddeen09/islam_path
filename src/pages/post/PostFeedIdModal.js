@@ -297,7 +297,7 @@ const shareToChat = async (chatId) => {
                 focusCommentInput={focusCommentInput}
                 newComment={newComment}
                 setNewComment={setNewComment} commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
+                setCommentsByPost={setCommentsByPost}
                 loading={loading}
                 setLoading={setLoading}
 
