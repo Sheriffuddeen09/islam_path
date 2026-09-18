@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
-
+ 
 import {
     Search,
     RefreshCw,
@@ -12,10 +12,10 @@ import {
     Wallet,
     Users,
     Calendar,
-    Clock,
+    X,
+    XCircle,
     Eye,
     CheckCircle2,
-    XCircle,
     AlertCircle
 } from "lucide-react";
 
@@ -56,14 +56,11 @@ export default function PendingJobs() {
 
     const [approveLoading, setApproveLoading] = useState({});
 
+    const [showDeclineModal, setShowDeclineModal] = useState(false);
+    const [declineJobId, setDeclineJobId] = useState(null);
+    const [declineReason, setDeclineReason] = useState("");
     const [declineLoading, setDeclineLoading] = useState({});
-
     
-
-    const totalLoaded = jobs.length;
-
-    const totalPending = total;
-
 
     useEffect(() => {
 
@@ -286,61 +283,59 @@ export default function PendingJobs() {
     };
 
     
+const declineJob = async () => {
+    if (!declineJobId) return;
 
-    const declineJob = async (jobId) => {
+    if (!declineReason.trim()) {
+        notifyError("Please enter a reason for declining this job.");
+        return;
+    }
 
-        try {
+    try {
+        setDeclineLoading(prev => ({
+            ...prev,
+            [declineJobId]: true
+        }));
 
-            setDeclineLoading(prev => ({
-                ...prev,
-                [jobId]: true
-            }));
-
-            const res = await api.put(
-
-                `/api/admin/jobs/${jobId}/decline`
-
-            );
-
-            notifySuccess(res.data.message);
-
-            setJobs(prev =>
-                prev.filter(job => job.id !== jobId)
-            );
-
-            setTotal(prev => Math.max(prev - 1, 0));
-
-            if (jobs.length === 1 && page > 1) {
-
-                setPage(prev => prev - 1);
-
+        const res = await api.put(
+            `/api/admin/jobs/${declineJobId}/decline`,
+            {
+                reason: declineReason.trim()
             }
+        );
 
+        notifySuccess(res.data.message);
+
+        setJobs(prev =>
+            prev.filter(job => job.id !== declineJobId)
+        );
+
+        setTotal(prev => Math.max(prev - 1, 0));
+
+        if (jobs.length === 1 && page > 1) {
+            setPage(prev => prev - 1);
         }
 
-        catch (error) {
+        // Close modal
+        setShowDeclineModal(false);
+        setDeclineJobId(null);
+        setDeclineReason("");
 
-            notifyError(
+    } catch (error) {
 
-                error.response?.data?.message ||
+        notifyError(
+            error.response?.data?.message ||
+            "Unable to decline job."
+        );
 
-                "Unable to decline job."
+    } finally {
 
-            );
-
-        }
-
-        finally {
-
-            setDeclineLoading(prev => ({
-                ...prev,
-                [jobId]: false
-            }));
-
-        }
-
-    };
-
+        setDeclineLoading(prev => ({
+            ...prev,
+            [declineJobId]: false
+        }));
+    }
+};
    
 
     const openJob = (job) => {
@@ -426,6 +421,12 @@ export default function PendingJobs() {
 
     }, [page, lastPage]);
 
+
+    const openDeclineModal = (jobId) => {
+        setDeclineJobId(jobId);
+        setDeclineReason("");
+        setShowDeclineModal(true);
+    };
    
     const SkeletonCard = () => (
 
@@ -816,7 +817,7 @@ export default function PendingJobs() {
                                 </button>
 
                                 <button
-                                    onClick={() => declineJob(job.id)}
+                                    onClick={() => openDeclineModal(job.id)}
                                     disabled={declineLoading[job.id]}
                                     className="flex items-center justify-center gap-2 rounded-xl bg-red-600 text-white py-3 hover:bg-red-700 disabled:opacity-60"
                                 >
@@ -940,6 +941,129 @@ export default function PendingJobs() {
     )
 }
 
+    {showDeclineModal && (
+    <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+        onClick={() => {
+            if (!declineLoading[declineJobId]) {
+                setShowDeclineModal(false);
+                setDeclineJobId(null);
+                setDeclineReason("");
+            }
+        }}
+    >
+        <div
+            className="w-full max-w-lg rounded-2xl bg-[var(--bg-color)] text-[var(--text-color)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+        >
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-200/20 px-6 py-5">
+
+                <div>
+                    <h2 className="text-lg font-semibold">
+                        Decline Job
+                    </h2>
+
+                    <p className="mt-1 text-sm opacity-70">
+                        Please provide a reason for declining this job.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    disabled={declineLoading[declineJobId]}
+                    onClick={() => {
+                        setShowDeclineModal(false);
+                        setDeclineJobId(null);
+                        setDeclineReason("");
+                    }}
+                    className="rounded-lg p-2 hover:bg-gray-500/10 disabled:opacity-50"
+                >
+                    <X size={20} />
+                </button>
+
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-6">
+
+                <label className="mb-2 block text-sm font-medium">
+                    Reason for declining
+                </label>
+
+                <textarea
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    placeholder="Enter the reason why this job is being declined..."
+                    rows={6}
+                    maxLength={2000}
+                    disabled={declineLoading[declineJobId]}
+                    className="w-full resize-none rounded-xl border border-gray-300/30 bg-transparent px-4 py-3 text-sm outline-none transition focus:border-red-500 disabled:opacity-60"
+                />
+
+                <div className="mt-2 flex justify-between text-xs opacity-60">
+                    <span>
+                        This reason will be sent to the job creator by email.
+                    </span>
+
+                    <span>
+                        {declineReason.length}/2000
+                    </span>
+                </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 border-t border-gray-200/20 px-6 py-5">
+
+                <button
+                    type="button"
+                    disabled={declineLoading[declineJobId]}
+                    onClick={() => {
+                        setShowDeclineModal(false);
+                        setDeclineJobId(null);
+                        setDeclineReason("");
+                    }}
+                    className="flex-1 rounded-xl border border-gray-300/30 py-3 text-sm font-medium hover:bg-gray-500/10 disabled:opacity-50"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    disabled={
+                        declineLoading[declineJobId] ||
+                        !declineReason.trim()
+                    }
+                    onClick={declineJob}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+
+                    {declineLoading[declineJobId] ? (
+                        <>
+                            <Loader2
+                                size={18}
+                                className="animate-spin"
+                            />
+
+                            Declining...
+                        </>
+                    ) : (
+                        <>
+                            <XCircle size={18} />
+
+                            Confirm Decline
+                        </>
+                    )}
+
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+)}
         </div>
 
     </div>

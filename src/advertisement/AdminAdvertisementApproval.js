@@ -7,7 +7,17 @@ export default function AdminAdvertisementApproval() {
 const [loading, setLoading] = useState(true);
 const [advertisements, setAdvertisements] = useState([]);
 const [approveLoading, setApproveLoading] = useState(null);
+const [showDeclineModal, setShowDeclineModal] = useState(false);
+const [selectedAdvertisementId, setSelectedAdvertisementId] = useState(null);
+const [declineReason, setDeclineReason] = useState("");
 const [declineLoading, setDeclineLoading] = useState(null);
+
+const openDeclineModal = (id) => {
+    setSelectedAdvertisementId(id);
+    setDeclineReason("");
+    setShowDeclineModal(true);
+};
+
 useEffect(() => {
 fetchAdvertisements();
 }, []);
@@ -43,21 +53,44 @@ setApproveLoading(null);
 };
 
 
-const handleDecline = async (id) => {
-try {
-setDeclineLoading(id);
-const response = await api.post(
-`/api/advertisement/decline/${id}`
-);
-toast.success(response.data.message);
-fetchAdvertisements();
-} catch (error) {
-toast.error(
-error?.response?.data?.message || "Unable to decline advertisement." );
-} finally {
-setDeclineLoading(null);
-}
+const handleDecline = async () => {
+    if (!selectedAdvertisementId) return;
+
+    if (!declineReason.trim()) {
+        toast.error("Please enter a reason for declining.");
+        return;
+    }
+
+    try {
+        setDeclineLoading(selectedAdvertisementId);
+
+        const response = await api.post(
+            `/api/advertisement/decline/${selectedAdvertisementId}`,
+            {
+                decline_reason: declineReason.trim(),
+            }
+        );
+
+        toast.success(response.data.message);
+
+        setShowDeclineModal(false);
+        setSelectedAdvertisementId(null);
+        setDeclineReason("");
+
+        fetchAdvertisements();
+
+    } catch (error) {
+        toast.error(
+            error?.response?.data?.errors?.decline_reason?.[0] ||
+            error?.response?.data?.message ||
+            "Unable to decline advertisement."
+        );
+    } finally {
+        setDeclineLoading(null);
+    }
 };
+
+
 const Skeleton = () => {
 return (
 <div className="rounded-2xl shadow-md px-5 sm:pt-20 pt-14 animate-pulse">
@@ -210,35 +243,178 @@ Approve
 </button>
 {/* DECLINE */}
 <button
-onClick={() =>
-handleDecline(
-advertisement.id
-)
-}
-disabled={
-approveLoading ===
-advertisement.id ||
-declineLoading ===
-advertisement.id
-}
-className="bg-red-600 text-white rounded-xl p-4 font-bold" >
-{declineLoading ===
-advertisement.id ? (
-<div className="flex items-center justify-center gap-2">
-<LoaderCircle className="animate-spin" />
-Declining</div>
-) : (
-<div className="flex items-center justify-center gap-2">
-<XCircle />
-Decline
-</div>
-)}
+    onClick={() => openDeclineModal(advertisement.id)}
+    disabled={
+        approveLoading === advertisement.id ||
+        declineLoading === advertisement.id
+    }
+    className="bg-red-600 text-white rounded-xl p-4 font-bold"
+>
+    <div className="flex items-center justify-center gap-2">
+        <XCircle />
+        Decline
+    </div>
 </button>
 </div>
 </div>
 </div>
 ))}
 </div>
+)}
+
+{showDeclineModal && (
+    <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+        onClick={() => {
+            if (declineLoading !== selectedAdvertisementId) {
+                setShowDeclineModal(false);
+                setSelectedAdvertisementId(null);
+                setDeclineReason("");
+            }
+        }}
+    >
+        <div
+            className="w-full max-w-lg rounded-2xl bg-[var(--bg-color)] text-[var(--text-color)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+        >
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-200/20 px-6 py-5">
+
+                <div>
+                    <h2 className="text-xl font-bold">
+                        Decline Advertisement
+                    </h2>
+
+                    <p className="mt-1 text-sm opacity-70">
+                        Enter the reason for declining this advertisement.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    disabled={
+                        declineLoading === selectedAdvertisementId
+                    }
+                    onClick={() => {
+                        setShowDeclineModal(false);
+                        setSelectedAdvertisementId(null);
+                        setDeclineReason("");
+                    }}
+                    className="rounded-lg p-2 hover:bg-gray-500/10"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-6">
+
+                <label className="mb-2 block text-sm font-semibold">
+                    Reason for declining
+                </label>
+
+                <textarea
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    placeholder="Enter the reason why this advertisement is being declined..."
+                    rows={6}
+                    maxLength={2000}
+                    disabled={
+                        declineLoading === selectedAdvertisementId
+                    }
+                    className="
+                        w-full
+                        resize-none
+                        rounded-xl
+                        border
+                        border-gray-300/30
+                        bg-transparent
+                        px-4
+                        py-3
+                        text-sm
+                        outline-none
+                        focus:border-red-500
+                    "
+                />
+
+                <div className="mt-2 flex justify-between text-xs opacity-60">
+                    <span>
+                        This reason will be sent to the advertiser by email.
+                    </span>
+
+                    <span>
+                        {declineReason.length}/2000
+                    </span>
+                </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 border-t border-gray-200/20 px-6 py-5">
+
+                <button
+                    type="button"
+                    disabled={
+                        declineLoading === selectedAdvertisementId
+                    }
+                    onClick={() => {
+                        setShowDeclineModal(false);
+                        setSelectedAdvertisementId(null);
+                        setDeclineReason("");
+                    }}
+                    className="
+                        flex-1
+                        rounded-xl
+                        border
+                        border-gray-300/30
+                        py-3
+                        font-semibold
+                        hover:bg-gray-500/10
+                    "
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleDecline}
+                    disabled={
+                        declineLoading === selectedAdvertisementId ||
+                        !declineReason.trim()
+                    }
+                    className="
+                        flex-1
+                        rounded-xl
+                        bg-red-600
+                        py-3
+                        font-semibold
+                        text-white
+                        hover:bg-red-700
+                        disabled:cursor-not-allowed
+                        disabled:opacity-60
+                    "
+                >
+
+                    {declineLoading === selectedAdvertisementId ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <LoaderCircle className="animate-spin" />
+                            Declining...
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center gap-2">
+                            <XCircle />
+                            Confirm Decline
+                        </div>
+                    )}
+
+                </button>
+
+            </div>
+
+        </div>
+    </div>
 )}
 </div>
 );

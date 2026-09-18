@@ -75,8 +75,10 @@ export default function PostVideoPageId({
   const initialVideoIdRef = useRef(Number(id));
   const autoNextCancelledRef = useRef(false);
   const autoNextUsedRef = useRef(false);
-  const videosSinceAdRef = useRef(0);
+  const advertisementShownRef = useRef(false);
+  const normalVideosCountRef = useRef(0);
   const lastNormalVideoIdRef = useRef(Number(id));
+  const forwardHistoryRef = useRef([]);
 
   const [counts, setCounts] = useState({});
   const [myReaction, setMyReaction] = useState(null);
@@ -305,8 +307,8 @@ const formatPostTime = (date) => {
           )?.id ??
           Number(id);
  
-        videosSinceAdRef.current =
-            videoPosts.length > 0 ? 1 : 0;
+        advertisementShownRef.current = false;
+        normalVideosCountRef.current = videoPosts.length > 0 ? 1 : 0;
 
 
  
@@ -333,8 +335,6 @@ const formatPostTime = (date) => {
 
             setVideos([]);
             setCurrentIndex(0);
-
-            videosSinceAdRef.current = 0;
 
             setHasNextVideo(false);
         }
@@ -836,14 +836,58 @@ return () => {
     showVideoControls();
   };
 
-     
+     const fetchNextVideo = async () => {
+ 
+    if (forwardHistoryRef.current.length > 0) {
 
-const fetchNextVideo = async () => {
-    
+        const previousForward =
+            forwardHistoryRef.current[
+                forwardHistoryRef.current.length - 1
+            ];
+
+        const historyIndex =
+            videos.findIndex(
+                post =>
+                    Number(post.id) ===
+                    Number(previousForward.id)
+            );
+
+        if (historyIndex !== -1) {
+
+            console.log(
+                "RETURNING TO PREVIOUSLY VIEWED VIDEO:",
+                previousForward.id
+            );
+
+            forwardHistoryRef.current.pop();
+
+            const nextPost = videos[historyIndex];
+
+            if (
+                nextPost.is_advertisement !== true
+            ) {
+                lastNormalVideoIdRef.current =
+                    nextPost.id;
+            }
+
+            setNotifyNext(false);
+            setShowResetPopup(false);
+            setHasNextVideo(true);
+
+            setCurrentIndex(historyIndex);
+
+            return;
+        }
+ 
+        forwardHistoryRef.current.pop();
+    }
+ 
     if (currentPost?.is_advertisement === true) {
 
-        console.log("CURRENT ITEM IS AD");
- 
+        console.log(
+            "CURRENT ITEM IS ADVERTISEMENT"
+        );
+
         const nextNormalIndex = videos.findIndex(
             (post, index) =>
                 index > currentIndex &&
@@ -858,62 +902,48 @@ const fetchNextVideo = async () => {
                 )
         );
 
-        console.log(
-            "NEXT UNVIEWED AFTER AD:",
-            nextNormalIndex
-        );
-
         if (nextNormalIndex !== -1) {
-            const nextPost = videos[nextNormalIndex];
+
+            const nextPost =
+                videos[nextNormalIndex];
 
             lastNormalVideoIdRef.current =
                 nextPost.id;
 
-            videosSinceAdRef.current = 1;
-
             setHasNextVideo(true);
             setShowResetPopup(false);
 
-            setCurrentIndex(nextNormalIndex);
+            setCurrentIndex(
+                nextNormalIndex
+            );
 
             return;
         }
-
-        // ========================================
-        // NO LOCAL VIDEO AFTER AD
-        // ASK BACKEND
-        // ========================================
-
-        console.log(
-            "NO LOCAL VIDEO AFTER AD. ASKING BACKEND..."
-        );
-
+ 
         try {
-            const response = await api.get(
-                `/api/post/${lastNormalVideoIdRef.current}/next-video`,
-                {
-                    params: {
-                        show_advertisement: false,
-                    },
-                }
-            );
 
-            console.log(
-                "NEXT AFTER AD RESPONSE:",
-                response.data
-            );
+            const response =
+                await api.get(
+                    `/api/post/${lastNormalVideoIdRef.current}/next-video`,
+                    {
+                        params: {
+                            show_advertisement: false,
+                        },
+                    }
+                );
 
-            const nextVideo = response.data?.post;
+            const nextVideo =
+                response.data?.video ??
+                response.data?.post;
 
-            // ------------------------------------
-            // NEW NORMAL VIDEO
-            // ------------------------------------
             if (
                 nextVideo &&
                 nextVideo.is_advertisement !== true &&
                 nextVideo.post_type === "post"
             ) {
-                const newIndex = videos.length;
+
+                const newIndex =
+                    videos.length;
 
                 setVideos((prev) => [
                     ...prev,
@@ -926,7 +956,7 @@ const fetchNextVideo = async () => {
                 lastNormalVideoIdRef.current =
                     nextVideo.id;
 
-                videosSinceAdRef.current = 1;
+                normalVideosCountRef.current += 1;
 
                 setHasNextVideo(true);
                 setShowResetPopup(false);
@@ -936,13 +966,6 @@ const fetchNextVideo = async () => {
                 return;
             }
 
-            // ------------------------------------
-            // NOTHING LEFT
-            // ------------------------------------
-            console.log(
-                "NO MORE VIDEOS AFTER AD"
-            );
-
             setHasNextVideo(false);
             setNotifyNext(false);
             setShowResetPopup(true);
@@ -950,6 +973,7 @@ const fetchNextVideo = async () => {
             return;
 
         } catch (error) {
+
             console.error(
                 "NEXT AFTER AD ERROR:",
                 error.response?.data || error
@@ -958,40 +982,30 @@ const fetchNextVideo = async () => {
             return;
         }
     }
-
-    // ============================================
-    // NORMAL VIDEO
-    // ============================================
-
-    console.log("CURRENT ITEM IS NORMAL VIDEO");
-
-     
-
-    const nextNormalIndex = videos.findIndex(
-        (post, index) =>
-            index > currentIndex &&
-            post?.is_advertisement !== true &&
-            post?.post_type === "post" &&
-            post?.viewed === false &&
-            Array.isArray(post?.media) &&
-            post.media.some(
-                (media) =>
-                    media?.type === "video" &&
-                    media?.url
-            )
-    );
-
+ 
     console.log(
-        "NEXT LOCAL UNVIEWED INDEX:",
-        nextNormalIndex
+        "CURRENT ITEM IS NORMAL VIDEO"
     );
 
-    // ============================================
-    // FOUND LOCAL VIDEO
-    // ============================================
-
+    const nextNormalIndex =
+        videos.findIndex(
+            (post, index) =>
+                index > currentIndex &&
+                post?.is_advertisement !== true &&
+                post?.post_type === "post" &&
+                post?.viewed === false &&
+                Array.isArray(post?.media) &&
+                post.media.some(
+                    (media) =>
+                        media?.type === "video" &&
+                        media?.url
+                )
+        );
+ 
     if (nextNormalIndex !== -1) {
-        const nextPost = videos[nextNormalIndex];
+
+        const nextPost =
+            videos[nextNormalIndex];
 
         console.log(
             "MOVING TO LOCAL VIDEO:",
@@ -1001,82 +1015,101 @@ const fetchNextVideo = async () => {
         lastNormalVideoIdRef.current =
             nextPost.id;
 
-        videosSinceAdRef.current += 1;
+        normalVideosCountRef.current += 1;
 
         setHasNextVideo(true);
         setShowResetPopup(false);
 
-        setCurrentIndex(nextNormalIndex);
+        setCurrentIndex(
+            nextNormalIndex
+        );
 
         return;
     }
-
-    // ============================================
-    // NO LOCAL VIDEO
-    // ASK BACKEND
-    // ============================================
-
-    console.log(
-        "NO LOCAL UNVIEWED VIDEO. ASKING BACKEND..."
-    );
-
+ 
     try {
-        const response = await api.get(
-            `/api/post/${lastNormalVideoIdRef.current}/next-video`,
-            {
-                params: {
-                    show_advertisement:
-                        videosSinceAdRef.current >= 5,
-                },
-            }
+ 
+        const shouldShowAdvertisement =
+            normalVideosCountRef.current >= 5 &&
+            advertisementShownRef.current === false;
+
+        console.log(
+            "NORMAL VIDEOS COUNT:",
+            normalVideosCountRef.current
         );
+
+        console.log(
+            "ADVERTISEMENT ALREADY SHOWN:",
+            advertisementShownRef.current
+        );
+
+        console.log(
+            "SHOULD SHOW ADVERTISEMENT:",
+            shouldShowAdvertisement
+        );
+
+
+        const response =
+            await api.get(
+                `/api/post/${lastNormalVideoIdRef.current}/next-video`,
+                {
+                    params: {
+                        show_advertisement:
+                            shouldShowAdvertisement,
+                    },
+                }
+            );
+
 
         console.log(
             "NEXT VIDEO RESPONSE:",
             response.data
         );
 
-        const nextVideo = response.data?.post;
 
-        // ========================================
-        // ADVERTISEMENT
-        // ========================================
+        const nextVideo =
+            response.data?.video ??
+            response.data?.post;
+ 
+        if (
+            nextVideo?.is_advertisement === true
+        ) {
 
-        if (nextVideo?.is_advertisement === true) {
+            console.log(
+                "ADVERTISEMENT RECEIVED - ONE TIME ONLY"
+            );
+ 
 
-            console.log("ADVERTISEMENT RECEIVED");
+            advertisementShownRef.current = true;
 
             setVideos((prev) => [
                 ...prev,
                 nextVideo,
             ]);
 
-            // New sequence starts AFTER this ad.
-            videosSinceAdRef.current = 0;
-
             setHasNextVideo(true);
             setShowResetPopup(false);
 
-            setCurrentIndex(videos.length);
+            setCurrentIndex(
+                videos.length
+            );
 
             return;
         }
-
-        // ========================================
-        // NORMAL VIDEO
-        // ========================================
-
+ 
         if (
             nextVideo &&
             nextVideo.is_advertisement !== true &&
             nextVideo.post_type === "post"
         ) {
+
             console.log(
                 "NEW NORMAL VIDEO:",
                 nextVideo.id
             );
 
-            const newIndex = videos.length;
+            const newIndex =
+                videos.length;
 
             setVideos((prev) => [
                 ...prev,
@@ -1089,20 +1122,18 @@ const fetchNextVideo = async () => {
             lastNormalVideoIdRef.current =
                 nextVideo.id;
 
-            videosSinceAdRef.current += 1;
+            normalVideosCountRef.current += 1;
 
             setHasNextVideo(true);
             setShowResetPopup(false);
 
-            setCurrentIndex(newIndex);
+            setCurrentIndex(
+                newIndex
+            );
 
             return;
         }
-
-        // ========================================
-        // ALL VIDEOS VIEWED
-        // ========================================
-
+ 
         console.log(
             "ALL VIDEOS VIEWED - SHOW RESET"
         );
@@ -1112,13 +1143,13 @@ const fetchNextVideo = async () => {
         setShowResetPopup(true);
 
     } catch (error) {
+
         console.error(
             "NEXT VIDEO ERROR:",
             error.response?.data || error
         );
     }
 };
-
 
 
 const handleNext = async () => {
@@ -1156,8 +1187,7 @@ const handleNext = async () => {
     }
 };
 
-  const handlePrev = () => {
-
+const handlePrev = () => {
     if (navigationLockRef.current) {
         return;
     }
@@ -1169,50 +1199,36 @@ const handleNext = async () => {
     navigationLockRef.current = true;
 
     try {
-
         setNotifyNext(false);
         setShowResetPopup(false);
         setHasNextVideo(true);
 
-        const previousIndex =
-            currentIndex - 1;
+        const previousIndex = currentIndex - 1;
 
-        const previousPost =
-            videos[previousIndex];
+        const previousPost = videos[previousIndex];
+
+        // Save the video we are moving away from.
+        if (
+            currentPost &&
+            currentPost.is_advertisement !== true
+        ) {
+            forwardHistoryRef.current.push({
+                index: currentIndex,
+                id: currentPost.id,
+            });
+        }
 
         if (
             previousPost &&
             previousPost.is_advertisement !== true
         ) {
-
             lastNormalVideoIdRef.current =
                 previousPost.id;
         }
 
-        let countSinceAd = 0;
-
-        for (
-            let i = previousIndex;
-            i >= 0;
-            i--
-        ) {
-
-            if (
-                videos[i]?.is_advertisement === true
-            ) {
-                break;
-            }
-
-            countSinceAd++;
-        }
-
-        videosSinceAdRef.current =
-            countSinceAd;
-
         setCurrentIndex(previousIndex);
 
     } finally {
-
         navigationLockRef.current = false;
     }
 };
@@ -1441,7 +1457,9 @@ const resetViewedVideos = async () => {
         lastNormalVideoIdRef.current =
             videoPosts[0]?.id ?? null;
 
-        videosSinceAdRef.current =
+        advertisementShownRef.current = false;
+
+        normalVideosCountRef.current =
             videoPosts.length > 0
                 ? 1
                 : 0;
@@ -1486,11 +1504,7 @@ const resetViewedVideos = async () => {
 
         }, 100);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Reset completed successfully
-        |--------------------------------------------------------------------------
-        */
+        
 
         setShowResetPopup(false);
 
@@ -1501,12 +1515,7 @@ const resetViewedVideos = async () => {
             error.response?.data ||
                 error
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Keep modal open so the user can see the error
-        |--------------------------------------------------------------------------
-        */
+ 
 
         setShowResetPopup(true);
 
@@ -2158,11 +2167,8 @@ const getInitial = (name) => {
         </div>
       </div>
     );
-  }
+  } 
 
-  // --------------------------------------------------
-  // COMMENT SCREEN
-  // --------------------------------------------------
 const commentScreen = (
   <div className="h-full flex flex-col overflow-hidden bg-[var(--bg-color)] text-[var(--text-color)]">
 
@@ -2601,7 +2607,7 @@ const commentScreen = (
             hideVideoControls();
           }
         }}
-        className="relative h-full w-full sm:w-auto sm:max-w-[min(720px,90vw)] flex items-center justify-center overflow-hidden bg-neutral-900 sm:rounded-2xl shadow-2xl select-none"
+        className="relative h-full w-full sm:w-auto sm:max-w-2xl flex items-center justify-center overflow-hidden bg-neutral-900 sm:rounded-2xl shadow-2xl select-none"
       >
          {currentVideo?.url ? (
             <video
@@ -3027,7 +3033,9 @@ const commentScreen = (
             <div className="text-white font-bold text-xs mb-1">
               {currentPost?.user?.name || "Unknown User"}
             </div>
-                 
+              <div className="text-[11px] sm:text-[12px]">
+              {formatPostTime(currentPost?.created_at)}
+              </div>
               </div>
             {/* CONTENT */}
             <div

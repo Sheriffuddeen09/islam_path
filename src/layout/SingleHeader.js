@@ -18,6 +18,7 @@ import CreateAdvertisementModal from '../advertisement/CreateAdvertisementModal'
 import CreateJobModal from '../job/CreateJobModal';
 import api from '../Api/axios';
 import useApplicationNotification from '../job/useApplicationNotification';
+import toast from 'react-hot-toast';
 
 function SingleHeader({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, reelCount,
@@ -218,7 +219,7 @@ useEffect(() => {
                 </div>
                 </div>
             <div className=''> 
-              <div className='sm:gap-6 gap-4 font-bold inline-flex '> 
+              <div className='sm:gap-6 gap-4 sm:mx-0 mx-0 font-bold inline-flex '> 
               
                 <Link
                 to="/"
@@ -294,28 +295,63 @@ useEffect(() => {
                
 
                 {/* Video */}
-               <Link
-                to="/post/video"
-                onClick={handleReelClick}
-                className={`${
-                  homepage === "/post/video" && !messageOpen
-                    ? "text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
-                }
-                sm:text-[13px] text-[8px]
-                rounded lg:p-2 px-1 py-2
-                flex flex-col items-center gap-1 relative`}
-              >
-                <PlaySquare />
-
-                {reelCount > 0 && (
-                  <span className="absolute top-4 right-2 bg-red-500 text-white
-                  text-[10px] px-1.5 rounded-full">
-                    {reelCount > 15 ? "15+" : reelCount}
-                  </span>
-                )}
-                Reel Video
-              </Link>
+                <Link
+                                           to="/reel/video"
+                                           onClick={async (e) => {
+                                               e.preventDefault();
+               
+                                               try {
+                                                   const response = await api.get("/api/reels-get");
+               
+                                                   const reels = Array.isArray(response.data?.posts)
+                                                       ? response.data.posts.filter(
+                                                           reel => reel?.post_type === "reel"
+                                                       )
+                                                       : [];
+               
+                                                   if (reels.length === 0) {
+                                                       toast.error("No reels available.");
+                                                       return;
+                                                   }
+               
+                                                   // Pick a random reel
+                                                   const randomReel =
+                                                       reels[Math.floor(Math.random() * reels.length)];
+               
+                                                   navigate(`/reel/video/${randomReel.id}`);
+               
+                                                   handleReelClick?.();
+                                               } catch (error) {
+                                                   console.error(
+                                                       "REEL LOAD ERROR:",
+                                                       error.response?.data || error
+                                                   );
+               
+                                                   toast.error("Unable to load reels.");
+                                               }
+                                           }}
+                                           className={`${
+                                               homepage === "/reel/video" && !messageOpen
+                                                   ? "text-blue-600"
+                                                   : "text-gray-600 hover:text-gray-800"
+                                           }
+                                           sm:text-[13px] text-[8px]
+                                           rounded lg:p-2 px-1 py-2
+                                           flex flex-col items-center gap-1 relative`}
+                                       >
+                                           <PlaySquare />
+               
+                                           {reelCount > 0 && (
+                                               <span
+                                                   className="absolute top-4 right-2 bg-red-500 text-white
+                                                   text-[10px] px-1.5 rounded-full"
+                                               >
+                                                   {reelCount > 15 ? "15+" : reelCount}
+                                               </span>
+                                           )}
+               
+                                           Reel Video
+                                       </Link>
 
                 {/* Notification */}
                 <Link to={'/notifications'} 

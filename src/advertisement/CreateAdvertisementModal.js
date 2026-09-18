@@ -104,11 +104,11 @@ className="hover:bg-gray-700 p-2 rounded-full" >
 <FileVideo size={28} />
 </div>
 <h2 className="font-bold text-lg">
-Upload Image or
+Upload
 Video
 </h2>
 <p className="text-sm mt-2">
-JPG, PNG, MP4, MOV and AVI are
+MP4 and MOV are
 supported. </p>
 <p className="text-sm mt-2">
 the video upload must not be more than 50mb. </p>

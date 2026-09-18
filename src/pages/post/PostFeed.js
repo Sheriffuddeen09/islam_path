@@ -147,17 +147,6 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
         reelUsers={reelUsers}
         setReelUsers={setReelUsers} />
 
-      {
-        posts.length === 0 && (
-          <p className="lg:ml-96 translate-y-40 sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
-            No Feed Post Available
-          </p>
-         )
-      }
-
-      {/* 
-      
-      */}
      {posts.map((post, index) => (
         <React.Fragment key={post.id}>
         <PostCard key={post.id} post={post} setPosts={setPosts} 
@@ -189,13 +178,13 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
                     flex-col
                     items-center
                     justify-center
-                    py-10
+                    py-5
                     w-full
                 "
             >
 
-                <p className="text-sm text-gray-500 mb-4">
-                    You have reached the end of your feed.
+                <p className="text-sm mb-4">
+                    No Feed Post Available Refresh or Wait for More Update
                 </p>
 
                 <button
@@ -297,14 +286,7 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
         setReelUsers={setReelUsers} />
 
       
-      {
-        posts.length === 0 && (
-          <p className="bg-[var(--bg-color)] text-[var(--text-color)] md:translate-y-60 md:ml-96 
-          lg:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-xl font-bold ">
-            No Feed Post Available
-          </p>
-         )
-      }
+       
       {posts.map((post, index) => (
         <React.Fragment key={post.id}>
         <PostCard key={post.id} post={post} setPosts={setPosts} 
@@ -342,8 +324,8 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
                 "
             >
 
-                <p className="text-sm text-gray-500 mb-4">
-                    You have reached the end of your feed.
+                <p className="text-sm mb-4">
+                    No Feed Post Available Refresh or Wait for More Update
                 </p>
 
                 <button
