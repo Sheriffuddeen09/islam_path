@@ -31,7 +31,6 @@ import ReelVideoPageId from "./pages/reel/ReelVideoPageId";
 import PostTextPageId from "./pages/post/PostTextPageId";
 import QuranGrid from "./pages/homepageComponent/QuranGrid";
 import Friend from "./pages/friend/Friend";
-import PostId from "./pages/post/PostId";
 import api from "./Api/axios";
 import Notifications from "./pages/notification/Notifications";
 import ChatReportId from "./report/ChatReportId";
@@ -61,10 +60,56 @@ import Jobs from "./job/Jobs";
 import JobDetails from "./job/JobDetails";
 import AdminAdvertisementApproval from "./advertisement/AdminAdvertisementApproval";
 import SelectAdvertisementVisibility from "./advertisement/SelectAdvertisementVisibility"
-import { useAuth } from "./layout/AuthProvider";
    
 function App() {
 
+  // Post 
+
+    const [image, setImage] = useState(null);
+    const [postComments, setPostComments] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [showUsersPopup, setShowUsersPopup] = useState(false);
+    const [newComment, setNewComment] = useState('');
+    const [showEmoji, setShowEmoji] = useState(false);
+    const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
+    const [post, setPost] = useState(null);
+
+    const [friendCount, setFriendCount] = useState(0);
+    const [homeCount, setHomeCount] = useState(0);
+    const [videoCount, setVideoCount] = useState(0);
+    const [reelCount, setReelCount] = useState(0);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [unreadNotification, setUnreadNotification] = useState(0);
+
+    const [commentsByPost, setCommentsByPost] = useState({});                     
+    const [postIdModal, setPostIdModal] = useState(null);
+    const [myReels, setMyReels] = useState([]);
+    const [reelUsers, setReelUsers] = useState([]);
+    const [reelLoading, setReelLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [selectedUserIndex, setSelectedUserIndex] = useState(null);
+    const [mediaIndex, setMediaIndex] = useState(0);
+    const [selectedReelIndex, setSelectedReelIndex] = useState(0);
+    const [showOptions, setShowOptions] = useState(false);
+    const [message, setMessage] = useState("");
+    const [progress, setProgress] = useState(0);
+    const [reaction, setReaction] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [openReport, setOpenReport] = useState(false)
+    const [showImagePicker, setShowImagePicker] = useState(false);
+    const [messageOpenShare, setMessageOpenShare,] = useState(false)
+    const [shares, setShares] = useState(false);
+
+    const [sending, setSending] = useState(false);
+
+
+    // Product
+    const [products, setProducts] = useState([]);
+    const [savedCount, setSavedCount] = useState(0);
+    const [orderCount, setOrderCount] = useState(0);
+    
+
+    // User
     const [choice, setChoice] = useState(""); 
     const [selected, setSelected] = useState("");  
     const [isLoading, setIsLoading] = useState(false);
@@ -92,22 +137,146 @@ function App() {
 
     const [pendingCount, setPendingCount] = useState(0);
   
+    // Component
     const [show, setShow] = useState(false)
     const [jobProfile, setJobProfile] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showAdvertisement, setShowAdvertisement] = useState(false);
     const [showJobCreate, setShowJobCreate] = useState(false);
 
-    const [commentsByPost, setCommentsByPost] = useState({});                     
-      
-    const [postIdModal, setPostIdModal] = useState(null);
-    
-      const [reelLoading, setReelLoading] =
-        useState(true);
-        
-      const [error, setError] =
-        useState("");
+ 
+    const markReelViewed = async (reelId) => {
+        try {
+            await api.post(`/api/reels/${reelId}/view`);
+        } catch (error) {
+            console.error("Failed to mark reel as viewed:", error);
+        }
+    };
+    const closeViewer = () => {
+        setSelectedUserIndex(null);
+        setSelectedReelIndex(0);
 
+        setMediaIndex(0);
+        setProgress(0);
+
+        setReaction(null);
+        setMessage("");
+
+        setShowOptions(false);
+    };
+
+
+
+    const selectedUser =
+        selectedUserIndex !== null
+            ? reelUsers[
+                  selectedUserIndex
+              ]
+            : null;
+
+    const selectedReel =
+        selectedUser
+            ? selectedUser.reels[
+                  selectedReelIndex
+              ]
+            : null;
+   
+    const nextReel = () => {
+
+    if (
+        selectedUserIndex <
+        reelUsers.length - 1
+    ) {
+
+        const nextUserIndex =
+            selectedUserIndex + 1;
+
+        setSelectedUserIndex(
+            nextUserIndex
+        );
+
+        setSelectedReelIndex(0);
+
+        setMediaIndex(0);
+
+        setProgress(0);
+
+        setReaction(null);
+
+        setMessage("");
+
+        return;
+    }
+
+
+    closeViewer();
+};
+
+
+const previousReel = () => {
+
+    if (mediaIndex > 0) {
+
+        setMediaIndex(
+            prev => prev - 1
+        );
+
+        setProgress(0);
+
+        return;
+    }
+
+    if (selectedReelIndex > 0) {
+
+        setSelectedReelIndex(
+            prev => prev - 1
+        );
+
+        setMediaIndex(0);
+
+        setReaction(null);
+        setMessage("");
+
+        return;
+    }
+
+    if (selectedUserIndex > 0) {
+
+        const previousUser =
+            reelUsers[
+                selectedUserIndex - 1
+            ];
+
+        setSelectedUserIndex(
+            prev => prev - 1
+        );
+
+        setSelectedReelIndex(
+            previousUser.reels.length - 1
+        );
+
+        setMediaIndex(0);
+
+        setReaction(null);
+        setMessage("");
+    }
+};
+
+
+         const openUserReels = (userIndex) => {
+
+        setSelectedUserIndex(userIndex);
+
+        setSelectedReelIndex(0);
+        setMediaIndex(0);
+
+        setProgress(0);
+        setShowOptions(false);
+
+        setMessage("");
+
+        setReaction(null);
+    };
 
         useEffect(() => {
         fetchReels();
@@ -147,6 +316,7 @@ function App() {
 
         }
     };
+
 
     const fetchMyReel = async () => {
     try {
@@ -205,34 +375,7 @@ function App() {
     };
     
 
-    // Post 
-
-      const [image, setImage] = useState(null);
-      const [postComments, setPostComments] = useState([])
-      const [loading, setLoading] = useState(false)
-      const [showUsersPopup, setShowUsersPopup] = useState(false);
-      const [newComment, setNewComment] = useState('');
-      const [showEmoji, setShowEmoji] = useState(false);
-      const [emojiList, setEmojiList] = useState(['❤️','👍','😂','😮','😢','🔥']);
-      const [post, setPost] = useState(null);
-
-      const [friendCount, setFriendCount] = useState(0);
-      const [homeCount, setHomeCount] = useState(0);
-      const [videoCount, setVideoCount] = useState(0);
-      const [reelCount, setReelCount] = useState(0);
-      const [unreadCount, setUnreadCount] = useState(0);
-      const [unreadNotification, setUnreadNotification] = useState(0);
-
-
-      // Product
-      const [products, setProducts] = useState([]);
-      const [savedCount, setSavedCount] = useState(0);
-      const [orderCount, setOrderCount] = useState(0);
-        
-      const [myReels, setMyReels] = useState([]);
-      const [reelUsers, setReelUsers] =
-              useState([]);
-        
+    
       
       const fetchPostCounts = async () => {
         const res = await api.get("/api/post-count");
@@ -563,24 +706,6 @@ function App() {
             element={<ProductVisibility />}
         />
 
-
-      {/*  */}
-
-      <Route path="/post" element={<PostId 
-        image={image} setImage={setImage}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} 
-        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        messageOpen={messageOpen}
-        setMessageOpen={setMessageOpen}
-        chats={chats}
-        setChats={setChats}
-        commentsByPost={commentsByPost}
-                            setCommentsByPost={setCommentsByPost}
-      />} />
-
       {/* Video */}
 
        <Route path="/post/video" element={
@@ -588,7 +713,7 @@ function App() {
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
-                            setCommentsByPost={setCommentsByPost}
+        setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         messageOpen={messageOpen}
@@ -605,7 +730,27 @@ function App() {
         setShow={setShow}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
-
+        reelUsers={reelUsers} openUserReels={openUserReels}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
+        setMyReels={setMyReels}
+        setReelUsers={setReelUsers}
+        selectedReelIndex={selectedReelIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
         
          />   
       } />
@@ -721,7 +866,7 @@ function App() {
       postComments={postComments} setPostComments={setPostComments} loading={loading} 
       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
       newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
-                          setCommentsByPost={setCommentsByPost}
+      setCommentsByPost={setCommentsByPost}
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
       jobProfile={jobProfile}
@@ -731,6 +876,28 @@ function App() {
       setShow={setShow}
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate} user={user}
+      openUserReels={openUserReels}
+      reelUsers={reelUsers}
+      sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+      previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+      markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+      setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+      messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+      setShares={setShares}
+      setMyReels={setMyReels}
+        setReelUsers={setReelUsers}
+        selectedReelIndex={selectedReelIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
       />}
        />
 
@@ -809,7 +976,7 @@ function App() {
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
-                            setCommentsByPost={setCommentsByPost}
+        setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         post={post} setPost={setPost} postId={post?.id}
@@ -822,11 +989,10 @@ function App() {
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
-                            setCommentsByPost={setCommentsByPost}
+        setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         chats={chats}
-
         />} />
 
 
@@ -908,7 +1074,27 @@ function App() {
         reelLoading={reelLoading}
         fetchReels={fetchReels}
         fetchMyReel={fetchMyReel}
-        
+        openUserReels={openUserReels}
+        setSelectedReelIndex={setSelectedReelIndex}
+        selectedReelIndex={selectedReelIndex}
+        setSelectedUserIndex={setSelectedUserIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
          />   
       } />
 

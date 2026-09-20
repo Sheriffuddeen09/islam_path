@@ -15,8 +15,12 @@ import CreateReelModal from "./CreateReelModal";
 import MyReelReview from "./MyReelReview";
 export default function Reels({
     handleReelCreated, chats, myReels, setMyReels, reelUsers, setReelUsers,
-    reelLoading, fetchMyReel, fetchReels, error
-}) {
+    reelLoading,  error, openUserReels, setMessage, message,
+    setSelectedReelIndex, selectedReelIndex, selectedUserIndex, setProgress, progress, setMediaIndex,
+    mediaIndex, setShowOptions, showOptions, setReaction, reaction, sending, setSending, closeViewer, nextReel, 
+    previousReel, selectedReel, selectedUser, markReelViewed, open, setOpen, openReport, setOpenReport,
+    showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares
+    }) {
 
     const {user} = useAuth()
 
@@ -25,35 +29,12 @@ export default function Reels({
 
   const [createReel, setCreateReel] = useState(false);
 
-    const [open, setOpen] = useState(false);
     
-    
-    const [selectedUserIndex, setSelectedUserIndex] =
-        useState(null);
-    
-    const [showOptions, setShowOptions] =
-        useState(false);
-    const [message, setMessage] =
-        useState("");
-    const [sending, setSending] =
-        useState(false);
-    const [reaction, setReaction] =
-        useState(null);
-    const [mediaIndex, setMediaIndex] = useState(0);
-
-    const [openReport, setOpenReport] = useState(false)
-    const [showImagePicker, setShowImagePicker] = useState(false);
-    const [messageOpenShare, setMessageOpenShare,] = useState(false)
-    const [shares, setShares] = useState(false);
 
     const [
     showMyReelModal,
         setShowMyReelModal
     ] = useState(false);
-
-    const [progress, setProgress] =
-            useState(0);
-
 
     const [showMyReelReview, setShowMyReelReview] =
     useState(false);
@@ -61,8 +42,7 @@ export default function Reels({
     const [selectedMyIndex, setSelectedMyIndex] =
         useState(0);
 
-    const [selectedReelIndex, setSelectedReelIndex] =
-        useState(0);
+    
 
     const [myMediaIndex, setMyMediaIndex] =
         useState(0);
@@ -74,14 +54,7 @@ export default function Reels({
         useState([]);
 
     
-
-    const markReelViewed = async (reelId) => {
-        try {
-            await api.post(`/api/reels/${reelId}/view`);
-        } catch (error) {
-            console.error("Failed to mark reel as viewed:", error);
-        }
-    };
+   
 
   
     const currentInitial =
@@ -92,82 +65,10 @@ export default function Reels({
             .charAt(0)
             .toUpperCase();
 
-    const openUserReels = (userIndex) => {
-
-        setSelectedUserIndex(userIndex);
-
-        setSelectedReelIndex(0);
-        setMediaIndex(0);
-
-        setProgress(0);
-        setShowOptions(false);
-
-        setMessage("");
-
-        setReaction(null);
-    };
-
-
-    const closeViewer = () => {
-        setSelectedUserIndex(null);
-        setSelectedReelIndex(0);
-
-        setMediaIndex(0);
-        setProgress(0);
-
-        setReaction(null);
-        setMessage("");
-
-        setShowOptions(false);
-    };
-
-
-
-    const selectedUser =
-        selectedUserIndex !== null
-            ? reelUsers[
-                  selectedUserIndex
-              ]
-            : null;
-
-    const selectedReel =
-        selectedUser
-            ? selectedUser.reels[
-                  selectedReelIndex
-              ]
-            : null;
    
-    const nextReel = () => {
-
-    if (
-        selectedUserIndex <
-        reelUsers.length - 1
-    ) {
-
-        const nextUserIndex =
-            selectedUserIndex + 1;
-
-        setSelectedUserIndex(
-            nextUserIndex
-        );
-
-        setSelectedReelIndex(0);
-
-        setMediaIndex(0);
-
-        setProgress(0);
-
-        setReaction(null);
-
-        setMessage("");
-
-        return;
-    }
 
 
-    closeViewer();
-};
-
+    
         const closeMyReview 
             = () => {
                 setShowMyReelReview(false);
@@ -199,56 +100,6 @@ export default function Reels({
 
                     closeMyReview();
                 };
-
-
-const previousReel = () => {
-
-    if (mediaIndex > 0) {
-
-        setMediaIndex(
-            prev => prev - 1
-        );
-
-        setProgress(0);
-
-        return;
-    }
-
-    if (selectedReelIndex > 0) {
-
-        setSelectedReelIndex(
-            prev => prev - 1
-        );
-
-        setMediaIndex(0);
-
-        setReaction(null);
-        setMessage("");
-
-        return;
-    }
-
-    if (selectedUserIndex > 0) {
-
-        const previousUser =
-            reelUsers[
-                selectedUserIndex - 1
-            ];
-
-        setSelectedUserIndex(
-            prev => prev - 1
-        );
-
-        setSelectedReelIndex(
-            previousUser.reels.length - 1
-        );
-
-        setMediaIndex(0);
-
-        setReaction(null);
-        setMessage("");
-    }
-};
 
 
 const previousMyReel = () => {

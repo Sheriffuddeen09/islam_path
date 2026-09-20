@@ -18,6 +18,7 @@ import MyImagesIdStudent from "../studentdashboard/mediaProfileId/ImageProfileId
 import BioDataProfile from "./BiodataProfile";
 import SidebarLeft from "../pages/friend/SidebarLeft";
 import SidebarRight from "../pages/homepageComponent/SidebarRight";
+import ReelViewerModal from "../pages/reel/ReelViewerModal";
 
 
 
@@ -26,8 +27,12 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, togglePopup, setActiveChat,
         setMessages, jobProfile, setJobProfile, showAdvertisement, setShowAdvertisement,
-        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow, user, commentsByPost, setCommentsByPost
-}) {
+        showJobCreate, setShowJobCreate, fetchJobProfile, show, setShow, user, commentsByPost, setCommentsByPost,
+        reelUsers, openUserReels, sending, setSending, closeViewer, nextReel, previousReel, selectedReel, selectedUser, markReelViewed,
+        open, setOpen, openReport, setOpenReport, showImagePicker, setShowImagePicker, messageOpenShare,
+        setMessageOpenShare, shares, setShares, setMyReels, setReelUsers, selectedReelIndex, selectedUserIndex, setMediaIndex,
+        mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions
+      }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [visibility, setVisibility] = useState({});
@@ -261,6 +266,123 @@ console.log("Teacher Profile", profile)
                  }
                  </div>
   )
+
+  const profileReelUserId =
+          Number(profile?.profile?.id);
+
+      if (Array.isArray(reelUsers)) {
+          reelUsers.forEach(
+              (profileReelItem, profileReelIndex) => {
+                  console.log(
+                      `PROFILE REEL USER ${profileReelIndex}:`,
+                      {
+                          item: profileReelItem,
+                          user: profileReelItem?.user,
+                          userId: profileReelItem?.user?.id,
+                          directUserId:
+                              profileReelItem?.user_id,
+                          itemId: profileReelItem?.id,
+                          reels: profileReelItem?.reels,
+
+                          reelCount:
+                              Array.isArray(
+                                  profileReelItem?.reels
+                              )
+                                  ? profileReelItem.reels.length
+                                  : 0,
+
+                          reelUserIds:
+                              Array.isArray(
+                                  profileReelItem?.reels
+                              )
+                                  ? profileReelItem.reels.map(
+                                      profileReel => ({
+                                          id: profileReel?.id,
+                                          user_id:
+                                              profileReel?.user_id,
+                                          has_viewed:
+                                              profileReel?.has_viewed,
+                                      })
+                                  )
+                                  : [],
+                      }
+                  );
+              }
+          );
+      }
+
+      const profileReelUserIndex =
+          Array.isArray(reelUsers)
+              ? reelUsers.findIndex(
+                  profileReelItem => {
+
+                      const profileItemUserId =
+                          Number(
+                              profileReelItem?.user?.id
+                          );
+
+                      const profileDirectUserId =
+                          Number(
+                              profileReelItem?.user_id
+                          );
+
+                      const profileReels =
+                          Array.isArray(
+                              profileReelItem?.reels
+                          )
+                              ? profileReelItem.reels
+                              : [];
+
+                      const profileReelUserIds =
+                          profileReels.map(
+                              profileReel =>
+                                  Number(
+                                      profileReel?.user_id
+                                  )
+                          );
+
+                      console.log(
+                          "CHECKING PROFILE REEL ITEM:",
+                          {
+                              profileItemUserId,
+                              profileDirectUserId,
+                              profileReelUserIds,
+                              lookingForProfile:
+                                  profileReelUserId,
+                          }
+                      );
+
+                      return (
+                          profileItemUserId ===
+                              profileReelUserId ||
+                          profileDirectUserId ===
+                              profileReelUserId ||
+                          profileReelUserIds.includes(
+                              profileReelUserId
+                          )
+                      );
+                  }
+              )
+              : -1;
+
+      const profileUserReels =
+          profileReelUserIndex >= 0 &&
+          Array.isArray(
+              reelUsers[profileReelUserIndex]?.reels
+          )
+              ? reelUsers[profileReelUserIndex].reels
+              : [];
+
+      const hasUnviewedProfileReel =
+          profileUserReels.some(
+              profileReel =>
+                  profileReel?.has_viewed !== true
+          );
+
+      const hasProfileReel =
+          profileUserReels.length > 0;
+
+
   const colors = [
   "bg-orange-500",
   "bg-blue-500",
@@ -294,14 +416,52 @@ const content = (
         <div className="-mt-16 sm:-mt-20 flex flex-col md:flex-row md:items-end gap-6">
 
           {/* AVATAR */}
-          <div
-            className={`w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-[#111827] shadow-2xl flex items-center justify-center text-white text-5xl sm:text-7xl font-bold ${getColor(
-              profile.first_name
-            )}`}
-          >
-            {getInitial(profile.first_name)}
-          </div>
+          <button
+                type="button"
+                onClick={() => {
+                    if (
+                        profileReelUserIndex !== -1 &&
+                        hasProfileReel
+                    ) {
+                        openUserReels(
+                            profileReelUserIndex
+                        );
+                    }
+                }}
+                className="focus:outline-none"
+            >
+                <p
+                    className={`
+                        text-white
+                        font-bold
+                        rounded-full
+                        w-28 h-28
+                        sm:w-36 sm:h-36
+                        text-center
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        shadow-2xl
+                        text-5xl
+                        sm:text-7xl
+                        font-bold
+                        border-4
 
+                        ${
+                            hasProfileReel
+                                ? hasUnviewedProfileReel
+                                    ? "border-green-500"
+                                    : "border-[#111827]"
+                                : "border-[#111827]"
+                        }
+
+                        ${getColor(profile?.first_name)}
+                    `}
+                >
+                    {getInitial(profile?.first_name)}
+                </p>
+            </button>
           {/* USER DETAILS */}
           <div className="flex-1 text-center md:text-left md:pb-3">
 
@@ -407,6 +567,67 @@ const content = (
         {profile_content}
         </div>
 
+        
+                    {selectedReel && (
+                        <ReelViewerModal
+                            chats={chats}
+                            user={selectedUser.user}
+                            reel={selectedReel}
+                            reelIndex={
+                                selectedReelIndex
+                            }
+                            totalReels={
+                                selectedUser.reels
+                                    .length
+                            }
+                            onClose={closeViewer}
+                            onNext={nextReel}
+                            onPrevious={
+                                previousReel
+                            }
+                            showOptions={
+                                showOptions
+                            }
+                            setShowOptions={
+                                setShowOptions
+                            }
+                            message={message}
+                            setMessage={setMessage}
+                            
+                            sending={sending}
+                            setSending={setSending}
+                            reaction={reaction}
+                            setReelUsers={setReelUsers}
+                            setMyReels={setMyReels}
+                            setReaction={
+                                setReaction
+                            }
+        
+                            currentUserIndex={selectedUserIndex}
+                            reelUsers={reelUsers}
+                            currentUser={user}
+        
+                            selectedReel={selectedReel}
+                            mediaIndex={mediaIndex}
+                            setMediaIndex={setMediaIndex}
+                            progress={progress}
+                            setProgress={setProgress}
+                            nextReel={nextReel}
+        
+                            markReelViewed={markReelViewed}
+                            open={open}
+                            setOpen={setOpen}
+                            showImagePicker={showImagePicker}
+                            setShowImagePicker={setShowImagePicker}
+                            messageOpenShare={messageOpenShare}
+                            setMessageOpenShare={setMessageOpenShare}
+                            openReport={openReport}
+                            setOpenReport={setOpenReport}
+                            shares={shares}
+                            setShares={setShares}
+                            
+                        />
+                    )}
     </div>
 
     <SidebarRight  />

@@ -10,8 +10,12 @@ export default function PostFeed({posts, setPosts, image, postComments, setPostC
   showEmoji, setShowEmoji, emojiList, setEmojiList, messageOpen, setMessageOpen, chats, setChats,
   loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
   showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated,
-handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, videoCount, handleVideoClick,
-reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost}) {
+    handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, videoCount, handleVideoClick,
+    reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost, openUserReels, setMessage, message,
+    setSelectedReelIndex, selectedReelIndex, setSelectedUserIndex, selectedUserIndex, setProgress, progress, setMediaIndex,
+    mediaIndex, setShowOptions, showOptions, setReaction, reaction, sending, setSending, closeViewer, nextReel, 
+    previousReel, selectedReel, selectedUser, markReelViewed, open, setOpen, openReport, setOpenReport,
+    showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares}) {
 
     const [feedLoading, setFeedLoading] = useState(false);
     const [feedRefreshing, setFeedRefreshing] = useState(false);
@@ -145,7 +149,29 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
         myReels={myReels}
         setMyReels={setMyReels}
         reelUsers={reelUsers}
-        setReelUsers={setReelUsers} />
+        setReelUsers={setReelUsers}
+        openUserReels={openUserReels}
+        setSelectedReelIndex={setSelectedReelIndex}
+        selectedReelIndex={selectedReelIndex}
+        setSelectedUserIndex={setSelectedUserIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
+ />
 
      {posts.map((post, index) => (
         <React.Fragment key={post.id}>
@@ -160,6 +186,7 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
                 setCommentsByPost={setCommentsByPost}
                 setChats={setChats}
                 postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
+                reelUsers={reelUsers} openUserReels={openUserReels}
                 />
 
 
@@ -170,6 +197,81 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
             )}
         </React.Fragment>
     ))}
+
+    {feedExhausted && posts.length > 0 && (
+    <div
+        className="
+            flex
+            flex-col
+            items-center
+            justify-center
+            py-10
+            w-full
+        "
+    >
+        <p className="text-sm mb-4 text-center mx-auto">
+            No Feed Post Available Refresh or Wait for More Update
+        </p>
+
+        <button
+            type="button"
+            onClick={() => fetchFeed(true)}
+            disabled={feedRefreshing}
+            className="
+                px-5
+                py-2.5
+                rounded-lg
+                bg-green-600
+                hover:bg-green-700
+                text-white
+                font-semibold
+                disabled:opacity-50
+                flex
+                items-center
+                gap-2
+            "
+        >
+            {feedRefreshing ? (
+                <>
+                    <svg
+                        className="animate-spin h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        />
+
+                        <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="
+                                M4 12
+                                a8 8 0 018-8
+                                v4
+                                a4 4 0 00-4 4
+                                H4z
+                            "
+                        />
+                    </svg>
+
+                    Refreshing
+                </>
+            ) : (
+                <>
+                    ↻
+                    Refresh Feed
+                </>
+            )}
+        </button>
+    </div>
+)}
 
       {feedExhausted && (
             <div
@@ -183,7 +285,7 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
                 "
             >
 
-                <p className="text-sm mb-4">
+                <p className="text-sm mb-4 text-center mx-auto">
                     No Feed Post Available Refresh or Wait for More Update
                 </p>
 
@@ -283,7 +385,29 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
         myReels={myReels}
         setMyReels={setMyReels}
         reelUsers={reelUsers}
-        setReelUsers={setReelUsers} />
+        setReelUsers={setReelUsers} 
+        openUserReels={openUserReels}
+        setSelectedReelIndex={setSelectedReelIndex}
+        selectedReelIndex={selectedReelIndex}
+        setSelectedUserIndex={setSelectedUserIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
+/>
 
       
        
@@ -300,6 +424,7 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
                 setCommentsByPost={setCommentsByPost}
                 setChats={setChats}
                 postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
+                reelUsers={reelUsers} openUserReels={openUserReels}
                 />
 
 
@@ -311,6 +436,80 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
         </React.Fragment>
     ))}
   
+  {feedExhausted && posts.length > 0 && (
+    <div
+        className="
+            flex
+            flex-col
+            items-center
+            justify-center
+            py-10
+            w-full
+        "
+    >
+        <p className="text-sm mb-4 text-center mx-auto">
+            No Feed Post Available Refresh or Wait for More Update
+        </p>
+
+        <button
+            type="button"
+            onClick={() => fetchFeed(true)}
+            disabled={feedRefreshing}
+            className="
+                px-5
+                py-2.5
+                rounded-lg
+                bg-green-600
+                hover:bg-green-700
+                text-white
+                font-semibold
+                disabled:opacity-50
+                flex
+                items-center
+                gap-2
+            "
+        >
+            {feedRefreshing ? (
+                <>
+                    <svg
+                        className="animate-spin h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        />
+
+                        <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="
+                                M4 12
+                                a8 8 0 018-8
+                                v4
+                                a4 4 0 00-4 4
+                                H4z
+                            "
+                        />
+                    </svg>
+
+                    Refreshing
+                </>
+            ) : (
+                <>
+                    ↻
+                    Refresh Feed
+                </>
+            )}
+        </button>
+    </div>
+)}
   
       {feedExhausted && (
             <div
@@ -324,7 +523,7 @@ reelLoading, error, fetchMyReel, fetchReels, commentsByPost, setCommentsByPost})
                 "
             >
 
-                <p className="text-sm mb-4">
+                <p className="text-sm mb-4 text-center mx-auto">
                     No Feed Post Available Refresh or Wait for More Update
                 </p>
 

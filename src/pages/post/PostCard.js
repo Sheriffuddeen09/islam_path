@@ -17,7 +17,8 @@ import EmojiPicker from "emoji-picker-react";
 
 export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
   loading, setLoading, newComment, setNewComment, emojiList, setEmojiList,
-showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsByPost, setCommentsByPost }) {
+showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsByPost, setCommentsByPost, reelUsers,
+openUserReels }) {
 
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
@@ -210,13 +211,155 @@ const shareToChat = async (chatId) => {
       const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
 
       const firstUser = others[0];
-      const lastUser = others[others.length - 1];
-      const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
-
+      
       const allUsers = uniqueUsers; // 👈 this is your full popup list
 
 
-      
+      const repostUserId = Number(post?.reposted_by?.id);
+
+      if (Array.isArray(reelUsers)) {
+          reelUsers.forEach((repostItem, repostIndex) => {
+              console.log(`REPOST REEL USER ${repostIndex}:`, {
+                  item: repostItem,
+                  user: repostItem?.user,
+                  userId: repostItem?.user?.id,
+                  directUserId: repostItem?.user_id,
+                  itemId: repostItem?.id,
+                  reels: repostItem?.reels,
+
+                  reelCount: Array.isArray(repostItem?.reels)
+                      ? repostItem.reels.length
+                      : 0,
+
+                  reelUserIds: Array.isArray(repostItem?.reels)
+                      ? repostItem.reels.map(repostReel => ({
+                          id: repostReel?.id,
+                          user_id: repostReel?.user_id,
+                          has_viewed: repostReel?.has_viewed,
+                      }))
+                      : [],
+              });
+          });
+      }
+
+      const repostUserIndex = Array.isArray(reelUsers)
+          ? reelUsers.findIndex(repostItem => {
+
+              const repostItemUserId =
+                  Number(repostItem?.user?.id);
+
+              const repostDirectUserId =
+                  Number(repostItem?.user_id);
+
+              const repostReels =
+                  Array.isArray(repostItem?.reels)
+                      ? repostItem.reels
+                      : [];
+
+              const repostReelUserIds =
+                  repostReels.map(
+                      repostReel =>
+                          Number(repostReel?.user_id)
+                  );
+
+              console.log("CHECKING REPOST REEL ITEM:", {
+                  repostItemUserId,
+                  repostDirectUserId,
+                  repostReelUserIds,
+                  lookingForRepostUser: repostUserId,
+              });
+
+              return (
+                  repostItemUserId === repostUserId ||
+                  repostDirectUserId === repostUserId ||
+                  repostReelUserIds.includes(repostUserId)
+              );
+          })
+          : -1;
+
+      const repostUserReels =
+          repostUserIndex >= 0 &&
+          Array.isArray(
+              reelUsers[repostUserIndex]?.reels
+          )
+              ? reelUsers[repostUserIndex].reels
+              : [];
+
+      const hasUnviewedRepostReel =
+          repostUserReels.some(
+              repostReel =>
+                  repostReel?.has_viewed !== true
+          );
+
+      const hasRepostReel =
+          repostUserReels.length > 0;
+
+const postUserId = Number(post?.user?.id);
+ 
+
+if (Array.isArray(reelUsers)) {
+    reelUsers.forEach((item, index) => {
+        console.log(`REEL USER ${index}:`, {
+            item: item,
+            user: item?.user,
+            userId: item?.user?.id,
+            directUserId: item?.user_id,
+            itemId: item?.id,
+            reels: item?.reels,
+            reelCount: Array.isArray(item?.reels)
+                ? item.reels.length
+                : 0,
+
+            reelUserIds: Array.isArray(item?.reels)
+                ? item.reels.map(reel => ({
+                    id: reel?.id,
+                    user_id: reel?.user_id,
+                    has_viewed: reel?.has_viewed,
+                }))
+                : [],
+        });
+    });
+}
+
+const userIndex = Array.isArray(reelUsers)
+    ? reelUsers.findIndex(item => {
+
+        const itemUserId = Number(item?.user?.id);
+        const directUserId = Number(item?.user_id);
+
+        const reels = Array.isArray(item?.reels)
+            ? item.reels
+            : [];
+
+        const reelUserIds = reels.map(
+            reel => Number(reel?.user_id)
+        );
+
+        console.log("CHECKING ITEM:", {
+            itemUserId,
+            directUserId,
+            reelUserIds,
+            lookingFor: postUserId,
+        });
+
+        return (
+            itemUserId === postUserId ||
+            directUserId === postUserId ||
+            reelUserIds.includes(postUserId)
+        );
+    })
+    : -1;
+
+const userReels =
+    userIndex >= 0 &&
+    Array.isArray(reelUsers[userIndex]?.reels)
+        ? reelUsers[userIndex].reels
+        : [];
+
+const hasUnviewedReel = userReels.some(
+    reel => reel?.has_viewed !== true
+);
+ 
         const colors = [
           "bg-red-400",
           "bg-blue-400",
@@ -278,13 +421,48 @@ const handleHidePost = async (postId) => {
       {post.is_repost && (
         <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
-          <Link to={`/profile/${post.reposted_by?.id}`}>
-        <p className={`text-white font-bold pb-1 text-[32px] rounded-full w-10 h-10 text-center
-        flex flex-col items-center justify-center ${getColor(post.reposted_by?.name)}`}>
-          {getInitial(post.reposted_by?.name)}
-        </p>
-        </Link>
-        
+       <button
+          type="button"
+          onClick={() => {
+              if (
+                  repostUserIndex !== -1 &&
+                  hasRepostReel
+              ) {
+                  openUserReels(repostUserIndex);
+              }
+          }}
+          className="focus:outline-none"
+      >
+          <p
+              className={`
+                  text-white
+                  font-bold
+                  pb-1
+                  text-[32px]
+                  rounded-full
+                  w-10
+                  h-10
+                  text-center
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  border-2
+
+                  ${
+                      hasRepostReel
+                          ? hasUnviewedRepostReel
+                              ? "border-green-500"
+                              : "border-gray-300"
+                          : "border-gray-300"
+                  }
+
+                  ${getColor(post?.reposted_by?.name)}
+              `}
+          >
+              {getInitial(post?.reposted_by?.name)}
+          </p>
+      </button>
          <div>
           <Link to={`/profile/${post.reposted_by.id}`}>
           <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
@@ -319,12 +497,41 @@ const handleHidePost = async (postId) => {
       <div className="flex p-3 border-b border-gray-500 items-start justify-between">
 
       <div className="flex items-center  gap-3">
-        <Link to={`/profile/${user?.id}`}>
-        <p className={`font-bold pb-1 text-white text-[32px] rounded-full w-10 h-10 text-center
-        flex flex-col items-center justify-center ${getColor(post.user?.name)}`}>
-          {getInitial(post.user?.name)}
-        </p>
-        </Link>
+       <button
+            type="button"
+            onClick={() => {
+                if (userIndex >= 0 && userReels.length > 0) {
+                    openUserReels(userIndex);
+                }
+            }}
+            className="focus:outline-none"
+        >
+            <p
+                className={`
+                    text-white
+                    font-bold
+                    pb-1
+                    text-[32px]
+                    rounded-full
+                    w-10
+                    h-10
+                    text-center
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    border-2
+                    ${
+                        hasUnviewedReel
+                            ? "border-green-500"
+                            : "border-gray-300"
+                    }
+                    ${getColor(post?.user?.name)}
+                `}
+            >
+                {getInitial(post?.user?.name)}
+            </p>
+        </button>
         <div>
           <Link to={`/profile/${user.id}`}>
           <p className="font-semibold text-sm">{post.user?.name}</p>
@@ -896,7 +1103,8 @@ const handleHidePost = async (postId) => {
       onClick={() => setShowUsersPopup(false)} // close popup on click
     >
       <div
-        className={`w-8 h-8 rounded-full ${getColor(user.id)} flex items-center justify-center text-xl font-semibold`}
+        className={`w-8 h-8 rounded-full 
+          ${getColor(user.id)} flex items-center justify-center text-xl font-semibold`}
       >
         {user.id === currentUser?.id
           ? "Y"

@@ -1,148 +1,656 @@
+import React, {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
-
-
-
-
-
-
-import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import PostCardVideo from "./PostCardVideo";
 import SidebarLeft from "../homepageComponent/SideBarLeft";
 import SidebarRight from "../homepageComponent/SidebarRight";
 
-export default function PostFeedVideo({posts, setPosts, image, postComments, setPostComments, newComment, setNewComment,
-  showEmoji, setShowEmoji, emojiList, setEmojiList,messageOpen, setMessageOpen, chats, setChats,
-  loading, setLoading, setImage, setShowUsersPopup, showUsersPopup, fetchJobProfile, show, setShow, jobProfile, setJobProfile,
-  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick, commentsByPost, setCommentsByPost
+export default function PostFeedVideo({
+    posts,
+    setPosts,
+    image,
+    postComments,
+    setPostComments,
+    newComment,
+    setNewComment,
+    showEmoji,
+    setShowEmoji,
+    emojiList,
+    setEmojiList,
+    messageOpen,
+    setMessageOpen,
+    chats,
+    setChats,
+    loading,
+    setLoading,
+    setImage,
+    setShowUsersPopup,
+    showUsersPopup,
+    fetchJobProfile,
+    show,
+    setShow,
+    jobProfile,
+    setJobProfile,
+    showAdvertisement,
+    setShowAdvertisement,
+    showJobCreate,
+    setShowJobCreate,
+    videoCount,
+    handleVideoClick,
+    commentsByPost,
+    setCommentsByPost,
+    reelUsers,
+    openUserReels,
+    sending,
+    setSending,
+    closeViewer,
+    nextReel,
+    previousReel,
+    selectedReel,
+    selectedUser,
+    markReelViewed,
+    open,
+    setOpen,
+    openReport,
+    setOpenReport,
+    showImagePicker,
+    setShowImagePicker,
+    messageOpenShare,
+    setMessageOpenShare,
+    shares,
+    setShares,
+    setMyReels,
+    setReelUsers,
+    selectedReelIndex,
+    selectedUserIndex,
+    setMediaIndex,
+    mediaIndex,
+    setProgress,
+    progress,
+    setMessage,
+    message,
+    setReaction,
+    reaction,
+    setShowOptions,
+    showOptions,
 }) {
+    const [feedLoading, setFeedLoading] = useState(false);
+    const [feedRefreshing, setFeedRefreshing] = useState(false);
+    const [feedLoaded, setFeedLoaded] = useState(false);
+    const [feedEnded, setFeedEnded] = useState(false);
 
-    const [feedLoading, setFeedLoading] = useState(false)
- 
-    const fetchPosts = async () => {
-  setFeedLoading(true);
-  try {
-    const res = await api.get("/api/posts-get");
+    const lastVideoRef = useRef(null);
 
-    const onlyVideoPosts = res.data.posts.filter(p =>
-      p.media?.some(m => m.type === "video") &&
-      (!p.content || p.content.trim() === "")
-    );
+  
+    const fetchPosts = useCallback(async (isRefresh = false) => {
+        if (isRefresh) {
+            setFeedRefreshing(true);
+        } else {
+            setFeedLoading(true);
+        }
 
-    setPosts(onlyVideoPosts);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setFeedLoading(false);
-  }
-};
+        setFeedEnded(false);
 
+        try {
+            const res = await api.get("/api/posts-get");
 
-useEffect(() => {
-  fetchPosts();
-}, []);
+            const responsePosts = Array.isArray(res.data?.posts)
+                ? res.data.posts
+                : [];
 
+            const onlyVideoPosts = responsePosts.filter((post) => {
+                const hasVideo = Array.isArray(post?.media)
+                    ? post.media.some(
+                          (media) => media?.type === "video"
+                      )
+                    : false;
 
-  if (feedLoading) return (
-     <FeedSkeleton />
-    );
+                const hasNoContent =
+                    !post?.content ||
+                    post.content.trim() === "";
 
-  const largeScreen = (
-    <div className="block md:hidden lg:block">
-         <div className="flex flex-col lg:flex-row  items-center justify-center  mx-auto min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
-                {/* Mobile Menu Button */}
-        
-                {/* SidebarRight */}
-                <SidebarLeft
-                handleVideoClick={handleVideoClick}
-                videoCount={videoCount}
-                jobProfile={jobProfile}
-                setJobProfile={setJobProfile}
-                fetchJobProfile={fetchJobProfile}
-                show={show}
-                setShow={setShow}
-                showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
-                showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
-        
-                />
+                return hasVideo && hasNoContent;
+            });
 
-        {/* Sidebar */}
-        
+            setPosts(onlyVideoPosts);
+            setFeedLoaded(true);
+
+            setFeedEnded(false);
+        } catch (error) {
+            console.error("VIDEO FEED ERROR:", error);
+
+            setPosts([]);
+            setFeedLoaded(true);
+            setFeedEnded(false);
+        } finally {
+            setFeedLoading(false);
+            setFeedRefreshing(false);
+        }
+    }, [setPosts]);
+
     
-    
-      {
-        posts.length === 0 && (
-          <p className="bg-[var(--bg-color)] text-[var(--text-color)] lg:ml-96 translate-y-40 
-          sm:translate-y-0 mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
-            No Video Available
-          </p>
-         )
-      }
-    
-    <div className="flex-1 transition-all mx-auto p-4 mt-20 gap-3 flex flex-col items-center">
-      {posts.map(post => (
-        <PostCardVideo key={post.id} post={post} setPosts={setPosts} 
-        image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        messageOpen={messageOpen} commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
-        setMessageOpen={setMessageOpen}
-        chats={chats}
-        setChats={setChats}/>
-      ))}
+    useEffect(() => {
+        fetchPosts();
+    }, [fetchPosts]);
 
-      </div>
-    </div>
-    </div>
-  );
+    useEffect(() => {
+        if (!feedLoaded || posts.length === 0) {
+            return;
+        }
 
-  const ipadScreen = (
-          <div className="md:block lg:hidden hidden">
-            <div className="flex flex-col items-start mx-auto min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]">
-                    {/* Mobile Menu Button */}
-            
-                    {/* SidebarRight */}
-                   
-                <SidebarRight />
+        const lastVideo = lastVideoRef.current;
+
+        if (!lastVideo) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+
+                if (entry.isIntersecting) {
+                    setFeedEnded(true);
+                }
+            },
             {
-                posts.length === 0 && (
-                <p className="bg-[var(--bg-color)] text-[var(--text-color)] lg:ml-96 translate-y-40 sm:translate-y-0 
-                mx-auto sm:text-xl flex flex-col justify-center items-center text-center text-xl font-bold ">
+                threshold: 0.2,
+            }
+        );
+
+        observer.observe(lastVideo);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [posts, feedLoaded]);
+
+    const handleRefresh = async () => {
+        if (feedRefreshing || feedLoading) {
+            return;
+        }
+
+        await fetchPosts(true);
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    const renderFeedEnd = () => {
+      
+        if (
+            !feedLoaded ||
+            posts.length === 0 ||
+            !feedEnded
+        ) {
+            return null;
+        }
+
+        return (
+            <div className="w-full flex flex-col items-center justify-center py-10 px-4">
+                <p className="text-sm sm:text-base text-center mb-4">
+                    No More Video Available
+                </p>
+
+                <button
+                    type="button"
+                    onClick={handleRefresh}
+                    disabled={feedRefreshing}
+                    className="
+                        min-w-[160px]
+                        px-5
+                        py-2.5
+                        rounded-lg
+                        bg-green-600
+                        hover:bg-green-700
+                        text-white
+                        font-semibold
+                        transition
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                    "
+                >
+                    {feedRefreshing ? (
+                        <>
+                            <svg
+                                className="animate-spin h-5 w-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="
+                                        M4 12
+                                        a8 8 0 018-8
+                                        v4
+                                        a4 4 0 00-4 4
+                                        H4z
+                                    "
+                                />
+                            </svg>
+
+                            Refreshing
+                        </>
+                    ) : (
+                        <>
+                            <span className="text-xl leading-none">
+                                ↻
+                            </span>
+
+                            Refresh Videos
+                        </>
+                    )}
+                </button>
+            </div>
+        );
+    };
+
+    const renderNoVideos = () => {
+        if (!feedLoaded || posts.length > 0) {
+            return null;
+        }
+
+        return (
+            <div className="
+                w-full
+                flex
+                flex-col
+                justify-center
+                items-center
+                text-center
+                py-20
+                px-4
+            ">
+                <p className="text-xl font-bold">
                     No Video Available
                 </p>
-                )
-            }
-            
+            </div>
+        );
+    };
 
-      <div className="flex-1 transition-all p-4 mt-20 gap-3 relative right-4 flex flex-col items-end">
-      {posts.map(post => (
-        <PostCardVideo key={post.id} post={post} setPosts={setPosts} 
-        image={image} setImage={setImage}  showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
-        newComment={newComment} setNewComment={setNewComment}
-        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-        emojiList={emojiList} setEmojiList={setEmojiList} commentsByPost={commentsByPost}
-                    setCommentsByPost={setCommentsByPost}
-        postComments={postComments} setPostComments={setPostComments} loading={loading} setLoading={setLoading}
-        />
-      ))}
-      </div>
-      </div>
-      
-    </div>
-  );
+    if (feedLoading) {
+        return <FeedSkeleton />;
+    }
 
-  return (
-    <div>
-      {largeScreen}
-      {ipadScreen}
-    </div>
-  )
+    /*
+    |--------------------------------------------------------------------------
+    | Large screen
+    |--------------------------------------------------------------------------
+    */
+    const largeScreen = (
+        <div className="block md:hidden lg:block">
+            <div
+                className="
+                    flex
+                    flex-col
+                    lg:flex-row
+                    items-center
+                    justify-center
+                    mx-auto
+                    min-h-screen
+                    bg-[var(--bg-color)]
+                    text-[var(--text-color)]
+                "
+            >
+                {/* Sidebar */}
+                <SidebarLeft
+                    handleVideoClick={handleVideoClick}
+                    videoCount={videoCount}
+                    jobProfile={jobProfile}
+                    setJobProfile={setJobProfile}
+                    fetchJobProfile={fetchJobProfile}
+                    show={show}
+                    setShow={setShow}
+                    showAdvertisement={showAdvertisement}
+                    setShowAdvertisement={setShowAdvertisement}
+                    showJobCreate={showJobCreate}
+                    setShowJobCreate={setShowJobCreate}
+                />
+
+                {renderNoVideos()}
+
+                <div
+                    className="
+                        flex-1
+                        transition-all
+                        mx-auto
+                        p-4
+                        mt-20
+                        gap-3
+                        flex
+                        flex-col
+                        items-center
+                    "
+                >
+                    {posts.map((post, index) => {
+                        const isLastPost =
+                            index === posts.length - 1;
+
+                        return (
+                            <div
+                                key={post.id}
+                                ref={
+                                    isLastPost
+                                        ? lastVideoRef
+                                        : null
+                                }
+                                className="w-full flex justify-center"
+                            >
+                                <PostCardVideo
+                                    post={post}
+                                    setPosts={setPosts}
+                                    image={image}
+                                    setImage={setImage}
+                                    showUsersPopup={showUsersPopup}
+                                    setShowUsersPopup={
+                                        setShowUsersPopup
+                                    }
+                                    newComment={newComment}
+                                    setNewComment={setNewComment}
+                                    showEmoji={showEmoji}
+                                    setShowEmoji={setShowEmoji}
+                                    emojiList={emojiList}
+                                    setEmojiList={setEmojiList}
+                                    postComments={postComments}
+                                    setPostComments={
+                                        setPostComments
+                                    }
+                                    loading={loading}
+                                    setLoading={setLoading}
+                                    messageOpen={messageOpen}
+                                    commentsByPost={
+                                        commentsByPost
+                                    }
+                                    reelUsers={reelUsers}
+                                    openUserReels={
+                                        openUserReels
+                                    }
+                                    setCommentsByPost={
+                                        setCommentsByPost
+                                    }
+                                    setMessageOpen={
+                                        setMessageOpen
+                                    }
+                                    chats={chats}
+                                    setChats={setChats}
+                                    sending={sending}
+                                    setSending={setSending}
+                                    closeViewer={closeViewer}
+                                    nextReel={nextReel}
+                                    previousReel={
+                                        previousReel
+                                    }
+                                    selectedReel={
+                                        selectedReel
+                                    }
+                                    selectedUser={
+                                        selectedUser
+                                    }
+                                    markReelViewed={
+                                        markReelViewed
+                                    }
+                                    open={open}
+                                    setOpen={setOpen}
+                                    openReport={openReport}
+                                    setOpenReport={
+                                        setOpenReport
+                                    }
+                                    showImagePicker={
+                                        showImagePicker
+                                    }
+                                    setShowImagePicker={
+                                        setShowImagePicker
+                                    }
+                                    messageOpenShare={
+                                        messageOpenShare
+                                    }
+                                    setMessageOpenShare={
+                                        setMessageOpenShare
+                                    }
+                                    shares={shares}
+                                    setShares={setShares}
+                                    setMyReels={setMyReels}
+                                    setReelUsers={
+                                        setReelUsers
+                                    }
+                                    selectedReelIndex={
+                                        selectedReelIndex
+                                    }
+                                    selectedUserIndex={
+                                        selectedUserIndex
+                                    }
+                                    setMediaIndex={
+                                        setMediaIndex
+                                    }
+                                    mediaIndex={mediaIndex}
+                                    setProgress={
+                                        setProgress
+                                    }
+                                    progress={progress}
+                                    setMessage={setMessage}
+                                    message={message}
+                                    setReaction={
+                                        setReaction
+                                    }
+                                    reaction={reaction}
+                                    setShowOptions={
+                                        setShowOptions
+                                    }
+                                    showOptions={
+                                        showOptions
+                                    }
+                                />
+                            </div>
+                        );
+                    })}
+
+                    {renderFeedEnd()}
+                </div>
+            </div>
+        </div>
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | iPad / medium screen
+    |--------------------------------------------------------------------------
+    */
+    const ipadScreen = (
+        <div className="md:block lg:hidden hidden">
+            <div
+                className="
+                    flex
+                    flex-col
+                    items-start
+                    mx-auto
+                    min-h-screen
+                    bg-[var(--bg-color)]
+                    text-[var(--text-color)]
+                "
+            >
+                <SidebarRight />
+
+                {renderNoVideos()}
+
+                <div
+                    className="
+                        flex-1
+                        transition-all
+                        p-4
+                        mt-20
+                        gap-3
+                        relative
+                        right-4
+                        flex
+                        flex-col
+                        items-end
+                    "
+                >
+                    {posts.map((post, index) => {
+                        const isLastPost =
+                            index === posts.length - 1;
+
+                        return (
+                            <div
+                                key={post.id}
+                                ref={
+                                    isLastPost
+                                        ? lastVideoRef
+                                        : null
+                                }
+                                className="w-full flex justify-end"
+                            >
+                                <PostCardVideo
+                                    post={post}
+                                    setPosts={setPosts}
+                                    image={image}
+                                    setImage={setImage}
+                                    showUsersPopup={
+                                        showUsersPopup
+                                    }
+                                    setShowUsersPopup={
+                                        setShowUsersPopup
+                                    }
+                                    newComment={newComment}
+                                    setNewComment={
+                                        setNewComment
+                                    }
+                                    showEmoji={showEmoji}
+                                    setShowEmoji={
+                                        setShowEmoji
+                                    }
+                                    emojiList={emojiList}
+                                    setEmojiList={
+                                        setEmojiList
+                                    }
+                                    commentsByPost={
+                                        commentsByPost
+                                    }
+                                    reelUsers={reelUsers}
+                                    openUserReels={
+                                        openUserReels
+                                    }
+                                    setCommentsByPost={
+                                        setCommentsByPost
+                                    }
+                                    postComments={postComments}
+                                    setPostComments={
+                                        setPostComments
+                                    }
+                                    loading={loading}
+                                    setLoading={setLoading}
+                                    sendReeling={sending}
+                                    setSendReeling={
+                                        setSending
+                                    }
+                                    closeViewer={closeViewer}
+                                    nextReel={nextReel}
+                                    previousReel={
+                                        previousReel
+                                    }
+                                    selectedReel={
+                                        selectedReel
+                                    }
+                                    selectedUser={
+                                        selectedUser
+                                    }
+                                    markReelViewed={
+                                        markReelViewed
+                                    }
+                                    open={open}
+                                    setOpen={setOpen}
+                                    openReport={openReport}
+                                    setOpenReport={
+                                        setOpenReport
+                                    }
+                                    showImagePicker={
+                                        showImagePicker
+                                    }
+                                    setShowImagePicker={
+                                        setShowImagePicker
+                                    }
+                                    messageOpenShared={
+                                        messageOpenShare
+                                    }
+                                    setMessageOpenShared={
+                                        setMessageOpenShare
+                                    }
+                                    shareds={shares}
+                                    setShareds={setShares}
+                                    setMyReels={setMyReels}
+                                    setReelUsers={
+                                        setReelUsers
+                                    }
+                                    selectedReelIndex={
+                                        selectedReelIndex
+                                    }
+                                    selectedUserIndex={
+                                        selectedUserIndex
+                                    }
+                                    setMediaIndex={
+                                        setMediaIndex
+                                    }
+                                    mediaIndex={mediaIndex}
+                                    setProgress={
+                                        setProgress
+                                    }
+                                    progress={progress}
+                                    setMessage={setMessage}
+                                    message={message}
+                                    setReaction={
+                                        setReaction
+                                    }
+                                    reaction={reaction}
+                                    setShowOptions={
+                                        setShowOptions
+                                    }
+                                    showOptions={
+                                        showOptions
+                                    }
+                                />
+                            </div>
+                        );
+                    })}
+
+                    {renderFeedEnd()}
+                </div>
+            </div>
+        </div>
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Return
+    |--------------------------------------------------------------------------
+    */
+    return (
+        <div>
+            {largeScreen}
+            {ipadScreen}
+        </div>
+    );
 }
-
-
 
 const FeedSkeleton = () => {
     return (

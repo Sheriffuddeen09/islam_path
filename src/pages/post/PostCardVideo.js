@@ -11,17 +11,21 @@ import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle } from "lucide-react";
 import { Repost } from "./Repost";
 import EmojiPicker from "emoji-picker-react";
+import ReelViewerModal from "../reel/ReelViewerModal";
 
 
 
 export default function PostCardVideo({ post, setPosts, image, setImage, postComments, setPostComments, 
-  loading, setLoading, newComment, setNewComment, emojiList, setEmojiList,
-showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsByPost, setCommentsByPost
+  loading, setLoading, newComment, setNewComment, emojiList, setEmojiList, reelUsers, openUserReels,
+showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsByPost, setCommentsByPost,
+sendReeling, setSendReeling, closeViewer, nextReel, previousReel, selectedReel, selectedUser, markReelViewed,
+open, setOpen, openReport, setOpenReport, showImagePicker, setShowImagePicker, messageOpenShared,
+setMessageOpenShared, shareds, setShareds, setMyReels, setReelUsers, selectedReelIndex, selectedUserIndex, setMediaIndex,
+mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions
  }) {
 
   const {user} = useAuth()
-  const {user: currentUser} = useAuth();
-  const [showMore, setShowMore] = useState(false);
+  const {user: currentUser} = useAuth(); 
   const [showReactions, setShowReactions] = useState(false);
   const [counts, setCounts] = useState(post.reaction_counts || {});
   const [myReaction, setMyReaction] = useState(post.my_reaction || null);
@@ -185,12 +189,6 @@ const openVideoPreview = (video, post) => {
     });
 };
 
-const closeVideoPreview = () => {
-    setVideoPreview(null);
-};
-
-
-
 
  const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
 
@@ -206,12 +204,156 @@ const closeVideoPreview = () => {
       const others = uniqueUsers.filter(u => u.id !== currentUser?.id);
 
       const firstUser = others[0];
-      const lastUser = others[others.length - 1];
-      const othersCount = total - (me ? 1 : 0) - (others.length > 1 ? 2 : others.length);
-
+     
       const allUsers = uniqueUsers; // 👈 this is your full popup list
 
 
+     const repostUserId = Number(post?.reposted_by?.id);
+
+      if (Array.isArray(reelUsers)) {
+          reelUsers.forEach((repostItem, repostIndex) => {
+              console.log(`REPOST REEL USER ${repostIndex}:`, {
+                  item: repostItem,
+                  user: repostItem?.user,
+                  userId: repostItem?.user?.id,
+                  directUserId: repostItem?.user_id,
+                  itemId: repostItem?.id,
+                  reels: repostItem?.reels,
+
+                  reelCount: Array.isArray(repostItem?.reels)
+                      ? repostItem.reels.length
+                      : 0,
+
+                  reelUserIds: Array.isArray(repostItem?.reels)
+                      ? repostItem.reels.map(repostReel => ({
+                          id: repostReel?.id,
+                          user_id: repostReel?.user_id,
+                          has_viewed: repostReel?.has_viewed,
+                      }))
+                      : [],
+              });
+          });
+      }
+
+      const repostUserIndex = Array.isArray(reelUsers)
+          ? reelUsers.findIndex(repostItem => {
+
+              const repostItemUserId =
+                  Number(repostItem?.user?.id);
+
+              const repostDirectUserId =
+                  Number(repostItem?.user_id);
+
+              const repostReels =
+                  Array.isArray(repostItem?.reels)
+                      ? repostItem.reels
+                      : [];
+
+              const repostReelUserIds =
+                  repostReels.map(
+                      repostReel =>
+                          Number(repostReel?.user_id)
+                  );
+
+              console.log("CHECKING REPOST REEL ITEM:", {
+                  repostItemUserId,
+                  repostDirectUserId,
+                  repostReelUserIds,
+                  lookingForRepostUser: repostUserId,
+              });
+
+              return (
+                  repostItemUserId === repostUserId ||
+                  repostDirectUserId === repostUserId ||
+                  repostReelUserIds.includes(repostUserId)
+              );
+          })
+          : -1;
+
+      const repostUserReels =
+          repostUserIndex >= 0 &&
+          Array.isArray(
+              reelUsers[repostUserIndex]?.reels
+          )
+              ? reelUsers[repostUserIndex].reels
+              : [];
+
+      const hasUnviewedRepostReel =
+          repostUserReels.some(
+              repostReel =>
+                  repostReel?.has_viewed !== true
+          );
+
+      const hasRepostReel =
+          repostUserReels.length > 0;
+          
+
+          
+    const postUserId = Number(post?.user?.id);
+    
+
+    if (Array.isArray(reelUsers)) {
+        reelUsers.forEach((item, index) => {
+            console.log(`REEL USER ${index}:`, {
+                item: item,
+                user: item?.user,
+                userId: item?.user?.id,
+                directUserId: item?.user_id,
+                itemId: item?.id,
+                reels: item?.reels,
+                reelCount: Array.isArray(item?.reels)
+                    ? item.reels.length
+                    : 0,
+
+                reelUserIds: Array.isArray(item?.reels)
+                    ? item.reels.map(reel => ({
+                        id: reel?.id,
+                        user_id: reel?.user_id,
+                        has_viewed: reel?.has_viewed,
+                    }))
+                    : [],
+            });
+        });
+    }
+
+    const userIndex = Array.isArray(reelUsers)
+        ? reelUsers.findIndex(item => {
+
+            const itemUserId = Number(item?.user?.id);
+            const directUserId = Number(item?.user_id);
+
+            const reels = Array.isArray(item?.reels)
+                ? item.reels
+                : [];
+
+            const reelUserIds = reels.map(
+                reel => Number(reel?.user_id)
+            );
+
+            console.log("CHECKING ITEM:", {
+                itemUserId,
+                directUserId,
+                reelUserIds,
+                lookingFor: postUserId,
+            });
+
+            return (
+                itemUserId === postUserId ||
+                directUserId === postUserId ||
+                reelUserIds.includes(postUserId)
+            );
+        })
+        : -1;
+
+    const userReels =
+        userIndex >= 0 &&
+        Array.isArray(reelUsers[userIndex]?.reels)
+            ? reelUsers[userIndex].reels
+            : [];
+
+    const hasUnviewedReel = userReels.some(
+        reel => reel?.has_viewed !== true
+    );
       const colors = [
           "bg-red-400",
           "bg-blue-400",
@@ -305,13 +447,49 @@ const closeVideoPreview = () => {
           {post.is_repost && (
             <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
             <div className="inline-flex items-center gap-3 justify-between">
-              <Link to={`/profile/${post.reposted_by?.id}`}>
-            <p className={`text-white font-bold pb-1 text-[32px] rounded-full w-10 h-10 text-center
-            flex flex-col items-center justify-center ${getColor(post.reposted_by?.name)}`}>
-              {getInitial(post.reposted_by?.name)}
-            </p>
-            </Link>
-            
+             <button
+                  type="button"
+                  onClick={() => {
+                      if (
+                          repostUserIndex !== -1 &&
+                          hasRepostReel
+                      ) {
+                          openUserReels(repostUserIndex);
+                      }
+                  }}
+                  className="focus:outline-none"
+              >
+                  <p
+                      className={`
+                          text-white
+                          font-bold
+                          pb-1
+                          text-[32px]
+                          rounded-full
+                          w-10
+                          h-10
+                          text-center
+                          flex
+                          flex-col
+                          items-center
+                          justify-center
+                          border-2
+
+                          ${
+                              hasRepostReel
+                                  ? hasUnviewedRepostReel
+                                      ? "border-green-500"
+                                      : "border-gray-300"
+                                  : "border-gray-300"
+                          }
+
+                          ${getColor(post?.reposted_by?.name)}
+                      `}
+                  >
+                      {getInitial(post?.reposted_by?.name)}
+                  </p>
+              </button>
+
              <div>
               <Link to={`/profile/${post.reposted_by.id}`}>
               <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
@@ -344,12 +522,41 @@ const closeVideoPreview = () => {
           <div className="flex p-3 border-b border-gray-500 items-start justify-between">
     
           <div className="flex items-center  gap-3">
-            <Link to={`/profile/${user?.id}`}>
-            <p className={`font-bold pb-1 text-white text-[32px] rounded-full w-10 h-10 text-center
-            flex flex-col items-center justify-center ${getColor(post.user?.name)}`}>
-              {getInitial(post.user?.name)}
+           <button
+            type="button"
+            onClick={() => {
+                if (userIndex >= 0 && userReels.length > 0) {
+                    openUserReels(userIndex);
+                }
+            }}
+            className="focus:outline-none"
+        >
+            <p
+                className={`
+                    text-white
+                    font-bold
+                    pb-1
+                    text-[32px]
+                    rounded-full
+                    w-10
+                    h-10
+                    text-center
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    border-2
+                    ${
+                        hasUnviewedReel
+                            ? "border-green-500"
+                            : "border-gray-300"
+                    }
+                    ${getColor(post?.user?.name)}
+                `}
+            >
+                {getInitial(post?.user?.name)}
             </p>
-            </Link>
+        </button>
             <div>
               <Link to={`/profile/${user.id}`}>
               <p className="font-semibold text-sm">{post.user?.name}</p>
@@ -848,7 +1055,8 @@ const closeVideoPreview = () => {
       onClick={() => setShowUsersPopup(false)} // close popup on click
     >
       <div
-        className={`w-8 h-8 rounded-full ${getColor(user.id)} flex items-center justify-center text-xl font-semibold text-white`}
+        className={`w-8 h-8 rounded-full  
+          ${getColor(user.id)} flex items-center justify-center text-xl font-semibold text-white`}
       >
         {user.id === currentUser?.id
           ? "Y"
@@ -870,6 +1078,68 @@ const closeVideoPreview = () => {
             onClose={() => setNotify({ message: "", type: "" })}
           />
         )}
+
+
+          {selectedReel && (
+                        <ReelViewerModal
+                            chats={chats}
+                            user={selectedUser.user}
+                            reel={selectedReel}
+                            reelIndex={
+                                selectedReelIndex
+                            }
+                            totalReels={
+                                selectedUser.reels
+                                    .length
+                            }
+                            onClose={closeViewer}
+                            onNext={nextReel}
+                            onPrevious={
+                                previousReel
+                            }
+                            showOptions={
+                                showOptions
+                            }
+                            setShowOptions={
+                                setShowOptions
+                            }
+                            message={message}
+                            setMessage={setMessage}
+                            
+                            sending={sendReeling}
+                            setSending={setSendReeling}
+                            reaction={reaction}
+                            setReelUsers={setReelUsers}
+                            setMyReels={setMyReels}
+                            setReaction={
+                                setReaction
+                            }
+        
+                            currentUserIndex={selectedUserIndex}
+                            reelUsers={reelUsers}
+                            currentUser={user}
+        
+                            selectedReel={selectedReel}
+                            mediaIndex={mediaIndex}
+                            setMediaIndex={setMediaIndex}
+                            progress={progress}
+                            setProgress={setProgress}
+                            nextReel={nextReel}
+        
+                            markReelViewed={markReelViewed}
+                            open={open}
+                            setOpen={setOpen}
+                            showImagePicker={showImagePicker}
+                            setShowImagePicker={setShowImagePicker}
+                            messageOpenShare={messageOpenShared}
+                            setMessageOpenShare={setMessageOpenShared}
+                            openReport={openReport}
+                            setOpenReport={setOpenReport}
+                            shares={shareds}
+                            setShares={setShareds}
+                            
+                        />
+                    )}
 
     </div>
   );

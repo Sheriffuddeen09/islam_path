@@ -13,7 +13,11 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     fetchJobProfile, show, setShow, jobProfile, setJobProfile, showSuccessModal, setShowSuccessModal,
     setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, handlePostCreated,
     handleReelCreated, reelUsers, setReelUsers, myReels, setMyReels, handleReelClick, reelCount,
-    error, reelLoading, fetchMyReel, fetchReels, commentsByPost, setCommentsLoaded
+    error, reelLoading, fetchMyReel, fetchReels, commentsByPost, setCommentsLoaded, openUserReels, setMessage, message,
+    setSelectedReelIndex, selectedReelIndex, setSelectedUserIndex, selectedUserIndex, setProgress, progress, setMediaIndex,
+    mediaIndex, setShowOptions, showOptions, setReaction, reaction, sending, setSending, closeViewer, nextReel, 
+    previousReel, selectedReel, selectedUser, markReelViewed, open, setOpen, openReport, setOpenReport,
+    showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares
   }) {
 
 
@@ -64,7 +68,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
       postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
-                          setCommentsLoaded={setCommentsLoaded}
+      setCommentsLoaded={setCommentsLoaded}
       loading={loading} setLoading={setLoading}
       messageOpen={messageOpen}
       setMessageOpen={setMessageOpen}
@@ -88,6 +92,27 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       reelLoading={reelLoading}
       fetchReels={fetchReels}
       fetchMyReel={fetchMyReel}
+      openUserReels={openUserReels}
+        setSelectedReelIndex={setSelectedReelIndex}
+        selectedReelIndex={selectedReelIndex}
+        setSelectedUserIndex={setSelectedUserIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
        />
     </div>
   )
