@@ -519,7 +519,7 @@ const openVideoPreview = (video, post) => {
                     )} 
       
           {/* USER  */}
-          <div className="flex p-3 border-b border-gray-500 items-start justify-between">
+          <div className="flex py-3 px-4 border-b border-gray-500 items-start justify-between">
     
           <div className="flex items-center  gap-3">
            <button
@@ -561,7 +561,9 @@ const openVideoPreview = (video, post) => {
               <Link to={`/profile/${user.id}`}>
               <p className="font-semibold text-sm">{post.user?.name}</p>
               </Link>
-              <p className="text-xs">{post.created_at}</p>
+              <p className="text-xs">{post.is_repost
+                ? post.original_created_at
+                : post.created_at}</p>
             </div>
           </div>
     
@@ -580,6 +582,12 @@ const openVideoPreview = (video, post) => {
         </button>
     
           </div>
+        }
+
+        {post.is_repost &&
+        <p className="italic text-sm ">
+        Reposted
+        </p>
         }
           </div>
  <div

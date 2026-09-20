@@ -9,10 +9,7 @@ export function Repost({ post, setPosts }) {
   const [visibility, setVisibility] = useState("public");
   const [loading, setLoading] = useState(false);
 
-  const {user} = useAuth()
-
-  console.log('user', user)
-
+  
    const showNotification = (message, type = "success") => {
     setNotify({ message, type });
 
@@ -32,14 +29,22 @@ export function Repost({ post, setPosts }) {
       visibility: visibility,
     });
 
-    // Optimistic update
-    setPosts(prev =>
-      prev.map(p =>
-        p.id === post.id
-          ? { ...p, shares_count: p.shares_count + 1 }
-          : p
-      )
-    );
+   const repost = res.data.repost;
+
+if (repost) {
+    setPosts(prev => [
+        repost,
+        ...prev.map(p =>
+            p.id === post.id
+                ? {
+                      ...p,
+                      shares_count:
+                          Number(p.shares_count || 0) + 1,
+                  }
+                : p
+        ),
+    ]);
+}
 
     showNotification("Reposted successfully ✅", "success");
     setShowModal(false);

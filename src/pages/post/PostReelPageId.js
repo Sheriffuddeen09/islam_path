@@ -12,7 +12,6 @@ import { MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 
-
 export default function PostReelPageId({
   image, commentsByPost, setCommentsByPost,
   postComments,
@@ -250,19 +249,21 @@ const formatPostTime = (date) => {
     try {
         const res = await api.get("/api/reels-get-reel");
 
-        const data = Array.isArray(res.data?.posts)
-            ? res.data.posts
+        const data = Array.isArray(res.data?.reels)
+            ? res.data.reels
             : [];
  
         const allVideoPosts = data.filter(
             (post) =>
-                post?.post_type === "reel" &&
-                post?.is_advertisement !== true &&
+                (
+                    post?.post_type === "reel" ||
+                    post?.is_advertisement === true
+                ) &&
                 Array.isArray(post?.media) &&
                 post.media.some(
                     (media) =>
-                        media?.type === "video" &&
-                        media?.url
+                        media?.type === "video" ||
+                        media?.type === "image"
                 )
         );
 
@@ -300,10 +301,12 @@ const formatPostTime = (date) => {
           )?.id ??
           Number(id);
  
-        videosSinceAdRef.current =
-            videoPosts.length > 0 ? 1 : 0;
+        advertisementShownRef.current = false;
+        normalVideosCountRef.current = videoPosts.length > 0 ? 1 : 0;
 
+ 
 
+// nextNormalIndex
  
         setHasNextVideo(
             videoPosts.length > 0
@@ -328,8 +331,6 @@ const formatPostTime = (date) => {
 
             setVideos([]);
             setCurrentIndex(0);
-
-            videosSinceAdRef.current = 0;
 
             setHasNextVideo(false);
         }
@@ -831,7 +832,7 @@ return () => {
     showVideoControls();
   };
 
-
+// videosSinceAdRef
   
   const fetchNextVideo = async () => {
  
@@ -845,7 +846,7 @@ return () => {
             (post, index) =>
                 index > currentIndex &&
                 post?.is_advertisement !== true &&
-                post?.post_type === "post" &&
+                post?.post_type === "reel" &&
                 post?.viewed === false &&
                 Array.isArray(post?.media) &&
                 post.media.some(
@@ -892,7 +893,7 @@ return () => {
             if (
                 nextVideo &&
                 nextVideo.is_advertisement !== true &&
-                nextVideo.post_type === "post"
+                nextVideo.post_type === "reel"
             ) {
 
                 const newIndex =
@@ -945,7 +946,7 @@ return () => {
             (post, index) =>
                 index > currentIndex &&
                 post?.is_advertisement !== true &&
-                post?.post_type === "post" &&
+                post?.post_type === "reel" &&
                 post?.viewed === false &&
                 Array.isArray(post?.media) &&
                 post.media.some(
@@ -1054,7 +1055,7 @@ return () => {
         if (
             nextVideo &&
             nextVideo.is_advertisement !== true &&
-            nextVideo.post_type === "post"
+            nextVideo.post_type === "reel"
         ) {
 
             console.log(
@@ -1372,19 +1373,19 @@ const resetViewedVideos = async () => {
                 ? res.data.posts
                 : [];
 
-        const allVideoPosts =
-            data.filter(
-                (post) =>
-                    post?.post_type === "reel" &&
-                    post?.is_advertisement !== true &&
-                    Array.isArray(post?.media) &&
-                    post.media.some(
-                        (media) =>
-                            media?.type === "video" &&
-                            media?.url
-                    )
-            );
-
+        const allVideoPosts = data.filter(
+          (post) =>
+              (
+                  post?.post_type === "reel" ||
+                  post?.is_advertisement === true
+              ) &&
+              Array.isArray(post?.media) &&
+              post.media.some(
+                  (media) =>
+                      media?.type === "video" ||
+                      media?.type === "image"
+              )
+      );
         const requestedId =
             Number(id);
 
@@ -2150,10 +2151,7 @@ const commentScreen = (
                 {currentPost?.user?.name || "Unknown"}
               </p>
             </Link>
-
-            <div className="text-[11px] sm:text-[12px] sm:mt-1">
-              {formatPostTime(currentPost?.created_at)}
-              </div>
+ 
           </div>
         </div>
 
@@ -2895,12 +2893,10 @@ const commentScreen = (
                             : "Advertisement"}
                     </span>
                 </div>
-              <div className="text-[11px] sm:text-[12px]">
-              {formatPostTime(currentPost?.created_at)}
-              </div>
+              
                 {/* TITLE */}
                 {currentPost?.title && (
-                    <h2 className="text-base sm:text-lg font-bold break-words [overflow-wrap:anywhere]">
+                    <h2 className="text-base text-sm font-bold break-words [overflow-wrap:anywhere]">
                         {currentPost.title}
                     </h2>
                 )}
@@ -3126,7 +3122,7 @@ const commentScreen = (
             >
               {showReactions && (
                 <div
-                  className="absolute right-12 top-0 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
+                  className="absolute right-2 -top-7 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
                   onClick={(e) =>
                     e.stopPropagation()
                   }

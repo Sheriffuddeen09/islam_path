@@ -138,36 +138,37 @@ export default function PostFeedVideo({
         fetchPosts();
     }, [fetchPosts]);
 
-    useEffect(() => {
-        if (!feedLoaded || posts.length === 0) {
-            return;
-        }
-
-        const lastVideo = lastVideoRef.current;
-
-        if (!lastVideo) {
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0];
-
-                if (entry.isIntersecting) {
-                    setFeedEnded(true);
-                }
-            },
-            {
-                threshold: 0.2,
+        useEffect(() => {
+            if (!feedLoaded || posts.length <= 10) {
+                setFeedEnded(false);
+                return;
             }
-        );
 
-        observer.observe(lastVideo);
+            const lastVideo = lastVideoRef.current;
 
-        return () => {
-            observer.disconnect();
-        };
-    }, [posts, feedLoaded]);
+            if (!lastVideo) {
+                return;
+            }
+
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    const entry = entries[0];
+
+                    if (entry.isIntersecting) {
+                        setFeedEnded(true);
+                    }
+                },
+                {
+                    threshold: 0.2,
+                }
+            );
+
+            observer.observe(lastVideo);
+
+            return () => {
+                observer.disconnect();
+            };
+        }, [posts, feedLoaded]);
 
     const handleRefresh = async () => {
         if (feedRefreshing || feedLoading) {
@@ -182,22 +183,109 @@ export default function PostFeedVideo({
         });
     };
 
-    const renderFeedEnd = () => {
-      
-        if (
-            !feedLoaded ||
-            posts.length === 0 ||
-            !feedEnded
-        ) {
+        const renderFeedEnd = () => {
+            // Only show the refresh section when there are MORE than 10 videos
+            if (
+                !feedLoaded ||
+                posts.length <= 10 ||
+                !feedEnded
+            ) {
+                return null;
+            }
+
+            return (
+                <div className="w-full flex flex-col items-center justify-center py-10 px-4">
+                    <p className="text-sm sm:text-base text-center mb-4">
+                        No More Video Available
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleRefresh}
+                        disabled={feedRefreshing}
+                        className="
+                            min-w-[160px]
+                            px-5
+                            py-2.5
+                            rounded-lg
+                            bg-green-600
+                            hover:bg-green-700
+                            text-white
+                            font-semibold
+                            transition
+                            disabled:opacity-50
+                            disabled:cursor-not-allowed
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                        "
+                    >
+                        {feedRefreshing ? (
+                            <>
+                                <svg
+                                    className="animate-spin h-5 w-5"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="
+                                            M4 12
+                                            a8 8 0 018-8
+                                            v4
+                                            a4 4 0 00-4 4
+                                            H4z
+                                        "
+                                    />
+                                </svg>
+
+                                Refreshing
+                            </>
+                        ) : (
+                            <>
+                                <span className="text-xl leading-none">
+                                    ↻
+                                </span>
+
+                                Refresh Videos
+                            </>
+                        )}
+                    </button>
+                </div>
+            );
+        };
+
+    const renderNoVideos = () => {
+        if (!feedLoaded || posts.length > 0) {
             return null;
         }
 
         return (
-            <div className="w-full flex flex-col items-center justify-center py-10 px-4">
-                <p className="text-sm sm:text-base text-center mb-4">
-                    No More Video Available
+            <div className="
+                w-full
+                flex
+                flex-col
+                justify-center
+                items-center
+                text-center
+                py-20
+                px-4
+            ">
+                <p className="text-xl font-bold">
+                    No Video Available
                 </p>
-
                 <button
                     type="button"
                     onClick={handleRefresh}
@@ -218,6 +306,7 @@ export default function PostFeedVideo({
                         items-center
                         justify-center
                         gap-2
+                        mt-4
                     "
                 >
                     {feedRefreshing ? (
@@ -262,29 +351,6 @@ export default function PostFeedVideo({
                         </>
                     )}
                 </button>
-            </div>
-        );
-    };
-
-    const renderNoVideos = () => {
-        if (!feedLoaded || posts.length > 0) {
-            return null;
-        }
-
-        return (
-            <div className="
-                w-full
-                flex
-                flex-col
-                justify-center
-                items-center
-                text-center
-                py-20
-                px-4
-            ">
-                <p className="text-xl font-bold">
-                    No Video Available
-                </p>
             </div>
         );
     };
@@ -471,11 +537,7 @@ export default function PostFeedVideo({
         </div>
     );
 
-    /*
-    |--------------------------------------------------------------------------
-    | iPad / medium screen
-    |--------------------------------------------------------------------------
-    */
+   
     const ipadScreen = (
         <div className="md:block lg:hidden hidden">
             <div

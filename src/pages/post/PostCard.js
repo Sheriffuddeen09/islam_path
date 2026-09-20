@@ -419,7 +419,7 @@ const handleHidePost = async (postId) => {
 
         
       {post.is_repost && (
-        <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
+        <div className="flex px-4 pt-2 pb-1 border-b border-gray-500 bg-[var(--bg-color)] items-center justify-between">
         <div className="inline-flex items-center gap-3 justify-between">
        <button
           type="button"
@@ -536,7 +536,11 @@ const handleHidePost = async (postId) => {
           <Link to={`/profile/${user.id}`}>
           <p className="font-semibold text-sm">{post.user?.name}</p>
           </Link>
-            <p className="text-xs">{post.created_at}</p>
+            <p className="text-xs">
+              {post.is_repost
+                ? post.original_created_at
+                : post.created_at}
+            </p>
           {post.is_advertisement === true && (
               <p className="text-xs inline-flex gap-1 items-center font-semibold text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 

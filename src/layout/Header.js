@@ -43,6 +43,36 @@ function Navbar({messageOpen, activeChat, setActiveChat,
   const [showAppDownload, setShowAppDownload] = useState(false);
   const [seeMoreApps, setSeeMoreApps] = useState(false);
   const authUser = useAuth()
+
+
+        const [reelVideos, setReelVideos] = useState([]);
+        const [reelsLoading, setReelsLoading] = useState(true);
+
+        useEffect(() => {
+            const fetchReelVideos = async () => {
+                try {
+                    const response = await api.get("/api/reels");
+
+                    const reels = Array.isArray(response.data?.posts)
+                        ? response.data.posts.filter(
+                            reel => reel?.post_type === "reel"
+                        )
+                        : [];
+
+                    setReelVideos(reels);
+                } catch (error) {
+                    console.error(
+                        "REEL LOAD ERROR:",
+                        error.response?.data || error
+                    );
+                } finally {
+                    setReelsLoading(false);
+                }
+            };
+
+            fetchReelVideos();
+        }, []);
+
     
     
     const filteredLinks = linkList.filter((item) => {
@@ -281,64 +311,54 @@ useEffect(() => {
 
 
                           {/* Video */}
-                         <Link
-                            to="/reel/video"
-                            onClick={async (e) => {
-                                e.preventDefault();
-
-                                try {
-                                    const response = await api.get("/api/reels-get");
-
-                                    const reels = Array.isArray(response.data?.posts)
-                                        ? response.data.posts.filter(
-                                            reel => reel?.post_type === "reel"
-                                        )
-                                        : [];
-
-                                    if (reels.length === 0) {
-                                        toast.error("No reels available.");
-                                        return;
-                                    }
-
-                                    // Pick a random reel
-                                    const randomReel =
-                                        reels[Math.floor(Math.random() * reels.length)];
-
-                                    navigate(`/reel/video/${randomReel.id}`);
-
-                                    handleReelClick?.();
-                                } catch (error) {
-                                    console.error(
-                                        "REEL LOAD ERROR:",
-                                        error.response?.data || error
-                                    );
-
-                                    toast.error("Unable to load reels.");
-                                }
-                            }}
-                            className={`${
-                                homepage === "/reel/video" && !messageOpen
-                                    ? "text-blue-600"
-                                    : "text-gray-600 hover:text-gray-800"
+                    
+                
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (reelsLoading) {
+                                return;
                             }
-                            sm:text-[13px] text-[8px]
-                            rounded lg:p-2 px-1 py-2
-                            flex flex-col items-center gap-1 relative`}
-                        >
-                            <PlaySquare />
 
-                            {reelCount > 0 && (
-                                <span
-                                    className="absolute top-4 right-2 bg-red-500 text-white
-                                    text-[10px] px-1.5 rounded-full"
-                                >
-                                    {reelCount > 15 ? "15+" : reelCount}
-                                </span>
-                            )}
+                            if (!reelVideos.length) {
+                                toast.error("No reels available.");
+                                return;
+                            }
 
-                            Reel Video
-                        </Link>
-          
+                            const firstUnviewedReel = reelVideos.find(
+                                reel => reel?.has_viewed === false || reel?.viewed === false
+                            );
+ 
+                            const reelToOpen =
+                                firstUnviewedReel || reelVideos[0];
+
+                            navigate(`/reel/video/${reelToOpen.id}`);
+
+                            handleReelClick?.();
+                        }}
+                        className={`${
+                            homepage === "/reel/video" && !messageOpen
+                                ? "text-blue-600"
+                                : "text-gray-600 hover:text-gray-800"
+                        }
+                        sm:text-[13px] text-[8px]
+                        rounded lg:p-2 px-1 py-2
+                        flex flex-col items-center gap-1 relative`}
+                    >
+                        <PlaySquare />
+
+                        {reelCount > 0 && (
+                            <span
+                                className="absolute top-4 right-2 bg-red-500 text-white
+                                text-[10px] px-1.5 rounded-full"
+                            >
+                                {reelCount > 15 ? "15+" : reelCount}
+                            </span>
+                        )}
+
+                        Reel Video
+                    </button>
+
                          
                          
           

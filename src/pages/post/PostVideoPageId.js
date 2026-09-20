@@ -310,7 +310,7 @@ const formatPostTime = (date) => {
         advertisementShownRef.current = false;
         normalVideosCountRef.current = videoPosts.length > 0 ? 1 : 0;
 
-
+ 
  
         setHasNextVideo(
             videoPosts.length > 0
@@ -2194,9 +2194,7 @@ const commentScreen = (
               </p>
             </Link>
 
-            <div className="text-[11px] sm:text-[12px] sm:mt-1">
-              {formatPostTime(currentPost?.created_at)}
-              </div>
+            
           </div>
         </div>
 
@@ -2938,12 +2936,10 @@ const commentScreen = (
                             : "Advertisement"}
                     </span>
                 </div>
-              <div className="text-[11px] sm:text-[12px]">
-              {formatPostTime(currentPost?.created_at)}
-              </div>
+              
                 {/* TITLE */}
                 {currentPost?.title && (
-                    <h2 className="text-base sm:text-lg font-bold break-words [overflow-wrap:anywhere]">
+                    <h2 className="text-base text-sm font-bold break-words [overflow-wrap:anywhere]">
                         {currentPost.title}
                     </h2>
                 )}
@@ -3033,9 +3029,7 @@ const commentScreen = (
             <div className="text-white font-bold text-xs mb-1">
               {currentPost?.user?.name || "Unknown User"}
             </div>
-              <div className="text-[11px] sm:text-[12px]">
-              {formatPostTime(currentPost?.created_at)}
-              </div>
+              
               </div>
             {/* CONTENT */}
             <div
@@ -3171,7 +3165,7 @@ const commentScreen = (
             >
               {showReactions && (
                 <div
-                  className="absolute right-12 top-0 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
+                  className="absolute right-2 -top-7 bg-white rounded-full shadow-xl px-3 py-2 flex flex-row items-center gap-1 z-20 whitespace-nowrap"
                   onClick={(e) =>
                     e.stopPropagation()
                   }

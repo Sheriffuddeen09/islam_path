@@ -27,7 +27,7 @@ import Navbar from "./layout/Header";
 import PostImagePageId from "./pages/post/PostImagePageId";
 import PostFeedVideo from "./pages/post/PostFeedVideo";
 import PostVideoPageId from "./pages/post/PostVideoPageId";
-import ReelVideoPageId from "./pages/reel/ReelVideoPageId";
+import PostReelPageId from "./pages/post/PostReelPageId";
 import PostTextPageId from "./pages/post/PostTextPageId";
 import QuranGrid from "./pages/homepageComponent/QuranGrid";
 import Friend from "./pages/friend/Friend";
@@ -783,7 +783,18 @@ const previousReel = () => {
       } />
 
       <Route path="/notifications" element={
-          <Notifications handleMessageOpen={handleMessageOpen} />
+          <Notifications handleMessageOpen={handleMessageOpen} 
+            jobProfile={jobProfile}
+            setJobProfile={setJobProfile}
+            fetchJobProfile={fetchJobProfile}
+            show={show}
+            setShow={setShow}
+            showSuccessModal={showSuccessModal} 
+            setShowSuccessModal={setShowSuccessModal}
+            showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
+            showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
+            handleVideoClick={handleVideoClick}
+            videoCount={videoCount}/>
       } />
 
       <Route path="/chat/report/:id" element={<ChatReportId />} />
@@ -985,7 +996,17 @@ const previousReel = () => {
         />} />
 
 
-        <Route path="/reel/video/:id" element={<ReelVideoPageId image={image} setImage={setImage}
+        <Route path="/reel/video/:id" element={<PostReelPageId image={image} setImage={setImage}
+        postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
+        setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
+        newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
+        setCommentsByPost={setCommentsByPost}
+        showEmoji={showEmoji} setShowEmoji={setShowEmoji}
+        emojiList={emojiList} setEmojiList={setEmojiList}
+        chats={chats}
+        />} />
+
+         <Route path="/reel/video" element={<PostReelPageId image={image} setImage={setImage}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}

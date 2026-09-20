@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaThumbsUp, FaComment } from "react-icons/fa";
 import api from "../../Api/axios";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -155,12 +154,15 @@ const NotificationPage = ({handleMessageOpen}) => {
     return name.charAt(0).toUpperCase() || "U";
   };
 
-  if (loading) return <div className="p-6 text-center text-gray-700">Loading notifications...</div>;
-  if (!notifications.length) return <div className="p-6 text-center text-gray-400 text-xl">No Notifications</div>;
+  if (loading) return <div className="p-6 text-center bg-[var(--bg-color)] 
+        text-[var(--text-color)]">Loading notifications</div>;
+  if (!notifications.length) return <div className="p-6 text-center bg-[var(--bg-color)] 
+        text-[var(--text-color)] text-xl">No Notifications</div>;
 
   return (
     <div className="container mx-auto lg:max-w-xl w-full flex-1 mt-6 px-4">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Notifications</h2>
+      <h2 className="text-2xl font-bold mb-4 bg-[var(--bg-color)] 
+        text-[var(--text-color)]"> Notifications </h2>
       <ul className="space-y-3">
   {notifications.slice(0, visibleCount).map((n) => {
     const avatar = getAvatarOrInitial(n);
@@ -177,7 +179,7 @@ const NotificationPage = ({handleMessageOpen}) => {
         onClick={() => handleClick({ ...n, redirect_url: redirectUrl })}
         className={`flex items-start p-4 rounded-lg shadow-sm cursor-pointer border transition-all duration-200 ${
           n.read
-            ? "bg-white border-gray-200 hover:shadow-md"
+            ? "bg-[var(--bg-color)] text-[var(--text-color)] border-green-200 hover:shadow-md"
             : "bg-blue-50 border-blue-200 hover:shadow-md"
         }`}
       >
@@ -200,8 +202,8 @@ const NotificationPage = ({handleMessageOpen}) => {
 
         {/* Notification content */}
         <div className="flex-1">
-          <p className="text-gray-800 text-sm">{renderMessage(n)}</p>
-          <span className="text-xs text-gray-500 mt-1 block">
+          <p className="text-sm">{renderMessage(n)}</p>
+          <span className="text-xs mt-1 block">
             {n.created_at}
           </span>
         </div>
