@@ -6,6 +6,7 @@ import {
     X,
     Pencil,
     Book,
+    BriefcaseBusiness,
 } from "lucide-react";
 
 
@@ -173,7 +174,31 @@ JobFinderProfileModal({
                         "
                     >
 
-                        {/* Qualification */}
+                        
+                    <div
+                        className="
+                        border
+                        rounded-xl
+                        p-5
+                        "
+                    >
+                        <BriefcaseBusiness />
+
+                        <h3
+                            className="
+                            font-semibold
+                            mt-3
+                            text-sm
+                            mb-2
+                            "
+                        >
+                            Job Category
+                        </h3>
+
+                        <p className="font-medium">
+                            {profile?.category?.name || "Not specified"}
+                        </p>
+                    </div>
 
                         <div
                             className="
@@ -222,7 +247,6 @@ JobFinderProfileModal({
 
                         </div>
 
-                    
                         {/* Qualification */}
 
                         <div
@@ -357,28 +381,21 @@ JobFinderProfileModal({
                                 "
                             >
 
-                                {profile?.skills?.map(
-                                    (skill) => (
-
-                                        <span
-                                            key={
-                                                skill
-                                            }
-                                            className="
-                                            bg-blue-100
-                                            text-blue-700
-                                            rounded-full
-                                            px-4
-                                            py-1 text-sm
-                                            "
-                                        >
-
-                                            {skill}
-
-                                        </span>
-
-                                    )
-                                )}
+                                {profile?.skills?.map((skill) => (
+                                <span
+                                    key={skill}
+                                    className="
+                                        bg-blue-100
+                                        text-blue-700
+                                        rounded-full
+                                        px-4
+                                        py-1
+                                        text-sm
+                                    "
+                                >
+                                    {skill}
+                                </span>
+                            ))}
 
                             </div>
 

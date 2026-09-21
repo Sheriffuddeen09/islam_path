@@ -984,7 +984,7 @@ useEffect(() => {
             className="
                 fixed
                 inset-0
-                z-[200]
+                z-[999]
                 bg-black/95
                 flex
                 items-center

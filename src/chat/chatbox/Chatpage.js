@@ -1,5 +1,4 @@
-import  { useRef, useState, useMemo, useEffect } from "react";
-import { UserSkeleton } from "./UserSkeleton";
+import  { useRef, useState, useMemo, useEffect } from "react"; 
 import { useAuth } from "../../layout/AuthProvider";
 import api from "../../Api/axios";
 import ChatComponent from "./ChatComponent";
@@ -13,7 +12,7 @@ export default function ChatPage({
   setActiveChat,
   messagesMap, setMessagesMap, setMessages,
   setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
-  callMode, setCallMode, meetingData, setMeetingData
+  callMode, setCallMode, meetingData, setMeetingData, openUserReels, reelUsers
 }) {
   const { user: authUser } = useAuth();
 
@@ -924,7 +923,7 @@ useEffect(() => {
       incomingCall={incomingCall} setIncomingCall={setIncomingCall}
       meetingData={meetingData} setMeetingData={setMeetingData}
       callMode={callMode} setCallMode={setCallMode} communityMessagesCache={communityMessagesCache}
-      hasUnreadCommunity={hasUnreadCommunity}
+      hasUnreadCommunity={hasUnreadCommunity} openUserReels={openUserReels} reelUsers={reelUsers}
     />
   );
 }

@@ -35,7 +35,8 @@ export default function MessageBox({
   mediaRecorderRef,setPaused, messageRefs,  unreadCount, setUnreadCount, loadingChats, lastReadMessageId,
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
   setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings,
-  incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, forwardMessage, setForwardMessage
+  incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, forwardMessage, setForwardMessage,
+  openUserReels, reelUsers
 }) {
   
   // setShowMeetingModal
@@ -530,6 +531,48 @@ const handlePin = async (msg) => {
           : activeChat.teacher
       )
 
+
+      const activeChatUserId = Number(other?.id);
+
+      const activeChatReelUserIndex =
+        Array.isArray(reelUsers)
+          ? reelUsers.findIndex((reelUser) => {
+              const reelUserId = Number(
+                reelUser?.user?.id ?? reelUser?.user_id
+              );
+
+              const reels = Array.isArray(reelUser?.reels)
+                ? reelUser.reels
+                : [];
+
+              const reelUserIds = reels.map((reel) =>
+                Number(reel?.user_id)
+              );
+
+              return (
+                reelUserId === activeChatUserId ||
+                reelUserIds.includes(activeChatUserId)
+              );
+            })
+          : -1;
+
+      const activeChatUserReels =
+        activeChatReelUserIndex >= 0 &&
+        Array.isArray(
+          reelUsers?.[activeChatReelUserIndex]?.reels
+        )
+          ? reelUsers[activeChatReelUserIndex].reels
+          : [];
+
+      const hasActiveChatReel =
+        activeChatUserReels.length > 0;
+
+      const hasUnviewedActiveChatReel =
+        activeChatUserReels.some(
+          (reel) => reel?.has_viewed !== true
+        );
+
+        
     const displayName = isGroup
       ? activeChat?.group_name ||
         activeChat?.name ||
@@ -573,21 +616,52 @@ const firstUnreadMessageId =
          
           <div onClick={onToggleSettings} className="inline-flex gap-2 items-center cursor-pointer">
              <div
-                className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] text-white ${getColor(
-                  avatarName
-                )}`}
-              >
-                {isGroup && activeChat.image_url ? (
-                  <img
-                    src={activeChat.image_url}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  getInitial(avatarName)
-                )}
+                onClick={(e) => {
+                    e.stopPropagation();
 
-              </div>
-            
+                    if (
+                        !isGroup &&
+                        activeChatReelUserIndex !== -1 &&
+                        hasActiveChatReel
+                    ) {
+                        openUserReels(activeChatReelUserIndex);
+                    }
+                }}
+                className={`
+                    w-10
+                    h-10
+                    rounded-full
+                    overflow-hidden
+                    flex
+                    items-center
+                    justify-center
+                    font-bold
+                    text-[18px]
+                    text-white
+                    border-2
+                    ${!isGroup && hasActiveChatReel
+                        ? hasUnviewedActiveChatReel
+                            ? "border-green-500"
+                            : "border-[#111827]"
+                        : "border-transparent"
+                    }
+                    ${!isGroup && hasActiveChatReel
+                        ? "cursor-pointer"
+                        : ""
+                    }
+                    ${getColor(avatarName)}
+                `}
+            >
+                {isGroup && activeChat.image_url ? (
+                    <img
+                        src={activeChat.image_url}
+                        className="w-full h-full object-cover rounded-full"
+                        alt=""
+                    />
+                ) : (
+                    getInitial(avatarName)
+                )}
+            </div>            
               <div className="flex flex-col lg:mt-2">
                   <h3 className="font-bold text-lg truncate text-[var(--text-color)]">
                     {displayName?.length > 12
@@ -741,20 +815,60 @@ const firstUnreadMessageId =
             className="flex items-center gap-2 min-w-0"
           >
               <div
-                className={`w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-[18px] md:text-[25px] text-white ${getColor(
-                  avatarName
-                )}`}
-              >
-                {isGroup && activeChat.image_url ? (
-                  <img
-                    src={activeChat.image_url}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  getInitial(avatarName)
-                )}
+                onClick={(e) => {
+                    e.stopPropagation();
 
-              </div>
+                    if (
+                        !isGroup &&
+                        activeChatReelUserIndex !== -1 &&
+                        hasActiveChatReel
+                    ) {
+                        openUserReels(activeChatReelUserIndex);
+                    }
+                }}
+                className={`
+                    w-8
+                    h-8
+                    md:w-10
+                    md:h-10
+                    rounded-full
+                    overflow-hidden
+                    flex
+                    items-center
+                    justify-center
+                    font-bold
+                    text-[18px]
+                    md:text-[25px]
+                    text-white
+                    border-2
+
+                    ${
+                        !isGroup && hasActiveChatReel
+                            ? hasUnviewedActiveChatReel
+                                ? "border-green-500"
+                                : "border-[#111827]"
+                            : "border-transparent"
+                    }
+
+                    ${
+                        !isGroup && hasActiveChatReel
+                            ? "cursor-pointer"
+                            : ""
+                    }
+
+                    ${getColor(avatarName)}
+                `}
+            >
+                {isGroup && activeChat.image_url ? (
+                    <img
+                        src={activeChat.image_url}
+                        className="w-full h-full object-cover rounded-full"
+                        alt=""
+                    />
+                ) : (
+                    getInitial(avatarName)
+                )}
+            </div>
             <h3 className="font-bold text-xl sm:block hidden truncate text-[var(--text-color)]">
               {displayName}
             </h3>

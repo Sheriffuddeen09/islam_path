@@ -10,74 +10,83 @@ dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const NotificationPage = ({handleMessageOpen}) => {
+const NotificationPage = ({ handleMessageOpen }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(10);
+
   const navigate = useNavigate();
 
+  // ---------------------------------------
+  // Avatar colors
+  // ---------------------------------------
+  const colors = [
+    "bg-red-400",
+    "bg-blue-400",
+    "bg-green-400",
+    "bg-purple-400",
+    "bg-pink-400",
+    "bg-yellow-400",
+  ];
+
+  const getColor = (value) => {
+    if (!value) return "bg-gray-400";
+
+    const str = String(value);
+
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const getInitial = (name) => {
+    if (!name) return "?";
+
+    return String(name)
+      .trim()
+      .charAt(0)
+      .toUpperCase();
+  };
+
+  // ---------------------------------------
+  // Fetch notifications
+  // ---------------------------------------
   useEffect(() => {
     const fetchNotifications = async () => {
-      
-        setLoading(true);
+      setLoading(true);
 
       try {
         const { data } = await api.get("/api/page-notifications");
-        setNotifications(data);
+
+        setNotifications(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error(error);
+        console.error("Failed to fetch notifications:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchNotifications();
   }, []);
 
-  
-
-  const handleClick = async (notification) => {
-  try {
-    // ✅ Mark as read
-    await api.post(`/api/notifications/read/${notification.id}`);
-
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notification.id ? { ...n, read: true } : n
-      )
-    );
-
-    // ✅ CASE 1: Block / Unblock (uses toggle)
-    if (
-      notification.type === "chat_blocked" ||
-      notification.type === "chat_unblocked"
-    ) {
-      const otherUserId = notification.data?.other_user_id;
-
-      if (otherUserId) {
-        handleMessageOpen(otherUserId); // 🔥 YOUR CHAT TOGGLE
-      }
-
-      return; // stop here
-    }
-
-    // ✅ CASE 2: Other notifications using URL
-    if (notification.redirect_url) {
-      const cleanUrl = notification.redirect_url.replace(
-        window.location.origin,
-        ""
-      );
-
-      navigate(cleanUrl);
-    }
-
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-
-  // Parse notification data safely
+  // ---------------------------------------
+  // Parse notification data
+  // ---------------------------------------
   const parseData = (notification) => {
+    if (!notification?.data) {
+      return {};
+    }
+
+    // Laravel now returns decoded data as an object
+    if (typeof notification.data === "object") {
+      return notification.data;
+    }
+
+    // Fallback if data is still returned as JSON string
     try {
       return JSON.parse(notification.data || "{}");
     } catch {
@@ -85,146 +94,491 @@ const NotificationPage = ({handleMessageOpen}) => {
     }
   };
 
-  // Get message text for notification
-  const renderMessage = (n) => {
-  const names = Array.isArray(n.names) ? n.names : [n.names];
-  const action = n.action;
-
-  if (!names || names.length === 0) {
-    return <span>{action}</span>;
-  }
-
-  if (names.length === 1) {
-    return (
-      <>
-        <span className="font-semibold text-blue-600">
-          {names[0]}
-        </span>{" "}
-        {action}
-      </>
-    );
-  }
-
-  if (names.length === 2) {
-    return (
-      <>
-        <span className="font-semibold text-blue-600">
-          {names[0]}
-        </span>{" "}
-        and{" "}
-        <span className="font-semibold text-blue-600">
-          {names[1]}
-        </span>{" "}
-        {action}
-      </>
-    );
-  }
-
-  return (
-    <>
-      <span className="font-semibold text-blue-600">
-        {names[0]}
-      </span>{" "}
-      and {names.length - 1} others {action}
-    </>
-  );
-};
-  // Get avatar or first letter fallback
-  const getAvatarOrInitial = (notification) => {
+  // ---------------------------------------
+  // Get a useful name for the avatar
+  // ---------------------------------------
+  const getNotificationName = (notification) => {
     const data = parseData(notification);
-    let name = "";
 
-    if (notification.type === "post_reaction" || notification.type === "post_comment") {
+    // Post reaction / comment
+    if (
+      notification.type === "post_reaction" ||
+      notification.type === "post_comment"
+    ) {
       const users = data.reactors || data.commenters || [];
-      const firstUser = users[0];
-      if (!firstUser) return "U";
-      if (typeof firstUser === "object") {
-        if (firstUser.avatar) return firstUser.avatar;
-        name = firstUser.name || firstUser.first_name || "";
-      } else {
-        name = firstUser;
+      const firstUser = users?.[0];
+
+      if (!firstUser) {
+        return notification.names?.[0] || "User";
       }
-    } else if (["mention", "teacher_suggestion"].includes(notification.type)) {
-      if (data.avatar) return data.avatar;
-      name = data.mentioned_by || data.teacher_name || "";
-    } else if (["friend_suggestion", "chat_reported", "post_reported", "comment_reported"].includes(notification.type)) {
-      name = data.name || data.reporter_name || "";
+
+      if (typeof firstUser === "object") {
+        return (
+          firstUser.name ||
+          firstUser.full_name ||
+          `${firstUser.first_name || ""} ${firstUser.last_name || ""}`.trim() ||
+          "User"
+        );
+      }
+
+      return firstUser;
     }
 
-    return name.charAt(0).toUpperCase() || "U";
+    // Mention / teacher suggestion
+    if (
+      notification.type === "mention" ||
+      notification.type === "teacher_suggestion"
+    ) {
+      return (
+        data.mentioned_by ||
+        data.teacher_name ||
+        notification.names?.[0] ||
+        "User"
+      );
+    }
+
+    // Friend suggestion
+    if (notification.type === "friend_suggestion") {
+      return data.name || notification.names?.[0] || "User";
+    }
+
+    // New job
+    if (notification.type === "new_job") {
+      return data.title || notification.names?.[0] || "Job";
+    }
+
+    // Advertisement expiration
+    if (notification.type === "advertisement_visibility_expired") {
+      return data.title || notification.names?.[0] || "Advertisement";
+    }
+
+    // Product expiration
+    if (notification.type === "product_visibility_expired") {
+      return data.name || notification.names?.[0] || "Product";
+    }
+
+    // Reports
+    if (
+      notification.type === "chat_reported" ||
+      notification.type === "post_reported" ||
+      notification.type === "comment_reported"
+    ) {
+      return (
+        data.name ||
+        data.reporter_name ||
+        notification.names?.[0] ||
+        "User"
+      );
+    }
+
+    // Block / unblock
+    if (
+      notification.type === "chat_blocked" ||
+      notification.type === "chat_unblocked"
+    ) {
+      return (
+        data.full_name ||
+        `${data.first_name || ""} ${data.last_name || ""}`.trim() ||
+        notification.names?.[0] ||
+        "User"
+      );
+    }
+
+    return notification.names?.[0] || "User";
   };
 
-  if (loading) return <div className="p-6 text-center bg-[var(--bg-color)] 
-        text-[var(--text-color)]">Loading notifications</div>;
-  if (!notifications.length) return <div className="p-6 text-center bg-[var(--bg-color)] 
-        text-[var(--text-color)] text-xl">No Notifications</div>;
+  // ---------------------------------------
+  // Get avatar image or initial
+  // ---------------------------------------
+  const getAvatar = (notification) => {
+    const data = parseData(notification);
 
-  return (
-    <div className="container mx-auto lg:max-w-xl w-full flex-1 mt-6 px-4">
-      <h2 className="text-2xl font-bold mb-4 bg-[var(--bg-color)] 
-        text-[var(--text-color)]"> Notifications </h2>
-      <ul className="space-y-3">
-  {notifications.slice(0, visibleCount).map((n) => {
-    const avatar = getAvatarOrInitial(n);
-    const isImage = avatar && avatar.includes("http");
+    // Possible avatar locations
+    if (data.avatar) {
+      return data.avatar;
+    }
 
-    let redirectUrl = "/";
-    try {
-      redirectUrl = n.redirect_url ? n.redirect_url.replace(/^\\/, "") : "/";
-    } catch {}
+    if (data.image) {
+      return data.image;
+    }
+
+    if (data.profile_image) {
+      return data.profile_image;
+    }
+
+    // Reaction/comment users
+    if (
+      notification.type === "post_reaction" ||
+      notification.type === "post_comment"
+    ) {
+      const users = data.reactors || data.commenters || [];
+      const firstUser = users?.[0];
+
+      if (typeof firstUser === "object") {
+        return (
+          firstUser.avatar ||
+          firstUser.image ||
+          firstUser.profile_image ||
+          null
+        );
+      }
+    }
+
+    return null;
+  };
+
+  // ---------------------------------------
+  // Render notification message
+  // ---------------------------------------
+  const renderMessage = (n) => {
+    const names = Array.isArray(n.names)
+      ? n.names.filter(Boolean)
+      : n.names
+      ? [n.names]
+      : [];
+
+    const action = n.action || "";
+
+    // New job
+    if (n.type === "new_job") {
+      const title =
+        n.data?.title ||
+        names[0] ||
+        "A new job";
+
+      return (
+        <>
+          <span className="font-semibold text-blue-600">
+            {title}
+          </span>{" "}
+          is now available
+        </>
+      );
+    }
+
+    // Advertisement expired
+    if (n.type === "advertisement_visibility_expired") {
+      const title =
+        n.data?.title ||
+        names[0] ||
+        "Your advertisement";
+
+      return (
+        <>
+          <span className="font-semibold text-blue-600">
+            {title}
+          </span>{" "}
+          advertisement visibility has expired
+        </>
+      );
+    }
+
+    // Product expired
+    if (n.type === "product_visibility_expired") {
+      const name =
+        n.data?.name ||
+        names[0] ||
+        "Your product";
+
+      return (
+        <>
+          <span className="font-semibold text-blue-600">
+            {name}
+          </span>{" "}
+          product visibility has expired
+        </>
+      );
+    }
+
+    if (names.length === 0) {
+      return <span>{action}</span>;
+    }
+
+    if (names.length === 1) {
+      return (
+        <>
+          <span className="font-semibold text-blue-600">
+            {names[0]}
+          </span>{" "}
+          {action}
+        </>
+      );
+    }
+
+    if (names.length === 2) {
+      return (
+        <>
+          <span className="font-semibold text-blue-600">
+            {names[0]}
+          </span>{" "}
+          and{" "}
+          <span className="font-semibold text-blue-600">
+            {names[1]}
+          </span>{" "}
+          {action}
+        </>
+      );
+    }
 
     return (
-      <li
-        key={n.id}
-        onClick={() => handleClick({ ...n, redirect_url: redirectUrl })}
-        className={`flex items-start p-4 rounded-lg shadow-sm cursor-pointer border transition-all duration-200 ${
-          n.read
-            ? "bg-[var(--bg-color)] text-[var(--text-color)] border-green-200 hover:shadow-md"
-            : "bg-blue-50 border-blue-200 hover:shadow-md"
-        }`}
-      >
-        {/* Avatar */}
-        <div className="relative flex-shrink-0 mr-3">
-          {isImage ? (
-            <img
-              src={avatar}
-              alt="avatar"
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-semibold text-xl">
-              {Array.isArray(n?.names)
-                ? n.names[0]?.charAt(0)
-                : n?.names?.charAt(0) || "U"}
-            </div>
-          )}
-        </div>
+      <>
+        <span className="font-semibold text-blue-600">
+          {names[0]}
+        </span>{" "}
+        and {names.length - 1} others {action}
+      </>
+    );
+  };
 
-        {/* Notification content */}
-        <div className="flex-1">
-          <p className="text-sm">{renderMessage(n)}</p>
-          <span className="text-xs mt-1 block">
-            {n.created_at}
-          </span>
-        </div>
+  // ---------------------------------------
+  // Handle notification click
+  // ---------------------------------------
+  const handleClick = async (notification) => {
+    // -----------------------------------
+    // 1. Mark notification as read
+    // -----------------------------------
+    try {
+      await api.post(`/api/notifications/read/${notification.id}`);
 
-        {!n.read && (
-          <span className="ml-3 w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-        )}
-        </li>
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notification.id
+            ? { ...n, read: true }
+            : n
+        )
       );
-    })}
-  </ul>
-  {visibleCount < notifications.length && (
-  <div className="text-center mt-6">
-    <button
-      onClick={() => setVisibleCount((prev) => prev + 10)}
-      className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200"
+    } catch (error) {
+      // Don't stop navigation if marking as read fails
+      console.error(
+        "Could not mark notification as read:",
+        error
+      );
+    }
+
+    // -----------------------------------
+    // 2. Chat block / unblock
+    // -----------------------------------
+    if (
+      notification.type === "chat_blocked" ||
+      notification.type === "chat_unblocked"
+    ) {
+      const data = parseData(notification);
+
+      const otherUserId = data.other_user_id;
+
+      if (otherUserId && handleMessageOpen) {
+        handleMessageOpen(otherUserId);
+      }
+
+      return;
+    }
+
+    // -----------------------------------
+    // 3. Navigate
+    // -----------------------------------
+    if (notification.redirect_url) {
+      let cleanUrl = String(notification.redirect_url).trim();
+
+      try {
+        // If Laravel returns a full URL:
+        if (cleanUrl.startsWith(window.location.origin)) {
+          cleanUrl = cleanUrl.replace(
+            window.location.origin,
+            ""
+          );
+        }
+
+        // Remove accidental leading backslashes
+        cleanUrl = cleanUrl.replace(/^\\+/, "");
+
+        // Make sure React Router gets a /
+        if (!cleanUrl.startsWith("/")) {
+          cleanUrl = `/${cleanUrl}`;
+        }
+
+        // Remove accidental duplicate //
+        cleanUrl = cleanUrl.replace(/^\/+/, "/");
+
+        console.log(
+          "Notification navigating to:",
+          cleanUrl
+        );
+
+        navigate(cleanUrl);
+      } catch (error) {
+        console.error(
+          "Notification navigation failed:",
+          error
+        );
+      }
+    }
+  };
+
+ 
+if (loading) {
+  return (
+    <div className="container mx-auto lg:max-w-xl w-full flex-1 mt-6 px-4">
+      {/* Heading skeleton */}
+      <div className="h-8 w-48 rounded-md bg-gray-200 dark:bg-gray-700 animate-pulse mb-4" />
+
+      <div className="space-y-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-start p-4 rounded-lg border shadow-sm
+            bg-[var(--bg-color)] border-gray-200
+            dark:border-gray-700"
+          >
+            {/* Avatar skeleton */}
+            <div
+              className="w-12 h-12 rounded-full bg-gray-200
+              dark:bg-gray-700 animate-pulse flex-shrink-0 mr-3"
+            />
+
+            {/* Content skeleton */}
+            <div className="flex-1 min-w-0 space-y-2 pt-1">
+              {/* Notification text */}
+              <div className="h-3.5 w-4/5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+
+              {/* Second line */}
+              <div className="h-3.5 w-3/5 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+
+              {/* Time */}
+              <div className="h-2.5 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse mt-2" />
+            </div>
+
+            {/* Unread dot skeleton */}
+            <div
+              className="ml-3 w-3 h-3 rounded-full
+              bg-gray-200 dark:bg-gray-700 animate-pulse
+              mt-2 flex-shrink-0"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+  // ---------------------------------------
+  // Empty
+  // ---------------------------------------
+  if (!notifications.length) {
+    return (
+      <div
+        className="p-6 text-center bg-[var(--bg-color)] 
+        text-[var(--text-color)] text-xl"
+      >
+        No Notifications
+      </div>
+    );
+  }
+
+  // ---------------------------------------
+  // UI
+  // ---------------------------------------
+  return (
+    <div
+      className="container mx-auto lg:max-w-xl w-full 
+      flex-1 mt-6 px-4"
     >
-      Read More Notifications
-    </button>
-  </div>
-)}
+      <h2
+        className="text-2xl font-bold mb-4 
+        bg-[var(--bg-color)] text-[var(--text-color)]"
+      >
+        Notifications
+      </h2>
+
+      <ul className="space-y-3">
+        {notifications
+          .slice(0, visibleCount)
+          .map((n) => {
+            const avatar = getAvatar(n);
+            const notificationName =
+              getNotificationName(n);
+
+            const isImage =
+              typeof avatar === "string" &&
+              avatar.length > 0 &&
+              (
+                avatar.startsWith("http://") ||
+                avatar.startsWith("https://") ||
+                avatar.startsWith("/")
+              );
+
+            const avatarColor =
+              getColor(notificationName);
+
+            return (
+              <li
+                key={n.id}
+                onClick={() => handleClick(n)}
+                className={`flex items-start p-4 rounded-lg 
+                shadow-sm cursor-pointer border 
+                transition-all duration-200 ${
+                  n.read
+                    ? "bg-[var(--bg-color)] text-[var(--text-color)] border-green-200 hover:shadow-md"
+                    : "border-blue-800 border-2 hover:shadow-md"
+                }`}
+              >
+                {/* Avatar */}
+                <div className="relative flex-shrink-0 mr-3">
+                  {isImage ? (
+                    <img
+                      src={avatar}
+                      alt={notificationName}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={`w-12 h-12 rounded-full 
+                      ${avatarColor} flex items-center 
+                      justify-center text-white 
+                      font-semibold text-xl`}
+                    >
+                      {getInitial(notificationName)}
+                    </div>
+                  )}
+                </div>
+
+                {/* Notification content */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">
+                    {renderMessage(n)}
+                  </p>
+
+                  <span className="text-xs mt-1 block">
+                    {n.created_at}
+                  </span>
+                </div>
+
+                {/* Unread indicator */}
+                {!n.read && (
+                  <span
+                    className="ml-3 w-3 h-3 bg-blue-500 
+                    rounded-full mt-2 flex-shrink-0"
+                  />
+                )}
+              </li>
+            );
+          })}
+      </ul>
+
+      {/* Read more */}
+      {visibleCount < notifications.length && (
+        <div className="text-center mt-6">
+          <button
+            onClick={() =>
+              setVisibleCount((prev) => prev + 10)
+            }
+            className="px-6 py-2 bg-blue-600 text-white 
+            rounded-full hover:bg-blue-700 transition duration-200"
+          >
+            Read More Notifications
+          </button>
+        </div>
+      )}
     </div>
   );
 };

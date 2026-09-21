@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logos from './image/favicon.png'
-import {Bell, BookOpen, BookTemplateIcon, Briefcase,
+import {Bell, BookTemplateIcon, Briefcase,
     Search,
     PlusCircle,
     ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow, 
@@ -18,14 +18,26 @@ import CreateJobModal from '../job/CreateJobModal';
 import api from '../Api/axios';
 import useApplicationNotification from '../job/useApplicationNotification';
 import toast from 'react-hot-toast';
+import ReelViewerModal from '../pages/reel/ReelViewerModal';
 
 function Navbar({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, reelCount,
   handleFriendClick, handleHomeClick, handleReelClick, handleMessageClick,
   handleNotification, unreadNotification, messagesMap, setMessagesMap, setUiMode, uiMode, togglePopup,
   showSettings, setShowSettings, setMessages, incomingCall, setIncomingCall, callMode, setCallMode,
-          showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate,
-  meetingData, setMeetingData, setShow, jobProfile, handleVideoClick, videoCount }) {
+  showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate,
+  meetingData, setMeetingData, setShow, jobProfile, handleVideoClick, videoCount,
+  reelUsers, openUserReels,
+  sending, setSending, closeViewer, nextReel, 
+  previousReel, selectedReel, selectedUser,
+  markReelViewed, open, setOpen, openReport,
+  setOpenReport, showImagePicker, setShowImagePicker,
+  messageOpenShare, setMessageOpenShare, shares,
+  setShares, setMyReels, setReelUsers,
+  selectedReelIndex, selectedUserIndex,
+  setMediaIndex,
+  mediaIndex, setProgress, progress, setMessage,
+  message, setReaction, reaction, setShowOptions, showOptions }) {
 
       const [menu, setMenu] = useState(false)
       const homepage = useLocation().pathname
@@ -51,7 +63,7 @@ function Navbar({messageOpen, activeChat, setActiveChat,
         useEffect(() => {
             const fetchReelVideos = async () => {
                 try {
-                    const response = await api.get("/api/reels");
+                    const response = await api.get("/api/reels-get");
 
                     const reels = Array.isArray(response.data?.posts)
                         ? response.data.posts.filter(
@@ -502,7 +514,7 @@ useEffect(() => {
 
                     </div>
 
-                    Application Job
+                    Application
 
                 </Link>
                   )}
@@ -570,38 +582,74 @@ useEffect(() => {
                     </nav>
           
                       {/* Mobile Menu */}
-                      <div  className={`z-40 transition-all duration-3000 ease-in-out fixed top-0 left-0 w-full h-full bg-[var(--bg-color)] ${menu ? "blocked" :"hide"}`}> 
-          
-                      <section className='z-50 text-[var(--text-color)] gap-2 flex-col transition-all duration-2000 scrollb scroll-p-0 scroll-smooth scrollbar scrollbar-thumb-blue-300 
-                       scrollbar-thin scrollbar-track-white ease-in-out flex bg-[var(--bg-color)] w-full h-full fixed left-0 p-4 h-full text-start '>
-                       
-                        <div className='flex px-2 flex-row py-3 justify-between items-center mb-2'>
-                            <button className='text-[var(--text-color)] text-2xl inline-flex items-center gap-2 font-bold' onClick={handlemenu}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                              </svg>
-                              Menu
-                            </button>
-                            {/* { menu &&
-                            <SearchUser />
-                            } */}
-                        </div>
-                        
-                        {checkMobile}
-          
-                          <div
-              className="
-                  grid
-                  grid-cols-2
-                  gap-3
-                  p-3
-                  mt-2
-                  h-[400px]
-                  md:h-full
-                  md:text-xl text-sm 
-                  overflow-y-auto
-              "
-          >
+                      <div
+                          className={`z-[999] fixed inset-0 w-full h-screen bg-[var(--bg-color)]
+                          transition-all duration-3000 ease-in-out
+                          ${menu ? "blocked" : "hide"}`}
+                      >
+                          <section
+                              className="
+                                  z-[999]
+                                  text-[var(--text-color)]
+                                  flex
+                                  flex-col
+                                  w-full
+                                  h-screen
+                                  min-h-0
+                                  p-4
+                                  bg-[var(--bg-color)]
+                                  text-start
+                                  overflow-hidden
+                              "
+                          >
+                                     <div className="flex px-2 py-3 flex-row justify-between items-center mb-2 shrink-0">
+                                  <button
+                                      className="text-[var(--text-color)] text-2xl inline-flex items-center gap-2 font-bold"
+                                      onClick={handlemenu}
+                                  >
+                                      <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          strokeWidth="1.5"
+                                          stroke="currentColor"
+                                          className="size-6"
+                                      >
+                                          <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                                          />
+                                      </svg>
+                      
+                                      Menu
+                                  </button>
+                                  { menu &&
+                                        <SearchUser />
+                                        } 
+                                    </div>
+                                    
+                                    {checkMobile}
+                      
+                                      <div
+                                  className="
+                                      flex-1
+                                      min-h-0
+                                      grid
+                                      grid-cols-2
+                                      gap-3
+                                      p-3
+                                      mt-2
+                                      text-sm
+                                      md:text-xl
+                                      overflow-y-auto
+                                      scroll-smooth
+                                      scrollbar
+                                      scrollbar-thin
+                                      scrollbar-thumb-blue-300
+                                      scrollbar-track-white
+                                  "
+                              >
  
           
               <div
@@ -740,7 +788,7 @@ useEffect(() => {
 
 
     <p className="mt-2 text-sm font-semibold">
-        Application Job
+        Application
     </p>
 
 </Link>
@@ -1007,7 +1055,8 @@ useEffect(() => {
                                   incomingCall={incomingCall}
                                   setMeetingData={setMeetingData}
                                   meetingData={meetingData}
-                                  
+                                  openUserReels={openUserReels}
+                                  reelUsers={reelUsers}
                                 
                                 />
 
@@ -1022,6 +1071,67 @@ useEffect(() => {
                                               )
                                             }
                     
+            
+        {selectedReel && (
+            <ReelViewerModal
+                chats={chats}
+                user={selectedUser.user}
+                reel={selectedReel}
+                reelIndex={
+                    selectedReelIndex
+                }
+                totalReels={
+                    selectedUser.reels
+                        .length
+                }
+                onClose={closeViewer}
+                onNext={nextReel}
+                onPrevious={
+                    previousReel
+                }
+                showOptions={
+                    showOptions
+                }
+                setShowOptions={
+                    setShowOptions
+                }
+                message={message}
+                setMessage={setMessage}
+                
+                sending={sending}
+                setSending={setSending}
+                reaction={reaction}
+                setReelUsers={setReelUsers}
+                setMyReels={setMyReels}
+                setReaction={
+                    setReaction
+                }
+
+                currentUserIndex={selectedUserIndex}
+                reelUsers={reelUsers}
+                currentUser={user}
+
+                selectedReel={selectedReel}
+                mediaIndex={mediaIndex}
+                setMediaIndex={setMediaIndex}
+                progress={progress}
+                setProgress={setProgress}
+                nextReel={nextReel}
+
+                markReelViewed={markReelViewed}
+                open={open}
+                setOpen={setOpen}
+                showImagePicker={showImagePicker}
+                setShowImagePicker={setShowImagePicker}
+                messageOpenShare={messageOpenShare}
+                setMessageOpenShare={setMessageOpenShare}
+                openReport={openReport}
+                setOpenReport={setOpenReport}
+                shares={shares}
+                setShares={setShares}
+                
+            />
+        )}
                  <CreateJobModal
                             open={showJobCreate}
                             onClose={() => setShowJobCreate(false)}

@@ -10,3 +10,166 @@
 
     CHAT DECRYPT INFO: {chatId: 'udSzzYyLia166dH9', hasChatKey: false, messageCount: 28}
 
+
+  const profileReelUserId =
+          Number(profile?.profile?.id);
+
+      if (Array.isArray(reelUsers)) {
+          reelUsers.forEach(
+              (profileReelItem, profileReelIndex) => {
+                  console.log(
+                      `PROFILE REEL USER ${profileReelIndex}:`,
+                      {
+                          item: profileReelItem,
+                          user: profileReelItem?.user,
+                          userId: profileReelItem?.user?.id,
+                          directUserId:
+                              profileReelItem?.user_id,
+                          itemId: profileReelItem?.id,
+                          reels: profileReelItem?.reels,
+
+                          reelCount:
+                              Array.isArray(
+                                  profileReelItem?.reels
+                              )
+                                  ? profileReelItem.reels.length
+                                  : 0,
+
+                          reelUserIds:
+                              Array.isArray(
+                                  profileReelItem?.reels
+                              )
+                                  ? profileReelItem.reels.map(
+                                      profileReel => ({
+                                          id: profileReel?.id,
+                                          user_id:
+                                              profileReel?.user_id,
+                                          has_viewed:
+                                              profileReel?.has_viewed,
+                                      })
+                                  )
+                                  : [],
+                      }
+                  );
+              }
+          );
+      }
+
+      const profileReelUserIndex =
+          Array.isArray(reelUsers)
+              ? reelUsers.findIndex(
+                  profileReelItem => {
+
+                      const profileItemUserId =
+                          Number(
+                              profileReelItem?.user?.id
+                          );
+
+                      const profileDirectUserId =
+                          Number(
+                              profileReelItem?.user_id
+                          );
+
+                      const profileReels =
+                          Array.isArray(
+                              profileReelItem?.reels
+                          )
+                              ? profileReelItem.reels
+                              : [];
+
+                      const profileReelUserIds =
+                          profileReels.map(
+                              profileReel =>
+                                  Number(
+                                      profileReel?.user_id
+                                  )
+                          );
+
+                      console.log(
+                          "CHECKING PROFILE REEL ITEM:",
+                          {
+                              profileItemUserId,
+                              profileDirectUserId,
+                              profileReelUserIds,
+                              lookingForProfile:
+                                  profileReelUserId,
+                          }
+                      );
+
+                      return (
+                          profileItemUserId ===
+                              profileReelUserId ||
+                          profileDirectUserId ===
+                              profileReelUserId ||
+                          profileReelUserIds.includes(
+                              profileReelUserId
+                          )
+                      );
+                  }
+              )
+              : -1;
+
+      const profileUserReels =
+          profileReelUserIndex >= 0 &&
+          Array.isArray(
+              reelUsers[profileReelUserIndex]?.reels
+          )
+              ? reelUsers[profileReelUserIndex].reels
+              : [];
+
+      const hasUnviewedProfileReel =
+          profileUserReels.some(
+              profileReel =>
+                  profileReel?.has_viewed !== true
+          );
+
+      const hasProfileReel =
+          profileUserReels.length > 0;
+
+
+          <button
+                type="button"
+                onClick={() => {
+                    if (
+                        profileReelUserIndex !== -1 &&
+                        hasProfileReel
+                    ) {
+                        openUserReels(
+                            profileReelUserIndex
+                        );
+                    }
+                }}
+                className="focus:outline-none"
+            >
+                <p
+                    className={`
+                        text-white
+                        font-bold
+                        rounded-full
+                        w-28 h-28
+                        sm:w-36 sm:h-36
+                        text-center
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        shadow-2xl
+                        text-5xl
+                        sm:text-7xl
+                        font-bold
+                        border-4
+
+                        ${
+                            hasProfileReel
+                                ? hasUnviewedProfileReel
+                                    ? "border-green-500"
+                                    : "border-[#111827]"
+                                : "border-[#111827]"
+                        }
+
+                        ${getColor(profile?.first_name)}
+                    `}
+                >
+                    {getInitial(profile?.first_name)}
+                </p>
+            </button>

@@ -1,5 +1,5 @@
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import {
  User,
  Upload,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Select from "react-select";
 import countryList from "react-select-country-list";
+import api from "../Api/axios";
 export default function JobFinderForm({
  onSubmit, loading
 }) {
@@ -27,8 +28,30 @@ export default function JobFinderForm({
  const [skills, setSkills] = useState([]);
  const [location, setLocation] = useState("");
  const [address, setAddress] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [jobCategoryId, setJobCategoryId] = useState("");
+
 
 const countries = useMemo(() => countryList().getData(), []);
+
+const fetchCategories = async () => {
+    try {
+        setLoadingCategories(true);
+
+        const res = await api.get("/api/job-categories");
+
+        setCategories(res.data.categories);
+    } catch (err) {
+        console.log(err);
+    } finally {
+        setLoadingCategories(false);
+    }
+};
+
+useEffect(() => {
+    fetchCategories();
+}, []);
 
  const addSkill = () => {
  if (
@@ -54,32 +77,46 @@ const countries = useMemo(() => countryList().getData(), []);
  };
 
  
- const submit = () => {
- const form = new FormData();
- form.append("type", "finder");
- form.append("full_name", fullName);
- form.append("location", location);
- form.append("address", address);
- form.append(
- "qualifications",
- qualification
- );
- form.append(
- "portfolio",
- portfolio
- );
- form.append(
- "certification",
- certification
- );
- if (cv) {
- form.append("cv", cv);
- }
- skills.forEach(skill => {
- form.append("skills[]", skill);
- });
- onSubmit(form);
- };
+      const submit = () => {
+          const form = new FormData();
+
+          form.append("type", "finder");
+          form.append("full_name", fullName);
+
+          form.append(
+              "job_category_id",
+              jobCategoryId
+          );
+
+          form.append("location", location);
+          form.append("address", address);
+
+          form.append(
+              "qualifications",
+              qualification
+          );
+
+          form.append(
+              "portfolio",
+              portfolio
+          );
+
+          form.append(
+              "certification",
+              certification
+          );
+
+          if (cv) {
+              form.append("cv", cv);
+          }
+
+          skills.forEach((skill) => {
+              form.append("skills[]", skill);
+          });
+
+          onSubmit(form);
+      };
+
  
  return (
  <div className="space-y-7">
@@ -107,6 +144,37 @@ const countries = useMemo(() => countryList().getData(), []);
  />
  </div>
  </div>
+ <div>
+    <label className="font-semibold">
+        Job Category
+    </label>
+
+    <div className="relative mt-2">
+        {loadingCategories ? (
+            <div className="h-12 rounded-xl bg-gray-200 animate-pulse" />
+        ) : (
+            <select
+                value={jobCategoryId}
+                onChange={(e) => setJobCategoryId(e.target.value)}
+                className="border text-black rounded-xl w-full px-4 py-3"
+            >
+                <option value="">
+                    Select Job Category
+                </option>
+
+                {categories.map((category) => (
+                    <option
+                        key={category.id}
+                        value={category.id}
+                    >
+                        {category.name}
+                    </option>
+                ))}
+            </select>
+        )}
+    </div>
+</div>
+
  {/* CV */}
  <div>
  <label className="font-semibold">

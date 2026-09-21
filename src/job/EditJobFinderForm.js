@@ -12,6 +12,7 @@ import {
     FileText,
     Upload,
 } from "lucide-react";
+import api from "../Api/axios";
 
 export default function EditJobFinderForm({
 
@@ -55,10 +56,42 @@ export default function EditJobFinderForm({
 
     const [oldCv,setOldCv]=useState("");
 
-    
+    const [categories, setCategories] = useState([]); 
+    const [loadingCategories, setLoadingCategories] = useState(false); 
+    const [jobCategoryId, setJobCategoryId] = useState("");
 
-        const countries = useMemo(() => countryList().getData(), []);
+    const countries = useMemo(() => countryList().getData(), []);
  
+
+        const fetchCategories = async () => {
+            try {
+                setLoadingCategories(true);
+
+                const res = await api.get(
+                    "/api/job-categories"
+                );
+
+                setCategories(
+                    res.data.categories || []
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to load job categories:",
+                    error
+                );
+
+            } finally {
+
+                setLoadingCategories(false);
+
+            }
+        };
+
+        useEffect(() => {
+            fetchCategories();
+        }, []);
     useEffect(() => {
 
         if (!profile) return;
@@ -67,6 +100,11 @@ export default function EditJobFinderForm({
                 profile.cv
             );
 
+        setJobCategoryId(
+            profile.job_category_id
+                ? String(profile.job_category_id)
+                : ""
+        );
         setFullName(
             profile.full_name || ""
         );
@@ -180,6 +218,11 @@ const handleCV = (e) => {
     formData.append(
         "full_name",
         fullName || ""
+    );
+
+    formData.append(
+    "job_category_id",
+    jobCategoryId || ""
     );
 
     formData.append(
@@ -315,6 +358,75 @@ const handleCV = (e) => {
                 p-3
                 "
             />
+
+        </div>
+
+
+        <div>
+
+            <label
+                className="
+                block
+                font-semibold
+                mb-2
+                "
+            >
+                Job Category
+            </label>
+
+            {loadingCategories ? (
+
+                <div
+                    className="
+                    h-12
+                    rounded-xl
+                    bg-gray-200
+                    animate-pulse
+                    "
+                />
+
+            ) : (
+
+                <select
+                    value={jobCategoryId}
+                    onChange={(e) =>
+                        setJobCategoryId(
+                            e.target.value
+                        )
+                    }
+                    required
+                    className="
+                    w-full
+                    border
+                    text-black
+                    rounded-xl
+                    px-4
+                    py-3
+                    focus:ring-2
+                    focus:ring-blue-500
+                    "
+                >
+
+                    <option value="">
+                        Select Job Category
+                    </option>
+
+                    {categories.map(
+                        (category) => (
+
+                            <option
+                                key={category.id}
+                                value={category.id}
+                            >
+                                {category.name}
+                            </option>
+
+                        )
+                    )}
+
+                </select>
+
+            )}
 
         </div>
 

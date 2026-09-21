@@ -6,7 +6,7 @@ import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, Clip
   FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
   Workflow,
   History,
-  Star, Globe2, MessageSquare,
+  Star, MessageSquare,
   Projector} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
@@ -30,6 +30,7 @@ import TeacherProposalHistory from "../pages/mentor/TeacherProposalHistory";
 import TeacherReviews from "../pages/mentor/TeacherReviews";
 import MyProductReviews from "../pages/sales/MyProductReviews";
 import MyAdvertisements from "../advertisement/MyAdvertisements";
+import ReelViewerModal from "../pages/reel/ReelViewerModal";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -37,7 +38,18 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         savedCount, setSavedCount, setActiveChat, setMessages,
         togglePopup, activeChat, setChats, messagesMap,
         setMessagesMap, setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
-        callMode, setCallMode, meetingData, setMeetingData, commentsByPost, setCommentsByPost
+        callMode, setCallMode, meetingData, setMeetingData, commentsByPost, setCommentsByPost,
+        reelUsers, openUserReels,
+        sending, setSending, closeViewer, nextReel, 
+        previousReel, selectedReel, selectedUser,
+        markReelViewed, open, setOpen, openReport,
+        setOpenReport, showImagePicker, setShowImagePicker,
+        messageOpenShare, setMessageOpenShare, shares,
+        setShares, setMyReels, setReelUsers,
+        selectedReelIndex, selectedUserIndex,
+        setMediaIndex,
+        mediaIndex, setProgress, progress, setMessage,
+        message, setReaction, reaction, setShowOptions, showOptions
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -404,9 +416,72 @@ useEffect(() => {
                         incomingCall={incomingCall}
                         setMeetingData={setMeetingData}
                         meetingData={meetingData}
-                        
+                        openUserReels={openUserReels}
+                        reelUsers={reelUsers}
                       
                       />
+
+                      
+                              {selectedReel && (
+                                  <ReelViewerModal
+                                      chats={chats}
+                                      user={selectedUser.user}
+                                      reel={selectedReel}
+                                      reelIndex={
+                                          selectedReelIndex
+                                      }
+                                      totalReels={
+                                          selectedUser.reels
+                                              .length
+                                      }
+                                      onClose={closeViewer}
+                                      onNext={nextReel}
+                                      onPrevious={
+                                          previousReel
+                                      }
+                                      showOptions={
+                                          showOptions
+                                      }
+                                      setShowOptions={
+                                          setShowOptions
+                                      }
+                                      message={message}
+                                      setMessage={setMessage}
+                                      
+                                      sending={sending}
+                                      setSending={setSending}
+                                      reaction={reaction}
+                                      setReelUsers={setReelUsers}
+                                      setMyReels={setMyReels}
+                                      setReaction={
+                                          setReaction
+                                      }
+                      
+                                      currentUserIndex={selectedUserIndex}
+                                      reelUsers={reelUsers}
+                                      currentUser={user}
+                      
+                                      selectedReel={selectedReel}
+                                      mediaIndex={mediaIndex}
+                                      setMediaIndex={setMediaIndex}
+                                      progress={progress}
+                                      setProgress={setProgress}
+                                      nextReel={nextReel}
+                      
+                                      markReelViewed={markReelViewed}
+                                      open={open}
+                                      setOpen={setOpen}
+                                      showImagePicker={showImagePicker}
+                                      setShowImagePicker={setShowImagePicker}
+                                      messageOpenShare={messageOpenShare}
+                                      setMessageOpenShare={setMessageOpenShare}
+                                      openReport={openReport}
+                                      setOpenReport={setOpenReport}
+                                      shares={shares}
+                                      setShares={setShares}
+                                      
+                                  />
+                              )}
     <div className="flex min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] ">
       <aside
       onScroll={handleMessagesScroll}

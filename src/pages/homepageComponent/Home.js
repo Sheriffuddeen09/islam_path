@@ -58,7 +58,27 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
       showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
       handleReelClick={handleReelClick} reelCount={reelCount}
-
+      reelUsers={reelUsers} openUserReels={openUserReels}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
+        setMyReels={setMyReels}
+        setReelUsers={setReelUsers}
+        selectedReelIndex={selectedReelIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
       />
 
 

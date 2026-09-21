@@ -572,7 +572,28 @@ const previousReel = () => {
               setMeetingData={setMeetingData}
               meetingData={meetingData}
               commentsByPost={commentsByPost}
-                                  setCommentsByPost={setCommentsByPost}
+              setCommentsByPost={setCommentsByPost}
+              reelUsers={reelUsers} openUserReels={openUserReels}
+              sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+              previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+              markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+              setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+              messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+              setShares={setShares}
+              setMyReels={setMyReels}
+              setReelUsers={setReelUsers}
+              selectedReelIndex={selectedReelIndex}
+              selectedUserIndex={selectedUserIndex}
+              setMediaIndex={setMediaIndex}
+              mediaIndex={mediaIndex}
+              setProgress={setProgress}
+              progress={progress}
+              setMessage={setMessage}
+              message={message}
+              setReaction={setReaction}
+              reaction={reaction}
+              setShowOptions={setShowOptions}
+              showOptions={showOptions}
                />
             </ProtectedRoute>
           }
@@ -620,7 +641,28 @@ const previousReel = () => {
           setMeetingData={setMeetingData}
           meetingData={meetingData}
           commentsByPost={commentsByPost}
-                              setCommentsByPost={setCommentsByPost}
+          setCommentsByPost={setCommentsByPost}
+          reelUsers={reelUsers} openUserReels={openUserReels}
+          sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+          previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+          markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+          setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+          messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+          setShares={setShares}
+          setMyReels={setMyReels}
+          setReelUsers={setReelUsers}
+          selectedReelIndex={selectedReelIndex}
+          selectedUserIndex={selectedUserIndex}
+          setMediaIndex={setMediaIndex}
+          mediaIndex={mediaIndex}
+          setProgress={setProgress}
+          progress={progress}
+          setMessage={setMessage}
+          message={message}
+          setReaction={setReaction}
+          reaction={reaction}
+          setShowOptions={setShowOptions}
+          showOptions={showOptions}
           />
         </ProtectedRoute>
       } />
@@ -668,6 +710,27 @@ const previousReel = () => {
           showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
           showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
           handleVideoClick={handleVideoClick} videoCount={videoCount}
+          reelUsers={reelUsers} openUserReels={openUserReels}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
+        setMyReels={setMyReels}
+        setReelUsers={setReelUsers}
+        selectedReelIndex={selectedReelIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
           />}>
 
         
@@ -781,7 +844,7 @@ const previousReel = () => {
       <Route path="/quran" element={
           <QuranGrid />
       } />
-
+{/* /admin/friend */}
       <Route path="/notifications" element={
           <Notifications handleMessageOpen={handleMessageOpen} 
             jobProfile={jobProfile}
@@ -1039,7 +1102,7 @@ const previousReel = () => {
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
-                            setCommentsByPost={setCommentsByPost}
+        setCommentsByPost={setCommentsByPost}
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         messageOpen={messageOpen}
@@ -1115,7 +1178,7 @@ const previousReel = () => {
         markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
         setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
         messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
-        setShares={setShares}
+        setShares={setShares} 
          />   
       } />
 
@@ -1184,8 +1247,18 @@ function LayoutWithHeader({
   fetchJobProfile, setShow, show,
   showAdvertisement, setShowAdvertisement,
   showJobCreate, setShowJobCreate,
-  handleVideoClick, videoCount
-
+  handleVideoClick, videoCount,
+  reelUsers, openUserReels,
+  sending, setSending, closeViewer, nextReel, 
+  previousReel, selectedReel, selectedUser,
+  markReelViewed, open, setOpen, openReport,
+  setOpenReport, showImagePicker, setShowImagePicker,
+  messageOpenShare, setMessageOpenShare, shares,
+  setShares, setMyReels, setReelUsers,
+  selectedReelIndex, selectedUserIndex,
+  setMediaIndex,
+  mediaIndex, setProgress, progress, setMessage,
+  message, setReaction, reaction, setShowOptions, showOptions
 }) {
   return (
     <div>
@@ -1232,7 +1305,27 @@ function LayoutWithHeader({
         setShow={setShow}
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
-
+        reelUsers={reelUsers} openUserReels={openUserReels}
+        sending={sending} setSending={setSending} closeViewer={closeViewer} nextReel={nextReel} 
+        previousReel={previousReel} selectedReel={selectedReel} selectedUser={selectedUser}
+        markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
+        setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
+        messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
+        setShares={setShares}
+        setMyReels={setMyReels}
+        setReelUsers={setReelUsers}
+        selectedReelIndex={selectedReelIndex}
+        selectedUserIndex={selectedUserIndex}
+        setMediaIndex={setMediaIndex}
+        mediaIndex={mediaIndex}
+        setProgress={setProgress}
+        progress={progress}
+        setMessage={setMessage}
+        message={message}
+        setReaction={setReaction}
+        reaction={reaction}
+        setShowOptions={setShowOptions}
+        showOptions={showOptions}
       />
 
       <Outlet />

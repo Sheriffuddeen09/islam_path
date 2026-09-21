@@ -175,10 +175,10 @@ export default function JobFinderProfile() {
                             </h2>
 
 
+                            <div className="flex flex-wrap gap-2 mt-2">
                             <span
                                 className="
                                 inline-block
-                                mt-2
                                 bg-green-100
                                 text-green-700
                                 px-3
@@ -187,8 +187,25 @@ export default function JobFinderProfile() {
                                 text-sm
                                 "
                             >
-                               Job {profile?.type}
+                                Job {profile?.type}
                             </span>
+
+                            {profile?.category?.name && (
+                                <span
+                                    className="
+                                    inline-block
+                                    bg-blue-100
+                                    text-blue-700
+                                    px-3
+                                    py-1
+                                    rounded-full
+                                    text-sm
+                                    "
+                                >
+                                    {profile.category.name}
+                                </span>
+                            )}
+                        </div>
 
                         </div>
                         </div>

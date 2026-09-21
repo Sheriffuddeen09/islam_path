@@ -19,7 +19,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setActiveCommunity, loadingMessagesCommunity, setLoadingMessagesCommunity, communityMessages, setCommunityMessages,
     messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef,
     incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, communityMessagesCache,
-    hasUnreadCommunity
+    hasUnreadCommunity, openUserReels, reelUsers
 }) {
 
    
@@ -72,6 +72,48 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
           ? activeChat?.student
           : activeChat?.teacher
       )
+
+      
+      const activeChatUserId = Number(other?.id);
+
+      const activeChatReelUserIndex =
+        Array.isArray(reelUsers)
+          ? reelUsers.findIndex((reelUser) => {
+              const reelUserId = Number(
+                reelUser?.user?.id ?? reelUser?.user_id
+              );
+
+              const reels = Array.isArray(reelUser?.reels)
+                ? reelUser.reels
+                : [];
+
+              const reelUserIds = reels.map((reel) =>
+                Number(reel?.user_id)
+              );
+
+              return (
+                reelUserId === activeChatUserId ||
+                reelUserIds.includes(activeChatUserId)
+              );
+            })
+          : -1;
+
+      const activeChatUserReels =
+        activeChatReelUserIndex >= 0 &&
+        Array.isArray(
+          reelUsers?.[activeChatReelUserIndex]?.reels
+        )
+          ? reelUsers[activeChatReelUserIndex].reels
+          : [];
+
+      const hasActiveChatReel =
+        activeChatUserReels.length > 0;
+
+      const hasUnviewedActiveChatReel =
+        activeChatUserReels.some(
+          (reel) => reel?.has_viewed !== true
+        );
+
 
     const displayName = isGroup
       ? activeChat?.group_name ||
@@ -699,6 +741,8 @@ setMessages((prev) => {
         lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
       <ChatList 
+          openUserReels={openUserReels}
+          reelUsers={reelUsers}
           communityMessagesCache={communityMessagesCache} hasUnreadCommunity={hasUnreadCommunity}
           communityContainerRef={communityContainerRef}
           setExploreCommunities={setExploreCommunities}
@@ -753,6 +797,8 @@ setMessages((prev) => {
         `}
       >
       <MessageBox
+          openUserReels={openUserReels}
+          reelUsers={reelUsers}
       
           forwardMessage={forwardMessage} 
           setForwardMessage={setForwardMessage} 
@@ -821,6 +867,10 @@ setMessages((prev) => {
     "
   >
     <ActiveUsers
+    activeChatReelUserIndex={activeChatReelUserIndex} hasActiveChatReel={hasActiveChatReel} 
+      hasUnviewedActiveChatReel={hasUnviewedActiveChatReel}
+      openUserReels={openUserReels}
+      reelUsers={reelUsers}
       forwardMessage={forwardMessage} 
       setForwardMessage={setForwardMessage} 
       incomingCall={incomingCall} setIncomingCall={setIncomingCall}
@@ -850,6 +900,8 @@ setMessages((prev) => {
 
     <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
      <ChatList 
+          openUserReels={openUserReels}
+          reelUsers={reelUsers}
           communityMessagesCache={communityMessagesCache} hasUnreadCommunity={hasUnreadCommunity}
           communityContainerRef={communityContainerRef}
           setExploreCommunities={setExploreCommunities}
@@ -895,6 +947,8 @@ setMessages((prev) => {
 
       {activeChat ? (
       <MessageBox
+          openUserReels={openUserReels}
+          reelUsers={reelUsers}
           forwardMessage={forwardMessage} 
           setForwardMessage={setForwardMessage} 
           showMeetingModal={showMeetingModal} 
@@ -970,6 +1024,10 @@ setMessages((prev) => {
 
   {activeChat ? (
     <ActiveUsers
+     activeChatReelUserIndex={activeChatReelUserIndex} hasActiveChatReel={hasActiveChatReel} 
+      hasUnviewedActiveChatReel={hasUnviewedActiveChatReel}
+      openUserReels={openUserReels}
+      reelUsers={reelUsers}
       forwardMessage={forwardMessage} 
       setForwardMessage={setForwardMessage} 
       showMeetingModal={showMeetingModal} 

@@ -8,6 +8,8 @@ export default function ChatItem({
   authUser,
   activeChat,
   openChat, 
+  openUserReels,
+  reelUsers
 }) {
 
   const { user } = useAuth();
@@ -22,6 +24,43 @@ export default function ChatItem({
   );
 
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
+
+  const chatUserId = Number(other?.id);
+
+  const chatReelUserIndex =
+    Array.isArray(reelUsers)
+      ? reelUsers.findIndex((reelUser) => {
+          const reelUserId = Number(
+            reelUser?.user?.id ?? reelUser?.user_id
+          );
+
+          const reels = Array.isArray(reelUser?.reels)
+            ? reelUser.reels
+            : [];
+
+          const reelUserIds = reels.map((reel) =>
+            Number(reel?.user_id)
+          );
+
+          return (
+            reelUserId === chatUserId ||
+            reelUserIds.includes(chatUserId)
+          );
+        })
+      : -1;
+
+  const chatUserReels =
+    chatReelUserIndex >= 0 &&
+    Array.isArray(reelUsers?.[chatReelUserIndex]?.reels)
+      ? reelUsers[chatReelUserIndex].reels
+      : [];
+
+  const hasChatUserReel = chatUserReels.length > 0;
+
+  const hasUnviewedChatUserReel = chatUserReels.some(
+    (reel) => reel?.has_viewed !== true
+  );
+
 
   const isRestrictedMember =
     chat.type === "group" &&
@@ -153,10 +192,40 @@ export default function ChatItem({
     >
       {/* AVATAR */}
      <div
-  onClick={() => setShowAvatarPreview(true)}
-  className={`relative w-12 h-12 rounded-full overflow-hidden flex items-center 
-  justify-center font-bold text-2xl text-white cursor-pointer ${getColor(avatarName)}`}
->
+        onClick={() => {
+          if (chatReelUserIndex !== -1 && hasChatUserReel) {
+            openUserReels(chatReelUserIndex);
+            return;
+          }
+
+          setShowAvatarPreview(true);
+        }}
+        className={`
+          relative
+          w-12
+          h-12
+          rounded-full
+          overflow-hidden
+          flex
+          items-center
+          justify-center
+          font-bold
+          text-2xl
+          text-white
+          cursor-pointer
+          border-2
+
+          ${
+            hasChatUserReel
+              ? hasUnviewedChatUserReel
+                ? "border-green-500"
+                : "border-[#111827]"
+              : "border-transparent"
+          }
+
+          ${getColor(avatarName)}
+        `}
+      >
   {isGroup && chat.image_url ? (
     <img
       src={chat.image_url}

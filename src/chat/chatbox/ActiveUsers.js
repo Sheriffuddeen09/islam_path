@@ -26,7 +26,6 @@ import GenerateLinkCall from "./GenerateLinkCall";
 
 const socket = io("http://localhost:8000");
 
-// members
 export default function ActiveUsers({
   activeChat,
   setActiveChat,
@@ -36,7 +35,8 @@ export default function ActiveUsers({
   setMessages,
   onHeaderClick,
   uiMode, setShowAvatarPreview, getColor, getInitial, avatarName, isGroup, displayName, setShowMeetingModal, showMeetingModal,
-  incomingCall, setIncomingCall, setCallMode, setForwardMessage
+  incomingCall, setIncomingCall, setCallMode, setForwardMessage, openUserReels, activeChatReelUserIndex, 
+  hasActiveChatReel, hasUnviewedActiveChatReel
 }) {
 
   const [copiedField, setCopiedField] = useState(null);
@@ -262,16 +262,54 @@ export default function ActiveUsers({
       {/* PROFILE */}
      <div className="flex flex-col items-center p-4 border-b bg-[var(--bg-color)] transition-all duration-300">
 
-        <div
-          onClick={() => setShowAvatarPreview(true)}
-          className={`w-24 h-24 rounded-full mb-3 shadow-md hover:scale-105 transition cursor-pointer flex items-center justify-center font-bold text-[60px] text-white ${getColor(
-            avatarName
-          )}`}
+       <div
+          onClick={(e) => {
+            e.stopPropagation();
+
+            if (
+              !isGroup &&
+              activeChatReelUserIndex !== -1 &&
+              hasActiveChatReel
+            ) {
+              openUserReels(activeChatReelUserIndex);
+              return;
+            }
+
+            setShowAvatarPreview(true);
+          }}
+          className={`
+            w-24
+            h-24
+            rounded-full
+            mb-3
+            shadow-md
+            hover:scale-105
+            transition
+            cursor-pointer
+            flex
+            items-center
+            justify-center
+            font-bold
+            text-[60px]
+            text-white
+            border-4
+
+            ${
+              !isGroup && hasActiveChatReel
+                ? hasUnviewedActiveChatReel
+                  ? "border-green-500"
+                  : "border-[#111827]"
+                : "border-transparent"
+            }
+
+            ${getColor(avatarName)}
+          `}
         >
           {isGroup && activeChat?.image_url ? (
             <img
               src={activeChat.image_url}
               className="w-full h-full object-cover rounded-full"
+              alt=""
             />
           ) : (
             getInitial(avatarName)

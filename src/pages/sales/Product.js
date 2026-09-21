@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import api from "../../Api/axios";
 import { useCart } from "./cart/CartContext";
 import { FaHeart, FaStar } from "react-icons/fa";
 import SearchProduct from "./SearchProduct";
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useWishlist } from "./cart/WishlistContext";
 import { useAuth } from "../../layout/AuthProvider";
 

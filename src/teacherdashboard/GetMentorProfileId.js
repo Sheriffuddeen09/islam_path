@@ -106,6 +106,8 @@ const {id} = useParams()
       teacher_id: teacherId,
     });
   };
+
+  
 useEffect(() => {
   const fetchRequestStatus = async () => {
     try {
