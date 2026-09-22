@@ -18,7 +18,8 @@ export default function ExamQuestionBuilder({ index, question, setQuestions, set
       <p className="font-semibold">Question {index + 1}</p>
 
       <textarea
-        className="input w-full mt-1 p-2 border rounded"
+        className="input w-full mt-1 p-2 border rounded
+         scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
         placeholder="Question"
         value={question.question}
         onChange={e => update("question", e.target.value)}

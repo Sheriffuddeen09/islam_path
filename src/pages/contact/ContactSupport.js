@@ -613,7 +613,7 @@ name="message"
 value={formData.message}
 onChange={handleChange}
 placeholder="Please describe your issue."
-className="w-full border rounded-xl p-3 mt-2"
+className="w-full border rounded-xl p-3 mt-2  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
 />
 
 </div>

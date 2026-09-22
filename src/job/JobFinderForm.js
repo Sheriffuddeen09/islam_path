@@ -220,7 +220,8 @@ useEffect(() => {
  />
  <textarea
  rows={3}
- className="border text-black rounded-xl w-full pl-12 py-3"
+ className="border text-black rounded-xl w-full pl-12 py-3
+  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
  placeholder="B.Sc Computer Science..."
  value={qualification}
  onChange={(e)=>
@@ -400,7 +401,8 @@ useEffect(() => {
  />
  <textarea
  rows={3}
- className="border text-black rounded-xl w-full pl-12 py-3"
+ className="border text-black rounded-xl w-full pl-12 py-3
+  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
  placeholder="AWS, Cisco..."
  value={certification}
  onChange={(e)=>

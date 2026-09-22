@@ -462,6 +462,7 @@ const handleCV = (e) => {
                 border
                 rounded-xl
                 p-3
+                 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                 "
             />
 

@@ -2507,7 +2507,7 @@ if (
                             scrollbar
                             scrollbar-thumb-gray-200
                             scrollbar-track-transparent
-                            scrollbar-thin
+                            scrollbar-thin 
                         "
                     />
 

@@ -203,7 +203,8 @@ export default function BiodataModal({ onClose, userId }) {
 
                   <textarea
                     placeholder="Bio"
-                    className="w-full p-3 bg-white text-black rounded-xl"
+                    className="w-full p-3 bg-white text-black rounded-xl
+                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
                     rows={4}
                     value={item.bio}
                     onChange={(e) =>

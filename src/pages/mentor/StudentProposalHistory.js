@@ -905,7 +905,8 @@ value={description}
 
 onChange={(e)=>setDescription(e.target.value)}
 
-className="w-full border rounded-xl p-3 mt-2 resize-none"
+className="w-full border rounded-xl p-3 mt-2 resize-none
+ scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
 
 />
 

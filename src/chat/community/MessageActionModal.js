@@ -265,7 +265,7 @@ export default function MessageActionModal({
 
                 border
                 border-white/10
-
+                 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                 outline-none
 
                 resize-none

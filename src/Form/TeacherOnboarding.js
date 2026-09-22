@@ -291,7 +291,8 @@ const handleSubmit = async (e) => {
           setCompliment(e.target.value);
           autoGrow(complimentRef);
         }}
-        className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
+        className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black 
+         scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent resize-none overflow-hidden"
       />
 
 
@@ -336,7 +337,9 @@ const handleSubmit = async (e) => {
         setQualification(e.target.value);
         autoGrow(qualificationRef);
       }}
-      className="w-full p-2 border mb-3 border-blue-600 rounded-lg outline-0 text-black resize-none overflow-hidden"
+      className="w-full p-2 border mb-3 border-blue-600 rounded-lg 
+       scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
+       outline-0 text-black resize-none overflow-hidden"
     />
 
     {/* Cv */}

@@ -109,7 +109,8 @@ export default function SubmitTeacherReview({
         rows={5}
         maxLength={1000}
         placeholder="Tell other students about your learning experience..."
-        className="w-full border rounded-xl text-sm text-black p-4 mt-6 resize-none focus:ring-2 focus:ring-blue-500 outline-none"
+        className="w-full border rounded-xl text-sm text-black p-4 mt-6 resize-none focus:ring-2 
+         scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent focus:ring-blue-500 outline-none"
       />
 
       <div className="text-right text-xs text-gray-400 mt-1">

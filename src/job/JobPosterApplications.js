@@ -2350,8 +2350,10 @@ const removeApplication = async (applicationId) => {
                                         resize-none
                                         focus:ring-2
                                         focus:ring-green-500 text-black
+                                         scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                                     "
                                 />
+
 
                             </div>
 

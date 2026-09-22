@@ -358,6 +358,7 @@ export default function CommunitySettingsModal({
               rounded-lg
               px-3
               py-2
+               scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
             "
           />
 

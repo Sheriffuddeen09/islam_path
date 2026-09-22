@@ -158,7 +158,7 @@ export function PostCommentInput({
               placeholder:text-gray-400
               outline-none
               border-none
-              no-scrollbar
+             scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
             "
           />
 

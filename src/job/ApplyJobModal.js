@@ -1060,6 +1060,7 @@ export default function ApplyJobModal({
                                                     py-3
                                                     outline-none
                                                     resize-none
+                                                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                                                     ${
                                                         errors.experience
                                                             ? "border-red-400"
@@ -1362,6 +1363,7 @@ export default function ApplyJobModal({
                                             resize-none
                                             focus:ring-2
                                             focus:ring-blue-500
+                                             scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                                         "
                                     />
 

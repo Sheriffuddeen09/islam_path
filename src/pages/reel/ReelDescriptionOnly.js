@@ -333,6 +333,7 @@ export default function ReelDescriptionOnly({
                                 text-sm
                                 text-center no-scrollbar
                                 placeholder:text-white/60
+                                 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                             "
                             style={{
                                 fontFamily: font,

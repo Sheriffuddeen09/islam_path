@@ -564,7 +564,8 @@ const getPreviewSrc = (index) => {
                   rows={1}
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="w-full rounded-full px-4 py-3 no-scrollbar pr-10 text-sm text-black"
+                  className="w-full rounded-full px-4 py-3 no-scrollbar pr-10 text-sm text-black
+                   scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
                   placeholder="Write a caption..."
                 />
                 <button

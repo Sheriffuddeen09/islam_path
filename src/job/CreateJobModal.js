@@ -753,7 +753,7 @@ const characterCount = (value = "", max = 5000) => {
                                     pr-4
 
                                     py-3
-
+                                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                                     rounded-xl
 
                                     border
@@ -819,7 +819,7 @@ const characterCount = (value = "", max = 5000) => {
                                 • Review pull requests"
 
                                 className={`
-
+                                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                                     w-full
 
                                     pl-11
@@ -1238,7 +1238,8 @@ const characterCount = (value = "", max = 5000) => {
 
                                     Islamic Studies"
 
-                                className="w-full border text-black rounded-xl p-4 resize-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full border text-black rounded-xl p-4 resize-none focus:ring-2 
+                                 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent focus:ring-blue-500"
 
                             />
 
@@ -1285,7 +1286,9 @@ const characterCount = (value = "", max = 5000) => {
 
                                     Customer service"
 
-                                    className="w-full text-black border rounded-xl p-4 resize-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full text-black border rounded-xl p-4 resize-none focus:ring-2 
+                                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
+                                     focus:ring-blue-500"
 
                                 />
 

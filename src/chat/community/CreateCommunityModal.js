@@ -555,7 +555,7 @@ onClose();
             }
             placeholder="Community description"
             className="w-full h-28 rounded-xl bg-[var(--bg-color)] text-[var(--text-color)] 
-            border border-gray-500
+            border border-gray-500  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
             p-4 outline-none resize-none"
           />
 

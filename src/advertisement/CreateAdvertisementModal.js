@@ -171,7 +171,9 @@ formData.description
 onChange={
 handleChange
 }
-placeholder="Write your advertisement description." className="w-full border text-black rounded-xl p-4 mt-2 outline-none focus:ring-2 focus:ring-blue-500" />
+placeholder="Write your advertisement description." 
+className="w-full border text-black  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
+ rounded-xl p-4 mt-2 outline-none focus:ring-2 focus:ring-blue-500" />
 </div>
 {/* Link */}
 <div>

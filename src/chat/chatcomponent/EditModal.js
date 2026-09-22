@@ -100,7 +100,8 @@ export default function EditModal({
             onChange={(e) =>
               setEditText(e.target.value)
             }
-            className="border text-black no-scrollbar border-blue-600 outline-0 p-2 rounded-md my-3 w-full mb-2"
+            className="border text-black no-scrollbar border-blue-600 outline-0 p-2 rounded-md my-3 w-full mb-2
+             scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
           />
 
           <div className="flex justify-end gap-2">

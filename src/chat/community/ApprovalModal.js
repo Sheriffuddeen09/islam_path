@@ -361,7 +361,8 @@ const truncateWords = (text, limit = 20) => {
                     outline-none
                     resize-none
                     placeholder-gray-400
-                    text-xs
+                    text-xs 
+                    scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                   "
                 />
               </div>

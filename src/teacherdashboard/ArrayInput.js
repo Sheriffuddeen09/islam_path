@@ -52,7 +52,8 @@ export default function ArrayInput({
               placeholder={placeholder}
               onInput={handleAutoGrow}
               onChange={(e) => handleChange(idx, e.target.value)}
-              className="w-full border rounded px-3 py-2 resize-none overflow-hidden text-black disabled:bg-gray-100"
+              className="w-full border rounded px-3 py-2 resize-none overflow-hidden text-black disabled:bg-gray-100
+               scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
             />
           ) : (
             <input

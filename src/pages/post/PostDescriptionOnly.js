@@ -28,7 +28,7 @@ value={text}
 onChange={e => setText(e.target.value)}
 placeholder="Write something" 
 className=" w-full
-h-40 text-black
+h-40 text-black 
 border scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
 rounded-xl
 p-4

@@ -999,7 +999,9 @@ const declineJob = async () => {
                     rows={6}
                     maxLength={2000}
                     disabled={declineLoading[declineJobId]}
-                    className="w-full resize-none rounded-xl border border-gray-300/30 bg-transparent px-4 py-3 text-sm outline-none transition focus:border-red-500 disabled:opacity-60"
+                    className="w-full resize-none rounded-xl border border-gray-300/30 bg-transparent px-4 
+                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
+                    py-3 text-sm outline-none transition focus:border-red-500 disabled:opacity-60"
                 />
 
                 <div className="mt-2 flex justify-between text-xs opacity-60">

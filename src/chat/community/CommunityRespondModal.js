@@ -289,6 +289,7 @@ export default function CommunityRespondModal({
                     resize-none
                     text-white
                     placeholder-gray-400
+                     scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
                   "
                 />
                

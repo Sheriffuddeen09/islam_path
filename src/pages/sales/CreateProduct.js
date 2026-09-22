@@ -507,7 +507,8 @@ const toSlug = (text) =>
       </label>
       <textarea
         placeholder="Write product description"
-        className="border w-full p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 text-black"
+        className="border w-full p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 text-black
+         scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
         rows="4"
         value={form.description}
         onChange={e => setForm({ ...form, description: e.target.value })}

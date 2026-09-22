@@ -349,7 +349,9 @@ const handlePick = (type) => {
                 value={textCommunity}
                 rows={1}
                 onChange={(e) => setTextCommunity(e.target.value)}
-                className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 text-[var(--text-color)] shadow relative w-full px-4 rounded-full py-3 relative"
+                className="flex-1 border no-scrollbar bg-[var(--bg-color)] border-gray-400 text-[var(--text-color)] 
+                 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent
+                shadow relative w-full px-4 rounded-full py-3 relative"
             />
           {!textCommunity && 
           <button className="absolute top-3 right-3" onClick={() => setShowEmojiCommunity(prev => !prev)}>

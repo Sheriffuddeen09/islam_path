@@ -531,7 +531,7 @@ export default function CreateProposal() {
             }}
             className="border rounded-lg w-full p-3 mt-2 resize-none
             scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin"
-            placeholder="Describe what you need from the teacher..."
+            placeholder="Describe what you need from the teacher"
           />
 
           {errors.description && (

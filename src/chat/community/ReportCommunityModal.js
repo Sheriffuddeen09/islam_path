@@ -70,7 +70,8 @@ export function ReportCommunityModal({ community, onClose }) {
         {/* DETAILS */}
         <textarea
           placeholder="Additional details (optional)"
-          className="w-full border text-black rounded p-2 mt-2"
+          className="w-full border text-black rounded p-2 mt-2
+           scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
           onChange={(e) => setDetails(e.target.value)}
         />
 

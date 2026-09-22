@@ -451,7 +451,8 @@ flex-col justify-between shadow-2xl">
       ))}
     </div>
     <textarea
-      className="w-full border rounded-md p-3 mb-4 text-gray-700 focus:ring-2 focus:ring-orange-400 focus:outline-none"
+      className="w-full border rounded-md p-3 mb-4 text-gray-700 focus:ring-2 focus:ring-orange-400 focus:outline-none
+       scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
       placeholder="Write your review"
       value={comment}
       onChange={(e) => setComment(e.target.value)}

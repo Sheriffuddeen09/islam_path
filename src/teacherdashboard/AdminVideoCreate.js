@@ -35,7 +35,8 @@ export default function AdminVideoForm({ onCreated }) {
   return (
     <form onSubmit={submit} className="space-y-3 p-4 bg-white rounded shadow">
       <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title" className="w-full p-2 border"/>
-      <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description" className="w-full p-2 border" />
+      <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description" 
+      className="w-full p-2 border  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent" />
       <select value={category} onChange={e=>setCategory(e.target.value)} className="p-2 border w-full">
         <option value="">Select category</option>
         {categories.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}

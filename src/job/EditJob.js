@@ -511,7 +511,7 @@ export default function EditJob() {
                 className="w-full
                 border
                 rounded-lg
-                p-3"
+                p-3  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
 
                 />
 
@@ -535,7 +535,7 @@ export default function EditJob() {
                 className="w-full
                 border
                 rounded-lg
-                p-3"
+                p-3  scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
 
                 />
 

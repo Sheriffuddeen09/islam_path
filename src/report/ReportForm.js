@@ -77,7 +77,8 @@ export default function ReportForm({ video, handleReport  }) {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="border border-gray-300 rounded-lg text-black p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition resize-none h-32 sm:h-40"
+          className="border border-gray-300 rounded-lg text-black p-3 focus:outline-none focus:ring-2 
+           scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent focus:ring-blue-400 focus:border-blue-400 transition resize-none h-32 sm:h-40"
           placeholder="Describe the issue"
           required
         />

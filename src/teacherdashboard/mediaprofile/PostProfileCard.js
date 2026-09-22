@@ -865,7 +865,8 @@ const media = Array.isArray(post.media) ? post.media : [];
                           <h3 className="font-semibold my-4 text-center">Edit Post</h3>
 
                           <textarea
-                            className="w-full border text-sm text-black p-2 h-40 rounded-lg no-scrollbar"
+                            className="w-full border text-sm text-black p-2 h-40 rounded-lg 
+                             scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
                           />
