@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import { MessageCircleCodeIcon, Settings } from "lucide-react";
 
 export default function CommunityPage({
-  onClose, messagesCacheRef,
+  onClose, messagesCacheRef, handleReelCreated,
   authUser, chats, loadingChats, setActiveChat, messagesCommunityEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
   communityMessages, setCommunityMessages, mobileViewCommunity, setMobileViewCommunity, setChats, setMessages, messageCommunityRefs,
@@ -206,6 +206,7 @@ const handleHide = async (
 >
 
         <CommunityMessages
+        handleReelCreated={handleReelCreated}
           communityMessagesCache={communityMessagesCache}
           communityContainerRef={communityContainerRef}
           setChats={setChats} messagesCacheRef={messagesCacheRef}

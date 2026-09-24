@@ -24,8 +24,9 @@ export default function MessageItem({
   setActiveChat, activeMenuId, setActiveMenuId, showMore, setShowMore,
   chats, searchQuery, setSearchQuery, searchMode, setSearchMode, forwardMode, setReplyingTo, messages,
   selectedMessages, setForwardMode,setSelectedMessages, forwardMessage, setForwardMessage,
-  showReactionPopup, setShowReactionPopup, messageRefs, bottomRef, setMeetingData,
-  handleSendMeeting, loadingChats, onBack, openCommunityMessage, mobileView,  uiMode, setCallMode, 
+  showReactionPopup, setShowReactionPopup, messageRefs, bottomRef, isLargeScreen,
+  handleSendMeeting, loadingChats, onBack, openCommunityMessage, mobileView,  uiMode, setShowList, setMobileView,
+  messagesCacheRef, setMessagesMap
 }) {
   const [preview, setPreview] = useState({
     items: [],
@@ -2070,6 +2071,8 @@ const handleMessageTouchCancel = () => {
         )}
     </div>
      <MessageComponent
+      messagesCacheRef={messagesCacheRef}
+      setMessagesMap={setMessagesMap}
       handleSendMeeting={handleSendMeeting}
       setChats={setChats}
       openChat={openChat}
@@ -2077,7 +2080,7 @@ const handleMessageTouchCancel = () => {
       togglePin={handlePin}
       setMessages={setMessages}
       activeChat={activeChat?.id}
-      onSearch={(text) => handleSearch(text)} // ✅ FIX
+      onSearch={(text) => handleSearch(text)} 
       selectedMessages={selectedMessages}
       setToast={setToast}
       setActiveChat={setActiveChat}
@@ -2107,6 +2110,9 @@ const handleMessageTouchCancel = () => {
       forwardMode={forwardMode}
       setShowReactions={setShowReactionPopup}
       loadingChats={loadingChats}
+      setMobileView={setMobileView}
+      isLargeScreen={isLargeScreen}
+      setShowList={setShowList}
     />
 
    

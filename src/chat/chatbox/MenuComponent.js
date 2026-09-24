@@ -21,7 +21,8 @@ export default function MenuComponent({
   searchQuery,
   setSearchMode, setChats,
   setSearchQuery, chats, selectedMessages, activeChat, forwardMessage, messagesEndRef, 
-  messages, setShowReactions, loadingChats, setActiveChat, handleSendMeeting
+  messages, setShowReactions, loadingChats, setActiveChat, handleSendMeeting, messagesCacheRef, 
+  setMessagesMap
 }) {
   const [showMore, setShowMore] = useState(false);
 
@@ -128,8 +129,7 @@ useEffect(() => {
 }, [messages]);
 
 
-
-     const forwardMessages = async (
+const forwardMessages = async (
   messageIds,
   receiverTargets
 ) => {
@@ -144,16 +144,13 @@ useEffect(() => {
       message_ids: messageIds,
 
       targets: targetsArray.map((t) => {
-
-        // already object
-        if (typeof t === "object") {
+        if (typeof t === "object" && t !== null) {
           return {
             id: Number(t.id),
             type: t.type || t.__type || "user",
           };
         }
 
-        // string user-1
         const [type, id] = String(t).split("-");
 
         return {
@@ -163,105 +160,79 @@ useEffect(() => {
       }),
     };
 
+    console.log("FORWARD PAYLOAD:", payload);
+
     const res = await api.post(
       "/api/messages/forward-multiple",
       payload
     );
+
+    console.log("FORWARD SUCCESS:", res.data);
+
     const chatId = res.data?.chat_id;
-    const newMessages = res.data?.messages || [];
 
-    if (chatId) {
+    if (!chatId) {
+      throw new Error("No chat_id returned");
+    }
 
-      // 🔥 get latest chats
-      const chatsRes = await api.get("/api/chats");
+    const chatsRes = await api.get("/api/chats");
 
-      const allChats = chatsRes.data || [];
+    const allChats = Array.isArray(chatsRes.data)
+      ? chatsRes.data
+      : [];
 
-      // 🔥 instantly update sidebar
-      setChats(allChats);
+    setChats(allChats);
 
-      // 🔥 find forwarded chat
-      const targetChat = allChats.find(
-        (c) => Number(c.id) === Number(chatId)
-      );
+    const targetChat = allChats.find(
+      (chat) => Number(chat.id) === Number(chatId)
+    );
 
-      if (targetChat) {
+    if (!targetChat) {
+      throw new Error("Target chat not found");
+    }
 
-  // 🔥 immediately switch chat
-  setActiveChat(targetChat);
+    delete messagesCacheRef.current[chatId];
 
-  // 🔥 ALWAYS replace when opening another chat
-  if (
-    Number(activeChat?.id) !== Number(targetChat.id)
-  ) {
+    setMessagesMap((prev) => {
+      const updated = { ...prev };
 
-    setMessages(newMessages);
+      delete updated[chatId];
 
-  } else {
-
-    // 🔥 same chat → merge
-    setMessages((prev) => {
-
-      const existingIds = new Set(
-        prev.map((m) => m.id)
-      );
-
-      return [
-        ...prev,
-        ...newMessages.filter(
-          (m) => !existingIds.has(m.id)
-        ),
-      ];
+      return updated;
     });
-  }
-
-  // 🔥 cache instantly
-  setMessages((prev) => ({
-    ...prev,
-    [targetChat.id]: newMessages,
-  }));
-
-  // 🔥 open without clearing messages
-  openChat(targetChat);
-}
-
-
-}
-
-    // 🔥 close modal instantly
+ 
     setForwardMessage({
       open: false,
       messages: [],
     });
 
     setSelectedMessages([]);
+ 
+    await openChat(
+      targetChat,
+      true,
+      true
+    );
 
     setToast("Messages forwarded");
 
   } catch (err) {
-
     console.error(
+      "FORWARD ERROR:",
       err.response?.data || err
     );
 
     setToast("Failed to forward messages");
 
   } finally {
-
     setLoading(false);
   }
 };
 
-    // ================= COPY =================
-    const handleCopy = async (message) => {
-    await navigator.clipboard.writeText(message.message || "");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
+
   
-    // ================= DELETE =================
     const handleDeletePop = (message) => {
-    setSelectedMsg(message); // optional
+    setSelectedMsg(message); 
     setActiveMenuId(null);
     setOpenDelete(true);
   };

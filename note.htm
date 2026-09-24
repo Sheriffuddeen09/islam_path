@@ -1,10 +1,167 @@
-* forward messages
-* the forward is not showing after forward 
-{
-    "message": "The selected replied to is invalid.",
-    "errors": {
-        "replied_to": [
-            "The selected replied to is invalid."
-        ]
-    }
  
+
+```jsx
+import React, { useEffect, useRef, useState } from "react";
+import {
+    Room,
+    RoomEvent,
+    Track,
+} from "livekit-client";
+import api from "../../Api/axios";
+import { toast } from "react-hot-toast";
+
+export default function LiveBroadcaster({
+    liveData,
+    post,
+    onEnded,
+}) {
+    const videoRef = useRef(null);
+    const roomRef = useRef(null);
+
+    const [connected, setConnected] = useState(false);
+    const [ending, setEnding] = useState(false);
+
+    useEffect(() => {
+        if (!liveData?.token || !liveData?.server_url) {
+            return;
+        }
+
+        let mounted = true;
+
+        const connectLive = async () => {
+            try {
+                const room = new Room();
+
+                roomRef.current = room;
+
+                await room.connect(
+                    liveData.server_url,
+                    liveData.token,
+                    {
+                        autoSubscribe: true,
+                    }
+                );
+
+                if (!mounted) {
+                    await room.disconnect();
+                    return;
+                }
+
+                setConnected(true);
+
+                const tracks =
+                    await room.localParticipant.createTracks({
+                        audio: true,
+                        video: true,
+                    });
+
+                for (const track of tracks) {
+                    await room.localParticipant.publishTrack(
+                        track
+                    );
+
+                    if (
+                        track.kind === Track.Kind.Video &&
+                        videoRef.current
+                    ) {
+                        track.attach(videoRef.current);
+                    }
+                }
+
+            } catch (error) {
+                console.error(error);
+
+                toast.error(
+                    "Unable to connect to live video."
+                );
+            }
+        };
+
+        connectLive();
+
+        return () => {
+            mounted = false;
+
+            if (roomRef.current) {
+                roomRef.current.disconnect();
+                roomRef.current = null;
+            }
+        };
+    }, [liveData]);
+
+    const endLive = async () => {
+        if (ending) return;
+
+        try {
+            setEnding(true);
+
+            await api.post(
+                `/api/live/${post.id}/end`
+            );
+
+            if (roomRef.current) {
+                await roomRef.current.disconnect();
+                roomRef.current = null;
+            }
+
+            toast.success("Live video ended.");
+
+            onEnded?.();
+
+        } catch (error) {
+            console.error(error);
+
+            toast.error(
+                error.response?.data?.message ||
+                "Unable to end live video."
+            );
+        } finally {
+            setEnding(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
+
+            <div className="relative w-full h-full max-w-4xl">
+
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-contain"
+                />
+
+                {/* LIVE */}
+                <div className="absolute top-5 left-5">
+                    <div className="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        LIVE
+                    </div>
+                </div>
+
+                {/* Description */}
+                {post?.content && (
+                    <div className="absolute bottom-24 left-5 right-5 text-white">
+                        <p className="text-sm">
+                            {post.content}
+                        </p>
+                    </div>
+                )}
+
+                {/* End */}
+                <button
+                    type="button"
+                    onClick={endLive}
+                    disabled={ending}
+                    className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full font-bold"
+                >
+                    {ending ? "Ending..." : "End Live"}
+                </button>
+
+            </div>
+
+        </div>
+    );
+}

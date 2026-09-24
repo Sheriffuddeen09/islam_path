@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import api from "../../Api/axios";
 
 import {
-  MessageCircle,
+  MessageCircle, X, Check, Send
 } from "lucide-react";
 
 import {
@@ -918,393 +918,682 @@ export default function PostImageGridProfileId({
           )}
         </div>
 
-        {/* =================================================
-            SHARE MODAL
-        ================================================= */}
-        {shares && (
-          <div
+       {shares && (
+  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div
+      className="
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        rounded-2xl
+        p-5
+        w-full
+        max-w-sm
+        relative
+        shadow-2xl
+        border
+        border-gray-200/20
+      "
+    >
+
+      {/* ========================================================= */}
+      {/* CLOSE                                                     */}
+      {/* ========================================================= */}
+
+      <button
+        type="button"
+        onClick={() => setShares(false)}
+        className="
+          absolute
+          right-3
+          top-3
+          w-8
+          h-8
+          rounded-full
+          bg-gray-800
+          text-white
+          flex
+          items-center
+          justify-center
+          hover:bg-red-500
+          transition
+        "
+      >
+        <X size={17} />
+      </button>
+
+      {/* ========================================================= */}
+      {/* TITLE                                                     */}
+      {/* ========================================================= */}
+
+      <div className="text-center mb-5">
+        <h2 className="text-lg font-bold">
+          Share
+        </h2>
+
+        <p className="text-xs opacity-60 mt-1">
+          Choose how you want to share this
+        </p>
+      </div>
+
+      {/* ========================================================= */}
+      {/* CHAT LIST                                                  */}
+      {/* ========================================================= */}
+
+      <button
+        type="button"
+        onClick={() => {
+          setMessageOpenShare(true);
+          setShares(false);
+        }}
+        className="
+          w-full
+          flex
+          items-center
+          gap-3
+          p-3
+          rounded-xl
+          border
+          border-gray-200/20
+          hover:bg-blue-50
+          hover:text-blue-600
+          transition
+          mb-4
+        "
+      >
+        <div
+          className="
+            w-11
+            h-11
+            rounded-full
+            bg-blue-100
+            text-blue-600
+            flex
+            items-center
+            justify-center
+          "
+        >
+          <MessageCircle size={23} />
+        </div>
+
+        <div className="flex-1 text-left">
+          <div className="font-semibold text-sm">
+            Chat List
+          </div>
+
+          <div className="text-xs opacity-60">
+            Share with your chats
+          </div>
+        </div>
+      </button>
+
+      {/* ========================================================= */}
+      {/* SOCIAL SHARE                                               */}
+      {/* ========================================================= */}
+
+      <div className="border-t border-gray-200/20 pt-4">
+
+        <div className="
+          grid
+          grid-cols-4
+          gap-2
+          text-center
+        ">
+
+          <button
+            type="button"
+            onClick={() =>
+              handleShare("facebook")
+            }
             className="
-              fixed
-              inset-0
-              bg-black/70
-              z-[10010]
               flex
+              flex-col
               items-center
-              justify-center
-              p-4
+              gap-1
+              p-2
+              rounded-xl
+              hover:bg-blue-50
+              hover:text-blue-600
+              transition
             "
           >
-            <div
-              className="
-                bg-white
+            <FaFacebook size={25} />
+
+            <span className="text-[11px]">
+              Facebook
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handleShare("whatsapp")
+            }
+            className="
+              flex
+              flex-col
+              items-center
+              gap-1
+              p-2
+              rounded-xl
+              hover:bg-green-50
+              hover:text-green-500
+              transition
+            "
+          >
+            <FaWhatsapp size={25} />
+
+            <span className="text-[11px]">
+              WhatsApp
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handleShare("twitter")
+            }
+            className="
+              flex
+              flex-col
+              items-center
+              gap-1
+              p-2
+              rounded-xl
+              hover:bg-sky-50
+              hover:text-sky-500
+              transition
+            "
+          >
+            <FaTwitter size={25} />
+
+            <span className="text-[11px]">
+              Twitter
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handleShare("telegram")
+            }
+            className="
+              flex
+              flex-col
+              items-center
+              gap-1
+              p-2
+              rounded-xl
+              hover:bg-blue-50
+              hover:text-blue-400
+              transition
+            "
+          >
+            <FaTelegram size={25} />
+
+            <span className="text-[11px]">
+              Telegram
+            </span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+{/* ============================================================= */}
+{/* SHARE TO CHAT MODAL                                           */}
+{/* ============================================================= */}
+
+{messageOpenShare && (
+  <div className="
+    fixed
+    inset-0
+    bg-black/70
+    z-[60]
+    flex
+    items-center
+    justify-center
+    p-4
+  ">
+    <div
+      className="
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        rounded-2xl
+        p-5
+        w-full
+        max-w-md
+        max-h-[85vh]
+        overflow-hidden
+        shadow-2xl
+        border
+        border-gray-200/20
+        flex
+        flex-col
+      "
+    >
+
+      {/* ======================================================= */}
+      {/* HEADER                                                   */}
+      {/* ======================================================= */}
+
+      <div className="
+        flex
+        items-center
+        justify-between
+        mb-4
+      ">
+        <div>
+          <h2 className="font-bold text-lg">
+            Share to chat
+          </h2>
+
+          <p className="text-xs opacity-60 mt-1">
+            Select one or more chats
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setMessageOpenShare(false);
+            setSelectedChats([]);
+          }}
+          className="
+            w-8
+            h-8
+            rounded-full
+            bg-gray-800
+            text-white
+            flex
+            items-center
+            justify-center
+            hover:bg-red-500
+            transition
+          "
+        >
+          <X size={17} />
+        </button>
+      </div>
+
+      {/* ======================================================= */}
+      {/* SELECTED COUNT                                          */}
+      {/* ======================================================= */}
+
+      <div className="
+        flex
+        items-center
+        justify-between
+        mb-3
+      ">
+        <span className="text-xs opacity-60">
+          {selectedChats.length === 0
+            ? "No chat selected"
+            : `${selectedChats.length} chat${
+                selectedChats.length > 1
+                  ? "s"
+                  : ""
+              } selected`}
+        </span>
+
+        {selectedChats.length > 0 && (
+          <button
+            type="button"
+            onClick={() =>
+              setSelectedChats([])
+            }
+            className="
+              text-xs
+              text-red-500
+              hover:text-red-600
+            "
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* ======================================================= */}
+      {/* CHAT LIST                                               */}
+      {/* ======================================================= */}
+
+      <div className="
+        flex-1
+        overflow-y-auto
+        space-y-2
+        pr-1
+        scrollbar-thin
+      ">
+        {chats.map((chat) => {
+
+          const isSelected =
+            selectedChats.includes(
+              chat.id
+            );
+
+          const chatUser =
+            chat.other_user ||
+            chat.other ||
+            chat.teacher ||
+            chat.student;
+
+          const firstName =
+            chatUser?.first_name || "";
+
+          const lastName =
+            chatUser?.last_name || "";
+
+          const fullName =
+            `${firstName} ${lastName}`
+              .trim() ||
+            chatUser?.name ||
+            chat.name ||
+            "Unknown User";
+
+          const avatar =
+            chatUser?.profile_image ||
+            chatUser?.profile_picture ||
+            chatUser?.avatar ||
+            chat.image ||
+            null;
+
+          return (
+            <button
+              type="button"
+              key={chat.id}
+              onClick={() => {
+                setSelectedChats((prev) =>
+                  prev.includes(chat.id)
+                    ? prev.filter(
+                        (id) =>
+                          id !== chat.id
+                      )
+                    : [
+                        ...prev,
+                        chat.id,
+                      ]
+                );
+              }}
+              className={`
+                w-full
+                flex
+                items-center
+                gap-3
+                p-3
                 rounded-xl
-                p-5
-                w-80
-                max-w-full
-                relative
-                shadow-2xl
-              "
+                border
+                text-left
+                transition-all
+                duration-200
+                ${
+                  isSelected
+                    ? `
+                      bg-blue-50
+                      dark:bg-blue-900/20
+                      border-blue-500
+                      shadow-sm
+                    `
+                    : `
+                      border-gray-200/20
+                      hover:bg-gray-100/10
+                      hover:border-gray-300
+                    `
+                }
+              `}
             >
 
-              <button
-                type="button"
-                onClick={() => setShares(false)}
-                className="
-                  absolute
-                  right-3
-                  top-3
-                  text-black
-                  bg-gray-100
+              {/* ================================================= */}
+              {/* AVATAR                                             */}
+              {/* ================================================= */}
+
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt={fullName}
+                  className="
+                    w-11
+                    h-11
+                    rounded-full
+                    object-cover
+                    flex-shrink-0
+                  "
+                />
+              ) : (
+                <div className="
+                  w-11
+                  h-11
                   rounded-full
-                  w-7
-                  h-7
+                  bg-blue-500
+                  text-white
                   flex
                   items-center
                   justify-center
-                "
-              >
-                ✕
-              </button>
-
-              <h2 className="font-bold text-lg text-black mb-5 text-center">
-                Share Post
-              </h2>
-
-              <div className="flex flex-col items-center gap-5">
-
-                {/* CHAT */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMessageOpenShare(true);
-                    setShares(false);
-                  }}
-                  className="
-                    text-black
-                    flex
-                    flex-col
-                    items-center
-                    gap-1
-                    hover:text-blue-600
-                  "
-                >
-                  <MessageCircle
-                    className="
-                      border-2
-                      border-black
-                      rounded-full
-                      p-1
-                    "
-                    size={38}
-                  />
-
-                  <span className="text-sm font-bold">
-                    Chat List
-                  </span>
-                </button>
-
-                {/* SOCIAL */}
-                <div
-                  className="
-                    grid
-                    grid-cols-4
-                    border-t
-                    pt-4
-                    gap-4
-                    text-center
-                    w-full
-                  "
-                >
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleShare("facebook")
-                    }
-                    className="
-                      text-black
-                      flex
-                      flex-col
-                      items-center
-                      gap-1
-                      hover:text-blue-600
-                    "
-                  >
-                    <FaFacebook size={25} />
-                    <span className="text-xs">
-                      Facebook
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleShare("whatsapp")
-                    }
-                    className="
-                      text-black
-                      flex
-                      flex-col
-                      items-center
-                      gap-1
-                      hover:text-green-500
-                    "
-                  >
-                    <FaWhatsapp size={25} />
-                    <span className="text-xs">
-                      WhatsApp
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleShare("twitter")
-                    }
-                    className="
-                      text-black
-                      flex
-                      flex-col
-                      items-center
-                      gap-1
-                      hover:text-sky-500
-                    "
-                  >
-                    <FaTwitter size={25} />
-                    <span className="text-xs">
-                      Twitter
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleShare("telegram")
-                    }
-                    className="
-                      text-black
-                      flex
-                      flex-col
-                      items-center
-                      gap-1
-                      hover:text-blue-400
-                    "
-                  >
-                    <FaTelegram size={25} />
-                    <span className="text-xs">
-                      Telegram
-                    </span>
-                  </button>
-
+                  font-bold
+                  flex-shrink-0
+                ">
+                  {fullName
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* =================================================
-            SHARE TO CHAT
-        ================================================= */}
-        {messageOpenShare && (
-          <div
-            className="
-              fixed
-              inset-0
-              bg-black/60
-              z-[10020]
-              flex
-              items-center
-              justify-center
-              p-4
-            "
-          >
-            <div
-              className="
-                bg-white
-                rounded-xl
-                p-5
-                w-80
-                max-w-full
-                max-h-[80vh]
-                overflow-y-auto
-                shadow-2xl
-              "
-            >
-
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-bold text-lg text-black">
-                  Share to chat
-                </h2>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMessageOpenShare(false)
-                  }
-                  className="
-                    w-7
-                    h-7
-                    bg-gray-100
-                    rounded-full
-                    text-black
-                  "
-                >
-                  ✕
-                </button>
-              </div>
-
-              {chats.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-5">
-                  No chats available.
-                </p>
-              ) : (
-                chats.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className={`
-                      flex
-                      items-center
-                      gap-2
-                      p-2
-                      cursor-pointer
-                      rounded
-                      my-1
-                      ${
-                        selectedChats.includes(chat.id)
-                          ? "bg-blue-200"
-                          : "hover:bg-gray-100"
-                      }
-                    `}
-                    onClick={() => {
-                      setSelectedChats((prev) =>
-                        prev.includes(chat.id)
-                          ? prev.filter(
-                              (id) => id !== chat.id
-                            )
-                          : [...prev, chat.id]
-                      );
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedChats.includes(
-                        chat.id
-                      )}
-                      readOnly
-                    />
-
-                    <span className="text-sm text-black">
-                      {chat.other_user
-                        ? `${chat.other_user.first_name} ${chat.other_user.last_name}`
-                        : chat.teacher
-                        ? `${chat.teacher.first_name} ${chat.teacher.last_name}`
-                        : chat.student
-                        ? `${chat.student.first_name} ${chat.student.last_name}`
-                        : "Unknown User"}
-                    </span>
-                  </div>
-                ))
               )}
 
-              <button
-                type="button"
-                disabled={
-                  sending ||
-                  selectedChats.length === 0
-                }
-                onClick={async () => {
-                  try {
-                    setSending(true);
+              {/* ================================================= */}
+              {/* NAME                                               */}
+              {/* ================================================= */}
 
-                    for (const chatId of selectedChats) {
-                      await shareToChat(chatId);
+              <div className="flex-1 min-w-0">
+
+                <div
+                  className={`
+                    font-medium
+                    text-sm
+                    truncate
+                    ${
+                      isSelected
+                        ? "text-blue-600"
+                        : ""
                     }
+                  `}
+                >
+                  {fullName}
+                </div>
 
-                    setSelectedChats([]);
-                    setMessageOpenShare(false);
+                <div className="text-[11px] opacity-50 mt-0.5">
+                  {chat.type === "group"
+                    ? "Group"
+                    : "Chat"}
+                </div>
 
-                  } catch (error) {
-                    console.error(
-                      "Chat share error:",
-                      error
-                    );
-                  } finally {
-                    setSending(false);
-                  }
-                }}
+              </div>
+
+              {/* ================================================= */}
+              {/* SELECT ICON                                       */}
+              {/* ================================================= */}
+
+              <div
                 className={`
-                  mt-3
-                  w-full
-                  rounded
-                  py-2
-                  text-white
+                  w-7
+                  h-7
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                  flex-shrink-0
+                  transition-all
                   ${
-                    sending ||
-                    selectedChats.length === 0
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
+                    isSelected
+                      ? `
+                        bg-blue-600
+                        text-white
+                      `
+                      : `
+                        border-2
+                        border-gray-300
+                        text-transparent
+                      `
                   }
                 `}
               >
-                {sending ? (
-                  <svg
-                    className="
-                      animate-spin
-                      h-5
-                      w-5
-                      text-white
-                      mx-auto
-                    "
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
+                <Check
+                  size={16}
+                  strokeWidth={3}
+                />
+              </div>
 
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="
-                        M4 12a8 8 0 018-8v4
-                        a4 4 0 00-4 4H4z
-                      "
-                    />
-                  </svg>
-                ) : (
-                  `Send (${selectedChats.length})`
-                )}
-              </button>
+            </button>
+          );
+        })}
 
-              <button
-                type="button"
-                onClick={() =>
-                  setMessageOpenShare(false)
-                }
-                className="
-                  mt-3
-                  w-full
-                  bg-gray-200
-                  text-black
-                  rounded
-                  py-2
-                "
-              >
-                Cancel
-              </button>
-            </div>
+        {/* ===================================================== */}
+        {/* EMPTY CHAT LIST                                       */}
+        {/* ===================================================== */}
+
+        {chats.length === 0 && (
+          <div className="
+            py-10
+            text-center
+            opacity-50
+          ">
+            <MessageCircle
+              size={35}
+              className="mx-auto mb-2"
+            />
+
+            <p className="text-sm">
+              No chats available
+            </p>
           </div>
         )}
+      </div>
 
-        {/* =================================================
-            DELETE CONFIRMATION
-        ================================================= */}
+      {/* ======================================================= */}
+      {/* SEND                                                     */}
+      {/* ======================================================= */}
+
+      <button
+        type="button"
+        disabled={
+          sending ||
+          selectedChats.length === 0
+        }
+        onClick={async () => {
+          try {
+            setSending(true);
+
+            for (
+              const chatId of selectedChats
+            ) {
+              await shareToChat(chatId);
+            }
+
+            setSelectedChats([]);
+            setMessageOpenShare(false);
+
+          } finally {
+            setSending(false);
+          }
+        }}
+        className={`
+          mt-4
+          w-full
+          rounded-xl
+          py-3
+          flex
+          items-center
+          justify-center
+          gap-2
+          font-medium
+          transition
+          ${
+            sending ||
+            selectedChats.length === 0
+              ? `
+                bg-gray-400
+                cursor-not-allowed
+                text-white
+              `
+              : `
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+              `
+          }
+        `}
+      >
+        {sending ? (
+          <>
+            <svg
+              className="
+                animate-spin
+                h-5
+                w-5
+              "
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+
+            Sending...
+          </>
+        ) : (
+          <>
+            <Send size={18} />
+
+            Send
+            {selectedChats.length > 0 &&
+              ` (${selectedChats.length})`}
+          </>
+        )}
+      </button>
+
+      {/* ======================================================= */}
+      {/* CANCEL                                                   */}
+      {/* ======================================================= */}
+
+      <button
+        type="button"
+        onClick={() => {
+          setMessageOpenShare(false);
+          setSelectedChats([]);
+        }}
+        disabled={sending}
+        className="
+          mt-2
+          w-full
+          rounded-xl
+          py-2.5
+          bg-gray-200
+          text-gray-700
+          hover:bg-gray-300
+          transition
+        "
+      >
+        Cancel
+      </button>
+
+    </div>
+  </div>
+)}
+
+
+
         {showDeleteModalId && (
           <div
             className="

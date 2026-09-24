@@ -594,6 +594,7 @@ const previousReel = () => {
               reaction={reaction}
               setShowOptions={setShowOptions}
               showOptions={showOptions}
+              handleReelCreated={handleReelCreated}
                />
             </ProtectedRoute>
           }
@@ -663,11 +664,13 @@ const previousReel = () => {
           reaction={reaction}
           setShowOptions={setShowOptions}
           showOptions={showOptions}
+          handleReelCreated={handleReelCreated}
           />
         </ProtectedRoute>
       } />
         
     <Route element={<LayoutWithHeader
+          handleReelCreated={handleReelCreated}
           handleMessageOpen={handleMessageOpen}
           messagesMap={messagesMap}
           setMessagesMap={setMessagesMap}
@@ -1258,7 +1261,7 @@ function LayoutWithHeader({
   selectedReelIndex, selectedUserIndex,
   setMediaIndex,
   mediaIndex, setProgress, progress, setMessage,
-  message, setReaction, reaction, setShowOptions, showOptions
+  message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated
 }) {
   return (
     <div>
@@ -1326,6 +1329,7 @@ function LayoutWithHeader({
         reaction={reaction}
         setShowOptions={setShowOptions}
         showOptions={showOptions}
+        handleReelCreated={handleReelCreated}
       />
 
       <Outlet />

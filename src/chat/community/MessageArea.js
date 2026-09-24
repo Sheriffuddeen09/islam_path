@@ -18,7 +18,7 @@ export default function MessagesArea({
   setSelectedMessage, showMessageMenu, setShowMessageMenu, isMobile, setReactionMsg, reactionMsg,
   communityMessageAction, pendingMessages, isAdmin, setPendingMessages, messagesCacheRef,
   setApprovalModal, approvalModal, messageCommunityRefs, chatLoading, chats, openChat, onCloseChannel, setChats,
-  firstUnreadMessageId, authUserId, setLastReadMessageId, setCommunities
+  firstUnreadMessageId, authUserId, setLastReadMessageId, setCommunities, handleReelCreated
 }) {
 
   const [forwardMsg, setForwardMsg] =
@@ -740,8 +740,12 @@ return (
               setShowForwardModal={setShowForwardModal}
               forwardMessages={forwardMessages}
               setForwardSuccess={setForwardSuccess}
+              onReelAdded={handleReelCreated}
+
+                 
             />
           )}
+
           </div>
 
           {showPinDuration && (

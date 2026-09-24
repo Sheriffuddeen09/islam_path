@@ -27,19 +27,27 @@ export default function StudentFriend({students, setStudents, setIncomingRequest
 
 
   useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        const res = await api.get("/api/student-friend"); 
-        setStudents(res.data.students || []);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchStudent = async () => {
+    try {
+      const res = await api.get("/api/student-friend");
 
-    fetchStudent();
-  }, []);
+      const students = res.data.students || [];
+
+      // Latest registered student first
+      const sortedStudents = [...students].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      setStudents(sortedStudents);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchStudent();
+}, []);
 
 
 

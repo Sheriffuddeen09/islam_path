@@ -14,7 +14,7 @@ export default function CommunityMessages({
   loadingMessages, messagesCacheRef, messagesCommunityEndRef, firstUnreadMessageId, authUserId,
   chatLoading, chats, openChat, onCloseChannel, setActiveChat, setChats, setMessages, messageCommunityRefs, 
   setLastReadMessageId, setCommunities, onOpenSettings, uiMode, communityContainerRef,
-  communityMessagesCache
+  communityMessagesCache, handleReelCreated
 
 }) {
 
@@ -887,7 +887,7 @@ const resendCommunityFile =
 
           ) : (
           <MessagesArea 
-          
+          handleReelCreated={handleReelCreated}
           setChats={setChats} setMessages={setMessages}
           communityMessages={communityMessages}
           authUser={authUser} messagesCacheRef={messagesCacheRef}

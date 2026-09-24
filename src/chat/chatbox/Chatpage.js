@@ -12,7 +12,7 @@ export default function ChatPage({
   setActiveChat,
   messagesMap, setMessagesMap, setMessages,
   setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
-  callMode, setCallMode, meetingData, setMeetingData, openUserReels, reelUsers
+  callMode, setCallMode, meetingData, setMeetingData, openUserReels, reelUsers, handleReelCreated
 }) {
   const { user: authUser } = useAuth();
 
@@ -873,6 +873,7 @@ useEffect(() => {
 
   return (
     <ChatComponent
+      handleReelCreated={handleReelCreated}
       messageRefs={messageRefs} mobileView={mobileView} setMobileView={setMobileView}
       replyingTo={replyingTo}
       setReplyingTo={setReplyingTo}
@@ -924,6 +925,7 @@ useEffect(() => {
       meetingData={meetingData} setMeetingData={setMeetingData}
       callMode={callMode} setCallMode={setCallMode} communityMessagesCache={communityMessagesCache}
       hasUnreadCommunity={hasUnreadCommunity} openUserReels={openUserReels} reelUsers={reelUsers}
+      setMessagesMap={setMessagesMap} isLargeScreen={isLargeScreen} 
     />
   );
 }

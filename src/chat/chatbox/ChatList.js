@@ -20,7 +20,7 @@ export default function ChatList({
   communityMessages, setCommunityMessages, lastOpenedCommunity, messageCommunityRefs, messagesCommunityEndRef, exploreCommunities,
   openCommunity, firstUnreadMessageId, authUserId, setLastReadMessageId, setExploreCommunities,
   mobileViewCommunity, setMobileViewCommunity, chatCommunitys,  onSeeAll,  setUiMode, uiMode, onCloseAll, loadingExploring,
-  communityMessagesCache, hasUnreadCommunity, openUserReels, reelUsers
+  communityMessagesCache, hasUnreadCommunity, openUserReels, reelUsers, handleReelCreated
 }) {
   const { user: authUser } = useAuth();
 
@@ -369,6 +369,7 @@ export default function ChatList({
 
       <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
         <CommunityPage
+          handleReelCreated={handleReelCreated}
           setExploreCommunities={setExploreCommunities} exploreCommunities={exploreCommunities}
           loadingExploring={loadingExploring} communityContainerRef={communityContainerRef}
           chatCommunitys={chatCommunitys} communityMessagesCache={communityMessagesCache}

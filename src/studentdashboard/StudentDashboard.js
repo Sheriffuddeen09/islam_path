@@ -17,7 +17,8 @@ import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText,
   BarChart3, ShoppingCart, Bookmark, Projector,
   Workflow,
   History,
-  Proportions} from "lucide-react";
+  Proportions,
+  Video} from "lucide-react";
 import ChatPage from "../chat/chatbox/Chatpage";
 import CreateProposal from "../pages/mentor/CreateProposal";
 import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
@@ -26,6 +27,8 @@ import TeacherReviews from "../pages/mentor/TeacherReviews";
 import AcceptedTeacher from "../pages/mentor/AcceptedTeacher";
 import MyAdvertisements from "../advertisement/MyAdvertisements";
 import ReelViewerModal from "../pages/reel/ReelViewerModal";
+import GoLiveModal from "../live/GoLiveModal";
+import LiveBroadcaster from "../live/LiveBroadcaster";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -42,7 +45,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         selectedReelIndex, selectedUserIndex,
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
-        message, setReaction, reaction, setShowOptions, showOptions
+        message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated
       }){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -56,6 +59,12 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
     const [showHeader, setShowHeader] = useState(true);
 
     const [isScrolling, setIsScrolling] = useState(false);
+
+    const [showLiveModal, setShowLiveModal] = useState(false);
+    const [liveData, setLiveData] = useState(null);
+    const [livePost, setLivePost] = useState(null);
+    const [isLive, setIsLive] = useState(false);
+
 const scrollTimerRef = useRef(null);
 
 const handleMessagesScroll = () => {
@@ -310,6 +319,7 @@ const fetchNotification = async () => {
 
       <ChatPage
                       chats={chats}
+                      handleReelCreated={handleReelCreated}
                       setChats={setChats}
                       activeChat={activeChat}
                       setActiveChat={setActiveChat}
@@ -479,6 +489,19 @@ const fetchNotification = async () => {
               >
                 <Settings size={18} />
                 Setting
+              </li>
+
+
+               <li
+                onClick={() => handleVisible(17)}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 17
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                <Video size={18} />
+                Live Video
               </li>
 
             </ul>
@@ -669,6 +692,18 @@ const fetchNotification = async () => {
                       Setting
                     </li>
 
+                     <li
+                    onClick={() => handleVisible(17)}
+                    className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                      visible === 17
+                        ? "bg-gray-500 text-white"
+                    : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                    }`}
+                  >
+                    <Video size={18} />
+                    Live Video
+                  </li>
+
                   </ul> {/* Actual Menu */}
                        <div className= "">
                          <h3 className="text-xs text-purple-900 font-bold mt-6 mb-2">SET SECTION</h3>
@@ -802,9 +837,28 @@ const fetchNotification = async () => {
                          <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
                           <MyAdvertisements  />
                           </div> 
+
+                          <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+                            <GoLiveModal
+                            showLiveModal={showLiveModal}
+                            setShowLiveModal={setShowLiveModal}
+                            setLiveData={setLiveData}
+                            setLivePost={setLivePost}
+                            setIsLive={setIsLive}
+                            />
+                            </div> 
                        </section>
        
     </div>
+
+    {isLive && liveData && livePost && ( 
+          <LiveBroadcaster
+              liveData={liveData} post={livePost} 
+              onEnded={() => { setIsLive(false); 
+              setLiveData(null); 
+              setLivePost(null); }} 
+              /> 
+              )}
     </>
   )
 }

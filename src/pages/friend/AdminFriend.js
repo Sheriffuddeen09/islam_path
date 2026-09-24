@@ -27,22 +27,31 @@ export default function AdminFriend({admins, setAdmins, incomingRequests, setInc
     const navigate = useNavigate()
   
 
+useEffect(() => {
+    const fetchAdmin = async () => {
+        try {
+            const res = await api.get("/api/admin-friend");
 
+            const admins = res.data.admins || [];
 
-  useEffect(() => {
-    const fetchStudent = async () => {
-      try {
-        const res = await api.get("/api/admin-friend"); 
-        setAdmins(res.data.admins || []);
-      } catch (error) {
-        console.error("Error fetching admins:", error);
-      } finally {
-        setLoading(false);
-      }
+            const sortedAdmins = [...admins].sort(
+                (a, b) =>
+                    new Date(b.created_at) -
+                    new Date(a.created_at)
+            );
+
+            setAdmins(sortedAdmins);
+
+        } catch (error) {
+            console.error("Error fetching admins:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    fetchStudent();
-  }, []);
+    fetchAdmin();
+}, []);
+
 
 
 

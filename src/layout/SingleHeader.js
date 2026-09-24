@@ -37,7 +37,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
   selectedReelIndex, selectedUserIndex,
   setMediaIndex,
   mediaIndex, setProgress, progress, setMessage,
-  message, setReaction, reaction, setShowOptions, showOptions }) {
+  message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated }) {
 
       const [menu, setMenu] = useState(false)
       const homepage = useLocation().pathname
@@ -1047,6 +1047,7 @@ useEffect(() => {
 
         <ChatPage
                         chats={chats}
+                        handleReelCreated={handleReelCreated}
                         setChats={setChats}
                         activeChat={activeChat}
                         setActiveChat={setActiveChat}

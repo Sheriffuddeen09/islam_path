@@ -19,7 +19,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setActiveCommunity, loadingMessagesCommunity, setLoadingMessagesCommunity, communityMessages, setCommunityMessages,
     messageCommunityRefs, messagesCommunityEndRef, firstUnreadMessageId, unreadDividerRef, communityContainerRef,
     incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, communityMessagesCache,
-    hasUnreadCommunity, openUserReels, reelUsers
+    hasUnreadCommunity, openUserReels, reelUsers, handleReelCreated, setMessagesMap, setShowList
 }) {
 
    
@@ -761,6 +761,7 @@ setMessages((prev) => {
         lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
       <ChatList 
+          handleReelCreated={handleReelCreated}
           openUserReels={openUserReels}
           reelUsers={reelUsers}
           communityMessagesCache={communityMessagesCache} hasUnreadCommunity={hasUnreadCommunity}
@@ -817,6 +818,11 @@ setMessages((prev) => {
         `}
       >
       <MessageBox
+          setShowList={setShowList}
+          isLargeScreen={isLargeScreen}
+          messagesCacheRef={messagesCacheRef}
+          setMessagesMap={setMessagesMap}
+          handleReelCreated={handleReelCreated}
           openUserReels={openUserReels}
           reelUsers={reelUsers}
       
@@ -861,7 +867,7 @@ setMessages((prev) => {
           text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
-          unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}
@@ -920,6 +926,7 @@ setMessages((prev) => {
 
     <div className="w-[320px] border-r hidden sm:flex flex-col h-full">
      <ChatList 
+        handleReelCreated={handleReelCreated}
           openUserReels={openUserReels}
           reelUsers={reelUsers}
           communityMessagesCache={communityMessagesCache} hasUnreadCommunity={hasUnreadCommunity}
@@ -967,6 +974,11 @@ setMessages((prev) => {
 
       {activeChat ? (
       <MessageBox
+          setShowList={setShowList}
+          isLargeScreen={isLargeScreen}
+          messagesCacheRef={messagesCacheRef}
+          setMessagesMap={setMessagesMap}
+          handleReelCreated={handleReelCreated}
           openUserReels={openUserReels}
           reelUsers={reelUsers}
           forwardMessage={forwardMessage} 
@@ -1010,7 +1022,7 @@ setMessages((prev) => {
           text={text} setText={setText} fileInputRef={fileInputRef} toast={toast} setPreviewUrls={setPreviewUrls} 
           setSelected={setSelected} setFiles={setFiles} timerRef={timerRef} setRecording={setRecording} 
           audioChunksRef={audioChunksRef} mediaRecorderRef={mediaRecorderRef} setPaused={setPaused} 
-          unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLargeScreen={isLargeScreen}
+          unreadCount={unreadCount} setUnreadCount={setUnreadCount} 
           loadingChats={loadingChats} lastReadMessageId={lastReadMessageId}
           communities={communities} setActiveCommunity={setActiveCommunity}
           setShowChannel={setShowChannel} setCommunityMessages={setCommunityMessages}

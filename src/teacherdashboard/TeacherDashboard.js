@@ -7,7 +7,8 @@ import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, Clip
   Workflow,
   History,
   Star, MessageSquare,
-  Projector} from "lucide-react";
+  Projector,
+  Video} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -31,6 +32,8 @@ import TeacherReviews from "../pages/mentor/TeacherReviews";
 import MyProductReviews from "../pages/sales/MyProductReviews";
 import MyAdvertisements from "../advertisement/MyAdvertisements";
 import ReelViewerModal from "../pages/reel/ReelViewerModal";
+import GoLiveModal from "../live/GoLiveModal";
+import LiveBroadcaster from "../live/LiveBroadcaster";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -49,7 +52,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         selectedReelIndex, selectedUserIndex,
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
-        message, setReaction, reaction, setShowOptions, showOptions
+        message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -69,6 +72,11 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
 
 
      const [showHeader, setShowHeader] = useState(true);
+
+     const [showLiveModal, setShowLiveModal] = useState(false);
+      const [liveData, setLiveData] = useState(null);
+      const [livePost, setLivePost] = useState(null);
+      const [isLive, setIsLive] = useState(false);
 
 const lastScrollY = useRef(0);
 const scrollTimeout = useRef(null);
@@ -399,6 +407,7 @@ useEffect(() => {
 
         <ChatPage
                         chats={chats}
+                        handleReelCreated={handleReelCreated}
                         setChats={setChats}
                         activeChat={activeChat}
                         setActiveChat={setActiveChat}
@@ -571,6 +580,18 @@ useEffect(() => {
               <Settings size={18} />
               Setting
             </li>
+
+             <li
+                    onClick={() => handleVisible(20)}
+                    className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                      visible === 20
+                        ? "bg-gray-500 text-white"
+                    : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                    }`}
+                  >
+                    <Video size={18} />
+                    Live Video
+                  </li>
 
           </ul>
         <div className="relative">
@@ -834,6 +855,18 @@ useEffect(() => {
               Setting
             </li>
 
+            <li
+                    onClick={() => handleVisible(20)}
+                    className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                      visible === 20
+                        ? "bg-gray-500 text-white"
+                    : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                    }`}
+                  >
+                    <Video size={18} />
+                    Live Video
+                  </li>
+
           </ul>
         <div className="relative">
 
@@ -1035,6 +1068,18 @@ useEffect(() => {
         <MyAdvertisements  />
         </div> 
 
+
+        <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+        <GoLiveModal
+        showLiveModal={showLiveModal}
+        setShowLiveModal={setShowLiveModal}
+        setLiveData={setLiveData}
+        setLivePost={setLivePost}
+        setIsLive={setIsLive}
+        />
+        </div> 
+
+
         <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
         <CreateProduct  />
         </div>
@@ -1060,6 +1105,15 @@ useEffect(() => {
         </div> 
       </section>
     </div>
+
+    {isLive && liveData && livePost && ( 
+      <LiveBroadcaster 
+          liveData={liveData} post={livePost} 
+          onEnded={() => { setIsLive(false); 
+          setLiveData(null); 
+          setLivePost(null); }} 
+          /> 
+          )}
     </>
   );
 }

@@ -50,23 +50,34 @@ useEffect(() => {
 }, [selectedTeacher]);
 
 
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const res = await api.get("/api/teacher"); 
-         const categoriesRes = await api.get("/api/coursetitles");
-        setTeachers(res.data.teachers || []);
-        setCoursetitles(categoriesRes.data || [])
-      } catch (error) {
-        console.error("Error fetching teachers:", error);
-        setTeachers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchTeachers();
-  }, []);
+useEffect(() => {
+  const fetchTeachers = async () => {
+    try {
+      const res = await api.get("/api/teacher");
+      const categoriesRes = await api.get("/api/coursetitles");
+
+      const teachers = res.data.teachers || [];
+
+      // Latest registered teacher first
+      const sortedTeachers = [...teachers].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      setTeachers(sortedTeachers);
+      setCoursetitles(categoriesRes.data || []);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+      setTeachers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTeachers();
+}, []);
+
+
 
   const sendLiveRequest = async (teacherId) => {
   await api.post("/api/live-class/request", { teacher_id: teacherId });

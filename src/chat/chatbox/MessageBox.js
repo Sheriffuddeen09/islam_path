@@ -7,7 +7,6 @@ import { PinnedMessagesBar } from "./PinnedMessagesBar";
 import UserStatusDots from "../online/OnlineStatuesDots";
 import CallModal from "./CallModal";
 import MenuComponent from "./MenuComponent";
-import GenerateLinkCall from "./GenerateLinkCall";
 import MeetingForwardModal from "./MeetingForwardModal";
 import toast from "react-hot-toast";
 import { useAuth } from "../../layout/AuthProvider";
@@ -36,7 +35,7 @@ export default function MessageBox({
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
   setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings,
   incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, forwardMessage, setForwardMessage,
-  openUserReels, reelUsers
+  openUserReels, reelUsers, setMessagesMap, messagesCacheRef, setShowList, isLargeScreen
 }) {
   
   // setShowMeetingModal
@@ -1241,6 +1240,9 @@ const isFirstUnread =
         </div>
       ) : (
          <MessageItem
+         setShowList={setShowList}
+         isLargeScreen={isLargeScreen}
+         messagesCacheRef={messagesCacheRef} setMessagesMap={setMessagesMap}
           handleSendMeeting={handleSendMeeting} setMeetingData={setMeetingData}
           blockAllInput={blockAllInput}  uiMode={uiMode} 
           showScrollButton={showScrollButton} isFirstUnread={isFirstUnread} myId={myId}
@@ -1334,6 +1336,8 @@ const isFirstUnread =
 
       {messages.map((msg) => (
       <MenuComponent 
+      messagesCacheRef={messagesCacheRef}
+      setMessagesMap={setMessagesMap}
       handleSendMeeting={handleSendMeeting}
       setChats={setChats}
       openChat={openChat}
