@@ -9,7 +9,10 @@ export default function MediaGrid({
   toggleSelect,
   onLongPress,
 }) {
-  const files = msg.files || [msg];
+  const files = Array.isArray(msg?.files)
+    ? msg.files
+    : [msg];
+
   const total = files.length;
 
   const longPressTimer = useRef(null);
@@ -19,18 +22,35 @@ export default function MediaGrid({
 
   /*
   |--------------------------------------------------------------------------
-  | CHECK INDIVIDUAL DESCRIPTIONS
+  | CHECK IF ANY MEDIA HAS A DESCRIPTION
   |--------------------------------------------------------------------------
+  |
+  | IMPORTANT:
+  | If even ONE file has a description, we use the
+  | vertical media + description layout.
+  |
+  | Example:
+  |
+  | image 1 -> "Friends"
+  | image 2 -> null
+  | image 3 -> null
+  |
+  | Result:
+  |
+  | image 1
+  | Friends
+  |
+  | image 2
+  |
+  | image 3
+  |
   */
 
-  const filesWithDescriptions = files.filter(
+  const hasDescriptions = files.some(
     (file) =>
       typeof file?.description === "string" &&
       file.description.trim() !== ""
   );
-
-  const hasMultipleDescriptions =
-    filesWithDescriptions.length > 0;
 
   /*
   |--------------------------------------------------------------------------
@@ -39,18 +59,32 @@ export default function MediaGrid({
   */
 
   const getUrl = (f) => {
-    if (f.file_url?.startsWith("blob:")) {
+    if (!f) return null;
+
+    // Blob URL
+    if (
+      typeof f.file_url === "string" &&
+      f.file_url.startsWith("blob:")
+    ) {
       return f.file_url;
     }
 
-    if (f.file?.startsWith("blob:")) {
+    if (
+      typeof f.file === "string" &&
+      f.file.startsWith("blob:")
+    ) {
       return f.file;
     }
 
-    if (f.file_url?.startsWith("http")) {
+    // Full HTTP URL
+    if (
+      typeof f.file_url === "string" &&
+      f.file_url.startsWith("http")
+    ) {
       return f.file_url;
     }
 
+    // Storage path
     if (f.file_url) {
       return `http://localhost:8000/storage/${f.file_url}`;
     }
@@ -61,35 +95,59 @@ export default function MediaGrid({
 
     return null;
   };
- 
+
+  /*
+  |--------------------------------------------------------------------------
+  | OPEN PREVIEW
+  |--------------------------------------------------------------------------
+  */
 
   const openPreview = (index) => {
+    // Prevent click after long press
     if (longPressTriggered.current) {
       longPressTriggered.current = false;
       return;
     }
 
-    const items = files.map((f) => {
-      const url = getUrl(f);
+    const items = files
+      .map((f) => {
+        const url = getUrl(f);
 
-      return {
-        type: f.type || msg.type,
-        url,
-        description: f.description || "",
-      };
-    });
+        if (!url) return null;
+
+        return {
+          id: f.id,
+          type: f.type || msg.type,
+          url,
+          file_name: f.file_name || "",
+          description:
+            typeof f.description === "string"
+              ? f.description
+              : "",
+        };
+      })
+      .filter(Boolean);
+
+    if (!items.length) return;
 
     setPreview({
       items,
       index,
     });
   };
- 
+
+  /*
+  |--------------------------------------------------------------------------
+  | LONG PRESS
+  |--------------------------------------------------------------------------
+  */
 
   const handleTouchStart = (e) => {
     e.stopPropagation();
 
     longPressTriggered.current = false;
+
+    clearTimeout(longPressTimer.current);
 
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
@@ -105,19 +163,20 @@ export default function MediaGrid({
   const handleTouchEnd = (e) => {
     e.stopPropagation();
 
-    clearTimeout(
-      longPressTimer.current
-    );
+    clearTimeout(longPressTimer.current);
   };
 
   const handleTouchMove = (e) => {
     e.stopPropagation();
 
-    clearTimeout(
-      longPressTimer.current
-    );
+    clearTimeout(longPressTimer.current);
   };
- 
+
+  /*
+  |--------------------------------------------------------------------------
+  | MEDIA PROPS
+  |--------------------------------------------------------------------------
+  */
 
   const mediaProps = {
     msg,
@@ -127,9 +186,19 @@ export default function MediaGrid({
     onTouchMove: handleTouchMove,
   };
 
-   
+  /*
+  |--------------------------------------------------------------------------
+  | DESCRIPTION MODE
+  |--------------------------------------------------------------------------
+  |
+  | If at least ONE media has a description,
+  | don't use the grid.
+  |
+  | Every media stays together with its own description.
+  |
+  */
 
-  if (hasMultipleDescriptions) {
+  if (hasDescriptions) {
     return (
       <div className="flex flex-col gap-3 my-2 w-full">
         {files.map((file, index) => {
@@ -140,7 +209,7 @@ export default function MediaGrid({
 
           return (
             <div
-              key={index}
+              key={file?.id ?? index}
               className="
                 flex
                 flex-col
@@ -171,14 +240,14 @@ export default function MediaGrid({
                 />
               </div>
 
-              {/* INDIVIDUAL DESCRIPTION */}
+              {/* THIS MEDIA'S DESCRIPTION */}
               {description !== "" && (
                 <div
                   className={`
                     text-[13px]
                     lg:text-[13px]
                     md:text-[16px]
-                    text-white
+                    text-[var(--text-color)]
                     break-words
                     whitespace-pre-wrap
                     ${
@@ -192,7 +261,7 @@ export default function MediaGrid({
                     options={{
                       target: "_blank",
                       className:
-                        "text-blue-400 pointer-events-auto",
+                        "text-blue-400 pointer-events-auto hover:underline",
                     }}
                   >
                     {description}
@@ -264,7 +333,7 @@ export default function MediaGrid({
             onLongPress={onLongPress}
             msg={msg}
             toggleSelect={toggleSelect}
-            key={i}
+            key={file?.id ?? i}
             file={file}
             index={i}
             {...mediaProps}
@@ -326,7 +395,7 @@ export default function MediaGrid({
 
             return (
               <div
-                key={realIndex}
+                key={file?.id ?? realIndex}
                 className="relative"
               >
                 <MediaItem
@@ -363,4 +432,4 @@ export default function MediaGrid({
       </div>
     </div>
   );
-}
+} 

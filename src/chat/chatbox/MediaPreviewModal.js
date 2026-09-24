@@ -28,9 +28,9 @@ export default function MediaPreviewModal({
   setTrimAppliedMap,
   trimAppliedMap,
   setCroppedImages,
-  descriptions, setDescriptions
+  descriptions, setDescriptions,
+  activeIndex, setActiveIndex
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
   const [showEmoji, setShowEmoji] = useState(false);
 
   // Crop mode for each image
@@ -68,7 +68,7 @@ export default function MediaPreviewModal({
     };
 
   // ============================================================
-  // HANDLE TRIM DRAG
+  // HANDLE TRIM DRAG 'setActiveIndex
   // ============================================================
 
   const handleDrag = (clientX, rect) => {

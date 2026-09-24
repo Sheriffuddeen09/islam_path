@@ -13,7 +13,7 @@ export default function ChatInput({ authUser,  activeChat, replyingTo, setReplyi
   text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, blockAllInput, status, onlyAdminSend, isAdmin, setChats, messages, unreadCount,
   setUnreadCount, showScrollButton, isMinimized, setLastReadMessageId, bottomRef, loadingMessages, 
-  descriptions, setDescriptions
+  descriptions, setDescriptions, activeIndex, setActiveIndex
  }) {
 
   const [showEmoji, setShowEmoji] = useState(false);
@@ -519,6 +519,9 @@ const getPreviewText = (msg) => {
     setShowPreview(false);
   }}
 
+
+  activeIndex={activeIndex}
+  setActiveIndex={setActiveIndex}
   descriptions={descriptions}
   setDescriptions={setDescriptions}
   setDurationMap={setDurationMap}

@@ -36,7 +36,7 @@ export default function MessageBox({
   setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings,
   incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, forwardMessage, setForwardMessage,
   openUserReels, reelUsers, setMessagesMap, messagesCacheRef, setShowList, isLargeScreen,
-  descriptions, setDescriptions 
+  descriptions, setDescriptions, activeIndex, setActiveIndex
   
 }) {
   
@@ -1301,6 +1301,8 @@ const isFirstUnread =
       {/* INPUT */}
       <div className="px-3 border-t bg-[var(--bg-color)]">
         <ChatInput 
+          activeIndex={activeIndex} 
+          setActiveIndex={setActiveIndex}
           descriptions={descriptions}
           setDescriptions={setDescriptions}
           loadingMessages={loadingMessages}

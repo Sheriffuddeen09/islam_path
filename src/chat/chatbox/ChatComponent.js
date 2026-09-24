@@ -46,6 +46,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const [toast, setToast] = useState(false)
     const [previewUrls, setPreviewUrls] = useState([]);
     const [showPreview, setShowPreview] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const timerRef = useRef(null)
 
@@ -448,425 +449,363 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     
 const originalCaption = caption;    
 
-      const sendFile = async ({ descriptions = {} } = {}) => {
-        if (!files.length) return;
+const sendFile = async ({ descriptions = {} } = {}) => {
+  if (!files.length) return;
 
-        const reply = replyingTo;
-        setReplyingTo(null);
+  const reply = replyingTo;
+  setReplyingTo(null);
 
-        const tempId = Date.now();
+  const tempId = Date.now();
 
-        const getType = (file) => {
-          if (file.type.startsWith("image/")) return "image";
-          if (file.type.startsWith("video/")) return "video";
-          if (file.type.startsWith("audio/")) return "audio";
-          return "file";
-        };
+  const getType = (file) => {
+    if (file.type.startsWith("image/")) return "image";
+    if (file.type.startsWith("video/")) return "video";
+    if (file.type.startsWith("audio/")) return "audio";
+    return "file";
+  };
 
-        const firstType = getType(files[0]);
+  const firstType = getType(files[0]);
 
-        const allSameType = files.every(
-          (file) => getType(file) === firstType
-        );
+  const allSameType = files.every(
+    (file) => getType(file) === firstType
+  );
 
-        if (!allSameType) {
-          showToast(
-            "You cannot mix images, videos, and documents"
-          );
-          return;
-        }
+  if (!allSameType) {
+    showToast("You cannot mix images, videos, and documents");
+    return;
+  }
 
+  // IMPORTANT:
+  // Keep a copy of descriptions for this send.
+  const descriptionsToSend = { ...descriptions };
 
-        const filesWithMeta = await Promise.all(
-          files.map(async (file, i) => {
-            const type = getType(file);
+  const filesWithMeta = await Promise.all(
+    files.map(async (file, i) => {
+      const type = getType(file);
 
-            let duration = null;
+      let duration = null;
 
-            if (type === "audio") {
-              duration = await getAudioDuration(file);
+      if (type === "audio") {
+        duration = await getAudioDuration(file);
+      }
+
+      const preview = croppedImages[i]
+        ? URL.createObjectURL(croppedImages[i])
+        : previewUrls[i];
+
+      return {
+        file: preview,
+        file_url: preview,
+        file_name: file.name,
+        type,
+        duration,
+
+        description:
+          descriptionsToSend?.[i] || "",
+      };
+    })
+  );
+
+  const tempMessage = {
+    id: tempId,
+    type: firstType,
+    sender_id: authUser.id,
+    sender: authUser,
+    status: "sending",
+    files: filesWithMeta,
+    originalFiles: files,
+    message: caption,
+    replied_to: reply || null,
+    created_at: new Date().toISOString(),
+  };
+
+  setMessages((prev) => [
+    ...prev,
+    tempMessage,
+  ]);
+
+  // Clear the preview UI
+  setShowPreview(false);
+  setFiles([]);
+  setPreviewUrls([]);
+  setCaption("");
+  setCroppedImages({});
+  setCropAppliedMap(false);
+  setCrop({ x: 0, y: 0 });
+  setZoomMap({});
+  setCroppedAreaPixels(null);
+  setSelected([]);
+  setTrimMap({});
+  setDurationMap({});
+  setTrimAppliedMap({});
+
+  const form = new FormData();
+
+  form.append("chat_id", chatId);
+
+  files.forEach((file, i) => {
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (isImage && croppedImages[i]) {
+      form.append(
+        "files[]",
+        croppedImages[i],
+        file.name
+      );
+    } else {
+      form.append(
+        "files[]",
+        file,
+        file.name
+      );
+    }
+
+    // IMPORTANT
+    form.append(
+      "descriptions[]",
+      descriptionsToSend?.[i] || ""
+    );
+
+    if (isVideo) {
+      const trim = trimMap[i] || {
+        start: 0,
+        end: 0,
+      };
+
+      form.append(
+        "trim_start[]",
+        trim.start
+      );
+
+      form.append(
+        "trim_end[]",
+        trim.end
+      );
+    } else {
+      form.append("trim_start[]", 0);
+      form.append("trim_end[]", 0);
+    }
+
+    form.append(
+      "types[]",
+      getType(file)
+    );
+  });
+
+  if (
+    originalCaption &&
+    originalCaption.trim() !== ""
+  ) {
+    const chatKey = localStorage.getItem(
+      `chat_key_${chatId}`
+    );
+
+    if (!chatKey) {
+      showToast("Encryption key missing");
+      return;
+    }
+
+    const encrypted = await encryptMessage(
+      originalCaption,
+      chatKey
+    );
+
+    form.append(
+      "message",
+      encrypted.encrypted
+    );
+
+    form.append(
+      "iv",
+      encrypted.iv
+    );
+  } else {
+    form.append("message", "");
+    form.append("iv", "");
+  }
+
+  if (reply?.id && !isNaN(reply.id)) {
+    form.append(
+      "replied_to",
+      reply.id
+    );
+  }
+
+  try {
+    const res = await api.post(
+      "/api/messages",
+      form,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
+
+    const serverMessages =
+      res.data.messages || [];
+
+    if (!serverMessages.length) {
+      throw new Error(
+        "No messages returned from server."
+      );
+    }
+
+    const chatKey =
+      localStorage.getItem(
+        `chat_key_${chatId}`
+      );
+
+    const normalized =
+      await Promise.all(
+        serverMessages.map(
+          async (msg) => {
+            let decryptedMessage =
+              msg.message;
+
+            if (
+              msg.message &&
+              msg.iv &&
+              chatKey
+            ) {
+              try {
+                decryptedMessage =
+                  await decryptMessage(
+                    msg.message,
+                    msg.iv,
+                    chatKey
+                  );
+              } catch (err) {
+                console.log(
+                  "Immediate decrypt failed",
+                  err
+                );
+              }
             }
 
-            const preview = croppedImages[i]
-              ? URL.createObjectURL(croppedImages[i])
-              : previewUrls[i];
+            let normalizedFiles = [];
+
+            if (
+              Array.isArray(msg.files) &&
+              msg.files.length
+            ) {
+              normalizedFiles =
+                msg.files.map(
+                  (file) => ({
+                    ...file,
+                    description:
+                      file.description ||
+                      "",
+                  })
+                );
+            } else if (msg.file_url) {
+              normalizedFiles = [
+                {
+                  file_url:
+                    msg.file_url,
+                  file_name:
+                    msg.file_name,
+                  type:
+                    msg.type,
+                  duration:
+                    msg.duration,
+                  description:
+                    msg.description ||
+                    "",
+                },
+              ];
+            }
 
             return {
-              file: preview,
-              file_url: preview,
-              file_name: file.name,
-              type,
-              duration,
+              ...msg,
 
-              // IMPORTANT
-              description: descriptions?.[i] || "",
-            };
-          })
-        );
+              message:
+                decryptedMessage,
 
+              files:
+                normalizedFiles,
 
-        const tempMessage = {
-          id: tempId,
-          type: firstType,
-          sender_id: authUser.id,
-          sender: authUser,
-          status: "sending",
+              is_forwarded:
+                Boolean(
+                  msg.is_forwarded
+                ),
 
-          files: filesWithMeta,
-
-          originalFiles: files,
-
-          message: caption,
-
-          replied_to: reply || null,
-
-          created_at: new Date().toISOString(),
-        };
-
-        setMessages((prev) => [
-          ...prev,
-          tempMessage,
-        ]);
-
-        
-        setShowPreview(false);
-        setFiles([]);
-        setPreviewUrls([]);
-        setCaption("");
-        setCroppedImages({});
-        setCropAppliedMap(false);
-        setCrop({ x: 0, y: 0 });
-        setZoomMap({});
-        setCroppedAreaPixels(null);
-        setSelected([]);
-        setTrimMap({});
-        setDescriptions({});
-        setDurationMap({});
-        setTrimAppliedMap({});
-
-        requestAnimationFrame(() => {
-          bottomRef.current?.scrollIntoView({
-            behavior: "auto",
-            block: "end",
-          });
-        });
-
-        const form = new FormData();
-
-        form.append("chat_id", chatId);
-
-        files.forEach((file, i) => {
-          const isImage = file.type.startsWith("image/");
-          const isVideo = file.type.startsWith("video/");
-
-          if (isImage && croppedImages[i]) {
-            form.append(
-              "files[]",
-              croppedImages[i],
-              file.name
-            );
-          } else {
-            form.append(
-              "files[]",
-              file,
-              file.name
-            );
-          }
-
-          form.append(
-            "descriptions[]",
-            descriptions?.[i] || ""
-          );
-
-
-          if (isVideo) {
-            const trim = trimMap[i] || {
-              start: 0,
-              end: 0,
-            };
-
-            form.append(
-              "trim_start[]",
-              trim.start
-            );
-
-            form.append(
-              "trim_end[]",
-              trim.end
-            );
-          } else {
-            form.append(
-              "trim_start[]",
-              0
-            );
-
-            form.append(
-              "trim_end[]",
-              0
-            );
-          }
-
-
-          form.append(
-            "types[]",
-            getType(file)
-          );
-        });
-
-
-        if (
-          originalCaption &&
-          originalCaption.trim() !== ""
-        ) {
-          const chatKey = localStorage.getItem(
-            `chat_key_${chatId}`
-          );
-
-          if (!chatKey) {
-            showToast("Encryption key missing");
-            return;
-          }
-
-          const encrypted = await encryptMessage(
-            originalCaption,
-            chatKey
-          );
-
-          form.append(
-            "message",
-            encrypted.encrypted
-          );
-
-          form.append(
-            "iv",
-            encrypted.iv
-          );
-        } else {
-          form.append("message", "");
-          form.append("iv", "");
-        }
-
-        if (
-          reply?.id &&
-          !isNaN(reply.id)
-        ) {
-          form.append(
-            "replied_to",
-            reply.id
-          );
-        }
-
-        console.log(
-          "FILES:",
-          files.map((file) => file.name)
-        );
-
-        console.log(
-          "DESCRIPTIONS:",
-          descriptions
-        );
-
-
-        try {
-          const res = await api.post(
-            "/api/messages",
-            form,
-            {
-              headers: {
-                "Content-Type":
-                  "multipart/form-data",
-              },
-            }
-          );
-
-          const serverMessages =
-            res.data.messages || [];
-
-          if (!serverMessages.length) {
-            throw new Error(
-              "No messages returned from server."
-            );
-          }
-
-          const chatKey =
-            localStorage.getItem(
-              `chat_key_${chatId}`
-            );
-
-
-          const normalized =
-            await Promise.all(
-              serverMessages.map(
-                async (msg) => {
-                  let decryptedMessage =
-                    msg.message;
-
-                  if (
-                    msg.message &&
-                    msg.iv &&
-                    chatKey
-                  ) {
-                    try {
-                      decryptedMessage =
-                        await decryptMessage(
-                          msg.message,
-                          msg.iv,
-                          chatKey
-                        );
-                    } catch (err) {
-                      console.log(
-                        "Immediate decrypt failed",
-                        err
-                      );
-                    }
-                  }
-
-                  let normalizedFiles = [];
-
-                  if (
-                    Array.isArray(
-                      msg.files
-                    ) &&
-                    msg.files.length
-                  ) {
-                    normalizedFiles =
-                      msg.files.map(
-                        (file) => ({
-                          ...file,
-
-
-                          description:
-                            file.description ||
-                            "",
-                        })
-                      );
-                  } else if (
-                    msg.file_url
-                  ) {
-                    normalizedFiles = [
-                      {
-                        file_url:
-                          msg.file_url,
-
-                        file_name:
-                          msg.file_name,
-
-                        type:
-                          msg.type,
-
-                        duration:
-                          msg.duration,
-      
-
-                        description:
-                          msg.description ||
-                          "",
-                      },
-                    ];
-                  }
-      
-
-                  return {
-                    ...msg,
-
-                    message:
-                      decryptedMessage,
-
-                    files:
-                      normalizedFiles,
-
-                    is_forwarded:
-                      Boolean(
-                        msg.is_forwarded
-                      ),
-
-                    replied_to: reply
-                      ? {
-                          id: reply.id,
-                          message:
-                            reply.message,
-                          type: reply.type,
-                          sender:
-                            reply.sender,
-                        }
-                      : msg.replied_to ||
-                        msg.replyTo ||
-                        null,
-
-                    status: "sent",
-                  };
-                }
-              )
-            );
-      
-
-          setMessages((prev) => {
-            const filtered =
-              prev.filter(
-                (m) => m.id !== tempId
-              );
-
-            return [
-              ...filtered,
-              ...normalized,
-            ];
-          });
-
-          requestAnimationFrame(() => {
-            bottomRef.current?.scrollIntoView(
-              {
-                behavior: "smooth",
-                block: "end",
-              }
-            );
-          });
-        } catch (err) {
-          console.error(
-            "SEND FILE ERROR:",
-            err
-          );
-
-          const message =
-            err?.response?.data?.message ||
-            err?.message ||
-            "Something went wrong";
-
-          showToast(message);
-      
-
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === tempId
+              replied_to: reply
                 ? {
-                    ...m,
-                    status: "failed",
+                    id: reply.id,
+                    message:
+                      reply.message,
+                    type: reply.type,
+                    sender:
+                      reply.sender,
                   }
-                : m
-            )
-          );
-        }
-      
+                : msg.replied_to ||
+                  msg.replyTo ||
+                  null,
 
-        setShowPreview(false);
-        setFiles([]);
-        setPreviewUrls([]);
-        setCaption("");
-        setCroppedImages({});
-        setCropAppliedMap(false);
-        setCrop({ x: 0, y: 0 });
-        setZoomMap({});
-        setCroppedAreaPixels(null);
-        setSelected([]);
-        setTrimMap({});
-        setDurationMap({});
-        setTrimAppliedMap({});
-        setDescriptions({});
-        
+              status: "sent",
+            };
+          }
+        )
+      );
 
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      };
+    setMessages((prev) => {
+      const filtered =
+        prev.filter(
+          (m) => m.id !== tempId
+        );
+
+      return [
+        ...filtered,
+        ...normalized,
+      ];
+    });
+
+    // IMPORTANT:
+    // Clear the REAL description state
+    // after successful sending.
+    setDescriptions({});
+    setActiveIndex(0);
+
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    });
+
+  } catch (err) {
+    console.error(
+      "SEND FILE ERROR:",
+      err
+    );
+
+    const message =
+      err?.response?.data?.message ||
+      err?.message ||
+      "Something went wrong";
+
+    showToast(message);
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId
+          ? {
+              ...m,
+              status: "failed",
+            }
+          : m
+      )
+    );
+  }
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
+
 
     
     
@@ -945,6 +884,8 @@ const originalCaption = caption;
         `}
       >
       <MessageBox
+          activeIndex={activeIndex}
+          setActiveIndex={setActiveIndex}
           descriptions={descriptions}
           setDescriptions={setDescriptions}
           setShowList={setShowList}
@@ -1103,6 +1044,8 @@ const originalCaption = caption;
 
       {activeChat ? (
       <MessageBox
+          activeIndex={activeIndex}
+          setActiveIndex={setActiveIndex}
           descriptions={descriptions}
           setDescriptions={setDescriptions}
           setShowList={setShowList}

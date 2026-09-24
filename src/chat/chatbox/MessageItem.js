@@ -1914,30 +1914,39 @@ const handleMessageTouchCancel = () => {
                 uiMode={uiMode} />
               )}
 
-              {
-                msg.is_forwarded && 
-               <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setPendingCommunity({
-                  communityId: msg.forward_source_community_id,
-                  messageId: msg.forward_source_message_id,
-                });
-                onBack();
-              }}
+           {msg?.is_forwarded &&
+              msg?.forward_source_community_id &&
+              msg?.forward_source_message_id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
 
-          className="
-            text-sm font-bold
-            text-blue-400
-            hover:text-blue-300
-            whitespace-nowrap
-            mx-auto pt-4 flex items-center justify-center 
-          "
-        >
-          View Channel
-        </button>
+                    setPendingCommunity({
+                      communityId:
+                        msg.forward_source_community_id,
+                      messageId:
+                        msg.forward_source_message_id,
+                    });
 
-          }
+                    onBack();
+                  }}
+                  className="
+                    text-sm font-bold
+                    text-blue-400
+                    hover:text-blue-300
+                    whitespace-nowrap
+                    mx-auto
+                    pt-4
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
+                  View Channel
+                </button>
+              )}
+
+          
 
          {msg.type === "meeting_invite" && (
   <div

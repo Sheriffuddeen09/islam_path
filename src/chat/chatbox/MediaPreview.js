@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import ReadMoreCaption from "./ReadMoreCaption";
 import ReactionMediaPopup from "./ReactionMediaPopup";
 import DeleteModal from "../chatcomponent/DeleteModal";
 import { ReportModal } from "../chatcomponent/ReportModal";
@@ -262,10 +261,7 @@ export default function MediaPreview({
             setPinLoading(false);
         }
     };
-
-    /* =========================================================
-       DISPLAY
-    ========================================================= */
+ 
 
     const displayName = isGroup
         ? activeChat?.group_name ||
@@ -2539,25 +2535,9 @@ const handleVideoEnded = (e) => {
                     z-[180]
                 "
             >
-                {/* CAPTION */}
+                
 
-                {msg.message && (
-                    <div
-                        className="
-                            px-5
-                            py-3
-                            mx-auto
-                            text-white
-                            w-full
-                            max-w-md
-                        "
-                    >
-                        <PreviewMessageText
-                            msg={msg}
-                        />
-                    </div>
-                )}
-
+       
                 {/* REACTIONS */}
 
                 <div
@@ -2566,6 +2546,7 @@ const handleVideoEnded = (e) => {
                         items-center
                         justify-center
                         gap-3
+                        
                     "
                 >
                     <div
@@ -2719,18 +2700,21 @@ const handleVideoEnded = (e) => {
                             </div>
                         )}
                     </div>
-                </div>
 
-                {/* COUNTER */}
-
-                {items.length >
+                     {items.length >
                     1 && (
                     <div
                         className="
                             text-center
-                            text-white/60
+                            text-white
+                            w-10
+                            h-10
+                            rounded-full
+                            bg-[#1d1d1d]
+                            flex
+                            items-center
+                            justify-center
                             text-xs
-                            mt-3
                         "
                     >
                         {index + 1} /{" "}
@@ -2739,12 +2723,52 @@ const handleVideoEnded = (e) => {
                         }
                     </div>
                 )}
+                </div>
+
+                {/* COUNTER */}
+
+               
+
+                         
+{(
+    msg?.message ||
+    msg?.description ||
+    current?.description ||
+    (Array.isArray(msg?.files) &&
+        msg.files.some(
+            (file) =>
+                typeof file?.description === "string" &&
+                file.description.trim() !== ""
+        ))
+) && (
+    <div
+        className="
+            px-5
+            py-3
+            mx-auto
+            text-white
+            w-full
+            max-w-md
+        "
+    >
+        <PreviewMessageText
+            msg={{
+                ...msg,
+
+                // Current media description gets priority
+                description:
+                    current?.description ||
+                    msg?.description ||
+                    "",
+
+                // Keep the original files as fallback
+                files: msg?.files || [],
+            }}
+        />
+    </div>
+)}
             </div>
-
-            {/* =====================================================
-                DELETE
-            ====================================================== */}
-
+ 
             {openDelete && (
                 <DeleteModal
                     message={msg}
