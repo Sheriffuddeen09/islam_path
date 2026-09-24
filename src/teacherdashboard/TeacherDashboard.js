@@ -1069,7 +1069,7 @@ useEffect(() => {
         </div> 
 
 
-        <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 20 ? 'block' : 'hidden'}`}>
         <GoLiveModal
         showLiveModal={showLiveModal}
         setShowLiveModal={setShowLiveModal}

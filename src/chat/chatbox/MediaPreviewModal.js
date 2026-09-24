@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import EmojiPicker from "emoji-picker-react";
-import { Check } from "lucide-react";
-import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
-
+import { Check, Send, Maximize, CheckCircle2 } from "lucide-react";
+import ReactCrop from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
 export default function MediaPreviewModal({
   show,
@@ -13,590 +12,1426 @@ export default function MediaPreviewModal({
   setCaption,
   onClose,
   onSend,
-  crop,setCrop, cropAppliedMap,  croppedImages, selected, setCropAppliedMap,
-  setTrimMap, setDurationMap, trimMap, durationMap, dragType, setDragType,
-  setTrimAppliedMap, trimAppliedMap, setCroppedImages
+
+  crop,
+  setCrop,
+  cropAppliedMap,
+  croppedImages,
+  selected,
+  setCropAppliedMap,
+  setTrimMap,
+  setDurationMap,
+  trimMap,
+  durationMap,
+  dragType,
+  setDragType,
+  setTrimAppliedMap,
+  trimAppliedMap,
+  setCroppedImages,
+  descriptions, setDescriptions
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
- 
-
   const [showEmoji, setShowEmoji] = useState(false);
-  // Tracks pixel dimensions for drawing on the canvas later
-  const [completedCrops, setCompletedCrops] = useState({});
-  // ✅ ADD THIS STATE
+
+  // Crop mode for each image
   const [cropModeMap, setCropModeMap] = useState({});
-
+ 
   const videoRef = useRef(null);
+  const trackRef = useRef(null);
 
-  // 🔥 STORE PER FILE SETTINGS image
+  const activeFile = files?.[activeIndex];
+ 
+  const activeDescription =
+    descriptions?.[activeIndex] || "";
 
-  // 🖼 Crop
-  const activeFile = files[activeIndex];
+  const updateDescription = (value) => {
+    if (value.length > 700) return;
 
-   const addEmoji = (emojiData) => {
+    setDescriptions((prev) => ({
+      ...prev,
+      [activeIndex]: value,
+    }));
+  };
+ 
+  const addEmoji = (emojiData) => {
     setCaption((prev) => prev + emojiData.emoji);
     setShowEmoji(false);
   };
+ 
+  const duration =
+    durationMap?.[activeIndex] ?? 0;
 
-  const duration = durationMap[activeIndex] ?? 0;
-  const currentTrim = trimMap[activeIndex] ?? {
-    start: 0,
-    end: duration,
-  };
-
-const handleDrag = (clientX, rect) => {
-  if (!dragType) return;
-
-  const percent = Math.min(
-    Math.max((clientX - rect.left) / rect.width, 0),
-    1
-  );
-
-  const time = percent * duration;
-
-  setTrimMap((prev) => {
-    const current = prev[activeIndex] || {
+  const currentTrim =
+    trimMap?.[activeIndex] || {
       start: 0,
-      end: 5,
+      end: duration,
     };
 
-    let start = current.start;
-    let end = current.end;
+  // ============================================================
+  // HANDLE TRIM DRAG
+  // ============================================================
 
-    if (dragType === "left") {
-      start = Math.min(time, end - 0.5);
-    }
+  const handleDrag = (clientX, rect) => {
+    if (!dragType || !duration) return;
 
-    if (dragType === "right") {
-      end = Math.max(time, start + 0.5);
-    }
-
-    if (dragType === "move") {
-      const length = end - start;
-
-      start = Math.max(0, time - length / 2);
-      end = start + length;
-
-      if (end > duration) {
-        end = duration;
-        start = duration - length;
-      }
-    }
-
-    if (videoRef.current) {
-      videoRef.current.currentTime = start;
-    }
-
-    return {
-      ...prev,
-      [activeIndex]: { start, end },
-    };
-  });
-};
-
-const trackRef = useRef(null);
-
-useEffect(() => {
-  const move = (e) => {
-    if (!dragType || !trackRef.current) return;
-
-    const rect =
-      trackRef.current.getBoundingClientRect();
-
-    handleDrag(e.clientX, rect);
-  };
-
-  const touchMove = (e) => {
-    if (!dragType || !trackRef.current) return;
-
-    const rect =
-      trackRef.current.getBoundingClientRect();
-
-    handleDrag(
-      e.touches[0].clientX,
-      rect
+    const percent = Math.min(
+      Math.max(
+        (clientX - rect.left) / rect.width,
+        0
+      ),
+      1
     );
+
+    const time = percent * duration;
+
+    setTrimMap((prev) => {
+      const current =
+        prev?.[activeIndex] || {
+          start: 0,
+          end: duration,
+        };
+
+      let start = current.start;
+      let end = current.end;
+
+      if (dragType === "left") {
+        start = Math.min(time, end - 0.5);
+      }
+
+      if (dragType === "right") {
+        end = Math.max(time, start + 0.5);
+      }
+
+      if (dragType === "move") {
+        const length = end - start;
+
+        start = Math.max(
+          0,
+          time - length / 2
+        );
+
+        end = start + length;
+
+        if (end > duration) {
+          end = duration;
+          start = Math.max(
+            0,
+            duration - length
+          );
+        }
+      }
+
+      if (videoRef.current) {
+        videoRef.current.currentTime =
+          start;
+      }
+
+      return {
+        ...prev,
+        [activeIndex]: {
+          start,
+          end,
+        },
+      };
+    });
   };
 
-  const stop = () => {
-    setDragType(null);
-  };
+  // ============================================================
+  // TRIM EVENTS
+  // ============================================================
 
-  window.addEventListener("mousemove", move);
-  window.addEventListener("mouseup", stop);
+  useEffect(() => {
+    const move = (e) => {
+      if (!dragType || !trackRef.current)
+        return;
 
-  window.addEventListener("touchmove", touchMove);
-  window.addEventListener("touchend", stop);
+      const rect =
+        trackRef.current.getBoundingClientRect();
 
-  return () => {
-    window.removeEventListener(
+      handleDrag(e.clientX, rect);
+    };
+
+    const touchMove = (e) => {
+      if (!dragType || !trackRef.current)
+        return;
+
+      const rect =
+        trackRef.current.getBoundingClientRect();
+
+      handleDrag(
+        e.touches[0].clientX,
+        rect
+      );
+    };
+
+    const stop = () => {
+      setDragType(null);
+    };
+
+    window.addEventListener(
       "mousemove",
       move
     );
 
-    window.removeEventListener(
+    window.addEventListener(
       "mouseup",
       stop
     );
 
-    window.removeEventListener(
+    window.addEventListener(
       "touchmove",
       touchMove
     );
 
-    window.removeEventListener(
+    window.addEventListener(
       "touchend",
       stop
     );
-  };
-}, [dragType, duration, activeIndex]);
 
+    return () => {
+      window.removeEventListener(
+        "mousemove",
+        move
+      );
 
+      window.removeEventListener(
+        "mouseup",
+        stop
+      );
 
-const isTrimmed =
-  currentTrim.start > 0 || currentTrim.end < duration;
-  
+      window.removeEventListener(
+        "touchmove",
+        touchMove
+      );
 
-const handleTimeUpdate = () => {
-  if (!videoRef.current) return;
+      window.removeEventListener(
+        "touchend",
+        stop
+      );
+    };
+  }, [
+    dragType,
+    duration,
+    activeIndex,
+  ]);
 
-  const video = videoRef.current;
+  // ============================================================
+  // VIDEO TRIM STATUS
+  // ============================================================
 
-  if (video.currentTime >= currentTrim.end) {
-    video.currentTime = currentTrim.start;
-  }
+  const isTrimmed =
+    duration > 0 &&
+    (currentTrim.start > 0 ||
+      currentTrim.end < duration);
 
-  if (video.currentTime < currentTrim.start) {
-    video.currentTime = currentTrim.start;
-  }
-};
+  // ============================================================
+  // VIDEO TIME UPDATE
+  // ============================================================
 
-const handlePlay = () => {
-  if (!videoRef.current) return;
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
 
-  const video = videoRef.current;
+    const video = videoRef.current;
 
-  // 🔥 ALWAYS START FROM TRIM START
-  if (video.currentTime < currentTrim.start) {
-    video.currentTime = currentTrim.start;
-  }
-
-  video.play();
-};
-
-
-const getCroppedImg = (image, crop) => {
-  if (!crop || !crop.width || !crop.height) {
-    return null;
-  }
-
-  const canvas = document.createElement("canvas");
-
-  const scaleX = image.naturalWidth / image.width;
-  const scaleY = image.naturalHeight / image.height;
-
-  canvas.width = crop.width;
-  canvas.height = crop.height;
-
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("Canvas context missing");
-  }
-
-  ctx.drawImage(
-    image,
-    crop.x * scaleX,
-    crop.y * scaleY,
-    crop.width * scaleX,
-    crop.height * scaleY,
-    0,
-    0,
-    crop.width,
-    crop.height
-  );
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(blob);
-    }, "image/jpeg");
-  });
-};
-
-  
- const applyCrop = async () => {
-  try {
-    const activeCrop = crop[activeIndex];
-
-    const imageElement = document.querySelector(
-      "img[alt='Source preview']"
-    );
-
-    if (!imageElement) {
-      alert("Image not found");
-      return;
+    if (
+      currentTrim.end > 0 &&
+      video.currentTime >=
+        currentTrim.end
+    ) {
+      video.currentTime =
+        currentTrim.start;
     }
 
     if (
-      !activeCrop ||
-      !activeCrop.width ||
-      !activeCrop.height
+      video.currentTime <
+      currentTrim.start
     ) {
-      alert("Select crop area first");
-      return;
+      video.currentTime =
+        currentTrim.start;
+    }
+  };
+
+  // ============================================================
+  // VIDEO PLAY
+  // ============================================================
+
+  const handlePlay = () => {
+    if (!videoRef.current) return;
+
+    const video = videoRef.current;
+
+    if (
+      video.currentTime <
+      currentTrim.start
+    ) {
+      video.currentTime =
+        currentTrim.start;
     }
 
-    // GET CROPPED BLOB
-    const croppedBlob = await getCroppedImg(
-      imageElement,
-      activeCrop
+    video.play().catch(() => {});
+  };
+
+  // ============================================================
+  // CROP
+  // ============================================================
+
+  const getCroppedImg = (
+    image,
+    cropData
+  ) => {
+    if (
+      !cropData ||
+      !cropData.width ||
+      !cropData.height
+    ) {
+      return null;
+    }
+
+    const canvas =
+      document.createElement("canvas");
+
+    const scaleX =
+      image.naturalWidth /
+      image.width;
+
+    const scaleY =
+      image.naturalHeight /
+      image.height;
+
+    canvas.width =
+      cropData.width;
+
+    canvas.height =
+      cropData.height;
+
+    const ctx =
+      canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error(
+        "Canvas context missing"
+      );
+    }
+
+    ctx.drawImage(
+      image,
+      cropData.x * scaleX,
+      cropData.y * scaleY,
+      cropData.width * scaleX,
+      cropData.height * scaleY,
+      0,
+      0,
+      cropData.width,
+      cropData.height
     );
 
-    if (!croppedBlob) return;
-
-    // CONVERT BLOB TO FILE
-    const croppedFile = new File(
-      [croppedBlob],
-      `cropped-${Date.now()}.jpg`,
-      {
-        type: "image/jpeg",
+    return new Promise(
+      (resolve) => {
+        canvas.toBlob(
+          (blob) => {
+            resolve(blob);
+          },
+          "image/jpeg",
+          0.92
+        );
       }
     );
+  };
 
-    // SAVE CROPPED FILE
-    setCroppedImages((prev) => ({
-      ...prev,
-      [activeIndex]: croppedFile,
-    }));
+  // ============================================================
+  // APPLY CROP
+  // ============================================================
 
-    // MARK APPLIED
-    setCropAppliedMap((prev) => ({
-      ...prev,
-      [activeIndex]: true,
-    }));
+  const applyCrop = async () => {
+    try {
+      const activeCrop =
+        crop?.[activeIndex];
 
-  } catch (error) {
-    console.error("Crop failed:", error);
-  }
-};
+      const imageElement =
+        document.querySelector(
+          "img[data-source-preview='true']"
+        );
 
-const getPreviewSrc = (index) => {
-  const item = croppedImages?.[index];
+      if (!imageElement) {
+        console.error(
+          "Image not found"
+        );
+        return;
+      }
 
-  if (item instanceof File || item instanceof Blob) {
-    return URL.createObjectURL(item);
-  }
+      if (
+        !activeCrop ||
+        !activeCrop.width ||
+        !activeCrop.height
+      ) {
+        console.error(
+          "Select crop area first"
+        );
+        return;
+      }
 
-  return previewUrls?.[index] || "";
-};
-  // -------------------------
-  // 🎥 TRIM APPLY 
-  // -------------------------
+      const croppedBlob =
+        await getCroppedImg(
+          imageElement,
+          activeCrop
+        );
+
+      if (!croppedBlob) return;
+
+      const croppedFile =
+        new File(
+          [croppedBlob],
+          `cropped-${Date.now()}.jpg`,
+          {
+            type: "image/jpeg",
+          }
+        );
+
+      setCroppedImages(
+        (prev) => ({
+          ...prev,
+          [activeIndex]:
+            croppedFile,
+        })
+      );
+
+      setCropAppliedMap(
+        (prev) => ({
+          ...prev,
+          [activeIndex]: true,
+        })
+      );
+    } catch (error) {
+      console.error(
+        "Crop failed:",
+        error
+      );
+    }
+  };
+
+  // ============================================================
+  // GET IMAGE PREVIEW
+  // ============================================================
+
+  const getPreviewSrc = (index) => {
+    const item =
+      croppedImages?.[index];
+
+    if (
+      item instanceof File ||
+      item instanceof Blob
+    ) {
+      return URL.createObjectURL(
+        item
+      );
+    }
+
+    return (
+      previewUrls?.[index] || ""
+    );
+  };
+
+  // ============================================================
+  // APPLY TRIM
+  // ============================================================
 
   const applyTrim = () => {
-  setTrimAppliedMap((prev) => ({
-    ...prev,
-    [activeIndex]: true,
-  }));
-};
+    setTrimAppliedMap(
+      (prev) => ({
+        ...prev,
+        [activeIndex]: true,
+      })
+    );
+  };
 
-  
-  // 🔥 SYNC VIDEO PREVIEW WITH TRIM
-  const handleActiveImageChange = (index) => {
-  setActiveIndex(index);
-};
+  // ============================================================
+  // CHANGE ACTIVE MEDIA
+  // ============================================================
 
- useEffect(() => {
-  if (files.length > 0) {
-    setActiveIndex(0);
-  }
-}, [files]);
+  const handleActiveMediaChange = (
+    index
+  ) => {
+    // Stop current video
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
 
+    setActiveIndex(index);
+    setShowEmoji(false);
+  };
 
+  // ============================================================
+  // RESET INDEX WHEN FILES CHANGE
+  // ============================================================
+
+  useEffect(() => {
+    if (files?.length > 0) {
+      setActiveIndex(0);
+    }
+  }, [files]);
+
+  // ============================================================
+  // SEND
+  // ============================================================
+
+  const handleSend = () => {
+    onSend({
+      selectedFiles: files.filter(
+        (_, i) => selected?.[i]
+      ),
+
+      cropData: croppedImages,
+
+      trimData: trimMap,
+
+      // IMPORTANT:
+      // One description per media item.
+      descriptions,
+    });
+  };
+
+  // ============================================================
+  // DON'T RENDER
+  // ============================================================
 
   if (!show) return null;
 
-
   return (
-    <div className="fixed inset-0 bg-black flex flex-col z-50">
-      <div className="flex justify-between items-center py-2 px-4 text-white">
-        <button className="bg-gray-900 rounded-full p-2" onClick={onClose}>
-          ✕
-        </button>
-        <div className="flex gap-4 font-bold text-sm">
-          {activeFile?.type.startsWith("image/") && <span>Crop</span>}
-          {activeFile?.type.startsWith("video/") && <span>Trim</span>}
+    <>
+      {/* ======================================================
+          HIDE SCROLLBAR UNTIL MOUSE IS OVER MEDIA
+      ======================================================= */}
+
+      <style>
+        {`
+          .media-preview-scroll {
+            scrollbar-width: none;
+          }
+
+          .media-preview-scroll::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+          }
+
+          .media-preview-scroll:hover {
+            scrollbar-width: thin;
+            scrollbar-color:
+              rgba(34,197,94,.75)
+              transparent;
+          }
+
+          .media-preview-scroll:hover::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .media-preview-scroll:hover::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          .media-preview-scroll:hover::-webkit-scrollbar-thumb {
+            background: rgba(34,197,94,.75);
+            border-radius: 999px;
+          }
+
+          .media-preview-scroll:hover::-webkit-scrollbar-thumb:hover {
+            background: rgba(34,197,94,1);
+          }
+        `}
+      </style>
+
+      <div className="fixed inset-0 bg-black flex flex-col z-50">
+
+        {/* ==================================================
+            HEADER
+        =================================================== */}
+
+        <div
+          className="
+            flex
+            justify-between
+            items-center
+            py-2
+            px-4
+            text-white
+            bg-black/90
+            shrink-0
+          "
+        >
+
+          <button
+            type="button"
+            className="
+              bg-gray-900
+              hover:bg-gray-800
+              rounded-full
+              p-2
+              transition
+            "
+            onClick={onClose}
+          >
+            ✕
+          </button>
+
+          <div
+            className="
+              flex
+              gap-4
+              font-bold
+              text-sm
+            "
+          >
+            {activeFile?.type?.startsWith(
+              "image/"
+            ) && (
+              <span>Crop</span>
+            )}
+
+            {activeFile?.type?.startsWith(
+              "video/"
+            ) && (
+              <span>Trim</span>
+            )}
+          </div>
+
+          <div className="text-xs text-white/50">
+            {files?.length
+              ? `${activeIndex + 1} / ${files.length}`
+              : ""}
+          </div>
         </div>
-      </div>
-     <div className="flex-1 flex justify-center overflow-hidden">
-  {activeFile?.type.startsWith("image/") && (
-    <div className="relative w-full max-w-md h-[60vh] bg-black scrollbar-thin scrollbar-thumb-green-500 scrollbar-track-black overflow-y-auto overflow-x-hidden rounded-xl">
 
-      {/* ✅ TOP ACTION BUTTON */}
-      <div className="sticky top-0 z-20 flex justify-center py-3 bg-black/80 backdrop-blur">
+        {/* ==================================================
+            MAIN AREA
+        =================================================== */}
 
-        {!cropModeMap?.[activeIndex] ? (
-          <button
-            onClick={() => {
-              setCropModeMap((prev) => ({
-                ...prev,
-                [activeIndex]: true,
-              }));
-            }}
-            className="px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium shadow"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-</svg>
+        <div
+          className="
+            flex-1
+            flex
+            justify-center
+            overflow-hidden
+            min-h-0
+          "
+        >
 
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              applyCrop();
+          {/* =================================================
+              IMAGE
+          ================================================= */}
 
-              // ✅ HIDE CROP BOX AFTER APPLY
-              setCropModeMap((prev) => ({
-                ...prev,
-                [activeIndex]: false,
-              }));
-            }}
-            className={`px-4 py-3 rounded-lg text-white font-medium shadow ${
-              cropAppliedMap?.[activeIndex]
-                ? "bg-green-700"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {cropAppliedMap?.[activeIndex]
-              ? <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-</svg>
+          {activeFile?.type?.startsWith(
+            "image/"
+          ) && (
 
-              : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-</svg>
-}
-          </button>
-        )}
+            <div
+              className="
+                media-preview-scroll
+                relative
+                w-full
+                max-w-md
+                h-[60vh]
+                bg-black
+                overflow-y-auto
+                overflow-x-hidden
+                rounded-xl
+                my-auto
+              "
+            >
 
-      </div>
+              {/* CROP BUTTON */}
 
-      <div className="min-h-full flex items-center justify-center p-4">
+              <div
+                className="
+                  sticky
+                  top-0
+                  z-20
+                  flex
+                  justify-center
+                  py-3
+                  bg-black/80
+                  backdrop-blur
+                "
+              >
 
-        {/* ✅ ONLY SHOW CROP BOX WHEN ENABLED */}
-        {cropModeMap?.[activeIndex] ? (
+                {!cropModeMap?.[
+                  activeIndex
+                ] ? (
 
-          <ReactCrop
-            crop={crop?.[activeIndex]}
-            className="green-crop"
-            onChange={(c) => {
-              setCrop((prev) => ({
-                ...prev,
-                [activeIndex]: c,
-              }));
-            }}
-            onComplete={(pixelCrop) => {
-              setCompletedCrops((prev) => ({
-                ...prev,
-                [activeIndex]: pixelCrop,
-              }));
-            }}
-            aspect={undefined}
-          >
-            <img
-              src={getPreviewSrc(activeIndex)}
-              alt="Source preview"
-              className="max-w-full h-auto object-contain select-none"
-              onLoad={(e) => {
-                const { width, height } = e.currentTarget;
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCropModeMap(
+                        (prev) => ({
+                          ...prev,
+                          [activeIndex]:
+                            true,
+                        })
+                      );
+                    }}
+                    className="
+                      flex
+                      items-center
+                      justify-center
+                      w-11
+                      h-11
+                      rounded-xl
+                      bg-green-600
+                      hover:bg-green-700
+                      text-white
+                      shadow-lg
+                    "
+                    title="Crop image"
+                  >
+                    <Maximize
+                      size={20}
+                    />
+                  </button>
 
-                setCrop((prev) => {
-                  if (prev?.[activeIndex]) return prev;
+                ) : (
 
-                  return {
-                    ...prev,
-                    [activeIndex]: {
-                      unit: "%",
-                      x: 10,
-                      y: 10,
-                      width: 80,
-                      height: 80,
-                    },
-                  };
-                });
-              }}
-            />
-          </ReactCrop>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      applyCrop();
 
-        ) : (
-
-          // ✅ NORMAL IMAGE WITHOUT CROP BOX
-          <img
-            src={getPreviewSrc(activeIndex)}
-            alt="Preview"
-            className="max-w-full h-auto object-contain rounded-lg"
-          />
-
-        )}
-
-      </div>
-    </div>
-  )}
-
-
-  {activeFile?.type.startsWith("video/") && (
-  <div className="w-full flex flex-col items-center text-white">
-    <video
-      ref={videoRef}
-      src={previewUrls[activeIndex]}
-      controls
-      className="max-h-[50vh] rounded"
-      onTimeUpdate={handleTimeUpdate}   // ✅ IMPORTANT onSend
-      onPlay={handlePlay}
-      onLoadedMetadata={(e) => {
-        const dur = e.target.duration;
-        setDurationMap((prev) => ({
-          ...prev,
-          [activeIndex]: dur,
-        }));
-        setTrimMap((prev) => {
-          if (prev[activeIndex]) return prev;
-          return {
-            ...prev,
-            [activeIndex]: {
-              start: 0,
-              end: dur, // ✅ FULL VIDEO
-            },
-          };
-        });
-      }}
-    />
-    <div className="w-full px-4 mt-4">
-     <div
-        ref={trackRef}
-        className="relative w-full h-8 bg-gray-800 rounded-lg overflow-hidden touch-none"
-      >
-  <div
-    className="absolute top-0 h-full bg-green-500/40"
-    style={{
-      left: `${(currentTrim.start / duration) * 100}%`,
-      width: `${((currentTrim.end - currentTrim.start) / duration) * 100}%`,
-    }}
-  />
-  <div
-    onMouseDown={() => setDragType("left")}
-    onTouchStart={() => setDragType("left")}
-    className="absolute top-0 w-3 h-full bg-white rounded shadow cursor-ew-resize z-30"
-    style={{
-      left: `${(currentTrim.start / duration) * 100}%`,
-      transform: "translateX(-50%)",
-    }}
-  />
-  <div
-    onMouseDown={() => setDragType("right")}
-    onTouchStart={() => setDragType("right")}
-    className="absolute top-0 w-3 h-full bg-white rounded shadow cursor-ew-resize z-30"
-    style={{
-      left: `${(currentTrim.end / duration) * 100}%`,
-      transform: "translateX(-50%)",
-    }}
-  />
-  <div
-    onMouseDown={() => setDragType("move")}
-    onTouchStart={() => setDragType("move")}
-    className="absolute top-0 h-full cursor-grab z-20 touch-none"
-    style={{
-      left: `${(currentTrim.start / duration) * 100}%`,
-      width: `${((currentTrim.end - currentTrim.start) / duration) * 100}%`,
-    }}
-  />
-</div>
-    </div>
-      <div className="text-center  text-xs text-white">
-        {isTrimmed
-          ? `${currentTrim.start.toFixed(1)}s — ${currentTrim.end.toFixed(1)}s`
-          : "Full video"}
-      </div>
-    <button
-      onClick={applyTrim}
-      className={`mt-3 px-4 py-3 z-50 text-center -translate-y-2 rounded text-sm ${
-        trimAppliedMap?.[activeIndex]
-          ? "bg-green-700"
-          : "bg-green-600"
-      }`}
-    > 
-      {trimAppliedMap?.[activeIndex] ? "Applied ✓" : "Apply Trim"}
-    </button>
-  </div>
-)}      </div>
-     <div className="flex gap-2 px-3 py-2 bg-black/80">
-  {files.map((file, i) => (
-    <div
-      key={i}
-      onClick={() => handleActiveImageChange(i)}
-      className={`w-16 h-16 relative cursor-pointer border-2 transition-all duration-200 ${
-        i === activeIndex
-          ? "border-green-500 scale-105"
-          : "border-gray-600"
-      }`}
-    >
-      {file.type.startsWith("image/") ? (
-        <img
-          src={previewUrls[i]}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <video
-          src={previewUrls[i]}
-          className="w-full h-full object-cover"
-        />
-      )}
-
-      {i === activeIndex && (
-        <Check className="absolute top-1 right-1 w-3 h-3 bg-green-800 text-white rounded-full" />
-      )}
-    </div>
-  ))}
-</div>
-      <div className="p-3 bg-gray-900 flex items-center gap-2">
-              <div className="relative flex-1">
-                <textarea
-                  rows={1}
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  className="w-full rounded-full px-4 py-3 no-scrollbar pr-10 text-sm text-black
-                   scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
-                  placeholder="Write a caption..."
-                />
-                <button
-                  onClick={() => setShowEmoji((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7 text-black z-50">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
-      </svg>
-                </button>
-                {showEmoji && (
-                  <div className="absolute bottom-12 right-0 z-50">
-                    <EmojiPicker onEmojiClick={addEmoji} />
-                  </div>
+                      setCropModeMap(
+                        (prev) => ({
+                          ...prev,
+                          [activeIndex]:
+                            false,
+                        })
+                      );
+                    }}
+                    className={`
+                      flex
+                      items-center
+                      justify-center
+                      w-11
+                      h-11
+                      rounded-xl
+                      text-white
+                      shadow-lg
+                      ${
+                        cropAppliedMap?.[
+                          activeIndex
+                        ]
+                          ? "bg-green-700"
+                          : "bg-green-600 hover:bg-green-700"
+                      }
+                    `}
+                    title="Apply crop"
+                  >
+                    {cropAppliedMap?.[
+                      activeIndex
+                    ] ? (
+                      <CheckCircle2
+                        size={20}
+                      />
+                    ) : (
+                      <Check
+                        size={20}
+                      />
+                    )}
+                  </button>
                 )}
               </div>
-              <button
-                onClick={() =>
-                  onSend({
-                    selectedFiles: files.filter((_, i) => selected[i]),
-                    cropData: croppedImages,
-                    trimData: trimMap,
-                  })
-                }
-                className="bg-green-600 text-white px-4 py-2 rounded-full"
+
+              {/* IMAGE */}
+
+              <div
+                className="
+                  min-h-full
+                  flex
+                  items-center
+                  justify-center
+                  p-4
+                "
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-      </svg>
-              </button>
+
+                {cropModeMap?.[
+                  activeIndex
+                ] ? (
+
+                  <ReactCrop
+                    crop={
+                      crop?.[
+                        activeIndex
+                      ]
+                    }
+                    className="green-crop"
+                    onChange={(c) => {
+                      setCrop(
+                        (prev) => ({
+                          ...prev,
+                          [activeIndex]:
+                            c,
+                        })
+                      );
+                    }}
+                    onComplete={(
+                      pixelCrop
+                    ) => {
+                      // Keep crop information
+                      // if needed later
+                    }}
+                    aspect={undefined}
+                  >
+
+                    <img
+                      src={getPreviewSrc(
+                        activeIndex
+                      )}
+                      alt="Source preview"
+                      data-source-preview="true"
+                      className="
+                        max-w-full
+                        h-auto
+                        object-contain
+                        select-none
+                      "
+                      onLoad={() => {
+                        setCrop(
+                          (prev) => {
+                            if (
+                              prev?.[
+                                activeIndex
+                              ]
+                            ) {
+                              return prev;
+                            }
+
+                            return {
+                              ...prev,
+                              [activeIndex]:
+                                {
+                                  unit: "%",
+                                  x: 10,
+                                  y: 10,
+                                  width: 80,
+                                  height: 80,
+                                },
+                            };
+                          }
+                        );
+                      }}
+                    />
+
+                  </ReactCrop>
+
+                ) : (
+
+                  <img
+                    src={getPreviewSrc(
+                      activeIndex
+                    )}
+                    alt="Preview"
+                    className="
+                      max-w-full
+                      h-auto
+                      object-contain
+                      rounded-lg
+                    "
+                  />
+
+                )}
+
+              </div>
+
             </div>
+          )}
+
+          {/* =================================================
+              VIDEO
+          ================================================= */}
+
+          {activeFile?.type?.startsWith(
+            "video/"
+          ) && (
+
+            <div
+              className="
+                media-preview-scroll
+                w-full
+                max-w-2xl
+                max-h-[70vh]
+                flex
+                flex-col
+                items-center
+                text-white
+                overflow-y-auto
+                overflow-x-hidden
+                my-auto
+                px-2
+              "
+            >
+
+              {/* VIDEO */}
+
+              <video
+                ref={videoRef}
+                src={
+                  previewUrls?.[
+                    activeIndex
+                  ]
+                }
+                controls
+                playsInline
+                className="
+                  max-h-[50vh]
+                  max-w-full
+                  rounded-xl
+                  bg-black
+                  object-contain
+                "
+                onTimeUpdate={
+                  handleTimeUpdate
+                }
+                onPlay={handlePlay}
+                onLoadedMetadata={(
+                  e
+                ) => {
+                  const dur =
+                    e.target
+                      .duration;
+
+                  setDurationMap(
+                    (prev) => ({
+                      ...prev,
+                      [activeIndex]:
+                        dur,
+                    })
+                  );
+
+                  setTrimMap(
+                    (prev) => {
+                      if (
+                        prev?.[
+                          activeIndex
+                        ]
+                      ) {
+                        return prev;
+                      }
+
+                      return {
+                        ...prev,
+                        [activeIndex]:
+                          {
+                            start: 0,
+                            end: dur,
+                          },
+                      };
+                    }
+                  );
+                }}
+              />
+
+              {/* TRIM */}
+
+              <div
+                className="
+                  w-full
+                  px-4
+                  mt-4
+                "
+              >
+
+                <div
+                  ref={trackRef}
+                  className="
+                    relative
+                    w-full
+                    h-8
+                    bg-gray-800
+                    rounded-lg
+                    overflow-hidden
+                    touch-none
+                  "
+                >
+
+                  {duration > 0 && (
+                    <>
+                      {/* Selected area */}
+
+                      <div
+                        className="
+                          absolute
+                          top-0
+                          h-full
+                          bg-green-500/40
+                        "
+                        style={{
+                          left: `${
+                            (currentTrim.start /
+                              duration) *
+                            100
+                          }%`,
+                          width: `${
+                            ((currentTrim.end -
+                              currentTrim.start) /
+                              duration) *
+                            100
+                          }%`,
+                        }}
+                      />
+
+                      {/* LEFT */}
+
+                      <div
+                        onMouseDown={() =>
+                          setDragType(
+                            "left"
+                          )
+                        }
+                        onTouchStart={() =>
+                          setDragType(
+                            "left"
+                          )
+                        }
+                        className="
+                          absolute
+                          top-0
+                          w-3
+                          h-full
+                          bg-white
+                          rounded
+                          shadow
+                          cursor-ew-resize
+                          z-30
+                        "
+                        style={{
+                          left: `${
+                            (currentTrim.start /
+                              duration) *
+                            100
+                          }%`,
+                          transform:
+                            "translateX(-50%)",
+                        }}
+                      />
+
+                      {/* RIGHT */}
+
+                      <div
+                        onMouseDown={() =>
+                          setDragType(
+                            "right"
+                          )
+                        }
+                        onTouchStart={() =>
+                          setDragType(
+                            "right"
+                          )
+                        }
+                        className="
+                          absolute
+                          top-0
+                          w-3
+                          h-full
+                          bg-white
+                          rounded
+                          shadow
+                          cursor-ew-resize
+                          z-30
+                        "
+                        style={{
+                          left: `${
+                            (currentTrim.end /
+                              duration) *
+                            100
+                          }%`,
+                          transform:
+                            "translateX(-50%)",
+                        }}
+                      />
+
+                      {/* MOVE */}
+
+                      <div
+                        onMouseDown={() =>
+                          setDragType(
+                            "move"
+                          )
+                        }
+                        onTouchStart={() =>
+                          setDragType(
+                            "move"
+                          )
+                        }
+                        className="
+                          absolute
+                          top-0
+                          h-full
+                          cursor-grab
+                          z-20
+                          touch-none
+                        "
+                        style={{
+                          left: `${
+                            (currentTrim.start /
+                              duration) *
+                            100
+                          }%`,
+                          width: `${
+                            ((currentTrim.end -
+                              currentTrim.start) /
+                              duration) *
+                            100
+                          }%`,
+                        }}
+                      />
+                    </>
+                  )}
+
+                </div>
+              </div>
+
+              {/* TIME */}
+
+              <div
+                className="
+                  text-center
+                  text-xs
+                  text-white
+                  mt-2
+                "
+              >
+                {duration > 0
+                  ? isTrimmed
+                    ? `${currentTrim.start.toFixed(
+                        1
+                      )}s — ${currentTrim.end.toFixed(
+                        1
+                      )}s`
+                    : "Full video"
+                  : "Loading video..."}
+              </div>
+
+              {/* APPLY TRIM */}
+
+              <button
+                type="button"
+                onClick={applyTrim}
+                disabled={!duration}
+                className={`
+                  mt-3
+                  px-4
+                  py-2.5
+                  rounded-xl
+                  text-sm
+                  text-white
+                  transition
+                  disabled:opacity-40
+
+                  ${
+                    trimAppliedMap?.[
+                      activeIndex
+                    ]
+                      ? "bg-green-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  }
+                `}
+              >
+                {trimAppliedMap?.[
+                  activeIndex
+                ]
+                  ? "Applied ✓"
+                  : "Apply Trim"}
+              </button>
+
+            </div>
+          )}
+
         </div>
+ 
+        <div
+          className="
+            px-4
+            py-3
+            bg-black/95
+            border-t
+            border-white/10
+            shrink-0
+          "
+        >
+
+          
+        <div
+          className="
+            flex
+            gap-2
+            px-3
+            py-2
+            bg-black/95
+            overflow-x-auto
+            shrink-0
+          "
+        >
+
+          {files.map(
+            (file, i) => (
+              <div
+                key={i}
+                onClick={() =>
+                  handleActiveMediaChange(
+                    i
+                  )
+                }
+                className={`
+                  w-16
+                  h-16
+                  min-w-16
+                  relative
+                  cursor-pointer
+                  rounded-lg
+                  overflow-hidden
+                  border-2
+                  transition-all
+                  duration-200
+
+                  ${
+                    i === activeIndex
+                      ? "border-green-500 scale-105"
+                      : "border-gray-600"
+                  }
+                `}
+              >
+
+                {file.type.startsWith(
+                  "image/"
+                ) ? (
+
+                  <img
+                    src={
+                      previewUrls?.[i]
+                    }
+                    alt=""
+                    className="
+                      w-full
+                      h-full
+                      object-cover
+                    "
+                  />
+
+                ) : (
+
+                  <video
+                    src={
+                      previewUrls?.[i]
+                    }
+                    muted
+                    className="
+                      w-full
+                      h-full
+                      object-cover
+                    "
+                  />
+
+                )}
+
+                {/* Selected */}
+
+                {i ===
+                  activeIndex && (
+                  <Check
+                    className="
+                      absolute
+                      top-1
+                      right-1
+                      w-4
+                      h-4
+                      p-0.5
+                      bg-green-700
+                      text-white
+                      rounded-full
+                    "
+                  />
+                )}
+
+                {/* Has description */}
+
+                {descriptions?.[
+                  i
+                ]?.trim() && (
+                  <span
+                    className="
+                      absolute
+                      bottom-1
+                      left-1
+                      w-2
+                      h-2
+                      rounded-full
+                      bg-green-400
+                      shadow
+                    "
+                  />
+                )}
+
+              </div>
+            )
+          )}
+
+        </div>
+ 
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              mb-2
+            "
+          >
+
+            <label
+              htmlFor="media-description"
+              className="
+                text-xs
+                font-semibold
+                text-white
+              "
+            >
+              {activeFile?.type?.startsWith(
+                "video/"
+              )
+                ? "Video description"
+                : "Image description"}
+            </label>
+
+            <span
+              className={`
+                text-[11px]
+                ${
+                  activeDescription.length >=
+                  650
+                    ? "text-red-400"
+                    : "text-white/50"
+                }
+              `}
+            >
+              {activeDescription.length}/700
+            </span>
+
+          </div>
+      <div className="flex items-center  gap-2 w-full shrink-0">
+        {/* DESCRIPTION INPUT */}
+        <div className="relative flex-1 w-full">
+          <textarea
+            id="media-description"
+            value={activeDescription}
+            onChange={(e) => updateDescription(e.target.value)}
+            rows={2}
+            placeholder={
+              activeFile?.type?.startsWith("video/")
+                ? "Add a description for this video..."
+                : "Add a description for this image..."
+            }
+            className="
+              w-full
+              resize-none
+              rounded-xl
+              border
+              border-white/10
+              bg-white/10
+              px-3
+              py-2.5
+              pr-12
+              text-sm
+              text-[var(--text-color)]
+              placeholder:text-white/40
+              outline-none
+              transition
+              focus:border-green-500
+              focus:ring-1
+              focus:ring-green-500
+            "
+          />
+
+          {/* EMOJI BUTTON */}
+          <button
+            type="button"
+            onClick={() => setShowEmoji((p) => !p)}
+            className="
+              absolute
+              right-2
+              bottom-2
+              flex
+              items-center
+              justify-center
+              w-8
+              h-8
+              rounded-full
+              text-[var(--text-color)]
+              hover:bg-white/10
+              transition
+              z-10
+            "
+            title="Add emoji"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0
+                  M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z
+                  M9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75
+                  9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0
+                  c0 .414-.168.75-.375.75s-.375-.336-.375-.75
+                  .168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z"
+              />
+            </svg>
+          </button>
+
+          {/* EMOJI PICKER */}
+          {showEmoji && (
+            <div
+              className="
+                absolute
+                bottom-full
+                right-0
+                mb-2
+                z-[100]
+              "
+            >
+              <EmojiPicker
+                onEmojiClick={addEmoji}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* SEND BUTTON */}
+        <button
+          type="button"
+          onClick={handleSend}
+          className="
+            flex
+            items-center
+            justify-center
+            w-11
+            h-11
+            shrink-0
+            rounded-full
+            bg-green-600
+            hover:bg-green-700
+            text-white
+            transition
+            shadow-md
+          "
+          title="Send"
+        >
+          <Send size={19} />
+        </button>
+      </div>
+      </div>
+
+
+      </div>
+    </>
   );
 }

@@ -691,7 +691,7 @@ const handleReport = () =>{
         overflow-y-auto
         space-y-2
         pr-1
-        scrollbar-thin
+        scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
       ">
         {chats.map((chat) => {
 

@@ -35,7 +35,9 @@ export default function MessageBox({
   setLastReadMessageId, communities, setActiveCommunity, openCommunity, setShowChannel, onToggleSettings,
   setMobileView, mobileView, setIsMinimized, isMinimized, uiMode, showSettings,
   incomingCall, setIncomingCall, callMode, setCallMode, meetingData, setMeetingData, forwardMessage, setForwardMessage,
-  openUserReels, reelUsers, setMessagesMap, messagesCacheRef, setShowList, isLargeScreen
+  openUserReels, reelUsers, setMessagesMap, messagesCacheRef, setShowList, isLargeScreen,
+  descriptions, setDescriptions 
+  
 }) {
   
   // setShowMeetingModal
@@ -1299,6 +1301,8 @@ const isFirstUnread =
       {/* INPUT */}
       <div className="px-3 border-t bg-[var(--bg-color)]">
         <ChatInput 
+          descriptions={descriptions}
+          setDescriptions={setDescriptions}
           loadingMessages={loadingMessages}
           setChats={setChats} messages={messages} unreadCount={unreadCount} setUnreadCount={setUnreadCount}
           blockAllInput={blockAllInput} status={status} onlyAdminSend={onlyAdminSend} isAdmin={isAdmin}

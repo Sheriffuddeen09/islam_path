@@ -240,66 +240,66 @@ const fetchNotification = async () => {
       
         const menu = [
             {
-              id: 5,
+              id: 6,
               label: "Create Proposal",
               icon: Workflow,
             },
             {
-              id: 6,
+              id: 7,
               label: "Proposal History",
               icon: History,
             },
             {
-              id: 7,
+              id: 8,
               label: "Teacher Proposal Request",
               icon: Proportions,
               proposalBadge: true,
             },
             {
-              id: 8,
+              id: 9,
               label: "Teacher Request",
               icon: Users,
               showBadge: true,
             },
             {
-              id: 9,
+              id: 10,
               label: "Review Teacher",
               icon: Users,
             },
             {
-              id: 10,
+              id: 11,
               label: "View Continue Assignment",
               icon: ClipboardList,
             },
             {
-              id: 11,
+              id: 12,
               label: "View Continue Examination",
               icon: FileText,
             },
             {
-              id: 12,
+              id: 13,
               label: "View Assignment Result",
               icon: CheckCircle,
             },
             {
-              id: 13,
+              id: 14,
               label: "View Examination Result",
               icon: BarChart3,
             },
             {
-              id: 14,
+              id: 15,
               label: "Product Order",
               icon: ShoppingCart,
               ordershow: true,
             },
             {
-              id: 15,
+              id: 16,
               label: "Saved Order",
               icon: Bookmark,
               showcount: true,
             },
 
-            { id: 16, label: "Advertisement Status", icon: Projector},
+            { id: 17, label: "Advertisement Status", icon: Projector},
             
           ];
       
@@ -493,9 +493,9 @@ const fetchNotification = async () => {
 
 
                <li
-                onClick={() => handleVisible(17)}
+                onClick={() => handleVisible(5)}
                 className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
-                  visible === 17
+                  visible === 5
                     ? "bg-gray-500 text-white"
                 : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
                 }`}
@@ -693,9 +693,9 @@ const fetchNotification = async () => {
                     </li>
 
                      <li
-                    onClick={() => handleVisible(17)}
+                    onClick={() => handleVisible(5)}
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
-                      visible === 17
+                      visible === 5
                         ? "bg-gray-500 text-white"
                     : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
                     }`}
@@ -793,52 +793,8 @@ const fetchNotification = async () => {
                          <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
                          <Setting />
                          </div>
+
                          <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-                          <CreateProposal togglePopup={togglePopup} setActiveChat={setActiveChat}
-                         chats={chats} setMessages={setMessages} />
-                         </div>
-
-                         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
-                          <StudentProposalHistory />
-                         </div>
-
-                         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
-                          <ProposalTeacherRequests 
-                          setChats={setChats} 
-                          togglePopup={togglePopup} proposalCounts={proposalCounts}
-                          chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
-                         </div>
-                          <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
-                         <StudentRequest togglePopup={togglePopup} setActiveChat={setActiveChat}
-                         chats={chats} setMessages={setMessages} />
-                         </div>
-                         <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
-                         <AcceptedTeacher  />
-                         </div> 
-                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
-                         <AssignmentLibrary  />
-                         </div> 
-                          <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
-                         <ExamLibrary  />
-                         </div> 
-                         <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
-                         <AssignmentResults  />
-                         </div> 
-                         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
-                         <ExamResults  />
-                         </div> 
-                         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
-                         <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
-                         </div> 
-                         <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
-                         <SaveOrder  />
-                         </div> 
-
-                         <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
-                          <MyAdvertisements  />
-                          </div> 
-
-                          <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
                             <GoLiveModal
                             showLiveModal={showLiveModal}
                             setShowLiveModal={setShowLiveModal}
@@ -847,6 +803,53 @@ const fetchNotification = async () => {
                             setIsLive={setIsLive}
                             />
                             </div> 
+
+                         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
+                          <CreateProposal togglePopup={togglePopup} setActiveChat={setActiveChat}
+                         chats={chats} setMessages={setMessages} />
+                         </div>
+
+                         <div className={`${visible === 7 ? 'block' : 'hidden'}`}>
+                          <StudentProposalHistory />
+                         </div>
+
+                         <div className={`${visible === 8 ? 'block' : 'hidden'}`}>
+                          <ProposalTeacherRequests 
+                          setChats={setChats} 
+                          togglePopup={togglePopup} proposalCounts={proposalCounts}
+                          chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+                         </div>
+                          <div className={`${visible === 9 ? 'block' : 'hidden'}`}>
+                         <StudentRequest togglePopup={togglePopup} setActiveChat={setActiveChat}
+                         chats={chats} setMessages={setMessages} />
+                         </div>
+                         <div className={`${visible === 10 ? 'block' : 'hidden'}`}>
+                         <AcceptedTeacher  />
+                         </div> 
+                         <div className={`${visible === 11 ? 'block' : 'hidden'}`}>
+                         <AssignmentLibrary  />
+                         </div> 
+                          <div className={`${visible === 12 ? 'block' : 'hidden'}`}>
+                         <ExamLibrary  />
+                         </div> 
+                         <div className={`${visible === 13 ? 'block' : 'hidden'}`}>
+                         <AssignmentResults  />
+                         </div> 
+                         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
+                         <ExamResults  />
+                         </div> 
+                         <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
+                         <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
+                         </div> 
+                         <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
+                         <SaveOrder  />
+                         </div> 
+
+                         <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+                          <MyAdvertisements  />
+                          </div> 
+
+                         
                        </section>
        
     </div>

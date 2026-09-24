@@ -575,9 +575,8 @@ const handleHidePost = async (postId) => {
                 ? post.original_created_at
                 : post.created_at}
             </p>
-          </div>
-            
-          {post.is_advertisement === true && (
+
+               {post.is_advertisement === true && (
               <p className="text-xs inline-flex gap-1 items-center font-semibold text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
                 class='size-4'>
@@ -589,6 +588,9 @@ const handleHidePost = async (postId) => {
                   : "Sponsorship"}
               </p>
             )}
+          </div>
+            
+       
         </div>
       </div>
 
@@ -1335,7 +1337,7 @@ const handleHidePost = async (postId) => {
         overflow-y-auto
         space-y-2
         pr-1
-        scrollbar-thin
+        scrollbar scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
       ">
         {chats.map((chat) => {
 

@@ -33,7 +33,7 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     const audioChunksRef = useRef([]);
     const [paused, setPaused] = useState(false);
     const [caption, setCaption] = useState("");
-    
+    const [descriptions, setDescriptions] = useState({});
     const [selected, setSelected] = useState([]);
     const [croppedImages, setCroppedImages] = useState({});
     const [cropAppliedMap, setCropAppliedMap] = useState({});
@@ -448,299 +448,426 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     
 const originalCaption = caption;    
 
-    const sendFile = async () => {
-  if (!files.length) return;
+      const sendFile = async ({ descriptions = {} } = {}) => {
+        if (!files.length) return;
 
-  const reply = replyingTo; // ✅ SAVE FIRST
-  setReplyingTo(null);      // ✅ CLEAR UI IMMEDIATELY
+        const reply = replyingTo;
+        setReplyingTo(null);
 
-  const tempId = Date.now();
+        const tempId = Date.now();
 
-  const getType = (file) => {
-    if (file.type.startsWith("image/")) return "image";
-    if (file.type.startsWith("video/")) return "video";
-    if (file.type.startsWith("audio/")) return "audio";
-    return "file";
-  };
+        const getType = (file) => {
+          if (file.type.startsWith("image/")) return "image";
+          if (file.type.startsWith("video/")) return "video";
+          if (file.type.startsWith("audio/")) return "audio";
+          return "file";
+        };
 
-  const firstType = getType(files[0]);
-  const allSameType = files.every((f) => getType(f) === firstType);
+        const firstType = getType(files[0]);
 
-  if (!allSameType) {
-    showToast("You cannot mix images, videos, and documents");
-    return;
-  }
-
-  const filesWithMeta = await Promise.all(
-    files.map(async (file, i) => {
-      const type = getType(file);
-
-      let duration = null;
-
-      if (type === "audio") {
-        duration = await getAudioDuration(file);
-      }
-
-      const preview =
-        croppedImages[i]
-          ? URL.createObjectURL(croppedImages[i])
-          : previewUrls[i];
-
-      return {
-        file: preview,
-        file_url: preview,
-        file_name: file.name,
-        type,
-        duration,
-      };
-    })
-  );
-
-  const tempMessage = {
-    id: tempId,
-    type: firstType,
-    sender_id: authUser.id,
-    sender: authUser,
-    status: "sending",
-    files: filesWithMeta,
-    originalFiles: files,
-    message: caption,
-
-    // ✅ show reply instantly in UI
-    replied_to: reply || null,
-
-    created_at: new Date().toISOString(),
-  };
-
-  setMessages((prev) => [...prev, tempMessage]);
-
-  // ✅ CLEAR UI IMMEDIATELY
-  setShowPreview(false);
-  setFiles([]);
-  setPreviewUrls([]);
-  setCaption("");
-  setCroppedImages({});
-  setCropAppliedMap(false);
-  setCrop({ x: 0, y: 0 });
-  setZoomMap({});
-  setCroppedAreaPixels(null);
-  setSelected([]);
-  setTrimMap({});
-  setDurationMap({});
-  setTrimAppliedMap({});
-
-  requestAnimationFrame(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "auto",
-      block: "end",
-    });
-  });
-
-  const form = new FormData();
-  form.append("chat_id", chatId);
-
-  files.forEach((file, i) => {
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
-
-    if (isImage && croppedImages[i]) {
-      form.append("files[]", croppedImages[i]);
-    } else {
-      form.append("files[]", file);
-    }
-
-    if (isVideo) {
-      const trim = trimMap[i] || { start: 0, end: 0 };
-      form.append("trim_start[]", trim.start);
-      form.append("trim_end[]", trim.end);
-    } else {
-      form.append("trim_start[]", 0);
-      form.append("trim_end[]", 0);
-    }
-
-    form.append("types[]", getType(file));
-    });
-
-    if (originalCaption && originalCaption.trim() !== "") {
-      const chatKey = localStorage.getItem(`chat_key_${chatId}`);
-
-      if (!chatKey) {
-        showToast("Encryption key missing");
-        return;
-      }
-
-      const encrypted = await encryptMessage(
-        originalCaption,
-        chatKey
-      );
-
-      form.append("message", encrypted.encrypted);
-      form.append("iv", encrypted.iv);
-    } else {
-      form.append("message", "");
-      form.append("iv", "");
-    }
-  // ✅ USE SAFE REPLY
-  if (reply?.id && !isNaN(reply.id)) {
-    form.append("replied_to", reply.id);
-  }
-
-  try {
-    const res = await api.post("/api/messages", form, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    const serverMessages = res.data.messages;
-
-
-    let grouped;
-
-    if (serverMessages.length === 1 && serverMessages[0].files) {
-      grouped = {
-        ...serverMessages[0],
-        status: "sent",
-      };
-    } else {
-      grouped = {
-        ...serverMessages[0],
-        group_id: serverMessages[0].group_id,
-        files: serverMessages.map((m) => ({
-          file: m.file_url,
-          file_url: m.file_url,
-          file_name: m.file_name,
-          type: m.type,
-          duration: m.duration,
-        })),
-        status: "sent",
-      };
-    }
-
-    const chatKey = localStorage.getItem(`chat_key_${chatId}`);
-
-const normalized = await Promise.all(
-  serverMessages.map(async (msg) => {
-
-    let decryptedMessage = msg.message;
-
-    // ✅ decrypt immediately
-    if (msg.message && msg.iv) {
-
-      try {
-
-        decryptedMessage = await decryptMessage(
-          msg.message,
-          msg.iv,
-          chatKey
+        const allSameType = files.every(
+          (file) => getType(file) === firstType
         );
 
-      } catch (err) {
+        if (!allSameType) {
+          showToast(
+            "You cannot mix images, videos, and documents"
+          );
+          return;
+        }
+
+
+        const filesWithMeta = await Promise.all(
+          files.map(async (file, i) => {
+            const type = getType(file);
+
+            let duration = null;
+
+            if (type === "audio") {
+              duration = await getAudioDuration(file);
+            }
+
+            const preview = croppedImages[i]
+              ? URL.createObjectURL(croppedImages[i])
+              : previewUrls[i];
+
+            return {
+              file: preview,
+              file_url: preview,
+              file_name: file.name,
+              type,
+              duration,
+
+              // IMPORTANT
+              description: descriptions?.[i] || "",
+            };
+          })
+        );
+
+
+        const tempMessage = {
+          id: tempId,
+          type: firstType,
+          sender_id: authUser.id,
+          sender: authUser,
+          status: "sending",
+
+          files: filesWithMeta,
+
+          originalFiles: files,
+
+          message: caption,
+
+          replied_to: reply || null,
+
+          created_at: new Date().toISOString(),
+        };
+
+        setMessages((prev) => [
+          ...prev,
+          tempMessage,
+        ]);
+
+        
+        setShowPreview(false);
+        setFiles([]);
+        setPreviewUrls([]);
+        setCaption("");
+        setCroppedImages({});
+        setCropAppliedMap(false);
+        setCrop({ x: 0, y: 0 });
+        setZoomMap({});
+        setCroppedAreaPixels(null);
+        setSelected([]);
+        setTrimMap({});
+        setDescriptions({});
+        setDurationMap({});
+        setTrimAppliedMap({});
+
+        requestAnimationFrame(() => {
+          bottomRef.current?.scrollIntoView({
+            behavior: "auto",
+            block: "end",
+          });
+        });
+
+        const form = new FormData();
+
+        form.append("chat_id", chatId);
+
+        files.forEach((file, i) => {
+          const isImage = file.type.startsWith("image/");
+          const isVideo = file.type.startsWith("video/");
+
+          if (isImage && croppedImages[i]) {
+            form.append(
+              "files[]",
+              croppedImages[i],
+              file.name
+            );
+          } else {
+            form.append(
+              "files[]",
+              file,
+              file.name
+            );
+          }
+
+          form.append(
+            "descriptions[]",
+            descriptions?.[i] || ""
+          );
+
+
+          if (isVideo) {
+            const trim = trimMap[i] || {
+              start: 0,
+              end: 0,
+            };
+
+            form.append(
+              "trim_start[]",
+              trim.start
+            );
+
+            form.append(
+              "trim_end[]",
+              trim.end
+            );
+          } else {
+            form.append(
+              "trim_start[]",
+              0
+            );
+
+            form.append(
+              "trim_end[]",
+              0
+            );
+          }
+
+
+          form.append(
+            "types[]",
+            getType(file)
+          );
+        });
+
+
+        if (
+          originalCaption &&
+          originalCaption.trim() !== ""
+        ) {
+          const chatKey = localStorage.getItem(
+            `chat_key_${chatId}`
+          );
+
+          if (!chatKey) {
+            showToast("Encryption key missing");
+            return;
+          }
+
+          const encrypted = await encryptMessage(
+            originalCaption,
+            chatKey
+          );
+
+          form.append(
+            "message",
+            encrypted.encrypted
+          );
+
+          form.append(
+            "iv",
+            encrypted.iv
+          );
+        } else {
+          form.append("message", "");
+          form.append("iv", "");
+        }
+
+        if (
+          reply?.id &&
+          !isNaN(reply.id)
+        ) {
+          form.append(
+            "replied_to",
+            reply.id
+          );
+        }
 
         console.log(
-          "Immediate decrypt failed",
-          err
+          "FILES:",
+          files.map((file) => file.name)
         );
-      }
-    }
 
-    return {
-      ...msg,
+        console.log(
+          "DESCRIPTIONS:",
+          descriptions
+        );
 
-      message: decryptedMessage,
 
-      files: msg.files?.length
-        ? msg.files
-        : msg.file_url
-        ? [
+        try {
+          const res = await api.post(
+            "/api/messages",
+            form,
             {
-              file_url: msg.file_url,
-              file_name: msg.file_name,
-              type: msg.type,
-              duration: msg.duration,
-            },
-          ]
-        : [],
+              headers: {
+                "Content-Type":
+                  "multipart/form-data",
+              },
+            }
+          );
 
-      is_forwarded: Boolean(msg.is_forwarded),
+          const serverMessages =
+            res.data.messages || [];
 
-      replied_to: reply
-        ? {
-            id: reply.id,
-            message: reply.message,
-            type: reply.type,
-            sender: reply.sender,
+          if (!serverMessages.length) {
+            throw new Error(
+              "No messages returned from server."
+            );
           }
-        : msg.replied_to || msg.replyTo || null,
 
-      status: "sent",
-    };
-  })
-);
+          const chatKey =
+            localStorage.getItem(
+              `chat_key_${chatId}`
+            );
 
-// ✅ NOW update state
-setMessages((prev) => {
 
-  const filtered = prev.filter(
-    (m) => m.id !== tempId
-  );
+          const normalized =
+            await Promise.all(
+              serverMessages.map(
+                async (msg) => {
+                  let decryptedMessage =
+                    msg.message;
 
-  return [...filtered, ...normalized];
-});
-        requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-      });
-    });
+                  if (
+                    msg.message &&
+                    msg.iv &&
+                    chatKey
+                  ) {
+                    try {
+                      decryptedMessage =
+                        await decryptMessage(
+                          msg.message,
+                          msg.iv,
+                          chatKey
+                        );
+                    } catch (err) {
+                      console.log(
+                        "Immediate decrypt failed",
+                        err
+                      );
+                    }
+                  }
 
-  } catch (err) {
-    console.error(err);
+                  let normalizedFiles = [];
 
-    const message =
-      err?.response?.data?.message ||
-      err?.message ||
-      "Something went wrong";
+                  if (
+                    Array.isArray(
+                      msg.files
+                    ) &&
+                    msg.files.length
+                  ) {
+                    normalizedFiles =
+                      msg.files.map(
+                        (file) => ({
+                          ...file,
 
-    showToast(message);
 
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === tempId ? { ...m, status: "failed" } : m
-      )
-    );
-  }
+                          description:
+                            file.description ||
+                            "",
+                        })
+                      );
+                  } else if (
+                    msg.file_url
+                  ) {
+                    normalizedFiles = [
+                      {
+                        file_url:
+                          msg.file_url,
 
-  // reset UI
-  setShowPreview(false);
-  setFiles([]);
-  setPreviewUrls([]);
-  setCaption("");
-  setCroppedImages({});
-  setCropAppliedMap(false);
-  setCrop({ x: 0, y: 0 });
-  setZoomMap({});
-  setCroppedAreaPixels(null);
-  setSelected([]);
-  setTrimMap({});
-  setDurationMap({});
-  setTrimAppliedMap({});
+                        file_name:
+                          msg.file_name,
 
-  if (fileInputRef.current) {
-    fileInputRef.current.value = "";
-  }
-};
-      useEffect(() => {
-      if (!text) return;
-    
-      const timeout = setTimeout(() => {
-        api.post("/api/messages/typing", {
-          chat_id: chatId
-        });
-      }, 300);
-    
-      return () => clearTimeout(timeout);
-    }, [text]);
+                        type:
+                          msg.type,
+
+                        duration:
+                          msg.duration,
+      
+
+                        description:
+                          msg.description ||
+                          "",
+                      },
+                    ];
+                  }
+      
+
+                  return {
+                    ...msg,
+
+                    message:
+                      decryptedMessage,
+
+                    files:
+                      normalizedFiles,
+
+                    is_forwarded:
+                      Boolean(
+                        msg.is_forwarded
+                      ),
+
+                    replied_to: reply
+                      ? {
+                          id: reply.id,
+                          message:
+                            reply.message,
+                          type: reply.type,
+                          sender:
+                            reply.sender,
+                        }
+                      : msg.replied_to ||
+                        msg.replyTo ||
+                        null,
+
+                    status: "sent",
+                  };
+                }
+              )
+            );
+      
+
+          setMessages((prev) => {
+            const filtered =
+              prev.filter(
+                (m) => m.id !== tempId
+              );
+
+            return [
+              ...filtered,
+              ...normalized,
+            ];
+          });
+
+          requestAnimationFrame(() => {
+            bottomRef.current?.scrollIntoView(
+              {
+                behavior: "smooth",
+                block: "end",
+              }
+            );
+          });
+        } catch (err) {
+          console.error(
+            "SEND FILE ERROR:",
+            err
+          );
+
+          const message =
+            err?.response?.data?.message ||
+            err?.message ||
+            "Something went wrong";
+
+          showToast(message);
+      
+
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === tempId
+                ? {
+                    ...m,
+                    status: "failed",
+                  }
+                : m
+            )
+          );
+        }
+      
+
+        setShowPreview(false);
+        setFiles([]);
+        setPreviewUrls([]);
+        setCaption("");
+        setCroppedImages({});
+        setCropAppliedMap(false);
+        setCrop({ x: 0, y: 0 });
+        setZoomMap({});
+        setCroppedAreaPixels(null);
+        setSelected([]);
+        setTrimMap({});
+        setDurationMap({});
+        setTrimAppliedMap({});
+        setDescriptions({});
+        
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      };
+
     
     
 
@@ -818,6 +945,8 @@ setMessages((prev) => {
         `}
       >
       <MessageBox
+          descriptions={descriptions}
+          setDescriptions={setDescriptions}
           setShowList={setShowList}
           isLargeScreen={isLargeScreen}
           messagesCacheRef={messagesCacheRef}
@@ -974,6 +1103,8 @@ setMessages((prev) => {
 
       {activeChat ? (
       <MessageBox
+          descriptions={descriptions}
+          setDescriptions={setDescriptions}
           setShowList={setShowList}
           isLargeScreen={isLargeScreen}
           messagesCacheRef={messagesCacheRef}

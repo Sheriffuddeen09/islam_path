@@ -62,23 +62,17 @@ export default function GoLiveModal({
     };
  
 
-    if (!showLiveModal) {
-        return null;
-    }
- 
-
     return (
         <div
             className="
             lg:ml-72
             "
-            onMouseDown={(e) => {
-                if (e.target === e.currentTarget && !startingLive) {
-                    setShowLiveModal(false);
-                }
-            }}
         >
-            <div
+
+            <p className="text-4xl text-black">
+                Live Video Now PLease be patience when using it
+            </p>
+            {/* <div
                 className="
                     relative
                     w-full max-w-2xl
@@ -94,7 +88,6 @@ export default function GoLiveModal({
  
                 <div className="relative overflow-hidden">
 
-                    {/* Red gradient background */}
 
                     <div
                         className="
@@ -197,7 +190,6 @@ export default function GoLiveModal({
  
                 <div className="px-5 pb-5">
 
-                    {/* Information card */}
 
                     <div
                         className="
@@ -238,8 +230,6 @@ export default function GoLiveModal({
 
                     </div>
 
-
-                    {/* Description */}
 
                     <div>
 
@@ -379,9 +369,6 @@ export default function GoLiveModal({
 
                     </button>
 
-
-                    {/* Cancel */}
-
                     <button
                         type="button"
                         disabled={startingLive}
@@ -407,7 +394,7 @@ export default function GoLiveModal({
 
                 </div>
 
-            </div>
+            </div> */}
         </div>
     );
 }

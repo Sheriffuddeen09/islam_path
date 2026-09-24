@@ -12,7 +12,9 @@ export default function ChatInput({ authUser,  activeChat, replyingTo, setReplyi
   setCroppedImages, croppedImages, setCroppedAreaPixels, setCaption, caption, previewUrls, files, showPreview,
   text, setText, fileInputRef, setPreviewUrls, setSelected, setFiles, timerRef, setRecording, audioChunksRef,
   mediaRecorderRef,setPaused, blockAllInput, status, onlyAdminSend, isAdmin, setChats, messages, unreadCount,
-  setUnreadCount, showScrollButton, isMinimized, setLastReadMessageId, bottomRef, loadingMessages }) {
+  setUnreadCount, showScrollButton, isMinimized, setLastReadMessageId, bottomRef, loadingMessages, 
+  descriptions, setDescriptions
+ }) {
 
   const [showEmoji, setShowEmoji] = useState(false);
   const holdTimeout = useRef(null);
@@ -507,10 +509,18 @@ const getPreviewText = (msg) => {
   setCroppedImages([]);
   setTrimMap({});
   }}
-  onSend={({ selectedFiles }) => {
-    sendFile(selectedFiles); // 👈 pass only selected
+
+  onSend={({ selectedFiles, descriptions }) => {
+    sendFile({
+      selectedFiles,
+      descriptions,
+    });
+
     setShowPreview(false);
   }}
+
+  descriptions={descriptions}
+  setDescriptions={setDescriptions}
   setDurationMap={setDurationMap}
   durationMap={durationMap}
   trimMap={trimMap}
