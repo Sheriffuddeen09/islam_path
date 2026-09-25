@@ -21,7 +21,8 @@ showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsB
 sendReeling, setSendReeling, closeViewer, nextReel, previousReel, selectedReel, selectedUser, markReelViewed,
 open, setOpen, openReport, setOpenReport, showImagePicker, setShowImagePicker, messageOpenShared,
 setMessageOpenShared, shareds, setShareds, setMyReels, setReelUsers, selectedReelIndex, selectedUserIndex, setMediaIndex,
-mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions
+mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions,
+video, setVideo
  }) {
 
   const {user} = useAuth()
@@ -905,7 +906,7 @@ const openVideoPreview = (video, post) => {
                 {postIdModal && (
                   <PostFeedIdModal
                    total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
-                   image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                   image={image} setImage={setImage} video={video} setVideo={setVideo} postComments={postComments} loading={loading} setLoading={setLoading}
                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
                     reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}

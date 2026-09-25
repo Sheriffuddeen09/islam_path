@@ -13,7 +13,8 @@ import BiodataDashboard from "./BioDataDashboard";
 
 
 export default function StudentProfilePage({togglePopup,  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
-        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats,  setMessages, setActiveChat,commentsByPost, setCommentsByPost}) {
+        newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats,  setMessages, setActiveChat,commentsByPost, setCommentsByPost,
+      video, setVideo}) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -170,7 +171,7 @@ const badge = (
         
         <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
                     <MyPosts chats={chats} 
-                    image={image} setImage={setImage}
+                    image={image} setImage={setImage} video={video} setVideo={setVideo}
                     postComments={postComments} setPostComments={setPostComments} loading={loading} 
                     setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
                     newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -195,7 +196,7 @@ const badge = (
                     setCommentsByPost={setCommentsByPost}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                     setNewComment={setNewComment} loading={loading}
-                    user={user} image={image} setImage={setImage}
+                    user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
                     />
                     </div>
                     <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
@@ -209,7 +210,7 @@ const badge = (
                     setCommentsByPost={setCommentsByPost}
                     showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                     setNewComment={setNewComment} loading={loading}
-                    user={user} image={image} setImage={setImage}
+                    user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
                     />
                     </div>
         <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>

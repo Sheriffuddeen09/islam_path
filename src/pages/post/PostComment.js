@@ -68,20 +68,42 @@ useEffect(() => {
     }
   };
   
-const handleReplyAdded = async (parentId, text = null, image = null, emoji=null) => {
+  
+  const handleReplyAdded = async (
+  parentId,
+  text = null,
+  image = null,
+  emoji = null,
+  video = null
+) => {
   const formData = new FormData();
+
   formData.append("parent_id", parentId);
 
   if (emoji) {
     formData.append("body", emoji);
-  } 
-  if (text) formData.append("body", text);
-  if (image instanceof File) formData.append("image", image);
+  }
+
+  if (text) {
+    formData.append("body", text);
+  }
+
+  if (image instanceof File) {
+    formData.append("image", image);
+  }
+
+  if (video instanceof File) {
+    formData.append("video", video);
+  }
 
   const res = await api.post(
     `/api/posts/${postId}/comments`,
     formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
 
   const newReply = {
@@ -93,13 +115,18 @@ const handleReplyAdded = async (parentId, text = null, image = null, emoji=null)
   setPostComments(prev =>
     prev.map(c =>
       c.id === parentId
-        ? { ...c, replies: [newReply, ...(c.replies || [])] }
+        ? {
+            ...c,
+            replies: [newReply, ...(c.replies || [])],
+          }
         : c
     )
   );
 
   return newReply;
 };
+
+
 
 const [isDeleting, setIsDeleting] = useState(false);
 

@@ -3,12 +3,13 @@ import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
 import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import PostCommentReply from "./PostCommentReply";
 import { CommentReportModal } from "./report/CommentReportModal";
 import Linkify from "linkify-react";
-
+import { Pencil, X, Check, } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
+import PostCommentVideo from "./PostCommentVideo";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
@@ -19,7 +20,6 @@ export default function PostCommentItem({image, setIsDeleting, setIsEdit, isEdit
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user: currentUser } = useAuth();
-  const [editImage, setEditImage] = useState(comment.image || null);
   const [selectedReaction, setSelectedReaction] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [reactions, setReactions] = useState(comment.reactions || []); // ✅ array of { emoji, user }
@@ -54,64 +54,160 @@ export default function PostCommentItem({image, setIsDeleting, setIsEdit, isEdit
     };
 
 
-  
-useEffect(() => {
-  const arr = reactions && !Array.isArray(reactions)
-    ? Object.entries(reactions).flatMap(([emoji, users]) =>
-        Array.isArray(users) ? users.map(u => ({ emoji, user: u })) : []
-      )
-    : reactions || [];
+  useEffect(() => {
+  const arr =
+    reactions && !Array.isArray(reactions)
+      ? Object.entries(reactions).flatMap(([emoji, users]) =>
+          Array.isArray(users)
+            ? users.map((u) => ({
+                emoji,
+                user: u,
+              }))
+            : []
+        )
+      : reactions || [];
 
-  const userReact = arr.find(r => r.user?.id === currentUser?.id)?.emoji || null;
+  const userReact =
+    arr.find(
+      (r) =>
+        Number(r.user?.id) === Number(currentUser?.id)
+    )?.emoji || null;
+
   setSelectedReaction(userReact);
 }, [reactions, currentUser]);
 
 
- useEffect(() => {
-  setReactions(comment.reactions || []);
-}, [comment.reactions]);
+useEffect(() => {
+  setReactions(comment?.reactions || []);
+}, [comment?.reactions]);
 
 
-const reactionArray = reactions && !Array.isArray(reactions)
-  ? Object.entries(reactions).flatMap(([emoji, users]) =>
-      Array.isArray(users) ? users.map(u => ({ emoji, user: u })) : []
-    )
-  : reactions || [];
+const reactionArray =
+  reactions && !Array.isArray(reactions)
+    ? Object.entries(reactions).flatMap(([emoji, users]) =>
+        Array.isArray(users)
+          ? users.map((u) => ({
+              emoji,
+              user: u,
+            }))
+          : []
+      )
+    : reactions || [];
 
-  const uniqueEmojis = [...new Set(reactionArray.map(r => r.emoji))];
+
+const uniqueEmojis = [
+  ...new Set(
+    reactionArray
+      .map((r) => r.emoji)
+      .filter(Boolean)
+  ),
+];
 
 
-const userReaction = reactionArray.find(r => r.user?.id === currentUser?.id)?.emoji || null;
+const userReaction =
+  reactionArray.find(
+    (r) =>
+      Number(r.user?.id) === Number(currentUser?.id)
+  )?.emoji || null;
+
 
 const totalReactions = reactionArray.length;
 
 
-  const toggleReaction = async (emoji) => {
-  setLoadingEmoji(emoji); // 👈 only this emoji loads
-  try {
-    const res = await api.post(`/api/comments/${comment.id}/reaction`, { emoji });
+const toggleReaction = async (emoji) => {
+  if (!comment?.id) return;
 
-    const apiReactions = res.data.reactions || {};
-    const normalized = Object.entries(apiReactions).flatMap(([e, users]) =>
-      Array.isArray(users) ? users.map(u => ({ emoji: e, user: u })) : []
+  if (
+    typeof comment.id === "string" &&
+    comment.id.startsWith("temp-")
+  ) {
+    return;
+  }
+
+  setLoadingEmoji(emoji);
+
+  try {
+    const res = await api.post(
+      `/api/comments/${comment.id}/reaction`,
+      {
+        emoji,
+      }
     );
 
+    const apiReactions =
+      res.data.reactions || {};
+
+    const normalized = Array.isArray(apiReactions)
+      ? apiReactions
+      : Object.entries(apiReactions).flatMap(
+          ([e, users]) =>
+            Array.isArray(users)
+              ? users.map((u) => ({
+                  emoji: e,
+                  user: u,
+                }))
+              : []
+        );
+
     setReactions(normalized);
+
     setHoverReactions(false);
+
   } catch (err) {
-    console.error(err);
+    console.error(
+      "Comment reaction error:",
+      err
+    );
   } finally {
-    setLoadingEmoji(null); // 👈 stop loading
+    setLoadingEmoji(null);
   }
 };
 
-  useEffect(() => {
+
+useEffect(() => {
   const loadReactions = async () => {
-    const res = await api.get(`/api/comments/${comment.id}/reactions`);
-    setReactions(res.data.reactions || []);
+    if (!comment?.id) return;
+ 
+    if (
+      typeof comment.id === "string" &&
+      comment.id.startsWith("temp-")
+    ) {
+      return;
+    }
+
+    try {
+      const res = await api.get(
+        `/api/comments/${comment.id}/reactions`
+      );
+
+      const apiReactions =
+        res.data.reactions || {};
+
+      const normalized = Array.isArray(apiReactions)
+        ? apiReactions
+        : Object.entries(apiReactions).flatMap(
+            ([emoji, users]) =>
+              Array.isArray(users)
+                ? users.map((user) => ({
+                    emoji,
+                    user,
+                  }))
+                : []
+          );
+
+      setReactions(normalized);
+
+    } catch (error) {
+      console.error(
+        "Failed to load comment reactions:",
+        error
+      );
+    }
   };
+
   loadReactions();
-}, [comment.id]);
+}, [comment?.id]);
+
 
   // --- Update comment ---
   const handleUpdate = async (commentId, body) => {
@@ -402,43 +498,215 @@ const navigate = useNavigate()
           <PostCommentImage image={comment.image} />
         </div>
       )}
+
+      {comment.video && (
+        <div className="mt-2 max-w-full">
+          <PostCommentVideo video={comment.video} />
+        </div>
+      )}
     
-              {isEditing && (
-          <div  className=" flex fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-[var(----bg-color)] text-[var(----text-color)]  p-6 rounded w-96 flex flex-col gap-4 relative">
-              <h3 className="font-semibold text-lg text-center">Edit Comment</h3>
+{isEditing && (
+  <div
+    className="
+      fixed inset-0 z-[9999]
+      flex items-center justify-center
+      p-4
+      bg-black/60
+      backdrop-blur-sm
+    "
+    onClick={() => {
+      setIsEditing(false);
+      setEditText(comment.body);
+      setSelectedReaction(userReaction);
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        relative
+        w-full
+        max-w-md
+        overflow-hidden
+        rounded-2xl
+        border border-white/10
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        shadow-[0_25px_80px_rgba(0,0,0,0.45)]
+      "
+    >
+      {/* ================= HEADER ================= */}
+      <div
+        className="
+          flex items-center justify-between
+          px-5 py-4
+          border-b border-white/10
+        "
+      >
+        <div className="flex items-center gap-3">
+          {/* Icon */}
+          <div
+            className="
+              flex items-center justify-center
+              w-10 h-10
+              rounded-xl
+              bg-blue-500/10
+              text-blue-500
+            "
+          >
+            <Pencil size={19} />
+          </div>
 
-              {/* Text Input comment.body */}
-              <input
-                value={editText}
-                onChange={e => setEditText(e.target.value)}
-                className="border p-2 rounded-lg outline-none border
-                 border-blue-700  w-full text-black p-4"
-                placeholder="Edit your comment..."
-              />
+          {/* Title */}
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold">
+              Edit Comment
+            </h3>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center gap-4 mt-2">
-        <button onClick={() => handleUpdate(comment.id, editText)}
-          className="px-3 py-1 bg-blue-600 text-white rounded"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-          </svg>
-                  </button>
-          
+            <p className="text-xs opacity-50 mt-0.5">
+              Make changes to your comment
+            </p>
+          </div>
+        </div>
+
+        {/* Close Button */}
         <button
+          type="button"
           onClick={() => {
             setIsEditing(false);
             setEditText(comment.body);
-            setEditImage(comment.image);
             setSelectedReaction(userReaction);
           }}
-          className="px-3 py-1 bg-gray-400 text-white rounded"
+          className="
+            flex items-center justify-center
+            w-9 h-9
+            rounded-full
+            opacity-60
+            hover:opacity-100
+            hover:bg-white/10
+            transition
+          "
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
+          <X size={19} />
+        </button>
+      </div>
+
+      {/* ================= BODY ================= */}
+      <div className="p-5">
+        <label className="block text-xs font-medium opacity-60 mb-2">
+          Your comment
+        </label>
+
+        {/* Textarea */}
+        <div
+          className="
+            relative
+            rounded-xl
+            border border-white/10
+            bg-black/5
+            focus-within:border-blue-500/60
+            focus-within:ring-2
+            focus-within:ring-blue-500/10
+            transition
+          "
+        >
+          <textarea
+            autoFocus
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={5}
+            maxLength={700}
+            placeholder="Edit your comment..."
+            className="
+              w-full
+              resize-none
+              bg-transparent
+              px-4 py-3
+              text-sm
+              outline-none
+              placeholder:opacity-40
+              scrollbar-thin
+              scrollbar-thumb-white/20
+              scrollbar-track-transparent
+            "
+          />
+
+          {/* Character Counter */}
+          <div className="flex justify-end px-4 pb-2">
+            <span className="text-[10px] opacity-40">
+              {editText.length}/700 characters
+            </span>
+          </div>
+        </div>
+
+        {/* Hint */}
+        <p className="mt-2 text-[11px] opacity-40">
+          Edit your comment and save your changes.
+        </p>
+      </div>
+
+      {/* ================= FOOTER ================= */}
+      <div
+        className="
+          flex items-center justify-end
+          gap-2
+          px-5 py-4
+          border-t border-white/10
+          bg-black/5
+        "
+      >
+        {/* Cancel */}
+        <button
+          type="button"
+          onClick={() => {
+            setIsEditing(false);
+            setEditText(comment.body);
+            setSelectedReaction(userReaction);
+          }}
+          className="
+            flex items-center justify-center
+            w-10 h-10
+            rounded-xl
+            bg-white/5
+            border border-white/10
+            text-[var(--text-color)]
+            opacity-70
+            hover:opacity-100
+            hover:bg-white/10
+            transition
+          "
+          title="Cancel"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Save */}
+        <button
+          type="button"
+          onClick={() => handleUpdate(comment.id, editText)}
+          disabled={!editText.trim()}
+          className="
+            flex items-center justify-center
+            gap-2
+            min-w-[105px]
+            h-10
+            px-4
+            rounded-xl
+            bg-blue-500
+            hover:bg-blue-600
+            active:scale-[0.98]
+            text-white
+            text-sm
+            font-medium
+            shadow-lg
+            shadow-blue-500/20
+            transition-all
+            disabled:opacity-40
+            disabled:cursor-not-allowed
+          "
+          title="Save changes"
+        >
+          <Check size={18} />
+          <span>Save</span>
         </button>
       </div>
     </div>
@@ -678,18 +946,18 @@ const navigate = useNavigate()
 
             {comment.is_pending && (
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs bg-[var(----bg-color)] text-[var(----text-color)] ">
+          <span className="text-xs text-black ">
             Sending
           </span>
         </div>
       )}
             {/* MAIN reaction button */}
-            <span className="text-xs bg-[var(----bg-color)] text-[var(----text-color)] ">
+            <span className="text-xs text-black ">
             {timeAgo(comment.created_at)}
           </span>
             <div
         className={`relative group inline-flex items-center gap-1 cursor-pointer
-          ${userReaction ? "text-blue-600 font-semibold" : "bg-[var(----bg-color)] text-[var(----text-color)] "}`}
+          ${userReaction ? "text-blue-600 font-semibold" : "text-black "}`}
               onMouseEnter={() => setHoverReactions(true)}
               onMouseLeave={() => setHoverReactions(false)}
             >
@@ -806,7 +1074,7 @@ const navigate = useNavigate()
 
   <button
      onClick={() => {handleReplyToggle(); handleReplyToComment()}}
-    className=" text-sm"
+    className=" text-sm text-black"
   >
     reply
   </button>

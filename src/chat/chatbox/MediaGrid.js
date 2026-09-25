@@ -19,44 +19,14 @@ export default function MediaGrid({
   const longPressTriggered = useRef(false);
 
   const remaining = total - 3;
-
-  /*
-  |--------------------------------------------------------------------------
-  | CHECK IF ANY MEDIA HAS A DESCRIPTION
-  |--------------------------------------------------------------------------
-  |
-  | IMPORTANT:
-  | If even ONE file has a description, we use the
-  | vertical media + description layout.
-  |
-  | Example:
-  |
-  | image 1 -> "Friends"
-  | image 2 -> null
-  | image 3 -> null
-  |
-  | Result:
-  |
-  | image 1
-  | Friends
-  |
-  | image 2
-  |
-  | image 3
-  |
-  */
+ 
 
   const hasDescriptions = files.some(
     (file) =>
       typeof file?.description === "string" &&
       file.description.trim() !== ""
   );
-
-  /*
-  |--------------------------------------------------------------------------
-  | URL
-  |--------------------------------------------------------------------------
-  */
+ 
 
   const getUrl = (f) => {
     if (!f) return null;

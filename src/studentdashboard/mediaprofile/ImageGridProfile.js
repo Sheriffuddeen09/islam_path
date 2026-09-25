@@ -9,7 +9,7 @@ import { PostFeedIdModalProfile } from "./PostFeedIdModalProfile";
 
 export default function ImageGridProfile({ media = [], post, chats, setPosts, loading, setNewComment,
   emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-  user, image, setImage, commentsByPost, setCommentsByPost
+  user, image, setImage, commentsByPost, setCommentsByPost, video, setVideo
  }) {
   const [openOptionId, setOpenOptionId] = useState(null);
   const [openOption, setOpenOption] = useState(false);
@@ -1096,7 +1096,7 @@ const focusCommentInput = () => {
                 {postIdModal && (
                   <PostFeedIdModalProfile
                     total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
-                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                    image={image} setImage={setImage} video={video} setVideo={setVideo} postComments={postComments} loading={loading} setLoading={setLoading}
                     showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
                     reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}

@@ -374,14 +374,7 @@ useEffect(() => {
   label: "Edit",
   show:
   isMine &&
-  status !== "read" &&
-  (
-    msg.type === "text" ||
-    (
-      ["image", "video"].includes(msg.type) &&
-      msg.message
-    )
-  ),
+  status !== "read" && msg.type === "text",
   onClick: (m) => {
     setEditingMessage(m);
     setActiveMenuId(null)

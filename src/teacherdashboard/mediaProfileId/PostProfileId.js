@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 
 export default function MyPostsIdAdmin({chats, image, setImage, postComments, setPostComments, 
-        loading, setLoading, showUsersPopup, setShowUsersPopup, editContent, selectedPost,
+        loading, setLoading, showUsersPopup, setShowUsersPopup, editContent, selectedPost, video, setVideo, 
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, commentsByPost, setCommentsByPost}) {
 
@@ -71,7 +71,7 @@ export default function MyPostsIdAdmin({chats, image, setImage, postComments, se
             post={post}
             editable={true}
             chats={chats}
-            image={image} setImage={setImage}
+            image={image} setImage={setImage} video={video} setVideo={setVideo}
             postComments={postComments} setPostComments={setPostComments} loading={loading} commentsByPost={commentsByPost}
                     setCommentsByPost={setCommentsByPost}
             setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}

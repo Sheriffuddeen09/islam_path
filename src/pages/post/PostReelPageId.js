@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 
 
 export default function PostReelPageId({
-  image, commentsByPost, setCommentsByPost,
+  image, commentsByPost, setCommentsByPost, video, setVideo,
   postComments,
   setPostComments,
   showUsersPopup,
@@ -2451,7 +2451,7 @@ const commentScreen = (
         newComment={newComment}
         loading={loadingComment}
         setNewComment={setNewComment}
-        setImage={setImage}
+        setImage={setImage} video={video} setVideo={setVideo}
         image={image}
         showEmoji={showEmoji}
         setShowEmoji={setShowEmoji}

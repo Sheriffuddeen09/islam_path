@@ -45,7 +45,8 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         selectedReelIndex, selectedUserIndex,
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
-        message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated
+        message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
+        video, setVideo
       }){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -776,7 +777,7 @@ const fetchNotification = async () => {
                         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
                          <StudentProfilePage togglePopup={togglePopup} setActiveChat={setActiveChat}
                          chats={chats} setMessages={setMessages}
-                        image={image} setImage={setImage}
+                        image={image} setImage={setImage} video={video} setVideo={setVideo}
                         postComments={postComments} setPostComments={setPostComments} loading={loading} 
                         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
                         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}

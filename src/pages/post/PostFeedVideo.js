@@ -77,7 +77,7 @@ export default function PostFeedVideo({
     setReaction,
     reaction,
     setShowOptions,
-    showOptions,
+    showOptions, video, setVideo
 }) {
     const [feedLoading, setFeedLoading] = useState(false);
     const [feedRefreshing, setFeedRefreshing] = useState(false);
@@ -427,7 +427,7 @@ export default function PostFeedVideo({
                                     post={post}
                                     setPosts={setPosts}
                                     image={image}
-                                    setImage={setImage}
+                                    setImage={setImage} video={video} setVideo={setVideo}
                                     showUsersPopup={showUsersPopup}
                                     setShowUsersPopup={
                                         setShowUsersPopup
@@ -587,7 +587,7 @@ export default function PostFeedVideo({
                                     post={post}
                                     setPosts={setPosts}
                                     image={image}
-                                    setImage={setImage}
+                                    setImage={setImage} video={video} setVideo={setVideo}
                                     showUsersPopup={
                                         showUsersPopup
                                     }

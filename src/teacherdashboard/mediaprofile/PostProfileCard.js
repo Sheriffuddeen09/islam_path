@@ -15,7 +15,7 @@ import EmojiPicker from "emoji-picker-react";
 export default function PostProfileCard({ post, chats, image, setImage, postComments, 
   setPostComments, loading, setLoading, setPosts,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList,
-        editContent, selectedPost, setPostLoading,fetchProfile,
+        editContent, selectedPost, setPostLoading,fetchProfile, video, setVideo,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal, commentsByPost, setCommentsByPost
  }) {
 
@@ -1480,7 +1480,7 @@ const media = Array.isArray(post.media) ? post.media : [];
                 {postIdModal && (
                   <PostFeedIdModalProfile
                     total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
-                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                    image={image} setImage={setImage} video={video} setVideo={setVideo} postComments={postComments} loading={loading} setLoading={setLoading}
                     showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
                     reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}

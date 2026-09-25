@@ -894,7 +894,7 @@ export function ForwardModal({
       {/* FORWARD MODAL                                                 */}
       {/* ============================================================= */}
 
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 px-3">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[999] px-3">
         <div className="w-[95%] max-w-md bg-white p-4 rounded-2xl shadow-2xl">
 
           {/* HEADER */}

@@ -759,7 +759,7 @@ export function ForwardModalLargeScreen({
       {/* MAIN FORWARD MODAL                                            */}
       {/* ============================================================= */}
 
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+      <div className="fixed inset-0 flex items-center justify-center z-[999] bg-black/40">
         <div className="w-[95%] max-w-md bg-white p-4 rounded-2xl shadow-2xl">
 
           {/* HEADER */}

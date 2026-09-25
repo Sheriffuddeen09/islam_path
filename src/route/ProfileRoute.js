@@ -14,7 +14,8 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
   openUserReels, sending, setSending, closeViewer, nextReel, previousReel, selectedReel, selectedUser, markReelViewed,
   open, setOpen, openReport, setOpenReport, showImagePicker, setShowImagePicker, messageOpenShare,
   setMessageOpenShare, shares, setShares, setMyReels, setReelUsers, selectedReelIndex, selectedUserIndex, setMediaIndex,
-  mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions
+  mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions,
+  video, setVideo
 }) {
 
   
@@ -25,7 +26,7 @@ export default function ProfileRouter({handleMessageOpen, requestStatus, chats,
     <div>
       <ProfileId profileId={id} handleMessageOpen={handleMessageOpen} requests={requestStatus}
        chats={chats} setMessages={setMessages} setActiveChat={setActiveChat}
-      image={image} setImage={setImage} openChat={openChat} togglePopup={togglePopup}
+      image={image} setImage={setImage} video={video} setVideo={setVideo} openChat={openChat} togglePopup={togglePopup}
       postComments={postComments} setPostComments={setPostComments} loading={loading} 
       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
       newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}

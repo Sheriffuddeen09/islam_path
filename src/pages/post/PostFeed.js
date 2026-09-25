@@ -90,6 +90,7 @@ export default function PostFeed({
     setMessageOpenShare,
     shares,
     setShares,
+    video, setVideo
 }) {
     /*
     |--------------------------------------------------------------------------
@@ -825,6 +826,7 @@ export default function PostFeed({
                                             setPosts={
                                                 setPosts
                                             }
+                                            video={video} setVideo={setVideo}
                                             image={
                                                 image
                                             }
@@ -1098,6 +1100,7 @@ export default function PostFeed({
                                         "
                                     >
                                         <PostCard
+                                            video={video} setVideo={setVideo}
                                             post={
                                                 post
                                             }

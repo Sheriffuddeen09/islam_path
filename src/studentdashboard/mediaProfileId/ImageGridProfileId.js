@@ -11,7 +11,7 @@ import ImageGridCommentReactionShare from "../../pages/post/previewimagevideo/Im
 
 export default function ImageGridProfileId({ media = [], post, chats,  loading, setNewComment,
   emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-  user, image, setImage, commentsByPost, setCommentsByPost }) {
+  video, setVideo, user, image, setImage, commentsByPost, setCommentsByPost }) {
   const [openOptionId, setOpenOptionId] = useState(null);
   const [openOption, setOpenOption] = useState(false);
   const [messageOpenShare, setMessageOpenShare,] = useState(false)
@@ -942,7 +942,7 @@ const focusCommentInput = () => {
   {postIdModal && (
                   <PostFeedIdModalProfile
                     total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
-                    image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                    image={image} setImage={setImage} video={video} setVideo={setVideo} postComments={postComments} loading={loading} setLoading={setLoading}
                     showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
                     reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}

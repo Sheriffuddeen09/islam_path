@@ -19,7 +19,7 @@ import LiveViewer from "../../live/LiveViewer";
 export default function PostCard({ post, setPosts, image, setImage, postComments, setPostComments, 
   loading, setLoading, newComment, setNewComment, emojiList, setEmojiList,
 showEmoji, setShowEmoji, messageOpen, setMessageOpen, chats, setChats, commentsByPost, setCommentsByPost, reelUsers,
-openUserReels }) {
+openUserReels, video, setVideo }) {
 
   const {user} = useAuth()
   const {user: currentUser} = useAuth();
@@ -972,7 +972,7 @@ const handleHidePost = async (postId) => {
                     {postIdModal && (
                   <PostFeedIdModal
                    total={total} others={others} setShowUsersPopup={setShowUsersPopup} me={me} 
-                   image={image} setImage={setImage} postComments={postComments} loading={loading} setLoading={setLoading}
+                   image={image} setImage={setImage} video={video} setVideo={setVideo} postComments={postComments} loading={loading} setLoading={setLoading}
                    showUsersPopup={showUsersPopup} currentUser={currentUser} usersPreview={usersPreview}
                     user={user} counts={counts} setShowReactions={setShowReactions} 
                     reactionLoading={reactionLoading}  setPostComments={setPostComments} commentsByPost={commentsByPost}

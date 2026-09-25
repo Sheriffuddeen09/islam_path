@@ -26,6 +26,7 @@ export default function VideoCardProfileId({
   setImage,
   commentsByPost,
   setCommentsByPost,
+  video, setVideo
 }) {
   const videoRef = useRef(null);
 
@@ -1943,6 +1944,7 @@ export default function VideoCardProfileId({
           me={me}
           image={image}
           setImage={setImage}
+          video={video} setVideo={setVideo}
           postComments={postComments}
           loading={loading}
           setLoading={setLoading}

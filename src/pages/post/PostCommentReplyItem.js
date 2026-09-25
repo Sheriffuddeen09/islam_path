@@ -3,11 +3,18 @@ import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
 import PostReplyListMap from "./PostReplyListMap";
 import { useAuth } from "../../layout/AuthProvider";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PostReplyInput } from "./PostReplyInput";
 import { CommentReportModal } from "./report/CommentReportModal";
 import Linkify from "linkify-react";
 import EmojiPicker from "emoji-picker-react";
+import PostCommentVideo from "./PostCommentVideo";
+
+import {
+  Pencil,
+  X,
+  Check,
+} from "lucide-react";
 
 export default function PostCommentReplyItem ({image, handleReplyToComment, loading, loadingEmoji, 
                       replyInputRef, handleDelete, handleUpdate, isEditing, 
@@ -18,8 +25,7 @@ export default function PostCommentReplyItem ({image, handleReplyToComment, load
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(comment.body);
     const [showReactions, setShowReactions] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [showDeleteComment, setShowDeleteComment] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); 
     const REPLY_EMOJIS = ['❤️','👍','😂','😮','😢','🔥'];
     const [isEditingComment, setIsEditingComment] = useState(false)
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -75,6 +81,27 @@ const sendTextReply = async () => {
   setIsSubmitting(false);
 };
 
+
+const sendVideoReply = async (file) => {
+  if (!file) return;
+
+  setIsSubmitting(true);
+
+  try {
+    await onReplyAdded(
+      comment.id,
+      replyText,
+      null,
+      null,
+      file
+    );
+
+    setReplyText("");
+    setReplyTo(null);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 const sendImageReply = async (file) => {
   if (!file) return;
@@ -177,50 +204,215 @@ const contentDelete = (
   </div>
     )
 const contentEdit = (
-  <div>
-     {isEditingComment && (
-          <div className={`fixed inset-0 bg-black/30 z-50 flex items-center justify-center z-50`}>
-            <div className="bg-[var(----bg-color)] text-[var(----text-color)]  p-6 rounded sm:w-96 w-80 items-center mx-auto justify-center flex flex-col gap-4">
-              <h3 className="font-semibold text-lg text-center">Edit Comment</h3>
+  <div> 
+{isEditingComment && (
+  <div
+    className="
+      fixed inset-0 z-[9999]
+      flex items-center justify-center
+      p-4
+      bg-black/60
+      backdrop-blur-sm
+    "
+    onClick={() => {
+      setIsEditingComment(false);
+      setEditText(comment?.body || "");
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        relative
+        w-full
+        max-w-md
+        overflow-hidden
+        rounded-2xl
+        border border-white/10
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        shadow-[0_25px_80px_rgba(0,0,0,0.45)]
+      "
+    >
+      {/* ================= HEADER ================= */}
+      <div
+        className="
+          flex items-center justify-between
+          px-5 py-4
+          border-b border-white/10
+        "
+      >
+        <div className="flex items-center gap-3">
+          {/* Edit Icon */}
+          <div
+            className="
+              flex items-center justify-center
+              w-10 h-10
+              rounded-xl
+              bg-blue-500/10
+              text-blue-500
+            "
+          >
+            <Pencil size={19} />
+          </div>
 
-              {/* Text Input comment.body */}
-              <input
-                value={editText}
-                onChange={e => setEditText(e.target.value)}
-                className="border p-2 rounded-lg outline-none border
-                 border-blue-700  w-full text-black p-4"
-                placeholder="Edit your comment..."
-              />
+          {/* Title */}
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold">
+              Edit Comment
+            </h3>
 
-      {/* Action Buttons */}
-      <div className="flex justify-start gap-4 mt-2">
-        <button onClick={() => {handleUpdate(comment?.id, editText); 
-            setIsEditingComment(false);
-            setEditText(comment?.body);
-         }}
-          className="px-3 py-1 bg-blue-600 text-white rounded"
-        >
-         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-</svg>
+            <p className="text-xs opacity-50 mt-0.5">
+              Make changes to your comment
+            </p>
+          </div>
+        </div>
 
-                  </button>
-          
+        {/* Header Close */}
         <button
+          type="button"
           onClick={() => {
             setIsEditingComment(false);
-            setEditText(comment?.body);
+            setEditText(comment?.body || "");
           }}
-          className="px-3 py-1 bg-gray-400 text-white rounded"
+          className="
+            flex items-center justify-center
+            w-9 h-9
+            rounded-full
+            opacity-60
+            hover:opacity-100
+            hover:bg-white/10
+            transition
+          "
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
+          <X size={19} />
+        </button>
+      </div>
+
+      {/* ================= BODY ================= */}
+      <div className="p-5">
+        <label className="block text-xs font-medium opacity-60 mb-2">
+          Your comment
+        </label>
+
+        {/* Textarea */}
+        <div
+          className="
+            relative
+            rounded-xl
+            border border-white/10
+            bg-black/5
+            focus-within:border-blue-500/60
+            focus-within:ring-2
+            focus-within:ring-blue-500/10
+            transition
+          "
+        >
+          <textarea
+            autoFocus
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={5}
+            maxLength={700}
+            placeholder="Edit your comment..."
+            className="
+              w-full
+              resize-none
+              bg-transparent
+              px-4 py-3
+              text-sm
+              outline-none
+              placeholder:opacity-40
+              scrollbar-thin
+              scrollbar-thumb-white/20
+              scrollbar-track-transparent
+            "
+          />
+
+          {/* Character Count */}
+          <div className="flex justify-end px-4 pb-2">
+            <span className="text-[10px] opacity-40">
+              {editText.length}/700 characters
+            </span>
+          </div>
+        </div>
+
+        <p className="mt-2 text-[11px] opacity-40">
+          Edit your comment and save your changes.
+        </p>
+      </div>
+
+      {/* ================= FOOTER ================= */}
+      <div
+        className="
+          flex items-center justify-end
+          gap-2
+          px-5 py-4
+          border-t border-white/10
+          bg-black/5
+        "
+      >
+        {/* Cancel */}
+        <button
+          type="button"
+          onClick={() => {
+            setIsEditingComment(false);
+            setEditText(comment?.body || "");
+          }}
+          className="
+            flex items-center justify-center
+            w-10 h-10
+            rounded-xl
+            bg-white/5
+            border border-white/10
+            text-[var(--text-color)]
+            opacity-70
+            hover:opacity-100
+            hover:bg-white/10
+            transition
+          "
+          title="Cancel"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Save */}
+        <button
+          type="button"
+          onClick={() => {
+            handleUpdate(comment?.id, editText);
+            setIsEditingComment(false);
+            setEditText(comment?.body || "");
+          }}
+          disabled={!editText.trim()}
+          className="
+            flex items-center justify-center
+            gap-2
+            min-w-[105px]
+            h-10
+            px-4
+            rounded-xl
+            bg-blue-500
+            hover:bg-blue-600
+            active:scale-[0.98]
+            text-white
+            text-sm
+            font-medium
+            shadow-lg
+            shadow-blue-500/20
+            transition-all
+            disabled:opacity-40
+            disabled:cursor-not-allowed
+          "
+          title="Save changes"
+        >
+          <Check size={18} />
+          <span>Save</span>
         </button>
       </div>
     </div>
   </div>
-     )}
+)}
+
   </div>
 )
     return(
@@ -356,6 +548,11 @@ const contentEdit = (
 
      {comment?.image && <PostCommentImage image={comment?.image} />}
 
+      {comment.video && (
+        <div className="mt-2 max-w-full">
+          <PostCommentVideo video={comment.video} />
+        </div>
+      )}
         
 <div className="inline-flex gap-3 items-center cursor-pointer">
   <span className="text-xs">{timeAgo(comment.created_at)}</span>
@@ -780,7 +977,8 @@ const contentEdit = (
 
           <PostReplyInput image={image} isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
           sendTextReply={sendTextReply} setEmojiClick={setEmojiClick} sendEmojiReply={sendEmojiReply} setReplyTo={setReplyTo}
-          REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} replyTo={replyTo} />
+          REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} replyTo={replyTo} 
+          sendVideoReply={sendVideoReply} />
            </div>
         </div>
 

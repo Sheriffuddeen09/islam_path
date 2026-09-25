@@ -33,7 +33,7 @@ export default function ImageFlex({
     myReaction,
     toggleReaction,
     onLikeClick,
-
+  video, setVideo,
     setEmojiList,
     focusCommentInput,
 
@@ -705,6 +705,7 @@ export default function ImageFlex({
                           image={image}
                           usersPreview={usersPreview}
                           setImage={setImage}
+                          video={video} setVideo={setVideo}
                           user={user}
                           setOpen={setPreviewOpen}
                          />

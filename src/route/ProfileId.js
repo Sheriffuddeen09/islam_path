@@ -31,7 +31,8 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
         reelUsers, openUserReels, sending, setSending, closeViewer, nextReel, previousReel, selectedReel, selectedUser, markReelViewed,
         open, setOpen, openReport, setOpenReport, showImagePicker, setShowImagePicker, messageOpenShare,
         setMessageOpenShare, shares, setShares, setMyReels, setReelUsers, selectedReelIndex, selectedUserIndex, setMediaIndex,
-        mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions
+        mediaIndex, setProgress, progress, setMessage, message, setReaction, reaction, setShowOptions, showOptions,
+        video, setVideo
       }) {
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -148,7 +149,7 @@ console.log("Teacher Profile", profile)
                   
                   <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
                       <MyPostsIdAdmin chats={chats} 
-                      image={image} setImage={setImage}
+                      image={image} setImage={setImage} video={video} setVideo={setVideo}
                       postComments={postComments} setPostComments={setPostComments} loading={loading} 
                       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
                       newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -172,7 +173,7 @@ console.log("Teacher Profile", profile)
                     setCommentsByPost={setCommentsByPost}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                       setNewComment={setNewComment} loading={loading}
-                      user={user} image={image} setImage={setImage}
+                      user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
                       />
                       </div>
                       <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
@@ -186,7 +187,7 @@ console.log("Teacher Profile", profile)
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                       setNewComment={setNewComment} loading={loading} commentsByPost={commentsByPost}
                     setCommentsByPost={setCommentsByPost}
-                      user={user} image={image} setImage={setImage}
+                      user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
                       />
                       </div>
                     <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
@@ -216,7 +217,7 @@ console.log("Teacher Profile", profile)
                   
                   <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
                       <MyPostsIdStudent chats={chats} 
-                      image={image} setImage={setImage}
+                      image={image} setImage={setImage} video={video} setVideo={setVideo}
                       postComments={postComments} setPostComments={setPostComments} loading={loading} 
                       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
                       newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -240,7 +241,7 @@ console.log("Teacher Profile", profile)
                     setCommentsByPost={setCommentsByPost}
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                       setNewComment={setNewComment} loading={loading}
-                      user={user} image={image} setImage={setImage}
+                      user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
                       />
                       </div>
                       <div className={`${visibleProfile === 3 ? 'block' : 'hidden'}`}>
@@ -254,7 +255,7 @@ console.log("Teacher Profile", profile)
                       showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
                       setNewComment={setNewComment} loading={loading} commentsByPost={commentsByPost}
                     setCommentsByPost={setCommentsByPost}
-                      user={user} image={image} setImage={setImage}
+                      user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
                       />
                       </div>
                                <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>

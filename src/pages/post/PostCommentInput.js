@@ -7,7 +7,8 @@ export function PostCommentInput({
   showEmoji,
   setShowEmoji,
   emojiList,
-  postComment
+  postComment, 
+  setVideo,
 }) {
   const hasText = newComment?.trim().length > 0;
 
@@ -128,7 +129,61 @@ export function PostCommentInput({
               />
             </svg>
           </label>
+          {/* Video */}
+        <label
+          className="
+            shrink-0
+            w-9
+            h-9
+            rounded-full
+            flex
+            items-center
+            justify-center
+            text-gray-500
+            hover:text-blue-600
+            hover:bg-blue-50
+            cursor-pointer
+            transition
+          "
+          title="Add video"
+        >
+          <input
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={e => {
+              const file = e.target.files?.[0];
 
+              if (!file) return;
+
+              setVideo(file);
+
+              postComment(
+                null,
+                null,
+                null,
+                file
+              );
+
+              e.target.value = "";
+            }}
+          />
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.6"
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 10.5 19.5 7.5v9l-3.75-3M4.5 6.75h9A2.25 2.25 0 0 1 15.75 9v6a2.25 2.25 0 0 1-2.25 2.25h-9A2.25 2.25 0 0 1 2.25 15V9A2.25 2.25 0 0 1 4.5 6.75Z"
+            />
+          </svg>
+        </label>
           {/* Text */}
           <textarea
             ref={commentInputRef}

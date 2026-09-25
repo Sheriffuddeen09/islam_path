@@ -69,10 +69,8 @@ export default function GoLiveModal({
             "
         >
 
-            <p className="text-4xl text-black">
-                Live Video Now PLease be patience when using it
-            </p>
-            {/* <div
+           
+            <div
                 className="
                     relative
                     w-full max-w-2xl
@@ -317,7 +315,7 @@ export default function GoLiveModal({
                     <button
                         type="button"
                         onClick={startLive}
-                        disabled={startingLive}
+                        disabled={startingLive || !liveDescription}
                         className="
                             group
                             mt-5
@@ -394,7 +392,7 @@ export default function GoLiveModal({
 
                 </div>
 
-            </div> */}
+            </div>
         </div>
     );
 }

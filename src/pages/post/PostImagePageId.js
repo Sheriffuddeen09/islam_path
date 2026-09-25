@@ -15,7 +15,7 @@ import logo from "../../layout/image/favicon.png";
 
 export default function PostImagePageId({ image, postComments, setPostComments, showUsersPopup, setShowUsersPopup, loadingComment,
   showEmoji, setShowEmoji, emojiList, newComment, setNewComment, setImage, post, setPost, postId, chats, commentsByPost, setCommentsByPost,
-  user, setEmojiList, postIdModal, setPostIdModal
+  user, setEmojiList, postIdModal, setPostIdModal, video, setVideo
  }) {
   const { id } = useParams();
   const [counts, setCounts] = useState({});
@@ -550,7 +550,7 @@ focusCommentInput()
                           user={user}
                           image={image}
                           usersPreview={usersPreview}
-                          setImage={setImage}
+                          setImage={setImage} video={video} setVideo={setVideo}
 
                           />
                         )}
@@ -782,7 +782,7 @@ focusCommentInput()
             newComment={newComment}
             loading={loadingComment}
             setNewComment={setNewComment}
-            setImage={setImage}
+            setImage={setImage} video={video} setVideo={setVideo}
             image={image}
             showEmoji={showEmoji}
             setShowEmoji={setShowEmoji}

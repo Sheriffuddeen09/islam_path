@@ -50,6 +50,7 @@ export default function VideoCardProfile({
   setImage,
   commentsByPost,
   setCommentsByPost,
+  video, setVideo
 }) {
   /* =====================================================
      CARD VIDEO
@@ -2735,6 +2736,7 @@ export default function VideoCardProfile({
           me={me}
           image={image}
           setImage={setImage}
+          video={video} setVideo={setVideo}
           postComments={
             postComments
           }

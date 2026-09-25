@@ -17,7 +17,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     setSelectedReelIndex, selectedReelIndex, setSelectedUserIndex, selectedUserIndex, setProgress, progress, setMediaIndex,
     mediaIndex, setShowOptions, showOptions, setReaction, reaction, sending, setSending, closeViewer, nextReel, 
     previousReel, selectedReel, selectedUser, markReelViewed, open, setOpen, openReport, setOpenReport,
-    showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares
+    showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares,
+    video, setVideo
   }) {
 
 
@@ -82,7 +83,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       />
 
 
-      <PostFeed posts={posts} setPosts={setPosts} 
+      <PostFeed posts={posts} setPosts={setPosts} video={video} setVideo={setVideo}
       image={image} setImage={setImage} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
       newComment={newComment} setNewComment={setNewComment}
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}

@@ -7,7 +7,7 @@ import { useAuth } from "../../layout/AuthProvider";
 import PreviewMessageText from "./PreviewMessageText";
 import api from "../../Api/axios";
 
-
+// Delete
 export default function MediaPreview({
     preview,
     setPreview,
@@ -1455,7 +1455,7 @@ const handleVideoEnded = (e) => {
                 inset-0
                 bg-black/95
                 backdrop-blur-md
-                z-[999]
+                z-[300]
                 flex
                 w-full 
                 flex-col

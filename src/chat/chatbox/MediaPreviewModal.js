@@ -8,7 +8,6 @@ export default function MediaPreviewModal({
   show,
   files,
   previewUrls,
-  caption,
   setCaption,
   onClose,
   onSend,

@@ -15,7 +15,8 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
                                 focusCommentInput, reactionLoading, postComments, setPostComments, commentInputRef,
                                 image, setImage, loading, currentUser, newComment, setNewComment, emojiList, showEmoji,
                                 setShowEmoji, chats, firstUser, allUsers, showEmojiPicker, setShowEmojiPicker,
-                                getColor, setLoading, setEmojiList, showUsersPopup, setPostIdModal, postIdModal, usersPreview
+                                getColor, setLoading, setEmojiList, showUsersPopup, setPostIdModal, postIdModal, usersPreview,
+                                video, setVideo
                               }) {
 
   const [messageOpenShare, setMessageOpenShare] = useState(false)
@@ -59,12 +60,19 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
   const postComment = async (
   emoji = null,
   imageFile = null,
-  parentId = null
+  parentId = null,
+  videoFile = null
 ) => {
   const commentBody =
     emoji || newComment?.trim() || "";
 
-  if (!commentBody && !imageFile) return;
+  if (
+    !commentBody &&
+    !imageFile &&
+    !videoFile
+  ) {
+    return;
+  }
 
   const tempId = `temp-${Date.now()}-${Math.random()
     .toString(36)
@@ -75,12 +83,19 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
       ? URL.createObjectURL(imageFile)
       : null;
 
+  const videoPreview =
+    videoFile instanceof File
+      ? URL.createObjectURL(videoFile)
+      : null;
+
   const temporaryComment = {
     id: tempId,
 
     body: commentBody,
 
     image: imagePreview,
+
+    video: videoPreview,
 
     user: currentUser,
     user_id: currentUser?.id,
@@ -114,6 +129,10 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
     formData.append("image", imageFile);
   }
 
+  if (videoFile instanceof File) {
+    formData.append("video", videoFile);
+  }
+
   try {
     const res = await api.post(
       `/api/posts/${postId}/comments`,
@@ -139,6 +158,10 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
       URL.revokeObjectURL(imagePreview);
     }
 
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+
   } catch (err) {
     console.error(
       err.response?.data || err
@@ -153,6 +176,10 @@ export function PostFeedIdModal({ postId, post, onClose, user, total, others, se
 
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
+    }
+
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
     }
   }
 };
@@ -323,7 +350,7 @@ const shareToChat = async (chatId) => {
                 user={user}
                 image={image}
                 usersPreview={usersPreview}
-                setImage={setImage}
+                setImage={setImage} video={video} setVideo={setVideo}
                 />
               )}
           </div>
@@ -389,6 +416,7 @@ const shareToChat = async (chatId) => {
               image={image}
               usersPreview={usersPreview}
               setImage={setImage}
+              video={video} setVideo={setVideo}
       />
 
 
@@ -562,7 +590,7 @@ const shareToChat = async (chatId) => {
           newComment={newComment}
           loading={loading}
           setNewComment={setNewComment}
-          setImage={setImage}
+          setImage={setImage} video={video} setVideo={setVideo}
           image={image}
           showEmoji={showEmoji}
           setShowEmoji={setShowEmoji}

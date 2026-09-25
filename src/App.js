@@ -66,6 +66,7 @@ function App() {
   // Post 
 
     const [image, setImage] = useState(null);
+    const [video, setVideo] = useState(null);
     const [postComments, setPostComments] = useState([])
     const [loading, setLoading] = useState(false)
     const [showUsersPopup, setShowUsersPopup] = useState(false);
@@ -550,6 +551,7 @@ const previousReel = () => {
               pendingCount={pendingCount}
               setPendingCount={setPendingCount}
               image={image} setImage={setImage}
+              video={video} setVideo={setVideo}
               postComments={postComments} setPostComments={setPostComments} loading={loading} 
               setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
               newComment={newComment} setNewComment={setNewComment}
@@ -608,6 +610,7 @@ const previousReel = () => {
           onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
           teachers={teachers} setTeachers={setTeachers} chats={chats} 
           image={image} setImage={setImage}
+          video={video} setVideo={setVideo}
           postComments={postComments} setPostComments={setPostComments} loading={loading} 
           setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
           newComment={newComment} setNewComment={setNewComment}
@@ -776,6 +779,7 @@ const previousReel = () => {
 
        <Route path="/post/video" element={
         <PostFeedVideo posts={posts} setPosts={setPosts} image={image} setImage={setImage}
+        video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -939,7 +943,7 @@ const previousReel = () => {
       togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat}
       requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
       chats={chats} 
-      image={image} setImage={setImage}
+      image={image} setImage={setImage} video={video} setVideo={setVideo}
       postComments={postComments} setPostComments={setPostComments} loading={loading} 
       setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
       newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -1038,6 +1042,7 @@ const previousReel = () => {
         />
       
       <Route path="/post/image/:id" element={<PostImagePageId image={image} setImage={setImage}
+        video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -1050,6 +1055,7 @@ const previousReel = () => {
         />} />
 
         <Route path="/post/video/:id" element={<PostVideoPageId image={image} setImage={setImage}
+        video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -1063,6 +1069,7 @@ const previousReel = () => {
 
 
         <Route path="/reel/video/:id" element={<PostReelPageId image={image} setImage={setImage}
+        video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -1073,6 +1080,7 @@ const previousReel = () => {
         />} />
 
          <Route path="/reel/video" element={<PostReelPageId image={image} setImage={setImage}
+         video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -1084,6 +1092,7 @@ const previousReel = () => {
 
 
          <Route path="/post/text/:id" element={<PostTextPageId image={image} setImage={setImage}
+         video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
@@ -1102,6 +1111,7 @@ const previousReel = () => {
       
       <Route path="/" element={
       <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
+      video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}

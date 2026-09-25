@@ -358,14 +358,7 @@ const handleCopyLink = async (message) => {
         label: "Edit",
         show:
         isMine &&
-        msg.status !== "read" &&
-        (
-          msg.type === "text" ||
-          (
-            ["image", "video"].includes(msg.type) &&
-            msg.message
-          )
-        ),
+        msg.status !== "read" && msg.type === "text" ,
         onClick: (m) => {
             setEditingMessage(m);
             clearSelection();

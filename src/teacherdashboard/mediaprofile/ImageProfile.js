@@ -6,7 +6,7 @@ import { useAuth } from "../../layout/AuthProvider";
 export default function MyImages({chats, editContent, selectedPost,
         showDeleteModal, showEditModal, setEditContent, setSelectedPost, setShowDeleteModal, setShowEditModal,
       emojiList, setEmojiList, newComment, postComments, setPostComments, setLoading, showEmoji, setShowEmoji,
-      loading, setNewComment, user, image, setImage, commentsByPost, setCommentsByPost}) {
+      loading, setNewComment, user, image, setImage, commentsByPost, setCommentsByPost, video, setVideo}) {
   const [posts, setPosts] = useState([]);
   const [imageLoading, setImageLoading] = useState(false)
   
@@ -68,7 +68,7 @@ export default function MyImages({chats, editContent, selectedPost,
                     setCommentsByPost={setCommentsByPost}
           showEmoji={showEmoji} setShowEmoji={setShowEmoji} newComment={newComment}
           setNewComment={setNewComment} loading={loading}
-          user={user} image={image} setImage={setImage}
+          user={user} image={image} setImage={setImage} video={video} setVideo={setVideo}
 
               
           

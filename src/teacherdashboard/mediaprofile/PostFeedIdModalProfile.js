@@ -22,7 +22,7 @@ export function PostFeedIdModalProfile({ postId, post, onClose, user, total, oth
                                 setShowEmoji, chats, firstUser, showUsersPopup, setShowUsersPopup,
                                 setEditContent, setSelectedPost, setShowEditModal, setPosts, fetchProfile,
                                 setEmojiList, setPostIdModal, postIdModal, setShowEmojiPicker, showEmojiPicker,
-                                commentsByPost, setCommentsByPost
+                                commentsByPost, setCommentsByPost, video, setVideo
                               }) {
 
   const [messageOpenShare, setMessageOpenShare] = useState(false)
@@ -470,6 +470,7 @@ const shareToChat = async (chatId) => {
           loading={loading}
           setNewComment={setNewComment}
           setImage={setImage}
+          video={video} setVideo={setVideo}
           image={image}
           showEmoji={showEmoji}
           setShowEmoji={setShowEmoji}

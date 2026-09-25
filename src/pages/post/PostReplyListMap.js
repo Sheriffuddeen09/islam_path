@@ -7,6 +7,12 @@ import api from "../../Api/axios";
 import { ReplyReportModal } from "./report/ReplyReportModal";
 import Linkify from "linkify-react";
 import EmojiPicker from "emoji-picker-react";
+import {
+  Pencil,
+  X,
+  Check,
+} from "lucide-react";
+import PostReplyVideo from "./PostReplyVideo";
 
 
 export default function PostReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
@@ -295,6 +301,9 @@ const navigate = useNavigate()
         {/* ✅ Image preview */}
        {reply.image && <ReplyImage image={reply.image} />}
 
+        {reply.video && (
+          <PostReplyVideo video={reply.video} />
+        )}
         {/* Time and Reaction */}
 
         <div className="inline-flex gap-3 items-center cursor-pointer">
@@ -417,56 +426,220 @@ const navigate = useNavigate()
 
 
     {/* Reply Edit  */}
-
-    {editingReplyId === reply.id && (
-
-        <div className=" flex fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-            <div className="bg-white text-black  p-6 rounded w-96 flex flex-col gap-4 relative">
-              <h3 className="font-semibold text-lg text-center">Edit Reply</h3>
-
-              {/* Text Input reply.body */}
-              <input
-                value={editText}
-                onChange={e => setEditText(e.target.value)}
-                className="border p-2 rounded-lg outline-none border
-                 border-blue-700  w-full text-black p-4"
-                placeholder="Edit your reply..."
-              />
-
-      {/* Action Buttons */}
-      <div className="flex justify-start gap-4 mt-2">
-       <button
-        onClick={async () => {
-          try {
-            await onEdit(reply.id, editText);
-            setEditingReplyId(null);
-          } catch (e) {
-            // optional: toast error
-          }
-        }}
-        className="px-3 py-1 bg-blue-600 text-white rounded"
+{editingReplyId === reply.id && (
+  <div
+    className="
+      fixed inset-0 z-[9999]
+      flex items-center justify-center
+      p-4
+      bg-black/60
+      backdrop-blur-sm
+    "
+    onClick={() => {
+      setEditingReplyId(null);
+      setEditText(reply?.body || "");
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        relative
+        w-full
+        max-w-md
+        overflow-hidden
+        rounded-2xl
+        border border-white/10
+        bg-[var(--bg-color)]
+        text-[var(--text-color)]
+        shadow-[0_25px_80px_rgba(0,0,0,0.45)]
+      "
+    >
+      {/* ================= HEADER ================= */}
+      <div
+        className="
+          flex items-center justify-between
+          px-5 py-4
+          border-b border-white/10
+        "
       >
+        <div className="flex items-center gap-3">
+          {/* Edit Icon */}
+          <div
+            className="
+              flex items-center justify-center
+              w-10 h-10
+              rounded-xl
+              bg-blue-500/10
+              text-blue-500
+            "
+          >
+            <Pencil size={19} />
+          </div>
 
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-</svg>
-                  </button>
-          
+          {/* Title */}
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold">
+              Edit Reply
+            </h3>
+
+            <p className="text-xs opacity-50 mt-0.5">
+              Make changes to your reply
+            </p>
+          </div>
+        </div>
+
+        {/* Header Close */}
         <button
+          type="button"
           onClick={() => {
-            setEditingReplyId(false);}}
-          className="px-3 py-1 bg-gray-400 text-white rounded"
+            setEditingReplyId(null);
+            setEditText(reply?.body || "");
+          }}
+          className="
+            flex items-center justify-center
+            w-9 h-9
+            rounded-full
+            opacity-60
+            hover:opacity-100
+            hover:bg-white/10
+            transition
+          "
+          title="Close"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
+          <X size={19} />
+        </button>
+      </div>
+
+      {/* ================= BODY ================= */}
+      <div className="p-5">
+        <label className="block text-xs font-medium opacity-60 mb-2">
+          Your reply
+        </label>
+
+        {/* Textarea */}
+        <div
+          className="
+            relative
+            rounded-xl
+            border border-white/10
+            bg-black/5
+            focus-within:border-blue-500/60
+            focus-within:ring-2
+            focus-within:ring-blue-500/10
+            transition
+          "
+        >
+          <textarea
+            autoFocus
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            rows={5}
+            maxLength={700}
+            placeholder="Edit your reply..."
+            className="
+              w-full
+              resize-none
+              bg-transparent
+              px-4 py-3
+              text-sm
+              outline-none
+              placeholder:opacity-40
+              scrollbar-thin
+              scrollbar-thumb-white/20
+              scrollbar-track-transparent
+            "
+          />
+
+          {/* Character Count */}
+          <div className="flex justify-end px-4 pb-2">
+            <span className="text-[10px] opacity-40">
+              {editText.length}/700 characters
+            </span>
+          </div>
+        </div>
+
+        <p className="mt-2 text-[11px] opacity-40">
+          Edit your reply and save your changes.
+        </p>
+      </div>
+
+      {/* ================= FOOTER ================= */}
+      <div
+        className="
+          flex items-center justify-end
+          gap-2
+          px-5 py-4
+          border-t border-white/10
+          bg-black/5
+        "
+      >
+        {/* Cancel */}
+        <button
+          type="button"
+          onClick={() => {
+            setEditingReplyId(null);
+            setEditText(reply?.body || "");
+          }}
+          className="
+            flex items-center justify-center
+            w-10 h-10
+            rounded-xl
+            bg-white/5
+            border border-white/10
+            text-[var(--text-color)]
+            opacity-70
+            hover:opacity-100
+            hover:bg-white/10
+            transition
+          "
+          title="Cancel"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Save */}
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await onEdit(reply.id, editText);
+              setEditingReplyId(null);
+              setEditText(reply?.body || "");
+            } catch (e) {
+              // Keep modal open if update fails
+              console.error("Failed to edit reply:", e);
+            }
+          }}
+          disabled={!editText.trim()}
+          className="
+            flex items-center justify-center
+            gap-2
+            min-w-[105px]
+            h-10
+            px-4
+            rounded-xl
+            bg-blue-500
+            hover:bg-blue-600
+            active:scale-[0.98]
+            text-white
+            text-sm
+            font-medium
+            shadow-lg
+            shadow-blue-500/20
+            transition-all
+            disabled:opacity-40
+            disabled:cursor-not-allowed
+          "
+          title="Save changes"
+        >
+          <Check size={18} />
+          <span>Save</span>
         </button>
       </div>
     </div>
   </div>
-     
-
-      )}
+)}
+ 
 
 {showReplyMenu && selectedReply && (
   <div

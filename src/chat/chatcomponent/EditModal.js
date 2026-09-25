@@ -1,11 +1,15 @@
-
 import { useState } from "react";
 import api from "../../Api/axios";
 import toast, { Toaster } from "react-hot-toast";
 
+import { encryptMessage } from "../../utils/encryption";
+
 import {
-  encryptMessage,
-} from "../../utils/encryption";
+  X,
+  Check,
+  Pencil,
+  Loader2,
+} from "lucide-react";
 
 export default function EditModal({
   message,
@@ -13,49 +17,32 @@ export default function EditModal({
   onClose,
   chatId,
 }) {
-
-  const [editText, setEditText] = useState(
-    message?.message || ""
-  );
-
+  const [editText, setEditText] = useState(message?.message || "");
   const [loading, setLoading] = useState(false);
 
-  console.log("CHAT ID:", chatId);
-
-  console.log(
-    "CHAT KEY:",
-    localStorage.getItem(`chat_key_${chatId}`)
-  );
-
   const saveEdit = async () => {
-
-    if (!editText.trim()) return;
+    if (!editText.trim()) {
+      toast.error("Message cannot be empty");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      const chatKey = localStorage.getItem(
-        `chat_key_${chatId}`
-      );
+      const chatKey = localStorage.getItem(`chat_key_${chatId}`);
 
       if (!chatKey) {
-        toast.error("Encryption key missing now");
+        toast.error("Encryption key missing");
         return;
       }
 
-      
+      const encrypted = await encryptMessage(editText, chatKey);
 
-      const encrypted = await encryptMessage(
-        editText,
-        chatKey
-      );
-      const res = await api.put(
-        `/api/messages/${message.id}`,
-        {
-          message: encrypted.encrypted,
-          iv: encrypted.iv,
-        }
-      );
+      const res = await api.put(`/api/messages/${message.id}`, {
+        message: encrypted.encrypted,
+        iv: encrypted.iv,
+      });
+
       const updatedMessage = {
         ...res.data.message,
         message: editText,
@@ -63,90 +50,243 @@ export default function EditModal({
 
       onMessageUpdate(updatedMessage);
 
+      toast.success("Message updated");
+
       onClose();
-
     } catch (err) {
-
       console.error(err);
 
       toast.error(
         err.response?.data?.message ||
-        err.message
+          err.message ||
+          "Failed to update message"
       );
-
     } finally {
-
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      <div className="fixed inset-0 z-[9999] bg-[var(--bg-color)]/50 text-[var(--text-color)] backdrop-blur-md flex items-center justify-center p-4">
-
+    <>
+      <div
+        className="
+          fixed inset-0 z-[9999]
+          flex items-center justify-center
+          p-4
+          bg-black/60
+          backdrop-blur-sm
+        "
+        onClick={onClose}
+      >
         <div
-          className="w-full max-w-xs sm:max-w-sm
-          bg-[var(--bg-color)]
-          border border-white/30
-          shadow-2xl
-          rounded-2xl
-          text-[var(--text-color)]
-          overflow-hidden
-          relative p-4"
+          onClick={(e) => e.stopPropagation()}
+          className="
+            relative
+            w-full
+            max-w-md
+            overflow-hidden
+            rounded-2xl
+            border border-white/10
+            bg-[var(--bg-color)]
+            text-[var(--text-color)]
+            shadow-[0_25px_80px_rgba(0,0,0,0.45)]
+            animate-[fadeIn_.2s_ease-out]
+          "
         >
+          {/* Header */}
+          <div
+            className="
+              flex items-center justify-between
+              px-5 py-4
+              border-b border-white/10
+            "
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="
+                  flex items-center justify-center
+                  w-10 h-10
+                  rounded-xl
+                  bg-blue-500/10
+                  text-blue-500
+                "
+              >
+                <Pencil size={19} />
+              </div>
 
-          <textarea
-            value={editText}
-            onChange={(e) =>
-              setEditText(e.target.value)
-            }
-            className="border text-black no-scrollbar border-blue-600 outline-0 p-2 rounded-md my-3 w-full mb-2
-             scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
-          />
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold">
+                  Edit message
+                </h2>
 
-          <div className="flex justify-end gap-2">
+                <p className="text-xs opacity-50 mt-0.5">
+                  Make changes to your message
+                </p>
+              </div>
+            </div>
 
+            {/* Close */}
             <button
+              type="button"
               onClick={onClose}
-              className="bg-gray-800 px-3 py-1 rounded"
+              disabled={loading}
+              className="
+                flex items-center justify-center
+                w-9 h-9
+                rounded-full
+                opacity-60
+                hover:opacity-100
+                hover:bg-white/10
+                transition
+                disabled:opacity-30
+              "
             >
-              ✕
+              <X size={19} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="p-5">
+            <label className="block text-xs font-medium opacity-60 mb-2">
+              Your message
+            </label>
+
+            <div
+              className="
+                relative
+                rounded-xl
+                border border-white/10
+                bg-black/5
+                focus-within:border-blue-500/60
+                focus-within:ring-2
+                focus-within:ring-blue-500/10
+                transition
+              "
+            >
+              <textarea
+                autoFocus
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape" && !loading) {
+                    onClose();
+                  }
+
+                  if (
+                    e.key === "Enter" &&
+                    !e.shiftKey &&
+                    !loading
+                  ) {
+                    e.preventDefault();
+                    saveEdit();
+                  }
+                }}
+                disabled={loading}
+                rows={5}
+                placeholder="Write your message..."
+                className="
+                  w-full
+                  resize-none
+                  bg-transparent
+                  px-4 py-3
+                  text-sm
+                  outline-none
+                  placeholder:opacity-40
+                  scrollbar-thin
+                  scrollbar-thumb-white/20
+                  scrollbar-track-transparent
+                  disabled:opacity-50
+                "
+              />
+
+              {/* Character count */}
+              <div className="flex justify-end px-4 pb-2">
+                <span className="text-[10px] opacity-40">
+                  {editText.length} characters
+                </span>
+              </div>
+            </div>
+
+            {/* Hint */}
+            <p className="mt-2 text-[11px] opacity-40">
+              Press Enter to save · Shift + Enter for a new line
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div
+            className="
+              flex items-center justify-end
+              gap-2
+              px-5 py-4
+              border-t border-white/10
+              bg-black/5
+            "
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="
+                px-4
+                h-10
+                rounded-xl
+                text-sm
+                font-medium
+                opacity-70
+                hover:opacity-100
+                hover:bg-white/10
+                transition
+                disabled:opacity-30
+              "
+            >
+              Cancel
             </button>
 
-            <button onClick={saveEdit} className="bg-blue-500 text-white px-3 py-1 rounded">{
-          loading ?
-            <svg
-            className="animate-spin h-5 w-5 text-white mx-auto"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25 text-black"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            ></path>
-          </svg>
-                :
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-      </svg>
-
-          }
-          </button>
+            <button
+              type="button"
+              onClick={saveEdit}
+              disabled={loading || !editText.trim()}
+              className="
+                flex items-center justify-center
+                gap-2
+                min-w-[105px]
+                h-10
+                px-4
+                rounded-xl
+                bg-blue-500
+                hover:bg-blue-600
+                active:scale-[0.98]
+                text-white
+                text-sm
+                font-medium
+                shadow-lg
+                shadow-blue-500/20
+                transition-all
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+              "
+            >
+              {loading ? (
+                <>
+                  <Loader2
+                    size={17}
+                    className="animate-spin"
+                  />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Check size={17} />
+                  <span>Save changes</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
       <Toaster position="top-right" />
-    </div>
+    </>
   );
 }

@@ -52,7 +52,8 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         selectedReelIndex, selectedUserIndex,
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
-        message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated
+        message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
+        video, setVideo
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -994,7 +995,7 @@ useEffect(() => {
         <div className={`${visible === 1 ? 'block' : 'hidden'}`}>
         <ProfilePage chats={chats} handleVisible={handleVisible} user={user} setUser={setUser} 
         teachers={teachers} setTeachers={setTeachers} handleEdit={handleEdit} togglePopup={togglePopup}
-        image={image} setImage={setImage} onProfileCompleted={onProfileCompleted}
+        image={image} setImage={setImage} video={video} setVideo={setVideo} onProfileCompleted={onProfileCompleted}
         postComments={postComments} setPostComments={setPostComments} loading={loading}  commentsByPost={commentsByPost}
                     setCommentsByPost={setCommentsByPost}
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
