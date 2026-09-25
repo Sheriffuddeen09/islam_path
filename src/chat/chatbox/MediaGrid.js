@@ -19,14 +19,12 @@ export default function MediaGrid({
   const longPressTriggered = useRef(false);
 
   const remaining = total - 3;
- 
 
-  const hasDescriptions = files.some(
-    (file) =>
-      typeof file?.description === "string" &&
-      file.description.trim() !== ""
-  );
- 
+  /*
+  |--------------------------------------------------------------------------
+  | GET MEDIA URL
+  |--------------------------------------------------------------------------
+  */
 
   const getUrl = (f) => {
     if (!f) return null;
@@ -52,6 +50,13 @@ export default function MediaGrid({
       f.file_url.startsWith("http")
     ) {
       return f.file_url;
+    }
+
+    if (
+      typeof f.file === "string" &&
+      f.file.startsWith("http")
+    ) {
+      return f.file;
     }
 
     // Storage path
@@ -158,127 +163,83 @@ export default function MediaGrid({
 
   /*
   |--------------------------------------------------------------------------
-  | DESCRIPTION MODE
+  | SINGLE MESSAGE / SINGLE MEDIA
   |--------------------------------------------------------------------------
   |
-  | If at least ONE media has a description,
-  | don't use the grid.
+  | This is now also where a media description is displayed.
   |
-  | Every media stays together with its own description.
+  | Because the backend separates described media into individual
+  | messages, there should normally only be one file here.
   |
-  */
-
-  if (hasDescriptions) {
-    return (
-      <div className="flex flex-col gap-3 my-2 w-full">
-        {files.map((file, index) => {
-          const description =
-            typeof file?.description === "string"
-              ? file.description.trim()
-              : "";
-
-          return (
-            <div
-              key={file?.id ?? index}
-              className="
-                flex
-                flex-col
-                gap-1
-                w-fit
-                max-w-full
-              "
-            >
-              {/* MEDIA */}
-              <div
-                className={`
-                  rounded-xl
-                  overflow-hidden
-                  ${
-                    uiMode === "full"
-                      ? "w-64 h-44"
-                      : "w-56 h-44 lg:w-56 lg:h-44 md:w-96 md:h-64"
-                  }
-                `}
-              >
-                <MediaItem
-                  onLongPress={onLongPress}
-                  msg={msg}
-                  toggleSelect={toggleSelect}
-                  file={file}
-                  index={index}
-                  {...mediaProps}
-                />
-              </div>
-
-              {/* THIS MEDIA'S DESCRIPTION */}
-              {description !== "" && (
-                <div
-                  className={`
-                    text-[13px]
-                    lg:text-[13px]
-                    md:text-[16px]
-                    text-[var(--text-color)]
-                    break-words
-                    whitespace-pre-wrap
-                    ${
-                      uiMode === "full"
-                        ? "max-w-64"
-                        : "max-w-56 lg:max-w-56 md:max-w-96"
-                    }
-                  `}
-                >
-                  <Linkify
-                    options={{
-                      target: "_blank",
-                      className:
-                        "text-blue-400 pointer-events-auto hover:underline",
-                    }}
-                  >
-                    {description}
-                  </Linkify>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  /*
-  |--------------------------------------------------------------------------
-  | SINGLE FILE
-  |--------------------------------------------------------------------------
   */
 
   if (total === 1) {
+    const file = files[0];
+
+    const description =
+      typeof file?.description === "string"
+        ? file.description.trim()
+        : "";
+
     return (
-      <div
-        className={`
-          rounded-xl
-          overflow-hidden
-          ${
-            uiMode === "full"
-              ? "w-64 h-44"
-              : "w-56 h-44 lg:h-44 lg:w-56 md:w-96 md:h-64"
-          }
-        `}
-      >
-        <MediaItem
-          onLongPress={onLongPress}
-          msg={msg}
-          toggleSelect={toggleSelect}
-          file={files[0]}
-          index={0}
-          {...mediaProps}
-        />
+      <div className="flex flex-col gap-1 my-2 w-fit max-w-full">
+        {/* MEDIA */}
+        <div
+          className={`
+            rounded-xl
+            overflow-hidden
+            ${
+              uiMode === "full"
+                ? "w-64 h-44"
+                : "w-56 h-44 lg:h-44 lg:w-56 md:w-96 md:h-64"
+            }
+          `}
+        >
+          <MediaItem
+            onLongPress={onLongPress}
+            msg={msg}
+            toggleSelect={toggleSelect}
+            file={file}
+            index={0}
+            {...mediaProps}
+          />
+        </div>
+
+        {/* MEDIA DESCRIPTION */}
+        {description !== "" && (
+          <div
+            className={`
+              text-[13px]
+              lg:text-[13px]
+              md:text-[16px]
+              text-[var(--text-color)]
+              break-words
+              whitespace-pre-wrap
+              ${
+                uiMode === "full"
+                  ? "max-w-64"
+                  : "max-w-56 lg:max-w-56 md:max-w-96"
+              }
+            `}
+          >
+            <Linkify
+              options={{
+                target: "_blank",
+                className:
+                  "text-blue-400 pointer-events-auto hover:underline",
+              }}
+            >
+              {description}
+            </Linkify>
+          </div>
+        )}
       </div>
     );
   }
 
   /*
   |--------------------------------------------------------------------------
-  | TWO FILES - EXISTING GRID
+  | TWO FILES - GROUPED MESSAGE
   |--------------------------------------------------------------------------
   */
 
@@ -315,7 +276,7 @@ export default function MediaGrid({
 
   /*
   |--------------------------------------------------------------------------
-  | THREE OR MORE FILES - EXISTING GRID
+  | THREE OR MORE FILES - GROUPED MESSAGE
   |--------------------------------------------------------------------------
   */
 
@@ -355,51 +316,49 @@ export default function MediaGrid({
           }
         `}
       >
-        {files.slice(1, 3).map(
-          (file, i) => {
-            const realIndex = i + 1;
+        {files.slice(1, 3).map((file, i) => {
+          const realIndex = i + 1;
 
-            const isLast =
-              realIndex === 2 &&
-              total > 3;
+          const isLast =
+            realIndex === 2 &&
+            total > 3;
 
-            return (
-              <div
-                key={file?.id ?? realIndex}
-                className="relative"
-              >
-                <MediaItem
-                  onLongPress={onLongPress}
-                  msg={msg}
-                  toggleSelect={toggleSelect}
-                  file={file}
-                  index={realIndex}
-                  {...mediaProps}
-                />
+          return (
+            <div
+              key={file?.id ?? realIndex}
+              className="relative"
+            >
+              <MediaItem
+                onLongPress={onLongPress}
+                msg={msg}
+                toggleSelect={toggleSelect}
+                file={file}
+                index={realIndex}
+                {...mediaProps}
+              />
 
-                {isLast && (
-                  <div
-                    className="
-                      absolute
-                      inset-0
-                      pointer-events-none
-                      bg-black/60
-                      flex
-                      items-center
-                      justify-center
-                      text-white
-                      font-bold
-                      text-lg
-                    "
-                  >
-                    +{remaining}
-                  </div>
-                )}
-              </div>
-            );
-          }
-        )}
+              {isLast && (
+                <div
+                  className="
+                    absolute
+                    inset-0
+                    pointer-events-none
+                    bg-black/60
+                    flex
+                    items-center
+                    justify-center
+                    text-white
+                    font-bold
+                    text-lg
+                  "
+                >
+                  +{remaining}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
-} 
+}

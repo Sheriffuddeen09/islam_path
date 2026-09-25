@@ -466,150 +466,430 @@ const sendFile = async ({ descriptions = {} } = {}) => {
 
   const firstType = getType(files[0]);
 
+  /*
+  |--------------------------------------------------------------------------
+  | DO NOT ALLOW MIXED TYPES
+  |--------------------------------------------------------------------------
+  */
+
   const allSameType = files.every(
     (file) => getType(file) === firstType
   );
 
   if (!allSameType) {
-    showToast("You cannot mix images, videos, and documents");
+    showToast(
+      "You cannot mix images, videos, and documents"
+    );
     return;
   }
 
-  // IMPORTANT:
-  // Keep a copy of descriptions for this send.
-  const descriptionsToSend = { ...descriptions };
+  /*
+  |--------------------------------------------------------------------------
+  | COPY EVERYTHING NEEDED FOR THIS SEND
+  |--------------------------------------------------------------------------
+  |
+  | Do this before clearing the preview state.
+  |
+  */
 
-  const filesWithMeta = await Promise.all(
-    files.map(async (file, i) => {
-      const type = getType(file);
+  const filesToSend = [...files];
 
-      let duration = null;
+  const descriptionsToSend = {
+    ...descriptions,
+  };
 
-      if (type === "audio") {
-        duration = await getAudioDuration(file);
-      }
+  const croppedImagesToSend = {
+    ...croppedImages,
+  };
 
-      const preview = croppedImages[i]
-        ? URL.createObjectURL(croppedImages[i])
-        : previewUrls[i];
+  const trimMapToSend = {
+    ...trimMap,
+  };
 
-      return {
-        file: preview,
-        file_url: preview,
-        file_name: file.name,
-        type,
-        duration,
+  const previewUrlsToSend = [
+    ...previewUrls,
+  ];
 
-        description:
-          descriptionsToSend?.[i] || "",
-      };
-    })
+  const captionToSend = caption;
+
+  const originalCaptionToSend =
+    originalCaption;
+
+  /*
+  |--------------------------------------------------------------------------
+  | DETERMINE IF THIS SHOULD BE A GROUP
+  |--------------------------------------------------------------------------
+  |
+  | GROUP:
+  |   More than one image/video
+  |   AND no media has a description.
+  |
+  | INDIVIDUAL:
+  |   Any media has a description.
+  |
+  */
+
+  const hasDescription = filesToSend.some(
+    (_, index) =>
+      typeof descriptionsToSend?.[index] ===
+        "string" &&
+      descriptionsToSend[index].trim() !== ""
   );
 
-  const tempMessage = {
-    id: tempId,
-    type: firstType,
-    sender_id: authUser.id,
-    sender: authUser,
-    status: "sending",
-    files: filesWithMeta,
-    originalFiles: files,
-    message: caption,
-    replied_to: reply || null,
-    created_at: new Date().toISOString(),
-  };
+  const onlyImagesAndVideos =
+    filesToSend.every((file) => {
+      const type = getType(file);
+
+      return (
+        type === "image" ||
+        type === "video"
+      );
+    });
+
+  const shouldGroup =
+    filesToSend.length > 1 &&
+    onlyImagesAndVideos &&
+    !hasDescription;
+
+  /*
+  |--------------------------------------------------------------------------
+  | CREATE LOCAL PREVIEW DATA
+  |--------------------------------------------------------------------------
+  */
+
+  const filesWithMeta =
+    await Promise.all(
+      filesToSend.map(async (file, i) => {
+        const type = getType(file);
+
+        let duration = null;
+
+        if (type === "audio") {
+          duration =
+            await getAudioDuration(file);
+        }
+
+        const preview =
+          croppedImagesToSend[i]
+            ? URL.createObjectURL(
+                croppedImagesToSend[i]
+              )
+            : previewUrlsToSend[i];
+
+        return {
+          file: preview,
+          file_url: preview,
+          file_name: file.name,
+          type,
+          duration,
+
+          description:
+            descriptionsToSend?.[i] || "",
+        };
+      })
+    );
+
+  /*
+  |--------------------------------------------------------------------------
+  | OPTIMISTIC MESSAGES
+  |--------------------------------------------------------------------------
+  |
+  | If grouped:
+  |
+  |   ONE temporary message
+  |   files = [file1, file2, file3]
+  |
+  | If there is a description:
+  |
+  |   SEPARATE temporary messages
+  |   [file1]
+  |   [file2]
+  |   [file3]
+  |
+  */
+
+  let tempMessages = [];
+
+  if (shouldGroup) {
+
+    tempMessages = [
+      {
+        id: tempId,
+
+        type: firstType,
+
+        sender_id:
+          authUser.id,
+
+        sender:
+          authUser,
+
+        status:
+          "sending",
+
+        files:
+          filesWithMeta,
+
+        originalFiles:
+          filesToSend,
+
+        message:
+          captionToSend,
+
+        replied_to:
+          reply || null,
+
+        created_at:
+          new Date().toISOString(),
+
+        group_id:
+          `temp_${tempId}`,
+      },
+    ];
+
+  } else {
+
+    tempMessages =
+      filesWithMeta.map(
+        (file, index) => {
+
+          return {
+            id:
+              `${tempId}_${index}`,
+
+            type:
+              file.type,
+
+            sender_id:
+              authUser.id,
+
+            sender:
+              authUser,
+
+            status:
+              "sending",
+
+            files: [
+              file,
+            ],
+
+            originalFiles: [
+              filesToSend[index],
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | CAPTION
+            |--------------------------------------------------------------------------
+            |
+            | Keep the chat caption on the first
+            | individual message only.
+            |
+            */
+
+            message:
+              index === 0
+                ? captionToSend
+                : "",
+
+            replied_to:
+              index === 0
+                ? reply || null
+                : null,
+
+            created_at:
+              new Date().toISOString(),
+
+            group_id:
+              null,
+          };
+        }
+      );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | ADD OPTIMISTIC MESSAGES
+  |--------------------------------------------------------------------------
+  */
 
   setMessages((prev) => [
     ...prev,
-    tempMessage,
+    ...tempMessages,
   ]);
 
-  // Clear the preview UI
-  setShowPreview(false);
-  setFiles([]);
-  setPreviewUrls([]);
-  setCaption("");
-  setCroppedImages({});
-  setCropAppliedMap(false);
-  setCrop({ x: 0, y: 0 });
-  setZoomMap({});
-  setCroppedAreaPixels(null);
-  setSelected([]);
-  setTrimMap({});
-  setDurationMap({});
-  setTrimAppliedMap({});
+  /*
+  |--------------------------------------------------------------------------
+  | BUILD FORM DATA
+  |--------------------------------------------------------------------------
+  */
 
-  const form = new FormData();
+  const form =
+    new FormData();
 
-  form.append("chat_id", chatId);
+  form.append(
+    "chat_id",
+    chatId
+  );
 
-  files.forEach((file, i) => {
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
+  filesToSend.forEach(
+    (file, i) => {
 
-    if (isImage && croppedImages[i]) {
+      const isImage =
+        file.type.startsWith(
+          "image/"
+        );
+
+      const isVideo =
+        file.type.startsWith(
+          "video/"
+        );
+
+      /*
+      |--------------------------------------------------------------------------
+      | FILE
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        isImage &&
+        croppedImagesToSend[i]
+      ) {
+
+        form.append(
+          "files[]",
+          croppedImagesToSend[i],
+          file.name
+        );
+
+      } else {
+
+        form.append(
+          "files[]",
+          file,
+          file.name
+        );
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | DESCRIPTION
+      |--------------------------------------------------------------------------
+      */
+
       form.append(
-        "files[]",
-        croppedImages[i],
-        file.name
+        "descriptions[]",
+        descriptionsToSend?.[i] || ""
       );
-    } else {
+
+      /*
+      |--------------------------------------------------------------------------
+      | TRIM
+      |--------------------------------------------------------------------------
+      */
+
+      if (isVideo) {
+
+        const trim =
+          trimMapToSend[i] || {
+            start: 0,
+            end: 0,
+          };
+
+        form.append(
+          "trim_start[]",
+          trim.start
+        );
+
+        form.append(
+          "trim_end[]",
+          trim.end
+        );
+
+      } else {
+
+        form.append(
+          "trim_start[]",
+          0
+        );
+
+        form.append(
+          "trim_end[]",
+          0
+        );
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | TYPE
+      |--------------------------------------------------------------------------
+      */
+
       form.append(
-        "files[]",
-        file,
-        file.name
+        "types[]",
+        getType(file)
       );
     }
+  );
 
-    // IMPORTANT
-    form.append(
-      "descriptions[]",
-      descriptionsToSend?.[i] || ""
-    );
-
-    if (isVideo) {
-      const trim = trimMap[i] || {
-        start: 0,
-        end: 0,
-      };
-
-      form.append(
-        "trim_start[]",
-        trim.start
-      );
-
-      form.append(
-        "trim_end[]",
-        trim.end
-      );
-    } else {
-      form.append("trim_start[]", 0);
-      form.append("trim_end[]", 0);
-    }
-
-    form.append(
-      "types[]",
-      getType(file)
-    );
-  });
+  /*
+  |--------------------------------------------------------------------------
+  | ENCRYPT CAPTION
+  |--------------------------------------------------------------------------
+  */
 
   if (
-    originalCaption &&
-    originalCaption.trim() !== ""
+    originalCaptionToSend &&
+    originalCaptionToSend.trim() !== ""
   ) {
-    const chatKey = localStorage.getItem(
-      `chat_key_${chatId}`
-    );
+
+    const chatKey =
+      localStorage.getItem(
+        `chat_key_${chatId}`
+      );
 
     if (!chatKey) {
-      showToast("Encryption key missing");
+
+      showToast(
+        "Encryption key missing"
+      );
+
+      /*
+      |----------------------------------------------------------------------
+      | Mark optimistic messages failed
+      |----------------------------------------------------------------------
+      */
+
+      setMessages((prev) =>
+        prev.map((m) => {
+
+          const isTemp =
+            m.id === tempId ||
+            (
+              typeof m.id === "string" &&
+              m.id.startsWith(
+                `${tempId}_`
+              )
+            );
+
+          return isTemp
+            ? {
+                ...m,
+                status:
+                  "failed",
+              }
+            : m;
+        })
+      );
+
       return;
     }
 
-    const encrypted = await encryptMessage(
-      originalCaption,
-      chatKey
-    );
+    const encrypted =
+      await encryptMessage(
+        originalCaptionToSend,
+        chatKey
+      );
 
     form.append(
       "message",
@@ -620,38 +900,73 @@ const sendFile = async ({ descriptions = {} } = {}) => {
       "iv",
       encrypted.iv
     );
+
   } else {
-    form.append("message", "");
-    form.append("iv", "");
+
+    form.append(
+      "message",
+      ""
+    );
+
+    form.append(
+      "iv",
+      ""
+    );
   }
 
-  if (reply?.id && !isNaN(reply.id)) {
+  /*
+  |--------------------------------------------------------------------------
+  | REPLY
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    reply?.id &&
+    !isNaN(reply.id)
+  ) {
+
     form.append(
       "replied_to",
       reply.id
     );
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | SEND TO SERVER
+  |--------------------------------------------------------------------------
+  */
+
   try {
-    const res = await api.post(
-      "/api/messages",
-      form,
-      {
-        headers: {
-          "Content-Type":
-            "multipart/form-data",
-        },
-      }
-    );
+
+    const res =
+      await api.post(
+        "/api/messages",
+        form,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
 
     const serverMessages =
       res.data.messages || [];
 
-    if (!serverMessages.length) {
+    if (
+      !serverMessages.length
+    ) {
       throw new Error(
         "No messages returned from server."
       );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DECRYPT RESPONSE
+    |--------------------------------------------------------------------------
+    */
 
     const chatKey =
       localStorage.getItem(
@@ -662,22 +977,33 @@ const sendFile = async ({ descriptions = {} } = {}) => {
       await Promise.all(
         serverMessages.map(
           async (msg) => {
+
             let decryptedMessage =
               msg.message;
+
+            /*
+            |--------------------------------------------------------------------------
+            | DECRYPT MESSAGE
+            |--------------------------------------------------------------------------
+            */
 
             if (
               msg.message &&
               msg.iv &&
               chatKey
             ) {
+
               try {
+
                 decryptedMessage =
                   await decryptMessage(
                     msg.message,
                     msg.iv,
                     chatKey
                   );
+
               } catch (err) {
+
                 console.log(
                   "Immediate decrypt failed",
                   err
@@ -685,38 +1011,66 @@ const sendFile = async ({ descriptions = {} } = {}) => {
               }
             }
 
-            let normalizedFiles = [];
+            /*
+            |--------------------------------------------------------------------------
+            | NORMALIZE FILES
+            |--------------------------------------------------------------------------
+            */
+
+            let normalizedFiles =
+              [];
 
             if (
-              Array.isArray(msg.files) &&
+              Array.isArray(
+                msg.files
+              ) &&
               msg.files.length
             ) {
+
               normalizedFiles =
                 msg.files.map(
                   (file) => ({
                     ...file,
+
                     description:
                       file.description ||
                       "",
                   })
                 );
-            } else if (msg.file_url) {
+
+            } else if (
+              msg.file_url
+            ) {
+
               normalizedFiles = [
                 {
+                  id:
+                    msg.id,
+
                   file_url:
                     msg.file_url,
+
                   file_name:
                     msg.file_name,
+
                   type:
                     msg.type,
+
                   duration:
                     msg.duration,
+
                   description:
                     msg.description ||
                     "",
                 },
               ];
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | RETURN NORMALIZED MESSAGE
+            |--------------------------------------------------------------------------
+            */
 
             return {
               ...msg,
@@ -732,30 +1086,71 @@ const sendFile = async ({ descriptions = {} } = {}) => {
                   msg.is_forwarded
                 ),
 
-              replied_to: reply
-                ? {
-                    id: reply.id,
-                    message:
-                      reply.message,
-                    type: reply.type,
-                    sender:
-                      reply.sender,
-                  }
-                : msg.replied_to ||
-                  msg.replyTo ||
-                  null,
+              replied_to:
+                reply
+                  ? {
+                      id:
+                        reply.id,
 
-              status: "sent",
+                      message:
+                        reply.message,
+
+                      type:
+                        reply.type,
+
+                      sender:
+                        reply.sender,
+                    }
+                  : msg.replied_to ||
+                    msg.replyTo ||
+                    null,
+
+              status:
+                "sent",
             };
           }
         )
       );
 
+    /*
+    |--------------------------------------------------------------------------
+    | REMOVE OPTIMISTIC MESSAGES
+    |--------------------------------------------------------------------------
+    |
+    | This handles both:
+    |
+    | tempId
+    |
+    | and
+    |
+    | tempId_0
+    | tempId_1
+    | tempId_2
+    |
+    */
+
     setMessages((prev) => {
+
       const filtered =
-        prev.filter(
-          (m) => m.id !== tempId
-        );
+        prev.filter((m) => {
+
+          if (
+            m.id === tempId
+          ) {
+            return false;
+          }
+
+          if (
+            typeof m.id === "string" &&
+            m.id.startsWith(
+              `${tempId}_`
+            )
+          ) {
+            return false;
+          }
+
+          return true;
+        });
 
       return [
         ...filtered,
@@ -763,11 +1158,20 @@ const sendFile = async ({ descriptions = {} } = {}) => {
       ];
     });
 
-    // IMPORTANT:
-    // Clear the REAL description state
-    // after successful sending.
+    /*
+    |--------------------------------------------------------------------------
+    | CLEAR DESCRIPTION STATE
+    |--------------------------------------------------------------------------
+    */
+
     setDescriptions({});
     setActiveIndex(0);
+
+    /*
+    |--------------------------------------------------------------------------
+    | SCROLL TO BOTTOM
+    |--------------------------------------------------------------------------
+    */
 
     requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({
@@ -777,6 +1181,7 @@ const sendFile = async ({ descriptions = {} } = {}) => {
     });
 
   } catch (err) {
+
     console.error(
       "SEND FILE ERROR:",
       err
@@ -789,23 +1194,58 @@ const sendFile = async ({ descriptions = {} } = {}) => {
 
     showToast(message);
 
+    /*
+    |--------------------------------------------------------------------------
+    | MARK ALL TEMP MESSAGES FAILED
+    |--------------------------------------------------------------------------
+    */
+
     setMessages((prev) =>
-      prev.map((m) =>
-        m.id === tempId
+      prev.map((m) => {
+
+        const isTemp =
+          m.id === tempId ||
+          (
+            typeof m.id === "string" &&
+            m.id.startsWith(
+              `${tempId}_`
+            )
+          );
+
+        return isTemp
           ? {
               ...m,
-              status: "failed",
+              status:
+                "failed",
             }
-          : m
-      )
+          : m;
+      })
     );
   }
+ 
 
-  if (fileInputRef.current) {
-    fileInputRef.current.value = "";
+  if (
+    fileInputRef.current
+  ) {
+    fileInputRef.current.value =
+      "";
   }
-};
+ 
 
+  setShowPreview(false);
+  setFiles([]);
+  setPreviewUrls([]);
+  setCaption("");
+  setCroppedImages({});
+  setCropAppliedMap(false);
+  setCrop({ x: 0, y: 0 });
+  setZoomMap({});
+  setCroppedAreaPixels(null);
+  setSelected([]);
+  setTrimMap({});
+  setDurationMap({});
+  setTrimAppliedMap({});
+};
 
     
     
