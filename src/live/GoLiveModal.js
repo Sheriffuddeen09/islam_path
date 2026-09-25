@@ -161,26 +161,7 @@ export default function GoLiveModal({
                                 </div>
 
                             </div>
-
-                            <button
-                                type="button"
-                                disabled={startingLive}
-                                onClick={() => setShowLiveModal(false)}
-                                className="
-                                    flex h-9 w-9
-                                    items-center justify-center
-                                    rounded-full
-                                    transition
-                                    hover:bg-black/5
-                                    dark:hover:bg-white/10
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-40
-                                "
-                                aria-label="Close"
-                            >
-                                <X size={20} />
-                            </button>
-
+ 
                         </div>
 
                     </div>

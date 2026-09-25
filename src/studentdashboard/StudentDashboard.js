@@ -494,7 +494,7 @@ const fetchNotification = async () => {
 
 
                <li
-                onClick={() => handleVisible(5)}
+                onClick={() => {handleVisible(5);  handleOpenModel(); }}
                 className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
                   visible === 5
                     ? "bg-gray-500 text-white"
@@ -694,7 +694,7 @@ const fetchNotification = async () => {
                     </li>
 
                      <li
-                    onClick={() => handleVisible(5)}
+                    onClick={() => {handleVisible(5);  handleOpenModel(); }}
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
                       visible === 5
                         ? "bg-gray-500 text-white"

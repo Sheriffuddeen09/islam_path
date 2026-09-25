@@ -1281,7 +1281,7 @@ const handleMessageTouchCancel = () => {
     <div className={`flex flex-row items-start ${
         isMine ? "justify-end" : "justify-start"
       }
-       ${selectedMessages.includes(msg.id) ? "bg-green-200 p-2 cursor-pointer" : ""}
+       ${selectedMessages.includes(msg.id) ? "bg-green-200 px-2 cursor-pointer" : ""}
       `}
       onClick={(e) => {
           e.stopPropagation();
@@ -1303,7 +1303,7 @@ const handleMessageTouchCancel = () => {
       >
       {isGroup && !isMine && (
           <div
-            className={`flex items-center mb-1 `}
+            className={`flex items-center`}
           >
             <div
               className={`

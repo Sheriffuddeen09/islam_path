@@ -583,7 +583,7 @@ useEffect(() => {
             </li>
 
              <li
-                    onClick={() => handleVisible(20)}
+                    onClick={() => {handleVisible(20);  handleOpenModel(); } }
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
                       visible === 20
                         ? "bg-gray-500 text-white"
@@ -857,7 +857,7 @@ useEffect(() => {
             </li>
 
             <li
-                    onClick={() => handleVisible(20)}
+                    onClick={() =>{ handleVisible(20);  handleOpenModel(); } }
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
                       visible === 20
                         ? "bg-gray-500 text-white"
