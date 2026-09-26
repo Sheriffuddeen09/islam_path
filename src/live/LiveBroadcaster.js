@@ -28,71 +28,35 @@ export default function LiveBroadcaster({
     post,
     onEnded,
 }) {
-    /*
-    |--------------------------------------------------------------------------
-    | Refs
-    |--------------------------------------------------------------------------
-    */
-
+     
     const videoRef = useRef(null);
     const roomRef = useRef(null);
 
     const controlsTimerRef = useRef(null);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Connection state
-    |--------------------------------------------------------------------------
-    */
 
     const [connected, setConnected] = useState(false);
     const [connecting, setConnecting] = useState(true);
     const [cameraLoading, setCameraLoading] = useState(true);
 
     const [connectionError, setConnectionError] = useState(null);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Live state
-    |--------------------------------------------------------------------------
-    */
+ 
 
     const [ending, setEnding] = useState(false);
     const [ended, setEnded] = useState(false);
 
     const [showEndModal, setShowEndModal] = useState(false);
 
-    const [viewerCount, setViewerCount] = useState(
-        post?.live_viewers_count || 0
-    );
-
     const [liveDuration, setLiveDuration] = useState(0);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Device state
-    |--------------------------------------------------------------------------
-    */
-
+ 
     const [micEnabled, setMicEnabled] = useState(true);
     const [cameraEnabled, setCameraEnabled] = useState(true);
 
     const [cameraPosition, setCameraPosition] = useState("user");
-
-    /*
-    |--------------------------------------------------------------------------
-    | Controls visibility
-    |--------------------------------------------------------------------------
-    */
+ 
 
     const [showControls, setShowControls] = useState(true);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Format duration
-    |--------------------------------------------------------------------------
-    */
+ 
 
     const formatDuration = (totalSeconds) => {
         const minutes = Math.floor(totalSeconds / 60);
@@ -104,11 +68,8 @@ export default function LiveBroadcaster({
     };
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Show controls
-    |--------------------------------------------------------------------------
-    */
+
+
 
     const showVideoControls = () => {
         setShowControls(true);
@@ -199,7 +160,7 @@ export default function LiveBroadcaster({
                 setEnded(false);
 
                 console.log(
-                    "Connecting to LiveKit..."
+                    "Connecting to LiveKit"
                 );
 
                 console.log(
@@ -326,7 +287,7 @@ export default function LiveBroadcaster({
                 */
 
                 console.log(
-                    "Requesting camera and microphone..."
+                    "Requesting camera and microphone"
                 );
 
                 const tracks =
@@ -401,7 +362,7 @@ export default function LiveBroadcaster({
 
 
                         console.log(
-                            "Attaching camera..."
+                            "Attaching camera"
                         );
 
 
@@ -551,7 +512,7 @@ export default function LiveBroadcaster({
 
             if (currentRoom) {
                 console.log(
-                    "Cleaning up LiveKit room..."
+                    "Cleaning up LiveKit room"
                 );
 
 
@@ -1140,7 +1101,7 @@ export default function LiveBroadcaster({
                                             text-white/80
                                         "
                                     >
-                                        Starting camera...
+                                        Starting camera
                                     </span>
                                 </div>
                             </div>
@@ -1195,13 +1156,6 @@ export default function LiveBroadcaster({
                     </div>
                 )}
 
-
-                {/*
-                |--------------------------------------------------------------------------
-                | Gradient
-                |--------------------------------------------------------------------------
-                */}
-
                 <div
                     className="
                         absolute
@@ -1215,13 +1169,6 @@ export default function LiveBroadcaster({
                 />
 
             </div>
-
-
-            {/*
-            |--------------------------------------------------------------------------
-            | Top bar
-            |--------------------------------------------------------------------------
-            */}
 
             <div
                 className={`
@@ -1259,13 +1206,6 @@ export default function LiveBroadcaster({
                             gap-3
                         "
                     >
-
-                        {/*
-                        |--------------------------------------------------------------------------
-                        | Avatar
-                        |--------------------------------------------------------------------------
-                        */}
-
                         <div
                             className="
                                 h-10
@@ -1360,25 +1300,6 @@ export default function LiveBroadcaster({
 
                                     LIVE
                                 </span>
-
-
-                                <span className="text-white/30">
-                                    •
-                                </span>
-
-
-                                <span
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-1
-                                    "
-                                >
-                                    <Users size={12} />
-
-                                    {viewerCount}
-                                </span>
-
 
                                 <span className="text-white/30">
                                     •
@@ -1483,7 +1404,7 @@ export default function LiveBroadcaster({
                                 text-white/80
                             "
                         >
-                            Connecting to live video...
+                            Connecting to live video
                         </div>
 
                     </div>
@@ -1990,36 +1911,8 @@ export default function LiveBroadcaster({
 
                             </div>
 
-
-                            <div
-                                className="
-                                    mt-3
-                                    flex
-                                    items-center
-                                    justify-between
-                                    text-sm
-                                "
-                            >
-
-                                <span className="text-white/50">
-                                    Viewers
-                                </span>
-
-                                <span className="font-semibold">
-                                    {viewerCount}
-                                </span>
-
-                            </div>
-
                         </div>
-
-
-                        {/*
-                        |--------------------------------------------------------------------------
-                        | Modal buttons
-                        |--------------------------------------------------------------------------
-                        */}
-
+ 
                         <div
                             className="
                                 mt-6
@@ -2082,7 +1975,7 @@ export default function LiveBroadcaster({
                                             "
                                         />
 
-                                        Ending...
+                                        Ending
                                     </>
                                 ) : (
                                     <>
