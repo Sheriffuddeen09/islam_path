@@ -106,23 +106,10 @@ export default function LiveViewer({ post }) {
                 setWatching(false);
                 setHasVideo(false);
 
-                const response = await api.post(
-                        `/api/live/${post.id}/view`
-                    );
+                
 
                 if (cancelled || !mountedRef.current) {
                     return;
-                }
-
-                const live = response.data?.live;
-
-                const token = live?.token;
-                const serverUrl = live?.server_url;
-
-                if (!token || !serverUrl) {
-                    throw new Error(
-                        "Live video information is unavailable."
-                    );
                 }
 
                 const room = new Room({
@@ -131,12 +118,7 @@ export default function LiveViewer({ post }) {
                 });
 
                 roomRef.current = room;
-
-                /*
-                |--------------------------------------------------------------------------
-                | Video track subscribed
-                |--------------------------------------------------------------------------
-                */
+ 
 
                 room.on(
                     RoomEvent.TrackSubscribed,
@@ -249,8 +231,6 @@ export default function LiveViewer({ post }) {
                 */
 
                 await room.connect(
-                    serverUrl,
-                    token,
                     {
                         autoSubscribe: true,
                     }
