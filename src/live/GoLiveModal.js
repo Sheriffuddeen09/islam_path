@@ -201,7 +201,7 @@ export default function GoLiveModal({
                                 You're about to go live
                             </p>
 
-                            <p className="mt-0.5 text-xs leading-5 opacity-60">
+                            <p className="mt-0.5 text-xs leading-5">
                                 Add a short description so people know
                                 what your live stream is about.
                             </p>
@@ -283,7 +283,7 @@ export default function GoLiveModal({
                             mt-4
                             flex items-center gap-2
                             text-[11px]
-                            opacity-50
+                            
                         "
                     >
                         <ShieldCheck size={15} />

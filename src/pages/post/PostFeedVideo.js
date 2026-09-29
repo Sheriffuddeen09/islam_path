@@ -6,7 +6,10 @@ import React, {
 } from "react";
 
 import api from "../../Api/axios";
+
 import PostCardVideo from "./PostCardVideo";
+import ProductFeedBlock from "./ProductFeedBlock";
+
 import SidebarLeft from "../homepageComponent/SideBarLeft";
 import SidebarRight from "../homepageComponent/SidebarRight";
 
@@ -77,215 +80,211 @@ export default function PostFeedVideo({
     setReaction,
     reaction,
     setShowOptions,
-    showOptions, video, setVideo
+    showOptions,
+    video,
+    setVideo,
 }) {
+     
+
     const [feedLoading, setFeedLoading] = useState(false);
     const [feedRefreshing, setFeedRefreshing] = useState(false);
     const [feedLoaded, setFeedLoaded] = useState(false);
+ 
+    const [feedProducts, setFeedProducts] = useState([]);
+
+     
     const [feedEnded, setFeedEnded] = useState(false);
+
+     
 
     const lastVideoRef = useRef(null);
 
-  
-    const fetchPosts = useCallback(async (isRefresh = false) => {
-        if (isRefresh) {
-            setFeedRefreshing(true);
-        } else {
-            setFeedLoading(true);
-        }
+     
 
-        setFeedEnded(false);
+    const fetchPosts = useCallback(
+        async (isRefresh = false) => {
+            if (isRefresh) {
+                setFeedRefreshing(true);
+            } else {
+                setFeedLoading(true);
+            }
 
-        try {
-            const res = await api.get("/api/posts-get");
-
-            const responsePosts = Array.isArray(res.data?.posts)
-                ? res.data.posts
-                : [];
-
-            const onlyVideoPosts = responsePosts.filter((post) => {
-                const hasVideo = Array.isArray(post?.media)
-                    ? post.media.some(
-                          (media) => media?.type === "video"
-                      )
-                    : false;
-
-                const hasNoContent =
-                    !post?.content ||
-                    post.content.trim() === "";
-
-                return hasVideo && hasNoContent;
-            });
-
-            setPosts(onlyVideoPosts);
-            setFeedLoaded(true);
-
+            
             setFeedEnded(false);
-        } catch (error) {
-            console.error("VIDEO FEED ERROR:", error);
 
-            setPosts([]);
-            setFeedLoaded(true);
-            setFeedEnded(false);
-        } finally {
-            setFeedLoading(false);
-            setFeedRefreshing(false);
-        }
-    }, [setPosts]);
+            try {
+                const res = await api.get("/api/posts-get", {
+                    params: isRefresh
+                        ? { refresh: 1 }
+                        : {},
+                });
 
-    
+                
+
+                const responsePosts = Array.isArray(
+                    res.data?.posts
+                )
+                    ? res.data.posts
+                    : [];
+
+                
+
+                const products = Array.isArray(
+                    res.data?.products
+                )
+                    ? res.data.products
+                    : [];
+
+                setFeedProducts(products);
+ 
+
+                const videoPosts = responsePosts.filter(
+                    (post) => {
+                        const hasVideo =
+                            Array.isArray(post?.media) &&
+                            post.media.some(
+                                (media) =>
+                                    media?.type === "video"
+                            );
+
+                        return hasVideo;
+                    }
+                );
+
+                
+
+                setPosts(videoPosts);
+
+                setFeedLoaded(true);
+
+                 
+                setFeedEnded(false);
+            } catch (error) {
+                console.error(
+                    "VIDEO FEED ERROR:",
+                    error
+                );
+
+                
+                setFeedLoaded(true);
+            } finally {
+                setFeedLoading(false);
+                setFeedRefreshing(false);
+            }
+        },
+        [setPosts]
+    );
+ 
+
     useEffect(() => {
-        fetchPosts();
+        fetchPosts(false);
     }, [fetchPosts]);
 
-        useEffect(() => {
-            if (!feedLoaded || posts.length <= 10) {
-                setFeedEnded(false);
-                return;
-            }
+     
 
-            const lastVideo = lastVideoRef.current;
+    useEffect(() => {
+        if (
+            !feedLoaded ||
+            !posts ||
+            posts.length <= 10
+        ) {
+            setFeedEnded(false);
+            return;
+        }
 
-            if (!lastVideo) {
-                return;
-            }
+        const lastVideo =
+            lastVideoRef.current;
 
-            const observer = new IntersectionObserver(
-                (entries) => {
-                    const entry = entries[0];
+        if (!lastVideo) {
+            return;
+        }
 
+        const observer =
+            new IntersectionObserver(
+                ([entry]) => {
                     if (entry.isIntersecting) {
+                        console.log(
+                            "LAST VIDEO REACHED:",
+                            posts.length
+                        );
+
                         setFeedEnded(true);
                     }
                 },
                 {
                     threshold: 0.2,
+                    root: null,
+                    rootMargin:
+                        "0px 0px 200px 0px",
                 }
             );
 
-            observer.observe(lastVideo);
+        observer.observe(lastVideo);
 
-            return () => {
-                observer.disconnect();
-            };
-        }, [posts, feedLoaded]);
+        return () => {
+            observer.disconnect();
+        };
+    }, [posts, feedLoaded]);
+
+    
 
     const handleRefresh = async () => {
-        if (feedRefreshing || feedLoading) {
+        if (
+            feedRefreshing ||
+            feedLoading
+        ) {
             return;
         }
+ 
+        setFeedEnded(false);
 
         await fetchPosts(true);
 
+        
         window.scrollTo({
             top: 0,
             behavior: "smooth",
         });
     };
+ 
 
-        const renderFeedEnd = () => {
-            // Only show the refresh section when there are MORE than 10 videos
-            if (
-                !feedLoaded ||
-                posts.length <= 10 ||
-                !feedEnded
-            ) {
-                return null;
-            }
+      if (feedLoading) {
+            return <FeedSkeleton />;
+        }
 
-            return (
-                <div className="w-full flex flex-col items-center justify-center py-10 px-4">
-                    <p className="text-sm sm:text-base text-center mb-4">
-                        No More Video Available
-                    </p>
-
-                    <button
-                        type="button"
-                        onClick={handleRefresh}
-                        disabled={feedRefreshing}
-                        className="
-                            min-w-[160px]
-                            px-5
-                            py-2.5
-                            rounded-lg
-                            bg-green-600
-                            hover:bg-green-700
-                            text-white
-                            font-semibold
-                            transition
-                            disabled:opacity-50
-                            disabled:cursor-not-allowed
-                            flex
-                            items-center
-                            justify-center
-                            gap-2
-                        "
-                    >
-                        {feedRefreshing ? (
-                            <>
-                                <svg
-                                    className="animate-spin h-5 w-5"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    />
-
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="
-                                            M4 12
-                                            a8 8 0 018-8
-                                            v4
-                                            a4 4 0 00-4 4
-                                            H4z
-                                        "
-                                    />
-                                </svg>
-
-                                Refreshing
-                            </>
-                        ) : (
-                            <>
-                                <span className="text-xl leading-none">
-                                    ↻
-                                </span>
-
-                                Refresh Videos
-                            </>
-                        )}
-                    </button>
-                </div>
-            );
-        };
-
-    const renderNoVideos = () => {
-        if (!feedLoaded || posts.length > 0) {
+    const renderFeedEnd = () => {
+        if (
+            !feedLoaded ||
+            !posts ||
+            posts.length <= 10 ||
+            !feedEnded
+        ) {
             return null;
         }
 
         return (
-            <div className="
-                w-full
-                flex
-                flex-col
-                justify-center
-                items-center
-                text-center
-                py-20
-                px-4
-            ">
-                <p className="text-xl font-bold">
-                    No Video Available
+            <div
+                className="
+                    w-full
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    py-10
+                    px-4
+                "
+            >
+                <p
+                    className="
+                        text-sm
+                        sm:text-base
+                        text-center
+                        mb-4
+                    "
+                >
+                    No More Video Available
                 </p>
+
                 <button
                     type="button"
                     onClick={handleRefresh}
@@ -306,13 +305,16 @@ export default function PostFeedVideo({
                         items-center
                         justify-center
                         gap-2
-                        mt-4
                     "
                 >
                     {feedRefreshing ? (
                         <>
                             <svg
-                                className="animate-spin h-5 w-5"
+                                className="
+                                    animate-spin
+                                    h-5
+                                    w-5
+                                "
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -343,7 +345,12 @@ export default function PostFeedVideo({
                         </>
                     ) : (
                         <>
-                            <span className="text-xl leading-none">
+                            <span
+                                className="
+                                    text-xl
+                                    leading-none
+                                "
+                            >
                                 ↻
                             </span>
 
@@ -354,16 +361,201 @@ export default function PostFeedVideo({
             </div>
         );
     };
+ 
 
-    if (feedLoading) {
-        return <FeedSkeleton />;
-    }
+    const renderNoVideos = () => {
+        if (
+            !feedLoaded ||
+            posts?.length > 0
+        ) {
+            return null;
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Large screen
-    |--------------------------------------------------------------------------
-    */
+        return (
+            <div
+                className="
+                    w-full
+                    flex
+                    flex-col
+                    justify-center
+                    items-center
+                    text-center
+                    py-20
+                    px-4
+                "
+            >
+                <p className="text-xl font-bold">
+                    No Video Available
+                </p>
+
+                <button
+                    type="button"
+                    onClick={handleRefresh}
+                    disabled={feedRefreshing}
+                    className="
+                        min-w-[160px]
+                        px-5
+                        py-2.5
+                        rounded-lg
+                        bg-green-600
+                        hover:bg-green-700
+                        text-white
+                        font-semibold
+                        transition
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                        mt-4
+                    "
+                >
+                    {feedRefreshing ? (
+                        <>
+                            <svg
+                                className="
+                                    animate-spin
+                                    h-5
+                                    w-5
+                                "
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="
+                                        M4 12
+                                        a8 8 0 018-8
+                                        v4
+                                        a4 4 0 00-4 4
+                                        H4z
+                                    "
+                                />
+                            </svg>
+
+                            Refreshing
+                        </>
+                    ) : (
+                        <>
+                            <span
+                                className="
+                                    text-xl
+                                    leading-none
+                                "
+                            >
+                                ↻
+                            </span>
+
+                            Refresh Videos
+                        </>
+                    )}
+                </button>
+            </div>
+        );
+    };
+ 
+
+    const videoCardProps = (post) => ({
+        post,
+        setPosts,
+
+        image,
+        setImage,
+
+        video,
+        setVideo,
+ 
+        showUsersPopup,
+        setShowUsersPopup,
+
+        newComment,
+        setNewComment,
+
+        showEmoji,
+        setShowEmoji,
+
+        emojiList,
+        setEmojiList,
+
+        postComments,
+        setPostComments,
+
+        loading,
+        setLoading,
+
+        messageOpen,
+        setMessageOpen,
+
+        commentsByPost,
+        setCommentsByPost,
+
+        reelUsers,
+        openUserReels,
+
+        chats,
+        setChats,
+
+        sending,
+        setSending,
+
+        closeViewer,
+        nextReel,
+        previousReel,
+
+        selectedReel,
+        selectedUser,
+
+        markReelViewed,
+
+        open,
+        setOpen,
+
+        openReport,
+        setOpenReport,
+
+        showImagePicker,
+        setShowImagePicker,
+
+        messageOpenShare,
+        setMessageOpenShare,
+
+        shares,
+        setShares,
+
+        setMyReels,
+        setReelUsers,
+
+        selectedReelIndex,
+        selectedUserIndex,
+
+        setMediaIndex,
+        mediaIndex,
+
+        setProgress,
+        progress,
+
+        setMessage,
+        message,
+
+        setReaction,
+        reaction,
+
+        setShowOptions,
+        showOptions,
+    });
+ 
     const largeScreen = (
         <div className="block md:hidden lg:block">
             <div
@@ -379,7 +571,6 @@ export default function PostFeedVideo({
                     text-[var(--text-color)]
                 "
             >
-                {/* Sidebar */}
                 <SidebarLeft
                     handleVideoClick={handleVideoClick}
                     videoCount={videoCount}
@@ -388,13 +579,17 @@ export default function PostFeedVideo({
                     fetchJobProfile={fetchJobProfile}
                     show={show}
                     setShow={setShow}
-                    showAdvertisement={showAdvertisement}
-                    setShowAdvertisement={setShowAdvertisement}
+                    showAdvertisement={
+                        showAdvertisement
+                    }
+                    setShowAdvertisement={
+                        setShowAdvertisement
+                    }
                     showJobCreate={showJobCreate}
-                    setShowJobCreate={setShowJobCreate}
+                    setShowJobCreate={
+                        setShowJobCreate
+                    }
                 />
-
-                {renderNoVideos()}
 
                 <div
                     className="
@@ -409,135 +604,60 @@ export default function PostFeedVideo({
                         items-center
                     "
                 >
-                    {posts.map((post, index) => {
-                        const isLastPost =
-                            index === posts.length - 1;
+                    {renderNoVideos()}
 
-                        return (
-                            <div
-                                key={post.id}
-                                ref={
-                                    isLastPost
-                                        ? lastVideoRef
-                                        : null
-                                }
-                                className="w-full flex justify-center"
-                            >
-                                <PostCardVideo
-                                    post={post}
-                                    setPosts={setPosts}
-                                    image={image}
-                                    setImage={setImage} video={video} setVideo={setVideo}
-                                    showUsersPopup={showUsersPopup}
-                                    setShowUsersPopup={
-                                        setShowUsersPopup
-                                    }
-                                    newComment={newComment}
-                                    setNewComment={setNewComment}
-                                    showEmoji={showEmoji}
-                                    setShowEmoji={setShowEmoji}
-                                    emojiList={emojiList}
-                                    setEmojiList={setEmojiList}
-                                    postComments={postComments}
-                                    setPostComments={
-                                        setPostComments
-                                    }
-                                    loading={loading}
-                                    setLoading={setLoading}
-                                    messageOpen={messageOpen}
-                                    commentsByPost={
-                                        commentsByPost
-                                    }
-                                    reelUsers={reelUsers}
-                                    openUserReels={
-                                        openUserReels
-                                    }
-                                    setCommentsByPost={
-                                        setCommentsByPost
-                                    }
-                                    setMessageOpen={
-                                        setMessageOpen
-                                    }
-                                    chats={chats}
-                                    setChats={setChats}
-                                    sending={sending}
-                                    setSending={setSending}
-                                    closeViewer={closeViewer}
-                                    nextReel={nextReel}
-                                    previousReel={
-                                        previousReel
-                                    }
-                                    selectedReel={
-                                        selectedReel
-                                    }
-                                    selectedUser={
-                                        selectedUser
-                                    }
-                                    markReelViewed={
-                                        markReelViewed
-                                    }
-                                    open={open}
-                                    setOpen={setOpen}
-                                    openReport={openReport}
-                                    setOpenReport={
-                                        setOpenReport
-                                    }
-                                    showImagePicker={
-                                        showImagePicker
-                                    }
-                                    setShowImagePicker={
-                                        setShowImagePicker
-                                    }
-                                    messageOpenShare={
-                                        messageOpenShare
-                                    }
-                                    setMessageOpenShare={
-                                        setMessageOpenShare
-                                    }
-                                    shares={shares}
-                                    setShares={setShares}
-                                    setMyReels={setMyReels}
-                                    setReelUsers={
-                                        setReelUsers
-                                    }
-                                    selectedReelIndex={
-                                        selectedReelIndex
-                                    }
-                                    selectedUserIndex={
-                                        selectedUserIndex
-                                    }
-                                    setMediaIndex={
-                                        setMediaIndex
-                                    }
-                                    mediaIndex={mediaIndex}
-                                    setProgress={
-                                        setProgress
-                                    }
-                                    progress={progress}
-                                    setMessage={setMessage}
-                                    message={message}
-                                    setReaction={
-                                        setReaction
-                                    }
-                                    reaction={reaction}
-                                    setShowOptions={
-                                        setShowOptions
-                                    }
-                                    showOptions={
-                                        showOptions
-                                    }
-                                />
-                            </div>
-                        );
-                    })}
+                    {posts.map(
+                        (post, index) => {
+                            const isLastPost =
+                                index ===
+                                posts.length - 1;
+
+                            return (
+                                <React.Fragment
+                                    key={post.id}
+                                >
+                                    <div
+                                        ref={
+                                            isLastPost
+                                                ? lastVideoRef
+                                                : null
+                                        }
+                                        className="
+                                            w-full
+                                            flex
+                                            justify-center
+                                        "
+                                    >
+                                        <PostCardVideo
+                                            {...videoCardProps(
+                                                post
+                                            )}
+                                        />
+                                    </div>
+ 
+                                    {index === 9 &&
+                                        feedProducts.length >
+                                            0 && (
+                                            <ProductFeedBlock
+                                                products={
+                                                    feedProducts
+                                                }
+                                            />
+                                        )}
+                                </React.Fragment>
+                            );
+                        }
+                    )}
 
                     {renderFeedEnd()}
                 </div>
+
+                <SidebarRight />
             </div>
         </div>
     );
+ 
 
-   
     const ipadScreen = (
         <div className="md:block lg:hidden hidden">
             <div
@@ -553,8 +673,6 @@ export default function PostFeedVideo({
             >
                 <SidebarRight />
 
-                {renderNoVideos()}
-
                 <div
                     className="
                         flex-1
@@ -569,143 +687,59 @@ export default function PostFeedVideo({
                         items-end
                     "
                 >
-                    {posts.map((post, index) => {
-                        const isLastPost =
-                            index === posts.length - 1;
+                    {renderNoVideos()}
 
-                        return (
-                            <div
-                                key={post.id}
-                                ref={
-                                    isLastPost
-                                        ? lastVideoRef
-                                        : null
-                                }
-                                className="w-full flex justify-end"
-                            >
-                                <PostCardVideo
-                                    post={post}
-                                    setPosts={setPosts}
-                                    image={image}
-                                    setImage={setImage} video={video} setVideo={setVideo}
-                                    showUsersPopup={
-                                        showUsersPopup
-                                    }
-                                    setShowUsersPopup={
-                                        setShowUsersPopup
-                                    }
-                                    newComment={newComment}
-                                    setNewComment={
-                                        setNewComment
-                                    }
-                                    showEmoji={showEmoji}
-                                    setShowEmoji={
-                                        setShowEmoji
-                                    }
-                                    emojiList={emojiList}
-                                    setEmojiList={
-                                        setEmojiList
-                                    }
-                                    commentsByPost={
-                                        commentsByPost
-                                    }
-                                    reelUsers={reelUsers}
-                                    openUserReels={
-                                        openUserReels
-                                    }
-                                    setCommentsByPost={
-                                        setCommentsByPost
-                                    }
-                                    postComments={postComments}
-                                    setPostComments={
-                                        setPostComments
-                                    }
-                                    loading={loading}
-                                    setLoading={setLoading}
-                                    sendReeling={sending}
-                                    setSendReeling={
-                                        setSending
-                                    }
-                                    closeViewer={closeViewer}
-                                    nextReel={nextReel}
-                                    previousReel={
-                                        previousReel
-                                    }
-                                    selectedReel={
-                                        selectedReel
-                                    }
-                                    selectedUser={
-                                        selectedUser
-                                    }
-                                    markReelViewed={
-                                        markReelViewed
-                                    }
-                                    open={open}
-                                    setOpen={setOpen}
-                                    openReport={openReport}
-                                    setOpenReport={
-                                        setOpenReport
-                                    }
-                                    showImagePicker={
-                                        showImagePicker
-                                    }
-                                    setShowImagePicker={
-                                        setShowImagePicker
-                                    }
-                                    messageOpenShared={
-                                        messageOpenShare
-                                    }
-                                    setMessageOpenShared={
-                                        setMessageOpenShare
-                                    }
-                                    shareds={shares}
-                                    setShareds={setShares}
-                                    setMyReels={setMyReels}
-                                    setReelUsers={
-                                        setReelUsers
-                                    }
-                                    selectedReelIndex={
-                                        selectedReelIndex
-                                    }
-                                    selectedUserIndex={
-                                        selectedUserIndex
-                                    }
-                                    setMediaIndex={
-                                        setMediaIndex
-                                    }
-                                    mediaIndex={mediaIndex}
-                                    setProgress={
-                                        setProgress
-                                    }
-                                    progress={progress}
-                                    setMessage={setMessage}
-                                    message={message}
-                                    setReaction={
-                                        setReaction
-                                    }
-                                    reaction={reaction}
-                                    setShowOptions={
-                                        setShowOptions
-                                    }
-                                    showOptions={
-                                        showOptions
-                                    }
-                                />
-                            </div>
-                        );
-                    })}
+                    {posts.map(
+                        (post, index) => {
+                            const isLastPost =
+                                index ===
+                                posts.length - 1;
+
+                            return (
+                                <React.Fragment
+                                    key={post.id}
+                                >
+                                    <div
+                                        ref={
+                                            isLastPost
+                                                ? lastVideoRef
+                                                : null
+                                        }
+                                        className="
+                                            w-full
+                                            flex
+                                            justify-end
+                                        "
+                                    >
+                                        <PostCardVideo
+                                            {...videoCardProps(
+                                                post
+                                            )}
+                                        />
+                                    </div>
+ 
+
+                                    {index === 9 &&
+                                        feedProducts.length >
+                                            0 && (
+                                            <ProductFeedBlock
+                                                products={
+                                                    feedProducts
+                                                }
+                                            />
+                                        )}
+                                </React.Fragment>
+                            );
+                        }
+                    )}
 
                     {renderFeedEnd()}
                 </div>
             </div>
         </div>
     );
+ 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Return
-    |--------------------------------------------------------------------------
-    */
     return (
         <div>
             {largeScreen}
@@ -713,6 +747,7 @@ export default function PostFeedVideo({
         </div>
     );
 }
+   
 
 const FeedSkeleton = () => {
     return (

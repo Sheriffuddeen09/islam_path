@@ -4,8 +4,10 @@ import {
     RoomEvent,
     Track,
 } from "livekit-client";
+
 import api from "../Api/axios";
 import { toast } from "react-hot-toast";
+
 import {
     Volume2,
     VolumeX,
@@ -13,9 +15,11 @@ import {
 } from "lucide-react";
 
 export default function LiveViewer({ post }) {
+
     const containerRef = useRef(null);
     const videoRef = useRef(null);
     const roomRef = useRef(null);
+
     const mountedRef = useRef(false);
 
     const [isVisible, setIsVisible] = useState(false);
@@ -26,17 +30,19 @@ export default function LiveViewer({ post }) {
 
     /*
     |--------------------------------------------------------------------------
-    | Intersection Observer /join
+    | Intersection Observer
     |--------------------------------------------------------------------------
     */
 
     useEffect(() => {
+
         const element = containerRef.current;
 
         if (!element) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
+
                 const entry = entries[0];
 
                 setIsVisible(entry.isIntersecting);
@@ -51,49 +57,79 @@ export default function LiveViewer({ post }) {
         return () => {
             observer.disconnect();
         };
+
     }, []);
 
     /*
     |--------------------------------------------------------------------------
-    | Join / Leave LiveKit room
+    | Disconnect
+    |--------------------------------------------------------------------------
+    */
+
+    const disconnectRoom = () => {
+
+        const room = roomRef.current;
+
+        if (!room) return;
+
+        try {
+
+            room.remoteParticipants.forEach(
+                (participant) => {
+
+                    participant.trackPublications.forEach(
+                        (publication) => {
+
+                            if (publication.track) {
+                                try {
+                                    publication.track.detach();
+                                } catch (e) {}
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+            room.disconnect();
+
+        } catch (error) {
+
+            console.error(
+                "LiveKit disconnect error:",
+                error
+            );
+        }
+
+        roomRef.current = null;
+
+        if (mountedRef.current) {
+            setWatching(false);
+            setHasVideo(false);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Join LiveKit
     |--------------------------------------------------------------------------
     */
 
     useEffect(() => {
+
         mountedRef.current = true;
 
         let cancelled = false;
 
-        const disconnectRoom = () => {
-            const room = roomRef.current;
-
-            if (!room) return;
-
-            try {
-                room.remoteParticipants.forEach((participant) => {
-                    participant.trackPublications.forEach((publication) => {
-                        if (publication.track) {
-                            publication.track.detach();
-                        }
-                    });
-                });
-
-                room.disconnect();
-            } catch (error) {
-                console.error("LiveKit disconnect error:", error);
-            }
-
-            roomRef.current = null;
-
-            if (mountedRef.current) {
-                setWatching(false);
-                setHasVideo(false);
-            }
-        };
-
         const joinLive = async () => {
+
             if (!isVisible) {
                 disconnectRoom();
+                return;
+            }
+
+            if (!post?.id) {
                 return;
             }
 
@@ -102,15 +138,55 @@ export default function LiveViewer({ post }) {
             }
 
             try {
+
                 setConnecting(true);
                 setWatching(false);
                 setHasVideo(false);
 
-                
+                /*
+                |--------------------------------------------------------------------------
+                | Get viewer token
+                |--------------------------------------------------------------------------
+                */
 
-                if (cancelled || !mountedRef.current) {
+                const tokenResponse = await api.get(
+                    `/api/live/${post.id}/viewer-token`
+                );
+
+                if (
+                    cancelled ||
+                    !mountedRef.current
+                ) {
                     return;
                 }
+
+                const liveData =
+                    tokenResponse.data;
+
+                if (
+                    !liveData?.token ||
+                    !liveData?.server_url
+                ) {
+                    throw new Error(
+                        "Live video connection information is missing."
+                    );
+                }
+
+                console.log(
+                    "LiveKit viewer connection:",
+                    {
+                        server_url:
+                            liveData.server_url,
+                        room_name:
+                            liveData.room_name,
+                    }
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Create room
+                |--------------------------------------------------------------------------
+                */
 
                 const room = new Room({
                     adaptiveStream: true,
@@ -118,48 +194,94 @@ export default function LiveViewer({ post }) {
                 });
 
                 roomRef.current = room;
- 
+
+                /*
+                |--------------------------------------------------------------------------
+                | Track subscribed
+                |--------------------------------------------------------------------------
+                */
 
                 room.on(
                     RoomEvent.TrackSubscribed,
-                    (track, publication, participant) => {
+                    (
+                        track,
+                        publication,
+                        participant
+                    ) => {
+
                         console.log(
-                            "Live video subscribed:",
-                            participant.identity,
-                            track.kind
+                            "LiveKit track subscribed:",
+                            {
+                                identity:
+                                    participant.identity,
+                                kind:
+                                    track.kind,
+                                source:
+                                    publication.source,
+                            }
                         );
 
                         if (
-                            track.kind !== Track.Kind.Video ||
+                            track.kind !==
+                            Track.Kind.Video
+                        ) {
+                            return;
+                        }
+
+                        if (
                             !videoRef.current
                         ) {
                             return;
                         }
 
-                        track.attach(videoRef.current);
+                        try {
+                            track.attach(
+                                videoRef.current
+                            );
+                        } catch (error) {
 
-                        const video = videoRef.current;
+                            console.error(
+                                "Unable to attach live video:",
+                                error
+                            );
 
-                        video.muted = true;
+                            return;
+                        }
+
+                        const video =
+                            videoRef.current;
+
+                        video.muted = muted;
                         video.playsInline = true;
                         video.autoplay = true;
 
                         video
                             .play()
                             .then(() => {
-                                if (!mountedRef.current) return;
+
+                                if (
+                                    !mountedRef.current
+                                ) {
+                                    return;
+                                }
 
                                 setHasVideo(true);
                                 setWatching(true);
                                 setConnecting(false);
+
                             })
                             .catch((error) => {
-                                console.log(
-                                    "Video autoplay waiting:",
+
+                                console.warn(
+                                    "Live video play waiting:",
                                     error
                                 );
 
-                                if (!mountedRef.current) return;
+                                if (
+                                    !mountedRef.current
+                                ) {
+                                    return;
+                                }
 
                                 setHasVideo(true);
                                 setWatching(true);
@@ -177,10 +299,19 @@ export default function LiveViewer({ post }) {
                 room.on(
                     RoomEvent.TrackUnsubscribed,
                     (track) => {
-                        if (track.kind === Track.Kind.Video) {
-                            track.detach();
 
-                            if (mountedRef.current) {
+                        if (
+                            track.kind ===
+                            Track.Kind.Video
+                        ) {
+
+                            try {
+                                track.detach();
+                            } catch (e) {}
+
+                            if (
+                                mountedRef.current
+                            ) {
                                 setHasVideo(false);
                             }
                         }
@@ -196,12 +327,15 @@ export default function LiveViewer({ post }) {
                 room.on(
                     RoomEvent.ParticipantDisconnected,
                     (participant) => {
+
                         console.log(
                             "Live participant disconnected:",
                             participant.identity
                         );
 
-                        if (mountedRef.current) {
+                        if (
+                            mountedRef.current
+                        ) {
                             setHasVideo(false);
                             setWatching(false);
                         }
@@ -217,7 +351,12 @@ export default function LiveViewer({ post }) {
                 room.on(
                     RoomEvent.Disconnected,
                     () => {
-                        if (!mountedRef.current) return;
+
+                        if (
+                            !mountedRef.current
+                        ) {
+                            return;
+                        }
 
                         setWatching(false);
                         setHasVideo(false);
@@ -226,11 +365,24 @@ export default function LiveViewer({ post }) {
 
                 /*
                 |--------------------------------------------------------------------------
-                | Connect
+                | CONNECT
                 |--------------------------------------------------------------------------
+                |
+                | IMPORTANT:
+                |
+                | LiveKit requires:
+                |
+                | room.connect(
+                |     serverUrl,
+                |     token,
+                |     options
+                | )
+                |
                 */
 
                 await room.connect(
+                    liveData.server_url,
+                    liveData.token,
                     {
                         autoSubscribe: true,
                     }
@@ -240,61 +392,93 @@ export default function LiveViewer({ post }) {
                     cancelled ||
                     !mountedRef.current
                 ) {
+
                     room.disconnect();
                     roomRef.current = null;
+
                     return;
                 }
 
+                console.log(
+                    "Connected to LiveKit room:",
+                    room.name
+                );
+
                 /*
                 |--------------------------------------------------------------------------
-                | Check already subscribed tracks
+                | Check existing subscribed tracks
                 |--------------------------------------------------------------------------
                 */
 
+                let foundVideo = false;
+
                 room.remoteParticipants.forEach(
                     (participant) => {
+
                         participant.trackPublications.forEach(
                             (publication) => {
+
                                 if (
                                     publication.isSubscribed &&
                                     publication.track &&
                                     publication.track.kind ===
-                                        Track.Kind.Video &&
-                                    videoRef.current
+                                        Track.Kind.Video
                                 ) {
+
+                                    foundVideo = true;
+
                                     const track =
                                         publication.track;
 
-                                    track.attach(
+                                    if (
                                         videoRef.current
-                                    );
+                                    ) {
 
-                                    videoRef.current.muted = true;
+                                        try {
+                                            track.attach(
+                                                videoRef.current
+                                            );
+                                        } catch (error) {
+                                            console.error(
+                                                "Existing track attach failed:",
+                                                error
+                                            );
+                                        }
 
-                                    videoRef.current
-                                        .play()
-                                        .catch(() => {});
+                                        videoRef.current.muted =
+                                            muted;
 
-                                    setHasVideo(true);
-                                    setWatching(true);
-                                    setConnecting(false);
+                                        videoRef.current.playsInline =
+                                            true;
+
+                                        videoRef.current
+                                            .play()
+                                            .catch(() => {});
+                                    }
                                 }
                             }
                         );
                     }
                 );
 
-                /*
-                |--------------------------------------------------------------------------
-                | If connected but no video yet, keep loading
-                |--------------------------------------------------------------------------
-                */
+                if (foundVideo) {
 
-                if (mountedRef.current && !hasVideo) {
+                    setHasVideo(true);
+                    setWatching(true);
+                    setConnecting(false);
+
+                } else {
+
+                    /*
+                     * Stay connected while waiting
+                     * for broadcaster video.
+                     */
+
                     setConnecting(false);
                 }
 
             } catch (error) {
+
                 console.error(
                     "LiveKit connection error:",
                     error
@@ -312,87 +496,75 @@ export default function LiveViewer({ post }) {
                 setHasVideo(false);
 
                 toast.error(
-                    error.response?.data?.message ||
-                    error.message ||
+                    error?.response?.data?.message ||
+                    error?.message ||
                     "Unable to join live video."
                 );
             }
         };
 
-        if (isVisible) {
-            joinLive();
-        } else {
-            disconnectRoom();
-        }
+        joinLive();
 
         return () => {
+
             cancelled = true;
+
             disconnectRoom();
         };
-    }, [isVisible, post?.id]);
+
+    }, [
+        isVisible,
+        post?.id,
+    ]);
 
     /*
     |--------------------------------------------------------------------------
-    | Cleanup when component disappears
+    | Cleanup
     |--------------------------------------------------------------------------
     */
 
     useEffect(() => {
+
         return () => {
+
             mountedRef.current = false;
 
-            const room = roomRef.current;
-
-            if (room) {
-                try {
-                    room.remoteParticipants.forEach(
-                        (participant) => {
-                            participant.trackPublications.forEach(
-                                (publication) => {
-                                    if (publication.track) {
-                                        publication.track.detach();
-                                    }
-                                }
-                            );
-                        }
-                    );
-
-                    room.disconnect();
-                } catch (error) {
-                    console.error(
-                        "LiveViewer cleanup error:",
-                        error
-                    );
-                }
-
-                roomRef.current = null;
-            }
+            disconnectRoom();
         };
+
     }, []);
 
     /*
     |--------------------------------------------------------------------------
-    | Mute / Unmute
+    | Mute
     |--------------------------------------------------------------------------
     */
 
     const toggleMute = () => {
-        const video = videoRef.current;
+
+        const video =
+            videoRef.current;
 
         if (!video) return;
 
-        video.muted = !video.muted;
+        const nextMuted =
+            !video.muted;
 
-        setMuted(video.muted);
+        video.muted =
+            nextMuted;
 
-        if (!video.muted) {
+        setMuted(
+            nextMuted
+        );
+
+        if (!nextMuted) {
             video.play().catch(() => {});
         }
     };
 
     /*
     |--------------------------------------------------------------------------
-    | If post is no longer live
+    | Don't render if no longer live
     |--------------------------------------------------------------------------
     */
 
@@ -416,8 +588,6 @@ export default function LiveViewer({ post }) {
             "
         >
 
-            {/* VIDEO */}
-
             <video
                 ref={videoRef}
                 autoPlay
@@ -433,7 +603,7 @@ export default function LiveViewer({ post }) {
                 "
             />
 
-            {/* LIVE BADGE */}
+            {/* LIVE */}
 
             <div
                 className="
@@ -454,6 +624,7 @@ export default function LiveViewer({ post }) {
                     shadow-lg
                 "
             >
+
                 <span
                     className="
                         w-2
@@ -465,8 +636,10 @@ export default function LiveViewer({ post }) {
                 />
 
                 LIVE
+
             </div>
 
+            {/* LOADING */}
 
             {(!hasVideo || connecting) && (
                 <div
@@ -481,6 +654,7 @@ export default function LiveViewer({ post }) {
                         text-white
                     "
                 >
+
                     <div
                         className="
                             flex
@@ -489,6 +663,7 @@ export default function LiveViewer({ post }) {
                             gap-3
                         "
                     >
+
                         <Loader2
                             size={32}
                             className="animate-spin"
@@ -496,14 +671,16 @@ export default function LiveViewer({ post }) {
 
                         <span className="text-sm">
                             {connecting
-                                ? "Connecting to live..."
-                                : "Waiting for live video..."}
+                                ? "Connecting to live"
+                                : "Waiting for live video"}
                         </span>
+
                     </div>
+
                 </div>
             )}
 
-            {/* MUTE BUTTON */}
+            {/* MUTE */}
 
             {hasVideo && watching && (
                 <button
@@ -526,11 +703,6 @@ export default function LiveViewer({ post }) {
                         hover:bg-black/80
                         transition
                     "
-                    aria-label={
-                        muted
-                            ? "Unmute live"
-                            : "Mute live"
-                    }
                 >
                     {muted ? (
                         <VolumeX size={18} />

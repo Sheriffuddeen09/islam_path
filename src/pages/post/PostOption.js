@@ -8,7 +8,7 @@ import { MessageCircle, X, Check, Send } from "lucide-react";
 import { toast } from "react-toastify";
 
 
-export default function PostOptions({ post,  chats }) {
+export default function PostOptions({ post,  chats, setPosts }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [openReport, setOpenReport] = useState(false)
@@ -100,8 +100,10 @@ const downloadSingleImage = async (img) => {
 
 
   const handleSaveToLibrary = async () => {
-    try {
+    if (loading === "save") return false;
       setLoading("save");
+
+    try {
       await api.post(`/api/post/${post.id}/save-to-library`);
       toast.success("Saved to your library!", "success");
     } catch (err) {
@@ -189,6 +191,45 @@ const shareToChat = async (chatId) => {
 const handleReport = () =>{
   setOpenReport(!openReport)
 }
+
+
+const handleHidePost = async (postId) => {
+  if (loading === "hide") return false;
+
+  setLoading("hide");
+
+  try {
+    await api.post(`/api/posts/${postId}/hide`);
+
+    toast.success(
+      post?.is_advertisement === true
+        ? "Ad hidden successfully"
+        : "Post hidden successfully"
+    );
+
+    // If you remove the post from the feed here
+    setPosts((prev) =>
+      prev.filter((item) => item.id !== postId)
+    );
+
+    return true;
+
+  } catch (error) {
+    console.error("Failed to hide:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+      "Failed to hide"
+    );
+
+    return false;
+
+  } finally {
+    setLoading(null);
+  }
+};
+
+
   return (
     <div className=" bg-[var(--bg-color)] text-[var(--text-color)] inline-block text-left">
       <button
@@ -272,11 +313,50 @@ const handleReport = () =>{
               {/* )} */}
 
             <li>
-              <button onClick={() => {handleOption(); handleSaveToLibrary()}} disabled={loading === "save"} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
+              <button 
+              onClick={async () => {
+                  const success = await handleSaveToLibrary();
+
+                  if (success) {
+                    handleOption();
+                  }
+                }}
+               disabled={loading === "save"} className="flex items-center gap-2
+               disabled:cursor-not-allowed
+                disabled:opacity-70
+                disabled:active:scale-100
+               font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >
-                {loading === "save" ? "Saving..." : "Save to Library"}
+                {loading === "save" ? "Saving to Library" : "Save to Library"}
               </button>
             </li>
+
+           <li>
+              <button
+                onClick={async () => {
+                  const success = await handleHidePost(post.id);
+
+                  if (success) {
+                    handleOption();
+                  }
+                }}
+                disabled={loading === "hide"}
+                className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2
+                disabled:cursor-not-allowed
+                disabled:opacity-70
+                disabled:active:scale-100
+                hover:text-white hover:bg-gray-700 rounded"
+              >
+                {loading === "hide"
+                  ? post?.is_advertisement === true
+                    ? "Hiding Ad..."
+                    : "Hiding Post..."
+                  : post?.is_advertisement === true
+                    ? "Hide Ad"
+                    : "Hide Post"}
+              </button>
+            </li>
+
             <li>
               <button onClick={() => {handleOption(); handleCopyLink()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >

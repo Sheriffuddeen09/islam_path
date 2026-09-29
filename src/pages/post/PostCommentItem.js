@@ -10,6 +10,7 @@ import Linkify from "linkify-react";
 import { Pencil, X, Check, } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
 import PostCommentVideo from "./PostCommentVideo";
+import toast from "react-hot-toast";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
@@ -37,7 +38,80 @@ export default function PostCommentItem({image, setIsDeleting, setIsEdit, isEdit
 
   const [showCommentMenu, setShowCommentMenu] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
+
+  const [translatedComments, setTranslatedComments] = useState({});
+  const [translatingComments, setTranslatingComments] = useState({});
+  const [commentLanguages, setCommentLanguages] = useState({});
   const replyInputRef = useRef(null);
+
+
+  
+  const handleTranslateComment = async (commentId, text) => {
+    const translationKey =
+      `comment-${commentId}`;
+  
+    try {
+      setTranslatingComments(prev => ({
+        ...prev,
+        [translationKey]: true,
+      }));
+  
+      const response = await api.post(
+        "/api/translate",
+        {
+          text,
+          target_language: "English",
+        }
+      );
+  
+      if (!response.data?.success) {
+        throw new Error(
+          response.data?.message ||
+          "Translation failed."
+        );
+      }
+  
+      // Save detected language
+      setCommentLanguages(prev => ({
+        ...prev,
+        [translationKey]:
+          response.data.language,
+      }));
+  
+      /*
+       * English doesn't need translation.
+       */
+      if (response.data.is_english) {
+        return;
+      }
+  
+      // Save translated comment
+      setTranslatedComments(prev => ({
+        ...prev,
+        [translationKey]:
+          response.data.translation,
+      }));
+  
+    } catch (error) {
+      console.error(
+        "Comment translation error:",
+        error
+      );
+  
+      toast.error(
+        error.response?.data?.message ||
+        "Unable to translate comment."
+      );
+  
+    } finally {
+      setTranslatingComments(prev => ({
+        ...prev,
+        [translationKey]: false,
+      }));
+    }
+  };
+
+
 
   const focusReplyInput = () => {
     setTimeout(() => replyInputRef.current?.focus(), 0);
@@ -443,54 +517,120 @@ const navigate = useNavigate()
       </div>
 
       {comment.body && (() => {
-      const words = comment.body.trim().split(/\s+/);
-      const isLongComment = words.length > 20;
-      const displayedText = isLongComment
-        ? words.slice(0, 20).join(" ") + "..."
-        : comment.body;
+        const words = comment.body.trim().split(/\s+/);
+        const isLongComment = words.length > 20;
 
-  return (
-    <div>
-      <p
-        className="
-          text-sm
-          text-black
-          max-w-full
-          whitespace-normal
-          break-words
-          overflow-wrap-anywhere
-        "
-      >
-        <Linkify
-          options={{
-            target: "_blank",
-            rel: "noopener noreferrer",
-            className:
-              "text-blue-600 underline break-all"
-          }}
-        >
-          {displayedText}
-        </Linkify>
-      </p>
+        const translationKey = `comment-${comment.id}`;
 
-      {isLongComment && (
-        <button
-          type="button"
-          onClick={() => handleReplyToggle()}
-          className="
-            mt-1
-            text-sm
-            font-medium
-            text-blue-600
-            hover:underline
-          "
-        >
-          Show more
-        </button>
-      )}
-    </div>
-  );
-})()}
+        const translatedText =
+          translatedComments?.[translationKey];
+
+        const isTranslating =
+          translatingComments?.[translationKey];
+
+        const displayedText = translatedText
+          ? translatedText
+          : isLongComment
+            ? words.slice(0, 20).join(" ") + "..."
+            : comment.body;
+
+        return (
+          <div>
+            <p
+              className="
+                text-sm
+                text-black
+                max-w-full
+                whitespace-normal
+                break-words
+                overflow-wrap-anywhere
+              "
+            >
+              <Linkify
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className:
+                    "text-blue-600 underline break-all",
+                }}
+              >
+                {displayedText}
+              </Linkify>
+            </p>
+
+            {/* Translate */}
+            {!translatedText && (
+              <button
+                type="button"
+                onClick={() =>
+                  handleTranslateComment(
+                    comment.id,
+                    comment.body
+                  )
+                }
+                disabled={isTranslating}
+                className="
+                  mt-1
+                  text-xs
+                  font-medium
+                  text-blue-600
+                  hover:underline
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
+              >
+                {isTranslating
+                  ? "Translating..."
+                  : "Translate"}
+              </button>
+            )}
+
+            {/* Show original */}
+            {translatedText && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTranslatedComments(prev => {
+                    const updated = {
+                      ...prev,
+                    };
+
+                    delete updated[translationKey];
+
+                    return updated;
+                  });
+                }}
+                className="
+                  mt-1
+                  text-xs
+                  font-medium
+                  text-blue-600
+                  hover:underline
+                "
+              >
+                Show original
+              </button>
+            )}
+
+            {/* Show more */}
+            {isLongComment && !translatedText && (
+              <button
+                type="button"
+                onClick={() => handleReplyToggle()}
+                className="
+                  mt-1
+                  text-sm
+                  font-medium
+                  text-blue-600
+                  hover:underline
+                "
+              >
+                Show more
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Image */}
       {comment.image && (

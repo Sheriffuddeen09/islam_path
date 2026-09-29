@@ -12,6 +12,7 @@ import { MessageCircle, X, Check, Send } from "lucide-react";
 import { Repost } from "./Repost";
 import EmojiPicker from "emoji-picker-react";
 import ReelViewerModal from "../reel/ReelViewerModal";
+import LiveViewer from "../../live/LiveViewer";
 
 
 
@@ -86,8 +87,9 @@ useEffect(() => {
     }, 5000);
   };
 
-  const navigate = useNavigate();
-  const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
+    const [currentPost, setCurrentPost] = useState(post);
+
+    const reactionList = ["❤️", "👍", "😂", "😮", "😢", "🔥"];
 
   
     const toggleReaction = async (emoji) => {
@@ -414,15 +416,6 @@ const openVideoPreview = (video, post) => {
 
 
 
-      const handleHidePost = async (postId) => {
-        try {
-          await api.post(`/api/posts/${postId}/hide`);
-          toast.success("Post removed");
-          setPosts(prev => prev.filter(p => p.id !== postId));
-        } catch (err) {
-          console.error(err);
-        }
-      };
 
       const shareUrl = `${window.location.origin}/post/${post?.id}`;
 
@@ -458,6 +451,163 @@ const openVideoPreview = (video, post) => {
         await api.post(`/api/post/${post.id}/share`);
       };
 
+
+      const handleLiveEnded = async (endedPost) => {
+          if (!endedPost?.id) {
+              return;
+          }
+      
+          /*
+          |--------------------------------------------------------------------------
+          | Immediately change from LIVE state
+          |--------------------------------------------------------------------------
+          */
+      
+          setCurrentPost((prev) => ({
+              ...prev,
+              ...endedPost,
+              is_live: false,
+              live_status: "ended",
+          }));
+      
+          /*
+          |--------------------------------------------------------------------------
+          | Recording is still being processed
+          |--------------------------------------------------------------------------
+          */
+      
+          if (!endedPost?.live_egress_id) {
+              return;
+          }
+      
+          let attempts = 0;
+      
+          const maxAttempts = 30;
+      
+          const checkReplay = async () => {
+      
+              try {
+      
+                  const response = await api.get(
+                      `/api/live/${endedPost.id}/replay`
+                  );
+      
+                  const data = response.data;
+      
+                  /*
+                  |--------------------------------------------------------------------------
+                  | Recording ready
+                  |--------------------------------------------------------------------------
+                  */
+      
+                  if (
+                      data?.ready &&
+                      data?.post
+                  ) {
+      
+                      setCurrentPost(
+                          data.post
+                      );
+      
+                      toast.success(
+                          "Live recording is now available."
+                      );
+      
+                      return true;
+                  }
+      
+                  /*
+                  |--------------------------------------------------------------------------
+                  | Still processing
+                  |--------------------------------------------------------------------------
+                  */
+      
+                  return false;
+      
+              } catch (error) {
+      
+                  console.error(
+                      "Checking live replay failed:",
+                      error
+                  );
+      
+                  return false;
+              }
+          };
+      
+          /*
+          |--------------------------------------------------------------------------
+          | Poll every 2 seconds
+          |--------------------------------------------------------------------------
+          */
+      
+          const poll = async () => {
+      
+              attempts++;
+      
+              const ready =
+                  await checkReplay();
+      
+              if (ready) {
+                  return;
+              }
+      
+              if (
+                  attempts >=
+                  maxAttempts
+              ) {
+      
+                  toast.error(
+                      "The live recording is taking longer than expected."
+                  );
+      
+                  return;
+              }
+      
+              setTimeout(
+                  poll,
+                  2000
+              );
+          };
+      
+          poll();
+      };
+
+
+      
+
+const showFollowButton =
+  user?.role === post?.user?.role &&
+  user?.id !== post?.user?.id &&
+  ["admin", "student"].includes(user?.role);
+
+
+  const followButtonText =
+  user?.role === "admin"
+    ? "Admin"
+    : "Student";
+
+    const handleFollow = async (targetUserId) => {
+  if (!targetUserId) return;
+
+  try {
+    const endpoint =
+      user?.role === "admin"
+        ? `/api/admin-friend/request/${targetUserId}`
+        : `/api/student-friend/request/${targetUserId}`;
+
+    await api.post(endpoint);
+
+    toast.success("Follow request sent");
+  } catch (error) {
+    console.error("Failed to follow:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+      "Unable to send follow request"
+    );
+  }
+};
 
 //
   return (
@@ -521,20 +671,71 @@ const openVideoPreview = (video, post) => {
              Reposted
              </p> */}
             </div>
-            <div className="inline-flex gap-3 items-center">
-             <PostOptions post={post} 
-                       messageOpen={messageOpen}
-                       setMessageOpen={setMessageOpen}
-                       chats={chats}
-                       setChats={setChats}/>
+                  <div className="inline-flex gap-3 items-center">
+           
+           
+           
+                     {showFollowButton && (
+           
                        <button
-                       onClick={() => handleHidePost(post.id)}
-                       className="w-8 h-8 flex items-center justify-center"
-                           >
-                             ✕
-                     </button>
-             
-                      </div>
+           
+                         type="button"
+           
+                         onClick={() => handleFollow(post.user.id)}
+           
+                         className="
+           
+                           px-3
+           
+                           py-1.5
+           
+                           rounded-lg
+           
+                           text-xs
+           
+                           font-semibold
+           
+                           border
+           
+                           border-blue-500
+           
+                           text-blue-600
+           
+                           hover:bg-blue-50
+           
+                           transition
+           
+                         "
+           
+                       >
+           
+                         {followButtonText}
+           
+                       </button>
+           
+                     )}
+           
+           
+           
+                     <PostOptions
+           
+                       post={post}
+            
+                       setPosts={setPosts}
+
+                       messageOpen={messageOpen}
+           
+                       setMessageOpen={setMessageOpen}
+           
+                       chats={chats}
+           
+                       setChats={setChats}
+           
+                     />
+           
+           
+           
+                   </div>
             </div>
     
                     )} 
@@ -589,20 +790,72 @@ const openVideoPreview = (video, post) => {
           </div>
     
           {!post.is_repost &&
-            <div className='inline-flex items-center gap-3'>
-          <PostOptions post={post} 
-          messageOpen={messageOpen}
-          setMessageOpen={setMessageOpen}
-          chats={chats}
-          setChats={setChats}/>
-          <button
-          onClick={() => handleHidePost(post.id)}
-          className="w-8 h-8 flex items-center justify-center"
-              >
-                ✕
-        </button>
-    
-          </div>
+                   <div className="inline-flex gap-3 items-center">
+            
+            
+            
+                      {showFollowButton && (
+            
+                        <button
+            
+                          type="button"
+            
+                          onClick={() => handleFollow(post.user.id)}
+            
+                          className="
+            
+                            px-3
+            
+                            py-1.5
+            
+                            rounded-lg
+            
+                            text-xs
+            
+                            font-semibold
+            
+                            border
+            
+                            border-blue-500
+            
+                            text-blue-600
+            
+                            hover:bg-blue-50
+            
+                            transition
+            
+                          "
+            
+                        >
+            
+                          {followButtonText}
+            
+                        </button>
+            
+                      )}
+            
+            
+            
+                      <PostOptions
+            
+                        post={post}
+                      
+                        setPosts={setPosts}
+
+
+                        messageOpen={messageOpen}
+            
+                        setMessageOpen={setMessageOpen}
+            
+                        chats={chats}
+            
+                        setChats={setChats}
+            
+                      />
+            
+            
+            
+                    </div>
         }
 
         {post.is_repost &&
@@ -611,68 +864,30 @@ const openVideoPreview = (video, post) => {
         </p>
         }
           </div>
- <div
-  className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px] ">
-  {/* TEXT */}
+ 
 
-        {post.content && (
-         <div
-        className="
-            bg-[var(--bg-color)]
-            text-[var(--text-color)]
-            w-full
-            min-w-0
-            text-[12px]
-            break-words
-            [overflow-wrap:anywhere]
-        "
-    >
-          <p
-            className="
-              bg-[var(--bg-color)]
-              text-[var(--text-color)]
-              w-full
-              min-w-0
-              text-[12px]
-              break-words
-              [overflow-wrap:anywhere]
-            "
-          >
-            {displayedText}
-
-            {/* SEE MORE */}
-            {shouldShowMore && !showFullText && (
-              <button
-                type="button"
-                onClick={() => setShowFullText(true)}
-                className="
-                  ml-1
-                  text-blue-600
-                  font-bold
-                  hover:text-blue-800
-                  hover:underline
-                "
-              >
-                See more
-              </button>
-            )}
-          </p>
+        <div className='mt-4'>
+          
+         {currentPost?.is_live &&
+                  currentPost?.live_status === "live" ? (
+                      <LiveViewer
+                          post={currentPost}
+                          onEnded={handleLiveEnded}
+                      />
+                  ) : (
+                      <>
+                          {currentPost?.media
+                              ?.filter((m) => m.type === "video")
+                              .map((m) => (
+                                  <PostVideoCard
+                                      key={m.id || m.url || m.path}
+                                      v={m}
+                                      post={currentPost}
+                                  />
+                              ))}
+                      </>
+                  )}
         </div>
-      )}
-
-</div>
-
-
-    {post.media
-      .filter(m => m.type === "video")
-      .map(m => (
-
-        <PostVideoCard v={m}  post={post} 
-        onOpenPreview={openVideoPreview} 
-        />
-
-      ))
-    }
 
       <div className="flex justify-between px-4 mt-4 items-center ">
 

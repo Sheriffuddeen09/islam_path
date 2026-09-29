@@ -98,10 +98,11 @@ const downloadSingleImage = async (img) => {
 };
 
 
-
-  const handleSaveToLibrary = async () => {
-    try {
+const handleSaveToLibrary = async () => {
+    if (loading === "save") return false;
       setLoading("save");
+
+    try {
       await api.post(`/api/post/${post.id}/save-to-library`);
       toast.success("Saved to your library!", "success");
     } catch (err) {
@@ -111,6 +112,7 @@ const downloadSingleImage = async (img) => {
       setLoading("");
     }
   };
+
 
   const [copied, setCopied] = useState(false);
   
@@ -273,9 +275,21 @@ const handleReport = () =>{
               {/* )} */}
 
             <li>
-              <button onClick={() => {handleOption(); handleSaveToLibrary()}} disabled={loading === "save"} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-gray-600 text-[--text-color] hover:bg-gray-50 rounded"
+              <button 
+              onClick={async () => {
+                  const success = await handleSaveToLibrary();
+
+                  if (success) {
+                    handleOption();
+                  }
+                }}
+                 disabled={loading === "save"} className="flex items-center gap-2 font-bold text-[15px]
+                 disabled:cursor-not-allowed
+                  disabled:opacity-70
+                  disabled:active:scale-100
+                 w-full px-2 py-2 hover:text-gray-600 text-[--text-color] hover:bg-gray-50 rounded"
               >
-                {loading === "save" ? "Saving..." : "Save to Library"}
+                {loading === "save" ? "Saving to Library" : "Save to Library"}
               </button>
             </li>
             <li>
@@ -401,11 +415,7 @@ const handleReport = () =>{
           Choose how you want to share this
         </p>
       </div>
-
-      {/* ========================================================= */}
-      {/* CHAT LIST                                                  */}
-      {/* ========================================================= */}
-
+ 
       <button
         type="button"
         onClick={() => {
@@ -452,11 +462,7 @@ const handleReport = () =>{
           </div>
         </div>
       </button>
-
-      {/* ========================================================= */}
-      {/* SOCIAL SHARE                                               */}
-      {/* ========================================================= */}
-
+ 
       <div className="border-t border-gray-200/20 pt-4">
 
         <div className="

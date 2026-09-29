@@ -35,7 +35,7 @@ openUserReels, video, setVideo }) {
   const [shares, setShares] = useState(false)
   const [selectedChats, setSelectedChats] = useState([]);
   const [sending, setSending] = useState(false);
-
+  const [currentPost, setCurrentPost] = useState(post);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const postRef = useRef();
@@ -421,23 +421,168 @@ const focusCommentInput = () => {
   setTimeout(() => commentInputRef.current?.focus(), 0);
 };
 
+ 
+const handleLiveEnded = async (endedPost) => {
+    if (!endedPost?.id) {
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Immediately change from LIVE state
+    |--------------------------------------------------------------------------
+    */
+
+    setCurrentPost((prev) => ({
+        ...prev,
+        ...endedPost,
+        is_live: false,
+        live_status: "ended",
+    }));
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recording is still being processed
+    |--------------------------------------------------------------------------
+    */
+
+    if (!endedPost?.live_egress_id) {
+        return;
+    }
+
+    let attempts = 0;
+
+    const maxAttempts = 30;
+
+    const checkReplay = async () => {
+
+        try {
+
+            const response = await api.get(
+                `/api/live/${endedPost.id}/replay`
+            );
+
+            const data = response.data;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Recording ready
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                data?.ready &&
+                data?.post
+            ) {
+
+                setCurrentPost(
+                    data.post
+                );
+
+                toast.success(
+                    "Live recording is now available."
+                );
+
+                return true;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Still processing
+            |--------------------------------------------------------------------------
+            */
+
+            return false;
+
+        } catch (error) {
+
+            console.error(
+                "Checking live replay failed:",
+                error
+            );
+
+            return false;
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Poll every 2 seconds
+    |--------------------------------------------------------------------------
+    */
+
+    const poll = async () => {
+
+        attempts++;
+
+        const ready =
+            await checkReplay();
+
+        if (ready) {
+            return;
+        }
+
+        if (
+            attempts >=
+            maxAttempts
+        ) {
+
+            toast.error(
+                "The live recording is taking longer than expected."
+            );
+
+            return;
+        }
+
+        setTimeout(
+            poll,
+            2000
+        );
+    };
+
+    poll();
+}
 
 
-const handleHidePost = async (postId) => {
+
+const showFollowButton =
+  user?.role === post?.user?.role &&
+  user?.id !== post?.user?.id &&
+  ["admin", "student"].includes(user?.role);
+
+
+  const followButtonText =
+  user?.role === "admin"
+    ? "Admin"
+    : "Student";
+
+    const handleFollow = async (targetUserId) => {
+  if (!targetUserId) return;
+
   try {
-    await api.post(`/api/posts/${postId}/hide`);
-    toast.success("Post removed");
-    setPosts(prev => prev.filter(p => p.id !== postId));
-  } catch (err) {
-    console.error(err);
+    const endpoint =
+      user?.role === "admin"
+        ? `/api/admin-friend/request/${targetUserId}`
+        : `/api/student-friend/request/${targetUserId}`;
+
+    await api.post(endpoint);
+
+    toast.success("Follow request sent");
+  } catch (error) {
+    console.error("Failed to follow:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+      "Unable to send follow request"
+    );
   }
 };
 
-//
+
   return (
     <div
       className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
-      // ref={postRef}
+      ref={postRef}
       >
 
         
@@ -498,20 +643,70 @@ const handleHidePost = async (postId) => {
         </div>
       
         </div>
-        <div className="inline-flex gap-3 items-center">
-         <PostOptions post={post} 
-                   messageOpen={messageOpen}
-                   setMessageOpen={setMessageOpen}
-                   chats={chats}
-                   setChats={setChats}/>
-                   <button
-                   onClick={() => handleHidePost(post.id)}
-                   className="w-8 h-8 flex items-center justify-center"
-                       >
-                         ✕
-                 </button>
-         
-                  </div>
+       <div className="inline-flex gap-3 items-center">
+
+
+
+          {showFollowButton && (
+
+            <button
+
+              type="button"
+
+              onClick={() => handleFollow(post.user.id)}
+
+              className="
+
+                px-3
+
+                py-1.5
+
+                rounded-lg
+
+                text-xs
+
+                font-semibold
+
+                border
+
+                border-blue-500
+
+                text-blue-600
+
+                hover:bg-blue-50
+
+                transition
+
+              "
+
+            >
+
+              {followButtonText}
+
+            </button>
+
+          )}
+
+
+
+          <PostOptions
+
+            post={post}
+
+            messageOpen={messageOpen}
+
+            setMessageOpen={setMessageOpen}
+
+            chats={chats}
+
+            setChats={setChats}
+            setPosts={setPosts}
+
+          />
+
+
+
+        </div>
         </div>
 
                 )} 
@@ -560,15 +755,6 @@ const handleHidePost = async (postId) => {
           <p className="font-semibold text-sm">{post.user?.name}</p>
           </Link>
           <div className="inline-flex gap-3 items-center">
-            {post.is_live === true &&
-              post.live_status === "live" && (
-                  <div className="px-4 pb-2">
-                      <div className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                          LIVE
-                      </div>
-                  </div>
-              )}
 
               <p className="text-xs">
               {post.is_repost
@@ -595,20 +781,71 @@ const handleHidePost = async (postId) => {
       </div>
 
       {!post.is_repost &&
-        <div className='inline-flex items-center gap-3'>
-      <PostOptions post={post} 
-      messageOpen={messageOpen}
-      setMessageOpen={setMessageOpen}
-      chats={chats}
-      setChats={setChats}/>
-      <button
-      onClick={() => handleHidePost(post.id)}
-      className="w-8 h-8 flex items-center justify-center"
-          >
-            ✕
-    </button>
+               <div className="inline-flex gap-3 items-center">
 
-      </div>
+
+
+          {showFollowButton && (
+
+            <button
+
+              type="button"
+
+              onClick={() => handleFollow(post.user.id)}
+
+              className="
+
+                px-3
+
+                py-1.5
+
+                rounded-lg
+
+                text-xs
+
+                font-semibold
+
+                border
+
+                border-blue-500
+
+                text-blue-600
+
+                hover:bg-blue-50
+
+                transition
+
+              "
+
+            >
+
+              {followButtonText}
+
+            </button>
+
+          )}
+
+
+
+          <PostOptions
+
+            post={post}
+            
+            setPosts={setPosts}
+
+            messageOpen={messageOpen}
+
+            setMessageOpen={setMessageOpen}
+
+            chats={chats}
+
+            setChats={setChats}
+
+          />
+
+
+
+        </div>
     }
       </div>
       {/* TEXT */}
@@ -728,22 +965,25 @@ const handleHidePost = async (postId) => {
           />
         )}
 
-        {post.is_live &&
-        post.live_status === "live" ? (
-            <LiveViewer post={post} />
-        ) : (
-        <>
-        {post.media
-          .filter(m => m.type === "video")
-          .map(m => (
-    
-            <PostVideoCard v={m}  post={post}
+        {currentPost?.is_live &&
+          currentPost?.live_status === "live" ? (
+              <LiveViewer
+                  post={currentPost}
+                  onEnded={handleLiveEnded}
               />
-    
-          ))
-        }
-    </>
-      )}
+          ) : (
+              <>
+                  {currentPost?.media
+                      ?.filter((m) => m.type === "video")
+                      .map((m) => (
+                          <PostVideoCard
+                              key={m.id || m.url || m.path}
+                              v={m}
+                              post={currentPost}
+                          />
+                      ))}
+              </>
+          )}
 
 </div>
 

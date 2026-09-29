@@ -13,6 +13,7 @@ import {
   Check,
 } from "lucide-react";
 import PostReplyVideo from "./PostReplyVideo";
+import toast from "react-hot-toast";
 
 
 export default function PostReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
@@ -31,6 +32,72 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
   const [selectedReply, setSelectedReply] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [expandedReplies, setExpandedReplies] = useState({});
+  const [translatedReplies, setTranslatedReplies] = useState({});
+const [translatingReplies, setTranslatingReplies] = useState({});
+const [replyLanguages, setReplyLanguages] = useState({});
+
+
+const handleTranslateReply = async (replyId, text) => {
+  const translationKey = `reply-${replyId}`;
+
+  try {
+    setTranslatingReplies(prev => ({
+      ...prev,
+      [translationKey]: true,
+    }));
+
+    const response = await api.post("/api/translate", {
+      text,
+      target_language: "English",
+    });
+
+    if (!response.data?.success) {
+      throw new Error(
+        response.data?.message ||
+        "Translation failed."
+      );
+    }
+
+    // Save detected language
+    setReplyLanguages(prev => ({
+      ...prev,
+      [translationKey]: response.data.language,
+    }));
+
+    /*
+     * English doesn't need translation.
+     * Don't store it as translated text.
+     */
+    if (response.data.is_english) {
+      return;
+    }
+
+    // Save translated reply
+    setTranslatedReplies(prev => ({
+      ...prev,
+      [translationKey]: response.data.translation,
+    }));
+
+  } catch (error) {
+    console.error(
+      "Reply translation error:",
+      error
+    );
+
+    toast.error(
+      error.response?.data?.message ||
+      "Unable to translate reply."
+    );
+
+  } finally {
+    setTranslatingReplies(prev => ({
+      ...prev,
+      [translationKey]: false,
+    }));
+  }
+};
+
+
 
   const toggleReplyText = (replyId) => {
   setExpandedReplies((prev) => ({
@@ -246,58 +313,166 @@ const navigate = useNavigate()
           </button>
 
         </div>
-      
-    {reply.body && (() => {
-        const words = reply.body.trim().split(/\s+/);
-        const isLongReply = words.length > 20;
-        const isExpanded = expandedReplies[reply.id];
+            
+        {reply.body && (() => {
+  const words = reply.body.trim().split(/\s+/);
 
-        const displayedText =
-          isLongReply && !isExpanded
-            ? words.slice(0, 20).join(" ") + "..."
-            : reply.body;
+  const isLongReply = words.length > 20;
 
-        return (
-          <div className="my-2">
-            <p
-              className="
-                text-sm
-                text-black
-                max-w-full
-                whitespace-normal
-                break-words
-                overflow-wrap-anywhere
-              "
-            >
-              <Linkify
-                options={{
-                  target: "_blank",
-                  rel: "noopener noreferrer",
-                  className: "text-blue-600 underline break-all",
-                }}
-              >
-                {renderWithMention(displayedText)}
-              </Linkify>
-            </p>
+  const isExpanded = expandedReplies[reply.id];
 
-            {isLongReply && (
-              <button
-                type="button"
-                onClick={() => toggleReplyText(reply.id)}
-                className="
-                  mt-1
-                  text-sm
-                  font-medium
-                  text-blue-600
-                  hover:underline
-                "
-              >
-                {isExpanded ? "Show less" : "Show more"}
-              </button>
-            )}
-          </div>
-        );
-      })()}
+  // Unique key specifically for replies
+  const translationKey = `reply-${reply.id}`;
+
+  const translatedText =
+    translatedReplies?.[translationKey];
+
+  const isTranslating =
+    translatingReplies?.[translationKey];
+
+  // Language detected by Laravel/OpenAI
+  const replyLanguage =
+    replyLanguages?.[translationKey];
+
+  /*
+   * True when the reply has already been detected
+   * as English.
+   */
+  const isEnglish =
+    replyLanguage === "en";
+
+  /*
+   * Display translated text when available.
+   * Otherwise display the original reply.
+   */
+  const displayedText =
+    translatedText
+      ? translatedText
+      : isLongReply && !isExpanded
+        ? words.slice(0, 20).join(" ") + "..."
+        : reply.body;
+
+  return (
+    <div className="my-2">
+
+      {/* =========================
+          REPLY TEXT
+      ========================== */}
+      <p
+        className="
+          text-sm
+          text-black
+          max-w-full
+          whitespace-normal
+          break-words
+          overflow-wrap-anywhere
+        "
+      >
+        <Linkify
+          options={{
+            target: "_blank",
+            rel: "noopener noreferrer",
+            className:
+              "text-blue-600 underline break-all",
+          }}
+        >
+          {renderWithMention(displayedText)}
+        </Linkify>
+      </p>
+
+
+      {/* =========================
+          TRANSLATE BUTTON
+          Only show when:
+          - We haven't translated it yet
+          - We haven't detected it as English
+      ========================== */}
+      {!translatedText &&
+        !isEnglish && (
+          <button
+            type="button"
+            onClick={() =>
+              handleTranslateReply(
+                reply.id,
+                reply.body
+              )
+            }
+            disabled={isTranslating}
+            className="
+              mt-1
+              text-xs
+              font-medium
+              text-blue-600
+              hover:underline
+              disabled:opacity-50
+              disabled:cursor-not-allowed
+            "
+          >
+            {isTranslating
+              ? "Translating..."
+              : "Translate"}
+          </button>
+        )}
+
+
+      {/* =========================
+          SHOW ORIGINAL
+      ========================== */}
+      {translatedText && (
+        <button
+          type="button"
+          onClick={() => {
+            setTranslatedReplies(prev => {
+              const updated = {
+                ...prev,
+              };
+
+              delete updated[translationKey];
+
+              return updated;
+            });
+          }}
+          className="
+            mt-1
+            text-xs
+            font-medium
+            text-blue-600
+            hover:underline
+          "
+        >
+          Show original
+        </button>
+      )}
+
+
+      {/* =========================
+          SHOW MORE / SHOW LESS
+      ========================== */}
+      {isLongReply &&
+        !translatedText && (
+          <button
+            type="button"
+            onClick={() =>
+              toggleReplyText(reply.id)
+            }
+            className="
+              mt-1
+              ml-3
+              text-sm
+              font-medium
+              text-blue-600
+              hover:underline
+            "
+          >
+            {isExpanded
+              ? "Show less"
+              : "Show more"}
+          </button>
+        )}
+
+    </div>
+  );
+})()}
         {/* ✅ Image preview */}
        {reply.image && <ReplyImage image={reply.image} />}
 
