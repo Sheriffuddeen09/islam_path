@@ -4,7 +4,7 @@ import ActiveUsers from "./ActiveUsers";
 import ChatList from "./ChatList";
 import MessageBox from "./MessageBox";
 import {
-  encryptMessage, decryptMessage
+  encryptMessage, decryptMessage, decryptMessages,
 } from "../../utils/encryption";
 import { MessageCircleCodeIcon, User } from "lucide-react";
 import { useAuth } from "../../layout/AuthProvider";
@@ -201,29 +201,32 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
     setTimeout(() => setToast(null), 3000);
   };
 
-    const sendText = async () => {
+   const sendText = async () => {
   if (!text.trim()) return;
 
   const reply = replyingTo;
 
-  setReplyingTo(null); 
+  setReplyingTo(null);
+
+  const originalText = text.trim();
 
   const tempId = Date.now();
 
   const tempMessage = {
     id: tempId,
-    message: text,
+    message: originalText,
     type: "text",
     sender_id: authUser.id,
     sender: authUser,
     status: "sending",
     created_at: new Date().toISOString(),
-    replied_to: reply || null, // ✅ still preserved
+    replied_to: reply || null,
   };
 
-  setMessages(prev => [...prev, tempMessage]);
-
-   const originalText = text;
+  setMessages((prev) => [
+    ...prev,
+    tempMessage,
+  ]);
 
   setText("");
 
@@ -235,46 +238,93 @@ export default function ChatComponent ({replyingTo, setReplyingTo, chats, setCha
   });
 
   try {
-
-    // ================= CHAT KEY =================
-
+    /*
+     * Get the permanent chat key.
+     */
     const chatKey = localStorage.getItem(
       `chat_key_${chatId}`
     );
 
-    // ================= ENCRYPT =================
+    if (!chatKey) {
+      throw new Error(
+        "Chat encryption key not found"
+      );
+    }
 
-    const { encrypted, iv } = await encryptMessage(originalText, chatKey);
+    /*
+     * Encrypt BEFORE sending to Laravel.
+     */
+    const {
+      encrypted,
+      iv,
+    } = await encryptMessage(
+      originalText,
+      chatKey
+    );
 
-    const { data } = await api.post("/api/messages", {
-      chat_id: chatId,
-      message: encrypted,
-      iv: iv,
-      type: "text",
-      replied_to: reply ? reply.id : null,
-    });
+    /*
+     * Send encrypted message.
+     */
+    const { data } = await api.post(
+      "/api/messages",
+      {
+        chat_id: chatId,
+        message: encrypted,
+        iv: iv,
+        type: "text",
+        replied_to: reply
+          ? reply.id
+          : null,
+      }
+    );
 
-    setMessages(prev =>
-      prev.map(m =>
+    /*
+     * Keep plaintext in the local UI.
+     *
+     * Database remains encrypted.
+     */
+    setMessages((prev) =>
+      prev.map((m) =>
         m.id === tempId
           ? {
               ...m,
               ...data,
-              replied_to: data.replied_message || reply,
+
+              // IMPORTANT:
+              // Keep the decrypted/original text
+              // in React state.
+              message: originalText,
+
+              replied_to:
+                data.replied_message ||
+                reply ||
+                null,
+
               status: "sent",
             }
           : m
       )
     );
+  } catch (error) {
+    console.error(
+      "SEND MESSAGE ERROR:",
+      error
+    );
 
-  } catch (err) {
-    setMessages(prev =>
-      prev.map(m =>
-        m.id === tempId ? { ...m, status: "failed" } : m
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId
+          ? {
+              ...m,
+              status: "failed",
+            }
+          : m
       )
     );
   }
 };
+
+
       
   const stopRecording = async () => {
   const reply = replyingTo; // ✅ SAVE FIRST

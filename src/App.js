@@ -745,17 +745,17 @@ const previousReel = () => {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/contact-us" element={<ContactSupport />} />
 
-      <Route path="/admin/jobs" element={<PendingJobs />} />
+      <Route path="/admin/jobs" element={<ProtectedRoute><PendingJobs /></ProtectedRoute>} />
 
       <Route
         path="/job-finder"
-        element={<Jobs/>}
+        element={<ProtectedRoute><Jobs/></ProtectedRoute>}
         />
 
 
         <Route
         path="/job-finder/:id"
-        element={<JobDetails/>}
+        element={<ProtectedRoute><JobDetails/></ProtectedRoute>}
         />
 
         <Route
@@ -765,19 +765,23 @@ const previousReel = () => {
 
         <Route
             path="/advertisement/:id"
-            element={
+            element={<ProtectedRoute>
                 <SelectAdvertisementVisibility />
-            }
+            </ProtectedRoute>}
         />
 
         <Route
             path="/dashboard/product-visibility"
-            element={<ProductVisibility />}
+            element={
+            <ProtectedRoute>
+            <ProductVisibility />
+            </ProtectedRoute>}
         />
 
       {/* Video */}
 
        <Route path="/post/video" element={
+        <ProtectedRoute>
         <PostFeedVideo posts={posts} setPosts={setPosts} image={image} setImage={setImage}
         video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
@@ -823,16 +827,23 @@ const previousReel = () => {
         showOptions={showOptions}
         
          />   
+         </ProtectedRoute>
       } />
 
       <Route path="/get-mentor" element={
+        <ProtectedRoute>
           <GetMentor teachers={teachers} setTeachers={setTeachers} setRequestStatus={setRequestStatus}
           requestStatus={requestStatus} />
+        </ProtectedRoute>
       } />
 
 
       <Route path="/admin/job-accepted"
-        element={<JobProfileApproval />}
+        element={
+        <ProtectedRoute>
+        <JobProfileApproval />
+        </ProtectedRoute>
+        }
         />
 
         <Route path="/applicate/job-create"
@@ -840,19 +851,29 @@ const previousReel = () => {
         />
 
         <Route path="/applicate/job-finder"
-        element={<JobFinderProfile />}
+        element={
+        <ProtectedRoute>
+        <JobFinderProfile />
+        </ProtectedRoute>
+        }
         />
 
       <Route
           path="/job-interview/:token"
-          element={<JobInterview />}
+          element={
+          <ProtectedRoute>
+          <JobInterview />
+          </ProtectedRoute>}
       />
       
       <Route path="/quran" element={
+        <ProtectedRoute>
           <QuranGrid />
+        </ProtectedRoute>
       } />
 {/* /admin/friend */}
       <Route path="/notifications" element={
+        <ProtectedRoute>
           <Notifications handleMessageOpen={handleMessageOpen} 
             jobProfile={jobProfile}
             setJobProfile={setJobProfile}
@@ -865,50 +886,81 @@ const previousReel = () => {
             showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
             handleVideoClick={handleVideoClick}
             videoCount={videoCount}/>
-      } />
 
-      <Route path="/chat/report/:id" element={<ChatReportId />} />
+            </ProtectedRoute>
+      }  />
+
+      <Route path="/chat/report/:id" element={
+        <ProtectedRoute>
+        <ChatReportId />
+        </ProtectedRoute>} />
+
+
       <Route
         path="/community/report/:id"
-        element={<CommunityReportId />}
+        element={
+        <ProtectedRoute>
+        <CommunityReportId />
+        </ProtectedRoute>}
       />
 
-      <Route path="/post/report/:postId" element={<PostReportUser />} />
+      <Route path="/post/report/:postId" element={
+        <ProtectedRoute>
+        <PostReportUser />
+        </ProtectedRoute>} />
 
-      <Route path="/comment/report/:commentId" element={<CommentReportUser />} />
+      <Route path="/comment/report/:commentId" element={
+        <ProtectedRoute>
+        <CommentReportUser />
+        </ProtectedRoute>} />
 
       <Route path="/report-list" element={
+        <ProtectedRoute>
           <ReportList />
+        </ProtectedRoute>
       } />
 
       {/* /chat/reports */}
       <Route path="/chat/report" element={
+        <ProtectedRoute>
           <ChatReport />
+        </ProtectedRoute>
       } />
 
       <Route path="/community/report" element={
+        <ProtectedRoute>
           <CommunityReport />
+        </ProtectedRoute>
       } />
 
       <Route path="/online-sale" element={
+        <ProtectedRoute>
           <ProductPage products={products} setProducts={setProducts} 
           savedCount={savedCount} setSavedCount={setSavedCount}
           />
+        </ProtectedRoute>
       } />
 
       <Route path="/product/:id" element={
+        <ProtectedRoute>
           <SingleProduct products={products} setProducts={setProducts} />
+        </ProtectedRoute>
       } />
 
        <Route path="/cart" element={
+        <ProtectedRoute>
           <CartPage savedCount={savedCount} setSavedCount={setSavedCount} />
+        </ProtectedRoute>
       } />
 
       <Route path="/wishlist" element={
+        <ProtectedRoute>
           <WishlistPage savedCount={savedCount} setSavedCount={setSavedCount} />
+        </ProtectedRoute>
       } />
 
       <Route path="/friend" element={
+        <ProtectedRoute>
           <Friend students={students} setStudents={setStudents} admins={admins} setAdmins={setAdmins}
           incomingRequests={incomingRequests} setIncomingRequests={setIncomingRequests}
           jobProfile={jobProfile}
@@ -923,11 +975,14 @@ const previousReel = () => {
           handleVideoClick={handleVideoClick} videoCount={videoCount}
 
            />
+          </ProtectedRoute>
       } />
 
       <Route
         path="/meeting/:roomId"
-        element={ <MeetingRoom
+        element={
+          <ProtectedRoute>
+          <MeetingRoom
                 activeChat={activeChat}
                 setActiveChat={setActiveChat}
                 callMode={callMode}
@@ -936,10 +991,13 @@ const previousReel = () => {
                 setIncomingCall={setIncomingCall}
                 meetingData={meetingData}
                 setMeetingData={setMeetingData}
-            />}
+            />
+            </ProtectedRoute>}
         />
       {/* profile  */}
-      <Route path="/profile/:id" element={<ProfileRouter 
+      <Route path="/profile/:id" element={
+        <ProtectedRoute>
+        <ProfileRouter 
       togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat}
       requestStatus={requestStatus} handleMessageOpen={handleMessageOpen}
       chats={chats} 
@@ -979,7 +1037,8 @@ const previousReel = () => {
         reaction={reaction}
         setShowOptions={setShowOptions}
         showOptions={showOptions}
-      />}
+      />
+      </ProtectedRoute>}
        />
 
       <Route
@@ -994,15 +1053,17 @@ const previousReel = () => {
 
       {/* Forget Password */}
       <Route path="/reset-password" element={
+        
           <ResetPassword />
       } />
 
 
       
       <Route path="/admin/choose-choice" element={
+        <ProtectedRoute>
           <AdminChoice setChoice={setChoice} choice={choice} isLoading={isLoading} setIsLoading={setIsLoading}
           currentUser={currentUser} setCurrentUser={setCurrentUser} selected={selected} setSelected={setSelected}/>
-      } />
+        </ProtectedRoute> } />
     </Route>
     <Route element={<LayoutWithOutHeader />}>
       
@@ -1012,33 +1073,55 @@ const previousReel = () => {
 
       <Route
           path="/student/assignment/:token"
-          element={<StudentAssignment />}
+          element={
+          <ProtectedRoute>
+          <StudentAssignment />
+          </ProtectedRoute>}
         />
 
 
-      <Route path="/student/exams/result/:resultId" element={<StudentExamResult />} />
+      <Route path="/student/exams/result/:resultId" element={
+        <ProtectedRoute>
+        <StudentExamResult />
+        </ProtectedRoute>} />
       <Route path="/student/assignment/result/:resultId" element={<StudentAssignmentResult />} />
         
 
         <Route
           path="/expire"
-          element={<ExpiredPage />}
+          element={
+          <ProtectedRoute>
+          <ExpiredPage />
+          </ProtectedRoute>}
         />
 
          <Route
           path="/block"
-          element={<AssignmentBlock />}
+          element={
+          <ProtectedRoute>
+          <AssignmentBlock />
+        </ProtectedRoute>}
         />
 
         <Route
           path="/block"
-          element={<ExamBlock />}
+          element={
+          <ProtectedRoute>
+          
+          <ExamBlock />
+           
+          </ProtectedRoute>
+          }
         />
 
         
       <Route
           path="/student/exams/:token"
-          element={<StudentExam />}
+          element={
+          <ProtectedRoute>
+          <StudentExam />
+          </ProtectedRoute>
+          }
         />
       
       <Route path="/post/image/:id" element={<PostImagePageId image={image} setImage={setImage}
@@ -1079,7 +1162,9 @@ const previousReel = () => {
         chats={chats}
         />} />
 
-         <Route path="/reel/video" element={<PostReelPageId image={image} setImage={setImage}
+         <Route path="/reel/video" element={
+          <ProtectedRoute>
+          <PostReelPageId image={image} setImage={setImage}
          video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loadingComment={loading} 
         setLoading={setLoading} showUsersPopup={showUsersPopup} setShowUsersPopup={setShowUsersPopup}
@@ -1088,7 +1173,9 @@ const previousReel = () => {
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList}
         chats={chats}
-        />} />
+        />
+        </ProtectedRoute>
+      } />
 
 
          <Route path="/post/text/:id" element={<PostTextPageId image={image} setImage={setImage}
@@ -1110,6 +1197,7 @@ const previousReel = () => {
           {/* Home Post Page*/}
       
       <Route path="/" element={
+        <ProtectedRoute>
       <HomePage posts={posts} setPosts={setPosts} image={image} setImage={setImage}
       video={video} setVideo={setVideo}
         postComments={postComments} setPostComments={setPostComments} loading={loading} 
@@ -1193,6 +1281,7 @@ const previousReel = () => {
         messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
         setShares={setShares} 
          />   
+         </ProtectedRoute>
       } />
 
         </Route>
