@@ -143,10 +143,15 @@ const handleSaveToLibrary = async () => {
 
   
    
-
 const handleViewProfile = () => {
-    window.location.href = `/profile/${currentUser?.user?.id}`;
-  };
+    const profileUserId = post?.is_repost
+        ? post?.reposted_by?.id
+        : post?.user?.id;
+
+    if (!profileUserId) return;
+
+    window.location.href = `/profile/${profileUserId}`;
+};
 
   const handleOption = () =>{
     setOpen(!open)

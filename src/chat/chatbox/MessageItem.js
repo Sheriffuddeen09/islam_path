@@ -1126,145 +1126,167 @@ const scrollToMessage = (messageId) => {
 
   return msg.message;
 };
-
-const touchTimer = useRef(null);
-const isSwiping = useRef(false);
-
+ 
 const isInteractive = (target) => {
   return target.closest("img, video, audio, button, a");
 };
 
+
+
+
 const longPressTimer = useRef(null);
 const touchActive = useRef(false);
-
-const handleTouchStart = (e) => {
-    console.log("TOUCH START", msg.id);
-
-    clearTimeout(longPressTimer.current);
-
-    touchActive.current = true;
-    longPressTriggered.current = false;
-
-    longPressTimer.current = setTimeout(() => {
-        console.log("LONG PRESSING", msg.id);
-
-
-        toggleSelect(msg);
-        setShowReactionPopup(true)
-    }, 800);
-};
-
-
-const handleTouchMove = (e) => {
-    
-    if (!longPressTriggered.current) {
-        clearTimeout(longPressTimer.current);
-    }
-};
-
-const handleTouchEnd = (e) => {
-    console.log("TOUCH END", msg.id);
-
-    clearTimeout(longPressTimer.current);
-
-    touchActive.current = false;
-
-    // Keep this true until the click event has been blocked.
-};
-
-const handleTouchCancel = (e) => {
-    clearTimeout(longPressTimer.current);
-
-    touchActive.current = false;
-    longPressTriggered.current = false;
-};
-  
+ 
 const touchStartX = useRef(0);
 const touchMoved = useRef(false);
+const swipeDistanceRef = useRef(0);
+
+const isMessageActionDisabled =
+  msg.status === "pending" ||
+  msg.status === "failed" ||
+  msg.status === "sending";
 
 const handleMessageTouchStart = (e) => {
+  // 🚫 Pending/failed/sending messages cannot long-press or swipe-reply
+  if (isMessageActionDisabled) {
+    clearTimeout(longPressTimer.current);
+    touchActive.current = false;
+    touchMoved.current = false;
+    swipeDistanceRef.current = 0;
+    setTranslateX(0);
+    return;
+  }
+
   if (isInteractive(e.target)) {
     return;
   }
 
   clearTimeout(longPressTimer.current);
 
+  touchActive.current = true;
   longPressTriggered.current = false;
   touchMoved.current = false;
+  swipeDistanceRef.current = 0;
 
   touchStartX.current = e.touches[0].clientX;
 
   longPressTimer.current = setTimeout(() => {
-    // IMPORTANT
+    // Check AGAIN because message status could have changed
+    if (isMessageActionDisabled) {
+      clearTimeout(longPressTimer.current);
+      touchActive.current = false;
+      return;
+    }
+
     longPressTriggered.current = true;
 
-    // Select this message
     setSelectedMsg(msg);
 
     if (!selectedMessages.includes(msg.id)) {
       setSelectedMessages([msg.id]);
     }
 
-    // IMPORTANT:
-    // ReactionPopup checks showReactions === message.id
     setShowReactionPopup(msg.id);
-
-    // Stop any action menu
     setActiveMenuId(null);
   }, 800);
 };
 
-const handleMessageTouchMove = (e) => {
-  const currentX = e.touches[0].clientX;
 
+const handleMessageTouchMove = (e) => {
+  // 🚫 Never allow swipe on pending/failed/sending
+  if (isMessageActionDisabled) {
+    clearTimeout(longPressTimer.current);
+    touchActive.current = false;
+    touchMoved.current = false;
+    swipeDistanceRef.current = 0;
+    setTranslateX(0);
+    return;
+  }
+
+  if (!touchActive.current) return;
+
+  const currentX = e.touches[0].clientX;
   const diff = currentX - touchStartX.current;
 
-  // If user moves horizontally, this is a swipe,
-  // not a long press.
   if (Math.abs(diff) > 10) {
     touchMoved.current = true;
 
     clearTimeout(longPressTimer.current);
 
-    // Right swipe
+    // Only allow swipe to the RIGHT
     if (diff > 0) {
-      setTranslateX(Math.min(diff, 80));
+      swipeDistanceRef.current = Math.min(diff, 80);
+      setTranslateX(swipeDistanceRef.current);
     }
   }
 };
+
 
 const handleMessageTouchEnd = () => {
   clearTimeout(longPressTimer.current);
 
-  // Long press already handled
-  if (longPressTriggered.current) {
+  touchActive.current = false;
+
+  // 🚫 VERY IMPORTANT:
+  // Check status again before allowing swipe reply
+  if (isMessageActionDisabled) {
     setTranslateX(0);
+    swipeDistanceRef.current = 0;
+    touchMoved.current = false;
+    longPressTriggered.current = false;
     return;
   }
 
-  // If it was a swipe
-  if (touchMoved.current) {
-    const diff = translateX;
+  if (longPressTriggered.current) {
+    setTranslateX(0);
+    swipeDistanceRef.current = 0;
+    touchMoved.current = false;
+    return;
+  }
 
-    if (diff > 35) {
+  if (touchMoved.current) {
+    const diff = swipeDistanceRef.current;
+
+    // Only reply if the message is still interactable
+    if (
+      diff > 35 &&
+      !isMessageActionDisabled
+    ) {
       setReplyingTo(msg);
     }
 
     setTranslateX(0);
+    swipeDistanceRef.current = 0;
+    touchMoved.current = false;
+
     return;
   }
 
   setTranslateX(0);
+  swipeDistanceRef.current = 0;
 };
+
 
 const handleMessageTouchCancel = () => {
   clearTimeout(longPressTimer.current);
 
+  touchActive.current = false;
   longPressTriggered.current = false;
   touchMoved.current = false;
+  swipeDistanceRef.current = 0;
 
   setTranslateX(0);
 };
+
+const canInteractWithMessage = isMessageActionDisabled
+const isSendingMessage = msg.status === "sending";
+
+const showMessageActions =
+  isSendingMessage ||
+  showActions ||
+  (selectedMessages.length === 1 && isSelected);
+
+// onPointerDown
   return (
   <>
     
@@ -1293,7 +1315,10 @@ const handleMessageTouchCancel = () => {
           }
 
           if (!forwardMode) {
-            if (isMobile) setShowActions(prev => !prev);
+            if (isMobile && canInteractWithMessage) {
+              setShowActions((prev) => !prev);
+            }
+
             return;
           }
 
@@ -1341,7 +1366,11 @@ const handleMessageTouchCancel = () => {
           }
 
           if (!forwardMode) {
-            if (isMobile) setShowActions(prev => !prev);
+
+            if (isMobile && canInteractWithMessage) {
+              setShowActions((prev) => !prev);
+            }
+
             return;
           }
 
@@ -1379,7 +1408,7 @@ const handleMessageTouchCancel = () => {
       return;
     }
 
-    // IMPORTANT:
+    // IMPORTANT: setReplyingTo(msg);
     // Prevent the click generated after a long press.
     if (longPressTriggered.current) {
       e.preventDefault();
@@ -1396,7 +1425,8 @@ const handleMessageTouchCancel = () => {
     }
 
     if (!forwardMode) {
-      if (isMobile) {
+
+      if (isMobile && canInteractWithMessage) {
         setShowActions((prev) => !prev);
       }
 
@@ -1449,21 +1479,26 @@ const handleMessageTouchCancel = () => {
       )}
 
 
-      {selectedMessages.length <= 1 && (
+    {selectedMessages.length <= 1 && (
   <div className="lg:block hidden">
     <div
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       className={`
-        absolute -bottom-7 -right-2 flex items-center mt-0.5 shadow-xl px-1 py-1 rounded-lg text-xs z-50
+        absolute -bottom-7 -right-2 flex items-center mt-0.5
+        shadow-xl px-1 py-1 rounded-lg text-xs z-50
         transition-all duration-200
 
         ${
-          isMobile
-            ? (showActions || (selectedMessages.length === 1 && isSelected))
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
-            : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+          msg.status === "pending" || msg.status === "failed"
+            ? "opacity-0 pointer-events-none"
+            : isMobile
+              ? showMessageActions
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
+              : isSendingMessage
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
         }
       `}
     >
@@ -1579,10 +1614,10 @@ const handleMessageTouchCancel = () => {
 
     
 <div
-  onTouchStart={handleTouchStart}
-  onTouchMove={handleTouchMove}
-  onTouchEnd={handleTouchEnd}
-  onTouchCancel={handleTouchCancel}
+  // onTouchStart={handleTouchStart}
+  // onTouchMove={handleTouchMove}
+  // onTouchEnd={handleTouchEnd}
+  // onTouchCancel={handleTouchCancel}
   onClick={(e) => {
         if (longPressTriggered.current) {
             e.preventDefault();

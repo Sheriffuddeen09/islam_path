@@ -44,7 +44,7 @@ export default function ReactionPopup({
       className={`
         absolute
         bottom-full
-        mb-2
+        mb-2 translate-y-16
         z-[100]
         bg-black
         rounded-full

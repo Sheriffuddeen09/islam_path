@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-    Room,
-} from "livekit-client";
+import { Room } from "livekit-client";
 
 import api from "../Api/axios";
 import { toast } from "react-hot-toast";
@@ -31,34 +29,76 @@ export default function LiveBroadcaster({
     const roomRef = useRef(null);
     const controlsTimerRef = useRef(null);
 
+    /*
+    |--------------------------------------------------------------------------
+    | Recording
+    |--------------------------------------------------------------------------
+    */
+
+    const recordingStartedRef = useRef(false);
+
+    const [recording, setRecording] = useState(false);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Connection
+    |--------------------------------------------------------------------------
+    */
+
     const [connected, setConnected] = useState(false);
     const [connecting, setConnecting] = useState(true);
     const [cameraLoading, setCameraLoading] = useState(true);
     const [connectionError, setConnectionError] = useState(null);
 
+    /*
+    |--------------------------------------------------------------------------
+    | Ending
+    |--------------------------------------------------------------------------
+    */
+
     const [ending, setEnding] = useState(false);
     const [ended, setEnded] = useState(false);
     const [showEndModal, setShowEndModal] = useState(false);
 
+    /*
+    |--------------------------------------------------------------------------
+    | Duration
+    |--------------------------------------------------------------------------
+    */
+
     const [liveDuration, setLiveDuration] = useState(0);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Camera / microphone
+    |--------------------------------------------------------------------------
+    */
 
     const [micEnabled, setMicEnabled] = useState(true);
     const [cameraEnabled, setCameraEnabled] = useState(true);
 
     /*
     |--------------------------------------------------------------------------
-    | IMPORTANT
-    |--------------------------------------------------------------------------
-    | cameraEnabled and videoPaused are independent.
+    | Camera pause
     |--------------------------------------------------------------------------
     */
 
     const [videoPaused, setVideoPaused] = useState(false);
 
+    /*
+    |--------------------------------------------------------------------------
+    | Camera position
+    |--------------------------------------------------------------------------
+    */
+
     const [cameraPosition, setCameraPosition] =
         useState("user");
 
-     
+    /*
+    |--------------------------------------------------------------------------
+    | Screen size
+    |--------------------------------------------------------------------------
+    */
 
     const [isLargeScreen, setIsLargeScreen] =
         useState(
@@ -126,7 +166,12 @@ export default function LiveBroadcaster({
         setDescription(value);
         setOriginalDescription(value);
     }, [post?.id, post?.content]);
- 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Attach local camera track
+    |--------------------------------------------------------------------------
+    */
 
     const attachVideoTrack = async () => {
         const room = roomRef.current;
@@ -189,12 +234,63 @@ export default function LiveBroadcaster({
             );
         }
     };
+ 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Connect LiveKit
-    |--------------------------------------------------------------------------
-    */
+    const startRecording = async () => {
+        if (
+            !post?.id ||
+            recordingStartedRef.current ||
+            ended
+        ) {
+            return;
+        }
+
+        try {
+            const response =
+                await api.post(
+                    `/api/live/${post.id}/record`
+                );
+
+            if (
+                !response.data?.success
+            ) {
+                throw new Error(
+                    response.data?.message ||
+                    "Unable to start live recording."
+                );
+            }
+
+            recordingStartedRef.current =
+                true;
+
+            setRecording(true);
+
+            console.log(
+                "Live recording started:",
+                response.data
+            );
+
+        } catch (error) {
+            console.error(
+                "Live recording failed to start:",
+                error?.response?.data ||
+                    error
+            );
+
+            /*
+             * We do NOT end the live session here.
+             * The live can continue even if recording fails.
+             */
+            toast.error(
+                error?.response?.data
+                    ?.message ||
+                error?.message ||
+                "Live recording could not be started."
+            );
+        }
+    };
+
+    
 
     useEffect(() => {
         let mounted = true;
@@ -224,11 +320,7 @@ export default function LiveBroadcaster({
 
                 roomRef.current = room;
 
-                /*
-                |--------------------------------------------------------------------------
-                | Disconnected
-                |--------------------------------------------------------------------------
-                */
+              
 
                 room.on(
                     "disconnected",
@@ -240,12 +332,7 @@ export default function LiveBroadcaster({
                         setConnected(false);
                     }
                 );
-
-                /*
-                |--------------------------------------------------------------------------
-                | Local track published
-                |--------------------------------------------------------------------------
-                */
+ 
 
                 room.on(
                     "localTrackPublished",
@@ -257,7 +344,12 @@ export default function LiveBroadcaster({
                         await attachVideoTrack();
                     }
                 );
- 
+
+                /*
+                |--------------------------------------------------------------------------
+                | Connect
+                |--------------------------------------------------------------------------
+                */
 
                 await room.connect(
                     liveData.server_url,
@@ -298,7 +390,7 @@ export default function LiveBroadcaster({
 
                 /*
                 |--------------------------------------------------------------------------
-                | Publish tracks
+                | Publish audio + video
                 |--------------------------------------------------------------------------
                 */
 
@@ -309,10 +401,22 @@ export default function LiveBroadcaster({
                         .publishTrack(track);
                 }
 
+                /*
+                |--------------------------------------------------------------------------
+                | Make sure microphone is enabled
+                |--------------------------------------------------------------------------
+                */
+
                 await room.localParticipant
                     .setMicrophoneEnabled(
                         true
                     );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Make sure camera is enabled
+                |--------------------------------------------------------------------------
+                */
 
                 await room.localParticipant
                     .setCameraEnabled(
@@ -323,11 +427,39 @@ export default function LiveBroadcaster({
                 setCameraEnabled(true);
                 setVideoPaused(false);
 
+                /*
+                |--------------------------------------------------------------------------
+                | Attach camera preview
+                |--------------------------------------------------------------------------
+                */
+
                 await attachVideoTrack();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Mark connected
+                |--------------------------------------------------------------------------
+                */
 
                 setConnected(true);
                 setConnecting(false);
                 setCameraLoading(false);
+
+                /*
+                |--------------------------------------------------------------------------
+                | IMPORTANT:
+                | Start LiveKit Egress recording AFTER the
+                | broadcaster has joined and published tracks.
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    mounted &&
+                    !recordingStartedRef.current
+                ) {
+                    await startRecording();
+                }
+
             } catch (error) {
                 console.error(
                     "LiveKit connection failed:",
@@ -352,7 +484,9 @@ export default function LiveBroadcaster({
         return () => {
             mounted = false;
 
-            if (controlsTimerRef.current) {
+            if (
+                controlsTimerRef.current
+            ) {
                 clearTimeout(
                     controlsTimerRef.current
                 );
@@ -383,11 +517,17 @@ export default function LiveBroadcaster({
 
             roomRef.current = null;
 
-            if (videoRef.current) {
+            if (
+                videoRef.current
+            ) {
                 videoRef.current.srcObject =
                     null;
             }
         };
+
+        // We intentionally only reconnect when the LiveKit
+        // connection credentials change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         liveData?.token,
         liveData?.server_url,
@@ -419,9 +559,10 @@ export default function LiveBroadcaster({
                 Math.max(
                     0,
                     Math.floor(
-                        (Date.now() -
-                            startedAt) /
-                            1000
+                        (
+                            Date.now() -
+                            startedAt
+                        ) / 1000
                     )
                 );
 
@@ -533,7 +674,6 @@ export default function LiveBroadcaster({
                     nextState
                 );
 
-            
             } catch (error) {
                 console.error(
                     "Microphone toggle failed:",
@@ -549,10 +689,6 @@ export default function LiveBroadcaster({
     /*
     |--------------------------------------------------------------------------
     | Camera ON / OFF
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    | This does NOT change videoPaused.
     |--------------------------------------------------------------------------
     */
 
@@ -581,10 +717,6 @@ export default function LiveBroadcaster({
                     nextState
                 );
 
-                /*
-                 * DO NOT change videoPaused here.
-                 */
-
                 if (nextState) {
                     setCameraLoading(
                         true
@@ -609,7 +741,6 @@ export default function LiveBroadcaster({
                     );
                 }
 
-            
             } catch (error) {
                 console.error(
                     "Camera toggle failed:",
@@ -625,9 +756,6 @@ export default function LiveBroadcaster({
     /*
     |--------------------------------------------------------------------------
     | Pause / Resume VIDEO
-    |--------------------------------------------------------------------------
-    |
-    | This is independent from cameraEnabled.
     |--------------------------------------------------------------------------
     */
 
@@ -648,10 +776,6 @@ export default function LiveBroadcaster({
                     !videoPaused;
 
                 if (nextPaused) {
-                    /*
-                     * Stop broadcasting video,
-                     * but DO NOT change cameraEnabled.
-                     */
 
                     await room.localParticipant
                         .setCameraEnabled(
@@ -668,11 +792,8 @@ export default function LiveBroadcaster({
                         videoRef.current.srcObject =
                             null;
                     }
+
                 } else {
-                    /*
-                     * Only restore camera if the
-                     * camera state is supposed to be ON.
-                     */
 
                     setVideoPaused(
                         false
@@ -699,7 +820,6 @@ export default function LiveBroadcaster({
                     }
                 }
 
-            
             } catch (error) {
                 console.error(
                     "Pause/resume failed:",
@@ -731,6 +851,7 @@ export default function LiveBroadcaster({
                         device.kind ===
                         "videoinput"
                 );
+
             } catch (error) {
                 console.error(
                     "Unable to get cameras:",
@@ -751,10 +872,7 @@ export default function LiveBroadcaster({
         async (
             position
         ) => {
-            /*
-             * Front/back controls are
-             * disabled on large screens.
-             */
+
             if (isLargeScreen) {
                 return;
             }
@@ -847,11 +965,6 @@ export default function LiveBroadcaster({
                         );
                 }
 
-                /*
-                 * If browser does not expose
-                 * camera labels, use camera order.
-                 */
-
                 if (
                     !selectedCamera &&
                     cameras.length >= 2
@@ -905,6 +1018,7 @@ export default function LiveBroadcaster({
                 setTimeout(
                     async () => {
                         await attachVideoTrack();
+
                         setCameraLoading(
                             false
                         );
@@ -912,7 +1026,6 @@ export default function LiveBroadcaster({
                     250
                 );
 
-            
             } catch (error) {
                 console.error(
                     "Camera switch failed:",
@@ -931,13 +1044,7 @@ export default function LiveBroadcaster({
 
     /*
     |--------------------------------------------------------------------------
-    | CANCEL VIDEO
-    |--------------------------------------------------------------------------
-    |
-    | Clears the current camera video.
-    |
-    | IMPORTANT:
-    | It does NOT change videoPaused.
+    | Cancel video
     |--------------------------------------------------------------------------
     */
 
@@ -963,14 +1070,11 @@ export default function LiveBroadcaster({
                     false
                 );
 
-                /*
-                 * DO NOT modify videoPaused.
-                 */
-
                 if (
                     videoRef.current
                 ) {
                     videoRef.current.pause();
+
                     videoRef.current.srcObject =
                         null;
                 }
@@ -983,7 +1087,6 @@ export default function LiveBroadcaster({
                     "Video cleared."
                 );
 
-            
             } catch (error) {
                 console.error(
                     "Cancel video failed:",
@@ -1011,8 +1114,6 @@ export default function LiveBroadcaster({
             setEditingDescription(
                 true
             );
-
-        
         };
 
     const cancelEditingDescription =
@@ -1024,8 +1125,6 @@ export default function LiveBroadcaster({
             setEditingDescription(
                 false
             );
-
-        
         };
 
     const saveDescription =
@@ -1076,7 +1175,6 @@ export default function LiveBroadcaster({
                     "Description updated."
                 );
 
-            
             } catch (error) {
                 console.error(
                     "Description update failed:",
@@ -1088,6 +1186,7 @@ export default function LiveBroadcaster({
                         ?.message ||
                         "Unable to update description."
                 );
+
             } finally {
                 setSavingDescription(
                     false
@@ -1097,7 +1196,7 @@ export default function LiveBroadcaster({
 
     /*
     |--------------------------------------------------------------------------
-    | End live
+    | END LIVE
     |--------------------------------------------------------------------------
     */
 
@@ -1112,6 +1211,15 @@ export default function LiveBroadcaster({
 
             try {
                 setEnding(true);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Tell Laravel to stop the live session.
+                |
+                | Laravel will stop LiveKit Egress using
+                | live_egress_id.
+                |--------------------------------------------------------------------------
+                */
 
                 const response =
                     await api.post(
@@ -1130,9 +1238,18 @@ export default function LiveBroadcaster({
 
                 setEnded(true);
                 setConnected(false);
+                setRecording(false);
+
                 setShowEndModal(
                     false
                 );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Stop local tracks AFTER the server
+                | has received the end request.
+                |--------------------------------------------------------------------------
+                */
 
                 const room =
                     roomRef.current;
@@ -1168,6 +1285,7 @@ export default function LiveBroadcaster({
                     videoRef.current
                 ) {
                     videoRef.current.pause();
+
                     videoRef.current.srcObject =
                         null;
                 }
@@ -1175,6 +1293,17 @@ export default function LiveBroadcaster({
                 toast.success(
                     "Live session ended."
                 );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Parent can now update the post.
+                |
+                | IMPORTANT:
+                | The recording may still be processing.
+                | Your parent should poll for the Media record
+                | or listen for LiveReplayReady.
+                |--------------------------------------------------------------------------
+                */
 
                 if (
                     typeof onEnded ===
@@ -1185,6 +1314,7 @@ export default function LiveBroadcaster({
                             ?.post
                     );
                 }
+
             } catch (error) {
                 console.error(
                     "End live failed:",
@@ -1196,12 +1326,19 @@ export default function LiveBroadcaster({
                         ?.message ||
                         "Unable to end live."
                 );
+
             } finally {
                 setEnding(false);
             }
         };
 
-         const colors = [
+    /*
+    |--------------------------------------------------------------------------
+    | Avatar helpers
+    |--------------------------------------------------------------------------
+    */
+
+    const colors = [
         "bg-red-400",
         "bg-blue-400",
         "bg-green-400",
@@ -1226,305 +1363,330 @@ export default function LiveBroadcaster({
         "bg-neutral-400",
         "bg-red-500",
         "bg-blue-500",
-            ];
+    ];
 
+    const getColor = (value) => {
+        if (!value) {
+            return "bg-gray-400";
+        }
 
+        const str =
+            String(value);
 
-        const getColor = (value) => {
-            if (!value) return "bg-gray-400";
+        let hash = 0;
 
-            const str = String(value);
+        for (
+            let i = 0;
+            i < str.length;
+            i++
+        ) {
+            hash =
+                str.charCodeAt(i) +
+                ((hash << 5) - hash);
+        }
 
-            let hash = 0;
+        return colors[
+            Math.abs(hash) %
+                colors.length
+        ];
+    };
 
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
+    const getInitial = (
+        name
+    ) => {
+        if (!name) {
+            return "?";
+        }
 
-            return colors[Math.abs(hash) % colors.length];
-        };
+        return name
+            .trim()
+            .charAt(0)
+            .toUpperCase();
+    };
 
-        const getInitial = (name) => {
-            if (!name) return "?";
-
-            return name
-                .trim()
-                .charAt(0)
-                .toUpperCase();
-        };
     /*
     |--------------------------------------------------------------------------
-    | Ended
+    | UI
     |--------------------------------------------------------------------------
     */
-
-    if (ended) {
-        return null;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Connection error
-    |--------------------------------------------------------------------------
-    */
-
-    if (connectionError) {
-        return (
-            <div className="fixed inset-0 z-50 bg-black flex items-center justify-center text-white">
-                <div className="max-w-md px-6 text-center">
-                    <AlertCircle
-                        size={50}
-                        className="mx-auto mb-4 text-red-400"
-                    />
-
-                    <h2 className="text-xl font-semibold mb-2">
-                        Unable to start live
-                    </h2>
-
-                    <p className="text-white/70">
-                        {connectionError}
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     return (
-        <div
+       <div
             className="fixed inset-0 z-50 bg-black text-white overflow-hidden"
         > 
-            <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className={`
-                    absolute
-                    inset-0
-                    h-full
-                    w-full
-                    object-cover
-                    transition-opacity
-                    duration-200
-                    ${
-                        cameraPosition ===
-                        "user"
-                            ? "scale-x-[-1]"
-                            : ""
-                    }
-                    ${
-                        videoPaused
-                            ? "opacity-0"
-                            : "opacity-100"
-                    }
-                `}
-            />
 
-            {/* =========================================================
-                PAUSED OVERLAY
-            ========================================================= */}
+            {/* =====================================================
+                CAMERA PREVIEW
+            ===================================================== */}
 
-            {videoPaused && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black">
-                    <div className="text-center">
-                        <Pause
-                            size={55}
-                            className="mx-auto mb-4 text-white/80"
-                        />
+            <div className="absolute inset-0 bg-black">
 
-                        <p className="text-lg font-semibold">
-                            Video paused
-                        </p>
+                {connectionError ? (
+                    <div className="absolute inset-0 flex items-center justify-center p-6">
 
-                        <p className="text-sm text-white/60 mt-1">
-                            Your microphone is still live
-                        </p>
-                    </div>
-                </div>
-            )}
+                        <div className="text-center max-w-sm">
 
-            {/* =========================================================
-                CAMERA LOADING
-            ========================================================= */}
+                            <div className="w-16 h-16 mx-auto rounded-full bg-red-600/20 flex items-center justify-center mb-4">
 
-            {cameraLoading &&
-                connected &&
-                !videoPaused && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <Loader2
-                            size={38}
-                            className="animate-spin text-white"
-                        />
-                    </div>
-                )}
+                                <AlertCircle
+                                    size={32}
+                                    className="text-red-500"
+                                />
 
-            {/* =========================================================
-                TOP
-            ========================================================= */}
+                            </div>
 
-            <div
-                className={`
-                    absolute
-                    top-0
-                    left-0
-                    right-0
-                    z-20
-                    p-4
-                    bg-gradient-to-b
-                    from-black/70
-                    to-transparent
-                    transition-opacity
-                    duration-300
-                    
-                `}
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                    <div
-                        className={`
-                            w-10
-                            h-10
-                            rounded-full
-                            flex
-                            items-center
-                            justify-center
-                            border-2
-                            border-white
-                            text-white
-                            font-semibold
-                            text-sm
-                            shrink-0
-                            ${getColor(post?.user?.first_name)}
-                        `}
-                    >
-                        {getInitial(post?.user?.first_name)}
-                    </div>
+                            <h3 className="font-semibold text-lg">
+                                Live connection failed
+                            </h3>
 
-                    <div>
-                        <div className="font-semibold">
-                            {post?.user?.first_name}{" "}
-                            {post?.user?.last_name}
+                            <p className="text-sm text-white/60 mt-2">
+                                {connectionError}
+                            </p>
+
                         </div>
 
-                        <div className="flex items-center gap-2 text-xs">
-                            <span className="flex items-center gap-1 text-red-400">
-                                <Radio size={12} />
+                    </div>
+                ) : (
+                    <>
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            muted
+                            playsInline
+                            className="
+                                absolute
+                                inset-0
+                                w-full
+                                h-full
+                                object-cover
+                            "
+                        />
+
+                        {cameraLoading &&
+                            connected && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+
+                                    <Loader2
+                                        size={42}
+                                        className="animate-spin"
+                                    />
+
+                                </div>
+                            )}
+
+                        {!cameraEnabled &&
+                            connected && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black">
+
+                                    <div className="text-center">
+
+                                        <div
+                                            className={`
+                                                w-20
+                                                h-20
+                                                rounded-full
+                                                mx-auto
+                                                flex
+                                                items-center
+                                                justify-center
+                                                ${getColor(
+                                                    post?.user?.name ||
+                                                    post?.user_id ||
+                                                    post?.id
+                                                )}
+                                            `}
+                                        >
+                                            <span className="text-3xl font-semibold">
+                                                {getInitial(
+                                                    post?.user?.name ||
+                                                    "User"
+                                                )}
+                                            </span>
+                                        </div>
+
+                                        <p className="mt-4 text-sm text-white/60">
+                                            Camera is off
+                                        </p>
+
+                                    </div>
+
+                                </div>
+                            )}
+
+                        {videoPaused &&
+                            connected && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+
+                                    <div className="text-center">
+
+                                        <Pause
+                                            size={40}
+                                            className="mx-auto mb-3"
+                                        />
+
+                                        <p className="font-semibold">
+                                            Video paused
+                                        </p>
+
+                                    </div>
+
+                                </div>
+                            )}
+                    </>
+                )}
+
+            </div>
+
+            {/* =====================================================
+                TOP BAR
+            ===================================================== */}
+
+            <div className="absolute top-0 left-0 right-0 z-20 p-4">
+
+                <div className="flex items-center justify-between">
+
+                    {/* LIVE INDICATOR */}
+
+                    <div className="flex items-center gap-2">
+
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur">
+
+                            <span className="relative flex h-3 w-3">
+
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+
+                            </span>
+
+                            <span className="text-xs font-semibold">
                                 LIVE
                             </span>
 
-                            <span className="text-white/70">
-                                {formatDuration(liveDuration)}
-                            </span>
                         </div>
+
+                        {/* RECORDING */}
+
+                        {recording && (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur">
+
+                                <Radio
+                                    size={14}
+                                    className="text-red-500"
+                                />
+
+                                <span className="text-xs">
+                                    Recording
+                                </span>
+
+                            </div>
+                        )}
+
                     </div>
+
+                    {/* DURATION */}
+
+                    <div className="px-3 py-2 rounded-full bg-black/50 backdrop-blur text-xs font-medium">
+
+                        {formatDuration(
+                            liveDuration
+                        )}
+
+                    </div>
+
                 </div>
 
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowEndModal(
-                                true
-                            );
-                        }}
-                        className="w-10 h-10 rounded-full bg-black/50 hover:bg-red-600 flex items-center justify-center transition"
-                    >
-                        <X size={21} />
-                    </button>
-                </div>
             </div>
 
-            {/* =========================================================
-                BOTTOM
-            ========================================================= */}
+            {/* =====================================================
+                BOTTOM AREA
+            ===================================================== */}
 
-            <div
-                className={`
-                    absolute
-                    bottom-0
-                    left-0
-                    right-0
-                    z-20
-                    p-4
-                    sm:p-6
-                    bg-gradient-to-t
-                    from-black/90
-                    via-black/50
-                    to-transparent
-                    transition-opacity
-                    duration-300
-                    
-                `}
-            >
-                {/* =====================================================
+            <div className="absolute bottom-0 left-0 right-0 z-20 p-4 sm:p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+
+                {/* =================================================
                     DESCRIPTION
-                ===================================================== */}
+                ================================================= */}
 
-                <div className="max-w-xl mx-auto mb-5">
+                <div className="mb-5 max-w-2xl mx-auto">
+
                     {!editingDescription ? (
-                        <div className="flex items-start gap-2">
-                            <div className="flex-1 text-sm sm:text-base leading-6 text-white/90">
-                                {description ||
-                                    "Add a description for your live"}
+                        <div className="flex items-start gap-3">
+
+                            <div className="flex-1">
+
+                                <p className="text-sm sm:text-base leading-relaxed text-white/90">
+                                    {description ||
+                                        "No description"}
+                                </p>
+
                             </div>
 
                             <button
                                 type="button"
-                                onClick={(e) => {
+                                onClick={(
+                                    e
+                                ) => {
                                     e.stopPropagation();
+
                                     startEditingDescription();
                                 }}
-                                className="shrink-0 p-1.5 rounded-full hover:bg-white/10 transition"
+                                className="
+                                    p-2
+                                    rounded-full
+                                    bg-white/10
+                                    hover:bg-white/20
+                                    transition
+                                "
                                 title="Edit description"
                             >
                                 <Pencil
-                                    size={15}
+                                    size={16}
                                 />
                             </button>
+
                         </div>
                     ) : (
                         <div className="flex items-end gap-2">
-                            <div className="relative flex-1">
+
+                            <div className="flex-1">
+
                                 <textarea
-                                    autoFocus
                                     value={
                                         description
                                     }
-                                    maxLength={
-                                        700
-                                    }
-                                    rows={1}
                                     onChange={(
                                         e
-                                    ) =>
-                                        setDescription(
-                                            e
-                                                .target
+                                    ) => {
+                                        if (
+                                            e.target
                                                 .value
-                                        )
-                                    }
-                                    onClick={(
-                                        e
-                                    ) =>
-                                        e.stopPropagation()
-                                    }
+                                                .length <=
+                                            700
+                                        ) {
+                                            setDescription(
+                                                e.target
+                                                    .value
+                                            );
+                                        }
+                                    }}
+                                    rows={3}
+                                    maxLength={700}
                                     className="
                                         w-full
                                         resize-none
-                                        bg-transparent
-                                        border-0
-                                        border-b
-                                        border-white/60
-                                        focus:border-white
-                                        outline-none
-                                        text-white
-                                        placeholder:text-white/40
+                                        rounded-xl
+                                        bg-black/50
+                                        border
+                                        border-white/10
+                                        px-4
+                                        py-3
                                         text-sm
-                                        sm:text-base
-                                        py-1
-                                        px-0
+                                        text-white
+                                        outline-none
+                                        focus:border-white/30
                                     "
-                                    placeholder="Write a description"
+                                    placeholder="Write a description..."
                                 />
 
                                 <div className="text-[10px] text-white/50 mt-1">
@@ -1533,6 +1695,7 @@ export default function LiveBroadcaster({
                                     }
                                     /700
                                 </div>
+
                             </div>
 
                             <button
@@ -1540,25 +1703,31 @@ export default function LiveBroadcaster({
                                 disabled={
                                     savingDescription
                                 }
-                                onClick={(e) => {
+                                onClick={(
+                                    e
+                                ) => {
                                     e.stopPropagation();
+
                                     saveDescription();
                                 }}
-                                className="p-2 rounded-full bg-green-600 hover:bg-green-700 disabled:opacity-50 transition"
+                                className="
+                                    p-2
+                                    rounded-full
+                                    bg-green-600
+                                    hover:bg-green-700
+                                    disabled:opacity-50
+                                    transition
+                                "
                                 title="Save"
                             >
                                 {savingDescription ? (
                                     <Loader2
-                                        size={
-                                            16
-                                        }
+                                        size={16}
                                         className="animate-spin"
                                     />
                                 ) : (
                                     <Check
-                                        size={
-                                            16
-                                        }
+                                        size={16}
                                     />
                                 )}
                             </button>
@@ -1568,19 +1737,31 @@ export default function LiveBroadcaster({
                                 disabled={
                                     savingDescription
                                 }
-                                onClick={(e) => {
+                                onClick={(
+                                    e
+                                ) => {
                                     e.stopPropagation();
+
                                     cancelEditingDescription();
                                 }}
-                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 transition"
+                                className="
+                                    p-2
+                                    rounded-full
+                                    bg-white/10
+                                    hover:bg-white/20
+                                    disabled:opacity-50
+                                    transition
+                                "
                                 title="Cancel"
                             >
                                 <X
                                     size={16}
                                 />
                             </button>
+
                         </div>
                     )}
+
                 </div>
 
                 {/* =====================================================
@@ -1595,6 +1776,7 @@ export default function LiveBroadcaster({
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
+
                             toggleMicrophone();
                         }}
                         className={`
@@ -1618,7 +1800,9 @@ export default function LiveBroadcaster({
                         }
                     >
                         {micEnabled ? (
-                            <Mic size={21} />
+                            <Mic
+                                size={21}
+                            />
                         ) : (
                             <MicOff
                                 size={21}
@@ -1632,6 +1816,7 @@ export default function LiveBroadcaster({
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
+
                             togglePauseVideo();
                         }}
                         className={`
@@ -1655,7 +1840,9 @@ export default function LiveBroadcaster({
                         }
                     >
                         {videoPaused ? (
-                            <Play size={21} />
+                            <Play
+                                size={21}
+                            />
                         ) : (
                             <Pause
                                 size={21}
@@ -1669,6 +1856,7 @@ export default function LiveBroadcaster({
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
+
                             toggleCamera();
                         }}
                         className={`
@@ -1702,10 +1890,7 @@ export default function LiveBroadcaster({
                         )}
                     </button>
 
-                    {/* =================================================
-                        FRONT CAMERA
-                        Disabled on large screen
-                    ================================================= */}
+                    {/* FRONT CAMERA */}
 
                     <button
                         type="button"
@@ -1742,10 +1927,7 @@ export default function LiveBroadcaster({
                         Front
                     </button>
 
-                    {/* =================================================
-                        BACK CAMERA
-                        Disabled on large screen
-                    ================================================= */}
+                    {/* BACK CAMERA */}
 
                     <button
                         type="button"
@@ -1782,21 +1964,28 @@ export default function LiveBroadcaster({
                         Back
                     </button>
 
-                   
+                    {/* END LIVE */}
+
                     <button
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
+
                             setShowEndModal(
                                 true
                             );
                         }}
+                        disabled={
+                            ending ||
+                            ended
+                        }
                         className="
                             px-4
                             h-12
                             rounded-full
                             bg-red-600
                             hover:bg-red-700
+                            disabled:opacity-50
                             font-semibold
                             text-sm
                             transition
@@ -1804,6 +1993,7 @@ export default function LiveBroadcaster({
                     >
                         End Live
                     </button>
+
                 </div>
 
                 {/* =====================================================
@@ -1811,21 +2001,26 @@ export default function LiveBroadcaster({
                 ===================================================== */}
 
                 <div className="flex items-center justify-center gap-2 mt-4 text-[11px] text-white/50">
+
                     <ShieldCheck
                         size={13}
                     />
 
                     Your live session is protected.
+
                 </div>
+
             </div>
 
-            {/* =========================================================
+            {/* =====================================================
                 CONNECTING
-            ========================================================= */}
+            ===================================================== */}
 
             {connecting && (
                 <div className="absolute inset-0 z-40 bg-black/80 flex items-center justify-center">
+
                     <div className="text-center">
+
                         <Loader2
                             size={42}
                             className="animate-spin mx-auto mb-4"
@@ -1838,22 +2033,43 @@ export default function LiveBroadcaster({
                         <p className="text-sm text-white/60 mt-1">
                             Connecting to LiveKit
                         </p>
+
                     </div>
+
                 </div>
             )}
 
-            {/* =========================================================
+            {/* =====================================================
                 END MODAL
-            ========================================================= */}
+            ===================================================== */}
 
             {showEndModal && (
                 <div
-                    className="absolute inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+                    className="
+                        absolute
+                        inset-0
+                        z-50
+                        bg-black/70
+                        flex
+                        items-center
+                        justify-center
+                        p-4
+                    "
                     onClick={(e) => {
                         e.stopPropagation();
                     }}
                 >
-                    <div className="w-full max-w-sm bg-[var(--bg-color,#fff)] text-[var(--text-color,#000)] rounded-2xl p-6 shadow-2xl">
+
+                    <div className="
+                        w-full
+                        max-w-sm
+                        bg-[var(--bg-color,#fff)]
+                        text-[var(--text-color,#000)]
+                        rounded-2xl
+                        p-6
+                        shadow-2xl
+                    ">
+
                         <h3 className="text-lg font-semibold text-center">
                             End live session?
                         </h3>
@@ -1865,7 +2081,26 @@ export default function LiveBroadcaster({
                             ends.
                         </p>
 
+                        {recording && (
+                            <div className="
+                                mt-4
+                                flex
+                                items-center
+                                justify-center
+                                gap-2
+                                text-xs
+                                text-green-600
+                            ">
+                                <Radio
+                                    size={14}
+                                />
+
+                                Recording is active
+                            </div>
+                        )}
+
                         <div className="flex gap-3 mt-6">
+
                             <button
                                 type="button"
                                 disabled={
@@ -1913,21 +2148,24 @@ export default function LiveBroadcaster({
                                 {ending ? (
                                     <>
                                         <Loader2
-                                            size={
-                                                17
-                                            }
+                                            size={17}
                                             className="animate-spin"
                                         />
+
                                         Ending
                                     </>
                                 ) : (
                                     "End Live"
                                 )}
                             </button>
+
                         </div>
+
                     </div>
+
                 </div>
             )}
+
         </div>
     );
 }

@@ -1261,8 +1261,8 @@ const sendFile = async ({ descriptions = {} } = {}) => {
     */}
     {uiMode === "popup" && !activeChat && (
       <div className="
-        fixed z-50 shadow-xl
-        right-0 lg:right-10 lg:top-16
+        fixed z-[100] shadow-xl
+        right-0 lg:right-10 lg:top-16 top-24
         w-full h-full
         lg:w-[340px] lg:h-[400px] lg:rounded-xl
       ">
@@ -1313,7 +1313,7 @@ const sendFile = async ({ descriptions = {} } = {}) => {
      {uiMode !== "full" && activeChat && (
       <div
         className={`
-          fixed z-50 flex flex-col
+          fixed z-[200] flex flex-col
 
           bottom-0 right-0
           w-full h-full rounded-none
@@ -1393,7 +1393,7 @@ const sendFile = async ({ descriptions = {} } = {}) => {
 {uiMode !== "full" && activeChat && showSettings && (
   <div
     className="
-      fixed inset-0 z-50   /* ✅ FULL SCREEN on mobile */
+      fixed inset-0 z-[250]   /* ✅ FULL SCREEN on mobile */
       bg-white
 
       lg:inset-auto        /* reset for desktop */

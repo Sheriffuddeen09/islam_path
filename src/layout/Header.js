@@ -19,6 +19,8 @@ import api from '../Api/axios';
 import useApplicationNotification from '../job/useApplicationNotification';
 import toast from 'react-hot-toast';
 import ReelViewerModal from '../pages/reel/ReelViewerModal';
+import { createPortal } from "react-dom";
+
 
 function Navbar({messageOpen, activeChat, setActiveChat,
   chats, setChats, handleMessageOpenHeader, unreadCount,  friendCount, homeCount, reelCount,
@@ -224,7 +226,8 @@ useEffect(() => {
                 shadow
                 px-1
                 sm:py-2
-                py-0.5
+                py-2
+                -mb-12 lg:mb-0
                 transition-transform
                 duration-300
                 ease-in-out
@@ -250,7 +253,7 @@ useEffect(() => {
                         
                           <Link
                           to="/"
-                          onClick={handleHomeClick}
+                          onClick={() => {handleHomeClick(); togglePopup()}}
                           className={`${
                             homepage === "/" && !messageOpen
                               ? "text-blue-600"
@@ -274,7 +277,7 @@ useEffect(() => {
                           {/* Friend */}
                           <Link
                           to="/friend"
-                          onClick={handleFriendClick}
+                          onClick={() => {handleFriendClick(); togglePopup()}}
                           className={`${
                             homepage === "/friend" && !messageOpen
                               ? "text-blue-600"
@@ -347,6 +350,7 @@ useEffect(() => {
                             navigate(`/reel/video/${reelToOpen.id}`);
 
                             handleReelClick?.();
+                            togglePopup()
                         }}
                         className={`${
                             homepage === "/reel/video" && !messageOpen
@@ -376,7 +380,7 @@ useEffect(() => {
           
                              {/* Notification */}
                           <Link to={'/notifications'} 
-                          onClick={handleNotification}
+                          onClick={() => {handleNotification(); togglePopup()}}
                           className={`${
                             homepage === "/notifications" && !messageOpen
                               ? "text-blue-600"
@@ -397,7 +401,7 @@ useEffect(() => {
                           </Link>
           
 
-                            <Link to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
+                            <Link onClick={() => {togglePopup()}} to={'/online-sale'} className={`${homepage === '/online-sale' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
                             transition-all  duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                             
                             <BookTemplateIcon />
@@ -438,12 +442,12 @@ useEffect(() => {
                              {jobProfile?.type &&
               jobProfile && (
                   <Link
+                    onClick={() => {togglePopup(); markApplicationsAsRead()}}
                     to={
                         jobProfile?.type === "creator"
                             ? "/applicate/job-create"
                             : "/applicate/job-finder"
-                    }
-                    onClick={markApplicationsAsRead}
+                    } 
                     className={`${
                         homepage ===
                             (jobProfile?.type === "creator"
@@ -544,7 +548,9 @@ useEffect(() => {
                   
                   </div>
           
-                  <Link to={'/cart'} className={`${homepage === '/cart' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
+                  <Link 
+                  onClick={() => {togglePopup()}}
+                   to={'/cart'} className={`${homepage === '/cart' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
                             transition-all hidden lg:block duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
                             
                 <CarFront />
@@ -582,14 +588,21 @@ useEffect(() => {
                     </nav>
           
                       {/* Mobile Menu */}
-                      <div
-                          className={`z-[999] fixed inset-0 w-full h-screen bg-[var(--bg-color)]
-                          transition-all duration-3000 ease-in-out
-                          ${menu ? "blocked" : "hide"}`}
-                      >
+                      {menu &&
+    createPortal(
+        <div
+            className="
+                fixed
+                inset-0
+                z-[999999]
+                w-full
+                h-screen
+                bg-[var(--bg-color)]
+            "
+        >
                           <section
                               className="
-                                  z-[999]
+                                  z-[9999]
                                   text-[var(--text-color)]
                                   flex
                                   flex-col
@@ -1033,7 +1046,9 @@ useEffect(() => {
           )}          
           
                   </section>
-                  </div>
+                  </div>,
+                        document.body
+                  )}
                   </header>
           
                   <ChatPage

@@ -6,7 +6,7 @@ import DownloadImageFlex from "./DownloadImageFlex";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle, X, Check, Send } from "lucide-react";
 import { toast } from "react-toastify";
-
+import { Loader2 } from "lucide-react";
 
 export default function PostOptions({ post,  chats, setPosts }) {
   const [open, setOpen] = useState(false);
@@ -17,7 +17,9 @@ export default function PostOptions({ post,  chats, setPosts }) {
   const [selectedChats, setSelectedChats] = useState([]);
   const [shares, setShares] = useState(false);
   const [sending, setSending] = useState(false);
-
+  const [showHideReasonModal, setShowHideReasonModal] = useState(false);
+  const [selectedHideReason, setSelectedHideReason] = useState("");
+  const [hidingPost, setHidingPost] = useState(false);
 
   const currentUser = useAuth()
   
@@ -142,10 +144,15 @@ const downloadSingleImage = async (img) => {
 };
 
    
+const handleViewProfile = () => {
+    const profileUserId = post?.is_repost
+        ? post?.reposted_by?.id
+        : post?.user?.id;
 
-  const handleViewProfile = () => {
-    window.location.href = `/profile/${currentUser?.user?.id}`;
-  };
+    if (!profileUserId) return;
+
+    window.location.href = `/profile/${profileUserId}`;
+};
 
   
   const handleOption = () =>{
@@ -194,41 +201,41 @@ const handleReport = () =>{
 
 
 const handleHidePost = async (postId) => {
-  if (loading === "hide") return false;
+    if (!selectedHideReason) {
+        toast.error("Please select a reason.");
+        return false;
+    }
 
-  setLoading("hide");
+    try {
+        setHidingPost(true);
 
-  try {
-    await api.post(`/api/posts/${postId}/hide`);
+        await api.post(`/api/posts/${postId}/hide`, {
+            reason: selectedHideReason,
+        });
 
-    toast.success(
-      post?.is_advertisement === true
-        ? "Ad hidden successfully"
-        : "Post hidden successfully"
-    );
+        toast.success(
+            post?.is_advertisement === true
+                ? "Ad hidden for you"
+                : "Post hidden for you"
+        );
 
-    // If you remove the post from the feed here
-    setPosts((prev) =>
-      prev.filter((item) => item.id !== postId)
-    );
+        setShowHideReasonModal(false);
+        setSelectedHideReason("");
 
-    return true;
+        return true;
+    } catch (error) {
+        console.error("Failed to hide post:", error);
 
-  } catch (error) {
-    console.error("Failed to hide:", error);
+        toast.error(
+            error?.response?.data?.message ||
+            "Unable to hide this post"
+        );
 
-    toast.error(
-      error?.response?.data?.message ||
-      "Failed to hide"
-    );
-
-    return false;
-
-  } finally {
-    setLoading(null);
-  }
+        return false;
+    } finally {
+        setHidingPost(false);
+    }
 };
-
 
   return (
     <div className=" bg-[var(--bg-color)] text-[var(--text-color)] inline-block text-left">
@@ -333,30 +340,24 @@ const handleHidePost = async (postId) => {
 
            <li>
               <button
-                onClick={async () => {
-                  const success = await handleHidePost(post.id);
-
-                  if (success) {
-                    handleOption();
-                  }
-                }}
-                disabled={loading === "hide"}
-                className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2
-                disabled:cursor-not-allowed
-                disabled:opacity-70
-                disabled:active:scale-100
-                hover:text-white hover:bg-gray-700 rounded"
+                  onClick={() => {
+                      setSelectedHideReason("");
+                      setShowHideReasonModal(true);
+                  }}
+                  className="
+                      flex items-center gap-2
+                      font-bold text-[15px]
+                      w-full px-2 py-2
+                      hover:text-white
+                      hover:bg-gray-700
+                      rounded
+                  "
               >
-                {loading === "hide"
-                  ? post?.is_advertisement === true
-                    ? "Hiding Ad..."
-                    : "Hiding Post..."
-                  : post?.is_advertisement === true
-                    ? "Hide Ad"
-                    : "Hide Post"}
+                  {post?.is_advertisement === true
+                      ? "Hide Ad"
+                      : "Hide Post"}
               </button>
-            </li>
-
+          </li>
             <li>
               <button onClick={() => {handleOption(); handleCopyLink()}} className="flex items-center gap-2 font-bold text-[15px] w-full px-2 py-2 hover:text-white hover:bg-gray-700 rounded"
               >
@@ -1100,6 +1101,190 @@ const handleHidePost = async (postId) => {
 
     </div>
   </div>
+)}
+
+{showHideReasonModal && (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 px-4">
+        <div
+            className="
+                w-full max-w-md
+                bg-[var(--bg-color)]
+                text-[var(--text-color)]
+                rounded-xl
+                shadow-2xl
+                p-5
+                max-h-[90vh]
+                overflow-y-auto
+            "
+        >
+            {/*
+            |--------------------------------------------------------------------------
+            | Content type
+            |--------------------------------------------------------------------------
+            */}
+            {(() => {
+                const isAd = post?.is_advertisement === true;
+                const contentType = isAd ? "ad" : "post";
+                const ContentType = isAd ? "Ad" : "Post";
+
+                const hideReasons = [
+                    `I have seen this ${contentType} before`,
+                    `This ${contentType} is fake or misleading`,
+                    `This ${contentType} contains inappropriate content`,
+                    `I think this ${contentType} is fraud or a scam`,
+                    `This ${contentType} contains copyrighted or copied content`,
+                    `Why was this ${contentType} approved?`,
+                ];
+
+                return (
+                    <>
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-5">
+                            <div>
+                                <h2 className="text-lg font-bold">
+                                    Why are you hiding this {contentType}?
+                                </h2>
+
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Tell us why you do not want to see this{" "}
+                                    {contentType} again.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowHideReasonModal(false);
+                                    setSelectedHideReason("");
+                                }}
+                                className="
+                                    w-8 h-8
+                                    rounded-full
+                                    hover:bg-gray-200
+                                    dark:hover:bg-gray-700
+                                    flex items-center justify-center
+                                    text-lg
+                                    shrink-0
+                                "
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Reasons */}
+                        <div className="space-y-2">
+                            {hideReasons.map((reason) => (
+                                <button
+                                    key={reason}
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedHideReason(reason)
+                                    }
+                                    className={`
+                                        w-full
+                                        text-left
+                                        px-4 py-3
+                                        rounded-lg
+                                        border
+                                        transition
+                                        text-sm
+                                        ${
+                                            selectedHideReason === reason
+                                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                                : "border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                        }
+                                    `}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className={`
+                                                w-4 h-4
+                                                rounded-full
+                                                border
+                                                flex items-center justify-center
+                                                shrink-0
+                                                ${
+                                                    selectedHideReason === reason
+                                                        ? "border-blue-500"
+                                                        : "border-gray-400"
+                                                }
+                                            `}
+                                        >
+                                            {selectedHideReason === reason && (
+                                                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                            )}
+                                        </span>
+
+                                        <span>{reason}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex gap-3 mt-5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowHideReasonModal(false);
+                                    setSelectedHideReason("");
+                                }}
+                                disabled={hidingPost}
+                                className="
+                                    flex-1
+                                    px-4 py-2.5
+                                    rounded-lg
+                                    border
+                                    border-gray-400
+                                    font-semibold
+                                    text-sm
+                                    hover:bg-gray-100
+                                    dark:hover:bg-gray-800
+                                    disabled:opacity-50
+                                "
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={!selectedHideReason || hidingPost}
+                                onClick={async () => {
+                                    const success =
+                                        await handleHidePost(post.id);
+
+                                    if (success) {
+                                        handleOption();
+                                    }
+                                }}
+                                className="
+                                    flex-1
+                                    px-4 py-2.5
+                                    rounded-lg
+                                    bg-blue-600
+                                    text-white
+                                    font-semibold
+                                    text-sm
+                                    hover:bg-blue-700
+                                    disabled:opacity-50
+                                    disabled:cursor-not-allowed
+                                "
+                            >
+                                {hidingPost ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Hiding
+                                    </span>
+                                ) : (
+                                    `Hide ${ContentType}`
+                                )}
+                            </button>
+                        </div>
+                    </>
+                );
+            })()}
+        </div>
+    </div>
 )}
   </div>
 

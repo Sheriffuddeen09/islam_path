@@ -58,18 +58,18 @@ id: 10, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "b
 export const islamicApps = [
 {
 id: 1, icon: <BookOpen />, name: "Al Quran",
-link: "", },{
-id: 2, icon: <ScrollText />, name: "Hadith Collection", link: "", },{
-id: 3, icon: <MoonStar />, name: "Muslim Pro", link: "", },{
-id: 4, icon: <Scale />, name: "Fiqh", link: "", },{
-id: 5, icon: <Languages />, name: "Arabiyya", link: "", },{
+link: "https://apps.microsoft.com/detail/9P1ZD3K91XQT?hl=en-us&gl=US&ocid=pdpshare", },{
+id: 2, icon: <ScrollText />, name: "Hadith Collection", link: "https://apps.microsoft.com/detail/9PC5GTQRCFGB?hl=en-us&gl=US&ocid=pdpshare", },{
+id: 3, icon: <MoonStar />, name: "Muslim Pro", link: "https://apps.microsoft.com/detail/9WZDNCRDT1DQ?hl=en&gl=US&ocid=pdpshare", },{
+id: 4, icon: <Scale />, name: "Fiqh", link: "https://apps.microsoft.com/detail/9N4S78P86PKX?hl=neutral&gl=US&ocid=pdpshare", },{
+id: 5, icon: <Languages />, name: "Arabiyya", link: "https://apps.microsoft.com/detail/9N4S78P86PKX?hl=neutral&gl=US&ocid=pdpshare", },{
 id: 6, icon: <Library />,
-name: "Usul Ath-Thalatha", link: "", },{
-id: 7, icon: <Compass />, name: "Qiblah Finder", link: "", },{
-id: 8, icon: <Clock3 />, name: "Prayer Times", link: "", },{
-id: 9, icon: <GraduationCap />, name: "Arabic Dictionary", link: "", },{
-id: 10, icon: <Bookmark />, name: "Hisnul Muslim", link: "", },{
-id: 11,
-icon: <NotebookPen />, name: "Easy Quran Hafiz", link: "", },{
-id: 12, icon: <BookMarked />, name: "Tafsiir Quran", link: "", },{
-id: 13, icon: <Gem />, name: "40 Hadith An-Nawawi", link: "", }, ];
+name: "Usul Ath-Thalatha", link: "https://salaficentre.com/wp-content/uploads/2016/04/Usool-at-Thalaatha-Full-Workbook-WEB.pdf", },
+{
+id: 7, icon: <Clock3 />, name: "Prayer Times", link: "https://apps.microsoft.com/detail/9NRXZ1PSXZRV?hl=en&gl=US&ocid=pdpshare", },{
+id: 8, icon: <GraduationCap />, name: "Arabic Dictionary", link: "https://apps.microsoft.com/detail/9WZDNCRDC1LB?hl=en-us&gl=US&ocid=pdpshare", },{
+id: 9, icon: <Bookmark />, name: "Hisnul Muslim", link: "https://hisnul-muslim-plus.updatestar.com/download", },{
+id: 10,
+icon: <NotebookPen />, name: "Easy Quran Hafiz", link: "https://apps.microsoft.com/detail/9WZDNCRDF9MB?hl=en-us&gl=US&ocid=pdpshare", },{
+id: 11, icon: <BookMarked />, name: "Tafsiir Quran", link: "https://apps.microsoft.com/detail/9NX2CHFQ26GD?hl=en-us&gl=US&ocid=pdpshare", },{
+id: 12, icon: <Gem />, name: "40 Hadith An-Nawawi", link: "https://apps.microsoft.com/detail/9WZDNCRDD6DL?hl=neutral&gl=US&ocid=pdpshare", }, ];

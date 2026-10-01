@@ -41,7 +41,8 @@ video, setVideo
   const [sending, setSending] = useState(false);
   const [ showUsersPopup, setShowUsersPopup] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [videoPreview, setVideoPreview] = useState(null);
+  
+  const { user: authUser } = useAuth();
   
   
   const postRef = useRef();
@@ -184,13 +185,7 @@ useEffect(() => {
      ? text.substring(0, contentLimit) + "..."
      : text;
 
-
-const openVideoPreview = (video, post) => {
-    setVideoPreview({
-        ...post,
-        ...video,
-    });
-};
+ 
 
 
  const total = Object.values(counts || {}).reduce((a, b) => a + b, 0);
@@ -574,42 +569,141 @@ const openVideoPreview = (video, post) => {
       };
 
 
-      
-
-const showFollowButton =
-  user?.role === post?.user?.role &&
-  user?.id !== post?.user?.id &&
-  ["admin", "student"].includes(user?.role);
+const [followLoadingId, setFollowLoadingId] = useState(null);
+const [followedUserIds, setFollowedUserIds] = useState([]);
 
 
-  const followButtonText =
-  user?.role === "admin"
-    ? "Admin"
-    : "Student";
+ const loggedInUser = authUser ?? user;
 
-    const handleFollow = async (targetUserId) => {
-  if (!targetUserId) return;
+const isUserInChatList = (targetUserId) => {
+    if (!targetUserId || !Array.isArray(chats)) {
+        return false;
+    }
 
-  try {
-    const endpoint =
-      user?.role === "admin"
-        ? `/api/admin-friend/request/${targetUserId}`
-        : `/api/student-friend/request/${targetUserId}`;
+    const targetId = Number(targetUserId);
+    const authId = Number(loggedInUser?.id);
 
-    await api.post(endpoint);
+    return chats.some((chat) => {
+        const ids = [
+            chat?.teacher_id,
+            chat?.student_id,
+            chat?.user_one_id,
+            chat?.user_two_id,
+            chat?.other_user?.id,
+            chat?.other?.id,
+            chat?.teacher?.id,
+            chat?.student?.id,
 
-    toast.success("Follow request sent");
-  } catch (error) {
-    console.error("Failed to follow:", error);
+            ...(Array.isArray(chat?.users)
+                ? chat.users.map((u) => u?.id)
+                : []),
+        ]
+            .filter((id) => id !== null && id !== undefined)
+            .map(Number);
 
-    toast.error(
-      error?.response?.data?.message ||
-      "Unable to send follow request"
-    );
-  }
+        return ids.includes(targetId) && targetId !== authId;
+    });
 };
 
-//
+const targetUserId = Number(post?.user?.id);
+
+const sameUser =
+    Number(loggedInUser?.id) === targetUserId;
+
+const sameRole =
+    String(loggedInUser?.role ?? "").toLowerCase() ===
+    String(post?.user?.role ?? "").toLowerCase();
+
+const validRole =
+    ["admin", "student"].includes(
+        String(loggedInUser?.role ?? "").toLowerCase()
+    );
+
+const targetInChat =
+    isUserInChatList(targetUserId);
+
+const showFollowButton =
+    Boolean(
+        loggedInUser?.id &&
+        post?.user?.id &&
+        !sameUser &&
+        sameRole &&
+        validRole &&
+        !targetInChat &&
+        !followedUserIds.includes(targetUserId)
+    );
+ 
+ 
+const handleFollow = async (targetUserId) => {
+    if (!targetUserId) {
+        return;
+    }
+
+    const numericTargetId = Number(targetUserId);
+
+    // Prevent duplicate clicks
+    if (followLoadingId === numericTargetId) {
+        return;
+    }
+
+    // Cannot follow yourself
+    if (numericTargetId === Number(loggedInUser?.id)) {
+        return;
+    }
+
+    const role = String(loggedInUser?.role ?? "").toLowerCase();
+    const targetRole = String(post?.user?.role ?? "").toLowerCase();
+
+    // Only same-role users can follow each other
+    if (role !== targetRole) {
+        toast.error("You can only follow users with the same role.");
+        return;
+    }
+
+    // Only admin/student can send these requests
+    if (!["admin", "student"].includes(role)) {
+        return;
+    }
+
+    // Already in chat
+    if (isUserInChatList(numericTargetId)) {
+        toast.error("This user is already in your chat list.");
+        return;
+    }
+
+    try {
+        setFollowLoadingId(numericTargetId);
+
+        if (role === "admin") {
+            await api.post("/api/admin-friend/request", {
+                admin_id: numericTargetId,
+            });
+        } else {
+            await api.post("/api/student-friend/request", {
+                student_id: numericTargetId,
+            });
+        }
+
+        // Remove button immediately after successful request
+        setFollowedUserIds((prev) => [
+            ...prev,
+            numericTargetId,
+        ]);
+
+        toast.success("Follow request sent");
+
+    } catch (error) {
+        console.error("Failed to follow:", error);
+
+        toast.error(
+            error?.response?.data?.message ||
+            "Unable to send follow request"
+        );
+    } finally {
+        setFollowLoadingId(null);
+    }
+};
+
   return (
     <div
           className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
@@ -676,45 +770,41 @@ const showFollowButton =
            
            
                      {showFollowButton && (
-           
-                       <button
-           
-                         type="button"
-           
-                         onClick={() => handleFollow(post.user.id)}
-           
-                         className="
-           
-                           px-3
-           
-                           py-1.5
-           
-                           rounded-lg
-           
-                           text-xs
-           
-                           font-semibold
-           
-                           border
-           
-                           border-blue-500
-           
-                           text-blue-600
-           
-                           hover:bg-blue-50
-           
-                           transition
-           
-                         "
-           
-                       >
-           
-                         {followButtonText}
-           
-                       </button>
-           
-                     )}
-           
+                <button
+                    type="button"
+                    onClick={() => handleFollow(targetUserId)}
+                    disabled={followLoadingId === targetUserId}
+                    className="
+                        px-3 py-1.5
+                        rounded-lg
+                        border
+                        border-blue-600 
+                        text-sm
+                        font-medium
+                        disabled:opacity-60
+                        disabled:cursor-not-allowed
+                        flex items-center justify-center gap-2
+                    "
+                >
+                    {followLoadingId === targetUserId ? (
+                        <>
+                            <span
+                                className="
+                                    w-4 h-4
+                                    border-2
+                                    border-blue-600
+                                    border-t-blue-900
+                                    rounded-full
+                                    animate-spin
+                                "
+                            />
+                            Following
+                        </>
+                    ) : (
+                        "Follow"
+                    )}
+                </button>
+            )}
            
            
                      <PostOptions
@@ -780,7 +870,7 @@ const showFollowButton =
             </p>
         </button>
             <div>
-              <Link to={`/profile/${user.id}`}>
+              <Link to={`/profile/${post.user?.id}`}>
               <p className="font-semibold text-sm">{post.user?.name}</p>
               </Link>
               <p className="text-xs">{post.is_repost
@@ -793,46 +883,42 @@ const showFollowButton =
                    <div className="inline-flex gap-3 items-center">
             
             
-            
-                      {showFollowButton && (
-            
-                        <button
-            
-                          type="button"
-            
-                          onClick={() => handleFollow(post.user.id)}
-            
-                          className="
-            
-                            px-3
-            
-                            py-1.5
-            
-                            rounded-lg
-            
-                            text-xs
-            
-                            font-semibold
-            
-                            border
-            
-                            border-blue-500
-            
-                            text-blue-600
-            
-                            hover:bg-blue-50
-            
-                            transition
-            
-                          "
-            
-                        >
-            
-                          {followButtonText}
-            
-                        </button>
-            
-                      )}
+            {showFollowButton && (
+            <button
+                type="button"
+                onClick={() => handleFollow(targetUserId)}
+                disabled={followLoadingId === targetUserId}
+                className="
+                    px-3 py-1.5
+                    rounded-lg
+                    border
+                    border-blue-600 
+                    text-sm
+                    font-medium
+                    disabled:opacity-60
+                    disabled:cursor-not-allowed
+                    flex items-center justify-center gap-2
+                "
+            >
+                {followLoadingId === targetUserId ? (
+                    <>
+                        <span
+                            className="
+                                w-4 h-4
+                                border-2
+                                border-blue-600
+                                border-t-blue-900
+                                rounded-full
+                                animate-spin
+                            "
+                        />
+                        Following
+                    </>
+                ) : (
+                    "Follow"
+                )}
+            </button>
+        )}
             
             
             

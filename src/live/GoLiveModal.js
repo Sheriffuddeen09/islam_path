@@ -155,7 +155,7 @@ export default function GoLiveModal({
 
                                     </div>
 
-                                    <p className="mt-0.5 text-xs opacity-60">
+                                    <p className="mt-0.5 text-xs">
                                         Share what is happening with your audience
                                     </p>
                                 </div>
@@ -167,7 +167,7 @@ export default function GoLiveModal({
                     </div>
                 </div>
  
-                <div className="px-5 pb-5">
+                <div className="px-5 pb-5 mt-4">
 
 
                     <div

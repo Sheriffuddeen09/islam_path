@@ -115,7 +115,7 @@ export default function ChatList({
 
   return (
     <div className="h-full max-h-full lg:rounded-xl rounded-0 rounded-none flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] relative">
-
+      <div className='lg:block hidden'>
       <div className="flex items-center justify-between px-3 lg:py-2 py-4 border-b">
         <h1 className="text-2xl font-bold inline-flex gap-2 items-center">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -200,6 +200,7 @@ export default function ChatList({
 
 </div>
         </div>
+        </div>
      
 
       <div className="flex gap-2 p-3 flex-wrap">
@@ -227,7 +228,7 @@ export default function ChatList({
         >
           Unread
           {safeUnreadTotal > 0 && (
-            <span className="bg-white text-blue-600 text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-green-500 text-white translate-x-1 text-xs px-2 py-0.5 rounded-full">
               {safeUnreadTotal}
             </span>
           )}

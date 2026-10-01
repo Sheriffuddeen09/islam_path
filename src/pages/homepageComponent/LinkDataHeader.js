@@ -65,18 +65,20 @@ id: 12, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "b
 export const islamicApps = [
 {
 id: 1, icon: <BookOpen />, name: "Al Quran",
-link: "", },{
-id: 2, icon: <ScrollText />, name: "Hadith Collection", link: "", },{
-id: 3, icon: <MoonStar />, name: "Muslim Pro", link: "", },{
-id: 4, icon: <Scale />, name: "Fiqh", link: "", },{
-id: 5, icon: <Languages />, name: "Arabiyya", link: "", },{
+link: "https://play.google.com/store/apps/details?id=com.greentech.quran", },{
+id: 2, icon: <ScrollText />, name: "Hadith Collection", link: "https://play.google.com/store/apps/details?id=com.greentech.hadith", },{
+id: 3, icon: <MoonStar />, name: "Muslim Pro", link: "https://play.google.com/store/apps/details?id=com.bitsmedia.android.muslimpro", },{
+id: 4, icon: <Scale />, name: "Fiqh", link: "https://play.google.com/store/apps/details?id=com.bidayat.motafa9ih", },{
+id: 5, icon: <Languages />, name: "Arabiyya", link: "https://play.google.com/store/apps/details?id=id.azhar.jamiuddurusarabiyyah", },{
 id: 6, icon: <Library />,
-name: "Usul Ath-Thalatha", link: "", },{
-id: 7, icon: <Compass />, name: "Qiblah Finder", link: "", },{
-id: 8, icon: <Clock3 />, name: "Prayer Times", link: "", },{
-id: 9, icon: <GraduationCap />, name: "Arabic Dictionary", link: "", },{
-id: 10, icon: <Bookmark />, name: "Hisnul Muslim", link: "", },{
-id: 11,
-icon: <NotebookPen />, name: "Easy Quran Hafiz", link: "", },{
-id: 12, icon: <BookMarked />, name: "Tafsiir Quran", link: "", },{
-id: 13, icon: <Gem />, name: "40 Hadith An-Nawawi", link: "", }, ];
+name: "Usul Ath-Thalatha", link: "https://play.google.com/store/apps/details?id=com.limo.tsaqqova", },{
+id: 7, icon: <Clock3 />, name: "Prayer Times", link: "https://play.google.com/store/apps/details?id=com.greentech.sadiq", },{
+id: 8, icon: <GraduationCap />, name: "Arabic Dictionary", link: "https://play.google.com/store/apps/details?id=epic.arabic.translator", },{
+id: 9, icon: <Bookmark />, name: "Hisnul Muslim", link: "https://play.google.com/store/apps/details?id=com.admads.android.HisnulMuslim_Google_JQM", },{
+id: 10,
+icon: <NotebookPen />, name: "Easy Quran Hafiz", link: "https://play.google.com/store/apps/details?id=com.qabir.easyquranhafiz", },{
+id: 11, icon: <BookMarked />, name: "Tafsiir Quran", link: "https://play.google.com/store/apps/details?id=com.simppro.quran.tafseer.offline", },{
+id: 12, icon: <Gem />, name: "40 Hadith An-Nawawi", link: "https://play.google.com/store/apps/details?id=com.chaks.nawawi", }, ];
+
+ 
+ 
