@@ -1490,15 +1490,13 @@ const showMessageActions =
         transition-all duration-200
 
         ${
-          msg.status === "pending" || msg.status === "failed"
-            ? "opacity-0 pointer-events-none"
+          isMessageActionDisabled
+            ? "hidden"
             : isMobile
               ? showMessageActions
                 ? "opacity-100 pointer-events-auto"
                 : "opacity-0 pointer-events-none"
-              : isSendingMessage
-                ? "opacity-100 pointer-events-auto"
-                : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+              : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
         }
       `}
     >
@@ -1614,10 +1612,7 @@ const showMessageActions =
 
     
 <div
-  // onTouchStart={handleTouchStart}
-  // onTouchMove={handleTouchMove}
-  // onTouchEnd={handleTouchEnd}
-  // onTouchCancel={handleTouchCancel}
+  
   onClick={(e) => {
         if (longPressTriggered.current) {
             e.preventDefault();
