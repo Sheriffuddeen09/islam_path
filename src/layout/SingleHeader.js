@@ -238,8 +238,12 @@ useEffect(() => {
           <div className='sm:hidden block'>
             
             <nav className='flex flex-row py-1 px-3 justify-between items-center md:mx-3 lg:mx-7'>
-                  <Link className='text whitespace-nowrap font-bold text-2xl serif' to={'/'}>
-                    Al-Islamic
+                  <Link 
+                  style={{
+                        fontFamily: "'Great Vibes', cursive",
+                    }} 
+                    className='text whitespace-nowrap font-bold text-2xl ' to={'/'}>
+                    Al-Islam
                   </Link>
               <div className='inline-flex gap-2 items-center'>
                   <SearchUser />
@@ -252,7 +256,7 @@ useEffect(() => {
               <div className='hidden sm:block'>
                 <div className='inline-flex items-center gap-6'>
                 <Link to={'/'}>
-                <img className='' src={logos} alt='logo' width={45} height={45}/>
+                <img className='' src={logos} alt='logo' width={120} height={80}/>
                 </Link>
 
                 <div className="lg:block hidden">

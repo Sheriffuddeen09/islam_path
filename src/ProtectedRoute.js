@@ -8,6 +8,25 @@ export default function ProtectedRoute({
 }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [progress, setProgress] = useState(0);
+
+  // Loading progress animation
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return 95;
+        }
+
+        return Math.min(prev + 2, 95);
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     let mounted = true;
@@ -48,7 +67,14 @@ export default function ProtectedRoute({
         }
       } finally {
         if (mounted) {
-          setLoading(false);
+          setProgress(100);
+
+          // Small delay so the line can visibly complete
+          setTimeout(() => {
+            if (mounted) {
+              setLoading(false);
+            }
+          }, 250);
         }
       }
     };
@@ -62,10 +88,30 @@ export default function ProtectedRoute({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid" />
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-color)] text-[var(--text-color)]  px-4">
+      <div className="w-60">
+        <div className="relative h-2 w-full overflow-hidden rounded-sm bg-blue-100">
+          <div
+            className="h-full rounded-sm bg-blue-700 transition-all duration-300 ease-out"
+            style={{
+              width: `${progress}%`,
+            }}
+          />
+        </div>
+
+        <div className="flex items-center mt-6 justify-center">
+            <span
+              className="text-4xl font-bold"
+              style={{
+                fontFamily: "'Great Vibes', cursive",
+              }}
+            >
+              Al-Islam
+            </span>
+          </div>
       </div>
-    );
+    </div>
+  );
   }
 
   if (!user) {
@@ -76,7 +122,7 @@ export default function ProtectedRoute({
       />
     );
   }
- 
+
   let roles = [];
 
   if (Array.isArray(allowedRoles)) {
@@ -96,10 +142,7 @@ export default function ProtectedRoute({
       userRole: user?.role,
     }
   );
-
-  /*
-   * Only check the role if roles were supplied.
-   */
+ 
   if (
     roles.length > 0 &&
     !roles.includes(user?.role)

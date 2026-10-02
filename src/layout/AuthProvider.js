@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import api from "../Api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import LoadingProgress from "./LoadingProgress";
 
 const AuthContext = createContext(null);
 
@@ -29,21 +30,38 @@ export default function AuthProvider({ children }) {
         if (!isMounted) return;
 
         const currentUser =
-          res.data.status === "logged_in" ? res.data.user : null;
+          res.data.status === "logged_in"
+            ? res.data.user
+            : null;
 
         setUser(currentUser);
 
         // 3️⃣ Protect routes
-        const protectedRoutes = ["/student/dashboard"];
+        const protectedRoutes = [
+          "/student/dashboard",
+        ];
 
-        if (!currentUser && protectedRoutes.includes(location.pathname)) {
-          navigate("/login", { replace: true });
+        if (
+          !currentUser &&
+          protectedRoutes.includes(location.pathname)
+        ) {
+          navigate("/login", {
+            replace: true,
+          });
         }
       } catch (err) {
-        console.error("Auth bootstrap failed", err);
-        if (isMounted) setUser(null);
+        console.error(
+          "Auth bootstrap failed",
+          err
+        );
+
+        if (isMounted) {
+          setUser(null);
+        }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -52,22 +70,13 @@ export default function AuthProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
 
   const isLoggedin = Boolean(user);
 
   // 🔄 Global loader
   if (loading) {
-    return (
-      <div className="flex items-center flex-col justify-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid" />
-        <div className="wrapper flex flex-col items-center">
-        <ul className="dynamic mt-1 my-5 text-4xl">
-          <ol><main>I P K</main></ol>
-        </ul>
-      </div>
-    </div>
-    );
+    return <LoadingProgress />;
   }
 
   return (
@@ -84,4 +93,5 @@ export default function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () =>
+  useContext(AuthContext);

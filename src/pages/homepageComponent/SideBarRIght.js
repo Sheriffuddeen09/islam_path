@@ -21,7 +21,7 @@ export default function SidebarRight() {
   return (
     <aside className="fixed hidden sm:block top-[75px] right-2 
         h-[90vh] w-80 bg-[var(--bg-color)] shadow-md p-4 z-40
-      overflow-y-auto overflow-x-hidden 
+      overflow-y-auto overflow-x-hidden border-l
       scrollbar-thin scrollbar-thumb-gray-400 no-scrollbar">
         {/* <p className="text-2xl text-center font-bold border-b-2 pb-2 text mb-2">Quran Recitation</p> */}
         

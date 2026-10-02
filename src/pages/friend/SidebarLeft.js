@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { linkList, islamicApps } from "../homepageComponent/LinkData";
 import JobProfileModal from "../../job/JobProfileModal";
 import { Briefcase, PlusCircle, Search, CheckCircle2 } from "lucide-react";
@@ -8,8 +8,7 @@ import CreateAdvertisementModal from "../../advertisement/CreateAdvertisementMod
 import CreateJobModal from "../../job/CreateJobModal";
 
 export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile, showSuccessModal, setShowSuccessModal,
-          showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick,
-
+    setShowAdvertisement, showAdvertisement, showJobCreate, setShowJobCreate, videoCount, handleVideoClick
 }) {
 
   const [showMoreMale, setShowMoreMale] = useState(false);
@@ -19,8 +18,93 @@ export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile,
     const [seeMoreApps, setSeeMoreApps] = useState(false);
     const navigate = useNavigate()
     const authUser = useAuth()
+    
+    const [jobs, setJobs] = useState([]);
+    const [jobCount, setJobCount] = useState(0);
+    const [successMessage, setSuccessMessage] = useState("");
+     const [showHeader, setShowHeader] = useState(true);
+
+        const lastScrollY = useRef(0);
+        const scrollTimeout = useRef(null);
+
+        const [isScrolling, setIsScrolling] = useState(false);
+        const scrollTimerRef = useRef(null);
+
+        const handleMessagesScroll = () => {
+        setIsScrolling(true);
+
+        clearTimeout(scrollTimerRef.current);
+
+        scrollTimerRef.current = setTimeout(() => {
+            setIsScrolling(false);
+        }, 700);
+        };
+
+        useEffect(() => {
+        return () => {
+            clearTimeout(scrollTimerRef.current);
+            clearTimeout(scrollTimeout.current);
+        };
+        }, []);
+
+        useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            // Always show header at the top
+            if (currentScrollY <= 10) {
+            setShowHeader(true);
+            lastScrollY.current = currentScrollY;
+            return;
+            }
+
+            // Scrolling down
+            if (currentScrollY > lastScrollY.current) {
+            setShowHeader(false);
+            }
+
+            // Scrolling up
+            if (currentScrollY < lastScrollY.current) {
+            setShowHeader(true);
+            }
+
+            lastScrollY.current = currentScrollY;
+
+            clearTimeout(scrollTimeout.current);
+
+            scrollTimeout.current = setTimeout(() => {
+            setShowHeader(true);
+            }, 500);
+        };
+
+        window.addEventListener("scroll", handleScroll, {
+            passive: true,
+        });
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            clearTimeout(scrollTimeout.current);
+        };
+        }, []);
 
 
+
+    const handleJobCreated = (job) => {
+
+    setShowJobCreate(false);
+
+
+    setSuccessMessage(
+        "🎉 Job created successfully. It is now waiting for admin approval."
+    );
+
+    setTimeout(() => {
+
+        setSuccessMessage("");
+
+    }, 5000);
+
+    };
     
     const filteredLinks = linkList.filter((item) => {
     if (item.role && item.role !== authUser?.role) {
@@ -41,12 +125,29 @@ const isApprovedProfile =
   return (
 <>
 <aside
-className=" fixed hidden lg:block top-[75px] left-2
-h-[90vh] w-72 bg-[var(--bg-color)] shadow-md p-4 z-40
-overflow-y-auto overflow-x-hidden hover:text-white
-bg-[var(--bg-color)] text-[var(--text-color)] scrollbar
-scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin
-">
+  onScroll={handleMessagesScroll}
+  className={`
+    fixed hidden sm:block
+    top-[75px] left-2
+    h-[90vh] w-72
+    shadow-md p-4 z-40
+    bg-[var(--bg-color)] border-r
+    text-[var(--text-color)]
+    transform transition-transform duration-300
+
+    overflow-y-auto
+
+    scrollbar-thin
+    scrollbar-track-transparent
+
+    ${
+      isScrolling
+        ? "scrollbar-thumb-green-500"
+        : "scrollbar-thumb-transparent"
+    }
+  `}
+>
+    
 <div className="mb-6">
 <ul>
 {visibleMales.map((item) => (
@@ -157,6 +258,7 @@ text-lg font-semibold
 
                 if (list.id === 4) {
                 handleVideoClick();
+                navigate(list.link);
                 return;
             }
 
@@ -382,6 +484,7 @@ text-lg font-semibold
       <CreateJobModal
             open={showJobCreate}
             onClose={() => setShowJobCreate(false)}
+            onCreated={handleJobCreated}
         />
     </>
   );
