@@ -180,9 +180,8 @@ if (commentLoading) {
 }
 
 return (
-  <div className="flex flex-col bg-[var(--bg-color)] w-full">
+  <div className="flex flex-col bg-[var(--bg-color)] text-[var(--text-color)] w-full">
     {!postComments || postComments.length === 0 ? (
-      /* NO COMMENTS */
       <div className="flex flex-col items-center justify-center h-20 text-center">
         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mb-1">
           <svg
@@ -201,11 +200,11 @@ return (
           </svg>
         </div>
 
-        <p className="text-xs font-semibold text-gray-500">
+        <p className="text-xs font-semibold">
           No comments yet
         </p>
 
-        <p className="text-[10px] text-gray-400">
+        <p className="text-[10px]">
           Be the first to comment.
         </p>
       </div>

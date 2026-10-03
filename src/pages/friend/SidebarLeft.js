@@ -142,7 +142,7 @@ const isApprovedProfile =
 
     ${
       isScrolling
-        ? "scrollbar-thumb-green-500"
+        ? "scrollbar-thumb-gray-200"
         : "scrollbar-thumb-transparent"
     }
   `}
