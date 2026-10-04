@@ -704,6 +704,34 @@ const handleFollow = async (targetUserId) => {
     }
 };
 
+
+const handleHidePost = async (postId) => {
+    
+
+    try {
+
+        await api.post(`/api/posts/${postId}/hide`
+        );
+
+        toast.success(
+            post?.is_advertisement === true
+                ? "Ad hidden for you"
+                : "Post hidden for you"
+        );
+
+    } catch (error) {
+        console.error("Failed to hide post:", error);
+
+        toast.error(
+            error?.response?.data?.message ||
+            "Unable to hide this post"
+        );
+
+        return false;
+    }  
+};
+
+
   return (
     <div
           className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
@@ -761,9 +789,7 @@ const handleFollow = async (targetUserId) => {
               </Link>
               <p className="text-xs">{post.created_at}</p>
             </div>
-             {/* <p className="text-xs h-6 bg-gray-800 px-2 rounded py-1 ">
-             Reposted
-             </p> */}
+             
             </div>
                   <div className="inline-flex gap-3 items-center">
            
@@ -823,7 +849,12 @@ const handleFollow = async (targetUserId) => {
            
                      />
            
-           
+                    <button onClick={() => {handleHidePost()}} className="text-[var(--text-color)] ">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                      stroke-width="1.5" stroke="currentColor" class="size-6 cursor-pointer">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
            
                    </div>
             </div>
@@ -939,7 +970,12 @@ const handleFollow = async (targetUserId) => {
             
                       />
             
-            
+                      <button onClick={() => {handleHidePost()}} className="text-[var(--text-color)] ">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                      stroke-width="1.5" stroke="currentColor" class="size-6 cursor-pointer">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
             
                     </div>
         }

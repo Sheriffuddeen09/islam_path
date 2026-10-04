@@ -354,10 +354,7 @@ const navigate = useNavigate()
 
   return (
     <div className="my-2">
-
-      {/* =========================
-          REPLY TEXT
-      ========================== */}
+ 
       <p
         className="
           text-sm
@@ -379,14 +376,7 @@ const navigate = useNavigate()
           {renderWithMention(displayedText)}
         </Linkify>
       </p>
-
-
-      {/* =========================
-          TRANSLATE BUTTON
-          Only show when:
-          - We haven't translated it yet
-          - We haven't detected it as English
-      ========================== */}
+ 
       {!translatedText &&
         !isEnglish && (
           <button
@@ -403,13 +393,13 @@ const navigate = useNavigate()
               text-xs
               font-medium
               text-blue-600
-              hover:underline
+              cursor-pointer
               disabled:opacity-50
               disabled:cursor-not-allowed
             "
           >
             {isTranslating
-              ? "Translating..."
+              ? "Translating"
               : "Translate"}
           </button>
         )}
@@ -710,7 +700,7 @@ const navigate = useNavigate()
             onChange={(e) => setEditText(e.target.value)}
             rows={5}
             maxLength={700}
-            placeholder="Edit your reply..."
+            placeholder="Edit your reply"
             className="
               w-full
               resize-none

@@ -1,15 +1,16 @@
-// CommunitySidebar.jsx
-
-import { useState } from "react";
+import { Plus, UsersRound } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import CreateCommunityModal from "./CreateCommunityModal";
 
 export default function CommunityList({
-
+  setShowCommunityModal,
   communities,
   activeCommunity,
   openCommunity,
   onClose,
   loading,
-  exploreCommunities, handleFollow, handleHide, followLoading, uiMode, loadingExploring
+  exploreCommunities, handleFollow, handleHide, followLoading, uiMode, loadingExploring,
+  chats, setMobileViewCommunity, setCommunities, setActiveCommunity, showCommunityModal
 
 }) {
 
@@ -19,7 +20,22 @@ export default function CommunityList({
   const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const [previewData, setPreviewData] = useState(null);
 
-  
+  const [isScrolling, setIsScrolling] = useState(false);
+const scrollTimeoutRef = useRef(null);
+
+const handleCommunityScroll = () => {
+  setIsScrolling(true);
+
+  clearTimeout(scrollTimeoutRef.current);
+
+  scrollTimeoutRef.current = setTimeout(() => {
+    setIsScrolling(false);
+  }, 700);
+};
+
+useEffect(() => {
+  return () => clearTimeout(scrollTimeoutRef.current);
+}, []);
 
       
     const colors = [
@@ -195,7 +211,7 @@ const getLastMessage = (community) => {
   return (
 
     <div className={` w-full
-        h-full
+        h-full relative
         border-gray-700
         bg-[var(--bg-color)]
         text-[var(--text-color)]
@@ -235,26 +251,53 @@ const getLastMessage = (community) => {
         onClick={() =>
           setShowExplore(true)
         }
-        className={`font-bold  text-lg px-2 py-0.5  rounded-xl border border-green-600 
+        className={`font-bold  text-sm px-2 py-0.5  rounded-xl border border-green-600 
         inline-flex items-center gap-1 ${uiMode !== 'full' ? 'lg:-translate-x-7'  : '' }`}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-        </svg>
-        X
+        Explore
       </button>
       </div>
 
-      {/* LIST */}
-      <div className="  
-            flex-1
-            min-h-0
-            overflow-y-auto
-            scrollbar-thin
-            scrollbar-thumb-gray-300
-            scrollbar-track-transparent
-            relative
-            px-1">
+      <div
+        onScroll={handleCommunityScroll}
+        className="
+          flex-1
+          min-h-0
+          overflow-y-auto
+          scrollbar-thin
+          scrollbar-thumb-gray-50
+          scrollbar-track-transparent
+          relative
+          px-1
+        "
+      >
+        <button
+          onClick={() => setShowCommunityModal(true)}
+          className={`
+            absolute
+            bottom-2
+            right-3
+            w-12
+            h-12
+            rounded-full
+            bg-[#00a884]
+            shadow-2xl
+            flex
+            items-center
+            justify-center
+            text-white
+            z-20
+            transition-opacity duration-200
+            ${
+              isScrolling
+                ? "opacity-0 invisible pointer-events-none"
+                : "opacity-100 visible"
+            }
+          `}
+        >
+          <Plus size={25} />
+        </button>
+
         {loading ? (
           <div className="p-3">
             {Array.from({
@@ -273,7 +316,24 @@ const getLastMessage = (community) => {
           </div>
         ) : communities.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-400 p-6 text-center">
-            No communities found
+          <div className="flex flex-col items-center text-center max-w-xs">
+
+            <div className="w-20 h-20 rounded-full bg-[#00a884]/10 flex items-center justify-center mb-5">
+              <UsersRound
+                size={38}
+                className="text-[#00a884]"
+                strokeWidth={1.7}
+              />
+            </div>
+
+            <h3 className="text-lg font-bold text-[var(--text-color)] mb-2">
+              No channels yet
+            </h3>
+
+            <p className="text-sm text-[var(--text-color)] leading-6 mb-6">
+              Create a channel to bring people together, share updates, and build your community.
+            </p>
+          </div>
           </div>
         ) : (
           communities.map(
@@ -836,6 +896,20 @@ const getLastMessage = (community) => {
     </div>
   </div>
 )}
+
+ {showCommunityModal && (
+      <CreateCommunityModal
+        chats={chats}
+        onClose={() =>
+          setShowCommunityModal(false)
+        }
+        setActiveCommunity={setActiveCommunity}
+        setCommunities={setCommunities}
+        setMobileViewCommunity={setMobileViewCommunity}
+        openCommunity={openCommunity}
+      />
+    )}
+
     </div>
   );
 }

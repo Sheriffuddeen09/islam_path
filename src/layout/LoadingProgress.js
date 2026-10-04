@@ -22,7 +22,7 @@ export default function LoadingProgress() {
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg-color)] text-[var(--text-color)]  px-4">
       <div className="w-60">
 
-        <div className="flex items-center mb-6 justify-center">
+        <div className="flex items-center mb-3 justify-center">
             <span
               className="text-4xl font-bold"
               style={{

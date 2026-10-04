@@ -387,7 +387,7 @@ const contentEdit = (
             onChange={(e) => setEditText(e.target.value)}
             rows={5}
             maxLength={700}
-            placeholder="Edit your comment..."
+            placeholder="Edit your comment"
             className="
               w-full
               resize-none
@@ -528,7 +528,6 @@ const contentEdit = (
       onTouchStart={(e) => {
         e.stopPropagation();
 
-        // Don't start long press from buttons/links/images
         if (
           e.target.closest("button") ||
           e.target.closest("a") ||
@@ -542,7 +541,6 @@ const contentEdit = (
       }}
 
       onTouchMove={() => {
-        // Moving means scrolling, not long press
         if (!commentLongPressTriggered.current) {
           clearTimeout(commentPressTimer.current);
         }
@@ -611,9 +609,7 @@ const contentEdit = (
 
   return (
     <div>
-      {/* =========================
-          COMMENT TEXT
-      ========================== */}
+      
       <p
         className="
           text-sm
@@ -636,10 +632,7 @@ const contentEdit = (
         </Linkify>
       </p>
 
-
-      {/* =========================
-          TRANSLATE
-      ========================== */}
+ 
       {!translatedText && (
         <button
           type="button"
@@ -655,13 +648,13 @@ const contentEdit = (
             text-xs
             font-medium
             text-blue-600
-            hover:underline
+            cursor-pointer
             disabled:opacity-50
             disabled:cursor-not-allowed
           "
         >
           {isTranslating
-            ? "Translating..."
+            ? "Translating"
             : "Translate"}
         </button>
       )}

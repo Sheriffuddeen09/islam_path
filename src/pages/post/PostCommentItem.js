@@ -574,13 +574,13 @@ const navigate = useNavigate()
                   text-xs
                   font-medium
                   text-blue-600
-                  hover:underline
+                  cursor-pointer
                   disabled:opacity-50
                   disabled:cursor-not-allowed
                 "
               >
                 {isTranslating
-                  ? "Translating..."
+                  ? "Translating"
                   : "Translate"}
               </button>
             )}
@@ -755,7 +755,7 @@ const navigate = useNavigate()
             onChange={(e) => setEditText(e.target.value)}
             rows={5}
             maxLength={700}
-            placeholder="Edit your comment..."
+            placeholder="Edit your comment"
             className="
               w-full
               resize-none

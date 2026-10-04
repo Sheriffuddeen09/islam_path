@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChatSkeleton } from "./ChatSkeleton";
-import { useAuth } from "../../layout/AuthProvider";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../layout/AuthProvider"; 
 import ChatItem from "./ChatItem";
 import CommunityButton from "../community/CommunityButton";
-import CommunityPage from "../community/CommunityPage";
-import CreateCommunityModal from "../community/CreateCommunityModal";
+import CommunityPage from "../community/CommunityPage"; 
 
 
 
@@ -25,8 +23,7 @@ export default function ChatList({
   const { user: authUser } = useAuth();
 
   const chatListRef = useRef(null);
-
-  const navigate = useNavigate();
+ 
 
   const [showCommunityModal,
   setShowCommunityModal] =
@@ -47,7 +44,22 @@ export default function ChatList({
 
   }, [activeChat?.id]);
 
-  
+  const [isScrolling, setIsScrolling] = useState(false);
+const scrollTimeoutRef = useRef(null);
+
+const handleCommunityScroll = () => {
+  setIsScrolling(true);
+
+  clearTimeout(scrollTimeoutRef.current);
+
+  scrollTimeoutRef.current = setTimeout(() => {
+    setIsScrolling(false);
+  }, 700);
+};
+
+useEffect(() => {
+  return () => clearTimeout(scrollTimeoutRef.current);
+}, []);
 
   
  const safeUnreadTotal = useMemo(() => {
@@ -133,7 +145,7 @@ export default function ChatList({
         setActiveChat(null);
         setUiMode("closed");
       }}
-      className="p-1 rounded-full hover:bg-gray-500 transition"
+      className="p-1 rounded-full hover:bg-gray-500 hover:text-white transition"
       title="Close"
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
@@ -148,7 +160,7 @@ export default function ChatList({
         setActiveChat(null);
         setUiMode("closed");
       }}
-      className="p-1 rounded-full lg:hidden block hover:bg-gray-500 transition"
+      className="p-1 rounded-full lg:hidden block hover:bg-gray-500 hover:text-white transition"
       title="Close"
     >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" 
@@ -164,7 +176,7 @@ export default function ChatList({
         setActiveChat(null);
         setUiMode("closed");
       }}
-      className="p-1 rounded-full lg:block hidden  hover:bg-gray-500 transition"
+      className="p-1 rounded-full lg:block hidden  hover:bg-gray-500 hover:text-white transition"
       title="Close"
     >
      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -178,7 +190,7 @@ export default function ChatList({
         <button
           title="See all in Messenger"
           onClick={onSeeAll}
-          className="p-1 rounded-full hover:bg-gray-500 lg:block hidden transition"
+          className="p-1 rounded-full hover:bg-gray-500 hover:text-white lg:block hidden transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -190,7 +202,7 @@ export default function ChatList({
         <button
           title="Minimize Messenger"
           onClick={onCloseAll}
-          className="p-1 rounded-full hover:bg-gray-500 transition"
+          className="p-1 rounded-full hover:bg-gray-500 hover:text-white transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
@@ -205,7 +217,6 @@ export default function ChatList({
 
       <div className="flex gap-2 p-3 flex-wrap">
 
-        {/* ALL */}
         <button
           onClick={() => setChatFilter("all")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
@@ -217,7 +228,6 @@ export default function ChatList({
           All
         </button>
 
-        {/* UNREAD */}
         <button
           onClick={() => setChatFilter("unread")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
@@ -234,7 +244,6 @@ export default function ChatList({
           )}
         </button>
 
-        {/* GROUP 🔥 NEW */}
         <button
           onClick={() => setChatFilter("group")}
           className={`px-4 py-1 rounded-full text-sm font-medium transition ${
@@ -247,8 +256,9 @@ export default function ChatList({
         </button>
       </div>
 
-      {/* CHAT LIST shadow */}
-      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thumb-gray-50 scrollbar-track-transparent 
+      <div
+      onScroll={handleCommunityScroll}
+       className="flex-1 overflow-y-auto min-h-0 scrollbar-thumb-gray-50 scrollbar-track-transparent 
       scrollbar-thin">
 
         {loadingChats && <ChatSkeleton type="list" />}
@@ -356,7 +366,7 @@ export default function ChatList({
         <div className={`bg-transparent ${showChannel === true ? 'hidden' : 'block'}`}>
 
       <CommunityButton
-        chatListRef={chatListRef}
+        chatListRef={chatListRef} isScrolling={isScrolling}
         onOpenChannel={() => setShowChannel(true)}
         setShowCommunityModal={setShowCommunityModal}
         messagesCommunityEndRef={messagesCommunityEndRef}
@@ -369,7 +379,7 @@ export default function ChatList({
       }
 
       <div className={` fixed inset-0 z-50 ${showChannel ? "block" : "hidden"}`}>
-        <CommunityPage
+        <CommunityPage setShowCommunityModal={setShowCommunityModal}
           handleReelCreated={handleReelCreated}
           setExploreCommunities={setExploreCommunities} exploreCommunities={exploreCommunities}
           loadingExploring={loadingExploring} communityContainerRef={communityContainerRef}
@@ -378,7 +388,7 @@ export default function ChatList({
           onClose={() => setShowChannel(false)}
           onCloseChannel={() => setShowChannel(false)}
           authUser={authUser} messagesCacheRef={messagesCacheRef}
-          chats={chats}
+          chats={chats} showCommunityModal={showCommunityModal}
           loadingChats={loadingChats}
           setActiveChat={setActiveChat}
           communities={communities}
@@ -393,22 +403,11 @@ export default function ChatList({
           setChats={setChats} setMessages={setMessages} messageCommunityRefs={messageCommunityRefs}
           messagesCommunityEndRef={messagesCommunityEndRef} firstUnreadMessageId={firstUnreadMessageId}
           authUserId={authUserId} setLastReadMessageId={setLastReadMessageId} uiMode={uiMode}
+           
         />
       </div>
 
-      {showCommunityModal && (
-      <CreateCommunityModal
-        chats={chats}
-        onClose={() =>
-          setShowCommunityModal(false)
-        }
-        setActiveCommunity={setActiveCommunity}
-        setCommunities={setCommunities}
-        setMobileViewCommunity={setMobileViewCommunity}
-        openCommunity={openCommunity}
-      />
-    )}
-
+     
     </div>
   );
 }

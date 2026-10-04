@@ -11,12 +11,12 @@ import toast from "react-hot-toast";
 import { MessageCircleCodeIcon, Settings } from "lucide-react";
 
 export default function CommunityPage({
-  onClose, messagesCacheRef, handleReelCreated,
+  onClose, messagesCacheRef, handleReelCreated, setShowCommunityModal, 
   authUser, chats, loadingChats, setActiveChat, messagesCommunityEndRef, firstUnreadMessageId, authUserId,
   communities, setCommunities, activeCommunity, openCommunity, loadingMessages, openChat, onCloseChannel,
   communityMessages, setCommunityMessages, mobileViewCommunity, setMobileViewCommunity, setChats, setMessages, messageCommunityRefs,
   setLastReadMessageId, setActiveCommunity, activeChat, uiMode, loading, loadingExploring, exploreCommunities,
-  setExploreCommunities, communityContainerRef, communityMessagesCache
+  setExploreCommunities, communityContainerRef, communityMessagesCache, showCommunityModal
 }) {
 
  
@@ -171,8 +171,8 @@ const handleHide = async (
                       ${isPopup ? "inset-0 lg:inset-auto lg:right-10 lg:top-16" : ""}
                       ${isPopup ? "h-full lg:h-[420px]" : "min-h-0"} `}>
 
-        <CommunityList uiMode={uiMode}
-          communities={communities}
+        <CommunityList uiMode={uiMode} setShowCommunityModal={setShowCommunityModal}
+          communities={communities} showCommunityModal={showCommunityModal}
           activeCommunity={activeCommunity}
           followLoading={followLoading}
           openCommunity={openCommunity}
@@ -181,6 +181,9 @@ const handleHide = async (
           onClose={onClose}
           exploreCommunities={exploreCommunities} handleFollow={handleFollow} handleHide={handleHide}
           loadingExploring={loadingExploring}
+          chats={chats} 
+          setCommunities={setCommunities}
+          setMobileViewCommunity={setMobileViewCommunity} 
         />
 
       </div>
