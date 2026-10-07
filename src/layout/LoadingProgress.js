@@ -29,7 +29,7 @@ export default function LoadingProgress() {
                 fontFamily: "'Great Vibes', cursive",
               }}
             >
-              Al-Islam
+              Al-Islami
             </span>
           </div>
 

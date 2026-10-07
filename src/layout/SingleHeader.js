@@ -8,7 +8,7 @@ import {Bell, BookOpen, BookTemplateIcon, Briefcase,
     ChevronDown,
     X,
     AlertCircle,
-    CarFront} from "lucide-react";
+    CarFront, Smartphone, Download} from "lucide-react";
 import { useAuth } from './AuthProvider'; 
 import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
@@ -45,6 +45,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
       
       const { isLoggedin, user } = useAuth()
       const [showProfileRequiredModal, setShowProfileRequiredModal] = useState(false);
+      const [showApp, setShowApp] = useState(false);
       const navigate = useNavigate()
 
       const {
@@ -243,7 +244,7 @@ useEffect(() => {
                         fontFamily: "'Great Vibes', cursive",
                     }} 
                     className='text whitespace-nowrap font-bold text-2xl ' to={'/'}>
-                    Al-Islam
+                    Al-Islami
                   </Link>
               <div className='inline-flex gap-2 items-center'>
                   <SearchUser />
@@ -561,15 +562,26 @@ useEffect(() => {
                   )}
           
                   </div>
+                  <div className='hidden lg:block'>
           
-                  <Link
-                  onClick={() => {togglePopup();}}
-                  to={'/cart'} className={`${homepage === '/cart' & !messageOpen ? 'text-blue-600 hover:text-b-500' : 'text-gray-600 hover:text-gray-800'} sm:text-[13px] text-[8px]  rounded lg:p-2 px-1 py-2 
-                 transition-all hidden lg:block duration-500 whitespace-nowrap ease-in-out cursor-pointer about flex-col flex items-center gap-1`}> 
-                            
-                <CarFront />
-                    Cart
-                </Link>
+                   <button
+                        onClick={() => setShowApp(true)}
+                        className={`${
+                            homepage === showApp && !messageOpen
+                                ? "text-blue-600 hover:text-blue-500"
+                                : "text-gray-600 hover:text-gray-800"
+                        } sm:text-[13px] text-[8px] rounded lg:p-2 px-1 py-2
+                        transition-all duration-500 whitespace-nowrap ease-in-out cursor-pointer
+                        about flex flex-col items-center gap-1 `}
+                        >
+                        <Smartphone
+                            size={20}
+                            className="sm:w-5 sm:h-5 w-4 h-4"
+                        />
+
+                        <span>App</span>
+                        </button>
+                        </div>
                         <div className="lg:block hidden">
                             {check}
                         </div>
@@ -608,7 +620,7 @@ useEffect(() => {
             className="
                 fixed
                 inset-0
-                z-[999999]
+                z-[999]
                 w-full
                 h-screen
                 bg-[var(--bg-color)]
@@ -826,10 +838,49 @@ useEffect(() => {
 
     {filteredLinks.map((list) => {
 
-    if (list.id === 7) {
-
+    // ================= APP =================
+    if (list.appSite) {
         return (
+            <div
+                key={list.id}
+                onClick={() => setShowApp(true)}
+                className="
+                    shadow-md
+                    border
+                    rounded-lg
+                    p-3
+                    hover:shadow-lg
+                    transition-all
+                    cursor-pointer
+                    flex
+                    flex-col
+                    items-center
+                    text-center
+                "
+            >
+                <div
+                    className="
+                        w-10
+                        h-10
+                        rounded-full
+                        flex
+                        items-center
+                        justify-center
+                    "
+                >
+                    {list.icon}
+                </div>
 
+                <p className="mt-2 text-sm font-semibold">
+                    {list.name}
+                </p>
+            </div>
+        );
+    }
+
+    // ================= APPLICATION DOWNLOAD =================
+    if (list.id === 7) {
+        return (
             <div
                 key={list.id}
                 onClick={() =>
@@ -849,7 +900,6 @@ useEffect(() => {
                     text-center
                 "
             >
-
                 <div
                     className="
                         w-10
@@ -873,15 +923,12 @@ useEffect(() => {
                         showAppDownload ? "rotate-180" : ""
                     }`}
                 />
-
             </div>
-
         );
-
     }
 
+    // ================= OTHER ITEMS =================
     return (
-
         <div
             key={list.id}
             className="
@@ -893,24 +940,22 @@ useEffect(() => {
                 transition-all
             "
         >
-
             <button
                 onClick={() => {
 
                     if (list.toggle) {
                         setShowAdvertisement(true);
-                        setMenu(false)
+                        setMenu(false);
                         return;
                     }
 
                     if (list.id === 5) {
-                            handleVideoClick();
-                            navigate(list.link)
-                            return;
-                        }
+                        handleVideoClick();
+                        navigate(list.link);
+                        return;
+                    }
 
                     navigate(list.link);
-
                 }}
                 className="
                     w-full
@@ -920,18 +965,17 @@ useEffect(() => {
                     text-center
                 "
             >
-
                 <div
                     className="
-                        relative w-8 h-8 flex items-center
+                        relative w-10 h-10 flex items-center
                         justify-center rounded-full
-                        text-[var(--text-color)] hover:text-white
+                        text-[var(--text-color)]
+                        hover:text-white
                         text-lg font-semibold
                     "
                 >
                     {list.icon}
 
-                    {/* VIDEO COUNT */}
                     {list.id === 5 && videoCount > 0 && (
                         <span
                             className="
@@ -951,13 +995,9 @@ useEffect(() => {
                 <p className="mt-2 text-sm font-semibold">
                     {list.name}
                 </p>
-
             </button>
-
         </div>
-
     );
-
 })}
 </div>
 
@@ -1165,6 +1205,71 @@ useEffect(() => {
                 
             />
         )}
+
+                {showApp && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+                    <div className="bg-[var(--bg-color)] text-[var(--text-color)] w-full max-w-md rounded-2xl shadow-2xl p-6 relative">
+
+                        {/* Close button */}
+                        <button
+                            onClick={() => setShowApp(false)}
+                            className="absolute top-4 right-4 w-9 h-9 rounded-full
+                            flex items-center justify-center
+                            bg-gray-100 dark:bg-gray-800
+                            hover:bg-gray-200 dark:hover:bg-gray-700
+                            transition"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        {/* App Icon */}
+                        <div className="flex justify-center mt-2">
+                            <div className="w-20 h-20 rounded-2xl bg-blue-100 dark:bg-blue-900/30
+                                flex items-center justify-center">
+                                <Smartphone
+                                    size={42}
+                                    className="text-blue-600"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Title */}
+                        <h2 className="text-xl font-bold text-center mt-5">
+                            Islam Path of Knowledge App
+                        </h2>
+
+                        {/* Message */}
+                        <p className="text-center mt-3 leading-6">
+                            Our mobile application is currently under development.
+                            It is not available for download yet, but we are working
+                            hard to make it available soon.
+                        </p>
+
+                        <p className="text-center mt-3">
+                            We will let you know when the application is ready.
+                        </p>
+
+                        {/* Get button */}
+                        <button
+                            disabled
+                            className="w-full mt-6 py-3 rounded-xl
+                                bg-gray-300 dark:bg-gray-700
+                                text-gray-500 dark:text-gray-400
+                                cursor-not-allowed
+                                flex items-center justify-center gap-2
+                                font-semibold"
+                        >
+                            <Download size={19} />
+                            Get App
+                        </button>
+
+                    
+
+                    </div>
+                </div>
+            )}
+
+
         {showProfileRequiredModal && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6">

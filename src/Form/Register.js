@@ -489,7 +489,7 @@ const handleRegister = async () => {
 
       {/* Center Logo */}
       <p className="font-bold text-[var(--text-color)] text-sm sm:text-lg font-serif flex items-center gap-3">
-        <Home /> Islam Path Of Knowledge
+        <Home /> Al-Islami
       </p>
 
       {/* Right - About Us (desktop) */}

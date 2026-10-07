@@ -3,7 +3,7 @@ Store, Tv, Megaphone, Download, HeartHandshake, ShieldCheck,
 Phone, BookOpen, ScrollText, MoonStar, Scale, Languages, Library, 
 Compass, Clock3, GraduationCap, Bookmark, NotebookPen, BookMarked, 
 Gem,
-ArrowDownLeftSquareIcon, } from "lucide-react";
+ArrowDownLeftSquareIcon, CarFront, Smartphone} from "lucide-react";
 export const linkList = [
 {
 id: 2, icon: <Store />,
@@ -37,7 +37,7 @@ background: "bg-pink-900", },
 , 
 {
 id: 8, 
-icon: <ArrowDownLeftSquareIcon />, 
+icon: <CarFront />, 
 name: "Cart", 
 link: "/cart", 
 background: "bg-pink-900", },
@@ -55,11 +55,16 @@ appDownload: true,
 background: "bg-green-900", },
 {
 id: 10, 
+icon: <Smartphone />, 
+name: "App", 
+appSite: true, background: "bg-yellow-900", }, 
+{id: 11, 
 icon: <HeartHandshake />, 
 name: "About", 
-link: "/about", background: "bg-yellow-900", },{
-id: 11, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
-id: 12, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
+link: "/about", background: "bg-yellow-900", },
+{
+id: 12, icon: <ShieldCheck />, name: "Privacy Policy", link: "/privacy", background: "bg-blue-900", },{
+id: 13, icon: <Phone />, name: "Contact Us", link: "/contact-us", background: "bg-indigo-900", }
 ]
 
 export const islamicApps = [
