@@ -9,13 +9,14 @@ export default function PostCommentReply ({image, handleDelete, replyInputRef, l
                 uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, onEdit, loading, replyText,
                 setReplyText, postReply, closeReply, post, comment, onReplyAdded, handleReact,
                 handleReplyToComment, replyTo, setReplyTo, focusReplyInput, setEmojiClick, emojiClick,
-                replyImage, setReplyImage
+                replyImage, setReplyImage, postComments
               }){
     
     return(
         <div>
 
           <PostCommentReplyItem
+            postComments={postComments}
             loading={loading}
             replyImage={replyImage} setReplyImage={setReplyImage}
             emojiClick={emojiClick} setEmojiClick={setEmojiClick}

@@ -18,7 +18,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     mediaIndex, setShowOptions, showOptions, setReaction, reaction, sending, setSending, closeViewer, nextReel, 
     previousReel, selectedReel, selectedUser, markReelViewed, open, setOpen, openReport, setOpenReport,
     showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares,
-    video, setVideo
+    video, setVideo, 
   }) {
 
 
@@ -133,7 +133,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
         markReelViewed={markReelViewed} open={open} setOpen={setOpen} openReport={openReport}
         setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
         messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
-        setShares={setShares}
+        setShares={setShares} 
        />
     </div>
   )

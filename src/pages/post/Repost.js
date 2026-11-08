@@ -2,8 +2,9 @@ import { useState } from "react";
 import api from "../../Api/axios";
 import Notification from "../../notification/Notification";
 import { useAuth } from "../../layout/AuthProvider";
+import { SendToBack } from "lucide-react";
 
-export function Repost({ post, setPosts }) {
+export function Repost({ post, setPosts, onClose }) {
   const [notify, setNotify] = useState({ message: "", type: "" });
   const [showModal, setShowModal] = useState(false);
   const [visibility, setVisibility] = useState("public");
@@ -65,13 +66,29 @@ if (repost) {
     <div>
 
       <button
-      onClick={() => setShowModal(true)}
+      onClick={() => {setShowModal(true); onClose()}}
       disabled={loading}
-      className={`flex items-center font-semibold gap-1 mx-4 transition
-        ${loading ? "opacity-50 cursor-not-allowed" : "hover:text-gray-600"}
+      className={` flex flex-col items-center font-semibold gap-2 p-2
+        ${loading ? "opacity-50 cursor-not-allowed" : ""}
       `}
     >
+      <div
+          className="
+            w-11
+            h-11
+            rounded-full
+            bg-blue-100
+            text-blue-600
+            flex
+            items-center
+            justify-center
+          "
+        >
+      <SendToBack size={23} />
+      </div>
+      <div className="font-semibold text-sm">
       Repost
+      </div>
     </button>
       
       

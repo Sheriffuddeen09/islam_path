@@ -217,6 +217,7 @@ return (
             image={image}
             post={post}
             comment={c}
+            
             onReplyAdded={handleReplyAdded}
             onDelete={handleDelete}
             updateCommentTree={updateCommentTree}

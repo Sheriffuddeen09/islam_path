@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import PostCommentImage from "./PostCommentImage";
 import PostCommentCopyText from "./PostCommentCopyText";
 import PostReplyListMap from "./PostReplyListMap";
@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../Api/axios";
+import axios from "axios";
 
 export default function PostCommentReplyItem ({image, handleReplyToComment, loading, loadingEmoji, 
-                      replyInputRef, handleDelete, handleUpdate, isEditing, 
+                      replyInputRef, handleDelete, handleUpdate, isEditing, postComments,
                       isDeleting, toggleReaction, uniqueEmojisr, totalReaction, onEdit, closeReply, 
                       onDelete, onReact, post, replyText, setReplyText, comment, onReplyAdded,
                       replyTo, focusReplyInput, setReplyTo, replyImage, setReplyImage, emojiClick, setEmojiClick}){
@@ -41,6 +42,7 @@ export default function PostCommentReplyItem ({image, handleReplyToComment, load
     const [translatedComments, setTranslatedComments] = useState({});
     const [translatingComments, setTranslatingComments] = useState({});
     const [commentLanguages, setCommentLanguages] = useState({});
+    const [translatableComments, setTranslatableComments] = useState({});
 
    const handleReport = () =>{
   setOpenReport(!openReport)
@@ -76,70 +78,211 @@ const [isSubmitting, setIsSubmitting] = useState(false);
  
 
 
+
+  
 const handleTranslateComment = async (commentId, text) => {
-  const translationKey =
-    `comment-${commentId}`;
+    const translationKey = `comment-${commentId}`;
 
+    try {
+        if (!text?.trim()) {
+            toast.error("There is no text to translate.");
+            return;
+        }
+
+        setTranslatingComments(prev => ({
+            ...prev,
+            [translationKey]: true,
+        }));
+
+        // 1. Detect the original language
+        const sourceLanguage = await detectCommentLanguage(text);
+
+        if (!sourceLanguage) {
+            throw new Error("Unable to detect the comment language.");
+        }
+
+        // 2. Save detected language
+        setCommentLanguages(prev => ({
+            ...prev,
+            [translationKey]: sourceLanguage,
+        }));
+
+        // 3. Check whether the comment is already English
+        if (sourceLanguage.toLowerCase() === "en") {
+            setTranslatableComments(prev => ({
+                ...prev,
+                [translationKey]: false,
+            }));
+
+            toast("This comment is already in English.");
+            return;
+        }
+
+        // 4. Check whether the translation route is installed
+        const supported = await canTranslateComment(sourceLanguage);
+
+        if (!supported) {
+            throw new Error(
+                `Translation from ${sourceLanguage} to English is not currently supported.`
+            );
+        }
+
+        // 5. Send translation request to Laravel
+        const response = await api.post("/api/translate", {
+            text: text.trim(),
+            source_language: sourceLanguage,
+            target_language: "english",
+        });
+
+        if (!response.data?.success) {
+            throw new Error(
+                response.data?.message || "Translation failed."
+            );
+        }
+
+        // 6. Get translated text from Python response
+        const translatedText =
+            response.data.translated_text ||
+            response.data.translation;
+
+        if (!translatedText) {
+            throw new Error("No translated text was returned.");
+        }
+
+        // 7. Save translated comment
+        setTranslatedComments(prev => ({
+            ...prev,
+            [translationKey]: translatedText,
+        }));
+
+        setTranslatableComments(prev => ({
+            ...prev,
+            [translationKey]: true,
+        }));
+
+    } catch (error) {
+        console.error("Comment translation error:", error);
+
+        toast.error(
+            error.response?.data?.message ||
+            error.response?.data?.detail ||
+            error.message ||
+            "Unable to translate comment."
+        );
+
+    } finally {
+        setTranslatingComments(prev => ({
+            ...prev,
+            [translationKey]: false,
+        }));
+    }
+};
+
+
+
+
+const detectCommentLanguage = async (text = "") => {
   try {
-    setTranslatingComments(prev => ({
-      ...prev,
-      [translationKey]: true,
-    }));
+    if (!text.trim()) return null;
 
-    const response = await api.post(
-      "/api/translate",
+    const response = await axios.post(
+      "https://python-translate.onrender.com/detect-language",
+      { text: text.trim() },
       {
-        text,
-        target_language: "English",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    if (!response.data?.success) {
-      throw new Error(
-        response.data?.message ||
-        "Translation failed."
-      );
+    if (!response.data?.detected) {
+      return null;
     }
 
-    // Save detected language
-    setCommentLanguages(prev => ({
-      ...prev,
-      [translationKey]:
-        response.data.language,
-    }));
-
-    /*
-     * English doesn't need translation.
-     */
-    if (response.data.is_english) {
-      return;
-    }
-
-    // Save translated comment
-    setTranslatedComments(prev => ({
-      ...prev,
-      [translationKey]:
-        response.data.translation,
-    }));
-
+    return response.data.language;
   } catch (error) {
     console.error(
-      "Comment translation error:",
-      error
+      "Language detection failed:",
+      error.response?.data || error.message
     );
 
-    toast.error(
-      error.response?.data?.message ||
-      "Unable to translate comment."
-    );
-
-  } finally {
-    setTranslatingComments(prev => ({
-      ...prev,
-      [translationKey]: false,
-    }));
+    return null;
   }
 };
+
+
+const canTranslateComment = async (sourceLanguage) => {
+  try {
+    const response = await axios.get(
+      "https://python-translate.onrender.com/can-translate",
+      {
+        params: {
+          source_language: sourceLanguage,
+          target_language: "english",
+        },
+      }
+    );
+
+    return response.data?.supported === true;
+  } catch (error) {
+    console.error("Translation support check failed:", error);
+    return false;
+  }
+};
+
+
+useEffect(() => {
+  if (!postComments?.length) return;
+
+  let cancelled = false;
+
+  const checkComments = async () => {
+    for (const comment of postComments) {
+      if (!comment?.body?.trim()) continue;
+
+      const key = `comment-${comment.id}`;
+
+      if (commentLanguages[key] !== undefined) continue;
+
+      const language = await detectCommentLanguage(comment.body);
+
+      if (cancelled) return;
+
+      setCommentLanguages(prev => ({
+        ...prev,
+        [key]: language,
+      }));
+
+      if (
+        !language ||
+        language === "en" ||
+        language === "english"
+      ) {
+        setTranslatableComments(prev => ({
+          ...prev,
+          [key]: false,
+        }));
+
+        continue;
+      }
+
+      const supported = await canTranslateComment(language);
+
+      if (cancelled) return;
+
+      setTranslatableComments(prev => ({
+        ...prev,
+        [key]: supported,
+      }));
+    }
+  };
+
+  checkComments();
+
+  return () => {
+    cancelled = true;
+  };
+}, [postComments]);
 
 
 
@@ -598,99 +741,98 @@ const contentEdit = (
     </div>
 
 
-         {comment?.body && (() => {
-  const translationKey = `comment-${comment.id}`;
+    {comment?.body && (() => {
+      const translationKey = `comment-${comment.id}`;
 
-  const translatedText =
-    translatedComments?.[translationKey];
+      const translatedText =
+        translatedComments?.[translationKey];
 
-  const isTranslating =
-    translatingComments?.[translationKey];
+      const isTranslating =
+        translatingComments?.[translationKey];
 
-  return (
-    <div>
-      
-      <p
-        className="
-          text-sm
-          text-black
-          max-w-full
-          whitespace-normal
-          break-words
-          overflow-wrap-anywhere
-        "
-      >
-        <Linkify
-          options={{
-            target: "_blank",
-            rel: "noopener noreferrer",
-            className:
-              "text-blue-600 underline break-all",
-          }}
-        >
-          {translatedText || comment.body}
-        </Linkify>
-      </p>
+      const sourceLanguage =
+        commentLanguages?.[translationKey];
 
- 
-      {!translatedText && (
-        <button
-          type="button"
-          onClick={() =>
-            handleTranslateComment(
-              comment.id,
-              comment.body
-            )
-          }
-          disabled={isTranslating}
-          className="
-            mt-1
-            text-xs
-            font-medium
-            text-blue-600
-            cursor-pointer
-            disabled:opacity-50
-            disabled:cursor-not-allowed
-          "
-        >
-          {isTranslating
-            ? "Translating"
-            : "Translate"}
-        </button>
-      )}
+      const canTranslate =
+        translatableComments?.[translationKey] === true;
 
+      return (
+        <div>
+          <p
+            className="
+              text-sm
+              text-black
+              max-w-full
+              whitespace-normal
+              break-words
+              overflow-wrap-anywhere
+            "
+          >
+            <Linkify
+              options={{
+                target: "_blank",
+                rel: "noopener noreferrer",
+                className: "text-blue-600 underline break-all",
+              }}
+            >
+              {translatedText || comment.body}
+            </Linkify>
+          </p>
 
-      {/* =========================
-          SHOW ORIGINAL
-      ========================== */}
-      {translatedText && (
-        <button
-          type="button"
-          onClick={() => {
-            setTranslatedComments(prev => {
-              const updated = {
-                ...prev,
-              };
+          {/* TRANSLATE: only if Python confirms support */}
+          {!translatedText &&
+            canTranslate &&
+            sourceLanguage &&
+            sourceLanguage !== "en" &&
+            sourceLanguage !== "english" && (
+              <button
+                type="button"
+                onClick={() =>
+                  handleTranslateComment(
+                    comment.id,
+                    comment.body
+                  )
+                }
+                disabled={isTranslating}
+                className="
+                  mt-1
+                  text-xs
+                  font-medium
+                  text-blue-600
+                  cursor-pointer
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
+              >
+                {isTranslating ? "Translating..." : "Translate"}
+              </button>
+            )}
 
-              delete updated[translationKey];
-
-              return updated;
-            });
-          }}
-          className="
-            mt-1
-            text-xs
-            font-medium
-            text-blue-600
-            hover:underline
-          "
-        >
-          Show original
-        </button>
-      )}
-    </div>
-  );
-})()}
+          {/* SHOW ORIGINAL */}
+          {translatedText && (
+            <button
+              type="button"
+              onClick={() => {
+                setTranslatedComments(prev => {
+                  const updated = { ...prev };
+                  delete updated[translationKey];
+                  return updated;
+                });
+              }}
+              className="
+                mt-1
+                text-xs
+                font-medium
+                text-blue-600
+                hover:underline
+              "
+            >
+              Show original
+            </button>
+          )}
+        </div>
+      );
+    })()}
  
      {/* Comment in Reply */}
             
@@ -1064,6 +1206,7 @@ const contentEdit = (
         <PostReplyListMap
           key={reply.id}
 
+          postComments={postComments}
           editing={editing}
           setEditing={setEditing}
 

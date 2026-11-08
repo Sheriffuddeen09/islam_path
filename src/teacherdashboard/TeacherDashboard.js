@@ -53,7 +53,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
         message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
-        video, setVideo
+        video, setVideo, fetchUnreadCount
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -407,6 +407,7 @@ useEffect(() => {
     <>
 
         <ChatPage
+                        fetchUnreadCount={fetchUnreadCount}
                         chats={chats}
                         handleReelCreated={handleReelCreated}
                         setChats={setChats}

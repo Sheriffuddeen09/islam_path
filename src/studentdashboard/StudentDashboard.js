@@ -22,8 +22,7 @@ import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText,
 import ChatPage from "../chat/chatbox/Chatpage";
 import CreateProposal from "../pages/mentor/CreateProposal";
 import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
-import StudentProposalHistory from "../pages/mentor/StudentProposalHistory";
-import TeacherReviews from "../pages/mentor/TeacherReviews";
+import StudentProposalHistory from "../pages/mentor/StudentProposalHistory"; 
 import AcceptedTeacher from "../pages/mentor/AcceptedTeacher";
 import MyAdvertisements from "../advertisement/MyAdvertisements";
 import ReelViewerModal from "../pages/reel/ReelViewerModal";
@@ -46,7 +45,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
         message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
-        video, setVideo
+        video, setVideo, fetchUnreadCount
       }){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -319,6 +318,7 @@ const fetchNotification = async () => {
 <>
 
       <ChatPage
+                      fetchUnreadCount={fetchUnreadCount}
                       chats={chats}
                       handleReelCreated={handleReelCreated}
                       setChats={setChats}

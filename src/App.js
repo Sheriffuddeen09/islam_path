@@ -138,7 +138,7 @@ function App() {
 
     const [pendingCount, setPendingCount] = useState(0);
   
-    // Component
+    // Component unreadCount
     const [show, setShow] = useState(false)
     const [jobProfile, setJobProfile] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -387,7 +387,7 @@ const previousReel = () => {
       
         const fetchReelCounts = async () => {
             try {
-                const res = await api.get("/api/post-count");
+                const res = await api.get("/api/reel-count");
 
                 setReelCount(
                     res.data.reel_count || 0
@@ -408,8 +408,12 @@ const previousReel = () => {
       };
 
       const fetchUnreadCount = async () => {
-        const res = await api.get("/api/messages/unread-count");
-        setUnreadCount(res.data.message);
+        try {
+          const res = await api.get("/api/messages/unread-count");
+          setUnreadCount(Number(res.data.message || 0));
+        } catch (error) {
+          console.error("Failed to fetch unread count:", error);
+        }
       };
 
       const fetchUnreadNotification = async () => {
@@ -547,7 +551,7 @@ const previousReel = () => {
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentDashboard onCreated={handleVideoCreated} handlePostCreated={handlePostCreated} user={user} setUser={setUser}
-              chats={chats} togglePopup={togglePopup} 
+              chats={chats} togglePopup={togglePopup} fetchUnreadCount={fetchUnreadCount}
               pendingCount={pendingCount}
               setPendingCount={setPendingCount}
               image={image} setImage={setImage}
@@ -1365,6 +1369,7 @@ function LayoutWithHeader({
   return (
     <div>
       <Navbar
+        
         handleVideoClick={handleVideoClick} videoCount={videoCount}
         handleMessageOpen={handleMessageOpen}
         activeChat={activeChat}

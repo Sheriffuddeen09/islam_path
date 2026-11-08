@@ -5,6 +5,7 @@ import ImageCrop from "./util/ImageCrop";
 import { useEffect, useRef, useState } from "react";
 import CreatePostModal from "./CreatePostModal";
 import toast from "react-hot-toast";
+import { Send } from "lucide-react";
 
 
 export default function CreatePost({handlePostCreated}) {
@@ -579,7 +580,6 @@ const submitPost = async () => {
 
     setShowTrimModal(false);
 
-    setShowVisibilityModal(false);
 
   } catch (err) {
 
@@ -604,8 +604,8 @@ const submitPost = async () => {
   return (
     <div className="sm:px-6 px-2 lg:ml-64 max-w-3xl mx-auto">
 
-      <CreatePostModal text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
-      setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
+      <CreatePostModal text={text} setText={setText}
+      submitPost={submitPost} loading={loading}
       handleSelectImages={handleSelectImages} imagePost={imagePost} video={video} images={images}
       visibility={visibility} setVisibility={setVisibility} handleVideoUpload={handleVideoUpload}
       selected={selected} setSelected={setSelected} />
@@ -766,8 +766,8 @@ const submitPost = async () => {
 
         <button
           type="button"
-          onClick={() => {setShowVisibilityModal(true)}}
-          disabled={images.length === 0}
+           onClick={() =>{submitPost()}}
+          disabled={images.length === 0 || loading}
           className="
             bg-green-600
             hover:bg-green-700
@@ -779,8 +779,32 @@ const submitPost = async () => {
             font-semibold
           "
         >
-          Submit
-        </button>
+       
+       {loading ? <svg
+              className="animate-spin h-5 w-5 text-white mx-auto"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className=""
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className=""
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg> : <p className='inline-flex gap-2 items-center'> 
+            <Send /> Send Post
+            </p>}
+{/*  */}
+
+      </button>
 
       </div>
 </div>
@@ -1134,8 +1158,8 @@ const submitPost = async () => {
 
                <button
           type="button"
-          onClick={() => {setShowVisibilityModal(true); setShowTrimModal(false);}}
-          disabled={video.length === 0}
+          onClick={() => {submitPost()}}
+          disabled={video.length === 0 || loading}
           className="
             bg-green-600
             hover:bg-green-700
@@ -1147,71 +1171,6 @@ const submitPost = async () => {
             font-semibold
           "
         >
-          Submit
-        </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-    </div>
-
-  </div>
-)}
-
-
-{showVisibilityModal && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-
-    <div className="bg-[var(--bg-color)] text-[var(--text-color)] sm:w-96 w-full rounded-xl p-6  shadow-xl">
-      <h2 className="text-lg font-semibold mb-4">
-        Who can see your post?
-      </h2>
-
-      <div className="space-y-3">
-
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="radio"
-            value="public"
-            checked={visibility === "public"}
-            onChange={() => setVisibility("public")}
-          />
-          <div>
-            <p className="font-medium">Public</p>
-            <p className="text-xs">
-              Everyone can see this post
-            </p>
-          </div>
-        </label>
-
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="radio"
-            value="friends"
-            checked={visibility === "friends"}
-            onChange={() => setVisibility("friends")}
-          />
-          <div>
-            <p className="font-medium">Friends</p>
-            <p className="text-xs">
-              Only accepted friends
-            </p>
-          </div>
-        </label>
-
-      </div>
-
-      {/* Submit Button INSIDE modal */}
-      <button
-        onClick={submitPost}
-        disabled={loading}
-        className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg"
-      >
        
        {loading ? <svg
               className="animate-spin h-5 w-5 text-white mx-auto"
@@ -1232,21 +1191,27 @@ const submitPost = async () => {
                 fill="currentColor"
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               ></path>
-            </svg> : "Post"}
+            </svg> : <p className='inline-flex gap-2 items-center'> 
+            <Send /> Send Post
+            </p>}
 
 
       </button>
 
-      <button
-        onClick={() => setShowVisibilityModal(false)}
-        className="mt-3 w-full bg-gray-600 py-2 rounded-lg"
-      >
-        Cancel
-      </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
+
   </div>
 )}
+
+ 
 
         </div>
   );

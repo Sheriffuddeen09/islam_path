@@ -575,6 +575,7 @@ const [followedUserIds, setFollowedUserIds] = useState([]);
 
  const loggedInUser = authUser ?? user;
 
+
 const isUserInChatList = (targetUserId) => {
     if (!targetUserId || !Array.isArray(chats)) {
         return false;
@@ -605,6 +606,8 @@ const isUserInChatList = (targetUserId) => {
     });
 };
 
+
+    
 const targetUserId = Number(post?.user?.id);
 
 const sameUser =
@@ -614,25 +617,29 @@ const sameRole =
     String(loggedInUser?.role ?? "").toLowerCase() ===
     String(post?.user?.role ?? "").toLowerCase();
 
-const validRole =
-    ["admin", "student"].includes(
-        String(loggedInUser?.role ?? "").toLowerCase()
-    );
+const validRole = ["admin", "student"].includes(
+    String(loggedInUser?.role ?? "").toLowerCase()
+);
 
-const targetInChat =
-    isUserInChatList(targetUserId);
+const targetInChat = isUserInChatList(targetUserId);
 
-const showFollowButton =
-    Boolean(
-        loggedInUser?.id &&
-        post?.user?.id &&
-        !sameUser &&
-        sameRole &&
-        validRole &&
-        !targetInChat &&
-        !followedUserIds.includes(targetUserId)
-    );
+const requestAlreadyExists = followedUserIds.some(
+    (id) => Number(id) === targetUserId
+);
+
+
+const showFollowButton = Boolean(
+    loggedInUser?.id &&
+    post?.user?.id &&
+    !sameUser &&
+    sameRole &&
+    validRole &&
+    !targetInChat &&
+    !requestAlreadyExists
+);
  
+
+
  
 const handleFollow = async (targetUserId) => {
     if (!targetUserId) {
@@ -735,7 +742,7 @@ const handleHidePost = async (postId) => {
   return (
     <div
           className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
-          ref={postRef}
+          // ref={postRef}
           >
           {post.is_repost && (
             <div className="flex p-4 bg-[var(--bg-color)] mb-1 items-center justify-between">
@@ -1087,6 +1094,7 @@ const handleHidePost = async (postId) => {
         </svg>
       </p>
 
+   {!post.is_advertisement && post.user?.id !== user?.id && post.is_repost && (
        <p className="inline-flex gap-1 bg-[var(--bg-color)]
             text-[var(--text-color)] items-center">
       {post.reposts_count}
@@ -1108,7 +1116,7 @@ const handleHidePost = async (postId) => {
             />
           </svg>
       </p>
-      
+   )}
       </div>
 
       </div>
@@ -1232,12 +1240,6 @@ const handleHidePost = async (postId) => {
                   </svg>
                     Share
                   </button>
-
-                   {post.user.id !== user.id &&
-                    <button className="flex items-center font-semibold gap-1 mx-4">
-                      <Repost post={post} setPosts={setPosts} />
-                    </button>
-                    }
                 </div>
         
                 {postIdModal && (

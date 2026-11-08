@@ -135,7 +135,7 @@ const shareToChat = async (chatId) => {
     return;
   }
 
-  if (reactionLoading) return; // ⛔ prevent double clicks
+  if (reactionLoading) return; 
 
   setReactionLoading(true);
 
@@ -546,6 +546,32 @@ const [followedUserIds, setFollowedUserIds] = useState([]);
 
 
  const loggedInUser = authUser ?? user;
+ 
+
+useEffect(() => {
+    if (!loggedInUser?.id) return;
+
+    const fetchPendingFriendRequests = async () => {
+        try {
+            const res = await api.get(
+                "/api/friend-requests/pending-users"
+            );
+
+            setFollowedUserIds(
+                (res.data.user_ids || []).map(Number)
+            );
+        } catch (error) {
+            console.error(
+                "Failed to load pending friend requests:",
+                error
+            );
+        }
+    };
+
+    fetchPendingFriendRequests();
+}, [loggedInUser?.id]);
+
+
 
 const isUserInChatList = (targetUserId) => {
     if (!targetUserId || !Array.isArray(chats)) {
@@ -577,6 +603,8 @@ const isUserInChatList = (targetUserId) => {
     });
 };
 
+
+    
 const targetUserId = Number(post?.user?.id);
 
 const sameUser =
@@ -586,24 +614,26 @@ const sameRole =
     String(loggedInUser?.role ?? "").toLowerCase() ===
     String(post?.user?.role ?? "").toLowerCase();
 
-const validRole =
-    ["admin", "student"].includes(
-        String(loggedInUser?.role ?? "").toLowerCase()
-    );
+const validRole = ["admin", "student"].includes(
+    String(loggedInUser?.role ?? "").toLowerCase()
+);
 
-const targetInChat =
-    isUserInChatList(targetUserId);
+const targetInChat = isUserInChatList(targetUserId);
 
-const showFollowButton =
-    Boolean(
-        loggedInUser?.id &&
-        post?.user?.id &&
-        !sameUser &&
-        sameRole &&
-        validRole &&
-        !targetInChat &&
-        !followedUserIds.includes(targetUserId)
-    );
+const requestAlreadyExists = followedUserIds.some(
+    (id) => Number(id) === targetUserId
+);
+
+
+const showFollowButton = Boolean(
+    loggedInUser?.id &&
+    post?.user?.id &&
+    !sameUser &&
+    sameRole &&
+    validRole &&
+    !targetInChat &&
+    !requestAlreadyExists
+);
  
  const handleFollow = async (targetUserId) => {
     if (!targetUserId) {
@@ -706,7 +736,7 @@ const handleHidePost = async (postId) => {
   return (
     <div
       className={`rounded-xl shadow md:w-96 md:mb-3 pb-4 mt- sm:mt-0 lg:w-[480px] w-full border`}
-      ref={postRef}
+      // ref={postRef}
       >
 
         
@@ -1184,7 +1214,7 @@ const handleHidePost = async (postId) => {
           <path d="M18 8a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 8ZM6 14a3 3 0 1 0 2.83 4H15a1 1 0 1 0 0-2H8.83A3 3 0 0 0 6 14Zm12 2a3 3 0 1 0-2.83-4H9a1 1 0 0 0 0 2h6.17A3 3 0 0 0 18 16Z"/>
         </svg>
       </p>
-    {!post.is_advertisement && post.user?.id !== user?.id && (
+    {!post.is_advertisement && post.user?.id !== user?.id && post.is_repost && (
       <p className="inline-flex gap-1 items-center">
       {post.reposts_count}
            <svg
@@ -1328,11 +1358,7 @@ const handleHidePost = async (postId) => {
                   </svg>
                     Share
                   </button>
-                 {post.user.id !== user.id && !post.is_advertisement && (
-                    <button className="flex items-center font-semibold gap-1 mx-4">
-                      <Repost post={post} setPosts={setPosts} />
-                    </button>
-                  )}
+                
                 </div>
         
                     {postIdModal && (

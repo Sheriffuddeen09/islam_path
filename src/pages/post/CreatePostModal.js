@@ -43,8 +43,7 @@ return(
 <PostDescriptionOnly
 closeModal={() => {setSelected(null)}}
 text={text} setText={setText}
-showVisibilityModal={showVisibilityModal} 
-setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
+loading={loading} submitPost={submitPost}
 visibility={visibility} setVisibility={setVisibility}
 />
 )
@@ -54,8 +53,7 @@ if(selected === "post-all"){
 return(
 <PostImageVideoDescription
 closeModal={() => setSelected(null)} images={images}
-text={text} setText={setText} showVisibilityModal={showVisibilityModal} 
-setShowVisibilityModal={setShowVisibilityModal} submitPost={submitPost} loading={loading}
+text={text} setText={setText} loading={loading} submitPost={submitPost}
 visibility={visibility} setVisibility={setVisibility} handleVideoUpload={handleVideoUpload}
 handleSelectImages={handleSelectImages} imagePost={imagePost} video={video}
 />

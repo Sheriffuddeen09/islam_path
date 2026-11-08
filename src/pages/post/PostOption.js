@@ -7,6 +7,7 @@ import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
 import { MessageCircle, X, Check, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
+import { Repost } from "./Repost";
 
 export default function PostOptions({ post,  chats, setPosts }) {
   const [open, setOpen] = useState(false);
@@ -27,6 +28,7 @@ export default function PostOptions({ post,  chats, setPosts }) {
 
   const isOwner = authUser?.user?.id === post?.user?.id;
 
+  const {user} = useAuth()
 
 
    const handleDownloadVideo = async () => {
@@ -481,14 +483,28 @@ const handleHidePost = async (postId) => {
           Share
         </h2>
 
-        <p className="text-xs opacity-60 mt-1">
+        <p className="text-xs mt-1">
           Choose how you want to share this
         </p>
       </div>
 
-      {/* ========================================================= */}
-      {/* CHAT LIST                                                  */}
-      {/* ========================================================= */}
+     <div
+        className="
+          flex-row
+          flex
+          items-center
+          justify-center
+          gap-3
+          p-3
+          border
+          rounded-lg
+          border-gray-200/20
+          hover:bg-blue-50
+          hover:text-blue-600
+          transition
+          mb-4
+        "
+      >
 
       <button
         type="button"
@@ -497,18 +513,10 @@ const handleHidePost = async (postId) => {
           setShares(false);
         }}
         className="
-          w-full
           flex
+          flex-col
           items-center
-          gap-3
-          p-3
-          rounded-xl
-          border
-          border-gray-200/20
-          hover:bg-blue-50
-          hover:text-blue-600
-          transition
-          mb-4
+          gap-2 p-2
         "
       >
         <div
@@ -526,20 +534,20 @@ const handleHidePost = async (postId) => {
           <MessageCircle size={23} />
         </div>
 
-        <div className="flex-1 text-left">
           <div className="font-semibold text-sm">
             Chat List
           </div>
-
-          <div className="text-xs opacity-60">
-            Share with your chats
-          </div>
-        </div>
       </button>
 
-      {/* ========================================================= */}
-      {/* SOCIAL SHARE                                               */}
-      {/* ========================================================= */}
+         {post.user.id !== user.id && !post.is_advertisement && (
+            
+              <Repost 
+              onClose={() => setShares(false)}
+              post={post} setPosts={setPosts} />
+          
+          )}
+       
+          </div>
 
       <div className="border-t border-gray-200/20 pt-4">
 

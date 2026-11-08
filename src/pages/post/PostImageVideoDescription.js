@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import videoPost from './image/video.png'
-export default function PostImageVideoDescription({ closeModal, setShowVisibilityModal,  handleSelectImages,
+export default function PostImageVideoDescription({ closeModal, submitPost, loading, handleSelectImages,
     text, setText, video, imagePost, handleVideoUpload, images }) {
 
 
@@ -103,17 +103,35 @@ Upload Image
     </div>
 </div>
 </div>
-<button
-onClick={() => {setShowVisibilityModal(true); closeModal()}}
-className=" w-full
-mt-5
-p-3
-rounded-xl
-bg-blue-600
-text-white
-">
-Create Post
-</button>
+ <button
+        onClick={submitPost}
+        disabled={loading}
+        className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg"
+      >
+       
+       {loading ? <svg
+              className="animate-spin h-5 w-5 text-white mx-auto"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className=""
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className=""
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg> : "Post"}
+
+
+      </button>
 </div>
 
 </div>

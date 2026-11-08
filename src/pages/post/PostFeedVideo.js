@@ -1,3 +1,4 @@
+
 import React, {
     useCallback,
     useEffect,
@@ -12,6 +13,7 @@ import ProductFeedBlock from "./ProductFeedBlock";
 
 import SidebarLeft from "../homepageComponent/SideBarLeft";
 import SidebarRight from "../homepageComponent/SidebarRight";
+
 
 export default function PostFeedVideo({
     posts,
@@ -85,41 +87,167 @@ export default function PostFeedVideo({
     setVideo,
 }) {
      
-
     const [feedLoading, setFeedLoading] = useState(false);
     const [feedRefreshing, setFeedRefreshing] = useState(false);
     const [feedLoaded, setFeedLoaded] = useState(false);
- 
+
     const [feedProducts, setFeedProducts] = useState([]);
 
-     
     const [feedEnded, setFeedEnded] = useState(false);
 
-     
+    // --------------------------------------------------
+    // PAGINATION STATES
+    // --------------------------------------------------
 
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+
+    const [loadingMore, setLoadingMore] = useState(false);
+
+    const [loadMoreError, setLoadMoreError] = useState(false);
+
+    const [waitingForNetwork, setWaitingForNetwork] = useState(false);
+
+    // --------------------------------------------------
+    // PAGINATION REFS
+    // --------------------------------------------------
+
+    const feedSessionRef = useRef(null);
+
+    const nextCursorRef = useRef(0);
+
+    const hasMoreRef = useRef(true);
+
+    const loadingMoreRef = useRef(false);
+
+    const retryWhenOnlineRef = useRef(false);
+
+    const requestVersionRef = useRef(0);
+
+    // Last video / pagination observer.
     const lastVideoRef = useRef(null);
 
-     
+    // --------------------------------------------------
+    // FETCH VIDEO FEED
+    // --------------------------------------------------
 
     const fetchPosts = useCallback(
-        async (isRefresh = false) => {
-            if (isRefresh) {
+        async (isRefresh = false, isLoadMore = false) => {
+
+            // --------------------------------------------------
+            // LOAD MORE
+            // --------------------------------------------------
+
+            if (isLoadMore) {
+
+                if (
+                    loadingMoreRef.current ||
+                    !hasMoreRef.current
+                ) {
+                    return;
+                }
+
+                if (!navigator.onLine) {
+
+                    retryWhenOnlineRef.current = true;
+
+                    setWaitingForNetwork(true);
+
+                    return;
+                }
+
+                loadingMoreRef.current = true;
+
+                setLoadingMore(true);
+
+                setLoadMoreError(false);
+
+                setWaitingForNetwork(false);
+
+            }
+
+            // --------------------------------------------------
+            // REFRESH
+            // --------------------------------------------------
+
+            else if (isRefresh) {
+
+                // Invalidate previous requests.
+                requestVersionRef.current++;
+
+                // Reset pagination.
+                nextCursorRef.current = 0;
+
+                feedSessionRef.current = null;
+
+                hasMoreRef.current = true;
+
+                loadingMoreRef.current = false;
+
+                retryWhenOnlineRef.current = false;
+
+                setHasMorePosts(true);
+
+                setLoadingMore(false);
+
+                setLoadMoreError(false);
+
+                setWaitingForNetwork(false);
+
+                setFeedEnded(false);
+
                 setFeedRefreshing(true);
-            } else {
+
+            }
+
+            // --------------------------------------------------
+            // INITIAL LOAD
+            // --------------------------------------------------
+
+            else {
+
                 setFeedLoading(true);
             }
 
-            
-            setFeedEnded(false);
+            const requestVersion = requestVersionRef.current;
+
+            const cursor = isLoadMore
+                ? nextCursorRef.current
+                : 0;
 
             try {
+
+                // --------------------------------------------------
+                // API REQUEST
+                // --------------------------------------------------
+
                 const res = await api.get("/api/posts-get", {
-                    params: isRefresh
-                        ? { refresh: 1 }
-                        : {},
+                    params: {
+                        cursor,
+
+                        ...(feedSessionRef.current
+                            ? {
+                                feed_session: feedSessionRef.current,
+                            }
+                            : {}),
+
+                        ...(isRefresh
+                            ? {
+                                refresh: 1,
+                            }
+                            : {}),
+                    },
                 });
 
-                
+                // Ignore outdated requests.
+                if (
+                    requestVersion !== requestVersionRef.current
+                ) {
+                    return;
+                }
+
+                // --------------------------------------------------
+                // RESPONSE POSTS
+                // --------------------------------------------------
 
                 const responsePosts = Array.isArray(
                     res.data?.posts
@@ -127,7 +255,9 @@ export default function PostFeedVideo({
                     ? res.data.posts
                     : [];
 
-                
+                // --------------------------------------------------
+                // PRODUCTS
+                // --------------------------------------------------
 
                 const products = Array.isArray(
                     res.data?.products
@@ -135,11 +265,18 @@ export default function PostFeedVideo({
                     ? res.data.products
                     : [];
 
-                setFeedProducts(products);
- 
+                // Preserve your existing product behavior.
+                if (!isLoadMore) {
+                    setFeedProducts(products);
+                }
+
+                // --------------------------------------------------
+                // FILTER VIDEO POSTS ONLY
+                // --------------------------------------------------
 
                 const videoPosts = responsePosts.filter(
                     (post) => {
+
                         const hasVideo =
                             Array.isArray(post?.media) &&
                             post.media.some(
@@ -151,222 +288,456 @@ export default function PostFeedVideo({
                     }
                 );
 
-                
+                // --------------------------------------------------
+                // FEED SESSION
+                // --------------------------------------------------
 
-                setPosts(videoPosts);
+                if (res.data?.feed_session) {
+
+                    feedSessionRef.current =
+                        res.data.feed_session;
+                }
+
+                // --------------------------------------------------
+                // PAGINATION INFORMATION
+                // --------------------------------------------------
+
+                const moreAvailable =
+                    Boolean(res.data?.has_more);
+
+                const nextCursor =
+                    res.data?.next_cursor;
+
+                nextCursorRef.current =
+                    nextCursor ?? (
+                        cursor + responsePosts.length
+                    );
+
+                hasMoreRef.current = moreAvailable;
+
+                setHasMorePosts(moreAvailable);
+
+                setFeedEnded(!moreAvailable);
+
+                // --------------------------------------------------
+                // INITIAL LOAD / REFRESH
+                // --------------------------------------------------
+
+                if (!isLoadMore) {
+
+                    setPosts(videoPosts);
+
+                }
+
+                // --------------------------------------------------
+                // APPEND NEXT PAGE
+                // --------------------------------------------------
+
+                else {
+
+                    setPosts((previousPosts) => {
+
+                        const existingIds = new Set(
+                            previousPosts.map(
+                                (post) => post.id
+                            )
+                        );
+
+                        const newVideos = videoPosts.filter(
+                            (post) => {
+
+                                return !existingIds.has(
+                                    post.id
+                                );
+
+                            }
+                        );
+
+                        return [
+                            ...previousPosts,
+                            ...newVideos,
+                        ];
+                    });
+
+                }
+
+                // --------------------------------------------------
+                // SUCCESS
+                // --------------------------------------------------
 
                 setFeedLoaded(true);
 
-                 
-                setFeedEnded(false);
+                retryWhenOnlineRef.current = false;
+
+                setLoadMoreError(false);
+
+                setWaitingForNetwork(false);
+
+                console.log("VIDEO FEED PAGINATION:", {
+                    requestedCursor: cursor,
+                    nextCursor: nextCursorRef.current,
+                    receivedPosts: responsePosts.length,
+                    receivedVideos: videoPosts.length,
+                    hasMore: moreAvailable,
+                    feedSession: feedSessionRef.current,
+                });
+
             } catch (error) {
+
+                if (
+                    requestVersion !== requestVersionRef.current
+                ) {
+                    return;
+                }
+
                 console.error(
                     "VIDEO FEED ERROR:",
                     error
                 );
 
-                
-                setFeedLoaded(true);
+                // --------------------------------------------------
+                // LOAD MORE ERROR
+                // --------------------------------------------------
+
+                if (isLoadMore) {
+
+                    if (!navigator.onLine) {
+
+                        retryWhenOnlineRef.current = true;
+
+                        setWaitingForNetwork(true);
+
+                    } else {
+
+                        setLoadMoreError(true);
+                    }
+
+                }
+
+                // --------------------------------------------------
+                // INITIAL / REFRESH ERROR
+                // --------------------------------------------------
+
+                else {
+
+                    setFeedLoaded(true);
+                }
+
             } finally {
-                setFeedLoading(false);
-                setFeedRefreshing(false);
+
+                if (
+                    requestVersion === requestVersionRef.current
+                ) {
+
+                    if (isLoadMore) {
+
+                        loadingMoreRef.current = false;
+
+                        setLoadingMore(false);
+
+                    } else {
+
+                        setFeedLoading(false);
+
+                        setFeedRefreshing(false);
+                    }
+                }
             }
+
         },
         [setPosts]
     );
- 
+
+    // --------------------------------------------------
+    // INITIAL FEED LOAD
+    // --------------------------------------------------
 
     useEffect(() => {
-        fetchPosts(false);
+
+        fetchPosts(false, false);
+
     }, [fetchPosts]);
 
-     
+    // --------------------------------------------------
+    // AUTOMATIC VIDEO PAGINATION
+    // --------------------------------------------------
 
     useEffect(() => {
+
         if (
             !feedLoaded ||
-            !posts ||
-            posts.length <= 10
+            feedLoading ||
+            feedRefreshing ||
+            loadingMore ||
+            waitingForNetwork ||
+            loadMoreError ||
+            !hasMorePosts
         ) {
-            setFeedEnded(false);
             return;
         }
 
-        const lastVideo =
-            lastVideoRef.current;
+        let disposed = false;
 
-        if (!lastVideo) {
-            return;
-        }
+        let frameId = null;
 
-        const observer =
-            new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        console.log(
-                            "LAST VIDEO REACHED:",
-                            posts.length
-                        );
+        const checkForNextPage = () => {
 
-                        setFeedEnded(true);
+            if (
+                disposed ||
+                frameId !== null
+            ) {
+                return;
+            }
+
+            frameId = window.requestAnimationFrame(() => {
+
+                frameId = null;
+
+                if (disposed) return;
+
+                if (
+                    loadingMoreRef.current ||
+                    !hasMoreRef.current
+                ) {
+                    return;
+                }
+
+                // --------------------------------------------------
+                // CHECK INTERNET
+                // --------------------------------------------------
+
+                if (!navigator.onLine) {
+
+                    retryWhenOnlineRef.current = true;
+
+                    setWaitingForNetwork(true);
+
+                    return;
+                }
+
+                // --------------------------------------------------
+                // LAST VIDEO
+                // --------------------------------------------------
+
+                const target = lastVideoRef.current;
+
+                if (
+                    !target ||
+                    !target.isConnected
+                ) {
+                    return;
+                }
+
+                const rect = target.getBoundingClientRect();
+
+                const shouldLoad =
+                    rect.top <= window.innerHeight + 800 &&
+                    rect.bottom >= -800;
+
+                if (shouldLoad) {
+
+                    console.log(
+                        "Loading next video page:",
+                        {
+                            cursor: nextCursorRef.current,
+                            feedSession: feedSessionRef.current,
+                        }
+                    );
+
+                    fetchPosts(false, true);
+                }
+
+            });
+
+        };
+
+        // --------------------------------------------------
+        // INTERSECTION OBSERVER
+        // --------------------------------------------------
+
+        const target = lastVideoRef.current;
+
+        let observer = null;
+
+        if (target) {
+
+            observer = new IntersectionObserver(
+                (entries) => {
+
+                    if (
+                        entries.some(
+                            (entry) => entry.isIntersecting
+                        )
+                    ) {
+
+                        checkForNextPage();
                     }
+
                 },
                 {
-                    threshold: 0.2,
                     root: null,
-                    rootMargin:
-                        "0px 0px 200px 0px",
+                    rootMargin: "800px 0px",
+                    threshold: 0,
                 }
             );
 
-        observer.observe(lastVideo);
+            observer.observe(target);
+        }
+
+        // Listen to window and nested scroll containers.
+        document.addEventListener(
+            "scroll",
+            checkForNextPage,
+            {
+                capture: true,
+                passive: true,
+            }
+        );
+
+        window.addEventListener(
+            "resize",
+            checkForNextPage
+        );
+
+        // Check immediately after rendering.
+        checkForNextPage();
 
         return () => {
-            observer.disconnect();
+
+            disposed = true;
+
+            if (frameId !== null) {
+
+                window.cancelAnimationFrame(frameId);
+            }
+
+            observer?.disconnect();
+
+            document.removeEventListener(
+                "scroll",
+                checkForNextPage,
+                true
+            );
+
+            window.removeEventListener(
+                "resize",
+                checkForNextPage
+            );
+
         };
-    }, [posts, feedLoaded]);
 
-    
+    }, [
+        posts.length,
+        feedLoaded,
+        feedLoading,
+        feedRefreshing,
+        loadingMore,
+        waitingForNetwork,
+        loadMoreError,
+        hasMorePosts,
+        fetchPosts,
+    ]);
 
-    const handleRefresh = async () => {
+    // --------------------------------------------------
+    // NETWORK RECONNECTION
+    // --------------------------------------------------
+
+    useEffect(() => {
+
+        const handleOnline = () => {
+
+            if (!retryWhenOnlineRef.current) return;
+
+            if (loadingMoreRef.current) return;
+
+            if (!hasMoreRef.current) return;
+
+            console.log(
+                "Internet restored. Retrying video feed..."
+            );
+
+            setWaitingForNetwork(false);
+
+            fetchPosts(false, true);
+        };
+
+        const handleOffline = () => {
+
+            if (
+                loadingMoreRef.current ||
+                retryWhenOnlineRef.current
+            ) {
+
+                setWaitingForNetwork(true);
+
+                setLoadMoreError(false);
+            }
+
+        };
+
+        window.addEventListener(
+            "online",
+            handleOnline
+        );
+
+        window.addEventListener(
+            "offline",
+            handleOffline
+        );
+
+        return () => {
+
+            window.removeEventListener(
+                "online",
+                handleOnline
+            );
+
+            window.removeEventListener(
+                "offline",
+                handleOffline
+            );
+
+        };
+
+    }, [fetchPosts]);
+
+    // --------------------------------------------------
+    // REFRESH VIDEO FEED
+    // --------------------------------------------------
+
+    const handleRefresh = useCallback(async () => {
+
         if (
             feedRefreshing ||
-            feedLoading
+            feedLoading ||
+            loadingMoreRef.current
         ) {
             return;
         }
- 
-        setFeedEnded(false);
 
-        await fetchPosts(true);
+        await fetchPosts(true, false);
 
-        
         window.scrollTo({
             top: 0,
             behavior: "smooth",
         });
-    };
- 
 
-      if (feedLoading) {
-            return <FeedSkeleton />;
-        }
+    }, [
+        feedRefreshing,
+        feedLoading,
+        fetchPosts,
+    ]);
 
-    const renderFeedEnd = () => {
-        if (
-            !feedLoaded ||
-            !posts ||
-            posts.length <= 10 ||
-            !feedEnded
-        ) {
-            return null;
-        }
-
-        return (
-            <div
-                className="
-                    w-full
-                    flex
-                    flex-col
-                    items-center
-                    justify-center
-                    py-10
-                    px-4
-                "
-            >
-                <p
-                    className="
-                        text-sm
-                        sm:text-base
-                        text-center
-                        mb-4
-                    "
-                >
-                    No More Video Available
-                </p>
-
-                <button
-                    type="button"
-                    onClick={handleRefresh}
-                    disabled={feedRefreshing}
-                    className="
-                        min-w-[160px]
-                        px-5
-                        py-2.5
-                        rounded-lg
-                        bg-green-600
-                        hover:bg-green-700
-                        text-white
-                        font-semibold
-                        transition
-                        disabled:opacity-50
-                        disabled:cursor-not-allowed
-                        flex
-                        items-center
-                        justify-center
-                        gap-2
-                    "
-                >
-                    {feedRefreshing ? (
-                        <>
-                            <svg
-                                className="
-                                    animate-spin
-                                    h-5
-                                    w-5
-                                "
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                />
-
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="
-                                        M4 12
-                                        a8 8 0 018-8
-                                        v4
-                                        a4 4 0 00-4 4
-                                        H4z
-                                    "
-                                />
-                            </svg>
-
-                            Refreshing
-                        </>
-                    ) : (
-                        <>
-                            <span
-                                className="
-                                    text-xl
-                                    leading-none
-                                "
-                            >
-                                ↻
-                            </span>
-
-                            Refresh Videos
-                        </>
-                    )}
-                </button>
-            </div>
-        );
-    };
- 
+    // --------------------------------------------------
+    // EMPTY VIDEO FEED
+    // --------------------------------------------------
 
     const renderNoVideos = () => {
+
         if (
             !feedLoaded ||
-            posts?.length > 0
+            posts?.length > 0 ||
+            hasMorePosts
         ) {
             return null;
         }
@@ -384,14 +755,19 @@ export default function PostFeedVideo({
                     px-4
                 "
             >
+
                 <p className="text-xl font-bold">
                     No Video Available
+                </p>
+
+                <p className="mt-2 text-sm opacity-70">
+                    Try refreshing to check for new videos.
                 </p>
 
                 <button
                     type="button"
                     onClick={handleRefresh}
-                    disabled={feedRefreshing}
+                    disabled={feedRefreshing || feedLoading}
                     className="
                         min-w-[160px]
                         px-5
@@ -411,14 +787,12 @@ export default function PostFeedVideo({
                         mt-4
                     "
                 >
+
                     {feedRefreshing ? (
+
                         <>
                             <svg
-                                className="
-                                    animate-spin
-                                    h-5
-                                    w-5
-                                "
+                                className="animate-spin h-5 w-5"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -447,27 +821,170 @@ export default function PostFeedVideo({
 
                             Refreshing
                         </>
+
                     ) : (
+
                         <>
-                            <span
-                                className="
-                                    text-xl
-                                    leading-none
-                                "
-                            >
+                            <span className="text-xl leading-none">
                                 ↻
                             </span>
 
                             Refresh Videos
                         </>
+
                     )}
+
                 </button>
+
             </div>
         );
     };
- 
+
+    // --------------------------------------------------
+    // VIDEO FEED END / LOADING / RETRY
+    // --------------------------------------------------
+
+    const renderFeedEnd = () => {
+
+        if (!feedLoaded) return null;
+
+        // --------------------------------------------------
+        // LOADING MORE / WAITING FOR INTERNET
+        // --------------------------------------------------
+
+        if (
+            loadingMore ||
+            waitingForNetwork
+        ) {
+
+            return (
+                <div className="w-full space-y-3 py-3">
+
+                    {[1].map((item) => (
+
+                        <div
+                            key={item}
+                            className="
+                                w-full
+                                animate-pulse
+                                space-y-3
+                                rounded-xl
+                                p-3
+                            "
+                        >
+
+                            <div className="h-10 w-2/3 rounded-lg bg-gray-200 dark:bg-gray-800" />
+
+                            <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-800" />
+
+                            <div className="h-48 w-full rounded-lg bg-gray-200 dark:bg-gray-800" />
+
+                            <div className="h-5 w-4/5 rounded bg-gray-200 dark:bg-gray-800" />
+
+                        </div>
+
+                    ))}
+
+                    {waitingForNetwork && (
+
+                        <p className="text-center text-sm opacity-70">
+                            Waiting for internet connection...
+                        </p>
+
+                    )}
+
+                </div>
+            );
+        }
+
+        // --------------------------------------------------
+        // LOAD MORE ERROR
+        // --------------------------------------------------
+
+        if (
+            loadMoreError &&
+            hasMorePosts
+        ) {
+
+            return (
+                <div
+                    className="
+                        flex
+                        w-full
+                        flex-col
+                        items-center
+                        gap-3
+                        px-4
+                        py-8
+                    "
+                >
+
+                    <p className="text-center text-sm">
+                        Could not load more videos. Check your connection.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() => fetchPosts(false, true)}
+                        disabled={loadingMore}
+                        className="
+                            font-semibold
+                            transition
+                            disabled:opacity-50
+                        "
+                    >
+                        Retry
+                    </button>
+
+                </div>
+            );
+        }
+
+        // --------------------------------------------------
+        // END OF VIDEO FEED
+        // --------------------------------------------------
+
+        if (
+            !hasMorePosts &&
+            posts.length > 0
+        ) {
+
+            return (
+                <div className="w-full px-4 pb-10 pt-5 text-center">
+
+                    <p className="text-sm">
+                        You have reached the end of the video feed.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleRefresh}
+                        disabled={feedRefreshing || feedLoading}
+                        className="
+                            mt-3
+                            font-semibold
+                            transition
+                            disabled:opacity-50
+                        "
+                    >
+                        {feedRefreshing
+                            ? "Refreshing"
+                            : "Refresh Videos"}
+                    </button>
+
+                </div>
+            );
+        }
+
+        return null;
+    };
+
+    // --------------------------------------------------
+    // VIDEO CARD PROPS
+    // --------------------------------------------------
 
     const videoCardProps = (post) => ({
+
         post,
         setPosts,
 
@@ -476,7 +993,7 @@ export default function PostFeedVideo({
 
         video,
         setVideo,
- 
+
         showUsersPopup,
         setShowUsersPopup,
 
@@ -554,10 +1071,91 @@ export default function PostFeedVideo({
 
         setShowOptions,
         showOptions,
+
     });
- 
+
+    // --------------------------------------------------
+    // VIDEO CARD RENDERING
+    // --------------------------------------------------
+
+    const renderVideoPosts = (alignment = "center") => {
+
+        return (
+            <>
+
+                {posts.map((post, index) => {
+
+                    const isLastPost =
+                        index === posts.length - 1;
+
+                    return (
+                        <React.Fragment key={post.id}>
+
+                            <div
+                                ref={
+                                    isLastPost
+                                        ? lastVideoRef
+                                        : null
+                                }
+                                className={`
+                                    w-full
+                                    flex
+                                    ${
+                                        alignment === "end"
+                                            ? "justify-end"
+                                            : "justify-center"
+                                    }
+                                `}
+                            >
+
+                                <PostCardVideo
+                                    {...videoCardProps(post)}
+                                />
+
+                            </div>
+
+                            {/* PRODUCT BLOCK AFTER 10 VIDEOS */}
+
+                            {index === 9 &&
+                                feedProducts.length > 0 && (
+
+                                    <ProductFeedBlock
+                                        products={feedProducts}
+                                    />
+
+                                )}
+
+                        </React.Fragment>
+                    );
+
+                })}
+
+                {/* 
+                    If the current page contains no videos,
+                    this sentinel allows pagination to continue.
+                */}
+
+                {posts.length === 0 && hasMorePosts && (
+
+                    <div
+                        ref={lastVideoRef}
+                        className="w-full h-px"
+                    />
+
+                )}
+
+            </>
+        );
+    };
+
+    // --------------------------------------------------
+    // LARGE SCREEN
+    // --------------------------------------------------
+
     const largeScreen = (
+
         <div className="block md:hidden lg:block">
+
             <div
                 className="
                     flex
@@ -571,6 +1169,7 @@ export default function PostFeedVideo({
                     text-[var(--text-color)]
                 "
             >
+
                 <SidebarLeft
                     handleVideoClick={handleVideoClick}
                     videoCount={videoCount}
@@ -579,16 +1178,10 @@ export default function PostFeedVideo({
                     fetchJobProfile={fetchJobProfile}
                     show={show}
                     setShow={setShow}
-                    showAdvertisement={
-                        showAdvertisement
-                    }
-                    setShowAdvertisement={
-                        setShowAdvertisement
-                    }
+                    showAdvertisement={showAdvertisement}
+                    setShowAdvertisement={setShowAdvertisement}
                     showJobCreate={showJobCreate}
-                    setShowJobCreate={
-                        setShowJobCreate
-                    }
+                    setShowJobCreate={setShowJobCreate}
                 />
 
                 <div
@@ -604,62 +1197,30 @@ export default function PostFeedVideo({
                         items-center
                     "
                 >
+
                     {renderNoVideos()}
 
-                    {posts.map(
-                        (post, index) => {
-                            const isLastPost =
-                                index ===
-                                posts.length - 1;
-
-                            return (
-                                <React.Fragment
-                                    key={post.id}
-                                >
-                                    <div
-                                        ref={
-                                            isLastPost
-                                                ? lastVideoRef
-                                                : null
-                                        }
-                                        className="
-                                            w-full
-                                            flex
-                                            justify-center
-                                        "
-                                    >
-                                        <PostCardVideo
-                                            {...videoCardProps(
-                                                post
-                                            )}
-                                        />
-                                    </div>
- 
-                                    {index === 9 &&
-                                        feedProducts.length >
-                                            0 && (
-                                            <ProductFeedBlock
-                                                products={
-                                                    feedProducts
-                                                }
-                                            />
-                                        )}
-                                </React.Fragment>
-                            );
-                        }
-                    )}
+                    {renderVideoPosts("center")}
 
                     {renderFeedEnd()}
+
                 </div>
 
                 <SidebarRight />
+
             </div>
+
         </div>
     );
- 
+
+    // --------------------------------------------------
+    // IPAD SCREEN
+    // --------------------------------------------------
 
     const ipadScreen = (
+
         <div className="md:block lg:hidden hidden">
+
             <div
                 className="
                     flex
@@ -671,6 +1232,7 @@ export default function PostFeedVideo({
                     text-[var(--text-color)]
                 "
             >
+
                 <SidebarRight />
 
                 <div
@@ -687,66 +1249,48 @@ export default function PostFeedVideo({
                         items-end
                     "
                 >
+
                     {renderNoVideos()}
 
-                    {posts.map(
-                        (post, index) => {
-                            const isLastPost =
-                                index ===
-                                posts.length - 1;
-
-                            return (
-                                <React.Fragment
-                                    key={post.id}
-                                >
-                                    <div
-                                        ref={
-                                            isLastPost
-                                                ? lastVideoRef
-                                                : null
-                                        }
-                                        className="
-                                            w-full
-                                            flex
-                                            justify-end
-                                        "
-                                    >
-                                        <PostCardVideo
-                                            {...videoCardProps(
-                                                post
-                                            )}
-                                        />
-                                    </div>
- 
-
-                                    {index === 9 &&
-                                        feedProducts.length >
-                                            0 && (
-                                            <ProductFeedBlock
-                                                products={
-                                                    feedProducts
-                                                }
-                                            />
-                                        )}
-                                </React.Fragment>
-                            );
-                        }
-                    )}
+                    {renderVideoPosts("end")}
 
                     {renderFeedEnd()}
+
                 </div>
+
             </div>
+
         </div>
     );
- 
+
+    // --------------------------------------------------
+    // INITIAL LOADING
+    // --------------------------------------------------
+
+    if (feedLoading && !feedLoaded) {
+
+        return <FeedSkeleton />;
+
+    }
+
+    // --------------------------------------------------
+    // RETURN
+    // --------------------------------------------------
 
     return (
+
         <div>
+
             {largeScreen}
+
             {ipadScreen}
+
         </div>
+
     );
+
 }
+
    
 
 const FeedSkeleton = () => {

@@ -14,11 +14,12 @@ import {
 } from "lucide-react";
 import PostReplyVideo from "./PostReplyVideo";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 
 export default function PostReplyListMap({authUser, reply, timeAgo, editText, setEditText, onEdit,
                            onDelete, isDeleting, setReplyTo,setReplyText,
-                           focusReplyInput }){
+                           focusReplyInput, postComments }){
   
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [deletingReplyId, setDeletingReplyId] = useState(null);
@@ -33,8 +34,9 @@ export default function PostReplyListMap({authUser, reply, timeAgo, editText, se
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [expandedReplies, setExpandedReplies] = useState({});
   const [translatedReplies, setTranslatedReplies] = useState({});
-const [translatingReplies, setTranslatingReplies] = useState({});
-const [replyLanguages, setReplyLanguages] = useState({});
+  const [translatingReplies, setTranslatingReplies] = useState({});
+  const [replyLanguages, setReplyLanguages] = useState({});
+  const [translatableReplies, setTranslatableReplies] = useState({});
 
 
 const handleTranslateReply = async (replyId, text) => {
@@ -48,47 +50,53 @@ const handleTranslateReply = async (replyId, text) => {
 
     const response = await api.post("/api/translate", {
       text,
-      target_language: "English",
+      target_language: "english",
     });
 
     if (!response.data?.success) {
       throw new Error(
-        response.data?.message ||
-        "Translation failed."
+        response.data?.message || "Translation failed."
       );
     }
 
-    // Save detected language
+    const language = response.data.language;
+
     setReplyLanguages(prev => ({
       ...prev,
-      [translationKey]: response.data.language,
+      [translationKey]: language,
     }));
 
-    /*
-     * English doesn't need translation.
-     * Don't store it as translated text.
-     */
-    if (response.data.is_english) {
+    if (
+      response.data.is_english ||
+      language === "en" ||
+      language === "english"
+    ) {
+      setTranslatableReplies(prev => ({
+        ...prev,
+        [translationKey]: false,
+      }));
+
+      toast("This reply is already in English.");
       return;
     }
 
-    // Save translated reply
+    if (!response.data.translation) {
+      throw new Error("No translated text was returned.");
+    }
+
     setTranslatedReplies(prev => ({
       ...prev,
       [translationKey]: response.data.translation,
     }));
-
   } catch (error) {
-    console.error(
-      "Reply translation error:",
-      error
-    );
+    console.error("Reply translation error:", error);
 
     toast.error(
       error.response?.data?.message ||
+      error.response?.data?.detail ||
+      error.message ||
       "Unable to translate reply."
     );
-
   } finally {
     setTranslatingReplies(prev => ({
       ...prev,
@@ -96,6 +104,117 @@ const handleTranslateReply = async (replyId, text) => {
     }));
   }
 };
+
+
+
+
+
+const detectCommentLanguage = async (text = "") => {
+  try {
+    if (!text.trim()) return null;
+
+    const response = await axios.post(
+      "https://python-translate.onrender.com/detect-language",
+      { text: text.trim() },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.data?.detected) {
+      return null;
+    }
+
+    return response.data.language;
+  } catch (error) {
+    console.error(
+      "Language detection failed:",
+      error.response?.data || error.message
+    );
+
+    return null;
+  }
+};
+
+
+
+
+const canTranslateComment = async (sourceLanguage) => {
+  try {
+    const response = await axios.get(
+      "https://python-translate.onrender.com/can-translate",
+      {
+        params: {
+          source_language: sourceLanguage,
+          target_language: "english",
+        },
+      }
+    );
+
+    return response.data?.supported === true;
+  } catch (error) {
+    console.error("Translation support check failed:", error);
+    return false;
+  }
+};
+
+
+
+useEffect(() => {
+  if (!postComments?.length) return;
+
+  let cancelled = false;
+
+  const checkReplies = async () => {
+    for (const reply of postComments) {
+      if (!reply?.body?.trim()) continue;
+
+      const key = `reply-${reply.id}`;
+
+      // Avoid checking a reply repeatedly.
+      if (replyLanguages[key] !== undefined) continue;
+
+      const language = await detectCommentLanguage(reply.body);
+
+      if (cancelled) return;
+
+      setReplyLanguages(prev => ({
+        ...prev,
+        [key]: language,
+      }));
+
+      if (
+        !language ||
+        language === "en" ||
+        language === "english"
+      ) {
+        setTranslatableReplies(prev => ({
+          ...prev,
+          [key]: false,
+        }));
+
+        continue;
+      }
+
+      const supported = await canTranslateComment(language);
+
+      if (cancelled) return;
+
+      setTranslatableReplies(prev => ({
+        ...prev,
+        [key]: supported,
+      }));
+    }
+  };
+
+  checkReplies();
+
+  return () => {
+    cancelled = true;
+  };
+}, [postComments]);
 
 
 
@@ -314,155 +433,123 @@ const navigate = useNavigate()
 
         </div>
             
-        {reply.body && (() => {
-  const words = reply.body.trim().split(/\s+/);
+      {reply.body && (() => {
+        const words = reply.body.trim().split(/\s+/);
+        const isLongReply = words.length > 20;
+        const isExpanded = expandedReplies[reply.id];
 
-  const isLongReply = words.length > 20;
+        const translationKey = `reply-${reply.id}`;
 
-  const isExpanded = expandedReplies[reply.id];
+        const translatedText =
+          translatedReplies?.[translationKey];
 
-  // Unique key specifically for replies
-  const translationKey = `reply-${reply.id}`;
+        const isTranslating =
+          translatingReplies?.[translationKey];
 
-  const translatedText =
-    translatedReplies?.[translationKey];
+        const replyLanguage =
+          replyLanguages?.[translationKey];
 
-  const isTranslating =
-    translatingReplies?.[translationKey];
+        const canTranslate =
+          translatableReplies?.[translationKey] === true;
 
-  // Language detected by Laravel/OpenAI
-  const replyLanguage =
-    replyLanguages?.[translationKey];
+        const displayedText = translatedText
+          ? translatedText
+          : isLongReply && !isExpanded
+            ? words.slice(0, 20).join(" ") + "..."
+            : reply.body;
 
-  /*
-   * True when the reply has already been detected
-   * as English.
-   */
-  const isEnglish =
-    replyLanguage === "en";
+        return (
+          <div className="my-2">
+            <p
+              className="
+                text-sm
+                text-black
+                max-w-full
+                whitespace-normal
+                break-words
+                overflow-wrap-anywhere
+              "
+            >
+              <Linkify
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  className: "text-blue-600 underline break-all",
+                }}
+              >
+                {renderWithMention(displayedText)}
+              </Linkify>
+            </p>
 
-  /*
-   * Display translated text when available.
-   * Otherwise display the original reply.
-   */
-  const displayedText =
-    translatedText
-      ? translatedText
-      : isLongReply && !isExpanded
-        ? words.slice(0, 20).join(" ") + "..."
-        : reply.body;
+            {/* TRANSLATE */}
+            {!translatedText &&
+              canTranslate &&
+              replyLanguage &&
+              replyLanguage !== "en" &&
+              replyLanguage !== "english" && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleTranslateReply(reply.id, reply.body)
+                  }
+                  disabled={isTranslating}
+                  className="
+                    mt-1
+                    text-xs
+                    font-medium
+                    text-blue-600
+                    cursor-pointer
+                    disabled:opacity-50
+                    disabled:cursor-not-allowed
+                  "
+                >
+                  {isTranslating ? "Translating..." : "Translate"}
+                </button>
+              )}
 
-  return (
-    <div className="my-2">
- 
-      <p
-        className="
-          text-sm
-          text-black
-          max-w-full
-          whitespace-normal
-          break-words
-          overflow-wrap-anywhere
-        "
-      >
-        <Linkify
-          options={{
-            target: "_blank",
-            rel: "noopener noreferrer",
-            className:
-              "text-blue-600 underline break-all",
-          }}
-        >
-          {renderWithMention(displayedText)}
-        </Linkify>
-      </p>
- 
-      {!translatedText &&
-        !isEnglish && (
-          <button
-            type="button"
-            onClick={() =>
-              handleTranslateReply(
-                reply.id,
-                reply.body
-              )
-            }
-            disabled={isTranslating}
-            className="
-              mt-1
-              text-xs
-              font-medium
-              text-blue-600
-              cursor-pointer
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-            "
-          >
-            {isTranslating
-              ? "Translating"
-              : "Translate"}
-          </button>
-        )}
+            {/* SHOW ORIGINAL */}
+            {translatedText && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTranslatedReplies(prev => {
+                    const updated = { ...prev };
+                    delete updated[translationKey];
+                    return updated;
+                  });
+                }}
+                className="
+                  mt-1
+                  text-xs
+                  font-medium
+                  text-blue-600
+                  hover:underline
+                "
+              >
+                Show original
+              </button>
+            )}
 
-
-      {/* =========================
-          SHOW ORIGINAL
-      ========================== */}
-      {translatedText && (
-        <button
-          type="button"
-          onClick={() => {
-            setTranslatedReplies(prev => {
-              const updated = {
-                ...prev,
-              };
-
-              delete updated[translationKey];
-
-              return updated;
-            });
-          }}
-          className="
-            mt-1
-            text-xs
-            font-medium
-            text-blue-600
-            hover:underline
-          "
-        >
-          Show original
-        </button>
-      )}
-
-
-      {/* =========================
-          SHOW MORE / SHOW LESS
-      ========================== */}
-      {isLongReply &&
-        !translatedText && (
-          <button
-            type="button"
-            onClick={() =>
-              toggleReplyText(reply.id)
-            }
-            className="
-              mt-1
-              ml-3
-              text-sm
-              font-medium
-              text-blue-600
-              hover:underline
-            "
-          >
-            {isExpanded
-              ? "Show less"
-              : "Show more"}
-          </button>
-        )}
-
-    </div>
-  );
-})()}
+            {/* SHOW MORE / SHOW LESS */}
+            {isLongReply && !translatedText && (
+              <button
+                type="button"
+                onClick={() => toggleReplyText(reply.id)}
+                className="
+                  mt-1
+                  ml-3
+                  text-sm
+                  font-medium
+                  text-blue-600
+                  hover:underline
+                "
+              >
+                {isExpanded ? "Show less" : "Show more"}
+              </button>
+            )}
+          </div>
+        );
+      })()}
         {/* ✅ Image preview */}
        {reply.image && <ReplyImage image={reply.image} />}
 

@@ -1,3 +1,4 @@
+
 import React, {
     useCallback,
     useEffect,
@@ -12,6 +13,7 @@ import SidebarLeft from "../homepageComponent/SideBarLeft";
 import Reels from "../reel/Reels";
 import ProductFeedBlock from "./ProductFeedBlock";
 import PostCard from "./PostCard";
+import ReelFeedCard from "./ReelFeedCard";
 
 export default function PostFeed({
     posts,
@@ -90,828 +92,772 @@ export default function PostFeed({
     setMessageOpenShare,
     shares,
     setShares,
-    video, setVideo
+    video,
+    setVideo,
 }) {
-    /*
-    |--------------------------------------------------------------------------
-    | Feed state
-    |--------------------------------------------------------------------------
-    */
+    // --------------------------------------------------
+    // FEED STATE
+    // --------------------------------------------------
 
-    const [feedLoading, setFeedLoading] = useState(false);
+    const [feedLoading, setFeedLoading] = useState(true);
     const [feedRefreshing, setFeedRefreshing] = useState(false);
     const [feedLoaded, setFeedLoaded] = useState(false);
 
     const [feedProducts, setFeedProducts] = useState([]);
+    const [feedReels, setFeedReels] = useState([]);
 
-    /*
-     * This becomes true ONLY after:
-     *
-     * 1. There are more than 10 posts
-     * 2. The user reaches the last post
-     */
-    const [feedExhausted, setFeedExhausted] = useState(false);
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [loadMoreError, setLoadMoreError] = useState(false);
+    const [waitingForNetwork, setWaitingForNetwork] = useState(false);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Last post reference
-    |--------------------------------------------------------------------------
-    */
+    // --------------------------------------------------
+    // PAGINATION REFS loadFeedReels
+    // --------------------------------------------------
 
-    const lastPostRef = useRef(null);
+    const feedSessionRef = useRef(null);
+    const nextCursorRef = useRef(0);
+
+    const hasMoreRef = useRef(true);
+    const loadingMoreRef = useRef(false);
+
+    const retryWhenOnlineRef = useRef(false);
+    const preloadPostRef = useRef(null);
+
+    // Incremented when refreshing to invalidate old requests.
+    const requestVersionRef = useRef(0);
+
+    // --------------------------------------------------
+    // NORMAL POSTS ONLY
+    // --------------------------------------------------
+
+    const normalPosts = (
+        Array.isArray(posts) ? posts : []
+    ).filter(
+        (post) =>
+            post?.feed_type !== "reel" &&
+            post?.post_type !== "reel"
+    );
+
+    // --------------------------------------------------
+    // FETCH REELS
+    // --------------------------------------------------  reelFeeds
+
+    
+const loadFeedReels = useCallback(async () => {
+    try {
+        const response = await api.get("/api/reels-get");
+        const data = response.data;
+
+        console.log("Reels API response:", data);
+
+        // Support the response keys your endpoint may use.
+        const result = Array.isArray(data?.posts)
+            ? data.posts
+            : Array.isArray(data?.reels)
+                ? data.reels
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : [];
+
+        const eligibleReels = result.filter((reel) => {
+            const isReel =
+                reel?.is_reel === true ||
+                reel?.is_reel === 1 ||
+                reel?.is_reel === "1" ||
+                reel?.feed_type === "reel" ||
+                reel?.post_type === "reel";
+
+            return Boolean(reel?.id && isReel);
+        });
+
+        console.log("Reels found:", result.length);
+        console.log("Eligible reels:", eligibleReels.length);
+        console.log("First reel:", eligibleReels[0] ?? null);
+
+        setFeedReels(eligibleReels);
+    } catch (err) {
+        console.error("Failed to load feed reels:", {
+            message: err?.message,
+            status: err?.response?.status,
+            response: err?.response?.data,
+        });
+    }
+}, []);
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Fetch feed
-    |--------------------------------------------------------------------------
-    */
+    useEffect(() => {
+        loadFeedReels();
+    }, [loadFeedReels]);
+
+    // --------------------------------------------------
+    // FETCH PAGINATED FEED
+    // --------------------------------------------------
 
     const fetchFeed = useCallback(
-        async (refresh = false) => {
-            if (refresh) {
+        async (refresh = false, append = false) => {
+            if (append) {
+                if (loadingMoreRef.current || !hasMoreRef.current) {
+                    return;
+                }
+
+                loadingMoreRef.current = true;
+                retryWhenOnlineRef.current = false;
+
+                setLoadingMore(true);
+                setLoadMoreError(false);
+                setWaitingForNetwork(false);
+            } else if (refresh) {
+                // Invalidate pending requests from the previous feed.
+                requestVersionRef.current += 1;
+
+                feedSessionRef.current = null;
+                nextCursorRef.current = 0;
+
+                hasMoreRef.current = true;
+                retryWhenOnlineRef.current = false;
+
+                setHasMorePosts(true);
+                setLoadMoreError(false);
+                setWaitingForNetwork(false);
                 setFeedRefreshing(true);
             } else {
                 setFeedLoading(true);
             }
 
-            /*
-             * Whenever a new feed starts loading,
-             * hide the bottom refresh section.
-             */
-            setFeedExhausted(false);
+            const requestVersion = requestVersionRef.current;
 
             try {
-                const res = await api.get(
-                    "/api/posts-get",
-                    {
-                        params: refresh
-                            ? { refresh: 1 }
-                            : {},
+                const params = {};
+
+                if (append) {
+                    params.cursor = nextCursorRef.current;
+
+                    if (feedSessionRef.current) {
+                        params.feed_session = feedSessionRef.current;
                     }
-                );
+                } else if (refresh) {
+                    params.refresh = 1;
+                }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Posts
-                |--------------------------------------------------------------------------
-                */
+                console.log("Fetching feed:", {
+                    append,
+                    refresh,
+                    cursor: params.cursor ?? 0,
+                    feed_session: params.feed_session ?? null,
+                });
 
-                const serverPosts =
-                    Array.isArray(res.data?.posts)
-                        ? res.data.posts
+                const response = await api.get("/api/posts-get", {
+                    params,
+                });
+
+                if (requestVersion !== requestVersionRef.current) {
+                    return;
+                }
+
+                const data = response.data || {};
+
+                const serverPosts = Array.isArray(data.posts)
+                    ? data.posts
+                    : [];
+
+                const products = Array.isArray(data.products)
+                    ? data.products
+                    : [];
+
+                // Preserve the existing content filtering. loadFeedReels
+                const filteredPosts = serverPosts.filter((post) => {
+                    const hasContent =
+                        typeof post?.content === "string"
+                            ? post.content.trim() !== ""
+                            : Boolean(post?.content);
+
+                    const media = Array.isArray(post?.media)
+                        ? post.media
                         : [];
 
-                /*
-                |--------------------------------------------------------------------------
-                | Products
-                |--------------------------------------------------------------------------
-                */
+                    const hasImage = media.some(
+                        (item) => item?.type === "image"
+                    );
 
-                const products =
-                    Array.isArray(res.data?.products)
-                        ? res.data.products
-                        : [];
+                    const hasVideo = media.some(
+                        (item) => item?.type === "video"
+                    );
 
-                /*
-                |--------------------------------------------------------------------------
-                | Filter feed posts
-                |--------------------------------------------------------------------------
-                |
-                | Remove video-only posts.
-                |
-                | Keep:
-                | - text posts
-                | - image posts
-                | - text + image
-                | - text + video
-                |
-                */
+                    if (hasVideo && !hasContent) {
+                        return false;
+                    }
 
-                const filteredPosts =
-                    serverPosts.filter((post) => {
-                        const hasContent =
-                            typeof post?.content === "string"
-                                ? post.content.trim() !== ""
-                                : !!post?.content;
+                    return hasContent || hasImage;
+                });
 
-                        const hasImage =
-                            Array.isArray(post?.media)
-                                ? post.media.some(
-                                      (media) =>
-                                          media?.type ===
-                                          "image"
-                                  )
-                                : false;
+                // Retain the server-issued session across all pages.
+                if (data.feed_session) {
+                    feedSessionRef.current = data.feed_session;
+                }
 
-                        const hasVideo =
-                            Array.isArray(post?.media)
-                                ? post.media.some(
-                                      (media) =>
-                                          media?.type ===
-                                          "video"
-                                  )
-                                : false;
+                if (data.next_cursor !== undefined) {
+                    nextCursorRef.current =
+                        Number(data.next_cursor) || 0;
+                }
 
-                        /*
-                         * Remove video-only posts.
-                         */
-                        if (
-                            hasVideo &&
-                            !hasContent
-                        ) {
-                            return false;
-                        }
+                const moreAvailable = Boolean(data.has_more);
 
-                        /*
-                         * Keep normal feed content.
-                         */
-                        return (
-                            hasContent ||
-                            hasImage ||
-                            (hasVideo &&
-                                hasContent)
+                hasMoreRef.current = moreAvailable;
+                setHasMorePosts(moreAvailable);
+
+                retryWhenOnlineRef.current = false;
+                setWaitingForNetwork(false);
+                setLoadMoreError(false);
+
+                if (append) {
+                    setPosts((previousPosts) => {
+                        const existing = Array.isArray(previousPosts)
+                            ? previousPosts
+                            : [];
+
+                        const existingIds = new Set(
+                            existing.map((post) => String(post.id))
                         );
+
+                        const newPosts = filteredPosts.filter(
+                            (post) =>
+                                !existingIds.has(String(post.id))
+                        );
+
+                        return [...existing, ...newPosts];
                     });
-
-                /*
-                |--------------------------------------------------------------------------
-                | Update feed
-                |--------------------------------------------------------------------------
-                */
-
-                setPosts(filteredPosts);
-
-                setFeedProducts(products);
-
-                /*
-                 * Important:
-                 *
-                 * Do NOT set feedExhausted based on the
-                 * number of posts.
-                 *
-                 * The observer decides when the user
-                 * reaches the end.
-                 */
-                setFeedExhausted(false);
+                } else {
+                    setPosts(filteredPosts);
+                    setFeedProducts(products);
+                }
 
                 setFeedLoaded(true);
+
+                console.log("Feed response:", {
+                    append,
+                    received: serverPosts.length,
+                    displayed: filteredPosts.length,
+                    nextCursor: nextCursorRef.current,
+                    hasMore: moreAvailable,
+                    feedSession: feedSessionRef.current,
+                });
             } catch (err) {
-                console.error(
-                    "Feed fetch error:",
-                    err
-                );
+                if (requestVersion !== requestVersionRef.current) {
+                    return;
+                }
 
-                /*
-                 * Do not destroy the existing feed if
-                 * a refresh request fails.
-                 */
-                setFeedLoaded(true);
+                console.error("Feed fetch error:", {
+                    message: err?.message,
+                    status: err?.response?.status,
+                    response: err?.response?.data,
+                    cursor: nextCursorRef.current,
+                });
+
+                if (append) {
+                    retryWhenOnlineRef.current = true;
+
+                    if (!navigator.onLine) {
+                        setWaitingForNetwork(true);
+                        setLoadMoreError(false);
+                    } else {
+                        setWaitingForNetwork(false);
+                        setLoadMoreError(true);
+                    }
+                } else {
+                    setFeedLoaded(true);
+                }
             } finally {
-                setFeedLoading(false);
-                setFeedRefreshing(false);
+                if (append) {
+                    loadingMoreRef.current = false;
+                    setLoadingMore(false);
+                } else if (
+                    requestVersion === requestVersionRef.current
+                ) {
+                    setFeedLoading(false);
+                    setFeedRefreshing(false);
+                }
             }
         },
         [setPosts]
     );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Initial feed loading
-    |--------------------------------------------------------------------------
-    */
+    // --------------------------------------------------
+    // INITIAL FEED LOAD
+    // --------------------------------------------------
 
     useEffect(() => {
-        fetchFeed(false);
+        fetchFeed(false, false);
     }, [fetchFeed]);
 
- 
+    // --------------------------------------------------
+    // AUTOMATIC RETRY WHEN INTERNET RETURNS
+    // --------------------------------------------------
 
     useEffect(() => {
-        
-        if (
-            !feedLoaded ||
-            !posts ||
-            posts.length <= 10
-        ) {
-            setFeedExhausted(false);
-            return;
-        }
+        const handleOnline = () => {
+            if (!retryWhenOnlineRef.current) return;
+            if (loadingMoreRef.current) return;
+            if (!hasMoreRef.current) return;
 
-        const element =
-            lastPostRef.current;
+            fetchFeed(false, true);
+        };
 
-        if (!element) {
-            return;
-        }
+        const handleOffline = () => {
+            if (
+                loadingMoreRef.current ||
+                retryWhenOnlineRef.current
+            ) {
+                setWaitingForNetwork(true);
+                setLoadMoreError(false);
+            }
+        };
 
-        const observer =
-            new IntersectionObserver(
-                ([entry]) => {
-                    if (
-                        entry.isIntersecting
-                    ) {
-                        console.log(
-                            "LAST POST REACHED:",
-                            posts.length
-                        );
-
-                        setFeedExhausted(
-                            true
-                        );
-                    }
-                },
-                {
-                    threshold: 0.1,
- 
-                    root: null,
-                    rootMargin:
-                        "0px 0px 200px 0px",
-                }
-            );
-
-        observer.observe(element);
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
 
         return () => {
-            observer.disconnect();
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
         };
-    }, [posts, feedLoaded]);
- 
+    }, [fetchFeed]);
 
-        if (feedLoading) {
-        return <FeedSkeleton />;
-    }
+    // --------------------------------------------------
+    // AUTOMATIC PAGINATION
+    // --------------------------------------------------
 
-    
-    const handleFeedRefresh =
-        async () => {
-            if (
-                feedRefreshing ||
-                feedLoading
-            ) {
-                return;
-            }
+    useEffect(() => {
+        if (
+            !feedLoaded ||
+            feedLoading ||
+            feedRefreshing ||
+            loadingMore ||
+            waitingForNetwork ||
+            loadMoreError ||
+            !hasMorePosts ||
+            normalPosts.length === 0
+        ) {
+            return;
+        }
 
-            /*
-             * Immediately hide the bottom
-             * refresh section.
-             */
-            setFeedExhausted(false);
+        let disposed = false;
+        let frameId = null;
 
-            await fetchFeed(true);
+        const checkForNextPage = () => {
+            if (disposed || frameId !== null) return;
 
-            /*
-             * Return to the beginning.
-             */
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth",
+            frameId = window.requestAnimationFrame(() => {
+                frameId = null;
+
+                if (disposed) return;
+                if (loadingMoreRef.current || !hasMoreRef.current) {
+                    return;
+                }
+
+                if (!navigator.onLine) {
+                    retryWhenOnlineRef.current = true;
+                    setWaitingForNetwork(true);
+                    return;
+                }
+
+                const target = preloadPostRef.current;
+
+                if (!target || !target.isConnected) {
+                    return;
+                }
+
+                const rect = target.getBoundingClientRect();
+
+                const shouldLoad =
+                    rect.top <= window.innerHeight + 800 &&
+                    rect.bottom >= -800;
+
+                if (shouldLoad) {
+                    console.log("Loading next feed page:", {
+                        cursor: nextCursorRef.current,
+                        feedSession: feedSessionRef.current,
+                    });
+
+                    fetchFeed(false, true);
+                }
             });
         };
 
- 
-    const renderFeedEnd = () => {
+        const target = preloadPostRef.current;
+
+        let observer = null;
+
+        if (target) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    if (
+                        entries.some((entry) => entry.isIntersecting)
+                    ) {
+                        checkForNextPage();
+                    }
+                },
+                {
+                    root: null,
+                    rootMargin: "800px 0px",
+                    threshold: 0,
+                }
+            );
+
+            observer.observe(target);
+        }
+
+        // Capture scrolls from nested scrollable containers too.
+        document.addEventListener("scroll", checkForNextPage, {
+            capture: true,
+            passive: true,
+        });
+
+        window.addEventListener("resize", checkForNextPage);
+
+        // Check immediately after each batch renders.
+        checkForNextPage();
+
+        return () => {
+            disposed = true;
+
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId);
+            }
+
+            observer?.disconnect();
+
+            document.removeEventListener(
+                "scroll",
+                checkForNextPage,
+                true
+            );
+
+            window.removeEventListener("resize", checkForNextPage);
+        };
+    }, [
+        normalPosts.length,
+        feedLoaded,
+        feedLoading,
+        feedRefreshing,
+        loadingMore,
+        waitingForNetwork,
+        loadMoreError,
+        hasMorePosts,
+        fetchFeed,
+    ]);
+
+    // --------------------------------------------------
+    // MARK FEED REELS AS VIEWED
+    // --------------------------------------------------
+
+    const markReelFeedCardViewed = useCallback(async (reel) => {
+        if (!reel?.id) return;
+
+        try {
+            await api.post(`/api/feed/reels/${reel.id}/view`);
+        } catch (err) {
+            console.error("Failed to mark reel as viewed:", err);
+        }
+    }, []);
+
+    // --------------------------------------------------
+    // REFRESH FEED
+    // --------------------------------------------------
+
+    const handleFeedRefresh = useCallback(async () => {
         if (
-            !feedLoaded ||
-            !posts ||
-            posts.length <= 10 ||
-            !feedExhausted
+            feedRefreshing ||
+            feedLoading ||
+            loadingMoreRef.current
         ) {
+            return;
+        }
+
+        await fetchFeed(true, false);
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+
+        loadFeedReels();
+    }, [
+        feedRefreshing,
+        feedLoading,
+        fetchFeed,
+        loadFeedReels,
+    ]);
+
+    // --------------------------------------------------
+    // EMPTY FEED
+    // --------------------------------------------------
+
+    const renderNoFeedPosts = () => {
+        if (!feedLoaded || normalPosts.length > 0) {
             return null;
         }
 
         return (
-            <div
-                className="
-                    w-full
-                    flex
-                    flex-col
-                    items-center
-                    justify-center
-                    py-10
-                    px-4
-                "
-            >
-                <p
-                    className="
-                        text-sm
-                        sm:text-base
-                        text-center
-                        mb-4
-                    "
-                >
+            <div className="flex w-full flex-col items-center justify-center px-4 py-20 text-center">
+                <p className="text-xl font-bold">
                     No Feed Post Available
-                    Refresh or Wait for More
-                    Update
+                </p>
+
+                <p className="mt-2 text-sm opacity-70">
+                    Try refreshing to check for new posts.
                 </p>
 
                 <button
                     type="button"
-                    onClick={
-                        handleFeedRefresh
-                    }
-                    disabled={
-                        feedRefreshing
-                    }
-                    className="
-                        min-w-[160px]
-                        px-5
-                        py-2.5
-                        rounded-lg
-                        bg-green-600
-                        hover:bg-green-700
-                        text-white
-                        font-semibold
-                        transition
-                        disabled:opacity-50
-                        disabled:cursor-not-allowed
-                        flex
-                        items-center
-                        justify-center
-                        gap-2
-                    "
+                    onClick={handleFeedRefresh}
+                    disabled={feedRefreshing || feedLoading}
+                    className="mt-4 flex min-w-[160px] items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {feedRefreshing ? (
-                        <>
-                            <svg
-                                className="
-                                    animate-spin
-                                    h-5
-                                    w-5
-                                "
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="
-                                        opacity-25
-                                    "
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                />
-
-                                <path
-                                    className="
-                                        opacity-75
-                                    "
-                                    fill="currentColor"
-                                    d="
-                                        M4 12
-                                        a8 8 0 018-8
-                                        v4
-                                        a4 4 0 00-4 4
-                                        H4z
-                                    "
-                                />
-                            </svg>
-
-                            Refreshing
-                        </>
-                    ) : (
-                        <>
-                            <span
-                                className="
-                                    text-xl
-                                    leading-none
-                                "
-                            >
-                                ↻
-                            </span>
-
-                            Refresh Feed
-                        </>
-                    )}
+                    {feedRefreshing ? "Refreshing" : "Refresh Feed"}
                 </button>
             </div>
         );
     };
 
- 
-    const renderNoFeedPosts =
-        () => {
-            if (
-                !feedLoaded ||
-                posts?.length > 0
-            ) {
-                return null;
-            }
+    // --------------------------------------------------
+    // FEED END / LOADING / RETRY
+    // --------------------------------------------------
 
+    const renderFeedEnd = () => {
+        if (!feedLoaded) return null;
+
+        if (loadingMore || waitingForNetwork) {
             return (
-                <div
-                    className="
-                        w-full
-                        flex
-                        flex-col
-                        items-center
-                        justify-center
-                        text-center
-                        py-20
-                        px-4
-                    "
-                >
-                    <p
-                        className="
-                            text-xl
-                            font-bold
-                        "
-                    >
-                        No Feed Post
-                        Available
+                <div className="w-full space-y-3 py-3">
+                    {[1].map((item) => (
+                        <div
+                            key={item}
+                            className="w-full animate-pulse space-y-3 rounded-xl p-3"
+                        >
+                            <div className="h-10 w-2/3 rounded-lg bg-gray-200 dark:bg-gray-800" />
+                            <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-800" />
+                            <div className="h-48 w-full rounded-lg bg-gray-200 dark:bg-gray-800" />
+                            <div className="h-5 w-4/5 rounded bg-gray-200 dark:bg-gray-800" />
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        if (loadMoreError && hasMorePosts) {
+            return (
+                <div className="flex w-full flex-col items-center gap-3 px-4 py-8">
+                    <p className="text-center text-sm">
+                        Could not load more posts. Check your connection.
                     </p>
 
                     <button
                         type="button"
-                        onClick={
-                            handleFeedRefresh
-                        }
-                        disabled={
-                            feedRefreshing
-                        }
-                        className="
-                            min-w-[160px]
-                            px-5
-                            py-2.5
-                            rounded-lg
-                            bg-green-600
-                            hover:bg-green-700
-                            text-white
-                            font-semibold
-                            transition
-                            disabled:opacity-50
-                            disabled:cursor-not-allowed
-                            flex
-                            items-center
-                            justify-center
-                            gap-2
-                            mt-4
-                        "
+                        onClick={() => fetchFeed(false, true)}
+                        disabled={loadingMore}
+                        className="font-semibold transition   disabled:opacity-50"
                     >
-                        {feedRefreshing ? (
-                            <>
-                                <svg
-                                    className="
-                                        animate-spin
-                                        h-5
-                                        w-5
-                                    "
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="
-                                            opacity-25
-                                        "
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    />
-
-                                    <path
-                                        className="
-                                            opacity-75
-                                        "
-                                        fill="currentColor"
-                                        d="
-                                            M4 12
-                                            a8 8 0 018-8
-                                            v4
-                                            a4 4 0 00-4 4
-                                            H4z
-                                        "
-                                    />
-                                </svg>
-
-                                Refreshing
-                            </>
-                        ) : (
-                            <>
-                                <span
-                                    className="
-                                        text-xl
-                                        leading-none
-                                    "
-                                >
-                                    ↻
-                                </span>
-
-                                Refresh Feed
-                            </>
-                        )}
+                        Retry
                     </button>
                 </div>
             );
-        };
+        }
 
- 
+        if (!hasMorePosts && normalPosts.length > 0) {
+            return (
+                <div className="w-full px-4 pb-3 text-center">
+                    <p className="text-sm">
+                        You have reached the end of the feed.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleFeedRefresh}
+                        disabled={feedRefreshing || feedLoading}
+                        className="font-semibold transition disabled:opacity-50"
+                    >
+                        {feedRefreshing ? "Refreshing" : "Refresh Feed"}
+                    </button>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
+    // --------------------------------------------------
+    // REELS COMPONENT
+    // --------------------------------------------------
+
+    const renderReels = () => (
+        <Reels
+            error={error}
+            reelLoading={reelLoading}
+            fetchReels={fetchReels}
+            fetchMyReel={fetchMyReel}
+            chats={chats}
+            handlePostCreated={handlePostCreated}
+            handleReelCreated={handleReelCreated}
+            myReels={myReels}
+            setMyReels={setMyReels}
+            reelUsers={reelUsers}
+            setReelUsers={setReelUsers}
+            openUserReels={openUserReels}
+            setSelectedReelIndex={setSelectedReelIndex}
+            selectedReelIndex={selectedReelIndex}
+            setSelectedUserIndex={setSelectedUserIndex}
+            selectedUserIndex={selectedUserIndex}
+            setMediaIndex={setMediaIndex}
+            mediaIndex={mediaIndex}
+            setProgress={setProgress}
+            progress={progress}
+            setMessage={setMessage}
+            message={message}
+            setReaction={setReaction}
+            reaction={reaction}
+            setShowOptions={setShowOptions}
+            showOptions={showOptions}
+            sending={sending}
+            setSending={setSending}
+            closeViewer={closeViewer}
+            nextReel={nextReel}
+            previousReel={previousReel}
+            selectedReel={selectedReel}
+            selectedUser={selectedUser}
+            markReelViewed={markReelViewed}
+            open={open}
+            setOpen={setOpen}
+            openReport={openReport}
+            setOpenReport={setOpenReport}
+            showImagePicker={showImagePicker}
+            setShowImagePicker={setShowImagePicker}
+            messageOpenShare={messageOpenShare}
+            setMessageOpenShare={setMessageOpenShare}
+            shares={shares}
+            setShares={setShares}
+        />
+    );
+
+    // --------------------------------------------------
+    // RENDER POSTS
+    // --------------------------------------------------
+
+    const renderFeedPosts = () => (
+        <>
+            {normalPosts.map((post, index) => {
+                const preloadIndex = Math.max(
+                    normalPosts.length - 4,
+                    0
+                );
+
+                const shouldPreload = index === preloadIndex;
+
+                
+                const REEL_INTERVAL = 15;
+
+                const reelIndex =
+                    Math.floor((index + 1) / REEL_INTERVAL) - 1;
+
+                const reelToShow =
+                    (index + 1) % REEL_INTERVAL === 0
+                        ? feedReels[reelIndex] ?? null
+                        : null;
+
+                return (
+                    <React.Fragment key={post.id}>
+                        <div
+                            ref={shouldPreload ? preloadPostRef : null}
+                            className="flex w-full justify-center"
+                        >
+                            <PostCard
+                                post={post}
+                                setPosts={setPosts}
+                                video={video}
+                                setVideo={setVideo}
+                                image={image}
+                                setImage={setImage}
+                                showUsersPopup={showUsersPopup}
+                                setShowUsersPopup={setShowUsersPopup}
+                                newComment={newComment}
+                                setNewComment={setNewComment}
+                                showEmoji={showEmoji}
+                                setShowEmoji={setShowEmoji}
+                                emojiList={emojiList}
+                                setEmojiList={setEmojiList}
+                                commentsByPost={commentsByPost}
+                                setCommentsByPost={setCommentsByPost}
+                                postComments={postComments}
+                                setPostComments={setPostComments}
+                                reelUsers={reelUsers}
+                                openUserReels={openUserReels}
+                                loading={loading}
+                                setLoading={setLoading}
+                                messageOpen={messageOpen}
+                                setMessageOpen={setMessageOpen}
+                                chats={chats}
+                                setChats={setChats}
+                            />
+                        </div>
+
+                        {reelToShow && (
+                            <div
+                                key={`feed-reel-${reelToShow.id}`}
+                                className="flex w-full justify-center"
+                            >
+                                <ReelFeedCard
+                                    reel={reelToShow}
+                                    onImpression={markReelFeedCardViewed}
+                                    onClick={() =>
+                                        openUserReels(reelToShow)
+                                    }
+                                />
+                            </div>
+                        )}
+
+                        {index === 9 && feedProducts.length > 0 && (
+                            <ProductFeedBlock products={feedProducts} />
+                        )}
+                    </React.Fragment>
+                );
+            })}
+
+            {renderFeedEnd()}
+        </>
+    );
+
+    // --------------------------------------------------
+    // INITIAL LOADING  reelIndex
+    // --------------------------------------------------
+
+    if (feedLoading && !feedLoaded) {
+        return <FeedSkeleton />;
+    }
+
+    // --------------------------------------------------
+    // DESKTOP / LARGE SCREEN
+    // --------------------------------------------------
 
     const largeScreen = (
         <div className="block md:hidden lg:block">
-            <div
-                className="
-                    flex
-                    flex-col
-                    lg:flex-row
-                    items-center
-                    justify-center
-                    mx-auto
-                    min-h-screen
-                    bg-[var(--bg-color)]
-                    text-[var(--text-color)]
-                "
-            >
+            <div className="mx-auto flex min-h-screen flex-col items-center justify-center bg-[var(--bg-color)] text-[var(--text-color)] lg:flex-row">
                 <SidebarLeft
-                    handleVideoClick={
-                        handleVideoClick
-                    }
-                    videoCount={
-                        videoCount
-                    }
-                    jobProfile={
-                        jobProfile
-                    }
-                    setJobProfile={
-                        setJobProfile
-                    }
-                    fetchJobProfile={
-                        fetchJobProfile
-                    }
+                    handleVideoClick={handleVideoClick}
+                    videoCount={videoCount}
+                    jobProfile={jobProfile}
+                    setJobProfile={setJobProfile}
+                    fetchJobProfile={fetchJobProfile}
                     show={show}
                     setShow={setShow}
-                    showAdvertisement={
-                        showAdvertisement
-                    }
-                    setShowAdvertisement={
-                        setShowAdvertisement
-                    }
-                    showJobCreate={
-                        showJobCreate
-                    }
-                    setShowJobCreate={
-                        setShowJobCreate
-                    }
+                    showAdvertisement={showAdvertisement}
+                    setShowAdvertisement={setShowAdvertisement}
+                    showJobCreate={showJobCreate}
+                    setShowJobCreate={setShowJobCreate}
                 />
 
-                <div
-                    className="
-                        flex-1
-                        transition-all
-                        mx-auto
-                        p-4
-                        gap-3
-                        flex
-                        justify-start
-                        flex-col
-                        items-center
-                    "
-                >
-                    <Reels
-                        error={error}
-                        reelLoading={
-                            reelLoading
-                        }
-                        fetchReels={
-                            fetchReels
-                        }
-                        fetchMyReel={
-                            fetchMyReel
-                        }
-                        chats={chats}
-                        handlePostCreated={
-                            handlePostCreated
-                        }
-                        handleReelCreated={
-                            handleReelCreated
-                        }
-                        myReels={myReels}
-                        setMyReels={
-                            setMyReels
-                        }
-                        reelUsers={
-                            reelUsers
-                        }
-                        setReelUsers={
-                            setReelUsers
-                        }
-                        openUserReels={
-                            openUserReels
-                        }
-                        setSelectedReelIndex={
-                            setSelectedReelIndex
-                        }
-                        selectedReelIndex={
-                            selectedReelIndex
-                        }
-                        setSelectedUserIndex={
-                            setSelectedUserIndex
-                        }
-                        selectedUserIndex={
-                            selectedUserIndex
-                        }
-                        setMediaIndex={
-                            setMediaIndex
-                        }
-                        mediaIndex={
-                            mediaIndex
-                        }
-                        setProgress={
-                            setProgress
-                        }
-                        progress={
-                            progress
-                        }
-                        setMessage={
-                            setMessage
-                        }
-                        message={message}
-                        setReaction={
-                            setReaction
-                        }
-                        reaction={
-                            reaction
-                        }
-                        setShowOptions={
-                            setShowOptions
-                        }
-                        showOptions={
-                            showOptions
-                        }
-                        sending={sending}
-                        setSending={
-                            setSending
-                        }
-                        closeViewer={
-                            closeViewer
-                        }
-                        nextReel={
-                            nextReel
-                        }
-                        previousReel={
-                            previousReel
-                        }
-                        selectedReel={
-                            selectedReel
-                        }
-                        selectedUser={
-                            selectedUser
-                        }
-                        markReelViewed={
-                            markReelViewed
-                        }
-                        open={open}
-                        setOpen={setOpen}
-                        openReport={
-                            openReport
-                        }
-                        setOpenReport={
-                            setOpenReport
-                        }
-                        showImagePicker={
-                            showImagePicker
-                        }
-                        setShowImagePicker={
-                            setShowImagePicker
-                        }
-                        messageOpenShare={
-                            messageOpenShare
-                        }
-                        setMessageOpenShare={
-                            setMessageOpenShare
-                        }
-                        shares={shares}
-                        setShares={setShares}
-                    />
-
+                <div className="mx-auto flex flex-1 flex-col items-center justify-start gap-3 p-4 transition-all">
+                    {renderReels()}
                     {renderNoFeedPosts()}
-
-                    {posts.map(
-                        (
-                            post,
-                            index
-                        ) => {
-                            const isLastPost =
-                                index ===
-                                posts.length -
-                                    1;
-
-                            return (
-                                <React.Fragment
-                                    key={
-                                        post.id
-                                    }
-                                >
-                                    <div
-                                        ref={
-                                            isLastPost
-                                                ? lastPostRef
-                                                : null
-                                        }
-                                        className="
-                                            w-full
-                                            flex
-                                            justify-center
-                                        "
-                                    >
-                                        <PostCard
-                                            post={
-                                                post
-                                            }
-                                            setPosts={
-                                                setPosts
-                                            }
-                                            video={video} setVideo={setVideo}
-                                            image={
-                                                image
-                                            }
-                                            setImage={
-                                                setImage
-                                            }
-                                            showUsersPopup={
-                                                showUsersPopup
-                                            }
-                                            setShowUsersPopup={
-                                                setShowUsersPopup
-                                            }
-                                            newComment={
-                                                newComment
-                                            }
-                                            setNewComment={
-                                                setNewComment
-                                            }
-                                            showEmoji={
-                                                showEmoji
-                                            }
-                                            setShowEmoji={
-                                                setShowEmoji
-                                            }
-                                            emojiList={
-                                                emojiList
-                                            }
-                                            setEmojiList={
-                                                setEmojiList
-                                            }
-                                            messageOpen={
-                                                messageOpen
-                                            }
-                                            setMessageOpen={
-                                                setMessageOpen
-                                            }
-                                            chats={
-                                                chats
-                                            }
-                                            commentsByPost={
-                                                commentsByPost
-                                            }
-                                            setCommentsByPost={
-                                                setCommentsByPost
-                                            }
-                                            setChats={
-                                                setChats
-                                            }
-                                            postComments={
-                                                postComments
-                                            }
-                                            setPostComments={
-                                                setPostComments
-                                            }
-                                            loading={
-                                                loading
-                                            }
-                                            setLoading={
-                                                setLoading
-                                            }
-                                            reelUsers={
-                                                reelUsers
-                                            }
-                                            openUserReels={
-                                                openUserReels
-                                            }
-                                        />
-                                    </div>
-
-                                    {index ===
-                                        9 &&
-                                        feedProducts.length >
-                                            0 && (
-                                            <ProductFeedBlock
-                                                products={
-                                                    feedProducts
-                                                }
-                                            />
-                                        )}
-                                </React.Fragment>
-                            );
-                        }
-                    )}
-
-                    {renderFeedEnd()}
+                    {renderFeedPosts()}
                 </div>
 
                 <SidebarRight />
@@ -919,300 +865,33 @@ export default function PostFeed({
         </div>
     );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | iPad / tablet
-    |--------------------------------------------------------------------------
-    */
+    // --------------------------------------------------
+    // TABLET / IPAD
+    // --------------------------------------------------
 
     const ipadScreen = (
-        <div className="md:block lg:hidden hidden">
-            <div
-                className="
-                    flex
-                    flex-col
-                    items-start
-                    mx-auto
-                    min-h-screen
-                    bg-[var(--bg-color)]
-                    text-[var(--text-color)]
-                "
-            >
+        <div className="hidden md:block lg:hidden">
+            <div className="mx-auto flex min-h-screen flex-col items-start bg-[var(--bg-color)] text-[var(--text-color)]">
                 <SidebarRight />
 
-                <div
-                    className="
-                        flex-1
-                        transition-all
-                        p-4
-                        mt-28
-                        gap-4
-                        ml-4
-                        relative
-                    "
-                >
-                    <Reels
-                        error={error}
-                        reelLoading={
-                            reelLoading
-                        }
-                        fetchReels={
-                            fetchReels
-                        }
-                        fetchMyReel={
-                            fetchMyReel
-                        }
-                        chats={chats}
-                        handlePostCreated={
-                            handlePostCreated
-                        }
-                        handleReelCreated={
-                            handleReelCreated
-                        }
-                        myReels={myReels}
-                        setMyReels={
-                            setMyReels
-                        }
-                        reelUsers={
-                            reelUsers
-                        }
-                        setReelUsers={
-                            setReelUsers
-                        }
-                        openUserReels={
-                            openUserReels
-                        }
-                        setSelectedReelIndex={
-                            setSelectedReelIndex
-                        }
-                        selectedReelIndex={
-                            selectedReelIndex
-                        }
-                        setSelectedUserIndex={
-                            setSelectedUserIndex
-                        }
-                        selectedUserIndex={
-                            selectedUserIndex
-                        }
-                        setMediaIndex={
-                            setMediaIndex
-                        }
-                        mediaIndex={
-                            mediaIndex
-                        }
-                        setProgress={
-                            setProgress
-                        }
-                        progress={
-                            progress
-                        }
-                        setMessage={
-                            setMessage
-                        }
-                        message={message}
-                        setReaction={
-                            setReaction
-                        }
-                        reaction={
-                            reaction
-                        }
-                        setShowOptions={
-                            setShowOptions
-                        }
-                        showOptions={
-                            showOptions
-                        }
-                        sending={sending}
-                        setSending={
-                            setSending
-                        }
-                        closeViewer={
-                            closeViewer
-                        }
-                        nextReel={
-                            nextReel
-                        }
-                        previousReel={
-                            previousReel
-                        }
-                        selectedReel={
-                            selectedReel
-                        }
-                        selectedUser={
-                            selectedUser
-                        }
-                        markReelViewed={
-                            markReelViewed
-                        }
-                        open={open}
-                        setOpen={setOpen}
-                        openReport={
-                            openReport
-                        }
-                        setOpenReport={
-                            setOpenReport
-                        }
-                        showImagePicker={
-                            showImagePicker
-                        }
-                        setShowImagePicker={
-                            setShowImagePicker
-                        }
-                        messageOpenShare={
-                            messageOpenShare
-                        }
-                        setMessageOpenShare={
-                            setMessageOpenShare
-                        }
-                        shares={shares}
-                        setShares={setShares}
-                    />
-
+                <div className="relative ml-4 mt-28 flex-1 flex-col gap-4 p-4 transition-all">
+                    {renderReels()}
                     {renderNoFeedPosts()}
-
-                    {posts.map(
-                        (
-                            post,
-                            index
-                        ) => {
-                            const isLastPost =
-                                index ===
-                                posts.length -
-                                    1;
-
-                            return (
-                                <React.Fragment
-                                    key={
-                                        post.id
-                                    }
-                                >
-                                    <div
-                                        ref={
-                                            isLastPost
-                                                ? lastPostRef
-                                                : null
-                                        }
-                                        className="
-                                            w-full
-                                            flex
-                                            justify-center
-                                        "
-                                    >
-                                        <PostCard
-                                            video={video} setVideo={setVideo}
-                                            post={
-                                                post
-                                            }
-                                            setPosts={
-                                                setPosts
-                                            }
-                                            image={
-                                                image
-                                            }
-                                            setImage={
-                                                setImage
-                                            }
-                                            showUsersPopup={
-                                                showUsersPopup
-                                            }
-                                            setShowUsersPopup={
-                                                setShowUsersPopup
-                                            }
-                                            newComment={
-                                                newComment
-                                            }
-                                            setNewComment={
-                                                setNewComment
-                                            }
-                                            showEmoji={
-                                                showEmoji
-                                            }
-                                            setShowEmoji={
-                                                setShowEmoji
-                                            }
-                                            emojiList={
-                                                emojiList
-                                            }
-                                            setEmojiList={
-                                                setEmojiList
-                                            }
-                                            commentsByPost={
-                                                commentsByPost
-                                            }
-                                            reelUsers={
-                                                reelUsers
-                                            }
-                                            openUserReels={
-                                                openUserReels
-                                            }
-                                            setCommentsByPost={
-                                                setCommentsByPost
-                                            }
-                                            postComments={
-                                                postComments
-                                            }
-                                            setPostComments={
-                                                setPostComments
-                                            }
-                                            loading={
-                                                loading
-                                            }
-                                            setLoading={
-                                                setLoading
-                                            }
-                                            messageOpen={
-                                                messageOpen
-                                            }
-                                            setMessageOpen={
-                                                setMessageOpen
-                                            }
-                                            chats={
-                                                chats
-                                            }
-                                            setChats={
-                                                setChats
-                                            }
-                                        />
-                                    </div>
-
-                                    {index ===
-                                        9 &&
-                                        feedProducts.length >
-                                            0 && (
-                                            <ProductFeedBlock
-                                                products={
-                                                    feedProducts
-                                                }
-                                            />
-                                        )}
-                                </React.Fragment>
-                            );
-                        }
-                    )}
-
-                    {renderFeedEnd()}
+                    {renderFeedPosts()}
                 </div>
             </div>
         </div>
     );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Return
-    |--------------------------------------------------------------------------
-    */
-
     return (
-        <div className="">
+        <div>
             {largeScreen}
             {ipadScreen}
         </div>
     );
 }
 
-
+// main
 const FeedSkeleton = () => {
     return (
         <div
@@ -1255,10 +934,7 @@ const FeedSkeleton = () => {
                     "
                 >
 
-                    {/* ==================================================
-                        LEFT SIDEBAR
-                    ================================================== */}
-
+                    
                     <aside
                         className="
                             hidden
@@ -1423,7 +1099,7 @@ const FeedSkeleton = () => {
                         MAIN FEED
                     ================================================== */}
 
-                    <main
+                     <div
                         className="
                             w-full
                             max-w-full
@@ -1433,7 +1109,6 @@ const FeedSkeleton = () => {
                             pt-10 no-scrollbar
                         "
                     >
-
                         {Array.from({
                             length: 3,
                         }).map((_, index) => (
@@ -1455,7 +1130,6 @@ const FeedSkeleton = () => {
                                 "
                             >
 
-                                {/* USER HEADER */}
 
                                 <div
                                     className="
@@ -1524,7 +1198,6 @@ const FeedSkeleton = () => {
                                 </div>
 
 
-                                {/* CONTENT */}
 
                                 <div
                                     className="
@@ -1573,7 +1246,6 @@ const FeedSkeleton = () => {
                                 </div>
 
 
-                                {/* MEDIA */}
 
                                 <div
                                     className="
@@ -1587,7 +1259,6 @@ const FeedSkeleton = () => {
                                 />
 
 
-                                {/* ACTION BUTTONS */}
 
                                 <div
                                     className="
@@ -1649,13 +1320,11 @@ const FeedSkeleton = () => {
                             </div>
 
                         ))}
+                            
+                    </div>
 
-                    </main>
 
-
-                    {/* ==================================================
-                        RIGHT SIDEBAR
-                    ================================================== */}
+                  
 
                     <aside
                         className="

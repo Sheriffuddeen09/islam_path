@@ -173,7 +173,7 @@ export default function ReelDescriptionOnly({
         useState("Poppins");
 
     const [visibility, setVisibility] =
-        useState("friends");
+        useState("public");
 
     const [loading, setLoading] =
         useState(false);
