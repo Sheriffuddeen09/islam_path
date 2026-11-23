@@ -107,7 +107,7 @@ export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile,
     };
     
     const filteredLinks = linkList.filter((item) => {
-    if (item.role && item.role !== authUser?.role) {
+    if (item.admin_choice && item.admin_choice !== authUser?.admin_choice) {
         return false;
     }
 

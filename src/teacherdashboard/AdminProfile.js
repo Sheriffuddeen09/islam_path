@@ -11,13 +11,16 @@ import MyImages from "./mediaprofile/ImageProfile";
 import BiodataDashboard from "./BioDataDashboard";
 import TeacherOnboarding from "../Form/TeacherOnboarding";
 import Notification from "../notification/Notification";
-
+import ProfileUpgradeModal from "../components/ProfileUpgradeModal";
+import { useAuth } from "../layout/AuthProvider";
+import { BadgeCheck } from "lucide-react";
+import UpgradeBadge from "../components/UpgradeBadge";
 
 export default function ProfilePage({teachers, chats, setTeachers, handleEdit, togglePopup, 
   image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, onProfileCompleted,
         setMessages, setActiveChat, user, setUser, badges, setBadges, commentsByPost, setCommentsByPost,
-        video, setVideo
+        video, setVideo, showUpgradeModal, setShowUpgradeModal
 }) {
   const [profile, setProfile] = useState(null);
   const [editVisibility, setEditVisibility] = useState(false);
@@ -35,6 +38,9 @@ export default function ProfilePage({teachers, chats, setTeachers, handleEdit, t
   const [notification, setNotification] = useState({ message: "", type: "" });
 
   
+    const { authUser } = useAuth();
+
+
   useEffect(() => {
     api.get("/api/user/badges")
       .then(res => {
@@ -356,6 +362,7 @@ const getInitial = (name) => {
   return name.charAt(0).toUpperCase();
 };
 
+
 const content = (
   <div className="max-w-6xl lg:ml-64 mx-auto px-4 py-4">
 
@@ -382,19 +389,52 @@ const content = (
           {/* USER DETAILS */}
           <div className="flex-1 text-center md:text-left md:pb-3">
 
-            <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
-              {profile.first_name}{" "}
-              <span className="">
-                {profile.last_name}
-              </span>
-            </h2>
+            {/* NAME + UPGRADE BADGE */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
 
+              <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
+                {profile.first_name}{" "}
+                <span>
+                  {profile.last_name}
+                </span>
+              </h2>
+
+              {/* GREEN UPGRADE BADGE */}
+              <UpgradeBadge
+                upgrade={profile.upgrade}
+                size={25}
+              />
+
+            </div>
+
+            {/* ROLE */}
             <p className="text-sm sm:text-base text-gray-300 mt-2 capitalize font-medium">
               {profile.role}
             </p>
 
+            {/* PROFILE ID */}
             <div className="inline-flex font-bold items-center mt-3 px-4 py-1 rounded-full bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
               PROFILE ID: #{profile.id}
+            </div>
+
+            {/* UPGRADE PROFILE BUTTON */}
+            <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
+
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${
+                  profile.upgrade?.status === "approved"
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                }`}
+              >
+                <BadgeCheck size={19} />
+
+                {profile.upgrade?.status === "approved"
+                  ? "Edit Upgrade Profile"
+                  : "Upgrade Profile"}
+              </button>
+
             </div>
 
             {/* CONTACT INFO */}
@@ -403,6 +443,7 @@ const content = (
               {visibility.email && (
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
                   <Mail className="w-4 h-4 text-cyan-400" />
+
                   <span className="break-all">
                     {profile.email}
                   </span>
@@ -412,6 +453,7 @@ const content = (
               {visibility.phone && (
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
                   <Phone className="w-4 h-4 text-green-400" />
+
                   <span>
                     {profile.phone}
                   </span>
@@ -419,14 +461,88 @@ const content = (
               )}
 
             </div>
+
+            {/* UPGRADE PROFILE DETAILS */}
+            {profile.upgrade?.status === "approved" && (
+              <div className="mt-5">
+
+                {/* AUTHOR */}
+                {profile.upgrade.profile_type === "author" && (
+                  <div className="inline-flex flex-col items-center md:items-start gap-2">
+
+                    <p className="text-green-400 font-semibold flex items-center gap-2">
+                      <BadgeCheck size={18} />
+                      Author Profile
+                    </p>
+
+                    {profile.upgrade.subscription_url && (
+                      <a
+                        href={profile.upgrade.subscription_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-green-500/30 text-green-300 hover:bg-green-500/10 text-sm font-medium"
+                      >
+                        Subscribe / Follow Updates
+                      </a>
+                    )}
+
+                  </div>
+                )}
+
+                {/* MARKETER */}
+                {profile.upgrade.profile_type === "marketer" && (
+                  <div className="max-w-2xl">
+
+                    <p className="text-green-400 font-semibold flex items-center gap-2 mb-2">
+                      <BadgeCheck size={18} />
+                      Open for Business
+                    </p>
+
+                    {profile.upgrade.business_description && (
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
+                        {profile.upgrade.business_description}
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+                {/* QUESTION PAGE */}
+                {profile.upgrade.profile_type === "question_page" && (
+                  <div className="mt-2">
+
+                    <p className="text-green-400 font-semibold flex items-center gap-2">
+                      <BadgeCheck size={18} />
+                      Question & Answer Page
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {(profile.upgrade.question_categories || []).map(
+                        (category) => (
+                          <span
+                            key={category}
+                            className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-300 text-xs capitalize"
+                          >
+                            {category.replaceAll("_", " ")}
+                          </span>
+                        )
+                      )}
+                    </div>
+
+                  </div>
+                )}
+
+              </div>
+            )}
+
           </div>
 
+          {/* EXISTING BADGE */}
           {badge && (
             <div className="md:pb-3 flex justify-center md:justify-end">
               {badge}
             </div>
           )}
-
 
         </div>
       </div>
@@ -435,6 +551,15 @@ const content = (
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
     </div>
+
+    {/* UPGRADE PROFILE MODAL */}
+    { showUpgradeModal && 
+    <ProfileUpgradeModal
+      onClose={() => setShowUpgradeModal(false)}
+      currentUser={profile}
+    />
+  }
+
   </div>
 );
 
@@ -463,9 +588,14 @@ const content = (
                 type={notification.type}
                 onClose={() => setNotification({ message: "", type: "" })}
               />
-            )}
-        </div>
+                )}
+            </div>
 
+          <ProfileUpgradeModal
+            isOpen={showUpgradeModal}
+            onClose={() => setShowUpgradeModal(false)}
+            currentUser={authUser}
+          />
     </div>
   )
 }

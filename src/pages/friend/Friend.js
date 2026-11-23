@@ -5,7 +5,7 @@ import StudentFriend from "./StudentFriend";
 export default function Friend ({students, setStudents, setIncomingRequests, incomingRequests, admins, setAdmins,
                                 jobProfile, setJobProfile, show, setShow, fetchJobProfile, showSuccessModal, setShowSuccessModal,
                                 showAdvertisement, setShowAdvertisement, showJobCreate, setShowJobCreate, videoCount,
-                                handleVideoClick
+                                handleVideoClick, loadingAdmin, loadingStudent
 
 }) {
 
@@ -27,7 +27,7 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
         handleVideoClick={handleVideoClick}
-        videoCount={videoCount}
+        videoCount={videoCount} loadingStudent={loadingStudent}
         />
         )}
         {auth.user?.role === "admin" && (
@@ -43,7 +43,7 @@ export default function Friend ({students, setStudents, setIncomingRequests, inc
         showAdvertisement={showAdvertisement} setShowAdvertisement={setShowAdvertisement}
         showJobCreate={showJobCreate} setShowJobCreate={setShowJobCreate}
         handleVideoClick={handleVideoClick}
-        videoCount={videoCount}
+        videoCount={videoCount} loadingAdmin={loadingAdmin}
         />
         )}
         </div>

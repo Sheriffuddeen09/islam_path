@@ -1,5 +1,5 @@
 import api from "../Api/axios";
-import { Mail, Phone, Eye, EyeOff } from "lucide-react";
+import { Mail, Phone,  } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import AdminAdded from "../pages/friend/AdminAdded";
@@ -19,8 +19,11 @@ import BioDataProfile from "./BiodataProfile";
 import SidebarLeft from "../pages/friend/SidebarLeft";
 import SidebarRight from "../pages/homepageComponent/SidebarRight";
 import ReelViewerModal from "../pages/reel/ReelViewerModal";
-
-
+import ProfileUpgradeModal from "../components/ProfileUpgradeModal";
+import { BadgeCheck } from "lucide-react";
+import UpgradeBadge from "../components/UpgradeBadge";
+import AskQuestionModal from "../components/AskQuestionModal";
+import { MessageCircle } from "lucide-react";
 
 
 export default function ProfileId({handleMessageOpen, profileId, chats,
@@ -42,8 +45,8 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
   const [selectedPost, setSelectedPost] = useState(null);
   const [editContent, setEditContent] = useState("");
 
-  
-   
+  const [showAskQuestionModal, setShowAskQuestionModal] = useState(false);
+
   const { user: authUser } = useAuth();
   const fetchProfile = async () => {
   if (!profileId) return;
@@ -425,8 +428,8 @@ const getInitial = (name) => {
 const content = (
   <div className="max-w-2xl mx-auto px-4 mt py-4">
 
-    <div className="relative overflow-hidden mt-16 rounded-3xl border border-white/10
-     bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-sm">
+    {/* PROFILE CARD */}
+    <div className="relative overflow-hidden mt-16 rounded-3xl border border-white/10 bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#1e293b] shadow-sm">
 
       {/* TOP BANNER */}
       <div className="h-36 sm:h-44 bg-gradient-to-r from-cyan-500 via-gray-600 to-purple-600" />
@@ -438,75 +441,88 @@ const content = (
 
           {/* AVATAR */}
           <button
-                type="button"
-                onClick={() => {
-                    if (
-                        profileReelUserIndex !== -1 &&
-                        hasProfileReel
-                    ) {
-                        openUserReels(
-                            profileReelUserIndex
-                        );
-                    }
-                }}
-                className="focus:outline-none"
+            type="button"
+            onClick={() => {
+              if (
+                profileReelUserIndex !== -1 &&
+                hasProfileReel
+              ) {
+                openUserReels(
+                  profileReelUserIndex
+                );
+              }
+            }}
+            className="focus:outline-none"
+          >
+            <p
+              className={`
+                text-white
+                font-bold
+                rounded-full
+                w-28 h-28
+                sm:w-36 sm:h-36
+                text-center
+                flex
+                flex-col
+                items-center
+                justify-center
+                shadow-2xl
+                text-5xl
+                sm:text-7xl
+                border-4
+
+                ${
+                  hasProfileReel
+                    ? hasUnviewedProfileReel
+                      ? "border-green-500"
+                      : "border-[#111827]"
+                    : "border-[#111827]"
+                }
+
+                ${getColor(profile?.first_name)}
+              `}
             >
-                <p
-                    className={`
-                        text-white
-                        font-bold
-                        rounded-full
-                        w-28 h-28
-                        sm:w-36 sm:h-36
-                        text-center
-                        flex
-                        flex-col
-                        items-center
-                        justify-center
-                        shadow-2xl
-                        text-5xl
-                        sm:text-7xl
-                        font-bold
-                        border-4
+              {getInitial(profile?.first_name)}
+            </p>
+          </button>
 
-                        ${
-                            hasProfileReel
-                                ? hasUnviewedProfileReel
-                                    ? "border-green-500"
-                                    : "border-[#111827]"
-                                : "border-[#111827]"
-                        }
-
-                        ${getColor(profile?.first_name)}
-                    `}
-                >
-                    {getInitial(profile?.first_name)}
-                </p>
-            </button>
           {/* USER DETAILS */}
           <div className="flex-1 text-center md:text-left md:pb-3">
 
-            <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
-              {profile.first_name}{" "}
-              <span className="">
-                {profile.last_name}
-              </span>
-            </h2>
+            {/* NAME + UPGRADE BADGE */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
 
+              <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
+                {profile.first_name}{" "}
+                <span>
+                  {profile.last_name}
+                </span>
+              </h2>
+
+              {/* GREEN UPGRADE BADGE */}
+              <UpgradeBadge
+                upgrade={profile.upgrade}
+                size={25}
+              />
+
+            </div>
+
+            {/* ROLE */}
             <p className="text-sm sm:text-base text-gray-300 mt-2 capitalize font-medium">
               {profile.role}
             </p>
 
+            {/* PROFILE ID */}
             <div className="inline-flex font-bold items-center mt-3 px-4 py-1 rounded-full bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
               PROFILE ID: #{profile.id}
             </div>
 
-            {/* CONTACT INFO */}
             <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-3">
 
               {visibility.email && (
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
                   <Mail className="w-4 h-4 text-cyan-400" />
+
                   <span className="break-all">
                     {profile.email}
                   </span>
@@ -516,6 +532,7 @@ const content = (
               {visibility.phone && (
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
                   <Phone className="w-4 h-4 text-green-400" />
+
                   <span>
                     {profile.phone}
                   </span>
@@ -523,32 +540,112 @@ const content = (
               )}
 
             </div>
+
+            {/* UPGRADED PROFILE INFORMATION */}
+            {profile.upgrade?.status === "approved" && (
+              <div className="mt-5">
+
+                {/* AUTHOR */}
+                {profile.upgrade.profile_type === "author" && (
+                  <div className="flex flex-col items-center md:items-start gap-2">
+
+                    <p className="text-green-400 font-semibold flex items-center gap-2">
+                      <BadgeCheck size={18} />
+                      Author Profile
+                    </p>
+
+                    {profile.upgrade.subscription_url && (
+                      <a
+                        href={profile.upgrade.subscription_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-green-500/30 text-green-300 hover:bg-green-500/10 text-sm font-medium"
+                      >
+                        Subscribe / Follow Updates
+                      </a>
+                    )}
+
+                  </div>
+                )}
+
+                {/* MARKETER */}
+                {profile.upgrade.profile_type === "marketer" && (
+                  <div className="max-w-full">
+
+                    <p className="text-green-400 font-semibold flex items-center gap-2 mb-2">
+                      <BadgeCheck size={18} />
+                      Open for Business
+                    </p>
+
+                    {profile.upgrade.business_description && (
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
+                        {profile.upgrade.business_description}
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+                {/* QUESTION PAGE */}
+                {profile.upgrade?.status === "approved" &&
+                profile.upgrade?.profile_type === "question_page" && (
+                    <button
+                        onClick={() => setShowAskQuestionModal(true)}
+                        className="flex items-center justify-center gap-2 w-full mt-3 
+                        px-4 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white 
+                        font-semibold transition"
+                    >
+                        <MessageCircle size={18} />
+                        Ask a Question
+                    </button>
+                )}
+
+              </div>
+            )}
+
           </div>
 
-               <div className="" />
+          {/* EXISTING STUDENT FRIEND BUTTON */}
+          <div className="">
+            {showStudentFriend() && (
+              <StudentAdded
+                togglePopup={togglePopup}
+                setMessages={setMessages}
+                setActiveChat={setActiveChat}
+              />
+            )}
+          </div>
 
-                
-        {showStudentFriend() && (
-          <StudentAdded  togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat} />
-        )}
-
-        {showAdminFriend() && (
-          <AdminAdded  togglePopup={togglePopup} setMessages={setMessages} setActiveChat={setActiveChat} />
-        )}
-
-      </div>
+          {/* EXISTING ADMIN FRIEND BUTTON */}
+          <div className="">
+            {showAdminFriend() && (
+              <AdminAdded
+                togglePopup={togglePopup}
+                setMessages={setMessages}
+                setActiveChat={setActiveChat}
+              />
+            )}
+          </div>
 
         </div>
+
       </div>
 
       {/* OVERLAY */}
-     
-      {/* Profile Details */}
-     <BioDataProfile userId={authUser.id} handleToggleVisibility={handleToggleVisibility}
-     profile={profile} visibility={visibility}
-     />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+
     </div>
-  );
+
+    {/* PROFILE DETAILS */}
+    <BioDataProfile
+      userId={authUser.id}
+      handleToggleVisibility={handleToggleVisibility}
+      profile={profile}
+      visibility={visibility}
+    />
+
+  </div>
+);
 
    
   return(
@@ -587,7 +684,13 @@ const content = (
         <div className="lg:ml-72">
         {profile_content}
         </div>
-
+              {showAskQuestionModal && (
+                    <AskQuestionModal
+                        owner={profile}
+                        categories={profile.upgrade.question_categories || []}
+                        onClose={() => setShowAskQuestionModal(false)}
+                    />
+                )}
         
                     {selectedReel && (
                         <ReelViewerModal

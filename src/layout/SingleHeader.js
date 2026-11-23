@@ -7,8 +7,7 @@ import {Bell, BookOpen, BookTemplateIcon, Briefcase,
     ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow, 
     ChevronDown,
     X,
-    AlertCircle,
-    CarFront, Smartphone, Download} from "lucide-react";
+    AlertCircle, Smartphone, Download} from "lucide-react";
 import { useAuth } from './AuthProvider'; 
 import { linkList, islamicApps } from '../pages/homepageComponent/LinkDataHeader';
 import SearchUser from './SearchUser';
@@ -38,7 +37,8 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
   selectedReelIndex, selectedUserIndex,
   setMediaIndex,
   mediaIndex, setProgress, progress, setMessage,
-  message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated }) {
+  message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
+fetchChats, loadingChats }) {
 
       const [menu, setMenu] = useState(false)
       const homepage = useLocation().pathname
@@ -89,7 +89,7 @@ function SingleHeader({messageOpen, activeChat, setActiveChat,
 
     
     const filteredLinks = linkList.filter((item) => {
-    if (item.role && item.role !== authUser?.role) {
+    if (item.admin_choice && item.admin_choice !== authUser?.admin_choice) {
         return false;
     }
 
@@ -1103,7 +1103,9 @@ useEffect(() => {
     )}
         </header>
 
-        <ChatPage
+        <ChatPage   
+                        fetchChats={fetchChats}
+                        loadingChats={loadingChats}
                         chats={chats}
                         handleReelCreated={handleReelCreated}
                         setChats={setChats}

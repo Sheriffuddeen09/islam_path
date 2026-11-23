@@ -161,6 +161,10 @@ const canTranslateComment = async (sourceLanguage) => {
 };
 
 
+const replyUser = reply?.user || (
+    reply?.is_optimistic ? authUser : null
+);
+
 
 useEffect(() => {
   if (!postComments?.length) return;
@@ -299,13 +303,52 @@ const handleReplyPressEnd = () => {
     }
   };
   
-  useEffect(() => {
+ useEffect(() => {
     const loadReactions = async () => {
-      const res = await api.get(`/api/comments/${reply.id}/reactions`);
-      setReactions(res.data.reactions || []);
+        if (!reply?.id) return;
+
+        // Skip optimistic replies that haven't been saved to the database
+        if (
+            typeof reply.id === "string" &&
+            reply.id.startsWith("temp")
+        ) {
+            return;
+        }
+
+        try {
+            const res = await api.get(
+                `/api/comments/${reply.id}/reactions`
+            );
+
+            const apiReactions = res.data.reactions || {};
+
+            // Normalize grouped reactions into an array
+            const normalized = Array.isArray(apiReactions)
+                ? apiReactions
+                : Object.entries(apiReactions).flatMap(
+                    ([emoji, users]) =>
+                        Array.isArray(users)
+                            ? users.map(user => ({
+                                emoji,
+                                user,
+                            }))
+                            : []
+                );
+
+            setReactions(normalized);
+
+        } catch (error) {
+            console.error("Failed to load reply reactions:", {
+                replyId: reply.id,
+                url: error.config?.url,
+                status: error.response?.status,
+                response: error.response?.data,
+            });
+        }
     };
+
     loadReactions();
-  }, [reply.id]);
+}, [reply?.id]);
   
   
   
@@ -396,9 +439,13 @@ const navigate = useNavigate()
       }}
       onTouchCancel={handleReplyPressEnd}>
         <div className=" flex flex-row justify-between  items-center flex-1">
-        <button onClick={() => navigate(`/profile/${user.id}`)}
-         className="text-black font-bold mr-6">{reply?.user?.first_name} {reply?.user?.last_name}
-        </button>
+        <button
+        onClick={() => replyUser?.id && navigate(`/profile/${replyUser.id}`)}
+        className="text-black font-bold mr-6"
+    >
+        {replyUser?.first_name || "User"}{" "}
+        {replyUser?.last_name || ""}
+    </button>
               
           <button
           type="button"
@@ -558,14 +605,19 @@ const navigate = useNavigate()
         )}
         {/* Time and Reaction */}
 
-        <div className="inline-flex gap-3 items-center cursor-pointer">
-          <span className="  text-xs">{timeAgo(reply.created_at)}</span>
+        <div className="inline-flex text-black gap-3 items-center cursor-pointer">
+          {reply.is_pending && (
+                <span className="text-xs animate-pulse">
+                    Sending
+                </span>
+            )}
+          <span className=" text-black text-xs">{timeAgo(reply.created_at)}</span>
           <div className="relative group/react inline-block">
         {/* Current reactions */}
 {uniqueEmojisr.length > 0 &&
   uniqueEmojisr.map(e => (
     <span
-      className="  text-sm"
+      className=" text-black text-sm"
       key={e}
     >
       {e}
@@ -672,8 +724,12 @@ const navigate = useNavigate()
         </div>
 
     </div>
-    <button onClick={() => navigate(`/profile/${user.id}`)} className="text-white w-8 h-8 flex flex-col justify-center items-center text-2xl font-bold  rounded-full bg-blue-800 ">
-       {reply.user?.first_name?.charAt(0)?.toUpperCase() || "A"}</button>
+    <button
+        onClick={() => replyUser?.id && navigate(`/profile/${replyUser.id}`)}
+        className="text-white w-8 h-8 flex flex-col justify-center items-center text-2xl font-bold rounded-full bg-blue-800"
+    >
+        {replyUser?.first_name?.charAt(0)?.toUpperCase() || "A"}
+    </button>
     </div>
 
 

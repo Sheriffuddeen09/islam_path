@@ -86,7 +86,7 @@ export default function BioDataProfile({ userId, visibility, handleToggleVisibil
         <InfoRow
           icon={<Mail />}
           label="Email"
-          value={visibility.email ? profile.email : "Hidden"}
+          value={visibility.email ? "Hidden" : profile.email }
           onToggle={() => handleToggleVisibility("email")}
           isVisible={visibility.email}
         />
@@ -94,7 +94,7 @@ export default function BioDataProfile({ userId, visibility, handleToggleVisibil
         <InfoRow
           icon={<Phone />}
           label="Phone"
-          value={visibility.phone ? profile.phone : "Hidden"}
+          value={visibility.phone ?  "Hidden" : profile.phone}
           onToggle={() => handleToggleVisibility("phone")}
           isVisible={visibility.phone}
         />

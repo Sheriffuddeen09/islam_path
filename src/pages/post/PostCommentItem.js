@@ -15,7 +15,9 @@ import axios from "axios";
 
 const EMOJIS = ["❤️","👍","😂","😮","😢","🔥"];
 
-export default function PostCommentItem({postComments, image, setIsDeleting, setIsEdit, isEdit, isDeleting, post, comment, onReplyAdded, onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setPostComments }) {
+export default function PostCommentItem({postComments, image, setIsDeleting, setIsEdit, isEdit, isDeleting, post, comment, onReplyAdded, 
+  onDelete,handleEditReply, handleDeleteReply, updateCommentTree, setPostComments,
+onLoadReplies, onLoadMoreReplies, loadingReplies }) {
   
   const [showReplies, setShowReplies] = useState(false);
   const [editText, setEditText] = useState(comment.body || "");
@@ -380,49 +382,50 @@ const toggleReaction = async (emoji) => {
   }
 };
 
-
 useEffect(() => {
-  const loadReactions = async () => {
-    if (!comment?.id) return;
- 
-    if (
-      typeof comment.id === "string" &&
-      comment.id.startsWith("temp-")
-    ) {
-      return;
-    }
+    const loadReactions = async () => {
+        if (!comment?.id) return;
 
-    try {
-      const res = await api.get(
-        `/api/comments/${comment.id}/reactions`
-      );
+        // Skip optimistic comments/replies
+        if (
+            typeof comment.id === "string" &&
+            comment.id.startsWith("temp")
+        ) {
+            return;
+        }
 
-      const apiReactions =
-        res.data.reactions || {};
+        try {
+            const res = await api.get(
+                `/api/comments/${comment.id}/reactions`
+            );
 
-      const normalized = Array.isArray(apiReactions)
-        ? apiReactions
-        : Object.entries(apiReactions).flatMap(
-            ([emoji, users]) =>
-              Array.isArray(users)
-                ? users.map((user) => ({
-                    emoji,
-                    user,
-                  }))
-                : []
-          );
+            const apiReactions = res.data.reactions || {};
 
-      setReactions(normalized);
+            const normalized = Array.isArray(apiReactions)
+                ? apiReactions
+                : Object.entries(apiReactions).flatMap(
+                    ([emoji, users]) =>
+                        Array.isArray(users)
+                            ? users.map(user => ({
+                                emoji,
+                                user,
+                            }))
+                            : []
+                );
 
-    } catch (error) {
-      console.error(
-        "Failed to load comment reactions:",
-        error
-      );
-    }
-  };
+            setReactions(normalized);
 
-  loadReactions();
+        } catch (error) {
+            console.error(
+                "Failed to load comment reactions:",
+                error.response?.status,
+                error.config?.url,
+                error.response?.data
+            );
+        }
+    };
+
+    loadReactions();
 }, [comment?.id]);
 
 
@@ -532,16 +535,16 @@ const isOwner = authUser?.user?.id === comment.user?.id;
 
 
 
-const handleReplyToggle = () =>{
-  setShowReplies(!showReplies)
-}
+const handleReplyToggle = () => {
+  setShowReplies(prev => !prev);
+};
 
 const navigate = useNavigate()
   return (
     <div className="flex gap-3">
       
      <button onClick={() => navigate(`/profile/${user.id}`)}  className="text-white w-8 h-8 mx-auto flex flex-col justify-center 
-     items-center text-2xl font-bold  rounded-full bg-blue-800 "> {comment.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </button>
+     items-center text-2xl font-bold  rounded-full bg-blue-800 "> {comment?.user?.first_name?.charAt(0)?.toUpperCase() || "A"} </button>
       
       <div className="flex-1">
        <div
@@ -609,8 +612,8 @@ const navigate = useNavigate()
           break-words
         "
       >
-        {comment.user?.first_name || "Anonymous"}{" "}
-        {comment.user?.last_name || ""}
+        {comment?.user?.first_name || "Anonymous"}{" "}
+        {comment?.user?.last_name || ""}
       </button>
 
       
@@ -1337,6 +1340,9 @@ const navigate = useNavigate()
        
            <div className={`${showReplies ? 'block' : 'hidden'}`}>
            <PostCommentReply
+           onLoadReplies={onLoadReplies}
+          onLoadMoreReplies={onLoadMoreReplies}
+          loadingReplies={loadingReplies}
            postComments={postComments}
            image={image}
             emojiClick={emojiClick}
@@ -1375,11 +1381,32 @@ const navigate = useNavigate()
             loadingEmoji={loadingEmoji}
           /> 
        </div>
-      {comment.replies?.length > 0 && (
-  <button onClick={handleReplyToggle} className="text-xs bg-[var(----bg-color)] text-[var(----text-color)]  font-semibold mt-1 text-end">
-    {comment.replies[0].user.first_name} {comment.replies[0].user.last_name}
-    {comment.replies.length > 1 && ` • ${comment.replies.length}`} reply to your comment
-  </button>
+     
+     {comment.replies_count > 0 && (
+    <button
+        type="button"
+        onClick={handleReplyToggle}
+        className="text-xs font-semibold mt-1 text-end text-[var(--text-color)]"
+    >
+        {comment.latest_reply?.user ? (
+            comment.latest_reply.user.id === (authUser?.id ?? user?.id) ? (
+                <>
+                    You replied to this comment
+                </>
+            ) : (
+                <>
+                    {comment.latest_reply.user.first_name || "User"}{" "}
+                    {comment.latest_reply.user.last_name || ""}
+                    {" "}replied to your comment
+                </>
+            )
+        ) : (
+            <>
+                {comment.replies_count}{" "}
+                {comment.replies_count === 1 ? "reply" : "replies"}
+            </>
+        )}
+    </button>
 )}
       </div>
     </div>

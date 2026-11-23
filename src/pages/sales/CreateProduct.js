@@ -303,8 +303,8 @@ const toSlug = (text) =>
 
   return (
     <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] shadow-md  rounded-xl sm:p-8 lg:ml-64">
-      <div className="max-w-6xl mx-auto bg-[var(--bg-color)] text-[var(--text-color)]  shadow-2xl rounded-xl sm:p-8 p-3">
-        <h2 className="text-3xl font-bold mb-8 border-b-2 pb-3 border-black">
+      <div className="max-w-6xl mx-auto bg-[var(--bg-color)] text-[var(--text-color)] border border-green-500 shadow-2xl rounded-xl sm:p-8 p-3">
+        <h2 className="text-3xl font-bold mb-8 border-b-2 pb-3 border-blue-500">
           Create New Product
         </h2>
      {step === 1 && (
@@ -592,7 +592,7 @@ const toSlug = (text) =>
                 ${isDragActive ? "border-blue-500 " : "border-gray-300"}`}
             >
               <input {...getInputProps()} />
-              <p className="text-gray-500 font-medium">
+              <p className="font-medium">
                 Drag & drop images here or click to upload
               </p>
             </div>

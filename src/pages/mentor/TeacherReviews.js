@@ -13,7 +13,6 @@ export default function TeacherReviews({  reviewPending }) {
     const [reviewCount, setReviewCount] = useState(0);
 
    
-    console.log('user id', user)
 
     const teacherId = user?.id
 

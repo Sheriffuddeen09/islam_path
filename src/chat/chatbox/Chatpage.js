@@ -12,14 +12,14 @@ export default function ChatPage({
   setActiveChat,
   messagesMap, setMessagesMap, setMessages,
   setUiMode, uiMode, showSettings, setShowSettings, incomingCall, setIncomingCall,
-  callMode, setCallMode, meetingData, setMeetingData, openUserReels, reelUsers, handleReelCreated
+  callMode, setCallMode, meetingData, setMeetingData, openUserReels, reelUsers, handleReelCreated,
+  fetchChats, loadingChats
 }) {
   const { user: authUser } = useAuth();
 
 
 
   const [chatFilter, setChatFilter] = useState("all");
-  const [loadingChats, setLoadingChats] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [toast, setToast] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -415,119 +415,7 @@ export default function ChatPage({
   };
 
 
-  const fetchChats = async () => {
-
-  if (!authUser) return;
-
-  try {
-
-    setLoadingChats(true);
-
-    const res = await api.get("/api/chats");
-
-    const normalized = await Promise.all(
-
-      res.data.map(async (chat) => {
-
-        let latestMessage =
-          chat.latest_message || null;
-
-        // ✅ decrypt latest message
-        if (
-          latestMessage?.message &&
-          latestMessage?.iv
-        ) {
-
-          try {
-
-            // get chat key
-            const chatKey =
-              localStorage.getItem(
-                `chat_key_${chat.id}`
-              );
-
-            if (chatKey) {
-
-              // decrypt
-              const decrypted =
-                await decryptMessage(
-                  latestMessage.message,
-                  latestMessage.iv,
-                  chatKey
-                );
-
-              latestMessage = {
-                ...latestMessage,
-                message: decrypted,
-              };
-            }
-
-          } catch (err) {
-
-            console.error(
-              "Decrypt latest message failed",
-              err
-            );
-
-            latestMessage = {
-              ...latestMessage,
-              message: "Encrypted message",
-            };
-          }
-        }
-
-        return {
-          ...chat,
-
-          unread_count: Number(
-            chat.unread_count || 0
-          ),
-
-          latest_message: latestMessage,
-
-          block_info: chat.block_info
-            ? {
-                ...chat.block_info,
-
-                blocked_by_me:
-                  chat.block_info.blocker_id ===
-                  authUser.id,
-
-                blocked_me:
-                  chat.block_info.blocked_id ===
-                  authUser.id,
-              }
-            : null,
-        };
-      })
-    );
-
-    const sorted = [...normalized].sort((a, b) => {
-      const aTime =
-        a.latest_message?.created_at ||
-        a.created_at ||
-        0;
-
-      const bTime =
-        b.latest_message?.created_at ||
-        b.created_at ||
-        0;
-
-      return new Date(bTime) - new Date(aTime);
-    });
-
-    setChats(sorted);
-    
-  } catch (err) {
-
-    console.error(err);
-
-  } finally {
-
-    setLoadingChats(false);
-  }
-};
-
+ 
 useEffect(() => {
 
   if (!authUser) return;

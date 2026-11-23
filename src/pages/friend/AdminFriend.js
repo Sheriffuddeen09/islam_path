@@ -8,12 +8,11 @@ import { useNavigate } from "react-router-dom";
 export default function AdminFriend({admins, setAdmins, incomingRequests, setIncomingRequests,
                                     jobProfile, setJobProfile, show, setShow, fetchJobProfile ,
                                     showSuccessModal, setShowSuccessModal, showAdvertisement, setShowAdvertisement,
-                                    showJobCreate, setShowJobCreate, handleVideoClick, videoCount                                 
+                                    showJobCreate, setShowJobCreate, handleVideoClick, videoCount, loading                                
                                   }) {
                                   
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
@@ -25,35 +24,6 @@ export default function AdminFriend({admins, setAdmins, incomingRequests, setInc
   const [showIncomingSeeLess, setShowIncomingSeeLess] = useState(false);
   
     const navigate = useNavigate()
-  
-
-useEffect(() => {
-    const fetchAdmin = async () => {
-        try {
-            const res = await api.get("/api/admin-friend");
-
-            const admins = res.data.admins || [];
-
-            const sortedAdmins = [...admins].sort(
-                (a, b) =>
-                    new Date(b.created_at) -
-                    new Date(a.created_at)
-            );
-
-            setAdmins(sortedAdmins);
-
-        } catch (error) {
-            console.error("Error fetching admins:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    fetchAdmin();
-}, []);
-
-
-
 
 const respond = async (id, action) => {
 

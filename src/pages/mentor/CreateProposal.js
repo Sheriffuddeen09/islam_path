@@ -174,7 +174,8 @@ export default function CreateProposal() {
 
 
   return (
-    <div className="max-w-4xl lg:ml-64 mx-auto bg-white rounded-xl shadow-lg p-6 text-black">
+    <div className="max-w-4xl lg:ml-64 mx-auto rounded-xl shadow-lg p-6 
+    bg-[var(--bg-color)] text-[var(--text-color)] border border-green-500">
       <h2 className="text-2xl font-bold mb-6">
         Create Teacher Proposal
       </h2>
@@ -197,7 +198,7 @@ export default function CreateProposal() {
               setTitle(e.target.value);
               clearError("title");
             }}
-            className="border rounded-lg w-full p-3 mt-2"
+            className="border text-black rounded-lg w-full p-3 mt-2"
             placeholder="Need an experienced Tutor"
           />
 
@@ -222,7 +223,7 @@ export default function CreateProposal() {
             clearError("subject");
           }}
           placeholder="Enter optional subject "
-          className="border rounded-lg w-full p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border text-black rounded-lg w-full p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         
@@ -240,7 +241,7 @@ export default function CreateProposal() {
               setPrice(e.target.value);
               clearError("price");
             }}
-            className="border rounded-lg w-full p-3 mt-2"
+            className="border text-black rounded-lg w-full p-3 mt-2"
             placeholder="5000"
           />
 
@@ -263,7 +264,7 @@ export default function CreateProposal() {
               setCurrency(e.target.value);
               clearError("currency");
             }}
-            className="border rounded-lg w-full p-3 mt-2"
+            className="border text-black rounded-lg w-full p-3 mt-2"
           >
             {currencyOptions.map((item) => (
               <option
@@ -292,7 +293,7 @@ export default function CreateProposal() {
               clearError("teacherType");
             }}
             placeholder="Select Teacher Type"
-            className="mt-2 cursor-pointer"
+            className="mt-2 cursor-pointer text-black"
             classNames={{
               control: () => "py-1",
             }}
@@ -324,7 +325,7 @@ export default function CreateProposal() {
               }
             }}
             placeholder="Select Teaching Mode"
-            className="mt-2"
+            className="mt-2 text-black"
             classNames={{
               control: () => "py-1",
             }}
@@ -350,7 +351,7 @@ export default function CreateProposal() {
               setHours(e.target.value);
               clearError("hours");
             }}
-            className="border rounded-lg w-full p-3 mt-2"
+            className="border text-black rounded-lg w-full p-3 mt-2"
             placeholder="30, 60, 90, and 120"
           />
 
@@ -378,7 +379,7 @@ export default function CreateProposal() {
               placeholder="Select Location"
               isSearchable
               menuPortalTarget={document.body}
-              className="mt-2"
+              className="mt-2 text-black"
               styles={{
                 control: (base) => ({
                   ...base,
@@ -386,6 +387,7 @@ export default function CreateProposal() {
                   paddingTop: "0.25rem",
                   paddingBottom: "0.25rem",
                   borderRadius: "0.5rem",
+                  color: 'black'
                 }),
 
                 singleValue: (base) => ({
@@ -441,7 +443,7 @@ export default function CreateProposal() {
                   onChange={(e) =>
                       setFromTime(e.target.value)
                   }
-                  className="w-full border rounded-lg px-4 py-3 cursor-pointer"
+                  className="w-full text-black border rounded-lg px-4 py-3 cursor-pointer"
               />
 
           </div>
@@ -458,7 +460,7 @@ export default function CreateProposal() {
                   onChange={(e) =>
                       setToTime(e.target.value)
                   }
-                  className="w-full border rounded-lg px-4 py-3 cursor-pointer"
+                  className="w-full text-black border rounded-lg px-4 py-3 cursor-pointer"
               />
 
           </div>
@@ -479,7 +481,7 @@ export default function CreateProposal() {
                     }));
                 }
             }}
-            className="border rounded-lg w-full p-3 mt-2"
+            className="border text-black rounded-lg w-full p-3 mt-2"
         >
             <option value="">Select expiration</option>
             <option value="20_minutes">20 Minutes</option>
@@ -494,7 +496,7 @@ export default function CreateProposal() {
             </p>
         )}
 
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs mt-2">
               After this time, your proposal and all related requests will be deleted automatically.
           </p>
       </div>
@@ -511,7 +513,7 @@ export default function CreateProposal() {
             onChange={(e) => {
               setQualification(e.target.value);
             }}
-            className="border rounded-lg w-full p-3 mt-2"
+            className="border text-black rounded-lg w-full p-3 mt-2"
             placeholder="B.Sc Mathematics, M.Ed, PhD..."
           />
         </div>
@@ -529,7 +531,7 @@ export default function CreateProposal() {
               setDescription(e.target.value);
               clearError("description");
             }}
-            className="border rounded-lg w-full p-3 mt-2 resize-none
+            className="border text-black rounded-lg w-full p-3 mt-2 resize-none
             scrollbar-thumb-gray-200 scrollbar-track-transparent scrollbar-thin"
             placeholder="Describe what you need from the teacher"
           />

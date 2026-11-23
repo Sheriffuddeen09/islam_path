@@ -1,41 +1,19 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import ProposalCard from "./ProposalCard";
-import ProposalModal from "./ProposalModal";
-import toast from "react-hot-toast";
+import ProposalModal from "./ProposalModal"; 
 
-export default function ProposalList({badges, setBadges}) {
+export default function ProposalList({badges, setBadges, loading, proposals, setProposals,
+    fetchProposals
+}) {
 
-    const [proposals, setProposals] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [selectedProposal, setSelectedProposal] = useState(null);
 
     useEffect(() => {
         fetchProposals();
     }, []);
 
-    const fetchProposals = async () => {
-
-        try {
-            setLoading(true);
-
-            const res = await api.get("/api/proposals-get");
-
-            setProposals(res.data);
-            console.log(res.data);
-
-        } catch (err) {
-
-            console.log(err);
-
-        } finally {
-
-            setLoading(false);
-
-        }
-
-    };
-    
+   
 
     if (loading) {
 

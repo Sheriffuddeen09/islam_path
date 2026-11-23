@@ -39,7 +39,8 @@ function Navbar({messageOpen, activeChat, setActiveChat,
   selectedReelIndex, selectedUserIndex,
   setMediaIndex,
   mediaIndex, setProgress, progress, setMessage,
-  message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated }) {
+  message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
+  loadingChats, fetchChats }) {
 
       const [menu, setMenu] = useState(false)
       const homepage = useLocation().pathname
@@ -91,7 +92,7 @@ function Navbar({messageOpen, activeChat, setActiveChat,
     
     
     const filteredLinks = linkList.filter((item) => {
-    if (item.role && item.role !== authUser?.role) {
+    if (item.admin_choice && item.admin_choice !== authUser?.admin_choice) {
         return false;
     }
 
@@ -1093,6 +1094,8 @@ useEffect(() => {
                   </header>
           
                   <ChatPage
+                                  fetchChats={fetchChats}
+                                  loadingChats={loadingChats}
                                   handleReelCreated={handleReelCreated}
                                   chats={chats}
                                   setChats={setChats}

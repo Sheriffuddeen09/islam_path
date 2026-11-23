@@ -19,8 +19,7 @@ export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile,
     const navigate = useNavigate()
     const authUser = useAuth()
     
-    const [jobs, setJobs] = useState([]);
-    const [jobCount, setJobCount] = useState(0);
+   
     const [successMessage, setSuccessMessage] = useState("");
      const [showHeader, setShowHeader] = useState(true);
 
@@ -107,7 +106,7 @@ export default function SidebarLeft({fetchJobProfile, show, setShow, jobProfile,
     };
     
     const filteredLinks = linkList.filter((item) => {
-    if (item.role && item.role !== authUser?.role) {
+    if (item.admin_choice && item.admin_choice !== authUser?.admin_choice) {
         return false;
     }
 

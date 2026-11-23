@@ -93,39 +93,27 @@ export default function PostFeed({
     shares,
     setShares,
     video,
-    setVideo,
+    setVideo, feedLoading, setFeedLoading,
+    feedRefreshing, setFeedRefreshing,
+    feedLoaded, setFeedLoaded, feedProducts, setFeedProducts, feedReels, setFeedReels,
+    hasMorePosts, setHasMorePosts, loadingMore, setLoadingMore, loadMoreError, setLoadMoreError,
+    waitingForNetwork, setWaitingForNetwork,
+    feedSessionRef, nextCursorRef, hasMoreRef, loadingMoreRef, retryWhenOnlineRef,
+    requestVersionRef, fetchFeed
 }) {
     // --------------------------------------------------
     // FEED STATE
     // --------------------------------------------------
 
-    const [feedLoading, setFeedLoading] = useState(true);
-    const [feedRefreshing, setFeedRefreshing] = useState(false);
-    const [feedLoaded, setFeedLoaded] = useState(false);
-
-    const [feedProducts, setFeedProducts] = useState([]);
-    const [feedReels, setFeedReels] = useState([]);
-
-    const [hasMorePosts, setHasMorePosts] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [loadMoreError, setLoadMoreError] = useState(false);
-    const [waitingForNetwork, setWaitingForNetwork] = useState(false);
-
+   
     // --------------------------------------------------
     // PAGINATION REFS loadFeedReels
     // --------------------------------------------------
 
-    const feedSessionRef = useRef(null);
-    const nextCursorRef = useRef(0);
-
-    const hasMoreRef = useRef(true);
-    const loadingMoreRef = useRef(false);
-
-    const retryWhenOnlineRef = useRef(false);
+    
     const preloadPostRef = useRef(null);
 
     // Incremented when refreshing to invalidate old requests.
-    const requestVersionRef = useRef(0);
 
     // --------------------------------------------------
     // NORMAL POSTS ONLY
@@ -194,194 +182,7 @@ const loadFeedReels = useCallback(async () => {
     // FETCH PAGINATED FEED
     // --------------------------------------------------
 
-    const fetchFeed = useCallback(
-        async (refresh = false, append = false) => {
-            if (append) {
-                if (loadingMoreRef.current || !hasMoreRef.current) {
-                    return;
-                }
-
-                loadingMoreRef.current = true;
-                retryWhenOnlineRef.current = false;
-
-                setLoadingMore(true);
-                setLoadMoreError(false);
-                setWaitingForNetwork(false);
-            } else if (refresh) {
-                // Invalidate pending requests from the previous feed.
-                requestVersionRef.current += 1;
-
-                feedSessionRef.current = null;
-                nextCursorRef.current = 0;
-
-                hasMoreRef.current = true;
-                retryWhenOnlineRef.current = false;
-
-                setHasMorePosts(true);
-                setLoadMoreError(false);
-                setWaitingForNetwork(false);
-                setFeedRefreshing(true);
-            } else {
-                setFeedLoading(true);
-            }
-
-            const requestVersion = requestVersionRef.current;
-
-            try {
-                const params = {};
-
-                if (append) {
-                    params.cursor = nextCursorRef.current;
-
-                    if (feedSessionRef.current) {
-                        params.feed_session = feedSessionRef.current;
-                    }
-                } else if (refresh) {
-                    params.refresh = 1;
-                }
-
-                console.log("Fetching feed:", {
-                    append,
-                    refresh,
-                    cursor: params.cursor ?? 0,
-                    feed_session: params.feed_session ?? null,
-                });
-
-                const response = await api.get("/api/posts-get", {
-                    params,
-                });
-
-                if (requestVersion !== requestVersionRef.current) {
-                    return;
-                }
-
-                const data = response.data || {};
-
-                const serverPosts = Array.isArray(data.posts)
-                    ? data.posts
-                    : [];
-
-                const products = Array.isArray(data.products)
-                    ? data.products
-                    : [];
-
-                // Preserve the existing content filtering. loadFeedReels
-                const filteredPosts = serverPosts.filter((post) => {
-                    const hasContent =
-                        typeof post?.content === "string"
-                            ? post.content.trim() !== ""
-                            : Boolean(post?.content);
-
-                    const media = Array.isArray(post?.media)
-                        ? post.media
-                        : [];
-
-                    const hasImage = media.some(
-                        (item) => item?.type === "image"
-                    );
-
-                    const hasVideo = media.some(
-                        (item) => item?.type === "video"
-                    );
-
-                    if (hasVideo && !hasContent) {
-                        return false;
-                    }
-
-                    return hasContent || hasImage;
-                });
-
-                // Retain the server-issued session across all pages.
-                if (data.feed_session) {
-                    feedSessionRef.current = data.feed_session;
-                }
-
-                if (data.next_cursor !== undefined) {
-                    nextCursorRef.current =
-                        Number(data.next_cursor) || 0;
-                }
-
-                const moreAvailable = Boolean(data.has_more);
-
-                hasMoreRef.current = moreAvailable;
-                setHasMorePosts(moreAvailable);
-
-                retryWhenOnlineRef.current = false;
-                setWaitingForNetwork(false);
-                setLoadMoreError(false);
-
-                if (append) {
-                    setPosts((previousPosts) => {
-                        const existing = Array.isArray(previousPosts)
-                            ? previousPosts
-                            : [];
-
-                        const existingIds = new Set(
-                            existing.map((post) => String(post.id))
-                        );
-
-                        const newPosts = filteredPosts.filter(
-                            (post) =>
-                                !existingIds.has(String(post.id))
-                        );
-
-                        return [...existing, ...newPosts];
-                    });
-                } else {
-                    setPosts(filteredPosts);
-                    setFeedProducts(products);
-                }
-
-                setFeedLoaded(true);
-
-                console.log("Feed response:", {
-                    append,
-                    received: serverPosts.length,
-                    displayed: filteredPosts.length,
-                    nextCursor: nextCursorRef.current,
-                    hasMore: moreAvailable,
-                    feedSession: feedSessionRef.current,
-                });
-            } catch (err) {
-                if (requestVersion !== requestVersionRef.current) {
-                    return;
-                }
-
-                console.error("Feed fetch error:", {
-                    message: err?.message,
-                    status: err?.response?.status,
-                    response: err?.response?.data,
-                    cursor: nextCursorRef.current,
-                });
-
-                if (append) {
-                    retryWhenOnlineRef.current = true;
-
-                    if (!navigator.onLine) {
-                        setWaitingForNetwork(true);
-                        setLoadMoreError(false);
-                    } else {
-                        setWaitingForNetwork(false);
-                        setLoadMoreError(true);
-                    }
-                } else {
-                    setFeedLoaded(true);
-                }
-            } finally {
-                if (append) {
-                    loadingMoreRef.current = false;
-                    setLoadingMore(false);
-                } else if (
-                    requestVersion === requestVersionRef.current
-                ) {
-                    setFeedLoading(false);
-                    setFeedRefreshing(false);
-                }
-            }
-        },
-        [setPosts]
-    );
-
+    
     // --------------------------------------------------
     // INITIAL FEED LOAD
     // --------------------------------------------------

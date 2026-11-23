@@ -18,7 +18,14 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
     mediaIndex, setShowOptions, showOptions, setReaction, reaction, sending, setSending, closeViewer, nextReel, 
     previousReel, selectedReel, selectedUser, markReelViewed, open, setOpen, openReport, setOpenReport,
     showImagePicker, setShowImagePicker, messageOpenShare, setMessageOpenShare, shares, setShares,
-    video, setVideo, 
+    video, setVideo, loadingChats, fetchChats, feedLoading, setFeedLoading,
+    feedRefreshing, setFeedRefreshing,
+    feedLoaded, setFeedLoaded, feedProducts, setFeedProducts, feedReels, setFeedReels,
+    hasMorePosts, setHasMorePosts, loadingMore, setLoadingMore, loadMoreError, setLoadMoreError,
+    waitingForNetwork, setWaitingForNetwork,
+    feedSessionRef, nextCursorRef, hasMoreRef, loadingMoreRef, retryWhenOnlineRef,
+    requestVersionRef, fetchFeed, setCommentsByPost
+
   }) {
 
 
@@ -80,6 +87,8 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
         reaction={reaction}
         setShowOptions={setShowOptions}
         showOptions={showOptions}
+        fetchChats={fetchChats}
+        loadingChats={loadingChats}
       />
 
 
@@ -89,7 +98,7 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
       showEmoji={showEmoji} setShowEmoji={setShowEmoji}
       emojiList={emojiList} setEmojiList={setEmojiList}
       postComments={postComments} setPostComments={setPostComments} commentsByPost={commentsByPost}
-      setCommentsLoaded={setCommentsLoaded}
+      setCommentsByPost={setCommentsByPost} setCommentsLoaded={setCommentsLoaded}
       loading={loading} setLoading={setLoading}
       messageOpen={messageOpen}
       setMessageOpen={setMessageOpen}
@@ -134,6 +143,26 @@ export default function HomePage({posts, setPosts, image, setImage, postComments
         setOpenReport={setOpenReport} showImagePicker={showImagePicker} setShowImagePicker={setShowImagePicker}
         messageOpenShare={messageOpenShare} setMessageOpenShare={setMessageOpenShare}  shares={shares}
         setShares={setShares} 
+        feedLoading={feedLoading} setFeedLoading={setFeedLoading}
+        feedRefreshing={feedRefreshing} setFeedRefreshing={setFeedRefreshing}
+        feedLoaded={feedLoaded} setFeedLoaded={setFeedLoaded}
+        feedProducts={feedProducts} setFeedProducts={setFeedProducts}
+        feedReels={feedReels} setFeedReels={setFeedReels}
+
+        hasMorePosts={hasMorePosts} setHasMorePosts={setHasMorePosts}
+        loadingMore={loadingMore} setLoadingMore={setLoadingMore}
+        loadMoreError={loadMoreError} setLoadMoreError={setLoadMoreError}
+        waitingForNetwork={waitingForNetwork} setWaitingForNetwork={setWaitingForNetwork}
+
+        feedSessionRef={feedSessionRef}
+        nextCursorRef={nextCursorRef}
+
+        hasMoreRef={hasMoreRef}
+        loadingMoreRef={loadingMoreRef}
+        fetchFeed={fetchFeed}
+        retryWhenOnlineRef={retryWhenOnlineRef}
+        requestVersionRef={requestVersionRef}
+
        />
     </div>
   )

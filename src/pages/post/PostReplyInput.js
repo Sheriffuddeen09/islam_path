@@ -2,7 +2,7 @@
 export function PostReplyInput({
   replyInputRef,
   sendImageReply,
-  image,
+  isSubmitting,
   sendTextReply,
   setEmojiClick,
   sendEmojiReply,
@@ -17,7 +17,7 @@ export function PostReplyInput({
   const hasText = replyText?.trim().length > 0;
 
   return (
-    <div className="px-3 py-3 bg-transparent">
+    <div className="px-3 py-3 translate-y-12 bg-transparent">
       <div className="relative">
 
         {/* Reply composer */}
@@ -198,15 +198,15 @@ export function PostReplyInput({
                 setReplyTo(null);
               }
             }}
-            onKeyDown={(e) => {
+           onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
+                  e.preventDefault();
 
-                if (hasText) {
-                  sendTextReply();
-                }
+                  if (hasText && !isSubmitting) {
+                      sendTextReply();
+                  }
               }
-            }}
+          }}
             placeholder={
               replyTo
                 ? `Reply to @${replyTo.name}...`
@@ -233,23 +233,24 @@ export function PostReplyInput({
           {/* Send - only when there is text */}
           {hasText && (
             <button
-              type="button"
-              onClick={sendTextReply}
-              className="
-                shrink-0
-                w-9
-                h-9
-                rounded-full
-                flex
-                items-center
-                justify-center
-                text-blue-600
-                hover:text-white
-                hover:bg-blue-600
-                active:scale-95
-                transition-all
-              "
-              title="Send reply"
+                type="button"
+                onClick={sendTextReply}
+                disabled={isSubmitting}
+                className={`
+                    shrink-0
+                    w-9
+                    h-9
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                    transition-all
+                    ${
+                        isSubmitting
+                            ? "opacity-50 cursor-not-allowed"
+                            : "text-blue-600 hover:text-white hover:bg-blue-600 active:scale-95"
+                    }
+                `}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

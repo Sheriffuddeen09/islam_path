@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import api from "../../Api/axios";
 import { useAuth } from "../../layout/AuthProvider";
-
 import MentorCard from "./MentorCard";
 
-export default function GetMentor({teachers, setTeachers, requestStatus, setRequestStatus}) {
+
+
+export default function GetMentor({teachers, setTeachers, requestStatus, setRequestStatus, loading,
+  coursetitles, fetchTeachers
+}) {
   const { user } = useAuth();
   const authReady = user !== null;
 
   const [notification, setNotification] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [loadingId, setLoadingId] = useState(null);
-  const [coursetitles, setCoursetitles] = useState([]);
   const [selectedCoursetitles, setSelectedCoursetitles] = useState("");
   const [teacherReviews, setTeacherReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
@@ -51,28 +52,8 @@ useEffect(() => {
 
 
 
+  
 useEffect(() => {
-  const fetchTeachers = async () => {
-    try {
-      const res = await api.get("/api/teacher");
-      const categoriesRes = await api.get("/api/coursetitles");
-
-      const teachers = res.data.teachers || [];
-
-      // Latest registered teacher first
-      const sortedTeachers = [...teachers].sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-
-      setTeachers(sortedTeachers);
-      setCoursetitles(categoriesRes.data || []);
-    } catch (error) {
-      console.error("Error fetching teachers:", error);
-      setTeachers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   fetchTeachers();
 }, []);

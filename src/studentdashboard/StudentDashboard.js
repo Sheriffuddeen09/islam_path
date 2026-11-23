@@ -18,7 +18,8 @@ import { LayoutDashboard, Home, Library, PlusSquare, Settings,  Users, FileText,
   Workflow,
   History,
   Proportions,
-  Video} from "lucide-react";
+  Video, FilePlus, Clipboard, MessageSquare,
+MessageCircle} from "lucide-react";
 import ChatPage from "../chat/chatbox/Chatpage";
 import CreateProposal from "../pages/mentor/CreateProposal";
 import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
@@ -28,6 +29,9 @@ import MyAdvertisements from "../advertisement/MyAdvertisements";
 import ReelViewerModal from "../pages/reel/ReelViewerModal";
 import GoLiveModal from "../live/GoLiveModal";
 import LiveBroadcaster from "../live/LiveBroadcaster";
+import CreateProduct from "../pages/sales/CreateProduct";
+import MyProducts from "../pages/sales/MyProduct";
+import MyProductReviews from "../pages/sales/MyProductReviews";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -45,7 +49,7 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
         message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
-        video, setVideo, fetchUnreadCount
+        video, setVideo, fetchUnreadCount, loadingChats, fetchChats
       }){
 
  const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
@@ -64,7 +68,10 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
     const [liveData, setLiveData] = useState(null);
     const [livePost, setLivePost] = useState(null);
     const [isLive, setIsLive] = useState(false);
-
+ 
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    
+    const {authUser} = useAuth()
 const scrollTimerRef = useRef(null);
 
 const handleMessagesScroll = () => {
@@ -237,6 +244,11 @@ const fetchNotification = async () => {
               }
           };
         
+
+          const hasUpgradedProfile =
+    authUser?.upgrade?.status === "approved";
+
+const upgradeRequiredItems = [16, 17, 18, 19];
       
         const menu = [
             {
@@ -286,20 +298,34 @@ const fetchNotification = async () => {
               label: "View Examination Result",
               icon: BarChart3,
             },
+            { id: 15, label: "Advertisement Status", icon: Projector},
+
+            { id: 16, label: "Create Product", icon: FilePlus },
+            { id: 17, label: "Product List", icon: Clipboard },
             {
-              id: 15,
+                  id: 18,
+                  label: "",
+                  icon: BarChart3,
+                  path: "/dashboard/product-visibility",
+              },
+              {
+                id: 19,
+                label: "My Product Reviews",
+                icon: MessageSquare,
+              },
+            {
+              id: 20,
               label: "Product Order",
               icon: ShoppingCart,
               ordershow: true,
             },
             {
-              id: 16,
+              id: 21,
               label: "Saved Order",
               icon: Bookmark,
               showcount: true,
             },
 
-            { id: 17, label: "Advertisement Status", icon: Projector},
             
           ];
       
@@ -318,6 +344,8 @@ const fetchNotification = async () => {
 <>
 
       <ChatPage
+                      fetchChats={fetchChats}
+                      loadingChats={loadingChats}
                       fetchUnreadCount={fetchUnreadCount}
                       chats={chats}
                       handleReelCreated={handleReelCreated}
@@ -505,6 +533,20 @@ const fetchNotification = async () => {
                 Live Video
               </li>
 
+                {authUser?.upgrade?.status === "approved" &&
+              authUser?.upgrade?.profile_type === "question_page" && (
+                  <li
+                onClick={() => {handleVisible(22);  handleOpenModel(); }}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible ===22
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                      <MessageCircle size={18} />
+                      Manage Questions
+                  </li>
+              )}
             </ul>
              {/* Actual Menu */}
              <div className= "">
@@ -514,49 +556,86 @@ const fetchNotification = async () => {
                 {menu.map((item) => (
                   <li
                     key={item.id}
-                    onClick={async ()  => {
-                      setVisible(item.id);
-                      handleMenuClick(item);
-                      if (item.id === 8) {
-                              await clearNotificationCount();
-                              handleToggleMenu();
-                          }      
-                       if (item.id === 7) {
-                          handleToggleProposal();
+                    onClick={async () => {
+                        if (
+                            upgradeRequiredItems.includes(item.id) &&
+                            !hasUpgradedProfile
+                        ) {
+                            setShowUpgradeModal(true);
+                            return;
+                        }
+
+                        setVisible(item.id);
+                        handleMenuClick(item);
+
+                        if (item.id === 8) {
+                            await clearNotificationCount();
+                            handleToggleMenu();
+                        }
+
+                        if (item.id === 7) {
+                            handleToggleProposal();
                         }
                     }}
-                    className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
-                      ${
-                        visible === item.id
-                          ? "bg-gray-500 text-white"
-                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
-                      }
+                    className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200
+                        ${
+                            visible === item.id
+                                ? "bg-gray-500 text-white"
+                                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                        }
+                        ${
+                            upgradeRequiredItems.includes(item.id) &&
+                            !hasUpgradedProfile
+                                ? "opacity-50"
+                                : ""
+                        }
                     `}
-                  >
+                >
                     {/* ICON */}
                     {item.icon && <item.icon size={18} />}
 
                     {/* LABEL */}
-                    {item.label}
+                    <span className="flex-1">
+                        {item.label}
+                    </span>
+
+                    {/* UPGRADE LABEL */}
+                    {upgradeRequiredItems.includes(item.id) &&
+                        !hasUpgradedProfile && (
+                            <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                                Upgrade
+                            </span>
+                        )}
 
                     {/* BADGE */}
                     {item.showBadge && pendingRequests > 0 && (
-                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {pendingRequests}
-                      </span>
+                        <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                            {pendingRequests}
+                        </span>
                     )}
-
 
                     {item.proposalBadge && proposalCounts > 0 && (
                         <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                          {proposalCounts}
+                            {proposalCounts}
                         </span>
-                      )}
+                    )}
 
+                    {/* PRODUCT VISIBILITY */}
+                    {item.id === 18 && hasUpgradedProfile && (
+                        <Link
+                            className="text-xs"
+                            to="/dashboard/product-visibility"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            Promote Product Visibility
+                        </Link>
+                    )}
 
+                    {/* SAVED ORDER COUNT */}
                     {item.showcount && savedCount > 0 && (
                         <span
-                            onClick={async () => {
+                            onClick={async (e) => {
+                                e.stopPropagation();
                                 await clearSavedCount();
                                 handleMenuClick(item);
                             }}
@@ -565,7 +644,7 @@ const fetchNotification = async () => {
                             {savedCount}
                         </span>
                     )}
-                  </li>
+                </li>
                 ))}
               </ul>
 
@@ -705,67 +784,120 @@ const fetchNotification = async () => {
                     Live Video
                   </li>
 
+                  {authUser?.upgrade?.status === "approved" &&
+              authUser?.upgrade?.profile_type === "question_page" && (
+                  <li
+                onClick={() => {handleVisible(22);  handleOpenModel(); }}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible ===22
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                      <MessageCircle size={18} />
+                      Manage Questions
+                  </li>
+              )}
+
                   </ul> {/* Actual Menu */}
                        <div className= "">
                          <h3 className="text-xs text-purple-900 font-bold mt-6 mb-2">SET SECTION</h3>
                  
-                         <ul className="space-y-2 mb-10">
-                        {menu.map((item) => (
-                          <li
-                            key={item.id}
-                            onClick={ async () => {
-                              setVisible(item.id);
-                              handleMenuClick(item);
-                              handleOpenModel();
-                              if (item.id === 8) {
-                                  await clearNotificationCount();
-                                  handleToggleMenu();
-                              }
-                               if (item.id === 7) {
-                                  handleToggleProposal();
-                                }
+                           <ul className="space-y-2 mb-10">
+                {menu.map((item) => (
+                  <li
+                    key={item.id}
+                    onClick={async () => {
+                        if (
+                            upgradeRequiredItems.includes(item.id) &&
+                            !hasUpgradedProfile
+                        ) {
+                            setShowUpgradeModal(true);
+                            return;
+                        }
+
+                        setVisible(item.id);
+                        handleMenuClick(item);
+
+                        if (item.id === 8) {
+                            await clearNotificationCount();
+                            handleToggleMenu();
+                        }
+
+                        if (item.id === 7) {
+                            handleToggleProposal();
+                        }
+                    }}
+                    className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200
+                        ${
+                            visible === item.id
+                                ? "bg-gray-500 text-white"
+                                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                        }
+                        ${
+                            upgradeRequiredItems.includes(item.id) &&
+                            !hasUpgradedProfile
+                                ? "opacity-50"
+                                : ""
+                        }
+                    `}
+                >
+                    {/* ICON */}
+                    {item.icon && <item.icon size={18} />}
+
+                    {/* LABEL */}
+                    <span className="flex-1">
+                        {item.label}
+                    </span>
+
+                    {/* UPGRADE LABEL */}
+                    {upgradeRequiredItems.includes(item.id) &&
+                        !hasUpgradedProfile && (
+                            <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                                Upgrade
+                            </span>
+                        )}
+
+                    {/* BADGE */}
+                    {item.showBadge && pendingRequests > 0 && (
+                        <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                            {pendingRequests}
+                        </span>
+                    )}
+
+                    {item.proposalBadge && proposalCounts > 0 && (
+                        <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                            {proposalCounts}
+                        </span>
+                    )}
+
+                    {/* PRODUCT VISIBILITY */}
+                    {item.id === 18 && hasUpgradedProfile && (
+                        <Link
+                            className="text-xs"
+                            to="/dashboard/product-visibility"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            Promote Product Visibility
+                        </Link>
+                    )}
+
+                    {/* SAVED ORDER COUNT */}
+                    {item.showcount && savedCount > 0 && (
+                        <span
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                await clearSavedCount();
+                                handleMenuClick(item);
                             }}
-                            className={`flex items-center gap-2 p-2 relative rounded-lg text-sm font-semibold cursor-pointer 
-                              ${
-                                visible === item.id
-                                  ? "bg-gray-500 text-white"
-                                  : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
-                              }
-                            `}
-                          >
-                            {/* ICON */}
-                            {item.icon && <item.icon size={18} />}
-
-                            {/* LABEL */}
-                            {item.label}
-
-                            {/* BADGE */}
-                            {item.showBadge && pendingRequests > 0 && (
-                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                {pendingRequests}
-                              </span>
-                            )}
-
-                            {item.proposalBadge && proposalCounts > 0 && (
-                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                                {proposalCounts}
-                              </span>
-                            )}
-
-                            {item.showcount && savedCount > 0 && (
-                                <span
-                                    onClick={async () => {
-                                        await clearSavedCount();
-                                        handleMenuClick(item);
-                                    }}
-                                    className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
-                                >
-                                    {savedCount}
-                                </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+                            className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                        >
+                            {savedCount}
+                        </span>
+                    )}
+                </li>
+                ))}
+              </ul>
                        </div>
                  
                        </aside>
@@ -783,7 +915,9 @@ const fetchNotification = async () => {
                         newComment={newComment} setNewComment={setNewComment} commentsByPost={commentsByPost}
                     setCommentsByPost={setCommentsByPost}
                         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
-                        emojiList={emojiList} setEmojiList={setEmojiList}/>
+                        emojiList={emojiList} setEmojiList={setEmojiList}
+                        setShowUpgradeModal={setShowUpgradeModal} showUpgradeModal={showUpgradeModal}
+                        />
                          </div>
                          <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
                          <PostLibrary />
@@ -840,17 +974,28 @@ const fetchNotification = async () => {
                          <ExamResults  />
                          </div> 
                          <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
-                         <Order chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
+                          <MyAdvertisements  />
+                          </div> 
+                           <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
+                            <CreateProduct  />
+                            </div>
+                            <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+                            <MyProducts   />
+                            </div>
+                            <div className={`${visible === 19 ? 'block' : 'hidden'}`}>
+                              <MyProductReviews  />
+                              </div> 
+                         <div className={`${visible === 20 ? 'block' : 'hidden'}`}>
+                         <Order  setChats={setChats} 
+                        togglePopup={togglePopup}
+                        chats={chats} setActiveChat={setActiveChat} setMessages={setMessages}  />
                          </div> 
-                         <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
+                         <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
                          <SaveOrder  />
                          </div> 
 
-                         <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
-                          <MyAdvertisements  />
-                          </div> 
-
                          
+
                        </section>
        
     </div>

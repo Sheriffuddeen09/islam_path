@@ -9,10 +9,13 @@ export function PostCommentInput({
   emojiList,
   postComment, 
   setVideo,
+  commentLoading
 }) {
   const hasText = newComment?.trim().length > 0;
 
   return (
+    <>
+    {!commentLoading && 
     <div className="px-3 py-3 bg-transparent">
       <div className="relative">
 
@@ -301,5 +304,7 @@ export function PostCommentInput({
 
       </div>
     </div>
+    }
+    </>
   );
 }

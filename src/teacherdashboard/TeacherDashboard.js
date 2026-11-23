@@ -3,12 +3,13 @@ import api from "../Api/axios";
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Home, LayoutDashboard, Library, Lock, PlusSquare, Users, FilePlus, ClipboardList, Eye,
-  FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, 
+  FileText, CheckCircle, BarChart3, ShoppingCart, Bookmark, Settings, Proportions, UserCheck,
   Workflow,
   History,
   Star, MessageSquare,
   Projector,
-  Video} from "lucide-react";
+  Video, Clipboard,
+MessageCircle} from "lucide-react";
 import ProfilePage from "./AdminProfile";
 import TeacherLiveRequests from "./TeacherRequest";
 import CreateAssignment from "../assignment/CreateAssignment";
@@ -34,6 +35,13 @@ import MyAdvertisements from "../advertisement/MyAdvertisements";
 import ReelViewerModal from "../pages/reel/ReelViewerModal";
 import GoLiveModal from "../live/GoLiveModal";
 import LiveBroadcaster from "../live/LiveBroadcaster";
+import CreateProposal from "../pages/mentor/CreateProposal";
+import StudentProposalHistory from "../pages/mentor/StudentProposalHistory";
+import ProposalTeacherRequests from "../pages/mentor/ProposalTeacherRequests";
+import StudentRequest from "../studentdashboard/StudentRequest";
+import AcceptedTeacher from "../pages/mentor/AcceptedTeacher";
+import AssignmentLibrary from "../assignment/AssignmentLibrary";
+import ExamLibrary from "../exam/ExamLibrary";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -53,7 +61,8 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
         setMediaIndex,
         mediaIndex, setProgress, progress, setMessage,
         message, setReaction, reaction, setShowOptions, showOptions, handleReelCreated,
-        video, setVideo, fetchUnreadCount
+        video, setVideo, fetchUnreadCount, loadingChats, fetchChats, loadingProposal, setLoadingProposal,
+        proposals, setProposals, fetchProposals, 
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // MOBILE SIDEBAR STATE
   const [pendingRequests, setPendingRequests] = useState(0);
@@ -61,6 +70,8 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
   const [choiceLoading, setChoiceLoading] = useState(true);
 
   const [pendingCount, setPendingCount] = useState(0);
+
+  const [proposalCounts, setProposalCounts] = useState(0)
 
    const [editingTeacher, setEditingTeacher] = useState(null);
    
@@ -70,6 +81,7 @@ export default function TeacherDashboardLayout({onProfileCompleted, chats, handl
        exam: 0,
      });
      
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
 
      const [showHeader, setShowHeader] = useState(true);
@@ -141,33 +153,66 @@ useEffect(() => {
 }, []);
    
       const { currentUser } = useAuth();
+      const {authUser} = useAuth()
        const authUserId = currentUser?.id;
        const userId = user?.id
 
-      const [proposalPending, setProposalPending] = useState(0)
+      const [studentProposal, setStudentProposal] = useState(0)
       const [isProposal, setIsProposal] = useState(false);
 
+      const [pendingProposal, setPendingProposal] = useState(false);
+
+        const fetchProposalNotification = async () => {
+            try {
+                const res = await api.get("/api/proposals/notifications");
+
+                console.log("Proposal notification response:", res.data);
+
+                setStudentProposal(
+                    Number(res.data.pending_proposals) || 0
+                );
+            } catch (err) {
+                console.error(
+                    "Error fetching proposal notifications:",
+                    err.response?.data || err.message
+                );
+            }
+        };
+
         useEffect(() => {
-          fetchProposalNotification();
-      }, []);
-
-      const fetchProposalNotification = async () => {
-          const res = await api.get("/api/proposals/notifications");
-
-          setProposalPending(res.data.pending_proposals);
-      };
-
+            fetchProposalNotification();
+        }, []);
 
       useEffect(() => {
-          if (isProposal) {
-            setProposalPending(0);
+          if (pendingProposal) {
+            setStudentProposal(0);
           }
-        }, [isProposal]);
+        }, [pendingProposal]);
       
       
-      
+       useEffect(() => {
+            fetchNotification();
+        }, []);
+
+        const fetchNotification = async () => {
+            const res = await api.get("/api/notifications/proposals");
+
+            setProposalCounts(res.data.pending_requests);
+        };
+
+          useEffect(() => {
+            if (isProposal) {
+              setProposalCounts(0);
+            }
+          }, [isProposal]);
+
+
 
       const handleCreateProposal = async () => {
+        setPendingProposal(prev => !prev);
+      };
+
+      const handlePendingProposal = async () => {
           setIsProposal(prev => !prev);
     
       };
@@ -317,7 +362,7 @@ useEffect(() => {
 
   // Menu items for Comment 1  
   const teacherMenu = [
-  { id: 5, label: "Student Proposal", icon: Workflow, proposalCount: true },
+  { id: 5, label: "Student Proposal", icon: Workflow, studentProposal: true },
   { id: 6, label: "History Proposal", icon: History },
   { id: 7, label: "Student Request", icon: Users, showBadge: true },
   { id: 8, label: "Student Reviews", icon: Star, showReviews: true },
@@ -327,34 +372,103 @@ useEffect(() => {
   { id: 12, label: "View Examination", icon: FileText },
   { id: 13, label: "View Assignment Result", icon: CheckCircle },
   { id: 14, label: "View Examination Result", icon: BarChart3 },
-  { id: 15, label: "Product Order", icon: ShoppingCart },
-  { id: 16, label: "Saved Order", icon: Bookmark, showcount: true },
-  { id: 17, label: "Advertisement Status", icon: Projector},
-];
+  { id: 15, label: "Advertisement Status", icon: Projector},
 
-  // Menu items for Comment 2
-  const defaultMenu = [
-  { id: 21, label: "Create Product", icon: FilePlus },
-  { id: 22, label: "Product List", icon: ClipboardList },
-  { id: 23, label: "Product Order", icon: ShoppingCart, ordershow: true },
-  { id: 24, label: "Saved Order", icon: Bookmark, showcount: true },
+  { id: 16, label: "Create Product", icon: FilePlus },
+  { id: 17, label: "Product List", icon: Clipboard },
   {
-      id: 25,
+      id: 18,
       label: "",
       icon: BarChart3,
       path: "/dashboard/product-visibility",
   },
   {
-    id: 26,
+    id: 19,
     label: "My Product Reviews",
     icon: MessageSquare,
   },
-  { id: 27, label: "Advertisement Status", icon: Projector},
+   { id: 20, label: "Product Order", icon: ShoppingCart },
+  { id: 21, label: "Saved Order", icon: Bookmark, showcount: true },
+];
 
+  // Menu items for Comment 2
+  const defaultMenu = [
+  { id: 31, label: "Create Product", icon: FilePlus },
+  { id: 32, label: "Product List", icon: Clipboard },
+  { id: 33, label: "Product Order", icon: ShoppingCart, ordershow: true },
+  { id: 34, label: "Saved Order", icon: Bookmark, showcount: true },
+  {
+      id: 35,
+      label: "",
+      icon: BarChart3,
+      path: "/dashboard/product-visibility",
+  },
+  {
+    id: 36,
+    label: "My Product Reviews",
+    icon: MessageSquare,
+  },
+  { id: 37, label: "Advertisement Status", icon: Projector},
+
+  {
+                id: 38,
+                label: "Create Proposal",
+                icon: Workflow,
+              },
+              {
+                id: 39,
+                label: "Proposal History",
+                icon: History,
+              },
+              {
+                id: 40,
+                label: "Teacher Proposal Request",
+                icon: Proportions,
+                proposalBadge: true,
+              },
+              {
+                id: 41,
+                label: "Teacher Request",
+                icon: Users,
+                showBadge: true,
+              },
+              {
+                id: 42,
+                label: "Review Teacher",
+                icon: UserCheck,
+              },
+              {
+                id: 43,
+                label: "View Continue Assignment",
+                icon: ClipboardList,
+              },
+              {
+                id: 44,
+                label: "View Continue Examination",
+                icon: FileText,
+              },
+              {
+                id: 45,
+                label: "View Assignment Result",
+                icon: CheckCircle,
+              },
+              {
+                id: 46,
+                label: "View Examination Result",
+                icon: BarChart3,
+              },
 
 ];
 
   // Choose which menu
+
+  const hasUpgradedProfile =
+    authUser?.upgrade?.status === "approved";
+
+const upgradeRequiredMenuIds = [
+    16, 17, 18, 19, // teacherMenu
+    38, 39, 40, 41, 42, 43, 44, 45, 46, // defaultMenu
+];
   const menu = isTeacher ? teacherMenu : defaultMenu;
 
 
@@ -407,6 +521,8 @@ useEffect(() => {
     <>
 
         <ChatPage
+                        fetchChats={fetchChats}
+                        loadingChats={loadingChats}
                         fetchUnreadCount={fetchUnreadCount}
                         chats={chats}
                         handleReelCreated={handleReelCreated}
@@ -584,9 +700,9 @@ useEffect(() => {
             </li>
 
              <li
-                    onClick={() => {handleVisible(20);  handleOpenModel(); } }
+                    onClick={() => {handleVisible(50);  handleOpenModel(); } }
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
-                      visible === 20
+                      visible === 500
                         ? "bg-gray-500 text-white"
                     : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
                     }`}
@@ -595,6 +711,20 @@ useEffect(() => {
                     Live Video
                   </li>
 
+                    {authUser?.upgrade?.status === "approved" &&
+              authUser?.upgrade?.profile_type === "question_page" && (
+                  <li
+                onClick={() => {handleVisible(51);  handleOpenModel(); }}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 51
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                      <e size={18} />
+                      Manage Questions
+                  </li>
+              )}
           </ul>
         <div className="relative">
 
@@ -640,82 +770,151 @@ useEffect(() => {
               </h3>
 
               <ul className="space-y-2 mb-10">
-                {menu.map((item) => (
-                  <li
-                    key={item.id}
-                    onClick={() => {
-                      setVisible(item.id);
-                      handleOpenModel();
-                      handleMenuClick(item);
-                      handleClearOrderCount(item);
-                      if (item.id === 5) {
-                          handleCreateProposal();
-                      }
+                {menu.map((item) => {
+                  const requiresUpgrade =
+                      upgradeRequiredMenuIds.includes(item.id) &&
+                      !hasUpgradedProfile;
 
-                      handleTeacherReviews(item)
-                    }}
-                    className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
-                      hover:bg-gray-500 hover:text-white
-                      ${
-                        visible === item.id
-                          ? "bg-gray-500 text-white"
-                          : ""
-                      }`}
-                  >
-                    {item.icon && (
-                      <item.icon className="w-4 h-4 shrink-0" />
-                    )}
+                  return (
+                      <li
+                          key={item.id}
+                          onClick={() => {
+                              // Restrict upgrade-required features
+                              if (requiresUpgrade) {
+                                  setShowUpgradeModal(true);
+                                  return;
+                              }
 
-                    <span>{item.label}</span>
-
-                    {item.showBadge && pendingCount > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {pendingCount}
-                      </span>
-                    )}
-
-                     {item.showReviews && reviewPending > 0 && (
-                      <span 
-                      onClick={async () => {
-                              handleTeacherReviews(item)
-                          }}
-                      className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {reviewPending}
-                        {/*  */}
-                      </span>
-                    )}
-
-                    {item.proposalCount && proposalPending > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {proposalPending}
-                      </span>
-                    )}
-
-                    {item.showcount && savedCount > 0 && (
-                      <span
-                          onClick={async () => {
-                              await clearSavedCount();
+                              setVisible(item.id);
+                              handleOpenModel();
                               handleMenuClick(item);
+                              handleClearOrderCount(item);
+                              handleCreateProposal(item);
+                              handlePendingProposal(item);
+                              handleTeacherReviews(item);
                           }}
-                          className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                          className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200
+                              hover:bg-gray-500 hover:text-white
+                              ${
+                                  visible === item.id
+                                      ? "bg-gray-500 text-white"
+                                      : ""
+                              }
+                              ${
+                                  requiresUpgrade
+                                      ? "opacity-50"
+                                      : ""
+                              }
+                          `}
                       >
-                          {savedCount}
-                      </span>
-                  )}
+                          {/* ICON */}
+                          {item.icon && (
+                              <item.icon className="w-4 h-4 shrink-0" />
+                          )}
 
-                    {item.ordershow && orderCount > 0 && (
-                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                        {orderCount}
-                      </span>
-                    )}
+                          {/* LABEL */}
+                          <span className="flex-1">
+                              {item.label}
+                          </span>
 
-                    {item.id === 25 && (
-                      <Link className="-translate-x-1" to={'/dashboard/product-visibility'}>
-                        Promote Product Visibility
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                          {/* UPGRADE LABEL */}
+                          {requiresUpgrade && (
+                              <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                                  Upgrade
+                              </span>
+                          )}
+
+                          {/* PENDING REQUEST BADGE */}
+                          {item.showBadge && pendingCount > 0 && (
+                              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {pendingCount}
+                              </span>
+                          )}
+
+                          {/* REVIEW BADGE */}
+                          {item.showReviews && reviewPending > 0 && (
+                              <span
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+
+                                      if (requiresUpgrade) {
+                                          setShowUpgradeModal(true);
+                                          return;
+                                      }
+
+                                      handleTeacherReviews(item);
+                                  }}
+                                  className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full"
+                              >
+                                  {reviewPending}
+                              </span>
+                          )}
+
+                          {/* PROPOSAL BADGE */}
+                          {item.proposalBadge && proposalCounts > 0 && (
+                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {proposalCounts}
+                              </span>
+                          )}
+
+                          {/* STUDENT PROPOSAL BADGE */}
+                          {item.studentProposal && pendingProposal > 0 && (
+                              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {pendingProposal}
+                              </span>
+                          )}
+
+                          {/* SAVED COUNT */}
+                          {item.showcount && savedCount > 0 && (
+                              <span
+                                  onClick={async (e) => {
+                                      e.stopPropagation();
+
+                                      if (requiresUpgrade) {
+                                          setShowUpgradeModal(true);
+                                          return;
+                                      }
+
+                                      await clearSavedCount();
+                                      handleMenuClick(item);
+                                  }}
+                                  className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                              >
+                                  {savedCount}
+                              </span>
+                          )}
+
+                          {/* ORDER COUNT */}
+                          {item.ordershow && orderCount > 0 && (
+                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                  {orderCount}
+                              </span>
+                          )}
+
+                          {/* PRODUCT VISIBILITY - DEFAULT MENU */}
+                          {item.id === 35 && (
+                              <Link
+                                  className="-translate-x-1"
+                                  to="/dashboard/product-visibility"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                  Promote Product Visibility
+                              </Link>
+                          )}
+
+                          {/* PRODUCT VISIBILITY - TEACHER MENU */}
+                          {item.id === 18 && !requiresUpgrade && (
+                              <Link
+                                  className="-translate-x-1"
+                                  to="/dashboard/product-visibility"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                  Promote Product Visibility
+                              </Link>
+                          )}
+                      </li>
+                  );
+              })}
               </ul>
             </div>
           </>
@@ -858,9 +1057,9 @@ useEffect(() => {
             </li>
 
             <li
-                    onClick={() =>{ handleVisible(20);  handleOpenModel(); } }
+                    onClick={() =>{ handleVisible(50);  handleOpenModel(); } }
                     className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
-                      visible === 20
+                      visible === 50
                         ? "bg-gray-500 text-white"
                     : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
                     }`}
@@ -869,6 +1068,20 @@ useEffect(() => {
                     Live Video
                   </li>
 
+                    {authUser?.upgrade?.status === "approved" &&
+              authUser?.upgrade?.profile_type === "question_page" && (
+                  <li
+                onClick={() => {handleVisible(51);  handleOpenModel(); }}
+                className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
+                  visible === 51
+                    ? "bg-gray-500 text-white"
+                : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
+                }`}
+              >
+                      <MessageCircle size={18} />
+                      Manage Questions
+                  </li>
+              )}
           </ul>
         <div className="relative">
 
@@ -914,74 +1127,151 @@ useEffect(() => {
               </h3>
 
               <ul className="space-y-2 mb-10">
-                {menu.map((item) => (
-                  <li
-                    key={item.id}
-                    onClick={() => {
-                      setVisible(item.id);
-                      handleOpenModel();
-                      handleMenuClick(item);
-                      handleClearOrderCount(item);
-                      if (item.id === 5) {
-                          handleCreateProposal();
-                      }
+               {menu.map((item) => {
+                  const requiresUpgrade =
+                      upgradeRequiredMenuIds.includes(item.id) &&
+                      !hasUpgradedProfile;
 
-                      handleTeacherReviews(item)
-                    }}
-                    className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer
-                      hover:bg-gray-500 hover:text-white
-                      ${
-                        visible === item.id
-                          ? "bg-gray-500 text-white"
-                          : ""
-                      }`}
-                  >
-                    {item.icon && (
-                      <item.icon className="w-4 h-4 shrink-0" />
-                    )}
+                  return (
+                      <li
+                          key={item.id}
+                          onClick={() => {
+                              // Restrict upgrade-required features
+                              if (requiresUpgrade) {
+                                  setShowUpgradeModal(true);
+                                  return;
+                              }
 
-                    <span>{item.label}</span>
-
-                    {item.showBadge && pendingCount > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {pendingCount}
-                      </span>
-                    )}
-
-                    {item.showReviews && reviewPending > 0 && (
-                      <span 
-                      onClick={async () => {
-                              handleTeacherReviews(item)
+                              setVisible(item.id);
+                              handleOpenModel();
+                              handleMenuClick(item);
+                              handleClearOrderCount(item);
+                              handleCreateProposal(item);
+                              handlePendingProposal(item);
+                              handleTeacherReviews(item);
                           }}
-                      className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {reviewPending}
-                      </span>
-                    )}
+                          className={`p-2 relative flex items-center gap-2 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200
+                              hover:bg-gray-500 hover:text-white
+                              ${
+                                  visible === item.id
+                                      ? "bg-gray-500 text-white"
+                                      : ""
+                              }
+                              ${
+                                  requiresUpgrade
+                                      ? "opacity-50"
+                                      : ""
+                              }
+                          `}
+                      >
+                          {/* ICON */}
+                          {item.icon && (
+                              <item.icon className="w-4 h-4 shrink-0" />
+                          )}
 
-                     {item.proposalCount && proposalPending > 0 && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {proposalPending}
-                      </span>
-                    )}
+                          {/* LABEL */}
+                          <span className="flex-1">
+                              {item.label}
+                          </span>
 
-                    {item.showcount && savedCount > 0 && (
-                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {savedCount}
-                      </span>
-                    )}
+                          {/* UPGRADE LABEL */}
+                          {requiresUpgrade && (
+                              <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                                  Upgrade
+                              </span>
+                          )}
 
-                    {item.ordershow && orderCount > 0 && (
-                      <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                        {orderCount}
-                      </span>
-                    )}
-                    {item.id === 25 && (
-                      <Link to={'/dashboard/product-visibility'}>
-                        Promote Product Visibility
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                          {/* PENDING REQUEST BADGE */}
+                          {item.showBadge && pendingCount > 0 && (
+                              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {pendingCount}
+                              </span>
+                          )}
+
+                          {/* REVIEW BADGE */}
+                          {item.showReviews && reviewPending > 0 && (
+                              <span
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+
+                                      if (requiresUpgrade) {
+                                          setShowUpgradeModal(true);
+                                          return;
+                                      }
+
+                                      handleTeacherReviews(item);
+                                  }}
+                                  className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full"
+                              >
+                                  {reviewPending}
+                              </span>
+                          )}
+
+                          {/* PROPOSAL BADGE */}
+                          {item.proposalBadge && proposalCounts > 0 && (
+                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {proposalCounts}
+                              </span>
+                          )}
+
+                          {/* STUDENT PROPOSAL BADGE */}
+                          {item.studentProposal && pendingProposal > 0 && (
+                              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  {pendingProposal}
+                              </span>
+                          )}
+
+                          {/* SAVED COUNT */}
+                          {item.showcount && savedCount > 0 && (
+                              <span
+                                  onClick={async (e) => {
+                                      e.stopPropagation();
+
+                                      if (requiresUpgrade) {
+                                          setShowUpgradeModal(true);
+                                          return;
+                                      }
+
+                                      await clearSavedCount();
+                                      handleMenuClick(item);
+                                  }}
+                                  className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full cursor-pointer"
+                              >
+                                  {savedCount}
+                              </span>
+                          )}
+
+                          {/* ORDER COUNT */}
+                          {item.ordershow && orderCount > 0 && (
+                              <span className="absolute top-2 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                  {orderCount}
+                              </span>
+                          )}
+
+                          {/* PRODUCT VISIBILITY - DEFAULT MENU */}
+                          {item.id === 35 && (
+                              <Link
+                                  className="-translate-x-1"
+                                  to="/dashboard/product-visibility"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                  Promote Product Visibility
+                              </Link>
+                          )}
+
+                          {/* PRODUCT VISIBILITY - TEACHER MENU */}
+                          {item.id === 18 && !requiresUpgrade && (
+                              <Link
+                                  className="-translate-x-1"
+                                  to="/dashboard/product-visibility"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                  Promote Product Visibility
+                              </Link>
+                          )}
+                      </li>
+                  );
+              })}
               </ul>
             </div>
           </>
@@ -1004,6 +1294,7 @@ useEffect(() => {
         showEmoji={showEmoji} setShowEmoji={setShowEmoji}
         emojiList={emojiList} setEmojiList={setEmojiList} setMessages={setMessages} setActiveChat={setActiveChat}
         badges={badges} setBadges={setBadges} 
+        showUpgradeModal={showUpgradeModal} setShowUpgradeModal={setShowUpgradeModal}
          />
         </div>
         <div className={`${visible === 2 ? 'block' : 'hidden'}`}>
@@ -1021,7 +1312,9 @@ useEffect(() => {
         </div>
 
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
-        <ProposalList badges={badges} setBadges={setBadges}  />
+        <ProposalList badges={badges} setBadges={setBadges} 
+        fetchProposals={fetchProposals} proposals={proposals} setProposals={setProposals}
+        loading={loadingProposal} setLoadingProposal={setLoadingProposal} />
         </div>
         <div className={`${visible === 6 ? 'block' : 'hidden'}`}>
         <TeacherProposalHistory setChats={setChats} 
@@ -1056,22 +1349,22 @@ useEffect(() => {
         <div className={`${visible === 14 ? 'block' : 'hidden'}`}>
         <ExamResults pendingCount={pendingCount} setPendingCount={setPendingCount}  />
         </div>
-        <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 20 ? 'block' : 'hidden'}`}>
         <Order
         setChats={setChats} 
         togglePopup={togglePopup}
         chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div> 
-        <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div>
 
-        <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 15 ? 'block' : 'hidden'}`}>
         <MyAdvertisements  />
         </div> 
 
 
-        <div className={`${visible === 20 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 50 ? 'block' : 'hidden'}`}>
         <GoLiveModal
         showLiveModal={showLiveModal}
         setShowLiveModal={setShowLiveModal}
@@ -1082,29 +1375,89 @@ useEffect(() => {
         </div> 
 
 
-        <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 16 ? 'block' : 'hidden'}`}>
         <CreateProduct  />
         </div>
-        <div className={`${visible === 22 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 17 ? 'block' : 'hidden'}`}>
         <MyProducts   />
         </div>
-        <div className={`${visible === 23 ? 'block' : 'hidden'}`}>
+
+        <div className={`${visible === 31 ? 'block' : 'hidden'}`}>
+        <CreateProduct  />
+        </div>
+        <div className={`${visible === 32 ? 'block' : 'hidden'}`}>
+        <MyProducts   />
+        </div>
+
+
+        <div className={`${visible === 20 ? 'block' : 'hidden'}`}>
         <Order
         setChats={setChats}  
         togglePopup={togglePopup}
         setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
         </div>
-        <div className={`${visible === 24 ? 'block' : 'hidden'}`}>
+        <div className={`${visible === 21 ? 'block' : 'hidden'}`}>
         <SaveOrder  />
         </div> 
 
-        <div className={`${visible === 26 ? 'block' : 'hidden'}`}>
+
+        <div className={`${visible === 33 ? 'block' : 'hidden'}`}>
+        <Order
+        setChats={setChats}  
+        togglePopup={togglePopup}
+        setOrderCount={setOrderCount} chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+        </div>
+        <div className={`${visible === 34 ? 'block' : 'hidden'}`}>
+        <SaveOrder  />
+        </div> 
+
+        <div className={`${visible === 36 ? 'block' : 'hidden'}`}>
         <MyProductReviews  />
         </div> 
 
-        <div className={`${visible === 27 ? 'block' : 'hidden'}`}>
-        <MyAdvertisements  />
+        <div className={`${visible === 19 ? 'block' : 'hidden'}`}>
+        <MyProductReviews  />
         </div> 
+
+        <div className={`${visible === 37 ? 'block' : 'hidden'}`}>
+        <MyAdvertisements  />
+        </div>  
+
+        <div className={`${visible === 38 ? 'block' : 'hidden'}`}>
+          <CreateProposal togglePopup={togglePopup} setActiveChat={setActiveChat}
+          chats={chats} setMessages={setMessages} />
+          </div>
+
+          <div className={`${visible === 39 ? 'block' : 'hidden'}`}>
+          <StudentProposalHistory />
+          </div>
+
+          <div className={`${visible === 40 ? 'block' : 'hidden'}`}>
+          <ProposalTeacherRequests
+          setChats={setChats} 
+          togglePopup={togglePopup} proposalCounts={proposalCounts}
+          chats={chats} setActiveChat={setActiveChat} setMessages={setMessages} />
+          </div>
+          <div className={`${visible === 41 ? 'block' : 'hidden'}`}>
+          <StudentRequest togglePopup={togglePopup} setActiveChat={setActiveChat}
+          chats={chats} setMessages={setMessages} />
+          </div>
+          <div className={`${visible === 42 ? 'block' : 'hidden'}`}>
+          <AcceptedTeacher  />
+          </div> 
+          <div className={`${visible === 43 ? 'block' : 'hidden'}`}>
+          <AssignmentLibrary  />
+          </div> 
+          <div className={`${visible === 44 ? 'block' : 'hidden'}`}>
+          <ExamLibrary  />
+          </div> 
+          <div className={`${visible === 45 ? 'block' : 'hidden'}`}>
+          <AssignmentResults  />
+          </div> 
+          <div className={`${visible === 46 ? 'block' : 'hidden'}`}>
+          <ExamResults  />
+          </div> 
+          
       </section>
     </div>
 

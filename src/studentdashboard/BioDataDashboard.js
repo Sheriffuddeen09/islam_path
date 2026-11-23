@@ -1,5 +1,4 @@
 import {
-  Loader2,
   MapPin,
   Heart,
   GraduationCap,
@@ -47,9 +46,9 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
   };
 
   // ================= LOADING =================
-  if (loading) return <Loader />;
+  if (loading) return <Loader />
 
-
+  // ================= EMPTY =================
   if (!bio) {
     return (
       <div className="max-w-3xl mx-auto p-6 text-center lg:ml-64  bg-[var(--bg-color)] text-[var(--text-color)]">
@@ -63,9 +62,9 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
   }
 
   return (
-  <div className="p-4  lg:ml-64 ">
+  <div className="p-4 lg:ml-64 ">
 
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 shadow-md">
 
       {/* ================= PROFILE SECTION (ALWAYS SHOW) ================= */}
       <Section title="Personal Information" icon={<Calendar />}>
@@ -91,7 +90,7 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
         <InfoRow
           icon={<Mail />}
           label="Email"
-          value={visibility.email ? profile.email : "Hidden"}
+          value={visibility.email ?  "Hidden" : profile.email}
           editable={editVisibility}
           onToggle={() => handleToggleVisibility("email")}
           isVisible={visibility.email}
@@ -100,7 +99,7 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
         <InfoRow
           icon={<Phone />}
           label="Phone"
-          value={visibility.phone ? profile.phone : "Hidden"}
+          value={visibility.phone ? "Hidden" : profile.phone }
           editable={editVisibility}
           onToggle={() => handleToggleVisibility("phone")}
           isVisible={visibility.phone}
@@ -187,7 +186,7 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
             </Section>
           )}
 
-          {/* ================= CAREER ================= dob*/}
+          {/* ================= CAREER ================= */}
           {bio.careers?.length > 0 && (
             <Section title="Career" icon={<BriefcaseBusiness />}>
 
@@ -246,14 +245,14 @@ function Section({ title, icon, children }) {
 
 function InfoRow({ icon, label, value, editable, onToggle, isVisible }) {
   return (
-    <div className="flex items-start gap-3 mb-3">
+    <div className="flex items-start gap-3 mb-5 mt-2">
 
       <div className="bg-white/10 p-2 rounded-xl">
         {icon}
       </div>
 
       <div>
-        <p className="text-xs opacity-60">{label}</p>
+        <p className="text-xs ">{label}</p>
         <p className="font-medium">{value || "Not added"}</p>
       </div>
 

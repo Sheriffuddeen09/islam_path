@@ -33,8 +33,6 @@ export default function SaveOrder() {
   try {
     const res = await api.get("/api/product/drafts");
 
-    console.log("DRAFT RESPONSE:", res.data);
-
     setDrafts(res.data || []);
 
   } catch (err) {

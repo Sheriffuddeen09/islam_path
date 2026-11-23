@@ -10,9 +10,8 @@ dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const NotificationPage = ({ handleMessageOpen }) => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
+const NotificationPage = ({ handleMessageOpen, loading, setNotifications, notifications }) => {
+  
   const [visibleCount, setVisibleCount] = useState(10);
 
   const navigate = useNavigate();
@@ -71,24 +70,7 @@ const NotificationPage = ({ handleMessageOpen }) => {
   // ---------------------------------------
   // Fetch notifications
   // ---------------------------------------
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-
-      try {
-        const { data } = await api.get("/api/page-notifications");
-
-        setNotifications(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
+   
   // ---------------------------------------
   // Parse notification data
   // ---------------------------------------

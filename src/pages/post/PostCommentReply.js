@@ -9,8 +9,8 @@ export default function PostCommentReply ({image, handleDelete, replyInputRef, l
                 uniqueEmojisr, userReaction, totalReaction, handleDeleteReply, onEdit, loading, replyText,
                 setReplyText, postReply, closeReply, post, comment, onReplyAdded, handleReact,
                 handleReplyToComment, replyTo, setReplyTo, focusReplyInput, setEmojiClick, emojiClick,
-                replyImage, setReplyImage, postComments
-              }){
+                replyImage, setReplyImage, postComments, onLoadReplies, onLoadMoreReplies, loadingReplies}
+              ){
     
     return(
         <div>
@@ -49,7 +49,9 @@ export default function PostCommentReply ({image, handleDelete, replyInputRef, l
             handleUpdate={handleUpdate}
             handleDelete = {handleDelete}
             image={image}
-
+            onLoadReplies={onLoadReplies}
+            onLoadMoreReplies={onLoadMoreReplies}
+            loadingReplies={loadingReplies}
           />
         </div>
     )

@@ -42,10 +42,7 @@ export default function ProtectedRoute({
           }
         );
 
-        console.log(
-          "PROTECTED ROUTE USER STATUS:",
-          response.data
-        );
+         
 
         if (
           mounted &&
@@ -57,11 +54,6 @@ export default function ProtectedRoute({
           setUser(null);
         }
       } catch (error) {
-        console.error(
-          "PROTECTED ROUTE AUTH ERROR:",
-          error
-        );
-
         if (mounted) {
           setUser(null);
         }

@@ -90,7 +90,7 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
         <InfoRow
           icon={<Mail />}
           label="Email"
-          value={visibility.email ? profile.email : "Hidden"}
+          value={visibility.email ?  "Hidden" : profile.email}
           editable={editVisibility}
           onToggle={() => handleToggleVisibility("email")}
           isVisible={visibility.email}
@@ -99,7 +99,7 @@ export default function BiodataDashboard({visibility, editVisibility, handleTogg
         <InfoRow
           icon={<Phone />}
           label="Phone"
-          value={visibility.phone ? profile.phone : "Hidden"}
+          value={visibility.phone ? "Hidden" : profile.phone }
           editable={editVisibility}
           onToggle={() => handleToggleVisibility("phone")}
           isVisible={visibility.phone}

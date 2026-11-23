@@ -23,7 +23,8 @@ export default function PostCommentReplyItem ({image, handleReplyToComment, load
                       replyInputRef, handleDelete, handleUpdate, isEditing, postComments,
                       isDeleting, toggleReaction, uniqueEmojisr, totalReaction, onEdit, closeReply, 
                       onDelete, onReact, post, replyText, setReplyText, comment, onReplyAdded,
-                      replyTo, focusReplyInput, setReplyTo, replyImage, setReplyImage, emojiClick, setEmojiClick}){
+                      replyTo, focusReplyInput, setReplyTo, replyImage, setReplyImage, emojiClick, setEmojiClick,
+                    onLoadReplies, onLoadMoreReplies, loadingReplies}){
 
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(comment.body);
@@ -285,67 +286,132 @@ useEffect(() => {
 }, [postComments]);
 
 
-
 const sendTextReply = async () => {
-  if (!replyText.trim()) return;
+    const text = replyText.trim();
 
-  setIsSubmitting(true);
+    if (!text || isSubmitting) return;
 
-  await onReplyAdded(comment.id, replyText, null, null);
+    // Save current reply data before clearing the input
+    const currentReplyTo = replyTo;
 
-  setReplyText("");
-  setReplyTo(null);
-  setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    // Clear input immediately
+    setReplyText("");
+    setReplyTo(null);
+
+    try {
+        await onReplyAdded(
+            comment.id,
+            text,
+            null,
+            null,
+            null,
+            currentReplyTo
+        );
+    } catch (error) {
+        console.error("Failed to send reply:", error);
+
+        // Restore text if sending fails
+        setReplyText(text);
+        setReplyTo(currentReplyTo);
+    } finally {
+        setIsSubmitting(false);
+    }
+};
+
+const sendImageReply = async (file) => {
+    if (!file || isSubmitting) return;
+
+    const text = replyText;
+    const currentReplyTo = replyTo;
+
+    setIsSubmitting(true);
+
+    setReplyText("");
+    setReplyTo(null);
+
+    try {
+        await onReplyAdded(
+            comment.id,
+            text,
+            file,
+            null,
+            null,
+            currentReplyTo
+        );
+    } catch (error) {
+        console.error("Failed to send image reply:", error);
+
+        setReplyText(text);
+        setReplyTo(currentReplyTo);
+    } finally {
+        setIsSubmitting(false);
+    }
 };
 
 
 const sendVideoReply = async (file) => {
-  if (!file) return;
+    if (!file || isSubmitting) return;
 
-  setIsSubmitting(true);
+    const text = replyText;
+    const currentReplyTo = replyTo;
 
-  try {
-    await onReplyAdded(
-      comment.id,
-      replyText,
-      null,
-      null,
-      file
-    );
+    setIsSubmitting(true);
 
     setReplyText("");
     setReplyTo(null);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
-const sendImageReply = async (file) => {
-  if (!file) return;
+    try {
+        await onReplyAdded(
+            comment.id,
+            text,
+            null,
+            null,
+            file,
+            currentReplyTo
+        );
+    } catch (error) {
+        console.error("Failed to send video reply:", error);
 
-  setIsSubmitting(true);
-
-  await onReplyAdded(comment.id, replyText, file, null);
-
-  setReplyText("");
-  setReplyTo(null);
-  setIsSubmitting(false);
+        setReplyText(text);
+        setReplyTo(currentReplyTo);
+    } finally {
+        setIsSubmitting(false);
+    }
 };
 
 
 const sendEmojiReply = async (emoji) => {
-  setIsSubmitting(true);
+    if (isSubmitting) return;
 
-  await onReplyAdded(comment.id, replyText + emoji, null, emoji);
+    const text = replyText + emoji;
+    const currentReplyTo = replyTo;
 
-  setEmojiClick(false);
-  setReplyText("");
-  setReplyTo(null);
-  setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    setReplyText("");
+    setReplyTo(null);
+    setEmojiClick(false);
+
+    try {
+        await onReplyAdded(
+            comment.id,
+            text,
+            null,
+            emoji,
+            null,
+            currentReplyTo
+        );
+    } catch (error) {
+        console.error("Failed to send emoji reply:", error);
+
+        setReplyText(text);
+        setReplyTo(currentReplyTo);
+    } finally {
+        setIsSubmitting(false);
+    }
 };
-
-
-
 
 
 //length
@@ -634,8 +700,8 @@ const contentEdit = (
 )
     return(
     
-        <div className="fixed px-2 inset-0 bg-white/90 flex sm:py-5 items-center justify-center z-50">
-      <div className="bg-white  text-black rounded-xl w-full md:h-[570px]  sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
+        <div className="fixed px-2 inset-0 bg-black/70 flex sm:py-5 items-center justify-center z-50">
+      <div className="bg-[var(--bg-color)] text-[var(--text-color)] rounded-xl w-full md:h-[570px]  sm:my-4 flex flex-col py-3 max-w-xl border shadow-lg">
 {/* bg-gray-100 */}
     <div>
     <div className="flex justify-around sm:justify-between items-center px-4 py-3 border-b">
@@ -845,7 +911,7 @@ const contentEdit = (
         </div>
       )}
         
-<div className="inline-flex gap-3 items-center cursor-pointer">
+<div className="inline-flex text-black gap-3 items-center cursor-pointer">
   <span className="text-xs">{timeAgo(comment.created_at)}</span>
 
   {/* Reaction hover group */}
@@ -1201,77 +1267,97 @@ const contentEdit = (
 )}
 
 
-{/* replies */}
-      {(comment?.replies ?? []).map((reply) => (
-        <PostReplyListMap
-          key={reply.id}
 
-          postComments={postComments}
-          editing={editing}
-          setEditing={setEditing}
+ {/* Replies */}
 
-          reply={reply}
+    {(comment.replies || []).map(reply => (
+      <PostReplyListMap
+        key={reply.id}
+        reply={reply}
+        comment={comment}
 
-          setShowDeleteConfirm={setShowDeleteConfirm}
-          setShowReactions={setShowReactions}
+        postComments={postComments}
+        editing={editing}
+        setEditing={setEditing}
 
-          comment={comment}
+        setShowDeleteConfirm={setShowDeleteConfirm}
+        setShowReactions={setShowReactions}
 
-          timeAgo={timeAgo}
+        timeAgo={timeAgo}
+        showReactions={showReactions}
 
-          showReactions={showReactions}
+        editText={editText}
+        setEditText={setEditText}
 
-          editText={editText}
-          setEditText={setEditText}
+        onEdit={onEdit}
+        onDelete={onDelete}
 
-          onEdit={onEdit}
-          onDelete={onDelete}
+        isDeleting={isDeleting}
+        isEditing={isEditing}
+        showDeleteConfirm={showDeleteConfirm}
 
-          isDeleting={isDeleting}
-          isEditing={isEditing}
-          showDeleteConfirm={showDeleteConfirm}
+        onReact={onReact}
 
-          onReact={onReact}
+        authUser={authUser ?? null}
 
-          authUser={authUser ?? null}
+        totalReaction={totalReaction}
+        toggleReaction={toggleReaction}
+        uniqueEmojisr={uniqueEmojisr}
 
-          totalReaction={totalReaction}
-          toggleReaction={toggleReaction}
-          uniqueEmojisr={uniqueEmojisr}
+        replyTo={replyTo}
+        setReplyTo={setReplyTo}
 
-          replyTo={replyTo}
-          setReplyTo={setReplyTo}
+        setReplyText={setReplyText}
 
-          setReplyText={setReplyText}
+        handleReplyToComment={handleReplyToComment}
 
-          handleReplyToComment={handleReplyToComment}
+        focusReplyInput={focusReplyInput}
 
-          focusReplyInput={focusReplyInput}
+        setEmojiClick={setEmojiClick}
 
-          setEmojiClick={setEmojiClick}
+        setReplyImage={setReplyImage}
 
-          setReplyImage={setReplyImage}
+        emojiClick={emojiClick}
+        replyImage={replyImage}
 
-          emojiClick={emojiClick}
-          replyImage={replyImage}
-        />
-      ))}
+        onLoadReplies={onLoadReplies}
+        onLoadMoreReplies={onLoadMoreReplies}
+        loadingReplies={loadingReplies}
+      />
+    ))}
 
-      
-      
+    {/* Load more only when more than 5 replies exist */}
+    {comment.replies_has_more && (
+      <button
+        type="button"
+        onClick={() => onLoadMoreReplies(comment.id)}
+        disabled={loadingReplies?.[comment.id]}
+        className="text-xs mx-auto flex justify-center items-center font-semibold text-blue-500 mt-2"
+      >
+        {loadingReplies?.[comment.id] ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            Loading more replies...
+          </span>
+        ) : (
+          `Load more replies (${comment.replies_count - comment.replies.length} remaining)`
+        )}
+      </button>
+    )}
 
-      {/* Reply input */}
+     
 </div>
+
+
 </div>
+          {/* Reply input */}
 
-
-          {/* Reply Input */}
-
-          <PostReplyInput image={image} isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
+       <PostReplyInput image={image} isSubmitting={isSubmitting} sendImageReply={sendImageReply} replyInputRef={replyInputRef}
           sendTextReply={sendTextReply} setEmojiClick={setEmojiClick} sendEmojiReply={sendEmojiReply} setReplyTo={setReplyTo}
           REPLY_EMOJIS={REPLY_EMOJIS} emojiClick={emojiClick} replyText={replyText} setReplyText={setReplyText} replyTo={replyTo} 
           sendVideoReply={sendVideoReply} />
            </div>
+           
         </div>
 
     )

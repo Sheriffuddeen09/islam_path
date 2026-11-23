@@ -156,7 +156,7 @@ export default function MyProductReviews() {
 
             <div className="
                 min-h-screen
-                pt-24
+                pt-4
                 px-4
                 pb-10 lg:ml-64
             ">
@@ -241,8 +241,8 @@ export default function MyProductReviews() {
 
         <div className="
             min-h-screen
-            pt-24
-            px-3
+            pt-4
+            px-2
             sm:px-5
             pb-10
             bg-[var(--bg-color)]

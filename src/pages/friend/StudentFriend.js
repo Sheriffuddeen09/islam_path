@@ -8,12 +8,12 @@ import { useNavigate } from "react-router-dom";
 export default function StudentFriend({students, setStudents, setIncomingRequests, incomingRequests,
                                         jobProfile, setJobProfile, show, setShow, fetchJobProfile,
                                         showSuccessModal, setShowSuccessModal, showAdvertisement, setShowAdvertisement,
-                                        showJobCreate, setShowJobCreate, videoCount, handleVideoClick
+                                        showJobCreate, setShowJobCreate, videoCount, handleVideoClick,
+                                        loading
                                     }) {
                                     
   const [requestStatus, setRequestStatus] = useState({});
   const [notification, setNotification] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState(null);
   const [myRequests, setMyRequests] = useState([]);
   const [loadingAction, setLoadingAction] = useState(null);
@@ -26,28 +26,6 @@ export default function StudentFriend({students, setStudents, setIncomingRequest
   const navigate = useNavigate()
 
 
-  useEffect(() => {
-  const fetchStudent = async () => {
-    try {
-      const res = await api.get("/api/student-friend");
-
-      const students = res.data.students || [];
-
-      // Latest registered student first
-      const sortedStudents = [...students].sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-
-      setStudents(sortedStudents);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchStudent();
-}, []);
 
 
 

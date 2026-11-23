@@ -8,13 +8,11 @@ import api from "../Api/axios";
 import { Search, X } from "lucide-react";
 
 
-export default function Jobs(){
+export default function Jobs({loading, jobs, fetchJobs}){
 
 
 
-const [jobs, setJobs] = useState([]);
 const [categories, setCategories] = useState([]);
-const [loading, setLoading] = useState(true);
 
 const [search, setSearch] = useState("");
 const [selectedCategory, setSelectedCategory] = useState(null);
@@ -36,35 +34,7 @@ const fetchCategories = async () => {
     }
 
 };
-const fetchJobs = async (category = "", keyword = "") => {
 
-    setLoading(true);
-
-    try {
-
-        const res = await api.get("/api/jobs", {
-
-            params: {
-
-                category,
-
-                search: keyword
-
-            }
-
-        });
-
-        setJobs(res.data.jobs.data);
-
-    }
-
-    finally {
-
-        setLoading(false);
-
-    }
-
-};
 
 useEffect(() => {
 

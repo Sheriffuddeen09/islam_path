@@ -19,7 +19,7 @@ id: 3,
 icon: <GraduationCap />, 
 name: "Get Mentor", 
 link: "/get-mentor", 
-role: "student", // Only students can see this
+role: "arabic_teacher", // Only students can see this
 background: "bg-black", },
 {
 id: 4, 
