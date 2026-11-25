@@ -84,6 +84,8 @@ export default function AuthProvider({ children }) {
       value={{
         user,
         setUser,
+        authUser: user,
+        setAuthUser: setUser,
         isLoggedin,
         loading,
       }}

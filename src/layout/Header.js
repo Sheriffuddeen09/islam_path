@@ -242,7 +242,7 @@ useEffect(() => {
                      <div className='hidden sm:block'>
                         <div className='inline-flex items-center gap-6'>
                           <Link to={'/'}>
-                          <img className='hidden sm:block' src={logos} alt='logo' width={45} height={45}/>
+                          <img className='' src={logos} alt='logo' width={120} height={80}/>
                           </Link>
           
                           <div className="lg:block hidden">

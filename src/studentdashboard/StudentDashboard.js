@@ -32,6 +32,7 @@ import LiveBroadcaster from "../live/LiveBroadcaster";
 import CreateProduct from "../pages/sales/CreateProduct";
 import MyProducts from "../pages/sales/MyProduct";
 import MyProductReviews from "../pages/sales/MyProductReviews";
+import MyQuestionPage from "../components/MyQuestionPage";
 
 export default function StudentDashboard ({ chats, image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, handlePostCreated,
@@ -72,6 +73,8 @@ export default function StudentDashboard ({ chats, image, setImage, postComments
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     
     const {authUser} = useAuth()
+
+    console.log('user update ', authUser)
 const scrollTimerRef = useRef(null);
 
 const handleMessagesScroll = () => {
@@ -246,7 +249,7 @@ const fetchNotification = async () => {
         
 
           const hasUpgradedProfile =
-    authUser?.upgrade?.status === "approved";
+          authUser?.upgrade?.status === "approved";
 
 const upgradeRequiredItems = [16, 17, 18, 19];
       
@@ -263,7 +266,7 @@ const upgradeRequiredItems = [16, 17, 18, 19];
             },
             {
               id: 8,
-              label: "Teacher Proposal Request",
+              label: "Proposal Request",
               icon: Proportions,
               proposalBadge: true,
             },
@@ -280,22 +283,22 @@ const upgradeRequiredItems = [16, 17, 18, 19];
             },
             {
               id: 11,
-              label: "View Continue Assignment",
+              label: "Continue Assignment",
               icon: ClipboardList,
             },
             {
               id: 12,
-              label: "View Continue Examination",
+              label: "Continue Examination",
               icon: FileText,
             },
             {
               id: 13,
-              label: "View Assignment Result",
+              label: "Assignment Result",
               icon: CheckCircle,
             },
             {
               id: 14,
-              label: "View Examination Result",
+              label: "Examination Result",
               icon: BarChart3,
             },
             { id: 15, label: "Advertisement Status", icon: Projector},
@@ -310,7 +313,7 @@ const upgradeRequiredItems = [16, 17, 18, 19];
               },
               {
                 id: 19,
-                label: "My Product Reviews",
+                label: "Product Reviews",
                 icon: MessageSquare,
               },
             {
@@ -533,8 +536,7 @@ const upgradeRequiredItems = [16, 17, 18, 19];
                 Live Video
               </li>
 
-                {authUser?.upgrade?.status === "approved" &&
-              authUser?.upgrade?.profile_type === "question_page" && (
+                {authUser?.upgrade?.status === "approved" && (
                   <li
                 onClick={() => {handleVisible(22);  handleOpenModel(); }}
                 className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
@@ -623,7 +625,7 @@ const upgradeRequiredItems = [16, 17, 18, 19];
                     {/* PRODUCT VISIBILITY */}
                     {item.id === 18 && hasUpgradedProfile && (
                         <Link
-                            className="text-xs"
+                            className="text-[var(--text-color)] relative right-5"
                             to="/dashboard/product-visibility"
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -784,8 +786,7 @@ const upgradeRequiredItems = [16, 17, 18, 19];
                     Live Video
                   </li>
 
-                  {authUser?.upgrade?.status === "approved" &&
-              authUser?.upgrade?.profile_type === "question_page" && (
+                  {authUser?.upgrade?.status === "approved" &&(
                   <li
                 onClick={() => {handleVisible(22);  handleOpenModel(); }}
                 className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
@@ -874,7 +875,7 @@ const upgradeRequiredItems = [16, 17, 18, 19];
                     {/* PRODUCT VISIBILITY */}
                     {item.id === 18 && hasUpgradedProfile && (
                         <Link
-                            className="text-xs"
+                            className="text-[var(--text-color)] relative right-12"
                             to="/dashboard/product-visibility"
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -928,6 +929,11 @@ const upgradeRequiredItems = [16, 17, 18, 19];
                          <div className={`${visible === 4 ? 'block' : 'hidden'}`}>
                          <Setting />
                          </div>
+
+                        <div className={`${visible === 51 ? 'block' : 'hidden'}`}>
+                          <MyQuestionPage />
+                          </div>
+
 
                          <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
                             <GoLiveModal

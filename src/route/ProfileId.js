@@ -1,6 +1,5 @@
 import api from "../Api/axios";
 import { Mail, Phone,  } from "lucide-react";
-
 import { useEffect, useState } from "react";
 import AdminAdded from "../pages/friend/AdminAdded";
 import AdminProfileFriend from "../teacherdashboard/AdminProfileFriend";
@@ -18,12 +17,12 @@ import MyImagesIdStudent from "../studentdashboard/mediaProfileId/ImageProfileId
 import BioDataProfile from "./BiodataProfile";
 import SidebarLeft from "../pages/friend/SidebarLeft";
 import SidebarRight from "../pages/homepageComponent/SidebarRight";
-import ReelViewerModal from "../pages/reel/ReelViewerModal";
-import ProfileUpgradeModal from "../components/ProfileUpgradeModal";
-import { BadgeCheck } from "lucide-react";
+import ReelViewerModal from "../pages/reel/ReelViewerModal"; 
+import { BadgeCheck, UserMinus } from "lucide-react";
 import UpgradeBadge from "../components/UpgradeBadge";
 import AskQuestionModal from "../components/AskQuestionModal";
 import { MessageCircle } from "lucide-react";
+import { toast } from "react-toastify";
 
 
 export default function ProfileId({handleMessageOpen, profileId, chats,
@@ -44,10 +43,51 @@ export default function ProfileId({handleMessageOpen, profileId, chats,
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [editContent, setEditContent] = useState("");
+  const [loadingMessageId, setLoadingMessageId] = useState(null);
 
   const [showAskQuestionModal, setShowAskQuestionModal] = useState(false);
 
   const { user: authUser } = useAuth();
+
+  const [unfollowLoading, setUnfollowLoading] = useState(false);
+  const [followedUserIds, setFollowedUserIds] = useState([]);
+
+  const isFollowingProfile = followedUserIds.some(
+      (id) => Number(id) === Number(profile?.id)
+  );
+
+  const sameUser =
+    Number(authUser?.id) === Number(profile?.id);
+
+
+  const handleUnfollow = async () => {
+      if (!profile?.id || unfollowLoading) return;
+
+      try {
+          setUnfollowLoading(true);
+
+          await api.delete(`/api/users/${profile.id}/follow`, {
+              withCredentials: true,
+          });
+
+          // Immediately update the following list.
+          setFollowedUserIds((prev) =>
+              prev.filter((id) => Number(id) !== Number(profile.id))
+          );
+
+          toast.success("You have unfollowed this user.");
+
+      } catch (error) {
+          toast.error(
+              error.response?.data?.message ||
+              "Unable to unfollow this user."
+          );
+      } finally {
+          setUnfollowLoading(false);
+      }
+  };
+
+
   const fetchProfile = async () => {
   if (!profileId) return;
 
@@ -148,6 +188,20 @@ console.log("Teacher Profile", profile)
                           Teacher Profile
                         </button>
                       )}
+
+                      {profile?.role === "admin" &&
+                      profile?.admin_choice === "create_free_content" && (
+                        <button
+                          onClick={() => handleVisibleProfile(5)}
+                          className={`py-2 px-6 rounded-lg text-sm whitespace-nowrap font-semibold cursor-pointer ${
+                            visibleProfile === 5
+                              ? "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-gray-800 text-white hover:bg-gray-700"
+                          }`}
+                        >
+                          Student Performance
+                        </button>
+                      )}
                   </div>
                   
                   <div className={`${visibleProfile === 1 ? 'block' : 'hidden'}`}>
@@ -196,6 +250,9 @@ console.log("Teacher Profile", profile)
                     <div className={`${visibleProfile === 4 ? 'block' : 'hidden'}`}>
                       <GetMentorProfileId />
                   </div>
+                   <div className={`${visibleProfile === 5 ? 'block' : 'hidden'}`}>
+                      <PerformanceId  />
+                    </div>
                 </>
                     )
                     }
@@ -424,7 +481,6 @@ const getInitial = (name) => {
   if (!name) return "?";
   return name.charAt(0).toUpperCase();
 };
-
 const content = (
   <div className="max-w-2xl mx-auto px-4 mt py-4">
 
@@ -447,12 +503,10 @@ const content = (
                 profileReelUserIndex !== -1 &&
                 hasProfileReel
               ) {
-                openUserReels(
-                  profileReelUserIndex
-                );
+                openUserReels(profileReelUserIndex);
               }
             }}
-            className="focus:outline-none"
+            className="focus:outline-none self-center md:self-auto shrink-0"
           >
             <p
               className={`
@@ -470,7 +524,6 @@ const content = (
                 text-5xl
                 sm:text-7xl
                 border-4
-
                 ${
                   hasProfileReel
                     ? hasUnviewedProfileReel
@@ -478,7 +531,6 @@ const content = (
                       : "border-[#111827]"
                     : "border-[#111827]"
                 }
-
                 ${getColor(profile?.first_name)}
               `}
             >
@@ -487,55 +539,71 @@ const content = (
           </button>
 
           {/* USER DETAILS */}
-          <div className="flex-1 text-center md:text-left md:pb-3">
+          <div className="flex-1 min-w-0 w-full text-center md:text-left md:pb-3">
 
             {/* NAME + UPGRADE BADGE */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+            <div className="flex items-center justify-center md:justify-start gap-2 min-w-0">
 
-              <h2 className="text-2xl sm:text-4xl font-bold text-white break-words">
-                {profile.first_name}{" "}
-                <span>
-                  {profile.last_name}
-                </span>
+              <h2 className="text-2xl sm:text-4xl font-bold text-white whitespace-nowrap truncate min-w-0">
+                {profile.first_name} {profile.last_name}
               </h2>
 
               {/* GREEN UPGRADE BADGE */}
-              <UpgradeBadge
-                upgrade={profile.upgrade}
-                size={25}
-              />
+              <div className="shrink-0">
+                <UpgradeBadge
+                  upgrade={profile.upgrade}
+                  size={25}
+                />
+              </div>
 
             </div>
 
-            {/* ROLE */}
-            <p className="text-sm sm:text-base text-gray-300 mt-2 capitalize font-medium">
-              {profile.role}
-            </p>
+            {/* ROLE + UPDATE CATEGORIES */}
+            <div className="flex flex-row flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 mt-3">
 
-            {/* PROFILE ID */}
-            <div className="inline-flex font-bold items-center mt-3 px-4 py-1 rounded-full bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
-              PROFILE ID: #{profile.id}
+              {/* USER ROLE */}
+              <div className="inline-flex capitalize font-bold items-center px-4 py-1 rounded-full bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
+                {profile.role}
+              </div>
+
+              {/* UPDATE CATEGORIES */}
+              {(profile.upgrade?.question_categories || []).map(
+                (category) => (
+                  <span
+                    key={category}
+                    className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-300 text-xs capitalize whitespace-nowrap"
+                  >
+                    {category.replaceAll("_", " ")}
+                  </span>
+                )
+              )}
+
             </div>
 
+            {/* EMAIL + PHONE */}
             <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-3">
 
               {visibility.email && (
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
-                  <Mail className="w-4 h-4 text-cyan-400" />
+
+                  <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
 
                   <span className="break-all">
                     {profile.email}
                   </span>
+
                 </div>
               )}
 
               {visibility.phone && (
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl text-sm text-gray-200 backdrop-blur-xl">
-                  <Phone className="w-4 h-4 text-green-400" />
+
+                  <Phone className="w-4 h-4 text-green-400 shrink-0" />
 
                   <span>
                     {profile.phone}
                   </span>
+
                 </div>
               )}
 
@@ -543,88 +611,156 @@ const content = (
 
             {/* UPGRADED PROFILE INFORMATION */}
             {profile.upgrade?.status === "approved" && (
-              <div className="mt-5">
+              <div className="mt-4">
 
                 {/* AUTHOR */}
-                {profile.upgrade.profile_type === "author" && (
-                  <div className="flex flex-col items-center md:items-start gap-2">
-
-                    <p className="text-green-400 font-semibold flex items-center gap-2">
-                      <BadgeCheck size={18} />
-                      Author Profile
+                {profile?.upgrade?.subscription_url && (
+                <div className="mt-4 p-4 rounded-xl bg-green-50 border border-green-200">
+                    <p className="text-sm font-bold text-green-700 mb-2">
+                        Author Profile Link
                     </p>
 
-                    {profile.upgrade.subscription_url && (
-                      <a
-                        href={profile.upgrade.subscription_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-green-500/30 text-green-300 hover:bg-green-500/10 text-sm font-medium"
-                      >
-                        Subscribe / Follow Updates
-                      </a>
-                    )}
+                    <div className="flex gap-2">
+                        <input
+                            value={profile.upgrade.subscription_url}
+                            readOnly
+                            className="min-w-0 flex-1 border rounded-lg p-2 text-sm bg-white"
+                        />
 
-                  </div>
-                )}
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                try {
+                                    await navigator.clipboard.writeText(
+                                        profile.upgrade.subscription_url
+                                    );
+                                    toast.success("Link copied successfully.");
+                                } catch {
+                                    toast.error("Unable to copy link.");
+                                }
+                            }}
+                            className="bg-green-600 text-white px-4 rounded-lg"
+                        >
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            )}
 
                 {/* MARKETER */}
-                {profile.upgrade.profile_type === "marketer" && (
-                  <div className="max-w-full">
+                {profile?.upgrade?.profile_type === "marketer" && (
+                <div className="max-w-full">
 
                     <p className="text-green-400 font-semibold flex items-center gap-2 mb-2">
-                      <BadgeCheck size={18} />
-                      Open for Business
+                        <BadgeCheck size={18} />
+                        Open for Business
                     </p>
 
-                    {profile.upgrade.business_description && (
-                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
-                        {profile.upgrade.business_description}
-                      </div>
-                    )}
+                      {profile.upgrade.business_description && (
+                          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
+                              {profile.upgrade.business_description}
+                          </div>
+                      )}
+
+                      <button
+                          type="button"
+                          onClick={async () => {
+                              try {
+                                  setLoadingMessageId(profile.id);
+
+                                  const { data } = await api.get(
+                                      `/api/chat/user/${profile.id}`
+                                  );
+
+                                  setActiveChat(data.chat);
+                                  setMessages(data.messages);
+
+                                  togglePopup();
+
+                              } catch (err) {
+                                  toast.error(
+                                      err.response?.data?.message || "Failed to open chat"
+                                  );
+                                  console.error(err);
+                              } finally {
+                                  setLoadingMessageId(null);
+                              }
+                          }}
+                          disabled={loadingMessageId === profile.id}
+                          className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold text-sm transition"
+                      >
+                          {loadingMessageId === profile.id ? (
+                              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                          ) : (
+                              <>
+                                  <MessageCircle size={18} />
+                                  Message
+                              </>
+                          )}
+                      </button>
 
                   </div>
-                )}
-
-                {/* QUESTION PAGE */}
-                {profile.upgrade?.status === "approved" &&
-                profile.upgrade?.profile_type === "question_page" && (
-                    <button
-                        onClick={() => setShowAskQuestionModal(true)}
-                        className="flex items-center justify-center gap-2 w-full mt-3 
-                        px-4 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white 
-                        font-semibold transition"
-                    >
-                        <MessageCircle size={18} />
-                        Ask a Question
-                    </button>
-                )}
+              )}
 
               </div>
             )}
 
-          </div>
+            {/* PROFILE ACTION BUTTONS */}
+            <div className="flex flex-row flex-wrap items-center justify-center md:justify-start gap-2 mt-4">
 
-          {/* EXISTING STUDENT FRIEND BUTTON */}
-          <div className="">
-            {showStudentFriend() && (
-              <StudentAdded
-                togglePopup={togglePopup}
-                setMessages={setMessages}
-                setActiveChat={setActiveChat}
-              />
-            )}
-          </div>
+              {/* ASK QUESTION */}
+              {profile.upgrade?.status === "approved" &&
+                profile.upgrade?.profile_type === "question_page" && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAskQuestionModal(true)}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold text-sm transition whitespace-nowrap"
+                  >
+                    <MessageCircle size={18} />
+                    Ask a Question
+                  </button>
+                )}
 
-          {/* EXISTING ADMIN FRIEND BUTTON */}
-          <div className="">
-            {showAdminFriend() && (
-              <AdminAdded
-                togglePopup={togglePopup}
-                setMessages={setMessages}
-                setActiveChat={setActiveChat}
-              />
-            )}
+              {/* STUDENT FRIEND BUTTON */}
+              {showStudentFriend() && (
+                <StudentAdded
+                  togglePopup={togglePopup}
+                  setMessages={setMessages}
+                  setActiveChat={setActiveChat}
+                />
+              )}
+
+              {/* ADMIN FRIEND BUTTON */}
+              {showAdminFriend() && (
+                <AdminAdded
+                  togglePopup={togglePopup}
+                  setMessages={setMessages}
+                  setActiveChat={setActiveChat}
+                />
+              )}
+
+                {!sameUser && isFollowingProfile && (
+                    <button
+                        type="button"
+                        onClick={handleUnfollow}
+                        disabled={unfollowLoading}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-semibold text-sm transition whitespace-nowrap"
+                    >
+                        {unfollowLoading ? (
+                            <>
+                                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                Unfollowing...
+                            </>
+                        ) : (
+                            <>
+                                <UserMinus size={18} />
+                                Unfollow
+                            </>
+                        )}
+                    </button>
+                )}
+            </div>
+
           </div>
 
         </div>

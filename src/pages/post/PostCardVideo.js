@@ -8,7 +8,10 @@ import { PostFeedIdModal } from "./PostFeedIdModal";
 import {toast} from "react-hot-toast"
 import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
-import { MessageCircle, X, Check, Send } from "lucide-react";
+import { MessageCircle, X, Check, Send,  BadgeCheck,
+    Globe,
+    BookOpen,
+    BriefcaseBusiness, } from "lucide-react";
 import { Repost } from "./Repost";
 import EmojiPicker from "emoji-picker-react";
 import ReelViewerModal from "../reel/ReelViewerModal";
@@ -41,7 +44,9 @@ video, setVideo
   const [sending, setSending] = useState(false);
   const [ showUsersPopup, setShowUsersPopup] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  
+  const [followedUserIds, setFollowedUserIds] = useState([]);
+  const [followIdsLoaded, setFollowIdsLoaded] = useState(false);
+  const [followLoadingId, setFollowLoadingId] = useState(null);
   const { user: authUser } = useAuth();
   
   
@@ -569,11 +574,42 @@ useEffect(() => {
       };
 
 
-const [followLoadingId, setFollowLoadingId] = useState(null);
-const [followedUserIds, setFollowedUserIds] = useState([]);
+const loggedInUser = authUser ?? user;
 
+useEffect(() => {
+    let cancelled = false;
 
- const loggedInUser = authUser ?? user;
+    const fetchFollowingIds = async () => {
+        try {
+            const response = await api.get("/api/following/ids", {
+                withCredentials: true,
+            });
+
+            if (!cancelled) {
+                setFollowedUserIds(
+                    (response.data.following_ids || []).map(Number)
+                );
+            }
+        } catch (error) {
+            console.error("Unable to load following users:", error);
+        } finally {
+            if (!cancelled) {
+                setFollowIdsLoaded(true);
+            }
+        }
+    };
+
+    if (loggedInUser?.id) {
+        fetchFollowingIds();
+    } else {
+        setFollowIdsLoaded(true);
+    }
+
+    return () => {
+        cancelled = true;
+    };
+}, [loggedInUser?.id]);
+
 
 
 const isUserInChatList = (targetUserId) => {
@@ -607,7 +643,6 @@ const isUserInChatList = (targetUserId) => {
 };
 
 
-    
 const targetUserId = Number(post?.user?.id);
 
 const sameUser =
@@ -623,89 +658,89 @@ const validRole = ["admin", "student"].includes(
 
 const targetInChat = isUserInChatList(targetUserId);
 
-const requestAlreadyExists = followedUserIds.some(
+const alreadyFollowing = followedUserIds.some(
     (id) => Number(id) === targetUserId
 );
 
-
 const showFollowButton = Boolean(
+    followIdsLoaded &&
     loggedInUser?.id &&
     post?.user?.id &&
     !sameUser &&
     sameRole &&
     validRole &&
     !targetInChat &&
-    !requestAlreadyExists
+    !alreadyFollowing
 );
- 
 
-
- 
 const handleFollow = async (targetUserId) => {
-    if (!targetUserId) {
-        return;
-    }
+    if (!targetUserId) return;
 
     const numericTargetId = Number(targetUserId);
 
-    // Prevent duplicate clicks
-    if (followLoadingId === numericTargetId) {
-        return;
-    }
+    if (followLoadingId === numericTargetId) return;
 
-    // Cannot follow yourself
-    if (numericTargetId === Number(loggedInUser?.id)) {
-        return;
-    }
+    if (numericTargetId === Number(loggedInUser?.id)) return;
 
     const role = String(loggedInUser?.role ?? "").toLowerCase();
     const targetRole = String(post?.user?.role ?? "").toLowerCase();
 
-    // Only same-role users can follow each other
     if (role !== targetRole) {
         toast.error("You can only follow users with the same role.");
         return;
     }
 
-    // Only admin/student can send these requests
     if (!["admin", "student"].includes(role)) {
         return;
     }
 
-    // Already in chat
     if (isUserInChatList(numericTargetId)) {
         toast.error("This user is already in your chat list.");
         return;
     }
 
+    if (
+        followedUserIds.some(
+            (id) => Number(id) === numericTargetId
+        )
+    ) {
+        return;
+    }
+
+    // Hide the button immediately.
+    setFollowedUserIds((prev) => [
+        ...prev,
+        numericTargetId,
+    ]);
+
+    setFollowLoadingId(numericTargetId);
+
     try {
-        setFollowLoadingId(numericTargetId);
+        const response = await api.post(
+            `/api/users/${numericTargetId}/follow`,
+            {},
+            {
+                withCredentials: true,
+            }
+        );
 
-        if (role === "admin") {
-            await api.post("/api/admin-friend/request", {
-                admin_id: numericTargetId,
-            });
-        } else {
-            await api.post("/api/student-friend/request", {
-                student_id: numericTargetId,
-            });
-        }
-
-        // Remove button immediately after successful request
-        setFollowedUserIds((prev) => [
-            ...prev,
-            numericTargetId,
-        ]);
-
-        toast.success("Follow request sent");
+        toast.success(
+            response.data.message || "You are now following this user."
+        );
 
     } catch (error) {
-        console.error("Failed to follow:", error);
+        console.error("Failed to follow user:", error);
+
+        // Restore the button if Laravel rejects the request.
+        setFollowedUserIds((prev) =>
+            prev.filter((id) => Number(id) !== numericTargetId)
+        );
 
         toast.error(
-            error?.response?.data?.message ||
-            "Unable to send follow request"
+            error.response?.data?.message ||
+            "Unable to follow this user."
         );
+
     } finally {
         setFollowLoadingId(null);
     }
@@ -736,6 +771,54 @@ const handleHidePost = async (postId) => {
 
         return false;
     }  
+};
+
+
+const UpgradeBadge = ({ upgrade }) => {
+    if (!upgrade || upgrade.status !== "approved") {
+        return null;
+    }
+
+    const profileType = upgrade.profile_type;
+
+    const types = {
+        question_page: {
+            label: "Page",
+            Icon: Globe,
+            color: "text-blue-500",
+        },
+        author: {
+            label: "Author",
+            Icon: BookOpen,
+            color: "text-purple-500",
+        },
+        marketer: {
+            label: "Marketer",
+            Icon: BriefcaseBusiness,
+            color: "text-green-500",
+        },
+    };
+
+    const item = types[profileType];
+
+    if (!item) return null;
+
+    const Icon = item.Icon;
+
+    return (
+        <span className={`inline-flex items-center gap-1 text-xs font-semibold ${item.color}`}>
+            <BadgeCheck
+                size={15}
+                className="text-green-500"
+                fill="currentColor"
+                stroke="white"
+            />
+
+            <Icon size={14} />
+
+            {item.label}
+        </span>
+    );
 };
 
 
@@ -791,9 +874,15 @@ const handleHidePost = async (postId) => {
               </button>
 
              <div>
-              <Link to={`/profile/${post.reposted_by.id}`}>
-              <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                    <Link to={`/profile/${post.reposted_by?.id}`}>
+                        <p className="font-semibold text-[var(--text-color)] text-sm">
+                            {post.reposted_by?.name}
+                        </p>
+                    </Link>
+
+                    <UpgradeBadge upgrade={post.reposted_by?.upgrade} />
+                </div>
               <p className="text-xs">{post.created_at}</p>
             </div>
              
@@ -908,9 +997,15 @@ const handleHidePost = async (postId) => {
             </p>
         </button>
             <div>
-              <Link to={`/profile/${post.user?.id}`}>
-              <p className="font-semibold text-sm">{post.user?.name}</p>
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                  <Link to={`/profile/${post.user?.id}`}>
+                      <p className="font-semibold text-sm">
+                          {post.user?.name}
+                      </p>
+                  </Link>
+
+                  <UpgradeBadge upgrade={post.user?.upgrade} />
+              </div>
               <p className="text-xs">{post.is_repost
                 ? post.original_created_at
                 : post.created_at}</p>

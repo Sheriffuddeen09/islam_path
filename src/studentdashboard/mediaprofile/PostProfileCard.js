@@ -308,7 +308,7 @@ const handleDelete = async (id) => {
 const media = Array.isArray(post.media) ? post.media : [];
 
   return (
-    <div className="bg-[var(----bg-color)] border lg:ml-52 border-green-200 rounded-lg max-w-xl text-[var(----text-color)] 
+    <div className="bg-[var(----bg-color)] border lg:ml-32 border-green-200 rounded-lg max-w-xl text-[var(----text-color)] 
     shadow p-4 mb-4 ">
     <div className="relative ">
        

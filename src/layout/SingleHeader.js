@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logos from './image/favicon.png'
-import {Bell, BookOpen, BookTemplateIcon, Briefcase,
+import {Bell, BookTemplateIcon, Briefcase,
     Search,
     PlusCircle,
     ClipboardList, EggFried, Home, LayoutDashboard, MessageCircleIcon, PlaySquare, User2, Workflow, 

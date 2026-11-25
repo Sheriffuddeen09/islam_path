@@ -107,7 +107,7 @@ export default function StudentAdded({togglePopup,  setActiveChat, setMessages})
 
 
       {status === "pending" && (
-        <button disabled className="bg-gray-500 px-5 py-2 rounded">
+        <button disabled className="bg-gray-500 text-sm text-gray-300 px-5 py-2 rounded-lg">
           ⏳ Pending
         </button>
       )}

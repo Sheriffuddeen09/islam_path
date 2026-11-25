@@ -66,7 +66,7 @@ import { decryptMessage } from "./utils/encryption";
    
 function App() {
 
-  // Post 
+  // Post  teacher
 
     const [image, setImage] = useState(null);
     const [video, setVideo] = useState(null);
@@ -188,8 +188,25 @@ function App() {
     const [notifications, setNotifications] = useState([]);
     const [loadingNotification, setLoadingNotification] = useState(false);
 
+    const [badges, setBadges] = useState({
+      total: 0,
+    });
+
     const { authUser } = useAuth();
  
+
+    
+    useEffect(() => {
+      api.get("/api/user/badges")
+        .then(res => {
+          setBadges(res.data);
+        })
+        .catch(() => {
+          setBadges({ total: 0});
+        });
+    }, []);
+    
+    
     const markReelViewed = async (reelId) => {
         try {
             await api.post(`/api/reels/${reelId}/view`);
@@ -687,6 +704,8 @@ const previousReel = () => {
 
   const fetchTeachers = async () => {
       try {
+        setLoadingTeacher(true);
+
         const res = await api.get("/api/teacher");
         const categoriesRes = await api.get("/api/coursetitles");
   
@@ -706,6 +725,12 @@ const previousReel = () => {
         setLoadingTeacher(false);
       }
     };
+
+    useEffect(() => {
+
+        fetchTeachers();
+      }, []);
+
 
    const fetchProposals = async () => {
 
@@ -1354,7 +1379,8 @@ const previousReel = () => {
         <ProtectedRoute>
           <GetMentor teachers={teachers} setTeachers={setTeachers} setRequestStatus={setRequestStatus}
           requestStatus={requestStatus} loading={loadingTeacher} coursetitles={coursetitles}
-          fetchTeachers={fetchTeachers} />
+          badges={badges} setBadges={setBadges}
+          />
         </ProtectedRoute>
       } />
 

@@ -6,7 +6,7 @@ import MentorCard from "./MentorCard";
 
 
 export default function GetMentor({teachers, setTeachers, requestStatus, setRequestStatus, loading,
-  coursetitles, fetchTeachers
+  coursetitles, setBadges, badges
 }) {
   const { user } = useAuth();
   const authReady = user !== null;
@@ -53,10 +53,7 @@ useEffect(() => {
 
 
   
-useEffect(() => {
 
-  fetchTeachers();
-}, []);
 
 
 
@@ -181,7 +178,7 @@ if (loading) {
             bg-[var(--bg-color)] text-[var(--text-color)] border border-t border-2 py-4 sm:px-3 px-4 z-40
             transform transition-transform duration-300
             overflow-y-auto overflow-x-hidden
-            scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100`}
+            scrollbar scrollbar-thumb-gray-50 scrollbar-track-transparent scrollbar-thin`}
         >
 
           <h3 className="text-xs text-blue-800 font-bold mb-5">FILTER TEACHER COURSE</h3>
@@ -193,8 +190,8 @@ if (loading) {
                 }}
               className={`cursor-pointer p-2 text-sm rounded-lg mb-5 ${
                 !selectedCoursetitles
-                  ? "bg-blue-500 hover:bg-gray-100 text-white hover:text-black font-semibold"
-                  : "hover:bg-gray-200 bg-transparent font-semibold text-[var(--text-color)]"
+                  ? "bg-blue-500 text-white hover:text-white hover:bg-blue-400 font-semibold"
+                  : "hover:border border-blue-300 bg-transparent text-[var(--text-color)]"
               }`}
             >
               All Teacher
@@ -208,7 +205,7 @@ if (loading) {
                 }}
                 className={`cursor-pointer px-2 py-2 -my-3 space-y-0 rounded-lg capitalize ${
                   selectedCoursetitles === course.id ? "bg-blue-500 text-white"
-                  : "bg-gray-200 bg-transparent text-[var(--text-color)]"
+                  : "hover:border border-blue-300 bg-transparent text-[var(--text-color)]"
                 }`}
               >
                 {course.name}
@@ -289,7 +286,7 @@ if (loading) {
                  setNotification={setNotification} sendLiveRequest={sendLiveRequest}
                   user={user} authReady={authReady} teacherReviews={teacherReviews}
                   reviewCount={reviewCount} reviewLoading={reviewLoading}
-                  averageRating={averageRating}
+                  averageRating={averageRating} badges={badges} setBadges={setBadges}
                  />
                 </div>
               </li>

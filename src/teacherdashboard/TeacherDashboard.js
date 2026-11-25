@@ -42,6 +42,7 @@ import StudentRequest from "../studentdashboard/StudentRequest";
 import AcceptedTeacher from "../pages/mentor/AcceptedTeacher";
 import AssignmentLibrary from "../assignment/AssignmentLibrary";
 import ExamLibrary from "../exam/ExamLibrary";
+import MyQuestionPage from "../components/MyQuestionPage";
 
 export default function TeacherDashboardLayout({onProfileCompleted, chats, handlePostCreated, user, setUser, teachers, setTeachers,
         image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
@@ -384,7 +385,7 @@ useEffect(() => {
   },
   {
     id: 19,
-    label: "My Product Reviews",
+    label: "Product Reviews",
     icon: MessageSquare,
   },
    { id: 20, label: "Product Order", icon: ShoppingCart },
@@ -405,7 +406,7 @@ useEffect(() => {
   },
   {
     id: 36,
-    label: "My Product Reviews",
+    label: "Product Reviews",
     icon: MessageSquare,
   },
   { id: 37, label: "Advertisement Status", icon: Projector},
@@ -422,7 +423,7 @@ useEffect(() => {
               },
               {
                 id: 40,
-                label: "Teacher Proposal Request",
+                label: "Proposal Request",
                 icon: Proportions,
                 proposalBadge: true,
               },
@@ -439,22 +440,22 @@ useEffect(() => {
               },
               {
                 id: 43,
-                label: "View Continue Assignment",
+                label: "Continue Assignment",
                 icon: ClipboardList,
               },
               {
                 id: 44,
-                label: "View Continue Examination",
+                label: "Continue Examination",
                 icon: FileText,
               },
               {
                 id: 45,
-                label: "View Assignment Result",
+                label: "Assignment Result",
                 icon: CheckCircle,
               },
               {
                 id: 46,
-                label: "View Examination Result",
+                label: "Examination Result",
                 icon: BarChart3,
               },
 
@@ -711,8 +712,7 @@ const upgradeRequiredMenuIds = [
                     Live Video
                   </li>
 
-                    {authUser?.upgrade?.status === "approved" &&
-              authUser?.upgrade?.profile_type === "question_page" && (
+                    {authUser?.upgrade?.status === "approved" &&(
                   <li
                 onClick={() => {handleVisible(51);  handleOpenModel(); }}
                 className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
@@ -721,7 +721,7 @@ const upgradeRequiredMenuIds = [
                 : "bg-transparent hover:bg-gray-500 hover:text-gray-100"
                 }`}
               >
-                      <e size={18} />
+                      <MessageCircle size={18} />
                       Manage Questions
                   </li>
               )}
@@ -894,7 +894,7 @@ const upgradeRequiredMenuIds = [
                           {/* PRODUCT VISIBILITY - DEFAULT MENU */}
                           {item.id === 35 && (
                               <Link
-                                  className="-translate-x-1"
+                                  className="text-[var(--text-color)] relative right-5"
                                   to="/dashboard/product-visibility"
                                   onClick={(e) => e.stopPropagation()}
                               >
@@ -905,7 +905,7 @@ const upgradeRequiredMenuIds = [
                           {/* PRODUCT VISIBILITY - TEACHER MENU */}
                           {item.id === 18 && !requiresUpgrade && (
                               <Link
-                                  className="-translate-x-1"
+                                  className="text-[var(--text-color)] relative right-5"
                                   to="/dashboard/product-visibility"
                                   onClick={(e) => e.stopPropagation()}
                               >
@@ -1068,8 +1068,7 @@ const upgradeRequiredMenuIds = [
                     Live Video
                   </li>
 
-                    {authUser?.upgrade?.status === "approved" &&
-              authUser?.upgrade?.profile_type === "question_page" && (
+                    {authUser?.upgrade?.status === "approved" && (
                   <li
                 onClick={() => {handleVisible(51);  handleOpenModel(); }}
                 className={`flex items-center gap-2 p-2 rounded-lg text-sm font-semibold cursor-pointer ${
@@ -1251,7 +1250,7 @@ const upgradeRequiredMenuIds = [
                           {/* PRODUCT VISIBILITY - DEFAULT MENU */}
                           {item.id === 35 && (
                               <Link
-                                  className="-translate-x-1"
+                                  className="text-[var(--text-color)] relative right-12"
                                   to="/dashboard/product-visibility"
                                   onClick={(e) => e.stopPropagation()}
                               >
@@ -1262,7 +1261,7 @@ const upgradeRequiredMenuIds = [
                           {/* PRODUCT VISIBILITY - TEACHER MENU */}
                           {item.id === 18 && !requiresUpgrade && (
                               <Link
-                                  className="-translate-x-1"
+                                  className="text-[var(--text-color)] relative right-12"
                                   to="/dashboard/product-visibility"
                                   onClick={(e) => e.stopPropagation()}
                               >
@@ -1310,6 +1309,12 @@ const upgradeRequiredMenuIds = [
           handleUpdate={handleUpdate} 
         />
         </div>
+
+        <div className={`${visible === 51 ? 'block' : 'hidden'}`}>
+        <MyQuestionPage />
+        </div>
+
+        
 
         <div className={`${visible === 5 ? 'block' : 'hidden'}`}>
         <ProposalList badges={badges} setBadges={setBadges} 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { X, Send, MessageCircle, Loader2 } from "lucide-react";
+import api from "../Api/axios";
 
 const AskQuestionModal = ({
     owner,
@@ -28,7 +28,7 @@ const AskQuestionModal = ({
         setLoading(true);
 
         try {
-            const response = await axios.post(
+            const response = await api.post(
                 "/api/upgrade-questions",
                 {
                     owner_id: owner.id,
@@ -57,43 +57,46 @@ const AskQuestionModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-3">
 
-            <div className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-lg max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
 
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
+            {/* Header - Fixed */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700 shrink-0">
 
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
-                            <MessageCircle
-                                className="text-green-600"
-                                size={23}
-                            />
-                        </div>
-
-                        <div>
-                            <h2 className="font-bold text-lg text-gray-900 dark:text-white">
-                                Ask a Question
-                            </h2>
-
-                            <p className="text-sm text-gray-500">
-                                Ask {owner.first_name}{" "}
-                                {owner.last_name}
-                            </p>
-                        </div>
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 shrink-0 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                        <MessageCircle
+                            className="text-green-600"
+                            size={23}
+                        />
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                    >
-                        <X size={22} />
-                    </button>
+                    <div className="min-w-0">
+                        <h2 className="font-bold text-lg text-gray-900 dark:text-white">
+                            Ask a Question
+                        </h2>
+
+                        <p className="text-sm text-gray-500 truncate">
+                            Ask {owner.first_name}{" "}
+                            {owner.last_name}
+                        </p>
+                    </div>
                 </div>
 
-                {/* Form */}
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="p-2 shrink-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                    <X size={22} />
+                </button>
+            </div>
+
+            {/* Scrollable Form */}
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar scrollbar-thumb-gray-200 
+        scrollbar-track-transparent scrollbar-thin ">
+
                 <form
                     onSubmit={handleSubmit}
                     className="p-5 space-y-5"
@@ -158,7 +161,7 @@ const AskQuestionModal = ({
                                     size={18}
                                     className="animate-spin"
                                 />
-                                Sending...
+                                Sending.
                             </>
                         ) : (
                             <>
@@ -167,10 +170,13 @@ const AskQuestionModal = ({
                             </>
                         )}
                     </button>
+
                 </form>
             </div>
         </div>
-    );
+    </div>
+);
+
 };
 
 export default AskQuestionModal;

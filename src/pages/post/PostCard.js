@@ -9,7 +9,10 @@ import { PostFeedIdModal } from "./PostFeedIdModal";
 import {toast} from "react-hot-toast"
 import PostVideoCard from "./PostVideoCard";
 import { FaFacebook, FaWhatsapp, FaTwitter, FaTelegram } from "react-icons/fa";
-import { MessageCircle, X, Check, Send } from "lucide-react";
+import { MessageCircle, X, Check, Send,  BadgeCheck,
+    Globe,
+    BookOpen,
+    BriefcaseBusiness, } from "lucide-react";
 import { Repost } from "./Repost";
 import EmojiPicker from "emoji-picker-react";
 import LiveViewer from "../../live/LiveViewer";
@@ -37,7 +40,9 @@ openUserReels, video, setVideo }) {
   const [sending, setSending] = useState(false);
   const [currentPost, setCurrentPost] = useState(post);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
+  const [followedUserIds, setFollowedUserIds] = useState([]);
+  const [followIdsLoaded, setFollowIdsLoaded] = useState(false);
+  const [followLoadingId, setFollowLoadingId] = useState(null);
   const postRef = useRef();
   
   const { user: authUser } = useAuth();
@@ -541,34 +546,40 @@ const handleLiveEnded = async (endedPost) => {
     poll();
 }
 
-const [followLoadingId, setFollowLoadingId] = useState(null);
-const [followedUserIds, setFollowedUserIds] = useState([]);
-
-
- const loggedInUser = authUser ?? user;
- 
+const loggedInUser = authUser ?? user;
 
 useEffect(() => {
-    if (!loggedInUser?.id) return;
+    let cancelled = false;
 
-    const fetchPendingFriendRequests = async () => {
+    const fetchFollowingIds = async () => {
         try {
-            const res = await api.get(
-                "/api/friend-requests/pending-users"
-            );
+            const response = await api.get("/api/following/ids", {
+                withCredentials: true,
+            });
 
-            setFollowedUserIds(
-                (res.data.user_ids || []).map(Number)
-            );
+            if (!cancelled) {
+                setFollowedUserIds(
+                    (response.data.following_ids || []).map(Number)
+                );
+            }
         } catch (error) {
-            console.error(
-                "Failed to load pending friend requests:",
-                error
-            );
+            console.error("Unable to load following users:", error);
+        } finally {
+            if (!cancelled) {
+                setFollowIdsLoaded(true);
+            }
         }
     };
 
-    fetchPendingFriendRequests();
+    if (loggedInUser?.id) {
+        fetchFollowingIds();
+    } else {
+        setFollowIdsLoaded(true);
+    }
+
+    return () => {
+        cancelled = true;
+    };
 }, [loggedInUser?.id]);
 
 
@@ -604,7 +615,6 @@ const isUserInChatList = (targetUserId) => {
 };
 
 
-    
 const targetUserId = Number(post?.user?.id);
 
 const sameUser =
@@ -620,92 +630,93 @@ const validRole = ["admin", "student"].includes(
 
 const targetInChat = isUserInChatList(targetUserId);
 
-const requestAlreadyExists = followedUserIds.some(
+const alreadyFollowing = followedUserIds.some(
     (id) => Number(id) === targetUserId
 );
 
-
 const showFollowButton = Boolean(
+    followIdsLoaded &&
     loggedInUser?.id &&
     post?.user?.id &&
     !sameUser &&
     sameRole &&
     validRole &&
     !targetInChat &&
-    !requestAlreadyExists
+    !alreadyFollowing
 );
- 
- const handleFollow = async (targetUserId) => {
-    if (!targetUserId) {
-        return;
-    }
+
+const handleFollow = async (targetUserId) => {
+    if (!targetUserId) return;
 
     const numericTargetId = Number(targetUserId);
 
-    // Prevent duplicate clicks
-    if (followLoadingId === numericTargetId) {
-        return;
-    }
+    if (followLoadingId === numericTargetId) return;
 
-    // Cannot follow yourself
-    if (numericTargetId === Number(loggedInUser?.id)) {
-        return;
-    }
+    if (numericTargetId === Number(loggedInUser?.id)) return;
 
     const role = String(loggedInUser?.role ?? "").toLowerCase();
     const targetRole = String(post?.user?.role ?? "").toLowerCase();
 
-    // Only same-role users can follow each other
     if (role !== targetRole) {
         toast.error("You can only follow users with the same role.");
         return;
     }
 
-    // Only admin/student can send these requests
     if (!["admin", "student"].includes(role)) {
         return;
     }
 
-    // Already in chat
     if (isUserInChatList(numericTargetId)) {
         toast.error("This user is already in your chat list.");
         return;
     }
 
+    if (
+        followedUserIds.some(
+            (id) => Number(id) === numericTargetId
+        )
+    ) {
+        return;
+    }
+
+    // Hide the button immediately.
+    setFollowedUserIds((prev) => [
+        ...prev,
+        numericTargetId,
+    ]);
+
+    setFollowLoadingId(numericTargetId);
+
     try {
-        setFollowLoadingId(numericTargetId);
+        const response = await api.post(
+            `/api/users/${numericTargetId}/follow`,
+            {},
+            {
+                withCredentials: true,
+            }
+        );
 
-        if (role === "admin") {
-            await api.post("/api/admin-friend/request", {
-                admin_id: numericTargetId,
-            });
-        } else {
-            await api.post("/api/student-friend/request", {
-                student_id: numericTargetId,
-            });
-        }
-
-        // Remove button immediately after successful request
-        setFollowedUserIds((prev) => [
-            ...prev,
-            numericTargetId,
-        ]);
-
-        toast.success("Follow request sent");
+        toast.success(
+            response.data.message || "You are now following this user."
+        );
 
     } catch (error) {
-        console.error("Failed to follow:", error);
+        console.error("Failed to follow user:", error);
+
+        // Restore the button if Laravel rejects the request.
+        setFollowedUserIds((prev) =>
+            prev.filter((id) => Number(id) !== numericTargetId)
+        );
 
         toast.error(
-            error?.response?.data?.message ||
-            "Unable to send follow request"
+            error.response?.data?.message ||
+            "Unable to follow this user."
         );
+
     } finally {
         setFollowLoadingId(null);
     }
 };
-
-
 
 const handleHidePost = async (postId) => {
     
@@ -732,6 +743,55 @@ const handleHidePost = async (postId) => {
         return false;
     }  
 };
+
+
+const UpgradeBadge = ({ upgrade }) => {
+    if (!upgrade || upgrade.status !== "approved") {
+        return null;
+    }
+
+    const profileType = upgrade.profile_type;
+
+    const types = {
+        question_page: {
+            label: "Page",
+            Icon: Globe,
+            color: "text-blue-500",
+        },
+        author: {
+            label: "Author",
+            Icon: BookOpen,
+            color: "text-purple-500",
+        },
+        marketer: {
+            label: "Marketer",
+            Icon: BriefcaseBusiness,
+            color: "text-green-500",
+        },
+    };
+
+    const item = types[profileType];
+
+    if (!item) return null;
+
+    const Icon = item.Icon;
+
+    return (
+        <span className={`inline-flex items-center gap-1 text-xs font-semibold ${item.color}`}>
+            <BadgeCheck
+                size={15}
+                className="text-green-500"
+                fill="currentColor"
+                stroke="white"
+            />
+
+            <Icon size={14} />
+
+            {item.label}
+        </span>
+    );
+};
+
 
   return (
     <div
@@ -786,9 +846,15 @@ const handleHidePost = async (postId) => {
           </p>
       </button>
          <div>
-          <Link to={`/profile/${post.reposted_by.id}`}>
-          <p className="font-semibold text-[var(--text-color)] text-sm">{post.reposted_by?.name}</p>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+              <Link to={`/profile/${post.reposted_by?.id}`}>
+                  <p className="font-semibold text-[var(--text-color)] text-sm">
+                      {post.reposted_by?.name}
+                  </p>
+              </Link>
+
+              <UpgradeBadge upgrade={post.reposted_by?.upgrade} />
+          </div>
           <div>
             <p className="text-xs">{post.created_at}</p>
 
@@ -904,9 +970,15 @@ const handleHidePost = async (postId) => {
             </p>
         </button>
         <div>
-          <Link to={`/profile/${post.user?.id}`}>
-          <p className="font-semibold text-sm">{post.user?.name}</p>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to={`/profile/${post.user?.id}`}>
+                <p className="font-semibold text-sm">
+                    {post.user?.name}
+                </p>
+            </Link>
+
+            <UpgradeBadge upgrade={post.user?.upgrade} />
+        </div>
           <div className="inline-flex gap-3 items-center">
 
               <p className="text-xs">
@@ -1004,57 +1076,108 @@ const handleHidePost = async (postId) => {
         </div>
     }
       </div>
-      {/* TEXT */}
-     <div
-  className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[var(--text-color)] text-[14px] ">
-  {/* TEXT */}
+     
+    
+        <div className="bg-[var(--bg-color)] text-[var(--text-color)] p-4 text-[14px]">
 
-        {post.content && (
-         <div
-        className="
-            bg-[var(--bg-color)]
-            text-[var(--text-color)]
-            w-full
-            min-w-0
-            text-[12px]
-            break-words
-            [overflow-wrap:anywhere]
-        "
-    >
-          <p
-            className="
-              bg-[var(--bg-color)]
-              text-[var(--text-color)]
-              w-full
-              min-w-0
-              text-[12px]
-              break-words
-              [overflow-wrap:anywhere]
-            "
-          >
-            {displayedText}
+            {/* NORMAL POST CONTENT */}
+            {post.content && (
+                <div
+                    className="
+                        bg-[var(--bg-color)]
+                        text-[var(--text-color)]
+                        w-full
+                        min-w-0
+                        text-[12px]
+                        break-words
+                        [overflow-wrap:anywhere]
+                    "
+                >
+                    <p
+                        className="
+                            bg-[var(--bg-color)]
+                            text-[var(--text-color)]
+                            w-full
+                            min-w-0
+                            text-[12px]
+                            break-words
+                            [overflow-wrap:anywhere]
+                        "
+                    >
+                        {displayedText}
 
-            {/* SEE MORE */}
-            {shouldShowMore && !showFullText && (
-              <button
-                type="button"
-                onClick={() => setShowFullText(true)}
-                className="
-                  ml-1
-                  text-blue-600
-                  font-bold
-                  hover:text-blue-800
-                  hover:underline
-                "
-              >
-                See more
-              </button>
+                        {/* SEE MORE */}
+                        {shouldShowMore && !showFullText && (
+                            <button
+                                type="button"
+                                onClick={() => setShowFullText(true)}
+                                className="
+                                    ml-1
+                                    text-blue-600
+                                    font-bold
+                                    hover:text-blue-800
+                                    hover:underline
+                                "
+                            >
+                                See more
+                            </button>
+                        )}
+                    </p>
+                </div>
             )}
-          </p>
-        </div>
-      )}
 
-</div>
+            {/* QUESTION PAGE APPROVED QUESTIONS AND ANSWERS */}
+            {post.user?.upgrade?.profile_type === "question_page" &&
+                post.user?.upgrade?.status === "approved" &&
+                post.user?.approved_questions?.length > 0 && (
+
+                    <div className="mt-4 space-y-3">
+
+                        <div className="flex items-center gap-2 border-b border-gray-500/30 pb-2">
+                            <Globe size={18} className="text-blue-500" />
+
+                            <h3 className="font-bold text-sm">
+                                Questions and Answers
+                            </h3>
+                        </div>
+
+                        {post.user.approved_questions.map((item) => (
+                            <div
+                                key={item.id}
+                                className="rounded-xl border border-gray-500/20 bg-white/5 p-3"
+                            >
+                                {item.category && (
+                                    <p className="text-xs text-blue-500 font-semibold mb-2">
+                                        {item.category}
+                                    </p>
+                                )}
+
+                                <div className="mb-3">
+                                    <p className="text-xs font-bold text-gray-500 mb-1">
+                                        QUESTION
+                                    </p>
+
+                                    <p className="text-sm font-semibold break-words">
+                                        {item.question}
+                                    </p>
+                                </div>
+
+                                <div className="border-t border-gray-500/20 pt-3">
+                                    <p className="text-xs font-bold text-green-500 mb-1">
+                                        ANSWER
+                                    </p>
+
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                                        {item.answer}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+
+                    </div>
+                )}
+
+        </div>
 
       {/* IMAGES */}
       <div className="px-1 -mt-4">

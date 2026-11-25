@@ -6,18 +6,12 @@ import { Link } from "react-router-dom";
 
 export default function MentorCard({filteredCourse, loadingId, requestStatus, sendLiveRequest, setLoadingId, setNotification
   , selectedTeacher, setSelectedTeacher, t, notification, setRequestStatus, user, authReady,
-  averageRating, reviewCount, reviewLoading, teacherReviews }) {
+  averageRating, reviewCount, reviewLoading, teacherReviews, badges, setBadges }) {
  
 
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [adsWatched, setAdsWatched] = useState(0);
   const [loadingUnlock, setLoadingUnlock] = useState(false);
-
-  
- const [badges, setBadges] = useState({
-  total: 0,
-});
-
 
 
     const getColor = (name = "") => {
@@ -61,16 +55,6 @@ export default function MentorCard({filteredCourse, loadingId, requestStatus, se
     };
 
 
-useEffect(() => {
-  api.get("/api/user/badges")
-    .then(res => {
-      setBadges(res.data);
-    })
-    .catch(() => {
-      setBadges({ total: 0});
-    });
-}, []);
-
  
     const isOther = t.coursetitle_name?.toLowerCase() === "other";
     const displayTitle = isOther ? "Other" : t.coursetitle_name;
@@ -99,10 +83,6 @@ const handleUnlock = async (teacherId) => {
   if (!authReady) return;
   setLoadingId(teacherId);
 
-  if (user.role === "admin") {
-    setNotification({ type: "error", text: "Admins cannot send requests" });
-    return;
-  }
 
   if (badges.total < 20) return;
 
@@ -135,7 +115,7 @@ const handleWatchAd = async () => {
   try {
     const res = await api.post("/api/student/watch-ad");
 
-    // backend should return new total
+    // backend admin should return new total
     setBadges({ total: res.data.total });
     setAdsWatched(prev => prev + 1);
   } catch (e) {
@@ -572,7 +552,7 @@ const handleWatchAd = async () => {
       </button>
       <div className="flex flex-col mb-10 gap-2">
         <Lock className="lock  p-1 w-8 h-8 mx-auto border-2 border-black rounded-full"/>
-      <p className="font-bold text-lg ">Badges Required <b>20</b> 🏅</p>
+      <p className="font-bold text-lg ">Badges Required <b>{badges.total}</b> 🏅</p>
       </div>
       <button
         disabled={badges.total < 20 || loadingUnlock}

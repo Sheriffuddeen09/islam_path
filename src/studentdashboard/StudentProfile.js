@@ -1,7 +1,6 @@
 import api from "../Api/axios";
 import { Mail, Phone } from "lucide-react";
-import Performance from "./Performance";
-import toast, { Toaster } from "react-hot-toast";
+import Performance from "./Performance"; 
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import StudentProfileFriendDashboard from "./StudentProfileFriendDashboard";
@@ -12,8 +11,9 @@ import MyImages from "./mediaprofile/ImageProfile";
 import BiodataDashboard from "./BioDataDashboard";
 import ProfileUpgradeModal from "../components/ProfileUpgradeModal";
 import { useAuth } from "../layout/AuthProvider";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Copy } from "lucide-react";
 import UpgradeBadge from "../components/UpgradeBadge";
+import { toast } from "react-toastify";
 
 export default function StudentProfilePage({togglePopup,  image, setImage, postComments, setPostComments, loading, setLoading, showUsersPopup, setShowUsersPopup,
         newComment, setNewComment, showEmoji, setShowEmoji, emojiList, setEmojiList, chats,  setMessages, setActiveChat,commentsByPost, setCommentsByPost,
@@ -37,7 +37,7 @@ export default function StudentProfilePage({togglePopup,  image, setImage, postC
   exam: 0,
 });
 
-    const { authUser } = useAuth();
+    const { authUser, setAuthUser } = useAuth();
 
 
 
@@ -264,6 +264,7 @@ const getInitial = (name) => {
   return name.charAt(0).toUpperCase();
 };
 
+
 const content = (
   <div className="max-w-6xl lg:ml-64 mx-auto px-4 py-4">
 
@@ -308,22 +309,19 @@ const content = (
 
             </div>
 
-            {/* ROLE */}
-            <p className="text-sm sm:text-base text-gray-300 mt-2 capitalize font-medium">
-              {profile.role}
-            </p>
-
+            
             {/* PROFILE ID */}
-            <div className="inline-flex font-bold items-center mt-3 px-4 py-1 rounded-full bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
-              PROFILE ID: #{profile.id}
+            <div className='flex items-center gap-2 sm:gap-5 mt-2 '>
+            <div className="inline-flex capitalize font-bold items-center  px-4 py-1.5 rounded-xl bg-white/50 border border-white/10 text-xs sm:text-sm text-white">
+              {profile.role} ID: #{profile.id}
             </div>
 
             {/* UPGRADE PROFILE BUTTON */}
-            <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
+            <div className=" flex flex-wrap justify-center md:justify-start gap-3">
 
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${
+                className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-lg ${
                   profile.upgrade?.status === "approved"
                     ? "bg-green-600 hover:bg-green-700 text-white"
                     : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
@@ -336,6 +334,7 @@ const content = (
                   : "Upgrade Profile"}
               </button>
 
+            </div>
             </div>
 
             {/* CONTACT INFO */}
@@ -368,28 +367,38 @@ const content = (
               <div className="mt-5">
 
                 {/* AUTHOR */}
-                {profile.upgrade.profile_type === "author" && (
-                  <div className="inline-flex flex-col items-center md:items-start gap-2">
-
-                    <p className="text-green-400 font-semibold flex items-center gap-2">
-                      <BadgeCheck size={18} />
-                      Author Profile
-                    </p>
-
-                    {profile.upgrade.subscription_url && (
-                      <a
-                        href={profile.upgrade.subscription_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-green-500/30 text-green-300 hover:bg-green-500/10 text-sm font-medium"
-                      >
-                        Subscribe / Follow Updates
-                      </a>
-                    )}
-
-                  </div>
-                )}
-
+                             {profile?.upgrade?.subscription_url && (
+                               <div className="mt-4 p-4 rounded-xl bg-green-50 border border-green-200">
+                                   <p className="text-sm font-bold text-green-700 mb-2">
+                                       Author Profile Link
+                                   </p>
+               
+                                   <div className="flex gap-2">
+                                       <input
+                                           value={profile.upgrade.subscription_url}
+                                           readOnly
+                                           className="min-w-0 flex-1 border rounded-lg p-2 text-sm bg-white"
+                                       />
+               
+                                       <button
+                                           type="button"
+                                           onClick={async () => {
+                                               try {
+                                                   await navigator.clipboard.writeText(
+                                                       profile.upgrade.subscription_url
+                                                   );
+                                                   toast.success("Link copied successfully.");
+                                               } catch {
+                                                   toast.error("Unable to copy link.");
+                                               }
+                                           }}
+                                           className="bg-green-600 text-white px-4 rounded-lg"
+                                       >
+                                           <Copy size={18}/>
+                                       </button>
+                                   </div>
+                               </div>
+                           )}
                 {/* MARKETER */}
                 {profile.upgrade.profile_type === "marketer" && (
                   <div className="max-w-2xl">
@@ -440,7 +449,7 @@ const content = (
 
           {/* EXISTING BADGE */}
           {badge && (
-            <div className="md:pb-3 flex justify-center md:justify-end">
+            <div className="md:pb-3 flex justify-end -translate-y-4 sm:translate-y-0 -mb-4 sm:mb-0 md:justify-end">
               {badge}
             </div>
           )}
@@ -453,12 +462,7 @@ const content = (
 
     </div>
 
-    {/* UPGRADE PROFILE MODAL */}
-    <ProfileUpgradeModal
-      isOpen={showUpgradeModal}
-      onClose={() => setShowUpgradeModal(false)}
-      currentUser={profile}
-    />
+   
 
   </div>
 );
@@ -467,8 +471,7 @@ const content = (
 
   return(
     <div>
-        
-        <Toaster position="top-right" />
+         
         {headerDashboard}
         {content}
         <BiodataDashboard profile={profile} visibility={visibility}
@@ -477,11 +480,18 @@ const content = (
          setMessages={setMessages} />
         {profile_content}
 
-      <ProfileUpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        currentUser={authUser}
-      />
+      {showUpgradeModal && (
+        <ProfileUpgradeModal
+          onClose={() => setShowUpgradeModal(false)}
+          currentUser={authUser}
+          onUpgradeSaved={(updatedUser) => {
+            setAuthUser((prev) => ({
+              ...prev,
+              ...updatedUser,
+            }));
+          }}
+        />
+      )}
     </div>
   )
 }

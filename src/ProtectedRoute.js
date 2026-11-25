@@ -128,14 +128,6 @@ export default function ProtectedRoute({
     roles = [allowedRoles];
   }
 
-  console.log(
-    "PROTECTED ROUTE:",
-    {
-      allowedRoles,
-      roles,
-      userRole: user?.role,
-    }
-  );
  
   if (
     roles.length > 0 &&

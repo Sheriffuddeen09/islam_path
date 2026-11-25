@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../Api/axios";
 import toast from "react-hot-toast";
 import {
   X,
@@ -51,7 +51,7 @@ export default function ProfileUpgradeModal({
   const [generatingLink, setGeneratingLink] = useState(false);
 
   const [badgeBalance, setBadgeBalance] = useState(0);
-  const [upgradeCost, setUpgradeCost] = useState(20);
+  const [upgradeCost, setUpgradeCost] = useState(50);
 
   const [hasUpgrade, setHasUpgrade] = useState(false);
   const [upgrade, setUpgrade] = useState(null);
@@ -81,7 +81,7 @@ export default function ProfileUpgradeModal({
     try {
       setLoading(true);
 
-      const response = await axios.get(
+      const response = await api.get(
         "/api/profile-upgrade",
         {
           withCredentials: true,
@@ -96,7 +96,7 @@ export default function ProfileUpgradeModal({
 
       setBadgeBalance(Number(data.badge_balance || 0));
 
-      setUpgradeCost(Number(data.upgrade_cost || 20));
+      setUpgradeCost(Number(data.upgrade_cost || 50));
 
       setAvailableCategories(data.categories || []);
 
@@ -147,113 +147,106 @@ export default function ProfileUpgradeModal({
   };
 
   const handleSave = async () => {
-    if (!upgradeName.trim()) {
-      toast.error("Enter your upgrade name.");
-      return;
-    }
+  if (!upgradeName.trim()) {
+    toast.error("Enter your upgrade name.");
+    return;
+  }
 
-    if (
-      profileType === "question_page" &&
-      categories.length === 0
-    ) {
-      toast.error("Select at least one question category.");
-      return;
-    }
+  if (
+    profileType === "question_page" &&
+    categories.length === 0
+  ) {
+    toast.error("Select at least one question category.");
+    return;
+  }
 
-    if (
-      !hasUpgrade &&
-      badgeBalance < upgradeCost
-    ) {
-      toast.error(
-        `You need ${upgradeCost} badges to upgrade.`
-      );
-      return;
-    }
+  if (!hasUpgrade && badgeBalance < upgradeCost) {
+    toast.error(`You need ${upgradeCost} badges to upgrade.`);
+    return;
+  }
 
-    try {
-      setSaving(true);
+  try {
+    setSaving(true);
 
-      const response = await axios.post(
-        "/api/profile-upgrade",
-        {
-          upgrade_name: upgradeName.trim(),
-          profile_type: profileType,
-          tag_enabled: tagEnabled,
-          question_categories: categories,
-          business_description:
-            profileType === "marketer"
-              ? businessDescription
-              : null,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+    const response = await api.post(
+      "/api/profile-upgrade",
+      {
+        upgrade_name: upgradeName.trim(),
+        profile_type: profileType,
+        tag_enabled: tagEnabled,
+        question_categories: categories,
+        business_description:
+          profileType === "marketer"
+            ? businessDescription
+            : null,
+      },
+      { withCredentials: true }
+    );
 
-      setUpgrade(response.data.upgrade);
+    setUpgrade(response.data.upgrade);
+    setHasUpgrade(true);
 
-      setHasUpgrade(true);
+    setBadgeBalance(Number(response.data.badge_balance));
 
-      setBadgeBalance(
-        Number(response.data.badge_balance)
-      );
+    setSubscriptionUrl(
+      response.data.upgrade?.subscription_url || ""
+    );
 
-      setSubscriptionUrl(
-        response.data.upgrade?.subscription_url || ""
-      );
+    onUpgradeSaved?.(response.data.user);
 
-      /*
-       * Update the current user in your React context
-       * if the parent provides this callback.
-       */
-      onUpgradeSaved?.(response.data.user);
+    toast.success(response.data.message);
 
-      toast.success(response.data.message);
-    } catch (error) {
-      console.error(error);
+    // Close only after successful API response
+    onClose();
 
-      toast.error(
-        error.response?.data?.message ||
-        "Unable to save profile upgrade."
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
+  } catch (error) {
+    console.error("Profile upgrade error:", error);
+
+    toast.error(
+      error.response?.data?.message ||
+      "Unable to save profile upgrade."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
+
+console.log("Upgrade successful. Closing modal...");
+console.log("onClose function:", onClose);
+
+   
 
   const handleGenerateLink = async () => {
-    if (!hasUpgrade || upgrade?.profile_type !== "author") {
-      toast.error("Save your profile as Author first.");
-      return;
-    }
-
     try {
-      setGeneratingLink(true);
+        setGeneratingLink(true);
 
-      const response = await axios.post(
-        "/api/profile-upgrade/generate-author-link",
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+        const response = await api.post(
+            "/profile-upgrade/generate-author-link"
+        );
 
-      setSubscriptionUrl(
-        response.data.subscription_url
-      );
+        setSubscriptionUrl(response.data.link);
 
-      setUpgrade(response.data.upgrade);
-
-      toast.success("Author link generated successfully.");
+        toast.success(response.data.message);
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-        "Unable to generate author link."
-      );
+        if (error.response?.status === 409) {
+            toast.success("Your author profile is already created.");
+
+            // Optionally display or navigate to the returned public URL.
+            if (error.response.data.public_url) {
+                setSubscriptionUrl(error.response.data.public_url);
+            }
+
+            return;
+        }
+
+        toast.error(
+            error.response?.data?.message ||
+            "Unable to generate author setup link."
+        );
     } finally {
-      setGeneratingLink(false);
+        setGeneratingLink(false);
     }
-  };
+};
 
   const handleCopyLink = async () => {
     if (!subscriptionUrl) {
@@ -280,18 +273,20 @@ export default function ProfileUpgradeModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900"
+        className="w-full dark:text-white max-w-lg overflow-y-auto scrollbar scrollbar-thumb-gray-200 
+        scrollbar-track-transparent scrollbar-thin overflow-hidden rounded-2xl bg-white 
+        shadow-2xl dark:bg-gray-900"
         onClick={(event) => event.stopPropagation()}
       >
         {/* Header */}
 
         <div className="flex items-center justify-between border-b border-gray-200 p-5 dark:border-gray-700">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-bold dark:text-white">
               Profile Upgrade
             </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm">
               Upgrade your name and unlock profile features.
             </p>
           </div>
@@ -314,23 +309,24 @@ export default function ProfileUpgradeModal({
           </div>
         ) : (
           <>
-            <div className="max-h-[70vh] overflow-y-auto p-5">
+            <div className="max-h-[70vh] overflow-y-auto scrollbar scrollbar-thumb-gray-200 
+        scrollbar-track-transparent scrollbar-thin p-3">
 
               {/* Badge balance */}
 
               <div className="mb-5 flex items-center justify-between rounded-xl bg-green-50 p-4 dark:bg-green-950/30">
                 <div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm">
                     Badge Balance
                   </p>
 
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-xl font-bold text-green-600">
                     {badgeBalance}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm">
                     {hasUpgrade
                       ? "Upgrade status"
                       : "Upgrade cost"}
@@ -359,10 +355,10 @@ export default function ProfileUpgradeModal({
                   }
                   maxLength={100}
                   placeholder="Enter your new name"
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full text-black rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
 
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs">
                   This changes your actual first and last name.
                 </p>
               </div>
@@ -403,7 +399,7 @@ export default function ProfileUpgradeModal({
                             {type.label}
                           </p>
 
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs">
                             {type.description}
                           </p>
                         </div>
@@ -433,7 +429,7 @@ export default function ProfileUpgradeModal({
                       </span>
                     </div>
 
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs">
                       Allow friends to tag you in posts and products.
                     </p>
                   </div>
@@ -468,7 +464,7 @@ export default function ProfileUpgradeModal({
                     Question Categories
                   </h3>
 
-                  <p className="mb-3 text-sm text-gray-500">
+                  <p className="mb-3 text-sm">
                     Select the topics you want to receive questions about.
                   </p>
 
@@ -514,10 +510,10 @@ export default function ProfileUpgradeModal({
                     rows={4}
                     maxLength={2000}
                     placeholder="Describe your business, products, services and why people should trade with you."
-                    className="w-full rounded-xl border border-gray-300 bg-white p-3 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="w-full text-black rounded-xl border border-gray-300 bg-white p-3 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                   />
 
-                  <p className="text-right text-xs text-gray-500">
+                  <p className="text-right text-xs">
                     {businessDescription.length}/2000
                   </p>
                 </div>
@@ -531,7 +527,7 @@ export default function ProfileUpgradeModal({
                     Author Link
                   </h3>
 
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm">
                     Generate a unique link for people to follow or subscribe to your profile.
                   </p>
 
@@ -587,7 +583,7 @@ export default function ProfileUpgradeModal({
               {/* Preview */}
 
               <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
-                <p className="mb-2 text-xs font-semibold uppercase text-gray-500">
+                <p className="mb-2 text-xs font-semibold uppercase">
                   Preview
                 </p>
 
@@ -602,7 +598,7 @@ export default function ProfileUpgradeModal({
                   />
                 </div>
 
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs">
                   {selectedType?.label}
                 </p>
               </div>
